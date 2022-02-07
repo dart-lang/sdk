@@ -9,36 +9,25 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
         isMandatoryFormalParameterKind,
         isOptionalNamedFormalParameterKind,
         isOptionalPositionalFormalParameterKind;
-
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind;
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, VariableDeclaration;
-
 import 'package:kernel/src/legacy_erasure.dart';
 
 import '../constant_context.dart' show ConstantContext;
-
-import '../modifier.dart';
-
-import '../scope.dart' show Scope;
-
-import '../source/source_library_builder.dart';
-
 import '../kernel/body_builder.dart' show BodyBuilder;
-
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
-
+import '../modifier.dart';
+import '../scope.dart' show Scope;
+import '../source/source_factory_builder.dart';
+import '../source/source_field_builder.dart';
+import '../source/source_library_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
-
 import 'builder.dart';
 import 'class_builder.dart';
 import 'constructor_builder.dart';
-import 'factory_builder.dart';
-import 'field_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
@@ -208,7 +197,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   void finalizeInitializingFormal(ClassBuilder classBuilder) {
     Builder? fieldBuilder = classBuilder.lookupLocalMember(name);
-    if (fieldBuilder is FieldBuilder) {
+    if (fieldBuilder is SourceFieldBuilder) {
       variable!.type = fieldBuilder.inferType();
     } else {
       variable!.type = const DynamicType();

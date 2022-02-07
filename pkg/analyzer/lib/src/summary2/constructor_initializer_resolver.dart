@@ -46,7 +46,7 @@ class ConstructorInitializerResolver {
       element,
     );
 
-    var astResolver = AstResolver(_linker, unitElement, initializerScope, node,
+    var astResolver = AstResolver(_linker, unitElement, initializerScope,
         enclosingClassElement: classElement,
         enclosingExecutableElement: element);
 

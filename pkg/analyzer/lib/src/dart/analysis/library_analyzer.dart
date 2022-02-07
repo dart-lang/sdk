@@ -51,7 +51,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 var timerLibraryAnalyzer = Stopwatch();
 var timerLibraryAnalyzerConst = Stopwatch();
@@ -72,17 +71,11 @@ class AnalysisForCompletionResult {
 
 /// Analyzer of a single library.
 class LibraryAnalyzer {
-  /// A marker object used to prevent the initialization of
-  /// [_versionConstraintFromPubspec] when the previous initialization attempt
-  /// failed.
-  static final VersionRange noSpecifiedRange = VersionRange();
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
   final FileState _library;
-
   final InheritanceManager3 _inheritance;
-  final AnalysisContext _context;
 
   final LibraryElementImpl _libraryElement;
 
@@ -92,16 +85,11 @@ class LibraryAnalyzer {
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
   final TestingData? _testingData;
-  final List<UsedImportedElements> _usedImportedElementsList = [];
-  final List<UsedLocalElements> _usedLocalElementsList = [];
-
-  final Set<ConstantEvaluationTarget> _constants = {};
 
   LibraryAnalyzer(
       this._analysisOptions,
       this._declaredVariables,
       this._sourceFactory,
-      this._context,
       this._libraryElement,
       this._inheritance,
       this._library,
@@ -113,98 +101,25 @@ class LibraryAnalyzer {
   TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
 
   /// Compute analysis results for all units of the library.
-  Map<FileState, UnitAnalysisResult> analyze() {
-    timerLibraryAnalyzer.start();
-    Map<FileState, CompilationUnitImpl> units = {};
-
-    // Parse all files.
-    timerLibraryAnalyzerFreshUnit.start();
-    for (FileState file in _library.libraryFiles) {
-      units[file] = _parse(file);
-    }
-    timerLibraryAnalyzerFreshUnit.stop();
-
-    // Resolve URIs in directives to corresponding sources.
-    FeatureSet featureSet = units[_library]!.featureSet;
-    units.forEach((file, unit) {
-      _validateFeatureSet(unit, featureSet);
-      _resolveUriBasedDirectives(file, unit);
-    });
-
-    timerLibraryAnalyzerResolve.start();
-    _resolveDirectives(units);
-
-    units.forEach((file, unit) {
-      _resolveFile(file, unit);
-    });
-    timerLibraryAnalyzerResolve.stop();
-
-    timerLibraryAnalyzerConst.start();
-    units.values.forEach(_findConstants);
-    _computeConstants();
-    timerLibraryAnalyzerConst.stop();
-
-    timerLibraryAnalyzerVerify.start();
-    units.forEach((file, unit) {
-      _computeVerifyErrors(file, unit);
-    });
-
-    if (_analysisOptions.hint) {
-      units.forEach((file, unit) {
-        {
-          var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
-          unit.accept(visitor);
-          _usedLocalElementsList.add(visitor.usedElements);
-        }
-        {
-          var visitor = GatherUsedImportedElementsVisitor(_libraryElement);
-          unit.accept(visitor);
-          _usedImportedElementsList.add(visitor.usedElements);
-        }
-      });
-      units.forEach((file, unit) {
-        _computeHints(file, unit);
-      });
-    }
-
-    if (_analysisOptions.lint) {
-      var allUnits = _library.libraryFiles
-          .map((file) => LinterContextUnit(file.content, units[file]!))
-          .toList();
-      for (int i = 0; i < allUnits.length; i++) {
-        _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
-      }
-    }
-
-    assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
-
-    _checkForInconsistentLanguageVersionOverride(units);
-
-    // This must happen after all other diagnostics have been computed but
-    // before the list of diagnostics has been filtered.
-    for (var file in _library.libraryFiles) {
-      IgnoreValidator(
-        _getErrorReporter(file),
-        _getErrorListener(file).errors,
-        _fileToIgnoreInfo[file]!,
-        _fileToLineInfo[file]!,
-        _analysisOptions.unignorableNames,
-      ).reportErrors();
-    }
-
-    timerLibraryAnalyzerVerify.stop();
+  List<UnitAnalysisResult> analyze() {
+    var units = _parseAndResolve();
+    _computeDiagnostics(units);
 
     // Return full results.
-    Map<FileState, UnitAnalysisResult> results = {};
+    var results = <UnitAnalysisResult>[];
     units.forEach((file, unit) {
       List<AnalysisError> errors = _getErrorListener(file).errors;
       errors = _filterIgnoredErrors(file, errors);
-      results[file] = UnitAnalysisResult(file, unit, errors);
+      results.add(UnitAnalysisResult(file, unit, errors));
     });
     timerLibraryAnalyzer.stop();
     return results;
   }
 
+  /// Analyze [file] for a completion result.
+  ///
+  /// This method aims to avoid work that [analyze] does which would be
+  /// unnecessary for a completion request.
   AnalysisForCompletionResult analyzeForCompletion({
     required FileState file,
     required int offset,
@@ -264,8 +179,8 @@ class LibraryAnalyzer {
             e.parent is MixinDeclaration;
       });
       if (nodeToResolve != null) {
-        var can = resolverVisitor.prepareForResolving(nodeToResolve);
-        if (can) {
+        var canResolveNode = resolverVisitor.prepareForResolving(nodeToResolve);
+        if (canResolveNode) {
           nodeToResolve.accept(resolverVisitor);
           return AnalysisForCompletionResult(
             parsedUnit: parsedUnit,
@@ -274,11 +189,11 @@ class LibraryAnalyzer {
         }
       }
 
-      var resolvedUnits = analyze();
-      var resolvedUnit = resolvedUnits[file]!;
+      var units = _parseAndResolve();
+      var unit = units[file]!;
       return AnalysisForCompletionResult(
-        parsedUnit: resolvedUnit.unit,
-        resolvedNodes: [resolvedUnit.unit],
+        parsedUnit: unit,
+        resolvedNodes: [unit],
       );
     });
   }
@@ -333,12 +248,80 @@ class LibraryAnalyzer {
   }
 
   /// Compute [_constants] in all units.
-  void _computeConstants() {
-    computeConstants(_typeProvider, _typeSystem, _declaredVariables,
-        _constants.toList(), _libraryElement.featureSet);
+  void _computeConstants(Iterable<CompilationUnitImpl> units) {
+    var constants = [
+      for (var unit in units) ..._findConstants(unit),
+    ];
+    computeConstants(_declaredVariables, constants, _libraryElement.featureSet);
   }
 
-  void _computeHints(FileState file, CompilationUnit unit) {
+  /// Compute diagnostics in [units], including errors and warnings, hints,
+  /// lints, and a few other cases.
+  void _computeDiagnostics(Map<FileState, CompilationUnitImpl> units) {
+    timerLibraryAnalyzerVerify.start();
+    units.forEach((file, unit) {
+      _computeVerifyErrors(file, unit);
+    });
+
+    if (_analysisOptions.hint) {
+      var usedImportedElements = <UsedImportedElements>[];
+      var usedLocalElements = <UsedLocalElements>[];
+      for (var unit in units.values) {
+        {
+          var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
+          unit.accept(visitor);
+          usedLocalElements.add(visitor.usedElements);
+        }
+        {
+          var visitor = GatherUsedImportedElementsVisitor(_libraryElement);
+          unit.accept(visitor);
+          usedImportedElements.add(visitor.usedElements);
+        }
+      }
+      units.forEach((file, unit) {
+        _computeHints(
+          file,
+          unit,
+          usedImportedElements: usedImportedElements,
+          usedLocalElements: usedLocalElements,
+        );
+      });
+    }
+
+    if (_analysisOptions.lint) {
+      var allUnits = _library.libraryFiles
+          .map((file) => LinterContextUnit(file.content, units[file]!))
+          .toList();
+      for (int i = 0; i < allUnits.length; i++) {
+        _computeLints(_library.libraryFiles[i], allUnits[i], allUnits,
+            analysisOptions: _analysisOptions);
+      }
+    }
+
+    assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
+
+    _checkForInconsistentLanguageVersionOverride(units);
+
+    // This must happen after all other diagnostics have been computed but
+    // before the list of diagnostics has been filtered.
+    for (var file in _library.libraryFiles) {
+      IgnoreValidator(
+        _getErrorReporter(file),
+        _getErrorListener(file).errors,
+        _fileToIgnoreInfo[file]!,
+        _fileToLineInfo[file]!,
+        _analysisOptions.unignorableNames,
+      ).reportErrors();
+    }
+    timerLibraryAnalyzerVerify.stop();
+  }
+
+  void _computeHints(
+    FileState file,
+    CompilationUnit unit, {
+    required List<UsedImportedElements> usedImportedElements,
+    required List<UsedLocalElements> usedLocalElements,
+  }) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
@@ -365,7 +348,7 @@ class LibraryAnalyzer {
         declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
-        analysisOptions: _context.analysisOptions,
+        analysisOptions: _analysisOptions,
         workspacePackage: _library.workspacePackage,
       ),
     );
@@ -383,19 +366,19 @@ class LibraryAnalyzer {
     {
       ImportsVerifier verifier = ImportsVerifier();
       verifier.addImports(unit);
-      _usedImportedElementsList.forEach(verifier.removeUsedElements);
+      usedImportedElements.forEach(verifier.removeUsedElements);
       verifier.generateDuplicateImportHints(errorReporter);
       verifier.generateDuplicateShownHiddenNameHints(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
       verifier.generateUnusedShownNameHints(errorReporter);
       verifier.generateUnnecessaryImportHints(
-          errorReporter, _usedImportedElementsList);
+          errorReporter, usedImportedElements);
     }
 
     // Unused local elements.
     {
       UsedLocalElements usedElements =
-          UsedLocalElements.merge(_usedLocalElementsList);
+          UsedLocalElements.merge(usedLocalElements);
       UnusedLocalElementsVerifier visitor = UnusedLocalElementsVerifier(
           errorListener, usedElements, _inheritance, _libraryElement);
       unit.accept(visitor);
@@ -413,12 +396,16 @@ class LibraryAnalyzer {
     }
   }
 
-  void _computeLints(FileState file, LinterContextUnit currentUnit,
-      List<LinterContextUnit> allUnits) {
+  void _computeLints(
+    FileState file,
+    LinterContextUnit currentUnit,
+    List<LinterContextUnit> allUnits, {
+    required AnalysisOptionsImpl analysisOptions,
+  }) {
     var unit = currentUnit.unit;
     var errorReporter = _getErrorReporter(file);
 
-    var enableTiming = _analysisOptions.enableTiming;
+    var enableTiming = analysisOptions.enableTiming;
     var nodeRegistry = NodeLintRegistry(enableTiming);
 
     var context = LinterContextImpl(
@@ -428,10 +415,10 @@ class LibraryAnalyzer {
       _typeProvider,
       _typeSystem,
       _inheritance,
-      _analysisOptions,
+      analysisOptions,
       file.workspacePackage,
     );
-    for (var linter in _analysisOptions.lintRules) {
+    for (var linter in analysisOptions.lintRules) {
       linter.reporter = errorReporter;
       var timer = enableTiming ? lintRegistry.getTimer(linter) : null;
       timer?.start();
@@ -444,7 +431,7 @@ class LibraryAnalyzer {
       LinterVisitor(
         nodeRegistry,
         LinterExceptionHandler(
-          propagateExceptions: _analysisOptions.propagateLinterExceptions,
+          propagateExceptions: analysisOptions.propagateLinterExceptions,
         ).logException,
       ),
     );
@@ -522,17 +509,6 @@ class LibraryAnalyzer {
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
   }
 
-  /// Find constants to compute.
-  void _findConstants(CompilationUnit unit) {
-    ConstantFinder constantFinder = ConstantFinder();
-    unit.accept(constantFinder);
-    _constants.addAll(constantFinder.constantsToCompute);
-
-    var dependenciesFinder = ConstantExpressionsDependenciesFinder();
-    unit.accept(dependenciesFinder);
-    _constants.addAll(dependenciesFinder.dependencies);
-  }
-
   RecordingErrorListener _getErrorListener(FileState file) =>
       _errorListeners.putIfAbsent(file, () => RecordingErrorListener());
 
@@ -589,11 +565,45 @@ class LibraryAnalyzer {
     String content = file.content;
     var unit = file.parse(errorListener);
 
-    LineInfo lineInfo = unit.lineInfo!;
-    _fileToLineInfo[file] = lineInfo;
+    _fileToLineInfo[file] = unit.lineInfo!;
     _fileToIgnoreInfo[file] = IgnoreInfo.forDart(unit, content);
 
     return unit;
+  }
+
+  /// Parse and resolve all files in [_library].
+  Map<FileState, CompilationUnitImpl> _parseAndResolve() {
+    timerLibraryAnalyzer.start();
+    var units = <FileState, CompilationUnitImpl>{};
+
+    // Parse all files.
+    timerLibraryAnalyzerFreshUnit.start();
+    for (FileState file in _library.libraryFiles) {
+      units[file] = _parse(file);
+    }
+    timerLibraryAnalyzerFreshUnit.stop();
+
+    // Resolve URIs in directives to corresponding sources.
+    FeatureSet featureSet = units[_library]!.featureSet;
+    units.forEach((file, unit) {
+      _validateFeatureSet(unit, featureSet);
+      _resolveUriBasedDirectives(file, unit);
+    });
+
+    timerLibraryAnalyzerResolve.start();
+    _resolveDirectives(units);
+
+    units.forEach((file, unit) {
+      _resolveFile(file, unit);
+    });
+    timerLibraryAnalyzerResolve.stop();
+
+    timerLibraryAnalyzerConst.start();
+
+    _computeConstants(units.values);
+    timerLibraryAnalyzerConst.stop();
+
+    return units;
   }
 
   void _resolveDirectives(Map<FileState, CompilationUnitImpl> units) {
@@ -915,6 +925,19 @@ class LibraryAnalyzer {
         _validateUriBasedDirective(file, directive);
       }
     }
+  }
+
+  /// Find constants in [unit] to compute.
+  static List<ConstantEvaluationTarget> _findConstants(CompilationUnit unit) {
+    ConstantFinder constantFinder = ConstantFinder();
+    unit.accept(constantFinder);
+
+    var dependenciesFinder = ConstantExpressionsDependenciesFinder();
+    unit.accept(dependenciesFinder);
+    return [
+      ...constantFinder.constantsToCompute,
+      ...dependenciesFinder.dependencies,
+    ];
   }
 
   static bool _hasEmptyCompletionContext(AstNode? node) {

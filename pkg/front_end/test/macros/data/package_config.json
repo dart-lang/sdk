@@ -6,8 +6,12 @@
       "rootUri": "pkgs/macro/lib/"
     },
     {
-      "name": "macro_builder",
-      "rootUri": "pkgs/macro_builder/lib/"
+      "name": "precompiled_macro",
+      "rootUri": "pkgs/precompiled_macro/lib/"
+    },
+    {
+      "name": "_fe_analyzer_shared",
+      "rootUri": "../../../../_fe_analyzer_shared/lib/"
     }
   ]
 }

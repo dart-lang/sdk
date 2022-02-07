@@ -25,7 +25,6 @@ import '../../dev_compiler.dart';
 import '../compiler/js_names.dart';
 import 'asset_file_system.dart';
 import 'command.dart';
-import 'target.dart' show sdkLibraryEnvironmentDefines;
 
 /// The service that handles expression compilation requests from
 /// the debugger.
@@ -231,8 +230,6 @@ class ExpressionCompilerWorker {
       ..omitPlatform = true
       ..environmentDefines = {
         if (environmentDefines != null) ...environmentDefines,
-        // TODO(47243) Remove when all code paths read these from the `Target`.
-        ...sdkLibraryEnvironmentDefines
       }
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)

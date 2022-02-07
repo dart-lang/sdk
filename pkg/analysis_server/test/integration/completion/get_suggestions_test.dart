@@ -90,10 +90,11 @@ main() {
   test.^
 }
 ''');
+    standardAnalysisSetup();
+    await analysisFinished;
     // Create an overlay but do not write the file to "disk"
     //   writeFile(pathname, text);
     // Don't wait for any results except the completion notifications
-    standardAnalysisSetup(subscribeStatus: false);
     sendAnalysisUpdateContent({path: AddContentOverlay(content)});
     sendCompletionGetSuggestions(path, completionOffset);
     var param = await onCompletionResults
@@ -109,7 +110,8 @@ main() {
     // Do not write the file to "disk"
     //   writeFile(pathname, text);
     // Don't wait for any results except the completion notifications
-    standardAnalysisSetup(subscribeStatus: false);
+    standardAnalysisSetup();
+    await analysisFinished;
     // Missing file and no overlay
     //sendAnalysisUpdateContent({path: new AddContentOverlay(content)});
     var result = await sendCompletionGetSuggestions(path, 0);

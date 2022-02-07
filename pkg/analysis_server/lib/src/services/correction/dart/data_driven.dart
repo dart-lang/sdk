@@ -33,15 +33,17 @@ class DataDriven extends MultiCorrectionProducer {
         importedUris.add(Uri.parse(uri));
       }
     }
-    var matcher = ElementMatcher.forNode(node);
-    if (matcher == null) {
-      // The node doesn't represent an element that can be transformed.
+    var matchers = ElementMatcher.matchersForNode(node);
+    if (matchers.isEmpty) {
+      // The node doesn't represent any element that can be transformed.
       return;
     }
     for (var set in _availableTransformSetsForLibrary(library)) {
-      for (var transform
-          in set.transformsFor(matcher, applyingBulkFixes: applyingBulkFixes)) {
-        yield DataDrivenFix(transform);
+      for (var matcher in matchers) {
+        for (var transform in set.transformsFor(matcher,
+            applyingBulkFixes: applyingBulkFixes)) {
+          yield DataDrivenFix(transform);
+        }
       }
     }
   }

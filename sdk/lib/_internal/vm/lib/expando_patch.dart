@@ -166,3 +166,27 @@ class Expando<T> {
   List<_WeakProperty?> _data;
   int _used; // Number of used (active and deleted) slots.
 }
+
+@patch
+class WeakReference<T extends Object> {
+  @patch
+  factory WeakReference(T object) = _WeakReferenceImpl<T>;
+}
+
+class _WeakReferenceImpl<T extends Object> implements WeakReference<T> {
+  // TODO(http://dartbug.com/48162): Implement _WeakReference in the VM
+  // instead of reusing WeakProperty.
+  final _WeakProperty _weakProperty;
+
+  _WeakReferenceImpl(T object) : _weakProperty = _WeakProperty()..key = object;
+
+  T? get target => unsafeCast<T?>(_weakProperty.key);
+}
+
+@patch
+class Finalizer<T> {
+  @patch
+  factory Finalizer(void Function(T) object) {
+    throw UnimplementedError("Finalizer");
+  }
+}

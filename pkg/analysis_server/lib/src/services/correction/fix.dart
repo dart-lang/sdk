@@ -143,6 +143,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Add 'late' modifier",
   );
+  static const ADD_LEADING_NEWLINE_TO_STRING = FixKind(
+    'dart.fix.add.leadingNewlineToString',
+    DartFixKindPriority.DEFAULT,
+    'Add leading new line',
+  );
+  static const ADD_LEADING_NEWLINE_TO_STRING_MULTI = FixKind(
+    'dart.fix.add.leadingNewlineToString.multi',
+    DartFixKindPriority.DEFAULT,
+    'Add leading new line everywhere in file',
+  );
   static const ADD_MISSING_ENUM_CASE_CLAUSES = FixKind(
     'dart.fix.add.missingEnumCaseClauses',
     DartFixKindPriority.DEFAULT,
@@ -634,6 +644,11 @@ class DartFixKind {
     'dart.fix.extendClassForMixin',
     DartFixKindPriority.DEFAULT,
     "Extend the class '{0}'",
+  );
+  static const EXTRACT_LOCAL_VARIABLE = FixKind(
+    'dart.fix.extractLocalVariable',
+    DartFixKindPriority.DEFAULT,
+    'Extract local variable',
   );
   static const IGNORE_ERROR_LINE = FixKind(
     'dart.fix.ignore.line',

@@ -97,7 +97,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
   _PhysicalFile(io.File file) : super(file);
 
   @override
-  Stream<WatchEvent> get changes => FileWatcher(_entry.path).events;
+  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   int get lengthSync {
@@ -180,6 +180,12 @@ class _PhysicalFile extends _PhysicalResource implements File {
   Uri toUri() => Uri.file(path);
 
   @override
+  ResourceWatcher watch() {
+    final watcher = FileWatcher(_entry.path);
+    return ResourceWatcher(watcher.events, watcher.ready);
+  }
+
+  @override
   void writeAsBytesSync(List<int> bytes) {
     try {
       _file.writeAsBytesSync(bytes);
@@ -203,14 +209,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   _PhysicalFolder(io.Directory directory) : super(directory);
 
   @override
-  Stream<WatchEvent> get changes =>
-      DirectoryWatcher(_entry.path).events.handleError((Object error) {},
-          test: (error) =>
-              error is io.FileSystemException &&
-              // Don't suppress "Directory watcher closed," so the outer
-              // listener can see the interruption & act on it.
-              !error.message
-                  .startsWith("Directory watcher closed unexpectedly"));
+  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   bool get isRoot {
@@ -308,6 +307,18 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   Uri toUri() => Uri.directory(path);
+
+  @override
+  ResourceWatcher watch() {
+    final watcher = DirectoryWatcher(_entry.path);
+    final events = watcher.events.handleError((Object error) {},
+        test: (error) =>
+            error is io.FileSystemException &&
+            // Don't suppress "Directory watcher closed," so the outer
+            // listener can see the interruption & act on it.
+            !error.message.startsWith("Directory watcher closed unexpectedly"));
+    return ResourceWatcher(events, watcher.ready);
+  }
 }
 
 /// A `dart:io` based implementation of [Resource].

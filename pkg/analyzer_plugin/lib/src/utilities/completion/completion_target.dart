@@ -117,6 +117,16 @@ class CompletionTarget {
   /// otherwise this is `null`.
   ParameterElement? _parameterElement;
 
+  /// The enclosing [ClassElement], or `null` if not in a class.
+  late final ClassElement? enclosingClassElement = containingNode
+      .thisOrAncestorOfType<ClassOrMixinDeclaration>()
+      ?.declaredElement;
+
+  /// The enclosing [ExtensionElement], or `null` if not in an extension.
+  late final ExtensionElement? enclosingExtensionElement = containingNode
+      .thisOrAncestorOfType<ExtensionDeclaration>()
+      ?.declaredElement;
+
   /// Compute the appropriate [CompletionTarget] for the given [offset] within
   /// the [entryPoint].
   factory CompletionTarget.forOffset(AstNode entryPoint, int offset) {
@@ -564,6 +574,7 @@ class CompletionTarget {
     if (token.type != TokenType.EOF && offset >= token.offset) {
       return null;
     }
+    final startToken = token;
     token = token.precedingComments;
     while (token != null) {
       if (offset <= token.offset) {
@@ -576,6 +587,21 @@ class CompletionTarget {
       }
       token = token.next;
     }
+
+    // It's possible the supplied token was a DartDoc token and there were
+    // normal comments before it that don't show up in precedingComments so
+    // check for them too.
+    token = startToken.previous;
+    while (token != null &&
+        offset <= token.end &&
+        (token.type == TokenType.SINGLE_LINE_COMMENT ||
+            token.type == TokenType.MULTI_LINE_COMMENT)) {
+      if (offset >= token.offset) {
+        return token;
+      }
+      token = token.previous;
+    }
+
     return null;
   }
 

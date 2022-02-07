@@ -6,6 +6,9 @@
 # Run dev compiler on the Dart VM. This script assumes the Dart SDK's
 # directory structure.
 
+echo "Warning: this 'dartdevc' script is deprecated and will be removed. " 1>&2
+echo "More details at https://github.com/dart-lang/sdk/issues/46100." 1>&2
+
 function follow_links() {
   file="$1"
   while [ -h "$file" ]; do

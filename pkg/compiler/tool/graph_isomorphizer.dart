@@ -142,8 +142,11 @@ class GraphIsomorphizer {
   /// A bool to omit the comment block.
   final bool skipCopyright;
 
+  // A bool to generate simple code within test files.
+  final bool simple;
+
   GraphIsomorphizer(this.names, this.maxBit,
-      {this.outDirectory: '.', this.skipCopyright: false});
+      {this.outDirectory: '.', this.skipCopyright: false, this.simple: false});
 
   void noInlineDecorator(StringBuffer out) {
     out.write("@pragma('dart2js:noInline')\n");
@@ -188,90 +191,92 @@ class GraphIsomorphizer {
     var nameKeys = names.keys.toList();
     nameKeys.sort();
 
-    // Generate the 'base' classes, mixins, and types which will be combined to
-    // generate hierarchies. Also generate a const instance per class and a closure
-    // to invoke.
     Set<String> uniques = {};
-    for (var bitPosition in nameKeys) {
-      var bitsList = names[bitPosition];
-      for (var bits in bitsList) {
-        var name = generateBitString(bits);
-        if (!uniques.add(name)) continue;
-        String className = 'C$name';
-        String mixinName = 'M$name';
-        String typeName = 'T$name';
-        (classNames[bitPosition] ??= []).add(className);
-        (mixinNames[bitPosition] ??= []).add(mixinName);
-        (typeNames[bitPosition] ??= []).add(typeName);
-        (mixerClassNames[bitPosition] ??= []).add(className);
-        (mixerTypeNames[bitPosition] ??= []).add(typeName);
-        out.write('class $className { const $className(); }\n');
-        out.write('class $mixinName {}\n');
-        out.write('class $typeName {}\n');
-        out.write('const $className i$className = const $className();\n');
-        out.write('closure$className(foo) => ($className unused) ');
-        out.write('=> i$className.toString() == foo.toString();\n');
+    if (!simple) {
+      // Generate the 'base' classes, mixins, and types which will be combined to
+      // generate hierarchies. Also generate a const instance per class and a closure
+      // to invoke.
+      for (var bitPosition in nameKeys) {
+        var bitsList = names[bitPosition];
+        for (var bits in bitsList) {
+          var name = generateBitString(bits);
+          if (!uniques.add(name)) continue;
+          String className = 'C$name';
+          String mixinName = 'M$name';
+          String typeName = 'T$name';
+          (classNames[bitPosition] ??= []).add(className);
+          (mixinNames[bitPosition] ??= []).add(mixinName);
+          (typeNames[bitPosition] ??= []).add(typeName);
+          (mixerClassNames[bitPosition] ??= []).add(className);
+          (mixerTypeNames[bitPosition] ??= []).add(typeName);
+          out.write('class $className { const $className(); }\n');
+          out.write('class $mixinName {}\n');
+          out.write('class $typeName {}\n');
+          out.write('const $className i$className = const $className();\n');
+          out.write('closure$className(foo) => ($className unused) ');
+          out.write('=> i$className.toString() == foo.toString();\n');
+        }
       }
-    }
 
-    // Generate combined classes and types, as well as const instances and
-    // closures.
-    newline(out);
-    uniques = {};
-    for (var bitPosition in nameKeys) {
-      var bitsList = names[bitPosition];
-      for (var bits in bitsList) {
-        var name = generateBitString(bits);
-        var bitCount = bits.reduce((a, b) => a + b);
-        var baseName = 'C$name';
-        if (!uniques.add(baseName)) continue;
-        if (bitCount > 1) {
-          List<String> classes = [];
-          List<String> mixins = [];
-          List<String> types = [];
-          for (int i = 0; i < bits.length; i++) {
-            if (bits[i] == 1) {
-              classes.addAll(classNames[i]);
-              mixins.addAll(mixinNames[i]);
-              types.addAll(typeNames[i]);
-            }
-          }
-          String mixinString = mixins.join(', ');
-          int count = 1;
-          assert(classes.length == types.length);
-          for (int i = 0; i < classes.length; i++) {
-            var cls = classes[i];
-            var type = types[i];
-            List<String> classImpls = [];
-            List<String> typeImpls = [];
-            if (i > 0) {
-              classImpls.addAll(classes.sublist(0, i));
-              typeImpls.addAll(types.sublist(0, i));
-            }
-            if (i < classes.length - 1) {
-              classImpls.addAll(classes.sublist(i + 1));
-              typeImpls.addAll(types.sublist(i + 1));
-            }
-            var classImplementsString = classImpls.join(', ');
-            String className = '${baseName}_class_${count}';
-            out.write('class $className extends $cls with $mixinString ');
-            out.write(
-                'implements $classImplementsString { const $className(); }\n');
-            out.write('const $className i$className = const $className();\n');
-            out.write('closure$className(foo) => ($className unused) ');
-            out.write('=> i$className.toString() == foo.toString();\n');
-
-            var typeImplementsString = typeImpls.join(', ');
-            String typeName = 'T${name}_type__${count}';
-            out.write('class $typeName extends $type with $mixinString ');
-            out.write('implements $typeImplementsString {}\n');
+      // Generate combined classes and types, as well as const instances and
+      // closures.
+      newline(out);
+      uniques = {};
+      for (var bitPosition in nameKeys) {
+        var bitsList = names[bitPosition];
+        for (var bits in bitsList) {
+          var name = generateBitString(bits);
+          var bitCount = bits.reduce((a, b) => a + b);
+          var baseName = 'C$name';
+          if (!uniques.add(baseName)) continue;
+          if (bitCount > 1) {
+            List<String> classes = [];
+            List<String> mixins = [];
+            List<String> types = [];
             for (int i = 0; i < bits.length; i++) {
               if (bits[i] == 1) {
-                mixerClassNames[i].add(className);
-                mixerTypeNames[i].add(typeName);
+                classes.addAll(classNames[i]);
+                mixins.addAll(mixinNames[i]);
+                types.addAll(typeNames[i]);
               }
             }
-            count++;
+            String mixinString = mixins.join(', ');
+            int count = 1;
+            assert(classes.length == types.length);
+            for (int i = 0; i < classes.length; i++) {
+              var cls = classes[i];
+              var type = types[i];
+              List<String> classImpls = [];
+              List<String> typeImpls = [];
+              if (i > 0) {
+                classImpls.addAll(classes.sublist(0, i));
+                typeImpls.addAll(types.sublist(0, i));
+              }
+              if (i < classes.length - 1) {
+                classImpls.addAll(classes.sublist(i + 1));
+                typeImpls.addAll(types.sublist(i + 1));
+              }
+              var classImplementsString = classImpls.join(', ');
+              String className = '${baseName}_class_${count}';
+              out.write('class $className extends $cls with $mixinString ');
+              out.write(
+                  'implements $classImplementsString { const $className(); }\n');
+              out.write('const $className i$className = const $className();\n');
+              out.write('closure$className(foo) => ($className unused) ');
+              out.write('=> i$className.toString() == foo.toString();\n');
+
+              var typeImplementsString = typeImpls.join(', ');
+              String typeName = 'T${name}_type__${count}';
+              out.write('class $typeName extends $type with $mixinString ');
+              out.write('implements $typeImplementsString {}\n');
+              for (int i = 0; i < bits.length; i++) {
+                if (bits[i] == 1) {
+                  mixerClassNames[i].add(className);
+                  mixerTypeNames[i].add(typeName);
+                }
+              }
+              count++;
+            }
           }
         }
       }
@@ -301,35 +306,41 @@ class GraphIsomorphizer {
     importExpect(out);
     out.write("import '$import';\n\n");
 
-    // create type test.
-    noInlineDecorator(out);
-    out.write('typeTest(dynamic t) {\n');
-    for (var type in mixerTypeNames[bit]) {
-      out.write('  if (t is $type) { return true; }\n');
+    if (!simple) {
+      // create type test.
+      noInlineDecorator(out);
+      out.write('typeTest(dynamic t) {\n');
+      for (var type in mixerTypeNames[bit]) {
+        out.write('  if (t is $type) { return true; }\n');
+      }
+      out.write('  return false;\n');
+      out.write('}\n\n');
     }
-    out.write('  return false;\n');
-    out.write('}\n\n');
 
     noInlineDecorator(out);
     out.write('g$name() {\n');
-    out.write('  // C${generateCommentName(bits, bit)};\n');
 
-    // Construct new instances of each class and pass them to the typeTest
-    for (var cls in mixerClassNames[bit]) {
-      out.write('  Expect.isFalse(typeTest($cls()));\n');
-    }
-    newline(out);
+    if (!simple) {
+      out.write('  // C${generateCommentName(bits, bit)};\n');
 
-    // Invoke the test closure for each class.
-    for (var cls in mixerClassNames[bit]) {
-      out.write('  Expect.isTrue(closure$cls($cls())($cls()));\n');
-    }
-    newline(out);
+      // Construct new instances of each class and pass them to the typeTest
+      for (var cls in mixerClassNames[bit]) {
+        out.write('  Expect.isFalse(typeTest($cls()));\n');
+      }
+      newline(out);
 
-    // Verify the runtimeTypes of the closures haven't been mangled.
-    for (var cls in mixerClassNames[bit]) {
-      out.write('  Expect.equals(closure$cls($cls()).runtimeType.toString(), ');
-      out.write("'($cls) => bool');\n");
+      // Invoke the test closure for each class.
+      for (var cls in mixerClassNames[bit]) {
+        out.write('  Expect.isTrue(closure$cls($cls())($cls()));\n');
+      }
+      newline(out);
+
+      // Verify the runtimeTypes of the closures haven't been mangled.
+      for (var cls in mixerClassNames[bit]) {
+        out.write(
+            '  Expect.equals(closure$cls($cls()).runtimeType.toString(), ');
+        out.write("'($cls) => bool');\n");
+      }
     }
     newline(out);
 
@@ -466,6 +477,7 @@ class GraphIsomorphizer {
 
 /// Creates a GraphIsomorphizer based on the provided args.
 GraphIsomorphizer createGraphIsomorphizer(List<String> args) {
+  bool simple = true;
   int maxBit = 0;
   String graphFile = '';
   String outDirectory = '.';
@@ -480,6 +492,9 @@ GraphIsomorphizer createGraphIsomorphizer(List<String> args) {
     if (arg.startsWith('--out-dir')) {
       outDirectory = arg.substring('--out-dir='.length);
     }
+    if (arg == '--simple') {
+      simple = true;
+    }
   }
 
   // If we don't have a graphFile, then we generate all permutations of bits up
@@ -491,7 +506,8 @@ GraphIsomorphizer createGraphIsomorphizer(List<String> args) {
   } else {
     maxBit = namesFromGraphFile(graphFile, names);
   }
-  return GraphIsomorphizer(names, maxBit, outDirectory: outDirectory);
+  return GraphIsomorphizer(names, maxBit,
+      outDirectory: outDirectory, simple: simple);
 }
 
 void main(List<String> args) {

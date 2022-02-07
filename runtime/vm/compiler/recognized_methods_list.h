@@ -99,16 +99,16 @@ namespace dart {
   V(::, max, MathMax, 0xead7161a)                                              \
   V(::, _doublePow, MathDoublePow, 0x989f3334)                                 \
   V(::, _intPow, MathIntPow, 0x68b6021e)                                       \
-  V(::, _sin, MathSin, 0x17dacdc4)                                             \
-  V(::, _cos, MathCos, 0xf4948106)                                             \
-  V(::, _tan, MathTan, 0xeb1a58f8)                                             \
-  V(::, _asin, MathAsin, 0x29e4d95f)                                           \
-  V(::, _acos, MathAcos, 0x200aa49c)                                           \
-  V(::, _atan, MathAtan, 0x10fa64b3)                                           \
-  V(::, _atan2, MathAtan2, 0x58d4f514)                                         \
-  V(::, _sqrt, MathSqrt, 0x03183751)                                           \
-  V(::, _exp, MathExp, 0x00f50391)                                             \
-  V(::, _log, MathLog, 0x09ae8823)                                             \
+  V(::, _sin, MathSin, 0x17daca03)                                             \
+  V(::, _cos, MathCos, 0xf4947d45)                                             \
+  V(::, _tan, MathTan, 0xeb1a5537)                                             \
+  V(::, _asin, MathAsin, 0x29e4d59e)                                           \
+  V(::, _acos, MathAcos, 0x200aa0db)                                           \
+  V(::, _atan, MathAtan, 0x10fa60f2)                                           \
+  V(::, _atan2, MathAtan2, 0x58d4f153)                                         \
+  V(::, _sqrt, MathSqrt, 0x03183390)                                           \
+  V(::, _exp, MathExp, 0x00f4ffd0)                                             \
+  V(::, _log, MathLog, 0x09ae8462)                                             \
   V(Float32x4, _Float32x4FromDoubles, Float32x4FromDoubles, 0x1845792b)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 0xd3b64002)                      \
   V(Float32x4, _Float32x4Splat, Float32x4Splat, 0x13a552c3)                    \
@@ -187,7 +187,7 @@ namespace dart {
   V(_WeakProperty, get:value, WeakProperty_getValue, 0xd2f28aae)               \
   V(_WeakProperty, set:value, WeakProperty_setValue, 0x8b2bafab)               \
   V(::, _classRangeCheck, ClassRangeCheck, 0x00269620)                         \
-  V(::, _abi, FfiAbi, 0x7c4ab775)                                              \
+  V(::, _abi, FfiAbi, 0x7c4ab3b4)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x92ae104f)                \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x3ff5ae9c)        \
   V(::, _nativeEffect, NativeEffect, 0x61e00b59)                               \
@@ -201,7 +201,6 @@ namespace dart {
   V(::, _loadUint16, FfiLoadUint16, 0x0cd660ab)                                \
   V(::, _loadUint32, FfiLoadUint32, 0xf66e9416)                                \
   V(::, _loadUint64, FfiLoadUint64, 0x0506018d)                                \
-  V(::, _loadIntPtr, FfiLoadIntPtr, 0xebd9b43e)                                \
   V(::, _loadFloat, FfiLoadFloat, 0xf8d9845d)                                  \
   V(::, _loadFloatUnaligned, FfiLoadFloatUnaligned, 0xc8c8dfff)                \
   V(::, _loadDouble, FfiLoadDouble, 0xf70cc619)                                \
@@ -217,7 +216,6 @@ namespace dart {
   V(::, _storeUint16, FfiStoreUint16, 0xe2fdae9f)                              \
   V(::, _storeUint32, FfiStoreUint32, 0xe5d7ec86)                              \
   V(::, _storeUint64, FfiStoreUint64, 0xe2d935fa)                              \
-  V(::, _storeIntPtr, FfiStoreIntPtr, 0x080266a8)                              \
   V(::, _storeFloat, FfiStoreFloat, 0x6484f07e)                                \
   V(::, _storeFloatUnaligned, FfiStoreFloatUnaligned, 0x600a9203)              \
   V(::, _storeDouble, FfiStoreDouble, 0x42998c64)                              \
@@ -236,13 +234,13 @@ namespace dart {
   V(::, _asExternalTypedDataFloat, FfiAsExternalTypedDataFloat, 0x6f465e0c)    \
   V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40cdd9e1)  \
   V(::, _getNativeField, GetNativeField, 0xa0139b85)                           \
-  V(::, reachabilityFence, ReachabilityFence, 0x619235c1)                      \
+  V(::, reachabilityFence, ReachabilityFence, 0x730f2b7f)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x1dcaf73d)                          \
   V(_Future, timeout, FutureTimeout, 0x73041520)                               \
   V(Future, wait, FutureWait, 0x495c83cd)                                      \
   V(_RootZone, runUnary, RootZoneRunUnary, 0xb607f8bf)                         \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0x438115a8)       \
-  V(::, has63BitSmis, Has63BitSmis, 0xf61b5ab2)                                \
+  V(::, has63BitSmis, Has63BitSmis, 0xf61b56f1)                                \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

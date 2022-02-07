@@ -14,12 +14,10 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import '../../../base/common.dart';
 import '../../builder/builder.dart';
 import '../../builder/class_builder.dart';
-import '../../builder/field_builder.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/named_type_builder.dart';
-import '../../builder/procedure_builder.dart';
 import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/type_declaration_builder.dart';
@@ -44,6 +42,8 @@ import '../../messages.dart'
 import '../../names.dart' show noSuchMethodName;
 import '../../scope.dart' show Scope;
 import '../../source/source_class_builder.dart';
+import '../../source/source_field_builder.dart';
+import '../../source/source_procedure_builder.dart';
 import '../combined_member_signature.dart';
 import '../member_covariance.dart';
 import 'class_member.dart';
@@ -2352,7 +2352,7 @@ class ClassMembersNodeBuilder {
       }
     }
     if (contextMap.isEmpty) return;
-    List<String> names = new List<String>.from(contextMap.keys)..sort();
+    List<String> names = new List<String>.of(contextMap.keys)..sort();
     List<LocatedMessage> context = <LocatedMessage>[];
     for (int i = 0; i < names.length; i++) {
       context.add(contextMap[names[i]]!);

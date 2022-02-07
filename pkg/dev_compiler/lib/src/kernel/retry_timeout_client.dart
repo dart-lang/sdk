@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -30,10 +28,10 @@ class RetryTimeoutClient {
   final Duration Function(int) _connectionTimeout;
 
   /// The callback that determines when to cancel a request.
-  final Duration Function(int) _reponseTimeout;
+  final Duration Function(int) _responseTimeout;
 
   /// The callback to call to indicate that a request is being retried.
-  final void Function(Uri, HttpClientResponse, int) _onRetry;
+  final void Function(Uri, HttpClientResponse?, int)? _onRetry;
 
   /// Creates a client wrapping [_inner] that retries HTTP requests.
   RetryTimeoutClient(
@@ -44,13 +42,13 @@ class RetryTimeoutClient {
     Duration Function(int retryCount) delay = _defaultDelay,
     Duration Function(int retryCount) connectionTimeout = _defaultTimeout,
     Duration Function(int retryCount) responseTimeout = _defaultTimeout,
-    void Function(Uri, HttpClientResponse, int retryCount) onRetry,
+    void Function(Uri, HttpClientResponse?, int retryCount)? onRetry,
   })  : _retries = retries,
         _when = when,
         _whenError = whenError,
         _delay = delay,
         _connectionTimeout = connectionTimeout,
-        _reponseTimeout = responseTimeout,
+        _responseTimeout = responseTimeout,
         _onRetry = onRetry {
     RangeError.checkNotNegative(_retries, 'retries');
   }
@@ -67,13 +65,14 @@ class RetryTimeoutClient {
       Uri url, Future<HttpClientRequest> Function(Uri) method) async {
     var i = 0;
     for (;;) {
-      HttpClientResponse response;
+      HttpClientResponse? response;
       try {
         _inner.connectionTimeout = _connectionTimeout(i);
         var request = await method(url).timeout(
-          _reponseTimeout(i),
-          onTimeout: () =>
-              throw TimeoutException('$url, retry:$i', _reponseTimeout(i)),
+          _responseTimeout(i),
+          onTimeout: (() =>
+              throw TimeoutException('$url, retry:$i', _responseTimeout(i))
+                  as FutureOr<HttpClientRequest> Function()),
         );
         response = await request.close();
       } catch (error, stackTrace) {

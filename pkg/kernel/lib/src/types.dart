@@ -404,12 +404,11 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   IsSubtypeOf isFutureOrRelated(FutureOrType s, InterfaceType t, Types types) {
     // Rules 7.1 and 7.2.
     return types
-        .performNullabilityAwareSubtypeCheck(s.typeArgument, t)
-        .andSubtypeCheckFor(
+        .performNullabilityAwareSubtypeCheck(
             new InterfaceType(types.hierarchy.coreTypes.futureClass,
                 Nullability.nonNullable, [s.typeArgument]),
-            t,
-            types)
+            t)
+        .andSubtypeCheckFor(s.typeArgument, t, types)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 

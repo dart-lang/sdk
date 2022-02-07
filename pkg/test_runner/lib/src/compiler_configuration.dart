@@ -99,6 +99,8 @@ abstract class CompilerConfiguration {
         if (configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
             configuration.architecture == Architecture.simarm64c ||
+            configuration.architecture == Architecture.simriscv32 ||
+            configuration.architecture == Architecture.simriscv64 ||
             configuration.system == System.android) {
           return VMKernelCompilerConfiguration(configuration);
         }
@@ -376,37 +378,34 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-/// Common configuration for dart2js-based tools, such as dart2js.
-class Dart2xCompilerConfiguration extends CompilerConfiguration {
+/// Configuration for dart2js.
+class Dart2jsCompilerConfiguration extends CompilerConfiguration {
   static final Map<String, List<Uri>> _bootstrapDependenciesCache = {};
 
-  final String moniker;
-
-  Dart2xCompilerConfiguration(this.moniker, TestConfiguration configuration)
+  Dart2jsCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() {
-    var prefix = 'sdk/bin';
-    var suffix = shellScriptExtension;
-
-    if (_isHostChecked) {
-      if (_useSdk) {
-        // Note: when [_useSdk] is true, dart2js is run from a snapshot that was
-        // built without checked mode. The VM cannot make such snapshot run in
-        // checked mode later. These two flags could be used together if we also
-        // build an sdk with checked snapshots.
-        throw "--host-checked and --use-sdk cannot be used together";
-      }
-      // The script dart2js_developer is not included in the
-      // shipped SDK, that is the script is not installed in
-      // "$buildDir/dart-sdk/bin/"
-      return '$prefix/dart2js_developer$suffix';
+    if (_isHostChecked && _useSdk) {
+      // When [_useSdk] is true, dart2js is compiled into a snapshot that was
+      // built without checked mode. The VM cannot make such snapshot run in
+      // checked mode later. These two flags could be used together if we also
+      // build an sdk with checked snapshots.
+      throw "--host-checked and --use-sdk cannot be used together";
     }
 
     if (_useSdk) {
-      prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
+      var dartSdk = '${_configuration.buildDirectory}/dart-sdk';
+      // When using the shipped sdk, we invoke dart2js via the dart CLI using
+      // `dart compile js`.  The additional `compile js` arguments are added
+      // within [Dart2jsCompilationCommand]. This is because the arguments are
+      // added differently depending on whether the command is executed in batch
+      // mode or not.
+      return '$dartSdk/bin/dart$executableExtension';
+    } else {
+      var scriptName = _isHostChecked ? 'dart2js_developer' : 'dart2js';
+      return 'sdk/bin/$scriptName$shellScriptExtension';
     }
-    return '$prefix/dart2js$suffix';
   }
 
   Command computeCompilationCommand(String outputFileName,
@@ -414,9 +413,9 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
     arguments.add('--out=$outputFileName');
 
-    return CompilationCommand(moniker, outputFileName, bootstrapDependencies(),
+    return Dart2jsCompilationCommand(outputFileName, bootstrapDependencies(),
         computeCompilerPath(), arguments, environmentOverrides,
-        alwaysCompile: !_useSdk);
+        useSdk: _useSdk, alwaysCompile: !_useSdk);
   }
 
   List<Uri> bootstrapDependencies() {
@@ -429,12 +428,6 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
                   .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')
             ]);
   }
-}
-
-/// Configuration for dart2js.
-class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
-  Dart2jsCompilerConfiguration(TestConfiguration configuration)
-      : super('dart2js', configuration);
 
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
@@ -511,11 +504,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   DevCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
-  bool get useKernel => _configuration.compiler == Compiler.dartdevk;
-
   String computeCompilerPath() {
-    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
-    return "$dir/bin/dartdevc$shellScriptExtension";
+    // The compiler is a Dart program and not an executable itself, so the
+    // command to spawn as a subprocess is a Dart VM. Internally the
+    // [DevCompilerCompilationCommand] will prepend the snapshot or Dart library
+    // entrypoint that is executed by the VM.
+    // This will change once we update the DDC to use AOT instead of a snapshot.
+    var dir = _useSdk ? '${_configuration.buildDirectory}/dart-sdk' : 'sdk';
+    return '$dir/bin/dart$executableExtension';
   }
 
   List<String> computeCompilerArguments(
@@ -588,11 +584,12 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       }
     }
 
-    var inputDir = Path(inputFile).append("..").canonicalize().toNativePath();
-    var displayName = useKernel ? 'dartdevk' : 'dartdevc';
-    return CompilationCommand(displayName, outputFile, bootstrapDependencies(),
+    var compilerPath = _useSdk
+        ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/dartdevc.dart.snapshot'
+        : Repository.uri.resolve('pkg/dev_compiler/bin/dartdevc.dart').path;
+    return DevCompilerCompilationCommand(outputFile, bootstrapDependencies(),
         computeCompilerPath(), args, environment,
-        workingDirectory: inputDir);
+        compilerPath: compilerPath);
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
@@ -704,6 +701,16 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       _configuration.architecture == Architecture.x64c;
 
   bool get _isIA32 => _configuration.architecture == Architecture.ia32;
+
+  bool get _isRiscv32 => _configuration.architecture == Architecture.riscv32;
+
+  bool get _isSimRiscv32 =>
+      _configuration.architecture == Architecture.simriscv32;
+
+  bool get _isRiscv64 => _configuration.architecture == Architecture.riscv64;
+
+  bool get _isSimRiscv64 =>
+      _configuration.architecture == Architecture.simriscv64;
 
   bool get _isAot => true;
 
@@ -880,6 +887,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         cc = 'arm-linux-gnueabihf-gcc';
       } else if (_isSimArm64 || (_isArm64 && _configuration.useQemu)) {
         cc = 'aarch64-linux-gnu-gcc';
+      } else if (_isSimRiscv32 || (_isRiscv32 && _configuration.useQemu)) {
+        cc = 'riscv32-linux-gnu-gcc';
+      } else if (_isSimRiscv64 || (_isRiscv64 && _configuration.useQemu)) {
+        cc = 'riscv64-linux-gnu-gcc';
       } else {
         cc = 'gcc';
       }
@@ -911,6 +922,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       case Architecture.arm_x64:
       case Architecture.arm64:
       case Architecture.arm64c:
+      case Architecture.riscv32:
+      case Architecture.riscv64:
+      case Architecture.simriscv32:
+      case Architecture.simriscv64:
         ccFlags = null;
         break;
       default:
@@ -922,7 +937,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       if (ccFlags != null) ccFlags,
       if (ldFlags != null) ldFlags,
       shared,
-      '-nostdlib',
       '-o',
       '$tempDir/out.aotsnapshot',
       '$tempDir/out.S'
@@ -1087,13 +1101,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   String computeCompilerPath() {
     var prefix = 'sdk/bin';
     if (_isHostChecked) {
-      if (_useSdk) {
-        throw "--host-checked and --use-sdk cannot be used together";
-      }
-      // The script dartanalyzer_developer is not included in the
-      // shipped SDK, that is the script is not installed in
-      // "$buildDir/dart-sdk/bin/"
-      return '$prefix/dartanalyzer_developer$shellScriptExtension';
+      throw "--host-checked cannot be used for dartanalyzer";
     }
     if (_useSdk) {
       prefix = '${_configuration.buildDirectory}/dart-sdk/bin';

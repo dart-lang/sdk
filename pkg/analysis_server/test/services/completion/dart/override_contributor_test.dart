@@ -42,6 +42,56 @@ class B implements A {
     _assertNoOverrideContaining('bar');
   }
 
+  Future<void> test_beforeGetter() async {
+    addTestSource('''
+class A {
+  method() {}
+  int? age;
+}
+
+class B extends A {
+  m^
+
+  String value1 = '';
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+@override
+  method() {
+    // TODO: implement method
+    return super.method();
+  }''',
+        displayText: 'method() { … }',
+        selectionOffset: 57,
+        selectionLength: 22);
+  }
+
+  Future<void> test_beforeMethod() async {
+    addTestSource('''
+class A {
+  method() {}
+  int? age;
+}
+
+class B extends A {
+  m^
+
+  void b() {}
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+@override
+  method() {
+    // TODO: implement method
+    return super.method();
+  }''',
+        displayText: 'method() { … }',
+        selectionOffset: 57,
+        selectionLength: 22);
+  }
+
   Future<void> test_customOperator() async {
     addTestSource('''
 class A {
@@ -386,12 +436,13 @@ class B extends A {
 ''');
     await computeSuggestions();
     _assertOverride('''
-method() {
+@override
+  method() {
     // TODO: implement method
     return super.method();
   }''',
         displayText: 'method() { … }',
-        selectionOffset: 45,
+        selectionOffset: 57,
         selectionLength: 22);
   }
 

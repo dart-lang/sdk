@@ -5,16 +5,31 @@
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../client/completion_driver_test.dart';
 import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DeprecatedMemberTest);
+    defineReflectiveTests(DeprecatedMemberTest1);
+    defineReflectiveTests(DeprecatedMemberTest2);
   });
 }
 
 @reflectiveTest
-class DeprecatedMemberTest extends CompletionRelevanceTest {
+class DeprecatedMemberTest1 extends CompletionRelevanceTest
+    with DeprecatedMemberTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class DeprecatedMemberTest2 extends CompletionRelevanceTest
+    with DeprecatedMemberTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
+mixin DeprecatedMemberTestCases on CompletionRelevanceTest {
   Future<void> test_deprecated() async {
     await addTestFile('''
 class A {

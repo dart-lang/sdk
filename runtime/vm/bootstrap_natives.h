@@ -138,16 +138,6 @@ namespace dart {
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \
   V(String_concatRange, 3)                                                     \
-  V(Math_sqrt, 1)                                                              \
-  V(Math_sin, 1)                                                               \
-  V(Math_cos, 1)                                                               \
-  V(Math_tan, 1)                                                               \
-  V(Math_asin, 1)                                                              \
-  V(Math_acos, 1)                                                              \
-  V(Math_atan, 1)                                                              \
-  V(Math_atan2, 2)                                                             \
-  V(Math_exp, 1)                                                               \
-  V(Math_log, 1)                                                               \
   V(Math_doublePow, 2)                                                         \
   V(Random_nextState, 1)                                                       \
   V(Random_setupSeed, 1)                                                       \
@@ -330,11 +320,9 @@ namespace dart {
   V(GrowableList_setData, 2)                                                   \
   V(Internal_unsafeCast, 1)                                                    \
   V(Internal_nativeEffect, 1)                                                  \
-  V(Internal_reachabilityFence, 1)                                             \
   V(Internal_collectAllGarbage, 0)                                             \
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
-  V(Internal_has63BitSmis, 0)                                                  \
   V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 4)                                          \
   V(Internal_boundsCheckForPartialInstantiation, 2)                            \
@@ -345,10 +333,6 @@ namespace dart {
   V(Internal_deoptimizeFunctionsOnStack, 0)                                    \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
-  V(WeakProperty_getKey, 1)                                                    \
-  V(WeakProperty_setKey, 2)                                                    \
-  V(WeakProperty_getValue, 1)                                                  \
-  V(WeakProperty_setValue, 2)                                                  \
   V(Uri_isWindowsPlatform, 0)                                                  \
   V(UserTag_new, 2)                                                            \
   V(UserTag_label, 1)                                                          \
@@ -361,7 +345,7 @@ namespace dart {
   V(VMService_OnStart, 0)                                                      \
   V(VMService_OnExit, 0)                                                       \
   V(VMService_OnServerAddressChange, 1)                                        \
-  V(VMService_ListenStream, 1)                                                 \
+  V(VMService_ListenStream, 2)                                                 \
   V(VMService_CancelStream, 1)                                                 \
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
@@ -375,7 +359,6 @@ namespace dart {
   V(Ffi_loadUint16, 2)                                                         \
   V(Ffi_loadUint32, 2)                                                         \
   V(Ffi_loadUint64, 2)                                                         \
-  V(Ffi_loadIntPtr, 2)                                                         \
   V(Ffi_loadFloat, 2)                                                          \
   V(Ffi_loadDouble, 2)                                                         \
   V(Ffi_loadPointer, 2)                                                        \
@@ -388,7 +371,6 @@ namespace dart {
   V(Ffi_storeUint16, 3)                                                        \
   V(Ffi_storeUint32, 3)                                                        \
   V(Ffi_storeUint64, 3)                                                        \
-  V(Ffi_storeIntPtr, 3)                                                        \
   V(Ffi_storeFloat, 3)                                                         \
   V(Ffi_storeDouble, 3)                                                        \
   V(Ffi_storePointer, 3)                                                       \

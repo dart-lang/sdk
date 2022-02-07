@@ -88,7 +88,9 @@ class InstanceCreationExpressionResolver {
         // Fix up the parameter elements based on inferred method.
         arguments.correspondingStaticParameters =
             ResolverVisitor.resolveArgumentsToParameters(
-                arguments, inferred.parameters, null);
+          argumentList: arguments,
+          parameters: inferred.parameters,
+        );
 
         constructorName.type2.type = inferred.returnType;
 
@@ -118,8 +120,8 @@ class InstanceCreationExpressionResolver {
     _inferArgumentTypes(node);
     _resolver.visitArgumentList(node.argumentList,
         whyNotPromotedList: whyNotPromotedList);
-    node.accept(_resolver.elementResolver);
-    node.accept(_resolver.typeAnalyzer);
+    _resolver.elementResolver.visitInstanceCreationExpression(node);
+    _resolver.typeAnalyzer.visitInstanceCreationExpression(node);
     _resolver.checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }

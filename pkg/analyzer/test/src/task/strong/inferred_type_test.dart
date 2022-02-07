@@ -423,8 +423,10 @@ class C2 implements A, B {
   get a => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 150, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 116, 1)]),
     ]);
   }
 
@@ -709,7 +711,8 @@ foo() {
   int z = new B().x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 22, 1)]),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 97, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 118, 1),
     ]);
@@ -2141,7 +2144,8 @@ main() {
   print(y);
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 91, 5),
     ]);
   }
@@ -2199,8 +2203,10 @@ main() {
   print(y);
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 74, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 74, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 33, 1)]),
       error(HintCode.UNNECESSARY_CAST, 132, 12),
     ]);
   }
@@ -3679,7 +3685,8 @@ foo() {
   int z = new B().x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 23, 1)]),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 106, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 127, 1),
     ]);

@@ -69,6 +69,41 @@ class DiagnosticFactory {
     ]);
   }
 
+  /// Return a diagnostic indicating that [member] is not a correct override of
+  /// [superMember].
+  AnalysisError invalidOverride(
+      Source source,
+      ErrorCode? errorCode,
+      AstNode errorNode,
+      ExecutableElement member,
+      ExecutableElement superMember) {
+    errorCode ??= CompileTimeErrorCode.INVALID_OVERRIDE;
+    // Elements enclosing members that can participate in overrides are always
+    // named, so we can safely assume `_thisMember.enclosingElement.name` and
+    // `superMember.enclosingElement.name` are non-`null`.
+    return AnalysisError(
+        source, errorNode.offset, errorNode.length, errorCode, [
+      member.name,
+      member.enclosingElement.name!,
+      member.type,
+      superMember.enclosingElement.name!,
+      superMember.type,
+    ], [
+      // Only include the context location for INVALID_OVERRIDE because for
+      // some other types this location is not ideal (for example
+      // INVALID_IMPLEMENTATION_OVERRIDE may provide the subclass as superMember
+      // if the subclass has an abstract member and the superclass has the
+      // concrete).
+      if (errorCode == CompileTimeErrorCode.INVALID_OVERRIDE)
+        DiagnosticMessageImpl(
+            filePath: superMember.source.fullName,
+            message: "The member being overridden.",
+            offset: superMember.nonSynthetic.nameOffset,
+            length: superMember.nonSynthetic.nameLength,
+            url: null)
+    ]);
+  }
+
   /// Return a diagnostic indicating that the given [identifier] was referenced
   /// before it was declared.
   AnalysisError referencedBeforeDeclaration(

@@ -451,11 +451,32 @@ abstract class Map<K, V> {
 }
 
 /// A key/value pair representing an entry in a [Map].
+///
+/// The [Map] interface contains various methods that can
+/// inspect or modify the map based on entry objects.
+/// ```dart
+/// final map = {'1': 'A', '2': 'B'};
+/// map.addEntries([
+///  MapEntry('3', 'C'),
+///  MapEntry('4', 'D'),
+/// ]);
+/// print(map); // {1: A, 2: B, 3: C, 4: D}
+/// ```
 class MapEntry<K, V> {
   /// The key of the entry.
+  /// ```dart
+  /// final map = {'theKey': 'theValue'};
+  /// var entry = map.entries.first;
+  /// print(entry.key); // theKey
+  /// ```
   final K key;
 
   /// The value associated to [key] in the map.
+  /// ```dart
+  /// final map = {'theKey': 'theValue'};
+  /// var entry = map.entries.first;
+  /// print(entry.value); // theValue
+  /// ```
   final V value;
 
   /// Creates an entry with [key] and [value].

@@ -22,7 +22,8 @@ struct AbiAlignmentUint64 {
   uint64_t i;
 };
 
-#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64)
+#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64) ||                      \
+    defined(HOST_ARCH_RISCV64)
 static_assert(offsetof(AbiAlignmentDouble, d) == 8,
               "FFI transformation alignment");
 static_assert(offsetof(AbiAlignmentUint64, i) == 8,
@@ -81,6 +82,12 @@ static_assert(offsetof(AbiAlignmentUint64, i) == 8,
 #elif defined(TARGET_ARCH_ARM64)
 #define TARGET_ARCH_NAME Arm64
 #define TARGET_ARCH_NAME_LC arm64
+#elif defined(TARGET_ARCH_RISCV32)
+#define TARGET_ARCH_NAME Riscv32
+#define TARGET_ARCH_NAME_LC riscv32
+#elif defined(TARGET_ARCH_RISCV64)
+#define TARGET_ARCH_NAME Riscv64
+#define TARGET_ARCH_NAME_LC riscv64
 #else
 #error Unknown arch
 #endif

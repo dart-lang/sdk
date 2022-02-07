@@ -14,13 +14,13 @@ class Class extends core::Object {
   synthetic constructor •() → self::Class
     ;
   get field1() → core::int;
-  set field1(core::int #t1) → void;
+  set field1(core::int field1#param) → void;
   get field2() → core::int;
-  set field2(core::int #t2) → void;
+  set field2(core::int field2#param) → void;
   get field3() → core::int;
-  set field3(core::int #t3) → void;
+  set field3(core::int field3#param) → void;
   get field4() → core::int;
-  set field4(core::int #t4) → void;
+  set field4(core::int field4#param) → void;
 }
 class SubClass extends self::Class {
   field core::int? _#SubClass#field1;
@@ -34,11 +34,11 @@ class SubClass extends self::Class {
   synthetic constructor •() → self::SubClass
     ;
   get field1() → core::int;
-  set field1(core::int #t5) → void;
+  set field1(core::int field1#param) → void;
   get field2() → core::int;
-  set field2(core::int #t6) → void;
+  set field2(core::int field2#param) → void;
   get field3() → core::int;
-  set field3(core::int #t7) → void;
+  set field3(core::int field3#param) → void;
   get field4() → core::int;
   get directField1() → core::int
     ;

@@ -295,7 +295,7 @@ class FieldAddress : public Address {
 class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches = false);
+                     intptr_t far_branch_level = 0);
 
   ~Assembler() {}
 
@@ -319,12 +319,13 @@ class Assembler : public AssemblerBase {
   void setcc(Condition condition, ByteRegister dst);
 
   void EnterFullSafepoint();
-  void ExitFullSafepoint();
+  void ExitFullSafepoint(bool ignore_unwind_in_progress);
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
-  void TransitionNativeToGenerated(bool leave_safepoint);
+  void TransitionNativeToGenerated(bool leave_safepoint,
+                                   bool ignore_unwind_in_progress = false);
 
 // Register-register, register-address and address-register instructions.
 #define RR(width, name, ...)                                                   \
@@ -747,6 +748,7 @@ class Assembler : public AssemblerBase {
   void LoadImmediate(Register reg, int32_t immediate) {
     LoadImmediate(reg, Immediate(immediate));
   }
+  void LoadDImmediate(FpuRegister dst, double immediate);
 
   void LoadIsolate(Register dst);
   void LoadIsolateGroup(Register dst);

@@ -349,7 +349,6 @@ Future<Map<String, List<int>>> createModules(
     options.sdkSummary = sdkSummaryUri;
     options.omitPlatform = true;
     options.onDiagnostic = (DiagnosticMessage message) {
-      if (getMessageCodeObject(message)?.name == "InferredPackageUri") return;
       throw message.ansiFormatted;
     };
     if (packagesUri != null) {
@@ -357,10 +356,11 @@ Future<Map<String, List<int>>> createModules(
     }
     TestIncrementalCompiler compiler = new TestIncrementalCompiler(
         options, moduleSources.first, /* initializeFrom = */ null, outlineOnly);
-    IncrementalCompilerResult compilerResult = await compiler.computeDelta(
+    IncrementalCompilerResult? compilerResult = await compiler.computeDelta(
         entryPoints: moduleSources,
         trackNeededDillLibraries: trackNeededDillLibraries);
     Component c = compilerResult.component;
+    compilerResult = null;
     c.computeCanonicalNames();
     List<Library> wantedLibs = <Library>[];
     for (Library lib in c.libraries) {
@@ -669,13 +669,15 @@ class NewWorldTest {
       }
 
       Stopwatch stopwatch = new Stopwatch()..start();
-      IncrementalCompilerResult compilerResult = await compiler!.computeDelta(
+      IncrementalCompilerResult? compilerResult = await compiler!.computeDelta(
           entryPoints: entries,
           fullComponent:
               brandNewWorld ? false : (noFullComponent ? false : true),
           trackNeededDillLibraries: modulesToUse != null,
           simulateTransformer: world["simulateTransformer"]);
       component = compilerResult.component;
+      // compilerResult is null'ed out at the end to avoid any
+      // "artificial memory leak" on that account.
       if (outlineOnly && !skipOutlineBodyCheck) {
         for (Library lib in component!.libraries) {
           for (Class c in lib.classes) {
@@ -942,11 +944,13 @@ class NewWorldTest {
 
       if (!noFullComponent) {
         clearPrevErrorsEtc();
-        IncrementalCompilerResult compilerResult2 = await compiler.computeDelta(
-            entryPoints: entries,
-            fullComponent: true,
-            simulateTransformer: world["simulateTransformer"]);
+        IncrementalCompilerResult? compilerResult2 =
+            await compiler.computeDelta(
+                entryPoints: entries,
+                fullComponent: true,
+                simulateTransformer: world["simulateTransformer"]);
         component2 = compilerResult2.component;
+        compilerResult2 = null;
         Result<TestData>? result = performErrorAndWarningCheck(world, data,
             gotError, formattedErrors, gotWarning, formattedWarnings);
         if (result != null) return result;
@@ -1055,12 +1059,13 @@ class NewWorldTest {
         }
 
         Stopwatch stopwatch = new Stopwatch()..start();
-        IncrementalCompilerResult compilerResult3 =
+        IncrementalCompilerResult? compilerResult3 =
             await compilerFromScratch.computeDelta(
                 entryPoints: entries,
                 trackNeededDillLibraries: modulesToUse != null,
                 simulateTransformer: world["simulateTransformer"]);
         component3 = compilerResult3.component;
+        compilerResult3 = null;
         compilerFromScratch = null;
         Result<TestData>? result = performErrorAndWarningCheck(world, data,
             gotError, formattedErrors, gotWarning, formattedWarnings);
@@ -1112,6 +1117,7 @@ class NewWorldTest {
       }
 
       component = null;
+      compilerResult = null;
       component2 = null;
       component3 = null;
       // Dummy tree nodes can (currently) leak though the parent pointer.

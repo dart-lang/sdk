@@ -10,6 +10,9 @@ namespace dart {
 namespace compiler {
 namespace ffi {
 
+// TODO(https://github.com/dart-lang/sdk/issues/48164)
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
+
 UNIT_TEST_CASE_WITH_ZONE(NativeStackLocation) {
   const auto& native_type = *new (Z) NativePrimitiveType(kInt8);
 
@@ -34,6 +37,8 @@ UNIT_TEST_CASE_WITH_ZONE(NativeStackLocation_Split) {
   EXPECT_EQ(0, half_0.offset_in_bytes());
   EXPECT_EQ(4, half_1.offset_in_bytes());
 }
+
+#endif  // !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 
 }  // namespace ffi
 }  // namespace compiler

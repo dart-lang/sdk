@@ -116,7 +116,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
   AnalysisDriver newDriver() {
     var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
-    AnalysisDriver driver = AnalysisDriver.tmp1(
+    AnalysisDriver driver = AnalysisDriver(
       scheduler: scheduler,
       logger: logger,
       resourceProvider: resourceProvider,
@@ -819,12 +819,13 @@ import 'c.dart';
       ],
     );
 
-    // All libraries are valid.
-    expect(a_element.isValid, true);
-    expect(b_element.isValid, true);
-    expect(c_element.isValid, true);
-    expect(d_element.isValid, true);
-    expect(e_element.isValid, true);
+    // All libraries have the current session.
+    var session1 = driver.currentSession;
+    expect(a_element.session, session1);
+    expect(b_element.session, session1);
+    expect(c_element.session, session1);
+    expect(d_element.session, session1);
+    expect(e_element.session, session1);
 
     // Change `b.dart`, also removes `c.dart` and `d.dart` that import it.
     // But `a.dart` and `d.dart` is not affected.
@@ -841,12 +842,17 @@ import 'c.dart';
       ],
     );
 
-    // Only `a.dart` and `e.dart` are still valid.
-    expect(a_element.isValid, true);
-    expect(b_element.isValid, false);
-    expect(c_element.isValid, false);
-    expect(d_element.isValid, false);
-    expect(e_element.isValid, true);
+    // We have a new session.
+    var session2 = driver.currentSession;
+    expect(session2, isNot(session1));
+
+    // `a.dart` and `e.dart` moved to the new session.
+    // Invalidated libraries stuck with the old session.
+    expect(a_element.session, session2);
+    expect(b_element.session, session1);
+    expect(c_element.session, session1);
+    expect(d_element.session, session1);
+    expect(e_element.session, session2);
   }
 
   test_changeFile_potentiallyAffected_part() async {
@@ -880,10 +886,11 @@ import 'b.dart';
       ],
     );
 
-    // All libraries are valid.
-    expect(b_element.isValid, true);
-    expect(c_element.isValid, true);
-    expect(d_element.isValid, true);
+    // All libraries have the current session.
+    var session1 = driver.currentSession;
+    expect(b_element.session, session1);
+    expect(c_element.session, session1);
+    expect(d_element.session, session1);
 
     // Change `a.dart`, remove `b.dart` that part it.
     // Removes `c.dart` that imports `b.dart`.
@@ -899,10 +906,15 @@ import 'b.dart';
       ],
     );
 
-    // Only `d.dart` is still valid.
-    expect(b_element.isValid, false);
-    expect(c_element.isValid, false);
-    expect(d_element.isValid, true);
+    // We have a new session.
+    var session2 = driver.currentSession;
+    expect(session2, isNot(session1));
+
+    // `d.dart` moved to the new session.
+    // Invalidated libraries stuck with the old session.
+    expect(b_element.session, session1);
+    expect(c_element.session, session1);
+    expect(d_element.session, session2);
   }
 
   test_changeFile_selfConsistent() async {
@@ -1180,9 +1192,8 @@ const x = 1;
     var session2 = driver.currentSession;
     expect(session2, isNotNull);
 
-    // We don't discard the session anymore.
-    // So, the session is always the same.
-    expect(session2, same(session1));
+    // We get a new session.
+    expect(session2, isNot(session1));
   }
 
   test_discoverAvailableFiles_packages() async {

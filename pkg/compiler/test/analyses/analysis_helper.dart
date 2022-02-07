@@ -86,7 +86,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
             classHierarchy,
             new StaticTypeCacheImpl()) {
     _constantEvaluator = new Dart2jsConstantEvaluator(
-        typeEnvironment, const ir.SimpleErrorReporter().report,
+        component, typeEnvironment, const ir.SimpleErrorReporter().report,
         evaluationMode: evaluationMode);
   }
 

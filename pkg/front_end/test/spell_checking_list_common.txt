@@ -475,6 +475,7 @@ clients
 clone
 cloned
 cloner
+cloners
 clones
 cloning
 close
@@ -586,6 +587,7 @@ conform
 conformed
 confuse
 confused
+confusion
 conjunction
 connect
 connected
@@ -1027,6 +1029,7 @@ entity's
 entries
 entry
 enum
+enum's
 enumerated
 enumeration
 enumerations
@@ -1515,6 +1518,7 @@ informally
 information
 informational
 informs
+inherent
 inherently
 inherit
 inheritable

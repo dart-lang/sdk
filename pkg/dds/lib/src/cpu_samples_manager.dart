@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dds/src/common/ring_buffer.dart';
 import 'package:vm_service/vm_service.dart';
 
+import 'common/ring_buffer.dart';
 import 'dds_impl.dart';
 
 /// Manages CPU sample caches for an individual [Isolate].

@@ -13,6 +13,8 @@
 #include "vm/constants_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/constants_arm64.h"
+#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+#include "vm/constants_riscv.h"
 #else
 #error Unknown architecture.
 #endif
@@ -24,13 +26,13 @@ namespace dart {
 // We re-use registers from another ABI to avoid duplicating this ABI across 4
 // architectures.
 struct InstantiateTypeABI {
-  static const Register kTypeReg =
+  static constexpr Register kTypeReg =
       InstantiationABI::kUninstantiatedTypeArgumentsReg;
-  static const Register kInstantiatorTypeArgumentsReg =
+  static constexpr Register kInstantiatorTypeArgumentsReg =
       InstantiationABI::kInstantiatorTypeArgumentsReg;
-  static const Register kFunctionTypeArgumentsReg =
+  static constexpr Register kFunctionTypeArgumentsReg =
       InstantiationABI::kFunctionTypeArgumentsReg;
-  static const Register kResultTypeReg = InstantiationABI::kResultTypeReg;
+  static constexpr Register kResultTypeReg = InstantiationABI::kResultTypeReg;
 };
 
 class RegisterNames {

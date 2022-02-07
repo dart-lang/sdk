@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
@@ -16,13 +15,18 @@ import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 /// A contributor of suggestions from not yet imported libraries.
 class NotImportedContributor extends DartCompletionContributor {
   final CompletionBudget budget;
-  final Map<protocol.CompletionSuggestion, Uri> notImportedSuggestions;
+  final NotImportedSuggestions additionalData;
+
+  /// When a library is imported with combinators, we cannot skip it, there
+  /// might be elements that were excluded, but should be suggested. So, here
+  /// we record elements that are already imported.
+  final Set<Element> _importedElements = Set.identity();
 
   NotImportedContributor(
     DartCompletionRequest request,
     SuggestionBuilder builder,
     this.budget,
-    this.notImportedSuggestions,
+    this.additionalData,
   ) : super(request, builder);
 
   @override
@@ -37,7 +41,22 @@ class NotImportedContributor extends DartCompletionContributor {
     try {
       await analysisDriver.discoverAvailableFiles().timeout(budget.left);
     } on TimeoutException {
+      additionalData.isIncomplete = true;
       return;
+    }
+
+    var importedLibraries = Set<LibraryElement>.identity();
+    for (var import in request.libraryElement.imports) {
+      var importedLibrary = import.importedLibrary;
+      if (importedLibrary != null) {
+        if (import.combinators.isEmpty) {
+          importedLibraries.add(importedLibrary);
+        } else {
+          _importedElements.addAll(
+            import.namespace.definedNames.values,
+          );
+        }
+      }
     }
 
     // Use single instance to track getter / setter pairs.
@@ -46,6 +65,7 @@ class NotImportedContributor extends DartCompletionContributor {
     var knownFiles = fsState.knownFiles.toList();
     for (var file in knownFiles) {
       if (budget.isEmpty) {
+        additionalData.isIncomplete = true;
         return;
       }
 
@@ -54,16 +74,17 @@ class NotImportedContributor extends DartCompletionContributor {
       }
 
       var element = analysisDriver.getLibraryByFile(file);
-      if (element == null) {
+      if (element == null || importedLibraries.contains(element)) {
         continue;
       }
 
       var exportNamespace = element.exportNamespace;
       var exportElements = exportNamespace.definedNames.values.toList();
 
+      builder.isNotImportedLibrary = true;
       builder.laterReplacesEarlier = false;
       builder.suggestionAdded = (suggestion) {
-        notImportedSuggestions[suggestion] = file.uri;
+        additionalData.set.add(suggestion);
       };
 
       if (request.includeIdentifiers) {
@@ -71,18 +92,34 @@ class NotImportedContributor extends DartCompletionContributor {
       }
 
       extensionContributor.addExtensions(
-        exportElements.whereType<ExtensionElement>().toList(),
+        _extensions(exportElements),
       );
-    }
 
-    builder.laterReplacesEarlier = true;
-    builder.suggestionAdded = null;
+      builder.isNotImportedLibrary = false;
+      builder.laterReplacesEarlier = true;
+      builder.suggestionAdded = null;
+    }
   }
 
   void _buildSuggestions(List<Element> elements) {
     var visitor = LibraryElementSuggestionBuilder(request, builder);
     for (var element in elements) {
-      element.accept(visitor);
+      if (!_importedElements.contains(element)) {
+        element.accept(visitor);
+      }
     }
+  }
+
+  /// This function intentionally does not use `whereType` for performance.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/47680
+  static List<ExtensionElement> _extensions(List<Element> elements) {
+    var extensions = <ExtensionElement>[];
+    for (var element in elements) {
+      if (element is ExtensionElement) {
+        extensions.add(element);
+      }
+    }
+    return extensions;
   }
 }

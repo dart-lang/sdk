@@ -51,7 +51,8 @@ class B	extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 3),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 16, 3)]),
     ]);
   }
 
@@ -102,7 +103,8 @@ class A with M {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 3),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 16, 3)]),
     ]);
   }
 
@@ -117,7 +119,8 @@ mixin M {
 class B	extends A with M {}
 ''', [
       error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 77, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 16, 3)]),
     ]);
   }
 

@@ -4,30 +4,39 @@
 
 /*library: 
  compilationSequence=[
-  package:macro_builder/src/macro.dart,
-  macro_lib.dart|package:macro_builder/macro_builder.dart,
+  macro_lib.dart|package:_fe_analyzer_shared/src/macros/api.dart,
   main.dart],
+ macroClassIds=[
+  macro_lib.dart/Macro1,
+  macro_lib.dart/Macro2],
+ macroInstanceIds=[
+  macro_lib.dart/Macro1/(),
+  macro_lib.dart/Macro1/(),
+  macro_lib.dart/Macro1/(),
+  macro_lib.dart/Macro2/(),
+  macro_lib.dart/Macro2/()],
  macrosAreApplied,
- macrosAreAvailable
+ macrosAreAvailable,
+ neededPrecompilations=[macro_lib.dart=Macro1(new)|Macro2(new)]
 */
 
 import 'macro_lib.dart';
 
+/*member: main:appliedMacros=[Macro1.new]*/
 @Macro1()
-/*member: main:appliedMacros=[Macro1]*/
 void main() {}
 
-@Macro2()
 /*class: Class1:
- appliedMacros=[Macro2],
+ appliedMacros=[Macro2.new],
  macrosAreApplied
 */
+@Macro2()
 class Class1 {
+  /*member: Class1.method:appliedMacros=[
+    Macro1.new,
+    Macro2.new]*/
   @Macro1()
   @Macro2()
-  /*member: Class1.method:appliedMacros=[
-    Macro1,
-    Macro2]*/
   void method() {}
 }
 
@@ -36,8 +45,8 @@ class Class2 {}
 
 /*class: Class3:macrosAreApplied*/
 class Class3 {
+  /*member: Class3.field:appliedMacros=[Macro1.new]*/
   @Macro1()
-  /*member: Class3.field:appliedMacros=[Macro1]*/
   var field;
 }
 

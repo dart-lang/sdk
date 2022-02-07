@@ -242,30 +242,14 @@ class DartUnitHighlightsComputer {
       return false;
     }
 
-    // TODO(dantup): Right now there is no highlight type for extension, so
-    // bail out and do the default thing (which will be to return
-    // IDENTIFIER_DEFAULT). Adding EXTENSION requires coordination with
-    // IntelliJ + bumping protocol version.
-    if (!_computeSemanticTokens) {
-      return false;
-    }
-
     return _addRegion_node(
       node,
-      // TODO(dantup): Change this to EXTENSION and add to LSP mapping when
-      // we have it, but for now use CLASS (which is probably what we'll map it
-      // to for LSP semantic tokens anyway).
-      HighlightRegionType.CLASS,
+      HighlightRegionType.EXTENSION,
     );
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
-    if (element is FieldFormalParameterElement) {
-      if (node.parent is FieldFormalParameter) {
-        element = element.field;
-      }
-    }
     // prepare type
     HighlightRegionType? type;
     if (element is FieldElement) {
@@ -790,6 +774,18 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     computer._addRegion_token(
         node.requiredKeyword, HighlightRegionType.KEYWORD);
+
+    var element = node.declaredElement;
+    if (element is FieldFormalParameterElement) {
+      var field = element.field;
+      if (field != null) {
+        computer._addRegion_node(
+          node.identifier,
+          HighlightRegionType.INSTANCE_FIELD_REFERENCE,
+        );
+      }
+    }
+
     super.visitFieldFormalParameter(node);
   }
 
@@ -1105,6 +1101,23 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     computer._addRegion_token(node.superKeyword, HighlightRegionType.KEYWORD);
     super.visitSuperConstructorInvocation(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    computer._addRegion_token(
+      node.superKeyword,
+      HighlightRegionType.KEYWORD,
+    );
+
+    computer._addRegion_node(
+      node.identifier,
+      HighlightRegionType.PARAMETER_DECLARATION,
+    );
+
+    node.type?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
   }
 
   @override

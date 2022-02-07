@@ -40,7 +40,7 @@ For more information about the server's capabilities and configuration, see:
   Future<int> run() async {
     final driver = server_driver.Driver();
     driver.start(
-      argResults.arguments,
+      argResults!.arguments,
       defaultToLsp: true,
     );
 

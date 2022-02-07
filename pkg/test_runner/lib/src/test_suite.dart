@@ -399,6 +399,8 @@ class FfiTestSuite extends TestSuite {
     "x64_linux",
     "x64_macos",
     "x64_win",
+    "riscv32_linux",
+    "riscv64_linux",
   ];
 
   FfiTestSuite(TestConfiguration configuration)
@@ -763,6 +765,8 @@ class StandardTestSuite extends TestSuite {
           ...vmOptionsList[vmOptionsVariant],
           ...extraVmOptions,
           if (emitDdsTest) '-DUSE_DDS=true',
+          if (configuration.serviceResponseSizesDirectory != null)
+            '-DSERVICE_RESPONSE_SIZES_DIR=${configuration.serviceResponseSizesDirectory}',
         ];
         var isCrashExpected = expectations.contains(Expectation.crash);
         var commands = _makeCommands(

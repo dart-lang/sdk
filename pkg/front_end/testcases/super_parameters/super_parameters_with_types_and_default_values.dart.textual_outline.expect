@@ -1,0 +1,10 @@
+class S {
+  int s1;
+  int s2;
+  S([this.s1 = 1, this.s2 = 2]);
+}
+class C extends S {
+  int c1;
+  C(this.c1, [int super.s1, int x = 0, int super.s2]);
+}
+main() {}

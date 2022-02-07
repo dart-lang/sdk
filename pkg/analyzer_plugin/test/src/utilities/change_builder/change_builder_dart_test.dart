@@ -1145,7 +1145,10 @@ f(int i, String s) {
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('String s, {int index}'));
+    var expectedReplacement = this is WithoutNullSafetyMixin
+        ? 'String s, {int index}'
+        : 'String s, {required int index}';
+    expect(edit.replacement, equalsIgnoringWhitespace(expectedReplacement));
   }
 
   Future<void> test_writeParametersMatchingArguments_required() async {

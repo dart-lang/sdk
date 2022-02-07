@@ -468,7 +468,7 @@ void main() {}
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -497,7 +497,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
@@ -566,7 +566,7 @@ void main() {}
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -595,7 +595,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
@@ -664,7 +664,7 @@ void main() {}
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -693,7 +693,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
@@ -720,7 +720,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stdout, contains('Warning: '));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -747,7 +747,8 @@ void main() {
     expect(
       result.stderr,
       predicate(
-        (o) => '$o'.contains('Unexpected arguments after Dart entry point.'),
+        (dynamic o) =>
+            '$o'.contains('Unexpected arguments after Dart entry point.'),
       ),
     );
     expect(result.exitCode, 64);
@@ -818,7 +819,7 @@ void main() {}
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -846,7 +847,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
     expect(result.exitCode, 254);
   });
@@ -872,7 +873,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('Warning:'));
     expect(result.exitCode, 0);
   });
@@ -941,7 +942,7 @@ void main() {}
       ],
     );
 
-    expect(result.stdout, predicate((o) => '$o'.contains('[foo]')));
+    expect(result.stdout, predicate((dynamic o) => '$o'.contains('[foo]')));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -965,7 +966,7 @@ void main() {}
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -993,7 +994,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
     expect(result.exitCode, 254);
   });
@@ -1019,7 +1020,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('Warning:'));
     expect(result.exitCode, 0);
   });

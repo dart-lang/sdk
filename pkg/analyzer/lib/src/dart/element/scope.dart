@@ -83,7 +83,8 @@ class FormalParameterScope extends EnclosedScope {
     List<ParameterElement> elements,
   ) : super(parent) {
     for (var parameter in elements) {
-      if (parameter is! FieldFormalParameterElement) {
+      if (parameter is! FieldFormalParameterElement &&
+          parameter is! SuperFormalParameterElement) {
         _addGetter(parameter);
       }
     }

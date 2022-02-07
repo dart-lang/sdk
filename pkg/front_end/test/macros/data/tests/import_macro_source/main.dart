@@ -4,10 +4,10 @@
 
 /*library: 
  compilationSequence=[
-  package:macro_builder/src/macro.dart,
-  macro_lib.dart|package:macro_builder/macro_builder.dart,
+  macro_lib.dart|package:_fe_analyzer_shared/src/macros/api.dart,
   main.dart],
- macrosAreAvailable
+ macrosAreAvailable,
+ neededPrecompilations=[macro_lib.dart=Macro1(new)]
 */
 
 // ignore: unused_import

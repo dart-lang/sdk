@@ -65,16 +65,18 @@ ARCH_FAMILY = {
     'ia32': 'ia32',
     'x64': 'ia32',
     'arm': 'arm',
-    'armv6': 'arm',
     'arm64': 'arm',
     'arm_x64': 'arm',
     'simarm': 'ia32',
-    'simarmv6': 'ia32',
     'simarm64': 'ia32',
     'simarm_x64': 'ia32',
     'x64c': 'ia32',
     'arm64c': 'arm',
     'simarm64c': 'ia32',
+    'simriscv32': 'ia32',
+    'simriscv64': 'ia32',
+    'riscv32': 'riscv',
+    'riscv64': 'riscv',
 }
 
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))

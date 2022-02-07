@@ -102,9 +102,9 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
   }
 
   void subscribeForImplemented() {

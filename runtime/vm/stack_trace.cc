@@ -395,6 +395,10 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
   if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
     // Next, look up caller's closure on the stack and walk backwards
     // through the yields.
+    //
+    // Due the async/async* closures having optional parameters, the
+    // caller-frame's pushed arguments includes the closure and should never be
+    // modified (even in the event of deopts).
     ObjectPtr* last_caller_obj =
         reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
     closure = FindClosureInFrame(last_caller_obj, function);
@@ -432,6 +436,12 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
     Object& receiver =
         Object::Handle(*(reinterpret_cast<ObjectPtr*>(frame->GetCallerSp()) +
                          kNumArgsFutureListenerHandleValue));
+    if (receiver.ptr() == Symbols::OptimizedOut().ptr()) {
+      // In the very rare case that _FutureListener.handleValue has deoptimized
+      // it may override the receiver slot in the caller frame with "<optimized
+      // out>" due to the `this` no longer being needed.
+      return Closure::null();
+    }
 
     return caller_closure_finder->GetCallerInFutureListener(receiver);
   }
@@ -579,6 +589,9 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
         function.parent_function() != Function::null()) {
       if (async_function.ptr() == function.parent_function()) {
         if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+          // Due the async/async* closures having optional parameters, the
+          // caller-frame's pushed arguments includes the closure and should
+          // never be modified (even in the event of deopts).
           ObjectPtr* last_caller_obj =
               reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
           closure = FindClosureInFrame(last_caller_obj, function);

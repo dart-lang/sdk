@@ -613,12 +613,6 @@ class FlowGraphCompiler : public ValueObject {
                           const compiler::ffi::NativeLocation& src,
                           TemporaryRegisterAllocator* temp);
 
-  // Emits a Dart const to a native location.
-  void EmitMoveConst(const compiler::ffi::NativeLocation& dst,
-                     Location src,
-                     Representation src_type,
-                     TemporaryRegisterAllocator* temp);
-
   bool CheckAssertAssignableTypeTestingABILocations(
       const LocationSummary& locs);
 

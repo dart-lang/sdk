@@ -1,0 +1,4 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return new #lib1::Foo::•<dynamic>().{#lib1::Foo::bar}{dart.core::String*}.{dart.core::String::length}{dart.core::int*};

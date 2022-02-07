@@ -4,10 +4,13 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer_utilities/check/check.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/parser_test_base.dart';
+import '../../util/ast_check.dart';
+import '../../util/token_check.dart';
+import '../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,14 +19,15 @@ main() {
 }
 
 @reflectiveTest
-class AstBuilderTest extends FastaParserTestCase {
+class AstBuilderTest extends ParserDiagnosticsTest {
   void test_constructor_factory_misnamed() {
-    CompilationUnit unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   factory B() => throw 0;
 }
 ''');
-    expect(unit, isNotNull);
+    parseResult.assertNoErrors();
+    var unit = parseResult.unit;
     expect(unit.declarations, hasLength(1));
     var declaration = unit.declarations[0] as ClassDeclaration;
     expect(declaration, isNotNull);
@@ -36,14 +40,15 @@ class A {
   }
 
   void test_constructor_wrongName() {
-    CompilationUnit unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   B() : super();
 }
-''', errors: [
-      expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
     ]);
-    expect(unit, isNotNull);
+    var unit = parseResult.unit;
     expect(unit.declarations, hasLength(1));
     var declaration = unit.declarations[0] as ClassDeclaration;
     expect(declaration, isNotNull);
@@ -54,14 +59,15 @@ class A {
   }
 
   void test_getter_sameNameAsClass() {
-    CompilationUnit unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   get A => 0;
 }
-''', errors: [
-      expectedError(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
     ]);
-    expect(unit, isNotNull);
+    var unit = parseResult.unit;
     expect(unit.declarations, hasLength(1));
     var declaration = unit.declarations[0] as ClassDeclaration;
     expect(declaration, isNotNull);
@@ -70,5 +76,22 @@ class A {
     expect(member, isNotNull);
     expect(member.isGetter, isTrue);
     expect(member.name.name, 'A');
+  }
+
+  void test_superFormalParameter() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A(super.a);
+}
+''');
+    parseResult.assertNoErrors();
+    check(parseResult.findNode.superFormalParameter('super.a'))
+      ..type.isNull
+      ..superKeyword.isKeywordSuper
+      ..identifier.which((it) => it
+        ..name.isEqualTo('a')
+        ..inDeclarationContext.isTrue)
+      ..typeParameters.isNull
+      ..parameters.isNull;
   }
 }

@@ -46,7 +46,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   @override
   void visitClassElement(ClassElement element) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestClass(element, kind: kind, prefix: prefix);
+      builder.suggestClass(element, prefix: prefix);
     }
     if (opType.includeConstructorSuggestions) {
       _addConstructorSuggestions(element);
@@ -135,12 +135,16 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   }
 
   /// Add constructor suggestions for the given class.
-  void _addConstructorSuggestions(ClassElement classElem) {
-    for (var constructor in classElem.constructors) {
+  void _addConstructorSuggestions(ClassElement element) {
+    if (element.isEnum) {
+      return;
+    }
+
+    for (var constructor in element.constructors) {
       if (constructor.isPrivate) {
         continue;
       }
-      if (classElem.isAbstract && !constructor.isFactory) {
+      if (element.isAbstract && !constructor.isFactory) {
         continue;
       }
       builder.suggestConstructor(constructor, kind: kind, prefix: prefix);

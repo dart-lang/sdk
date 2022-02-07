@@ -6,6 +6,7 @@
 #define RUNTIME_VM_HASH_MAP_H_
 
 #include "platform/utils.h"
+#include "vm/flags.h"
 #include "vm/growable_array.h"  // For Malloc, EmptyBase
 #include "vm/hash.h"
 #include "vm/zone.h"
@@ -132,6 +133,7 @@ BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Lookup(
   uint32_t mask = hash_table_size_ - 1;
   uint32_t hash_index = hash & mask;
   uint32_t start = hash_index;
+  intptr_t probes = 0;
   for (;;) {
     uint32_t pair_index = hash_table_[hash_index];
     if (pair_index == kEmpty) {
@@ -139,6 +141,7 @@ BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Lookup(
     }
     if (pair_index != kDeleted) {
       ASSERT(pair_index < pairs_size_);
+      RELEASE_ASSERT(++probes < FLAG_hash_map_probes_limit);
       if (KeyValueTrait::IsKeyEqual(pairs_[pair_index], key)) {
         return &pairs_[pair_index];
       }
@@ -233,6 +236,7 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
   uint32_t mask = hash_table_size_ - 1;
   uint32_t hash_index = hash & mask;
   uint32_t start = hash_index;
+  intptr_t probes = 0;
   for (;;) {
     uint32_t pair_index = hash_table_[hash_index];
     if ((pair_index == kEmpty) || (pair_index == kDeleted)) {
@@ -241,6 +245,7 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
       next_pair_index_++;
       break;
     }
+    RELEASE_ASSERT(++probes < FLAG_hash_map_probes_limit);
     ASSERT(pair_index < pairs_size_);
     hash_index = (hash_index + 1) & mask;
     // Hashtable must contain at least one empty marker.
@@ -273,6 +278,7 @@ bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
   uint32_t mask = hash_table_size_ - 1;
   uint32_t hash_index = hash & mask;
   uint32_t start = hash_index;
+  intptr_t probes = 0;
   for (;;) {
     uint32_t pair_index = hash_table_[hash_index];
     if (pair_index == kEmpty) {
@@ -280,6 +286,7 @@ bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
     }
     if (pair_index != kDeleted) {
       ASSERT(pair_index < pairs_size_);
+      RELEASE_ASSERT(++probes < FLAG_hash_map_probes_limit);
       if (KeyValueTrait::IsKeyEqual(pairs_[pair_index], key)) {
         hash_table_[hash_index] = kDeleted;
         pairs_[pair_index] = typename KeyValueTrait::Pair();

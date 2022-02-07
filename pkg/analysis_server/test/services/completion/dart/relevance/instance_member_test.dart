@@ -4,16 +4,31 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../client/completion_driver_test.dart';
 import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InstanceMemberTest);
+    defineReflectiveTests(InstanceMemberTest1);
+    defineReflectiveTests(InstanceMemberTest2);
   });
 }
 
 @reflectiveTest
-class InstanceMemberTest extends CompletionRelevanceTest {
+class InstanceMemberTest1 extends CompletionRelevanceTest
+    with InstanceMemberTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class InstanceMemberTest2 extends CompletionRelevanceTest
+    with InstanceMemberTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
+mixin InstanceMemberTestCases on CompletionRelevanceTest {
   @override
   bool get supportsAvailableSuggestions => true;
 

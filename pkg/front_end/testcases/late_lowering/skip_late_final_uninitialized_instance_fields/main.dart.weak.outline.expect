@@ -21,16 +21,16 @@ class Class extends core::Object {
   synthetic constructor •() → self::Class
     ;
   static get uninitializedNonFinalStaticField() → core::int;
-  static set uninitializedNonFinalStaticField(core::int #t1) → void;
+  static set uninitializedNonFinalStaticField(core::int uninitializedNonFinalStaticField#param) → void;
   static get uninitializedFinalStaticField() → core::int;
-  static set uninitializedFinalStaticField(core::int #t2) → void;
+  static set uninitializedFinalStaticField(core::int uninitializedFinalStaticField#param) → void;
   static get initializedNonFinalStaticField() → core::int;
-  static set initializedNonFinalStaticField(core::int #t3) → void;
+  static set initializedNonFinalStaticField(core::int initializedNonFinalStaticField#param) → void;
   static get initializedFinalStaticField() → core::int;
   get uninitializedFinalInstanceField() → core::int;
-  set uninitializedFinalInstanceField(core::int #t4) → void;
+  set uninitializedFinalInstanceField(core::int uninitializedFinalInstanceField#param) → void;
   get initializedNonFinalInstanceField() → core::int;
-  set initializedNonFinalInstanceField(core::int #t5) → void;
+  set initializedNonFinalInstanceField(core::int initializedNonFinalInstanceField#param) → void;
   get initializedFinalInstanceField() → core::int;
 }
 static field core::int? _#uninitializedNonFinalTopLevelField;
@@ -46,9 +46,9 @@ static method main() → dynamic
 static method method() → dynamic
   ;
 static get uninitializedNonFinalTopLevelField() → core::int;
-static set uninitializedNonFinalTopLevelField(core::int #t6) → void;
+static set uninitializedNonFinalTopLevelField(core::int uninitializedNonFinalTopLevelField#param) → void;
 static get uninitializedFinalTopLevelField() → core::int;
-static set uninitializedFinalTopLevelField(core::int #t7) → void;
+static set uninitializedFinalTopLevelField(core::int uninitializedFinalTopLevelField#param) → void;
 static get initializedNonFinalTopLevelField() → core::int;
-static set initializedNonFinalTopLevelField(core::int #t8) → void;
+static set initializedNonFinalTopLevelField(core::int initializedNonFinalTopLevelField#param) → void;
 static get initializedFinalTopLevelField() → core::int;

@@ -13,9 +13,9 @@ void main() {
 }
 
 void help() {
-  TestProject p;
+  late TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   /// Commands not tested by the following loop.
   List<String> _commandsNotTested = <String>[

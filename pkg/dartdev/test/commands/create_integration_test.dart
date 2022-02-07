@@ -14,7 +14,7 @@ void main() {
 }
 
 void defineCreateTests() {
-  TestProject p;
+  TestProject? p;
 
   setUp(() => p = null);
 
@@ -25,7 +25,7 @@ void defineCreateTests() {
     test(templateId, () async {
       p = project();
 
-      ProcessResult createResult = await p.run([
+      ProcessResult createResult = await p!.run([
         'create',
         '--force',
         '--template',
@@ -37,11 +37,11 @@ void defineCreateTests() {
       // Validate that the project analyzes cleanly.
       // TODO: Should we use --fatal-infos here?
       ProcessResult analyzeResult =
-          await p.run(['analyze'], workingDir: p.dir.path);
+          await p!.run(['analyze'], workingDir: p!.dir.path);
       expect(analyzeResult.exitCode, 0, reason: analyzeResult.stdout);
 
       // Validate that the code is well formatted.
-      ProcessResult formatResult = await p.run([
+      ProcessResult formatResult = await p!.run([
         'format',
         '--output',
         'none',

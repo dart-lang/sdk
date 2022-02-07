@@ -252,6 +252,7 @@ _detectCyclesAndRemoveUnreachable(Map<String, Module> modules, Module main) {
 /// Default entries for a .packages file with paths relative to the SDK root.
 List<int> _defaultPackagesInput = utf8.encode('''
 expect:pkg/expect/lib
+smith:pkg/smith/lib
 async_helper:pkg/async_helper/lib
 meta:pkg/meta/lib
 collection:third_party/pkg/collection/lib
@@ -264,7 +265,8 @@ collection:third_party/pkg/collection/lib
 // import graph, or adding tests that validate this is always up to date.
 String _defaultPackagesSpec = '''
 dependencies:
-  expect: meta
+  expect: [meta, smith]
+  smith: []
   meta: []
   async_helper: []
   collection: []

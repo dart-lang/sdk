@@ -66,6 +66,9 @@ abstract class Completer<T> {
 }
 
 abstract class Timer {
+  factory Timer(Duration duration, void Function() callback) {
+    throw 0;
+  }
   static void run(void callback()) {}
 }
 ''',
@@ -659,6 +662,8 @@ class NativeType {
 
 class Handle extends NativeType {}
 
+abstract class Opaque extends NativeType {}
+
 class Void extends NativeType {}
 
 class Int8 extends NativeType {
@@ -833,6 +838,9 @@ class AbiSpecificIntegerMapping {
   const AbiSpecificIntegerMapping(this.mapping);
 }
 
+abstract class Finalizable {
+  factory Finalizable._() => throw UnsupportedError("");
+}
 ''',
   )
 ]);

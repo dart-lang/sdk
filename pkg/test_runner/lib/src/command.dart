@@ -124,7 +124,9 @@ class ProcessCommand extends Command {
         (io.Platform.operatingSystem == 'windows')
             ? env.write('set $key=${escapeCommandLineArgument(value)} & ')
             : env.write('$key=${escapeCommandLineArgument(value)} '));
-    var command = ([executable]..addAll(batchArguments)..addAll(arguments))
+    var command = ([executable]
+          ..addAll(nonBatchArguments)
+          ..addAll(arguments))
         .map(escapeCommandLineArgument)
         .join(' ');
     if (workingDirectory != null) {
@@ -135,10 +137,13 @@ class ProcessCommand extends Command {
 
   bool get outputIsUpToDate => false;
 
-  /// Arguments that are passed to the process when starting batch mode.
-  ///
-  /// In non-batch mode, they should be passed before [arguments].
+  /// Additional arguments to prepend before [arguments] when running the
+  /// process in batch mode.
   List<String> get batchArguments => const [];
+
+  /// Additional arguments to prepend before [arguments] when running the
+  /// process in non-batch mode.
+  List<String> get nonBatchArguments => const [];
 }
 
 class CompilationCommand extends ProcessCommand {
@@ -181,12 +186,6 @@ class CompilationCommand extends ProcessCommand {
     if (displayName == 'precompiler' || displayName == 'app_jit') {
       return VMCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, pid);
-    } else if (displayName == 'dart2js') {
-      return Dart2jsCompilerCommandOutput(
-          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-    } else if (displayName == 'dartdevc') {
-      return DevCompilerCommandOutput(this, exitCode, timedOut, stdout, stderr,
-          time, compilationSkipped, pid);
     }
 
     return CompilationCommandOutput(
@@ -241,6 +240,116 @@ class CompilationCommand extends ProcessCommand {
       outputFile == other.outputFile &&
       _alwaysCompile == other._alwaysCompile &&
       deepJsonCompare(_bootstrapDependencies, other._bootstrapDependencies);
+}
+
+class Dart2jsCompilationCommand extends CompilationCommand {
+  final bool useSdk;
+
+  Dart2jsCompilationCommand(
+      String outputFile,
+      List<Uri> bootstrapDependencies,
+      String executable,
+      List<String> arguments,
+      Map<String, String> environmentOverrides,
+      {this.useSdk,
+      bool alwaysCompile,
+      String workingDirectory,
+      int index = 0})
+      : super("dart2js", outputFile, bootstrapDependencies, executable,
+            arguments, environmentOverrides,
+            alwaysCompile: alwaysCompile,
+            workingDirectory: workingDirectory,
+            index: index);
+
+  @override
+  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
+      List<int> stderr, Duration time, bool compilationSkipped,
+      [int pid = 0]) {
+    return Dart2jsCompilerCommandOutput(
+        this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+  }
+
+  @override
+  List<String> get batchArguments {
+    return <String>[
+      if (useSdk) ...['compile', 'js'],
+      ...super.batchArguments,
+    ];
+  }
+
+  @override
+  List<String> get nonBatchArguments {
+    return <String>[
+      if (useSdk) ...['compile', 'js'],
+      ...super.nonBatchArguments,
+    ];
+  }
+
+  @override
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.addJson(useSdk);
+  }
+
+  @override
+  bool _equal(Dart2jsCompilationCommand other) {
+    return super._equal(other) && useSdk == other.useSdk;
+  }
+}
+
+class DevCompilerCompilationCommand extends CompilationCommand {
+  final String compilerPath;
+
+  DevCompilerCompilationCommand(
+      String outputFile,
+      List<Uri> bootstrapDependencies,
+      String executable,
+      List<String> arguments,
+      Map<String, String> environmentOverrides,
+      {this.compilerPath,
+      bool alwaysCompile,
+      String workingDirectory,
+      int index = 0})
+      : super("dartdevc", outputFile, bootstrapDependencies, executable,
+            arguments, environmentOverrides,
+            alwaysCompile: alwaysCompile,
+            workingDirectory: workingDirectory,
+            index: index);
+
+  @override
+  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
+      List<int> stderr, Duration time, bool compilationSkipped,
+      [int pid = 0]) {
+    return DevCompilerCommandOutput(this, exitCode, timedOut, stdout, stderr,
+        time, compilationSkipped, pid);
+  }
+
+  @override
+  List<String> get batchArguments {
+    return <String>[
+      compilerPath,
+      ...super.batchArguments,
+    ];
+  }
+
+  @override
+  List<String> get nonBatchArguments {
+    return <String>[
+      compilerPath,
+      ...super.nonBatchArguments,
+    ];
+  }
+
+  @override
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.addJson(compilerPath);
+  }
+
+  @override
+  bool _equal(DevCompilerCompilationCommand other) {
+    return super._equal(other) && compilerPath == other.compilerPath;
+  }
 }
 
 class FastaCompilationCommand extends CompilationCommand {

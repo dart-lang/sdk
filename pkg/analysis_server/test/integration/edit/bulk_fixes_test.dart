@@ -43,6 +43,7 @@ class B extends A {
 }
 ''');
     standardAnalysisSetup();
+    await analysisFinished;
 
     var result = await sendEditBulkFixes([sourceDirectory.path]);
     expect(result.edits, hasLength(1));

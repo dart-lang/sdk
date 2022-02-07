@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, verify_handles, false, "Verify handles.");
-
 void VMHandles::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   return Handles<kVMHandleSizeInWords, kVMHandlesPerChunk,
                  kOffsetOfRawPtr>::VisitObjectPointers(visitor);

@@ -131,6 +131,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
+  bool get isUnsupported => library.isUnsupported;
+
+  @override
   bool get isSynthetic => library.isSynthetic;
 
   @override

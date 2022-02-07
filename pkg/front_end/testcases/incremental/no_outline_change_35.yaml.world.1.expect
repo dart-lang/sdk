@@ -33,9 +33,9 @@ library from "org-dartlang-test:///lib.dart" as lib {
     set y(dart.core::double* #v) → void
       return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #v);
     get next() → dart.ffi::Pointer<lib::Coordinate*>*
-      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
+      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
     set next(dart.ffi::Pointer<lib::Coordinate*>* #v) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #v.{dart.ffi::Pointer::address}{dart.core::int});
+      return dart.ffi::_storeAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #v.{dart.ffi::Pointer::address}{dart.core::int});
     @#C16
     static get /*isNonNullableByDefault*/ #sizeOf() → dart.core::int*
       return #C19.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
@@ -62,14 +62,14 @@ constants  {
   #C7 = dart.core::pragma {name:#C1, options:#C6}
   #C8 = dart.ffi::Double {}
   #C9 = 0
-  #C10 = <dart.core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
+  #C10 = <dart.core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C11 = 8
-  #C12 = <dart.core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
+  #C12 = <dart.core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
   #C13 = 16
-  #C14 = <dart.core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
+  #C14 = <dart.core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
   #C15 = "vm:prefer-inline"
   #C16 = dart.core::pragma {name:#C15, options:#C5}
   #C17 = 24
   #C18 = 20
-  #C19 = <dart.core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17]
+  #C19 = <dart.core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
 }

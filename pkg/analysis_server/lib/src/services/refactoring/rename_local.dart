@@ -82,9 +82,18 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
       processor.addDeclarationEdit(element);
       var references = await searchEngine.searchReferences(element);
 
-      // Exclude "implicit" references to optional positional parameters.
-      if (element is ParameterElement && element.isOptionalPositional) {
-        references.removeWhere((match) => match.sourceRange.length == 0);
+      // Remove references that don't have to have the same name.
+      if (element is ParameterElement) {
+        // Implicit references to optional positional parameters.
+        if (element.isOptionalPositional) {
+          references.removeWhere((match) => match.sourceRange.length == 0);
+        }
+        // References to positional parameters from super-formal.
+        if (element.isPositional) {
+          references.removeWhere(
+            (match) => match.element is SuperFormalParameterElement,
+          );
+        }
       }
 
       processor.addReferenceEdits(references);

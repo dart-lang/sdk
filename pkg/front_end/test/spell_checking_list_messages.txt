@@ -31,7 +31,6 @@ dart_runner
 dartbug.com
 dname
 e.g
-enum's
 f
 ffi
 flutter_runner
@@ -75,6 +74,7 @@ stringokempty
 struct<#name
 structs
 super.namedconstructor
+superinterface
 supermixin
 team
 this.namedconstructor

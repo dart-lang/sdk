@@ -50,8 +50,6 @@ namespace dart {
 class ObjectPointerVisitor;
 class HandleVisitor;
 
-DECLARE_FLAG(bool, verify_handles);
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 class Handles {
  public:

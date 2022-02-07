@@ -57,7 +57,7 @@ void main() {
       ["Platform", "environment", "TERM"], [0, 9, 22]);
 
   expectSplit("DART2JS_PLATFORM", false, ["DART2JS_PLATFORM"], [0]);
-  expectSplit("DART2JS_PLATFORM", true, ["DART2JS", "PLATFORM"], [0, 8]);
+  expectSplit("DART2JS_PLATFORM", true, ["DART", "JS", "PLATFORM"], [0, 5, 8]);
 
   expectSplit("Foo\\n", false, ["Foo\\n"], [0]);
   expectSplit("Foo\\n", true, ["Foo"], [0]);
@@ -79,6 +79,12 @@ void main() {
 
   expectSplit("foo%bar", false, ["foo%bar"], [0]);
   expectSplit("foo%bar", true, ["foo", "bar"], [0, 4]);
+
+  expectSplit("foo42bar", false, ["foo42bar"], [0]);
+  expectSplit("foo42bar", true, ["foo", "bar"], [0, 5]);
+
+  expectSplit('foo"bar', false, ['foo"bar'], [0]);
+  expectSplit('foo"bar', true, ["foo", "bar"], [0, 4]);
 
   expectAlternative(
       "explicitley", ["explicitly"], {"foo", "explicitly", "bar"});

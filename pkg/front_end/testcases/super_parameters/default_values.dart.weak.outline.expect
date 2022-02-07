@@ -1,0 +1,118 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/super_parameters/default_values.dart:51:17: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   C5([int super.x]); // Error.
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class S1 extends core::Object {
+  field core::int s;
+  constructor •([core::int x = 0]) → self::S1
+    ;
+}
+class C1 extends self::S1 {
+  field core::int c;
+  constructor •([core::int x = 0]) → self::C1
+    ;
+}
+class S2 extends core::Object {
+  field core::int s;
+  constructor •({core::int x = 0}) → self::S2
+    ;
+}
+class C2 extends self::S2 {
+  field core::int c;
+  constructor •({core::int x = 0}) → self::C2
+    ;
+}
+class S3 extends core::Object {
+  field core::int s;
+  constructor •([core::int x = 0]) → self::S3
+    ;
+}
+class C3 extends self::S3 {
+  field core::int c;
+  constructor •([core::int x = 42]) → self::C3
+    ;
+}
+class S4 extends core::Object {
+  field core::int s;
+  constructor •({core::int x = 0}) → self::S4
+    ;
+}
+class C4 extends self::S4 {
+  field core::int c;
+  constructor •({core::int x = 42}) → self::C4
+    ;
+}
+class S5 extends core::Object {
+  field core::num a;
+  constructor •([core::num x = 3.14]) → self::S5
+    ;
+}
+class C5 extends self::S5 {
+  constructor •([core::int x]) → self::C5
+    ;
+}
+class S6 extends core::Object {
+  field core::num? a;
+  constructor •([core::num? x = 3.14]) → self::S6
+    ;
+}
+class C6 extends self::S6 {
+  field core::int? b;
+  constructor •([core::int? x]) → self::C6
+    ;
+}
+class S7 extends core::Object {
+  field core::int s;
+  constructor •([core::int x = 0]) → self::S7
+    ;
+}
+class C7 extends self::S7 {
+  field core::int c;
+  constructor •([core::int x = 0]) → self::C7
+    ;
+}
+class CC7 extends self::C7 {
+  field core::int cc;
+  constructor •([core::int x = 0]) → self::CC7
+    ;
+}
+class S8 extends core::Object {
+  field core::int s;
+  constructor •([core::int x = 0]) → self::S8
+    ;
+}
+class CC8 extends self::C8 {
+  field core::int cc;
+  constructor •([core::int x = 0]) → self::CC8
+    ;
+}
+class C8 extends self::S8 {
+  field core::int c;
+  constructor •([core::int x = 0]) → self::C8
+    ;
+}
+class CC9 extends self::C9 {
+  field core::int cc;
+  constructor •([core::int x = 0]) → self::CC9
+    ;
+}
+class C9 extends self::S9 {
+  field core::int c;
+  constructor •([core::int x = 0]) → self::C9
+    ;
+}
+class S9 extends core::Object {
+  field core::int s;
+  constructor •([core::int x = 0]) → self::S9
+    ;
+}
+static method main() → dynamic
+  ;

@@ -19,6 +19,9 @@ enum SyntacticNullability {
 
   /// Used when the type is declared without any nullability suffixes.
   omitted,
+
+  /// Used when the type is nullable without any nullability suffix.
+  inherent,
 }
 
 class NullabilityBuilder {
@@ -30,7 +33,14 @@ class NullabilityBuilder {
   const NullabilityBuilder.omitted()
       : _syntacticNullability = SyntacticNullability.omitted;
 
+  const NullabilityBuilder.inherent()
+      : _syntacticNullability = SyntacticNullability.inherent;
+
   bool get isOmitted => _syntacticNullability == SyntacticNullability.omitted;
+
+  bool get isInherent => _syntacticNullability == SyntacticNullability.inherent;
+
+  bool get isNullable => _syntacticNullability == SyntacticNullability.nullable;
 
   factory NullabilityBuilder.fromNullability(Nullability nullability) {
     switch (nullability) {
@@ -55,6 +65,7 @@ class NullabilityBuilder {
       case SyntacticNullability.legacy:
         return Nullability.legacy;
       case SyntacticNullability.nullable:
+      case SyntacticNullability.inherent:
         return Nullability.nullable;
       case SyntacticNullability.omitted:
         return ifOmitted;
@@ -70,6 +81,7 @@ class NullabilityBuilder {
         sb.write("?");
         return;
       case SyntacticNullability.omitted:
+      case SyntacticNullability.inherent:
         // Do nothing.
         return;
     }

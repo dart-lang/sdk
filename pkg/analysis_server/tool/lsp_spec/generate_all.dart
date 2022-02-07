@@ -251,17 +251,17 @@ List<AstNode> getCustomClasses() {
       ],
     ),
     interface(
+      // Used as a base class for all resolution data classes.
       'CompletionItemResolutionInfo',
-      [
-        field('file', type: 'string'),
-        field('offset', type: 'int'),
-      ],
+      [],
     ),
     interface(
-      'DartCompletionItemResolutionInfo',
+      'DartSuggestionSetCompletionItemResolutionInfo',
       [
         // These fields have short-ish names because they're on the payload
         // for all suggestion-set backed completions.
+        field('file', type: 'string'),
+        field('offset', type: 'int'),
         field('libId', type: 'int'),
         field('displayUri', type: 'string'),
         field('rOffset', type: 'int'), // replacementOffset

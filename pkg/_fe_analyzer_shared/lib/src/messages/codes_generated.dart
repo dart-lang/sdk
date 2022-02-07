@@ -1434,6 +1434,17 @@ Message _withArgumentsConstEvalFailedAssertionWithMessage(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalFailedAssertionWithNonStringMessage =
+    messageConstEvalFailedAssertionWithNonStringMessage;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalFailedAssertionWithNonStringMessage =
+    const MessageCode("ConstEvalFailedAssertionWithNonStringMessage",
+        analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
+        problemMessage:
+            r"""This assertion failed with a non-String message.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String nameOKEmpty)>
     templateConstEvalGetterNotFound =
     const Template<Message Function(String nameOKEmpty)>(
@@ -2768,14 +2779,24 @@ const MessageCode messageEnumDeclarationEmpty = const MessageCode(
     problemMessage: r"""An enum declaration can't be empty.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeEnumDeclaresFactory = messageEnumDeclaresFactory;
+const Code<Null> codeEnumDeclaresConstFactory = messageEnumDeclaresConstFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumDeclaresFactory = const MessageCode(
-    "EnumDeclaresFactory",
-    problemMessage: r"""Enums can't declare factory constructors.""",
+const MessageCode messageEnumDeclaresConstFactory = const MessageCode(
+    "EnumDeclaresConstFactory",
+    problemMessage: r"""Enums can't declare const factory constructors.""",
     correctionMessage:
         r"""Try removing the factory constructor declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumEntryWithTypeArgumentsWithoutArguments =
+    messageEnumEntryWithTypeArgumentsWithoutArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumEntryWithTypeArgumentsWithoutArguments =
+    const MessageCode("EnumEntryWithTypeArgumentsWithoutArguments",
+        problemMessage:
+            r"""Missing arguments in enum constructor invocation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumInClass = messageEnumInClass;
@@ -2794,6 +2815,30 @@ const MessageCode messageEnumInstantiation = const MessageCode(
     "EnumInstantiation",
     analyzerCodes: <String>["INSTANTIATE_ENUM"],
     problemMessage: r"""Enums can't be instantiated.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateEnumSupertypeOfNonAbstractClass =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""Non-abstract class '#name' has 'Enum' as a superinterface.""",
+        withArguments: _withArgumentsEnumSupertypeOfNonAbstractClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeEnumSupertypeOfNonAbstractClass =
+    const Code<Message Function(String name)>(
+  "EnumSupertypeOfNonAbstractClass",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumSupertypeOfNonAbstractClass(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeEnumSupertypeOfNonAbstractClass,
+      problemMessage:
+          """Non-abstract class '${name}' has 'Enum' as a superinterface.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEqualityCannotBeEqualityOperand =
@@ -5128,26 +5173,6 @@ Message _withArgumentsIncrementalCompilerIllegalTypeParameter(String string) {
       problemMessage:
           """Illegal type parameter name '${string}' found during expression compilation.""",
       arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Uri uri_)> templateInferredPackageUri =
-    const Template<Message Function(Uri uri_)>(
-        problemMessageTemplate:
-            r"""Interpreting this as package URI, '#uri'.""",
-        withArguments: _withArgumentsInferredPackageUri);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Uri uri_)> codeInferredPackageUri =
-    const Code<Message Function(Uri uri_)>("InferredPackageUri",
-        severity: Severity.warning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInferredPackageUri(Uri uri_) {
-  String? uri = relativizeUri(uri_);
-  return new Message(codeInferredPackageUri,
-      problemMessage: """Interpreting this as package URI, '${uri}'.""",
-      arguments: {'uri': uri_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

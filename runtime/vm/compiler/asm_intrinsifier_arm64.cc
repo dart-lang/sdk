@@ -15,10 +15,12 @@ namespace dart {
 namespace compiler {
 
 // When entering intrinsics code:
+// PP: Caller's ObjectPool in JIT / global ObjectPool in AOT
+// CODE_REG: Callee's Code in JIT / not passed in AOT
 // R4: Arguments descriptor
 // LR: Return address
-// The R4 register can be destroyed only if there is no slow-path, i.e.
-// if the intrinsified method always executes a return.
+// The R4 and CODE_REG registers can be destroyed only if there is no slow-path,
+// i.e. if the intrinsified method always executes a return.
 // The FP register should not be modified, because it is used by the profiler.
 // The PP and THR registers (see constants_arm64.h) must be preserved.
 
@@ -51,9 +53,8 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
       R1);
 
   // Set the length field in the growable array object to 0.
-  __ LoadImmediate(R1, 0);
   __ StoreCompressedIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::GrowableObjectArray::length_offset()), R1);
+      R0, FieldAddress(R0, target::GrowableObjectArray::length_offset()), ZR);
   __ ret();  // Returns the newly allocated object in R0.
 
   __ Bind(normal_ir_body);

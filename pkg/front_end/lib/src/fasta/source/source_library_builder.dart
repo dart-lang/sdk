@@ -8,44 +8,31 @@ import 'dart:collection';
 import 'dart:convert' show jsonEncode;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
-
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
-import 'package:kernel/core_types.dart';
-
 import 'package:kernel/reference_from_index.dart'
     show IndexedClass, IndexedContainer, IndexedLibrary;
-
 import 'package:kernel/src/bounds_checks.dart'
     show
         TypeArgumentIssue,
         findTypeArgumentIssues,
         findTypeArgumentIssuesForInvocation,
         getGenericTypeName;
-
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
-
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
 import '../../api_prototype/experimental_flags.dart';
 import '../../base/nnbd_mode.dart';
-
 import '../builder/builder.dart';
 import '../builder/builtin_type_declaration_builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/constructor_builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
-import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/factory_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
@@ -66,23 +53,15 @@ import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-
 import '../combinator.dart' show CombinatorBuilder;
-
 import '../configuration.dart' show Configuration;
-
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
-
 import '../export.dart' show Export;
-
 import '../fasta_codes.dart';
-
 import '../identifiers.dart' show QualifiedName, flattenName;
-
 import '../import.dart' show Import;
-
-import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
@@ -98,7 +77,6 @@ import '../kernel/type_algorithms.dart'
         getNonSimplicityIssuesForTypeVariables,
         pendingVariance;
 import '../kernel/utils.dart' show compareProcedures, toKernelCombinators;
-
 import '../modifier.dart'
     show
         abstractMask,
@@ -113,22 +91,23 @@ import '../modifier.dart'
         mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
-
 import '../names.dart' show indexSetName;
-
 import '../operator.dart';
-
 import '../problems.dart' show unexpected, unhandled;
-
 import '../scope.dart';
-
 import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
-
 import '../util/helpers.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
+import 'source_constructor_builder.dart';
+import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
+import 'source_factory_builder.dart';
+import 'source_field_builder.dart';
+import 'source_function_builder.dart';
 import 'source_loader.dart' show SourceLoader;
+import 'source_member_builder.dart';
+import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
@@ -160,6 +139,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   Uri? get packageUriForTesting => _packageUri;
 
+  @override
+  final bool isUnsupported;
+
   final List<Object> accessors = <Object>[];
 
   @override
@@ -186,7 +168,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final SourceLibraryBuilder? _origin;
 
-  final List<FunctionBuilder> nativeMethods = <FunctionBuilder>[];
+  final List<SourceFunctionBuilder> nativeMethods = <SourceFunctionBuilder>[];
 
   final List<TypeVariableBuilder> unboundTypeVariables =
       <TypeVariableBuilder>[];
@@ -234,7 +216,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// the error message is the corresponding value in the map.
   Map<String, String?>? unserializableExports;
 
-  List<FieldBuilder>? _implicitlyTypedFields;
+  List<SourceFieldBuilder>? _implicitlyTypedFields;
 
   /// The language version of this library as defined by the language version
   /// of the package it belongs to, if present, or the current language version
@@ -271,7 +253,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Library library,
       LibraryBuilder? nameOrigin,
       Library? referencesFrom,
-      bool? referenceIsPartOwner)
+      bool? referenceIsPartOwner,
+      bool isUnsupported)
       : this.fromScopes(
             loader,
             fileUri,
@@ -282,7 +265,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             origin,
             library,
             nameOrigin,
-            referencesFrom);
+            referencesFrom,
+            isUnsupported);
 
   SourceLibraryBuilder.fromScopes(
       this.loader,
@@ -294,7 +278,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceLibraryBuilder? origin,
       this.library,
       this._nameOrigin,
-      this.referencesFrom)
+      this.referencesFrom,
+      this.isUnsupported)
       : _languageVersion = packageLanguageVersion,
         currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
         referencesFromIndexed =
@@ -483,7 +468,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Library? target,
       LibraryBuilder? nameOrigin,
       Library? referencesFrom,
-      bool? referenceIsPartOwner})
+      bool? referenceIsPartOwner,
+      required bool isUnsupported})
       : this.internal(
             loader,
             fileUri,
@@ -501,7 +487,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   ..setLanguageVersion(packageLanguageVersion.version)),
             nameOrigin,
             referencesFrom,
-            referenceIsPartOwner);
+            referenceIsPartOwner,
+            isUnsupported);
 
   @override
   bool get isPart => partOfName != null || partOfUri != null;
@@ -724,7 +711,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int uriOffset) {
     if (configurations != null) {
       for (Configuration config in configurations) {
-        if (lookupImportCondition(config.dottedName) == config.condition) {
+        if (loader.getLibrarySupportValue(config.dottedName) ==
+            config.condition) {
           uri = config.importUri;
           break;
         }
@@ -736,26 +724,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         accessor: this);
     exportedLibrary.addExporter(this, combinators, charOffset);
     exports.add(new Export(this, exportedLibrary, combinators, charOffset));
-  }
-
-  String lookupImportCondition(String dottedName) {
-    const String prefix = "dart.library.";
-    if (!dottedName.startsWith(prefix)) return "";
-    dottedName = dottedName.substring(prefix.length);
-    if (!loader.target.uriTranslator.isLibrarySupported(dottedName)) return "";
-
-    LibraryBuilder? imported =
-        loader.lookupLibraryBuilder(new Uri(scheme: "dart", path: dottedName));
-
-    if (imported == null) {
-      LibraryBuilder coreLibrary = loader.readAsEntryPoint(resolve(
-          this.importUri,
-          new Uri(scheme: "dart", path: "core").toString(),
-          -1));
-      imported = coreLibrary.loader
-          .lookupLibraryBuilder(new Uri(scheme: 'dart', path: dottedName));
-    }
-    return imported != null && !imported.isSynthetic ? "true" : "";
   }
 
   void addImport(
@@ -771,7 +739,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int importIndex) {
     if (configurations != null) {
       for (Configuration config in configurations) {
-        if (lookupImportCondition(config.dottedName) == config.condition) {
+        if (loader.getLibrarySupportValue(config.dottedName) ==
+            config.condition) {
           uri = config.importUri;
           break;
         }
@@ -1025,9 +994,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           conflictingGetables.add(currentGetable);
         }
       }
-      for (MemberBuilderImpl? currentSetter = setter as MemberBuilderImpl?;
+      for (SourceMemberBuilderImpl? currentSetter =
+              setter as SourceMemberBuilderImpl?;
           currentSetter != null;
-          currentSetter = currentSetter.next as MemberBuilderImpl?) {
+          currentSetter = currentSetter.next as SourceMemberBuilderImpl?) {
         bool conflict = conflictingGetables.isNotEmpty;
         for (Builder? currentGetable = getable;
             currentGetable != null;
@@ -1096,6 +1066,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (!modifyTarget) return library;
 
     library.isSynthetic = isSynthetic;
+    library.isUnsupported = isUnsupported;
     addDependencies(library, new Set<SourceLibraryBuilder>());
 
     library.name = name;
@@ -1330,7 +1301,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         (library.problemsAsJson ??= <String>[])
             .addAll(part.library.problemsAsJson!);
       }
-      List<FieldBuilder> partImplicitlyTypedFields = [];
+      List<SourceFieldBuilder> partImplicitlyTypedFields = [];
       part.collectImplicitlyTypedFields(partImplicitlyTypedFields);
       if (partImplicitlyTypedFields.isNotEmpty) {
         if (_implicitlyTypedFields == null) {
@@ -1659,7 +1630,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   TypeBuilder addVoidType(int charOffset) {
     // 'void' is always nullable.
     return addNamedType(
-        "void", const NullabilityBuilder.nullable(), null, charOffset,
+        "void", const NullabilityBuilder.inherent(), null, charOffset,
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
       ..bind(
           new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset));
@@ -1865,7 +1836,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         classScope,
         constructorScope,
         this,
-        new List<ConstructorReferenceBuilder>.from(constructorReferences),
+        new List<ConstructorReferenceBuilder>.of(constructorReferences),
         startOffset,
         nameOffset,
         endOffset,
@@ -2554,22 +2525,23 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           .lookupGetterReference(constructorTearOffName(
               constructorName, _currentClassReferencesFromIndexed!.library));
     }
-    ConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
-        metadata,
-        modifiers & ~abstractMask,
-        returnType,
-        constructorName,
-        typeVariables,
-        formals,
-        this,
-        startCharOffset,
-        charOffset,
-        charOpenParenOffset,
-        charEndOffset,
-        constructorReference,
-        tearOffReference,
-        nativeMethodName: nativeMethodName,
-        forAbstractClassOrEnum: forAbstractClass);
+    DeclaredSourceConstructorBuilder constructorBuilder =
+        new DeclaredSourceConstructorBuilder(
+            metadata,
+            modifiers & ~abstractMask,
+            returnType,
+            constructorName,
+            typeVariables,
+            formals,
+            this,
+            startCharOffset,
+            charOffset,
+            charOpenParenOffset,
+            charEndOffset,
+            constructorReference,
+            tearOffReference,
+            nativeMethodName: nativeMethodName,
+            forAbstractClassOrEnum: forAbstractClass);
     checkTypeVariables(typeVariables, constructorBuilder);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.
     addBuilder(constructorName, constructorBuilder, charOffset,
@@ -2579,8 +2551,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (constructorBuilder.isConst) {
       currentTypeParameterScopeBuilder.declaresConstConstructor = true;
+    }
+    if (constructorBuilder.isConst || enableSuperParametersInLibrary) {
       // const constructors will have their initializers compiled and written
-      // into the outline.
+      // into the outline. In case of super-parameters language feature, the
+      // super initializers are required to infer the types of super parameters.
       constructorBuilder.beginInitializers =
           beginInitializers ?? new Token.eof(-1);
     }
@@ -2657,7 +2632,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
-    ProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
+    SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
         metadata,
         modifiers,
         returnType,
@@ -2815,6 +2790,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void addEnum(
       List<MetadataBuilder>? metadata,
       String name,
+      List<TypeVariableBuilder>? typeVariables,
+      TypeBuilder? supertypeBuilder,
+      List<TypeBuilder>? interfaceBuilders,
       List<EnumConstantInfo?>? enumConstantInfos,
       int startCharOffset,
       int charOffset,
@@ -2825,13 +2803,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           referencesFromIndexed!.lookupIndexedClass(name);
     }
     // Nested declaration began in `OutlineBuilder.beginEnum`.
-    // TODO(cstefantsova): Use actual type variables here.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(TypeParameterScopeKind.enumDeclaration, name)
-          ..resolveNamedTypes([], this);
-    EnumBuilder builder = new EnumBuilder(
+          ..resolveNamedTypes(typeVariables, this);
+    Map<String, Builder> members = declaration.members!;
+    Map<String, MemberBuilder> constructors = declaration.constructors!;
+    Map<String, MemberBuilder> setters = declaration.setters!;
+
+    SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
         metadata,
         name,
+        typeVariables,
+        applyMixins(supertypeBuilder, startCharOffset, charOffset,
+            charEndOffset, name, /* isMixinDeclaration = */ false,
+            typeVariables: typeVariables, isMacro: false),
+        interfaceBuilders,
         enumConstantInfos,
         this,
         startCharOffset,
@@ -2839,12 +2825,44 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charEndOffset,
         referencesFromIndexedClass,
         new Scope(
-            local: declaration.members!,
-            setters: declaration.setters!,
-            parent: scope.withTypeVariables(<TypeVariableBuilder>[]),
+            local: members,
+            setters: setters,
+            parent: scope.withTypeVariables(typeVariables),
             debugName: "enum $name",
-            isModifiable: false));
-    addBuilder(name, builder, charOffset,
+            isModifiable: false),
+        new ConstructorScope(name, constructors));
+
+    Map<String, TypeVariableBuilder>? typeVariablesByName =
+        checkTypeVariables(typeVariables, enumBuilder);
+
+    void setParent(String name, MemberBuilder? member) {
+      while (member != null) {
+        member.parent = enumBuilder;
+        member = member.next as MemberBuilder?;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, Builder member) {
+      if (typeVariablesByName != null) {
+        TypeVariableBuilder? tv = typeVariablesByName[name];
+        if (tv != null) {
+          enumBuilder.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri!, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(name, member as MemberBuilder);
+    }
+
+    members.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
+    setters.forEach(setParentAndCheckConflicts);
+    addBuilder(name, enumBuilder, charOffset,
         getterReference: referencesFromIndexedClass?.cls.reference);
   }
 
@@ -2934,14 +2952,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildOutlineExpressions(
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes,
       List<DelayedActionPerformer> delayedActionPerformers) {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
         patchLibrary.buildOutlineExpressions(
-            coreTypes, synthesizedFunctionNodes, delayedActionPerformers);
+            classHierarchy, synthesizedFunctionNodes, delayedActionPerformers);
       }
     }
 
@@ -2951,18 +2969,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
-      if (declaration is ClassBuilder) {
-        declaration.buildOutlineExpressions(
-            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+      if (declaration is SourceClassBuilder) {
+        declaration.buildOutlineExpressions(this, classHierarchy,
+            delayedActionPerformers, synthesizedFunctionNodes);
       } else if (declaration is ExtensionBuilder) {
-        declaration.buildOutlineExpressions(
-            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
-      } else if (declaration is MemberBuilder) {
-        declaration.buildOutlineExpressions(
-            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+        declaration.buildOutlineExpressions(this, classHierarchy,
+            delayedActionPerformers, synthesizedFunctionNodes);
+      } else if (declaration is SourceMemberBuilder) {
+        declaration.buildOutlineExpressions(this, classHierarchy,
+            delayedActionPerformers, synthesizedFunctionNodes);
       } else if (declaration is SourceTypeAliasBuilder) {
-        declaration.buildOutlineExpressions(
-            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+        declaration.buildOutlineExpressions(this, classHierarchy,
+            delayedActionPerformers, synthesizedFunctionNodes);
       } else {
         assert(
             declaration is PrefixBuilder ||
@@ -3001,7 +3019,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!declaration.isPatch && !declaration.isDuplicate) {
         library.addExtension(extension);
       }
-    } else if (declaration is MemberBuilderImpl) {
+    } else if (declaration is SourceMemberBuilder) {
       declaration.buildMembers(this,
           (Member member, BuiltMemberKind memberKind) {
         if (member is Field) {
@@ -3026,7 +3044,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!declaration.isPatch && !declaration.isDuplicate) {
         library.addTypedef(typedef);
       }
-    } else if (declaration is EnumBuilder) {
+    } else if (declaration is SourceEnumBuilder) {
       Class cls = declaration.build(this, coreLibrary);
       if (!declaration.isPatch) {
         cls.name += findDuplicateSuffix(declaration);
@@ -3265,7 +3283,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  void addNativeMethod(FunctionBuilder method) {
+  void addNativeMethod(SourceFunctionBuilder method) {
     nativeMethods.add(method);
   }
 
@@ -3279,7 +3297,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    for (FunctionBuilder method in nativeMethods) {
+    for (SourceFunctionBuilder method in nativeMethods) {
       method.becomeNative(loader);
     }
     count += nativeMethods.length;
@@ -3641,9 +3659,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   inErrorRecovery: issues.isNotEmpty);
               formals = member.formals;
             } else {
-              assert(member is ConstructorBuilder,
+              assert(member is DeclaredSourceConstructorBuilder,
                   "Unexpected constructor member (${member.runtimeType}).");
-              formals = (member as ConstructorBuilder).formals;
+              formals = (member as DeclaredSourceConstructorBuilder).formals;
             }
             if (formals != null && formals.isNotEmpty) {
               for (FormalParameterBuilder formal in formals) {
@@ -3657,7 +3675,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           });
         }
         declaration.forEach((String name, Builder member) {
-          if (member is ProcedureBuilder) {
+          if (member is SourceProcedureBuilder) {
             List<NonSimplicityIssue> issues =
                 getNonSimplicityIssuesForTypeVariables(member.typeVariables);
             if (member.formals != null && member.formals!.isNotEmpty) {
@@ -3676,9 +3694,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             count += computeDefaultTypesForVariables(member.typeVariables,
                 inErrorRecovery: issues.isNotEmpty);
           } else {
-            assert(member is FieldBuilder,
+            assert(member is SourceFieldBuilder,
                 "Unexpected class member $member (${member.runtimeType}).");
-            TypeBuilder? fieldType = (member as FieldBuilder).type;
+            TypeBuilder? fieldType = (member as SourceFieldBuilder).type;
             if (fieldType != null) {
               List<NonSimplicityIssue> issues =
                   getInboundReferenceIssuesInType(fieldType);
@@ -3696,7 +3714,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
         _recursivelyReportGenericFunctionTypesAsBoundsForType(declaration.type);
-      } else if (declaration is FunctionBuilder) {
+      } else if (declaration is SourceFunctionBuilder) {
         List<NonSimplicityIssue> issues =
             getNonSimplicityIssuesForTypeVariables(declaration.typeVariables);
         if (declaration.formals != null && declaration.formals!.isNotEmpty) {
@@ -3724,7 +3742,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               inErrorRecovery: issues.isNotEmpty);
         }
         declaration.forEach((String name, Builder member) {
-          if (member is ProcedureBuilder) {
+          if (member is SourceProcedureBuilder) {
             List<NonSimplicityIssue> issues =
                 getNonSimplicityIssuesForTypeVariables(member.typeVariables);
             if (member.formals != null && member.formals!.isNotEmpty) {
@@ -3742,7 +3760,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             reportIssues(issues);
             count += computeDefaultTypesForVariables(member.typeVariables,
                 inErrorRecovery: issues.isNotEmpty);
-          } else if (member is FieldBuilder) {
+          } else if (member is SourceFieldBuilder) {
             if (member.type != null) {
               _recursivelyReportGenericFunctionTypesAsBoundsForType(
                   member.type);
@@ -3752,7 +3770,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 "Unexpected extension member $member (${member.runtimeType}).");
           }
         });
-      } else if (declaration is FieldBuilder) {
+      } else if (declaration is SourceFieldBuilder) {
         if (declaration.type != null) {
           List<NonSimplicityIssue> issues =
               getInboundReferenceIssuesInType(declaration.type);
@@ -3772,10 +3790,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (Builder declaration
         in _libraryTypeParameterScopeBuilder.setters!.values) {
       assert(
-          declaration is ProcedureBuilder,
+          declaration is SourceProcedureBuilder,
           "Expected setter to be a ProcedureBuilder, "
           "but got '${declaration.runtimeType}'");
-      if (declaration is ProcedureBuilder &&
+      if (declaration is SourceProcedureBuilder &&
           declaration.formals != null &&
           declaration.formals!.isNotEmpty) {
         for (FormalParameterBuilder formal in declaration.formals!) {
@@ -4025,10 +4043,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInField(
-      FieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
+      SourceFieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
     // Check the bounds in the field's type.
     checkBoundsInType(fieldBuilder.fieldType, typeEnvironment,
-        fieldBuilder.fileUri!, fieldBuilder.charOffset,
+        fieldBuilder.fileUri, fieldBuilder.charOffset,
         allowSuperBounded: true);
 
     // Check that the field has an initializer if its type is potentially
@@ -4198,7 +4216,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInFunctionBuilder(
-      FunctionBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
+      SourceFunctionBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
     checkBoundsInFunctionNode(
         procedureBuilder.function, typeEnvironment, procedureBuilder.fileUri!);
     if (procedureBuilder.formals != null &&
@@ -4208,7 +4226,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInConstructorBuilder(
-      ConstructorBuilder constructorBuilder, TypeEnvironment typeEnvironment) {
+      DeclaredSourceConstructorBuilder constructorBuilder,
+      TypeEnvironment typeEnvironment) {
     checkBoundsInFunctionNode(
         constructorBuilder.constructor.function, typeEnvironment, fileUri);
     if (!constructorBuilder.isExternal && constructorBuilder.formals != null) {
@@ -4369,9 +4388,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (arguments.types.isEmpty) return;
     Class klass;
     List<DartType> receiverTypeArguments;
+    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
     if (receiverType is InterfaceType) {
       klass = receiverType.classNode;
       receiverTypeArguments = receiverType.typeArguments;
+      for (int i = 0; i < receiverTypeArguments.length; ++i) {
+        substitutionMap[klass.typeParameters[i]] = receiverTypeArguments[i];
+      }
     } else {
       return;
     }
@@ -4387,10 +4410,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           hierarchy.getClassAsInstanceOf(klass, method.enclosingClass!)!;
       klass = method.enclosingClass!;
       receiverTypeArguments = parent.typeArguments;
-    }
-    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
-    for (int i = 0; i < receiverTypeArguments.length; ++i) {
-      substitutionMap[klass.typeParameters[i]] = receiverTypeArguments[i];
+      Map<TypeParameter, DartType> instanceSubstitutionMap = substitutionMap;
+      substitutionMap = <TypeParameter, DartType>{};
+      for (int i = 0; i < receiverTypeArguments.length; ++i) {
+        substitutionMap[klass.typeParameters[i]] =
+            substitute(receiverTypeArguments[i], instanceSubstitutionMap);
+      }
     }
     List<TypeParameter> methodParameters = method.function.typeParameters;
     // The error is to be reported elsewhere.
@@ -4510,9 +4535,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
-      if (declaration is FieldBuilder) {
+      if (declaration is SourceFieldBuilder) {
         checkTypesInField(declaration, typeEnvironment);
-      } else if (declaration is ProcedureBuilder) {
+      } else if (declaration is SourceProcedureBuilder) {
         checkTypesInFunctionBuilder(declaration, typeEnvironment);
         if (declaration.isGetter) {
           Builder? setterDeclaration =
@@ -4549,8 +4574,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     assert(currentTypeParameterScopeBuilder.kind ==
         TypeParameterScopeKind.library);
-    for (SourceExtensionBuilder extensionBuilder
+    for (ExtensionBuilder _extensionBuilder
         in currentTypeParameterScopeBuilder.extensions!) {
+      ExtensionBuilder extensionBuilder = _extensionBuilder;
+      if (extensionBuilder is! SourceExtensionBuilder) continue;
       DartType onType = extensionBuilder.extension.onType;
       if (onType is InterfaceType) {
         ExtensionTypeShowHideClause showHideClause =
@@ -4754,8 +4781,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void registerImplicitlyTypedField(FieldBuilder fieldBuilder) {
-    (_implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
+  void registerImplicitlyTypedField(SourceFieldBuilder fieldBuilder) {
+    (_implicitlyTypedFields ??= <SourceFieldBuilder>[]).add(fieldBuilder);
   }
 
   void collectImplicitlyTypedFields(
@@ -4897,7 +4924,7 @@ class TypeParameterScopeBuilder {
 
   final Map<String, MemberBuilder>? setters;
 
-  final Set<SourceExtensionBuilder>? extensions;
+  final Set<ExtensionBuilder>? extensions;
 
   final List<NamedTypeBuilder> unresolvedNamedTypes = <NamedTypeBuilder>[];
 
@@ -4938,7 +4965,7 @@ class TypeParameterScopeBuilder {
             <String, Builder>{},
             <String, MemberBuilder>{},
             null, // No support for constructors in library scopes.
-            <SourceExtensionBuilder>{},
+            <ExtensionBuilder>{},
             "<library>",
             -1,
             null);
@@ -5000,6 +5027,17 @@ class TypeParameterScopeBuilder {
   void markAsExtensionDeclaration(
       String name, int charOffset, List<TypeVariableBuilder>? typeVariables) {
     assert(_kind == TypeParameterScopeKind.extensionDeclaration,
+        "Unexpected declaration kind: $_kind");
+    _name = name;
+    _charOffset = charOffset;
+    _typeVariables = typeVariables;
+  }
+
+  /// Registers that this builder is preparing for an enum declaration with
+  /// the given [name] and [typeVariables] located [charOffset].
+  void markAsEnumDeclaration(
+      String name, int charOffset, List<TypeVariableBuilder>? typeVariables) {
+    assert(_kind == TypeParameterScopeKind.enumDeclaration,
         "Unexpected declaration kind: $_kind");
     _name = name;
     _charOffset = charOffset;

@@ -19,8 +19,8 @@ List<Node> processDeferredImports(List<String> imports) {
   var builder = ProgramSplitBuilder();
   return [
     ...imports.map(builder.referenceNode),
-    builder.fuseNode('step2', {step2a, step2b}),
-    builder.orderNode(step1, 'step2'),
-    builder.orderNode('step2', step3),
+    builder.fuseNode({step2a, step2b}),
+    builder.orderNode(step1, step2a),
+    builder.orderNode(step2b, step3),
   ];
 }

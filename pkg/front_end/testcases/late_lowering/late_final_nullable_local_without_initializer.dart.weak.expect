@@ -8,12 +8,12 @@ static method main() → dynamic {
   lowered core::bool #lateLocal#isSet = false;
   function #lateLocal#get() → core::int?
     return #lateLocal#isSet ?{core::int?} #lateLocal : throw new _in::LateError::localNI("lateLocal");
-  function #lateLocal#set(core::int? #t1) → dynamic
+  function #lateLocal#set(core::int? lateLocal#param) → dynamic
     if(#lateLocal#isSet)
       throw new _in::LateError::localAI("lateLocal");
     else {
       #lateLocal#isSet = true;
-      return #lateLocal = #t1;
+      return #lateLocal = lateLocal#param;
     }
   self::throws(() → core::int? => #lateLocal#get(){() → core::int?}, "Read value from uninitialized lateLocal");
   if(1 =={core::num::==}{(core::Object) → core::bool} 1) {
@@ -26,12 +26,12 @@ static method main() → dynamic {
     lowered core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T?
       return #lateGenericLocal#isSet ?{T?} #lateGenericLocal : throw new _in::LateError::localNI("lateGenericLocal");
-    function #lateGenericLocal#set(T? #t2) → dynamic
+    function #lateGenericLocal#set(T? lateGenericLocal#param) → dynamic
       if(#lateGenericLocal#isSet)
         throw new _in::LateError::localAI("lateGenericLocal");
       else {
         #lateGenericLocal#isSet = true;
-        return #lateGenericLocal = #t2;
+        return #lateGenericLocal = lateGenericLocal#param;
       }
     self::throws(() → T? => #lateGenericLocal#get(){() → T?}, "Read value from uninitialized lateGenericLocal");
     if(1 =={core::num::==}{(core::Object) → core::bool} 1) {

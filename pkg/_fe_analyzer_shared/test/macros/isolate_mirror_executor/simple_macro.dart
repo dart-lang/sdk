@@ -18,13 +18,23 @@ class SimpleMacro implements FunctionDefinitionMacro {
 
   @override
   FutureOr<void> buildDefinitionForFunction(
-      FunctionDeclaration method, FunctionDefinitionBuilder builder) {
+      FunctionDeclaration method, FunctionDefinitionBuilder builder) async {
     if (method.namedParameters
         .followedBy(method.positionalParameters)
         .isNotEmpty) {
       throw ArgumentError(
           'This macro can only be run on functions with no arguments!');
     }
+
+    // Test the type resolver and static type interfaces
+    var staticReturnType = await builder.instantiateType(method.returnType);
+    if (!(await staticReturnType.isExactly(staticReturnType))) {
+      throw StateError('The return type should be exactly equal to itself!');
+    }
+    if (!(await staticReturnType.isSubtypeOf(staticReturnType))) {
+      throw StateError('The return type should be a subtype of itself!');
+    }
+
     builder.augment(FunctionBodyCode.fromString('''{
       print('x: $x, y: $y');
       return augment super();

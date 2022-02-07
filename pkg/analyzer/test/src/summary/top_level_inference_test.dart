@@ -318,8 +318,10 @@ class C implements A, B {
   var aaa;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 64, 3)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 25, 3)]),
     ]);
   }
 
@@ -3478,6 +3480,7 @@ library
                 constantInitializer
                   SimpleStringLiteral
                     literal: 'hello' @37
+                field: self::@class::A::@field::f
         accessors
           synthetic get f @-1
             returnType: int

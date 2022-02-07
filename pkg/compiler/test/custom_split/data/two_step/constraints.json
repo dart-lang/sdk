@@ -15,12 +15,12 @@
     "import": "memory:sdk/tests/web/native/main.dart#step3"
   },
   {
-    "type": "order",
+    "type": "relative_order",
     "predecessor": "memory:sdk/tests/web/native/main.dart#step1",
     "successor": "memory:sdk/tests/web/native/main.dart#step2"
   },
   {
-    "type": "order",
+    "type": "relative_order",
     "predecessor": "memory:sdk/tests/web/native/main.dart#step2",
     "successor": "memory:sdk/tests/web/native/main.dart#step3"
   }

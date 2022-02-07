@@ -535,12 +535,8 @@ bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
   }
   return false;
 }
-#elif defined(TARGET_ARCH_ARM)
-bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
-  ASSERT(return_address != NULL);
-  return false;
-}
-#elif defined(TARGET_ARCH_ARM64)
+#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
   ASSERT(return_address != NULL);
   return false;
@@ -796,6 +792,30 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   uword* fp_;
 };
 
+// The layout of C stack frames.
+#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64) ||                       \
+    defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
+// +-------------+
+// | saved IP/LR |
+// +-------------+
+// | saved FP    |  <- FP
+// +-------------+
+static constexpr intptr_t kHostSavedCallerPcSlotFromFp = 1;
+static constexpr intptr_t kHostSavedCallerFpSlotFromFp = 0;
+#elif defined(HOST_ARCH_RISCV32) || defined(HOST_ARCH_RISCV64)
+// +-------------+
+// |             | <- FP
+// +-------------+
+// | saved RA    |
+// +-------------+
+// | saved FP    |
+// +-------------+
+static constexpr intptr_t kHostSavedCallerPcSlotFromFp = -1;
+static constexpr intptr_t kHostSavedCallerFpSlotFromFp = -2;
+#else
+#error What architecture?
+#endif
+
 // If the VM is compiled without frame pointers (which is the default on
 // recent GCC versions with optimizing enabled) the stack walking code may
 // fail.
@@ -893,7 +913,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
  private:
   uword* CallerPC(uword* fp) const {
     ASSERT(fp != NULL);
-    uword* caller_pc_ptr = fp + kSavedCallerPcSlotFromFp;
+    uword* caller_pc_ptr = fp + kHostSavedCallerPcSlotFromFp;
     // This may actually be uninitialized, by design (see class comment above).
     MSAN_UNPOISON(caller_pc_ptr, kWordSize);
     ASAN_UNPOISON(caller_pc_ptr, kWordSize);
@@ -902,7 +922,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
 
   uword* CallerFP(uword* fp) const {
     ASSERT(fp != NULL);
-    uword* caller_fp_ptr = fp + kSavedCallerFpSlotFromFp;
+    uword* caller_fp_ptr = fp + kHostSavedCallerFpSlotFromFp;
     // This may actually be uninitialized, by design (see class comment above).
     MSAN_UNPOISON(caller_fp_ptr, kWordSize);
     ASAN_UNPOISON(caller_fp_ptr, kWordSize);

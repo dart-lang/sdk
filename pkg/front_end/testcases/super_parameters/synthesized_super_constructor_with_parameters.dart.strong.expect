@@ -1,0 +1,135 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  final field core::int a;
+  constructor •(core::int a) → self::A1
+    : self::A1::a = a, super core::Object::•()
+    ;
+}
+class B1 extends core::Object {
+  synthetic constructor •() → self::B1
+    : super core::Object::•()
+    ;
+}
+class C1 = self::A1 with self::B1 {
+  synthetic constructor •(core::int a) → self::C1
+    : super self::A1::•(a)
+    ;
+}
+class D1 extends self::C1 {
+  constructor •(core::int a) → self::D1
+    : super self::C1::•(a)
+    ;
+}
+class A2 extends core::Object {
+  final field core::int a;
+  constructor •({core::int a = #C1}) → self::A2
+    : self::A2::a = a, super core::Object::•()
+    ;
+}
+class B2 extends core::Object {
+  synthetic constructor •() → self::B2
+    : super core::Object::•()
+    ;
+}
+class C2 = self::A2 with self::B2 {
+  synthetic constructor •({core::int a = #C1}) → self::C2
+    : super self::A2::•(a: a)
+    ;
+}
+class D2 extends self::C2 {
+  constructor •({core::int a = #C1}) → self::D2
+    : super self::C2::•(a: a)
+    ;
+}
+class A3 extends core::Object {
+  final field core::int a;
+  constructor •([core::int a = #C1]) → self::A3
+    : self::A3::a = a, super core::Object::•()
+    ;
+}
+class B3 extends core::Object {
+  synthetic constructor •() → self::B3
+    : super core::Object::•()
+    ;
+}
+class C3 = self::A3 with self::B3 {
+  synthetic constructor •([core::int a = #C1]) → self::C3
+    : super self::A3::•(a)
+    ;
+}
+class D3 extends self::C3 {
+  constructor •([core::int a = #C1]) → self::D3
+    : super self::C3::•(a)
+    ;
+}
+class D4 extends self::C4 {
+  constructor •([core::int foo = #C2]) → self::D4
+    : super self::C4::•(foo)
+    ;
+}
+class C4 = self::A4 with self::B4 {
+  synthetic constructor •([core::int foo = #C2]) → self::C4
+    : super self::A4::•(foo)
+    ;
+}
+class B4 extends core::Object {
+  synthetic constructor •() → self::B4
+    : super core::Object::•()
+    ;
+}
+class A4 extends self::AA4 {
+  constructor •([core::int foo = #C2]) → self::A4
+    : super self::AA4::•(foo)
+    ;
+}
+class AA4 extends core::Object {
+  final field core::int foo;
+  constructor •([core::int foo = #C2]) → self::AA4
+    : self::AA4::foo = foo, super core::Object::•()
+    ;
+}
+class D5 extends self::C5c {
+  constructor •([core::int foo = #C2]) → self::D5
+    : super self::C5c::•(foo)
+    ;
+}
+class C5c = self::C5b with self::B5 {
+  synthetic constructor •([core::int foo = #C2]) → self::C5c
+    : super self::C5b::•(foo)
+    ;
+}
+class C5b = self::C5a with self::B5 {
+  synthetic constructor •([core::int foo = #C2]) → self::C5b
+    : super self::C5a::•(foo)
+    ;
+}
+class C5a = self::A5 with self::B5 {
+  synthetic constructor •([core::int foo = #C2]) → self::C5a
+    : super self::A5::•(foo)
+    ;
+}
+class B5 extends core::Object {
+  synthetic constructor •() → self::B5
+    : super core::Object::•()
+    ;
+}
+class A5 extends self::AA5 {
+  constructor •([core::int foo = #C2]) → self::A5
+    : super self::AA5::•(foo)
+    ;
+}
+class AA5 extends core::Object {
+  final field core::int foo;
+  constructor •([core::int foo = #C2]) → self::AA5
+    : self::AA5::foo = foo, super core::Object::•()
+    ;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = 42
+}

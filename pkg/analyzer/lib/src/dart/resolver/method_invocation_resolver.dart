@@ -195,24 +195,6 @@ class MethodInvocationResolver {
     return type is InterfaceType && type.isDartCoreFunction;
   }
 
-  /// Record that the static type of the given node is the given type.
-  ///
-  /// @param expression the node whose type is to be recorded
-  /// @param type the static type of the node
-  ///
-  /// TODO(scheglov) this is duplicate
-  void _recordStaticType(ExpressionImpl expression, DartType type) {
-    var hooks = _resolver.migrationResolutionHooks;
-    if (hooks != null) {
-      type = hooks.modifyExpressionType(expression, type);
-    }
-
-    expression.staticType = type;
-    if (_resolver.typeSystem.isBottom(type)) {
-      _resolver.flowAnalysis.flow?.handleExit();
-    }
-  }
-
   void _reportInstanceAccessToStaticMember(
     SimpleIdentifier nameNode,
     ExecutableElement element,
@@ -842,7 +824,7 @@ class MethodInvocationResolver {
     DartType getterReturnType,
   ) {
     var targetType = _resolveTypeParameter(getterReturnType);
-    _recordStaticType(node.methodName, targetType);
+    _inferenceHelper.recordStaticType(node.methodName, targetType);
 
     ExpressionImpl functionExpression;
     var target = node.target;

@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 const keepToString = pragma('flutter:keep-to-string');
+const keepToStringInSubtypes = pragma('flutter:keep-to-string-in-subtypes');
 
 String toString() => 'I am static';
 
@@ -26,9 +27,28 @@ class Keep {
   String toString() => 'I am a Keep';
 }
 
+@keepToStringInSubtypes
+class Base1 {}
+
+class Base2 extends Base1 {}
+
+class Base3 extends Object with Base2 {}
+
+class KeepInherited implements Base3 {
+  @override
+  String toString() => 'Heir';
+}
+
+class MyException implements Exception {
+  @override
+  String toString() => 'A very detailed message';
+}
+
 void main() {
   final IFoo foo = Foo();
   print(foo.toString());
   print(Keep().toString());
   print(FooEnum.B.toString());
+  print(KeepInherited().toString());
+  print(MyException().toString());
 }

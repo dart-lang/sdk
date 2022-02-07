@@ -172,13 +172,23 @@ class BundleWriter {
     element as EnumElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
+    EnumElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
-    var constants =
-        element.fields.whereType<ConstFieldElementImpl_EnumValue>().toList();
-    _writeList<FieldElement>(constants, (field) {
-      _sink._writeStringReference(field.name);
-      _resolutionSink._writeAnnotationList(field.metadata);
+    _writeTypeParameters(element.typeParameters, () {
+      _writeList(
+        element.fields.where((e) {
+          return !e.isSynthetic ||
+              e is FieldElementImpl && e.isSyntheticEnumField;
+        }).toList(),
+        _writeFieldElement,
+      );
+      _writeList(
+        element.accessors.where((e) => !e.isSynthetic).toList(),
+        _writePropertyAccessorElement,
+      );
+      _writeList(element.constructors, _writeConstructorElement);
+      _writeList(element.methods, _writeMethodElement);
     });
   }
 
@@ -296,6 +306,7 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeStringReference(element.name);
+    MixinElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {

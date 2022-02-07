@@ -3051,6 +3051,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the code point or using the Unicode escape sequence "
         "'\\u{0}'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -3096,6 +3097,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the code point or using the Unicode escape sequence "
         "'\\u{0}'.",
+    hasPublishedDocs: true,
   );
 
   /**

@@ -74,6 +74,17 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     var keywords = <Keyword>[
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
+      Keyword.SUPER,
+      Keyword.THIS,
+      Keyword.VOID
+    ];
+    return keywords;
+  }
+
+  List<Keyword> get constructorParameter_language215 {
+    var keywords = <Keyword>[
+      Keyword.COVARIANT,
+      Keyword.DYNAMIC,
       Keyword.THIS,
       Keyword.VOID
     ];
@@ -1016,6 +1027,17 @@ class C {
     await computeSuggestions();
     expect(suggestions, isNotEmpty);
     assertSuggestKeywords(constructorParameter);
+  }
+
+  Future<void> test_constructor_param_noPrefix_language215() async {
+    addTestSource(r'''
+// @dart = 2.15
+class A {
+  A(^);
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(constructorParameter_language215);
   }
 
   Future<void> test_constructor_param_prefix() async {

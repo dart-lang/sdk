@@ -706,6 +706,7 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
 
   // Load the "evaluate:source" expression evaluation library.
   ASSERT(expression_evaluation_library_.IsNull());
+  ASSERT(H.GetExpressionEvaluationClass().IsNull());
   ASSERT(H.GetExpressionEvaluationFunction().IsNull());
   H.SetExpressionEvaluationRealClass(real_class);
   const Object& result = Object::Handle(Z, LoadProgram(true));
@@ -1449,6 +1450,9 @@ void KernelLoader::LoadClass(const Library& library,
   // they are not reachable anymore and we never look them up by name.
   const bool register_class =
       library.ptr() != expression_evaluation_library_.ptr();
+  if (!register_class) {
+    H.SetExpressionEvaluationClass(*out_class);
+  }
 
   if (loading_native_wrappers_library_ || !register_class) {
     FinishClassLoading(*out_class, library, toplevel_class, class_offset,

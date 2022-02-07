@@ -7,16 +7,23 @@ import 'dart:isolate';
 import 'dart:mirrors';
 
 import 'isolate_mirrors_impl.dart';
-import 'protocol.dart';
+import '../executor_shared/introspection_impls.dart';
+import '../executor_shared/protocol.dart';
+import '../executor_shared/remote_instance.dart';
 import '../executor.dart';
 import '../api.dart';
+
+/// Returns an instance of [_IsolateMirrorMacroExecutor].
+///
+/// This is the only public api exposed by this library.
+Future<MacroExecutor> start() => _IsolateMirrorMacroExecutor.start();
 
 /// A [MacroExecutor] implementation which relies on [IsolateMirror.loadUri]
 /// in order to load macros libraries.
 ///
 /// All actual work happens in a separate [Isolate], and this class serves as
 /// a bridge between that isolate and the language frontends.
-class IsolateMirrorMacroExecutor implements MacroExecutor {
+class _IsolateMirrorMacroExecutor implements MacroExecutor {
   /// The actual isolate doing macro loading and execution.
   final Isolate _macroIsolate;
 
@@ -24,19 +31,19 @@ class IsolateMirrorMacroExecutor implements MacroExecutor {
   final SendPort _sendPort;
 
   /// The stream of responses from the [_macroIsolate].
-  final Stream<GenericResponse> _responseStream;
+  final Stream<Response> _responseStream;
 
   /// A map of response completers by request id.
-  final _responseCompleters = <int, Completer<GenericResponse>>{};
+  final _responseCompleters = <int, Completer<Response>>{};
 
   /// A function that should be invoked when shutting down this executor
   /// to perform any necessary cleanup.
   final void Function() _onClose;
 
-  IsolateMirrorMacroExecutor._(
+  _IsolateMirrorMacroExecutor._(
       this._macroIsolate, this._sendPort, this._responseStream, this._onClose) {
     _responseStream.listen((event) {
-      Completer<GenericResponse>? completer =
+      Completer<Response>? completer =
           _responseCompleters.remove(event.requestId);
       if (completer == null) {
         throw new StateError(
@@ -52,18 +59,18 @@ class IsolateMirrorMacroExecutor implements MacroExecutor {
   static Future<MacroExecutor> start() async {
     ReceivePort receivePort = new ReceivePort();
     Completer<SendPort> sendPortCompleter = new Completer<SendPort>();
-    StreamController<GenericResponse> responseStreamController =
-        new StreamController<GenericResponse>(sync: true);
+    StreamController<Response> responseStreamController =
+        new StreamController<Response>(sync: true);
     receivePort.listen((message) {
       if (!sendPortCompleter.isCompleted) {
         sendPortCompleter.complete(message as SendPort);
       } else {
-        responseStreamController.add(message as GenericResponse);
+        responseStreamController.add(message as Response);
       }
     }).onDone(responseStreamController.close);
     Isolate macroIsolate = await Isolate.spawn(spawn, receivePort.sendPort);
 
-    return new IsolateMirrorMacroExecutor._(
+    return new _IsolateMirrorMacroExecutor._(
         macroIsolate,
         await sendPortCompleter.future,
         responseStreamController.stream,
@@ -96,12 +103,27 @@ class IsolateMirrorMacroExecutor implements MacroExecutor {
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
           MacroInstanceIdentifier macro,
-          Declaration declaration,
+          DeclarationImpl declaration,
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector,
           TypeDeclarationResolver typeDeclarationResolver) =>
-      _sendRequest(new ExecuteDefinitionsPhaseRequest(macro, declaration,
-          typeResolver, classIntrospector, typeDeclarationResolver));
+      _sendRequest(new ExecuteDefinitionsPhaseRequest(
+          macro,
+          declaration,
+          new RemoteInstanceImpl(
+              instance: typeResolver,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.typeResolver),
+          new RemoteInstanceImpl(
+              instance: classIntrospector,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.classIntrospector),
+          new RemoteInstanceImpl(
+              instance: typeDeclarationResolver,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.typeDeclarationResolver),
+          // Serialization zones are not necessary in this executor.
+          serializationZoneId: -1));
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(
@@ -116,21 +138,31 @@ class IsolateMirrorMacroExecutor implements MacroExecutor {
           String constructor,
           Arguments arguments) =>
       _sendRequest(
-          new InstantiateMacroRequest(macroClass, constructor, arguments));
+          new InstantiateMacroRequest(macroClass, constructor, arguments,
+              // Serialization zones are not necessary in this executor.
+              serializationZoneId: -1));
 
   @override
-  Future<MacroClassIdentifier> loadMacro(Uri library, String name) =>
-      _sendRequest(new LoadMacroRequest(library, name));
+  Future<MacroClassIdentifier> loadMacro(Uri library, String name,
+      {Uri? precompiledKernelUri}) {
+    if (precompiledKernelUri != null) {
+      // TODO: Implement support?
+      throw new UnsupportedError(
+          'The IsolateMirrorsExecutor does not support precompiled dill files');
+    }
+    return _sendRequest(new LoadMacroRequest(library, name,
+        // Serialization zones are not necessary in this executor.
+        serializationZoneId: -1));
+  }
 
   /// Sends a request and returns the response, casting it to the expected
   /// type.
   Future<T> _sendRequest<T>(Request request) async {
     _sendPort.send(request);
-    Completer<GenericResponse<T>> completer =
-        new Completer<GenericResponse<T>>();
+    Completer<Response> completer = new Completer<Response>();
     _responseCompleters[request.id] = completer;
-    GenericResponse<T> response = await completer.future;
-    T? result = response.response;
+    Response response = await completer.future;
+    T? result = response.response as T?;
     if (result != null) return result;
     throw response.error!;
   }

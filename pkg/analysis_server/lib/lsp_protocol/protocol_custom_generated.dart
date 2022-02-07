@@ -169,29 +169,167 @@ class CompletionItemResolutionInfo implements ToJsonable {
       CompletionItemResolutionInfo.canParse,
       CompletionItemResolutionInfo.fromJson);
 
-  CompletionItemResolutionInfo({required this.file, required this.offset});
   static CompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
-    if (DartCompletionItemResolutionInfo.canParse(json, nullLspJsonReporter)) {
-      return DartCompletionItemResolutionInfo.fromJson(json);
+    if (DartSuggestionSetCompletionItemResolutionInfo.canParse(
+        json, nullLspJsonReporter)) {
+      return DartSuggestionSetCompletionItemResolutionInfo.fromJson(json);
     }
     if (PubPackageCompletionItemResolutionInfo.canParse(
         json, nullLspJsonReporter)) {
       return PubPackageCompletionItemResolutionInfo.fromJson(json);
     }
+    return CompletionItemResolutionInfo();
+  }
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return true;
+    } else {
+      reporter.reportError('must be of type CompletionItemResolutionInfo');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is CompletionItemResolutionInfo &&
+        other.runtimeType == CompletionItemResolutionInfo) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => 42;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class DartDiagnosticServer implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+      DartDiagnosticServer.canParse, DartDiagnosticServer.fromJson);
+
+  DartDiagnosticServer({required this.port});
+  static DartDiagnosticServer fromJson(Map<String, Object?> json) {
+    final portJson = json['port'];
+    final port = portJson as int;
+    return DartDiagnosticServer(port: port);
+  }
+
+  final int port;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['port'] = port;
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('port');
+      try {
+        if (!obj.containsKey('port')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final port = obj['port'];
+        if (port == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(port is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type DartDiagnosticServer');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is DartDiagnosticServer &&
+        other.runtimeType == DartDiagnosticServer) {
+      return port == other.port && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => port.hashCode;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class DartSuggestionSetCompletionItemResolutionInfo
+    implements CompletionItemResolutionInfo, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+      DartSuggestionSetCompletionItemResolutionInfo.canParse,
+      DartSuggestionSetCompletionItemResolutionInfo.fromJson);
+
+  DartSuggestionSetCompletionItemResolutionInfo(
+      {required this.file,
+      required this.offset,
+      required this.libId,
+      required this.displayUri,
+      required this.rOffset,
+      required this.iLength,
+      required this.rLength});
+  static DartSuggestionSetCompletionItemResolutionInfo fromJson(
+      Map<String, Object?> json) {
     final fileJson = json['file'];
     final file = fileJson as String;
     final offsetJson = json['offset'];
     final offset = offsetJson as int;
-    return CompletionItemResolutionInfo(file: file, offset: offset);
+    final libIdJson = json['libId'];
+    final libId = libIdJson as int;
+    final displayUriJson = json['displayUri'];
+    final displayUri = displayUriJson as String;
+    final rOffsetJson = json['rOffset'];
+    final rOffset = rOffsetJson as int;
+    final iLengthJson = json['iLength'];
+    final iLength = iLengthJson as int;
+    final rLengthJson = json['rLength'];
+    final rLength = rLengthJson as int;
+    return DartSuggestionSetCompletionItemResolutionInfo(
+        file: file,
+        offset: offset,
+        libId: libId,
+        displayUri: displayUri,
+        rOffset: rOffset,
+        iLength: iLength,
+        rLength: rLength);
   }
 
+  final String displayUri;
   final String file;
+  final int iLength;
+  final int libId;
   final int offset;
+  final int rLength;
+  final int rOffset;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
     __result['file'] = file;
     __result['offset'] = offset;
+    __result['libId'] = libId;
+    __result['displayUri'] = displayUri;
+    __result['rOffset'] = rOffset;
+    __result['iLength'] = iLength;
+    __result['rLength'] = rLength;
     return __result;
   }
 
@@ -233,90 +371,6 @@ class CompletionItemResolutionInfo implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      return true;
-    } else {
-      reporter.reportError('must be of type CompletionItemResolutionInfo');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is CompletionItemResolutionInfo &&
-        other.runtimeType == CompletionItemResolutionInfo) {
-      return file == other.file && offset == other.offset && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(file, offset);
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class DartCompletionItemResolutionInfo
-    implements CompletionItemResolutionInfo, ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-      DartCompletionItemResolutionInfo.canParse,
-      DartCompletionItemResolutionInfo.fromJson);
-
-  DartCompletionItemResolutionInfo(
-      {required this.libId,
-      required this.displayUri,
-      required this.rOffset,
-      required this.iLength,
-      required this.rLength,
-      required this.file,
-      required this.offset});
-  static DartCompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
-    final libIdJson = json['libId'];
-    final libId = libIdJson as int;
-    final displayUriJson = json['displayUri'];
-    final displayUri = displayUriJson as String;
-    final rOffsetJson = json['rOffset'];
-    final rOffset = rOffsetJson as int;
-    final iLengthJson = json['iLength'];
-    final iLength = iLengthJson as int;
-    final rLengthJson = json['rLength'];
-    final rLength = rLengthJson as int;
-    final fileJson = json['file'];
-    final file = fileJson as String;
-    final offsetJson = json['offset'];
-    final offset = offsetJson as int;
-    return DartCompletionItemResolutionInfo(
-        libId: libId,
-        displayUri: displayUri,
-        rOffset: rOffset,
-        iLength: iLength,
-        rLength: rLength,
-        file: file,
-        offset: offset);
-  }
-
-  final String displayUri;
-  final String file;
-  final int iLength;
-  final int libId;
-  final int offset;
-  final int rLength;
-  final int rOffset;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['libId'] = libId;
-    __result['displayUri'] = displayUri;
-    __result['rOffset'] = rOffset;
-    __result['iLength'] = iLength;
-    __result['rLength'] = rLength;
-    __result['file'] = file;
-    __result['offset'] = offset;
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
       reporter.push('libId');
       try {
         if (!obj.containsKey('libId')) {
@@ -407,60 +461,25 @@ class DartCompletionItemResolutionInfo
       } finally {
         reporter.pop();
       }
-      reporter.push('file');
-      try {
-        if (!obj.containsKey('file')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final file = obj['file'];
-        if (file == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(file is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('offset');
-      try {
-        if (!obj.containsKey('offset')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final offset = obj['offset'];
-        if (offset == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(offset is int)) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       return true;
     } else {
-      reporter.reportError('must be of type DartCompletionItemResolutionInfo');
+      reporter.reportError(
+          'must be of type DartSuggestionSetCompletionItemResolutionInfo');
       return false;
     }
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is DartCompletionItemResolutionInfo &&
-        other.runtimeType == DartCompletionItemResolutionInfo) {
-      return libId == other.libId &&
+    if (other is DartSuggestionSetCompletionItemResolutionInfo &&
+        other.runtimeType == DartSuggestionSetCompletionItemResolutionInfo) {
+      return file == other.file &&
+          offset == other.offset &&
+          libId == other.libId &&
           displayUri == other.displayUri &&
           rOffset == other.rOffset &&
           iLength == other.iLength &&
           rLength == other.rLength &&
-          file == other.file &&
-          offset == other.offset &&
           true;
     }
     return false;
@@ -468,69 +487,7 @@ class DartCompletionItemResolutionInfo
 
   @override
   int get hashCode =>
-      Object.hash(libId, displayUri, rOffset, iLength, rLength, file, offset);
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class DartDiagnosticServer implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-      DartDiagnosticServer.canParse, DartDiagnosticServer.fromJson);
-
-  DartDiagnosticServer({required this.port});
-  static DartDiagnosticServer fromJson(Map<String, Object?> json) {
-    final portJson = json['port'];
-    final port = portJson as int;
-    return DartDiagnosticServer(port: port);
-  }
-
-  final int port;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['port'] = port;
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('port');
-      try {
-        if (!obj.containsKey('port')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final port = obj['port'];
-        if (port == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(port is int)) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type DartDiagnosticServer');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is DartDiagnosticServer &&
-        other.runtimeType == DartDiagnosticServer) {
-      return port == other.port && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => port.hashCode;
+      Object.hash(file, offset, libId, displayUri, rOffset, iLength, rLength);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1211,29 +1168,19 @@ class PubPackageCompletionItemResolutionInfo
       PubPackageCompletionItemResolutionInfo.canParse,
       PubPackageCompletionItemResolutionInfo.fromJson);
 
-  PubPackageCompletionItemResolutionInfo(
-      {required this.packageName, required this.file, required this.offset});
+  PubPackageCompletionItemResolutionInfo({required this.packageName});
   static PubPackageCompletionItemResolutionInfo fromJson(
       Map<String, Object?> json) {
     final packageNameJson = json['packageName'];
     final packageName = packageNameJson as String;
-    final fileJson = json['file'];
-    final file = fileJson as String;
-    final offsetJson = json['offset'];
-    final offset = offsetJson as int;
-    return PubPackageCompletionItemResolutionInfo(
-        packageName: packageName, file: file, offset: offset);
+    return PubPackageCompletionItemResolutionInfo(packageName: packageName);
   }
 
-  final String file;
-  final int offset;
   final String packageName;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
     __result['packageName'] = packageName;
-    __result['file'] = file;
-    __result['offset'] = offset;
     return __result;
   }
 
@@ -1257,42 +1204,6 @@ class PubPackageCompletionItemResolutionInfo
       } finally {
         reporter.pop();
       }
-      reporter.push('file');
-      try {
-        if (!obj.containsKey('file')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final file = obj['file'];
-        if (file == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(file is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('offset');
-      try {
-        if (!obj.containsKey('offset')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final offset = obj['offset'];
-        if (offset == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(offset is int)) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       return true;
     } else {
       reporter.reportError(
@@ -1305,16 +1216,13 @@ class PubPackageCompletionItemResolutionInfo
   bool operator ==(Object other) {
     if (other is PubPackageCompletionItemResolutionInfo &&
         other.runtimeType == PubPackageCompletionItemResolutionInfo) {
-      return packageName == other.packageName &&
-          file == other.file &&
-          offset == other.offset &&
-          true;
+      return packageName == other.packageName && true;
     }
     return false;
   }
 
   @override
-  int get hashCode => Object.hash(packageName, file, offset);
+  int get hashCode => packageName.hashCode;
 
   @override
   String toString() => jsonEncoder.convert(toJson());

@@ -9,11 +9,14 @@ void main() {
   asyncTest(() async {
     // Null stream.
     dynamic nullStream = null;
-    asyncExpectThrows<Error>(
-        () async => <int>[await for (var i in nullStream) 1]);
-    asyncExpectThrows<Error>(
-        () async => <int, int>{await for (var i in nullStream) 1: 1});
-    asyncExpectThrows<Error>(
-        () async => <int>{await for (var i in nullStream) 1});
+    asyncExpectThrows<Error>(() async {
+      <int>[await for (var i in nullStream) 1];
+    }());
+    asyncExpectThrows<Error>(() async {
+      <int, int>{await for (var i in nullStream) 1: 1};
+    }());
+    asyncExpectThrows<Error>(() async {
+      <int>{await for (var i in nullStream) 1};
+    }());
   });
 }

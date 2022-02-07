@@ -4,13 +4,11 @@
 
 import 'dart:isolate';
 
-import 'package:meta/meta.dart';
-
 /// Contains methods used to communicate DartDev results back to the VM.
 abstract class VmInteropHandler {
   /// Initializes [VmInteropHandler] to utilize [port] to communicate with the
   /// VM.
-  static void initialize(SendPort port) => _port = port;
+  static void initialize(SendPort? port) => _port = port;
 
   /// Notifies the VM to run [script] with [args] upon DartDev exit.
   ///
@@ -18,10 +16,10 @@ abstract class VmInteropHandler {
   static void run(
     String script,
     List<String> args, {
-    @required String packageConfigOverride,
+    String? packageConfigOverride,
   }) {
-    assert(_port != null);
-    if (_port == null) return;
+    final port = _port;
+    if (port == null) return;
     final message = <dynamic>[
       _kResultRun,
       script,
@@ -29,21 +27,21 @@ abstract class VmInteropHandler {
       // Copy the list so it doesn't get GC'd underneath us.
       args.toList()
     ];
-    _port.send(message);
+    port.send(message);
   }
 
   /// Notifies the VM that DartDev has completed running. If provided a
   /// non-zero [exitCode], the VM will terminate with the given exit code.
-  static void exit(int exitCode) {
-    assert(_port != null);
-    if (_port == null) return;
+  static void exit(int? exitCode) {
+    final port = _port;
+    if (port == null) return;
     final message = <dynamic>[_kResultExit, exitCode];
-    _port.send(message);
+    port.send(message);
   }
 
   // Note: keep in sync with runtime/bin/dartdev_isolate.h
   static const int _kResultRun = 1;
   static const int _kResultExit = 2;
 
-  static SendPort _port;
+  static SendPort? _port;
 }

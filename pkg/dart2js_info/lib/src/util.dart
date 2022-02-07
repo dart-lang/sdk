@@ -46,6 +46,26 @@ Graph<Info> graphFromInfo(AllInfo info) {
   return graph;
 }
 
+/// Provide a qualified name associated with [info]. Qualified names consist of
+/// the library's canonical URI concatenated with a library-unique kernel name.
+// See: https://github.com/dart-lang/sdk/blob/47eff41cdbfea4a178208dfc3137ba2b6bea0e36/pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_emitter.dart#L978
+// TODO(sigmund): guarantee that the name is actually unique.
+String qualifiedName(Info f) {
+  assert(f is ClosureInfo || f is ClassInfo);
+  var element = f;
+  String name;
+  while (element != null) {
+    if (element is LibraryInfo) {
+      name = '${element.uri}:$name';
+      return name;
+    } else {
+      name = name ?? element.name;
+      element = element.parent;
+    }
+  }
+  return '';
+}
+
 /// Provide a unique long name associated with [info].
 // TODO(sigmund): guarantee that the name is actually unique.
 String longName(Info info, {bool useLibraryUri = false, bool forId = false}) {

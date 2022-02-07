@@ -5676,7 +5676,7 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
 
   if (is_smi.IsLinked()) {
     compiler::Label done;
-    __ Jump(&done);
+    __ Jump(&done, compiler::Assembler::kNearJump);
     __ Bind(&is_smi);
     EmitSmiConversion(compiler);
     __ Bind(&done);
@@ -5729,10 +5729,9 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       EmitLoadInt32FromBoxOrSmi(compiler);
     } else if (representation() == kUnboxedInt64 && value()->Type()->IsInt()) {
       EmitLoadInt64FromBoxOrSmi(compiler);
-    } else if (value_cid == box_cid) {
+    } else if ((value_cid == box_cid) || !CanDeoptimize()) {
       EmitLoadFromBox(compiler);
     } else {
-      ASSERT(CanDeoptimize());
       EmitLoadFromBoxWithDeopt(compiler);
     }
   }
@@ -6374,7 +6373,8 @@ void NativeCallInstr::SetupNative() {
   set_native_c_function(native_function);
 }
 
-#if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64)
+#if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64) &&                \
+    !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 
 LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   UNREACHABLE();
@@ -6384,7 +6384,8 @@ void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
-#endif  // !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64)
+#endif  // !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64) &&         \
+        // !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx < TargetAddressIndex()) {
@@ -6504,7 +6505,10 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
 
       ConstantTemporaryAllocator temp_alloc(temp);
       if (origin.IsConstant()) {
-        compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
+        // Can't occur because we currently don't inline FFI trampolines (see
+        // http://dartbug.com/45055), which means all incomming arguments
+        // originate from parameters and thus are non-constant.
+        UNREACHABLE();
       } else {
         compiler->EmitMoveToNative(def_target, origin, origin_rep, &temp_alloc);
       }

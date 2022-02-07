@@ -30,9 +30,6 @@ classid_t ElementTypedDataCid(classid_t class_id) {
       return kTypedDataInt64ArrayCid;
     case kFfiUint64Cid:
       return kTypedDataUint64ArrayCid;
-    case kFfiIntPtrCid:
-      return target::kWordSize == 4 ? kTypedDataInt32ArrayCid
-                                    : kTypedDataInt64ArrayCid;
     case kPointerCid:
       return target::kWordSize == 4 ? kTypedDataUint32ArrayCid
                                     : kTypedDataUint64ArrayCid;
@@ -78,7 +75,7 @@ classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind) {
   case MethodRecognizer::kFfiLoad##type:                                       \
   case MethodRecognizer::kFfiStore##type:                                      \
     return kFfi##type##Cid;
-    CLASS_LIST_FFI_NUMERIC(LOAD_STORE)
+    CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(LOAD_STORE)
 #undef LOAD_STORE
     case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiStoreFloatUnaligned:
@@ -105,7 +102,7 @@ AlignmentType RecognizedMethodAlignment(MethodRecognizer::Kind kind) {
   case MethodRecognizer::kFfiLoad##type:                                       \
   case MethodRecognizer::kFfiStore##type:                                      \
     return kAlignedAccess;
-    CLASS_LIST_FFI_NUMERIC(LOAD_STORE)
+    CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(LOAD_STORE)
     LOAD_STORE(Pointer)
 #undef LOAD_STORE
     case MethodRecognizer::kFfiLoadFloatUnaligned:

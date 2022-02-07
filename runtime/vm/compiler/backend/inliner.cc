@@ -1040,7 +1040,8 @@ class CallSiteInliner : public ValueObject {
 
     // Abort if the inlinable bit on the function is low.
     if (!function.CanBeInlined()) {
-      TRACE_INLINING(THR_Print("     Bailout: not inlinable\n"));
+      TRACE_INLINING(THR_Print(
+          "     Bailout: not inlinable due to !function.CanBeInlined()\n"));
       PRINT_INLINING_TREE("Not inlinable", &call_data->caller, &function,
                           call_data->call);
       return false;
@@ -1165,6 +1166,9 @@ class CallSiteInliner : public ValueObject {
             // As a side effect of parsing the function, it may be marked
             // as not inlinable. This happens for async and async* functions
             // when causal stack traces are being tracked.
+            TRACE_INLINING(
+                THR_Print("     Bailout: not inlinable due to "
+                          "!function.CanBeInlined()\n"));
             return false;
           }
         }

@@ -410,11 +410,11 @@ class AnalysisServer extends AbstractAnalysisServer {
   ///
   /// So, we can start working in parallel on adding services and improving
   /// projects/contexts support.
-  void setAnalysisRoots(String requestId, List<String> includedPaths,
-      List<String> excludedPaths) {
+  Future<void> setAnalysisRoots(String requestId, List<String> includedPaths,
+      List<String> excludedPaths) async {
     notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
     try {
-      contextManager.setRoots(includedPaths, excludedPaths);
+      await contextManager.setRoots(includedPaths, excludedPaths);
     } on UnimplementedError catch (e) {
       throw RequestFailure(Response.unsupportedFeature(
           requestId, e.message ?? 'Unsupported feature.'));

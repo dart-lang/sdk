@@ -1268,7 +1268,7 @@ void f() { }
     expect(res.any((c) => c.label == 'UniqueNamedClassForLspThree'), isTrue);
   }
 
-  Future<void> test_suggestionSets() async {
+  Future<void> test_unimportedSymbols() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
       content: '''
@@ -1342,7 +1342,7 @@ void f() {
   }
 
   Future<void>
-      test_suggestionSets_doesNotDuplicate_importedViaMultipleLibraries() async {
+      test_unimportedSymbols_doesNotDuplicate_importedViaMultipleLibraries() async {
     // An item that's already imported through multiple libraries that
     // export it should not result in multiple entries.
     newFile(
@@ -1387,7 +1387,7 @@ void f() {
   }
 
   Future<void>
-      test_suggestionSets_doesNotDuplicate_importedViaSingleLibrary() async {
+      test_unimportedSymbols_doesNotDuplicate_importedViaSingleLibrary() async {
     // An item that's already imported through a library that exports it
     // should not result in multiple entries.
     newFile(
@@ -1430,7 +1430,7 @@ void f() {
     expect(completions, hasLength(1));
   }
 
-  Future<void> test_suggestionSets_doesNotFilterSymbolsWithSameName() async {
+  Future<void> test_unimportedSymbols_doesNotFilterSymbolsWithSameName() async {
     // Classes here are not re-exports, so should not be filtered out.
     newFile(
       join(projectFolderPath, 'source_file1.dart'),
@@ -1472,7 +1472,7 @@ void f() {
     expectAutoImportCompletion(resolvedCompletions, '../source_file3.dart');
   }
 
-  Future<void> test_suggestionSets_enumValues() async {
+  Future<void> test_unimportedSymbols_enumValues() async {
     newFile(
       join(projectFolderPath, 'source_file.dart'),
       content: '''
@@ -1536,7 +1536,7 @@ void f() {
     '''));
   }
 
-  Future<void> test_suggestionSets_enumValuesAlreadyImported() async {
+  Future<void> test_unimportedSymbols_enumValuesAlreadyImported() async {
     newFile(
       join(projectFolderPath, 'lib', 'source_file.dart'),
       content: '''
@@ -1577,10 +1577,10 @@ void f() {
     expect(completions, hasLength(1));
     final resolved = await resolveCompletion(completions.first);
     // It should not include auto-import text since it's already imported.
-    expect(resolved.detail, isNull);
+    expect(resolved.detail, isNot(contains('Auto import from')));
   }
 
-  Future<void> test_suggestionSets_filtersOutAlreadyImportedSymbols() async {
+  Future<void> test_unimportedSymbols_filtersOutAlreadyImportedSymbols() async {
     newFile(
       join(projectFolderPath, 'lib', 'source_file.dart'),
       content: '''
@@ -1623,7 +1623,7 @@ void f() {
     expect(resolved.detail, isNull);
   }
 
-  Future<void> test_suggestionSets_importsPackageUri() async {
+  Future<void> test_unimportedSymbols_importsPackageUri() async {
     newFile(
       join(projectFolderPath, 'lib', 'my_class.dart'),
       content: 'class MyClass {}',
@@ -1654,7 +1654,7 @@ void f() {
   }
 
   Future<void>
-      test_suggestionSets_includesReexportedSymbolsForEachFile() async {
+      test_unimportedSymbols_includesReexportedSymbolsForEachFile() async {
     newFile(
       join(projectFolderPath, 'source_file.dart'),
       content: '''
@@ -1700,7 +1700,7 @@ void f() {
     expectAutoImportCompletion(resolvedCompletions, '../reexport2.dart');
   }
 
-  Future<void> test_suggestionSets_insertReplaceRanges() async {
+  Future<void> test_unimportedSymbols_insertReplaceRanges() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
       content: '''
@@ -1792,7 +1792,7 @@ void f() {
     '''));
   }
 
-  Future<void> test_suggestionSets_insertsIntoPartFiles() async {
+  Future<void> test_unimportedSymbols_insertsIntoPartFiles() async {
     // File we'll be adding an import for.
     newFile(
       join(projectFolderPath, 'other_file.dart'),
@@ -1883,7 +1883,7 @@ import '../other_file.dart';
 part 'main.dart';'''));
   }
 
-  Future<void> test_suggestionSets_members() async {
+  Future<void> test_unimportedSymbols_members() async {
     newFile(
       join(projectFolderPath, 'source_file.dart'),
       content: '''
@@ -1961,7 +1961,7 @@ void f() {
   /// (as it always used 0 as the modification stamp) which would prevent
   /// completion including items from files that were open (had overlays).
   /// https://github.com/Dart-Code/Dart-Code/issues/2286#issuecomment-658597532
-  Future<void> test_suggestionSets_modifiedFiles() async {
+  Future<void> test_unimportedSymbols_modifiedFiles() async {
     final otherFilePath = join(projectFolderPath, 'lib', 'other_file.dart');
     final otherFileUri = Uri.file(otherFilePath);
 
@@ -1991,7 +1991,7 @@ void f() {
     expect(matching, hasLength(1));
   }
 
-  Future<void> test_suggestionSets_namedConstructors() async {
+  Future<void> test_unimportedSymbols_namedConstructors() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
       content: '''
@@ -2050,7 +2050,8 @@ void f() {
     '''));
   }
 
-  Future<void> test_suggestionSets_preferRelativeImportsLib_insideLib() async {
+  Future<void>
+      test_unimportedSymbols_preferRelativeImportsLib_insideLib() async {
     _enableLints([LintNames.prefer_relative_imports]);
     final importingFilePath =
         join(projectFolderPath, 'lib', 'nested1', 'main.dart');
@@ -2085,7 +2086,8 @@ void f() {
     );
   }
 
-  Future<void> test_suggestionSets_preferRelativeImportsLib_outsideLib() async {
+  Future<void>
+      test_unimportedSymbols_preferRelativeImportsLib_outsideLib() async {
     // Files outside of the lib folder should still get absolute imports to
     // files inside lib, even with the lint enabled.
     _enableLints([LintNames.prefer_relative_imports]);
@@ -2122,7 +2124,7 @@ void f() {
     );
   }
 
-  Future<void> test_suggestionSets_unavailableIfDisabled() async {
+  Future<void> test_unimportedSymbols_unavailableIfDisabled() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
       content: 'class InOtherFile {}',
@@ -2137,7 +2139,9 @@ void f() {
     final initialAnalysis = waitForAnalysisComplete();
     // Support applyEdit, but explicitly disable the suggestions.
     await initialize(
-      initializationOptions: {'suggestFromUnimportedLibraries': false},
+      initializationOptions: {
+        'suggestFromUnimportedLibraries': false,
+      },
       workspaceCapabilities:
           withApplyEditSupport(emptyWorkspaceClientCapabilities),
     );
@@ -2151,7 +2155,7 @@ void f() {
     expect(completion, isNull);
   }
 
-  Future<void> test_suggestionSets_unavailableWithoutApplyEdit() async {
+  Future<void> test_unimportedSymbols_unavailableWithoutApplyEdit() async {
     // If client doesn't advertise support for workspace/applyEdit, we won't
     // include suggestion sets.
     newFile(

@@ -33,7 +33,7 @@ class C<S, T> {
   void C() {}
 }
 ''');
-    setPackageData(_add(0, components: ['C', 'C']));
+    setPackageData(_add(0, components: ['C']));
     await resolveTestCode('''
 import '$importUri';
 

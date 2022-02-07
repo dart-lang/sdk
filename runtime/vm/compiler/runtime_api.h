@@ -181,6 +181,9 @@ inline const Object& ToObject(const Function& handle) {
 // or canonical hash.
 intptr_t ObjectHash(const Object& obj);
 
+// Prints the given object into a C string.
+const char* ObjectToCString(const Object& obj);
+
 // If the given object represents a Dart integer returns true and sets [value]
 // to the value of the integer.
 bool HasIntegerValue(const dart::Object& obj, int64_t* value);
@@ -1176,6 +1179,7 @@ class Thread : public AllStatic {
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();
   static word exit_safepoint_stub_offset();
+  static word exit_safepoint_ignore_unwind_in_progress_stub_offset();
   static word call_native_through_safepoint_stub_offset();
   static word call_native_through_safepoint_entry_point_offset();
 

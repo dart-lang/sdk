@@ -833,7 +833,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadUint16:
     case MethodRecognizer::kFfiLoadUint32:
     case MethodRecognizer::kFfiLoadUint64:
-    case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
     case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
@@ -847,7 +846,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStoreUint16:
     case MethodRecognizer::kFfiStoreUint32:
     case MethodRecognizer::kFfiStoreUint64:
-    case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
     case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:
@@ -928,7 +926,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
       if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 #if defined(TARGET_ARCH_X64)
       return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
-#elif defined(TARGET_ARCH_ARM64)
+#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
+    defined(TARGET_ARCH_RISCV64)
       return true;
 #else
       return false;
@@ -1352,7 +1351,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiLoadUint16:
     case MethodRecognizer::kFfiLoadUint32:
     case MethodRecognizer::kFfiLoadUint64:
-    case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
     case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
@@ -1431,7 +1429,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiStoreUint16:
     case MethodRecognizer::kFfiStoreUint32:
     case MethodRecognizer::kFfiStoreUint64:
-    case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
     case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:

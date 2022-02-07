@@ -273,6 +273,7 @@ class Library extends NamedNode
   static const int NonNullableByDefaultFlag = 1 << 1;
   static const int NonNullableByDefaultModeBit1 = 1 << 2;
   static const int NonNullableByDefaultModeBit2 = 1 << 3;
+  static const int IsUnsupportedFlag = 1 << 4;
 
   int flags = 0;
 
@@ -320,6 +321,13 @@ class Library extends NamedNode
             NonNullableByDefaultModeBit2;
         break;
     }
+  }
+
+  /// If true, the library is not supported through the 'dart.library.*' value
+  /// used in conditional imports and `bool.fromEnvironment` constants.
+  bool get isUnsupported => flags & IsUnsupportedFlag != 0;
+  void set isUnsupported(bool value) {
+    flags = value ? (flags | IsUnsupportedFlag) : (flags & ~IsUnsupportedFlag);
   }
 
   String? name;
@@ -3732,7 +3740,7 @@ class FunctionNode extends TreeNode {
     named.sort();
     // We need create a copy of the list of type parameters, otherwise
     // transformations like erasure don't work.
-    List<TypeParameter> typeParametersCopy = new List<TypeParameter>.from(
+    List<TypeParameter> typeParametersCopy = new List<TypeParameter>.of(
         parent is Constructor
             ? parent.enclosingClass.typeParameters
             : typeParameters);
@@ -3782,9 +3790,9 @@ class FunctionNode extends TreeNode {
     // We need create a copy of the list of type parameters, otherwise
     // transformations like erasure don't work.
     List<TypeParameter> classTypeParametersCopy =
-        List.from(parentConstructor.enclosingClass.typeParameters);
+        List.of(parentConstructor.enclosingClass.typeParameters);
     List<TypeParameter> typedefTypeParametersCopy =
-        List.from(typedef.typeParameters);
+        List.of(typedef.typeParameters);
     List<DartType> asTypeArguments =
         getAsTypeArguments(typedefTypeParametersCopy, library);
     TypedefType typedefType =
@@ -3826,9 +3834,9 @@ class FunctionNode extends TreeNode {
         "Only run this method on a factory");
     // We need create a copy of the list of type parameters, otherwise
     // transformations like erasure don't work.
-    List<TypeParameter> classTypeParametersCopy = List.from(typeParameters);
+    List<TypeParameter> classTypeParametersCopy = List.of(typeParameters);
     List<TypeParameter> typedefTypeParametersCopy =
-        List.from(typedef.typeParameters);
+        List.of(typedef.typeParameters);
     List<DartType> asTypeArguments =
         getAsTypeArguments(typedefTypeParametersCopy, library);
     TypedefType typedefType =

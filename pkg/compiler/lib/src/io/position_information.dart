@@ -1111,7 +1111,7 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
 
   @override
   visitVariableInitialization(js.VariableInitialization node) {
-    visit(node.leftHandSide);
+    visit(node.declaration);
     visit(node.value);
   }
 

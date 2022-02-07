@@ -21,9 +21,9 @@ void main() {
 }
 
 void run() {
-  TestProject p;
+  late TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   test('--help', () async {
     p = project();
@@ -345,7 +345,7 @@ void main(List<String> args) => print("$b $args");
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
@@ -497,7 +497,7 @@ void main(List<String> args) => print("$b $args");
         final readyCompleter = Completer<void>();
         final completer = Completer<void>();
 
-        StreamSubscription sub;
+        late StreamSubscription sub;
         sub = process.stdout.transform(utf8.decoder).listen((event) async {
           if (event.contains('ready')) {
             readyCompleter.complete();

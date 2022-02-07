@@ -512,7 +512,7 @@ class Operand : public ValueObject {
 class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches = false);
+                     intptr_t far_branch_level = 0);
   ~Assembler() {}
 
   void PushRegister(Register r) { Push(r); }
@@ -2054,9 +2054,11 @@ class Assembler : public AssemblerBase {
                                    Register new_exit_frame,
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
-  void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
+  void TransitionNativeToGenerated(Register scratch,
+                                   bool exit_safepoint,
+                                   bool ignore_unwind_in_progress = false);
   void EnterFullSafepoint(Register scratch);
-  void ExitFullSafepoint(Register scratch);
+  void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
 
   void CheckCodePointer();
   void RestoreCodePointer();
@@ -2249,8 +2251,6 @@ class Assembler : public AssemblerBase {
   bool constant_pool_allowed_;
 
   compiler::LRState lr_state_ = compiler::LRState::OnEntry();
-
-  void LoadWordFromPoolIndexFixed(Register dst, intptr_t index);
 
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);

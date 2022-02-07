@@ -14,13 +14,13 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     ;
   get nonNullableInstanceField() → core::int;
-  set nonNullableInstanceField(core::int #t1) → void;
+  set nonNullableInstanceField(core::int nonNullableInstanceField#param) → void;
   get nullableInstanceField() → core::int?;
-  set nullableInstanceField(core::int? #t2) → void;
+  set nullableInstanceField(core::int? nullableInstanceField#param) → void;
   static get nonNullableStaticField() → core::int;
-  static set nonNullableStaticField(core::int #t3) → void;
+  static set nonNullableStaticField(core::int nonNullableStaticField#param) → void;
   static get nullableStaticField() → core::int?;
-  static set nullableStaticField(core::int? #t4) → void;
+  static set nullableStaticField(core::int? nullableStaticField#param) → void;
 }
 class B extends self::A {
   synthetic constructor •() → self::B
@@ -41,8 +41,8 @@ static field core::bool _#nullableTopLevelField#isSet;
 static method method() → core::int?
   ;
 static get nonNullableTopLevelField() → core::int;
-static set nonNullableTopLevelField(core::int #t5) → void;
+static set nonNullableTopLevelField(core::int nonNullableTopLevelField#param) → void;
 static get nullableTopLevelField() → core::int?;
-static set nullableTopLevelField(core::int? #t6) → void;
+static set nullableTopLevelField(core::int? nullableTopLevelField#param) → void;
 static method main() → dynamic
   ;

@@ -100,6 +100,7 @@ class FeatureSets {
     sdkLanguageVersion: Version.parse('2.16.0'),
     flags: [
       EnableString.constructor_tearoffs,
+      EnableString.enhanced_enums,
       EnableString.super_parameters,
     ],
   );
@@ -246,6 +247,7 @@ library
             parameters
               requiredPositional final this.x @36
                 type: dynamic
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -272,6 +274,7 @@ library
             parameters
               requiredPositional final this.x @32
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -298,6 +301,7 @@ library
             parameters
               requiredPositional final this.x @28
                 type: dynamic
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -332,6 +336,7 @@ library
                 parameters
                   requiredPositional b @37
                     type: double
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -366,6 +371,7 @@ library
                 parameters
                   requiredPositional b @41
                     type: double
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -403,6 +409,7 @@ library
                 parameters
                   requiredPositional t @53
                     type: T
+                field: self::@class::C::@field::f
         accessors
           synthetic get f @-1
             returnType: dynamic Function()
@@ -433,6 +440,7 @@ library
             parameters
               requiredPositional final this.x @17
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: int
@@ -465,6 +473,7 @@ library
             parameters
               requiredPositional final this.x @17
                 type: dynamic
+                field: <null>
 ''');
   }
 
@@ -484,6 +493,7 @@ library
             parameters
               requiredPositional final this.x @32
                 type: dynamic
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: num
@@ -510,6 +520,7 @@ library
             parameters
               requiredPositional final this.x @28
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: num
@@ -536,6 +547,7 @@ library
             parameters
               requiredPositional final this.x @24
                 type: num
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: num
@@ -562,6 +574,7 @@ library
             parameters
               requiredPositional final this.x @32
                 type: dynamic
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -588,6 +601,7 @@ library
             parameters
               requiredPositional final this.x @28
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -614,6 +628,7 @@ library
             parameters
               requiredPositional final this.x @24
                 type: dynamic
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -640,6 +655,7 @@ library
             parameters
               optionalNamed final this.x @25
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: int
@@ -670,6 +686,7 @@ library
                   IntegerLiteral
                     literal: 42 @28
                     staticType: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: int
@@ -696,6 +713,7 @@ library
             parameters
               optionalPositional final this.x @25
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: int
@@ -726,6 +744,7 @@ library
                   IntegerLiteral
                     literal: 42 @29
                     staticType: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: int
@@ -1453,7 +1472,6 @@ library
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47951')
   test_class_constructor_parameters_super_explicitType_function() async {
     var library = await checkLibrary('''
 class A {
@@ -1492,7 +1510,6 @@ library
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47951')
   test_class_constructor_parameters_super_explicitType_interface() async {
     var library = await checkLibrary('''
 class A {
@@ -1518,9 +1535,41 @@ library
         constructors
           @47
             parameters
-              requiredPositional final super.a @49
+              requiredPositional final super.a @59
                 type: int
                 superConstructorParameter: a@18
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_parameters_super_explicitType_interface_nullable() async {
+    var library = await checkLibrary('''
+class A {
+  A(num? a);
+}
+
+class B extends A {
+  B(int? super.a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional a @19
+                type: num?
+      class B @32
+        supertype: A
+        constructors
+          @48
+            parameters
+              requiredPositional final super.a @61
+                type: int?
+                superConstructorParameter: a@19
             superConstructor: self::@class::A::@constructor::•
 ''');
   }
@@ -1609,6 +1658,38 @@ library
           @58
             parameters
               optionalNamed final super.b @67
+                type: dynamic
+                superConstructorParameter: <null>
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_parameters_super_optionalNamed_unresolved2() async {
+    var library = await checkLibrary('''
+class A {
+  A(int a);
+}
+
+class B extends A {
+  B({super.a});
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional a @18
+                type: int
+      class B @31
+        supertype: A
+        constructors
+          @47
+            parameters
+              optionalNamed final super.a @56
                 type: dynamic
                 superConstructorParameter: <null>
             superConstructor: self::@class::A::@constructor::•
@@ -1764,6 +1845,38 @@ library
           @34
             parameters
               requiredPositional final super.a @42
+                type: dynamic
+                superConstructorParameter: <null>
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_parameters_super_requiredPositional_unresolved2() async {
+    var library = await checkLibrary('''
+class A {
+  A({required int a})
+}
+
+class B extends A {
+  B(super.a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredNamed a @28
+                type: int
+      class B @41
+        supertype: A
+        constructors
+          @57
+            parameters
+              requiredPositional final super.a @65
                 type: dynamic
                 superConstructorParameter: <null>
             superConstructor: self::@class::A::@constructor::•
@@ -3546,6 +3659,7 @@ library
             parameters
               requiredPositional final this.foo @36
                 type: int
+                field: self::@class::A::@field::foo
         accessors
           synthetic get foo @-1
             returnType: int
@@ -3574,6 +3688,7 @@ library
             parameters
               requiredPositional final this.v @34
                 type: int
+                field: self::@class::C::@field::v
             superConstructor: self::@class::D::@constructor::•
         accessors
           synthetic get v @-1
@@ -8186,33 +8301,110 @@ library
         codeLength: 26
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
-          synthetic static const values @-1
-            type: List<E>
-          static const aaa @11
+          static const enumConstant aaa @11
             codeOffset: 11
             codeLength: 3
             type: E
-          static const bbb @16
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant bbb @16
             codeOffset: 16
             codeLength: 3
             type: E
-          static const ccc @21
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant ccc @21
             codeOffset: 21
             codeLength: 3
             type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::aaa
+                    staticType: E
+                    token: aaa @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::bbb
+                    staticType: E
+                    token: bbb @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::ccc
+                    staticType: E
+                    token: ccc @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get aaa @-1
             returnType: E
           synthetic static get bbb @-1
             returnType: E
           synthetic static get ccc @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -9781,12 +9973,14 @@ library
             parameters
               requiredPositional final this.t @41
                 type: T
+                field: self::@class::C::@field::t
           const named @55
             periodOffset: 54
             nameEnd: 60
             parameters
               requiredPositional final this.t @66
                 type: T
+                field: self::@class::C::@field::t
         accessors
           synthetic get t @-1
             returnType: T
@@ -12431,6 +12625,7 @@ library
                     staticElement: self::@function::foo
                     staticType: int Function()
                     token: foo @40
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -12472,6 +12667,7 @@ library
                     staticElement: dart:core::@class::num::@method::+
                     staticInvokeType: num Function(num)
                     staticType: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -12510,6 +12706,7 @@ library
                     staticElement: dart:core::@class::num::@method::+
                     staticInvokeType: num Function(num)
                     staticType: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -13356,27 +13553,104 @@ library
       enum E @30
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant a @33
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant b @36
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant c @39
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const a @33
-            type: E
-          static const b @36
-            type: E
-          static const c @39
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::a
+                    staticType: E
+                    token: a @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::b
+                    staticType: E
+                    token: b @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::c
+                    staticType: E
+                    token: c @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get a @-1
             returnType: E
           synthetic static get b @-1
             returnType: E
           synthetic static get c @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -15574,27 +15848,104 @@ library
       enum E @5
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant a @8
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant b @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant c @14
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const a @8
-            type: E
-          static const b @11
-            type: E
-          static const c @14
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::a
+                    staticType: E
+                    token: a @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::b
+                    staticType: E
+                    token: b @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::c
+                    staticType: E
+                    token: c @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get a @-1
             returnType: E
           synthetic static get b @-1
             returnType: E
           synthetic static get c @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -15627,19 +15978,50 @@ library
       enum E @5
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant a @8
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const a @8
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::a
+                    staticType: E
+                    token: a @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get a @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -15821,6 +16203,7 @@ library
                     staticType: void Function(dynamic)
                     typeArgumentTypes
                       dynamic
+                field: self::@class::X::@field::f
         accessors
           synthetic get f @-1
             returnType: void Function(dynamic)
@@ -16596,50 +16979,181 @@ library
       enum E @5
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant a @8
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant b @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const a @8
-            type: E
-          static const b @11
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::a
+                    staticType: E
+                    token: a @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::b
+                    staticType: E
+                    token: b @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get a @-1
             returnType: E
           synthetic static get b @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
       enum E @19
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant c @22
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant d @25
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant e @28
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const c @22
-            type: E
-          static const d @25
-            type: E
-          static const e @28
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::c
+                    staticType: E
+                    token: c @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::d
+                    staticType: E
+                    token: d @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::e
+                    staticType: E
+                    token: e @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get c @-1
             returnType: E
           synthetic static get d @-1
             returnType: E
           synthetic static get e @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -16861,6 +17375,477 @@ library
 ''');
   }
 
+  test_enum_constant_inference() async {
+    var library = await checkLibrary(r'''
+enum E<T> {
+  int(1), string('2');
+  const E(T a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          static const enumConstant int @14
+            type: E<int>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 1 @18
+                      staticType: int
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: ConstructorMember
+                      base: self::@enum::E::@constructor::•
+                      substitution: {T: int}
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: int}
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<int>
+                staticType: E<int>
+          static const enumConstant string @22
+            type: E<String>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  arguments
+                    SimpleStringLiteral
+                      literal: '2' @29
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: ConstructorMember
+                      base: self::@enum::E::@constructor::•
+                      substitution: {T: String}
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: String}
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<String>
+                staticType: E<String>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::int
+                    staticType: E<int>
+                    token: int @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::string
+                    staticType: E<String>
+                    token: string @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          const @43
+            parameters
+              requiredPositional a @47
+                type: T
+        accessors
+          synthetic static get int @-1
+            returnType: E<int>
+          synthetic static get string @-1
+            returnType: E<String>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  /// Test that a constant named `_name` renames the synthetic `name` field.
+  test_enum_constant_name() async {
+    var library = await checkLibrary(r'''
+enum E {
+  _name;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant _name @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::_name
+                    staticType: E
+                    token: _name @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get _name @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_constant_typeArguments() async {
+    var library = await checkLibrary(r'''
+enum E<T> {
+  v<double>(42);
+  const E(T a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          static const enumConstant v @14
+            type: E<double>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 42 @24
+                      staticType: double
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: ConstructorMember
+                      base: self::@enum::E::@constructor::•
+                      substitution: {T: double}
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: double}
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<double>
+                    typeArguments: TypeArgumentList
+                      arguments
+                        NamedType
+                          name: SimpleIdentifier
+                            staticElement: dart:core::@class::double
+                            staticType: null
+                            token: double @16
+                          type: double
+                      leftBracket: < @15
+                      rightBracket: > @22
+                staticType: E<double>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<double>
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          const @37
+            parameters
+              requiredPositional a @41
+                type: T
+        accessors
+          synthetic static get v @-1
+            returnType: E<double>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_constant_underscore() async {
+    var library = await checkLibrary('''
+enum E {
+  _
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant _ @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::_
+                    staticType: E
+                    token: _ @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get _ @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_constructor_named() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v.named(42);
+  const E.named(int a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 42 @19
+                      staticType: int
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::named
+                    staticType: null
+                    token: named @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::named
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          const named @34
+            periodOffset: 33
+            nameEnd: 39
+            parameters
+              requiredPositional a @44
+                type: int
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_constructor_unnamed() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v(42);
+  const E(int a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 42 @13
+                      staticType: int
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          const @26
+            parameters
+              requiredPositional a @32
+                type: int
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
   test_enum_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -16876,19 +17861,675 @@ library
         documentationComment: /**\n * Docs\n */
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant v @69
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const v @69
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get v @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_field() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v;
+  final foo = 42;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+          final foo @22
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 42 @28
+                staticType: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+          synthetic get foo @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_method() async {
+    var library = await checkLibrary(r'''
+enum E<T> {
+  v;
+  int foo<U>(T t, U u) => 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          static const enumConstant v @14
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: ConstructorMember
+                      base: self::@enum::E::@constructor::•
+                      substitution: {T: dynamic}
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: dynamic}
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<dynamic>
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          foo @23
+            typeParameters
+              covariant U @27
+            parameters
+              requiredPositional t @32
+                type: T
+              requiredPositional u @37
+                type: U
+            returnType: int
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_method_toString() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v;
+  String toString() => 'E';
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+        methods
+          toString @23
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters() async {
+    var library = await checkLibrary('''
+enum E<T> {
+  v
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          static const enumConstant v @14
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: ConstructorMember
+                      base: self::@enum::E::@constructor::•
+                      substitution: {T: dynamic}
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: dynamic}
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<dynamic>
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_bound() async {
+    var library = await checkLibrary('''
+enum E<T extends num, U extends T> {
+  v
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      notSimplyBounded enum E @5
+        typeParameters
+          covariant T @7
+            bound: num
+            defaultType: num
+          covariant U @22
+            bound: T
+            defaultType: num
+        supertype: Enum
+        fields
+          static const enumConstant v @39
+            type: E<num, num>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: ConstructorMember
+                      base: self::@enum::E::@constructor::•
+                      substitution: {T: num, U: num}
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: num, U: num}
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<num, num>
+                staticType: E<num, num>
+          synthetic static const values @-1
+            type: List<E<num, num>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<num, num>
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<num, num>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E<num, num>
+          synthetic static get values @-1
+            returnType: List<E<num, num>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_cycle_1of1() async {
+    var library = await checkLibrary('''
+enum E<T extends T> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      notSimplyBounded enum E @5
+        typeParameters
+          covariant T @7
+            bound: dynamic
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_cycle_2of3() async {
+    var library = await checkLibrary(r'''
+enum E<T extends V, U extends num, V extends T> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      notSimplyBounded enum E @5
+        typeParameters
+          covariant T @7
+            bound: dynamic
+            defaultType: dynamic
+          covariant U @20
+            bound: num
+            defaultType: num
+          covariant V @35
+            bound: dynamic
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic static const values @-1
+            type: List<E<dynamic, num, dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic, num, dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get values @-1
+            returnType: List<E<dynamic, num, dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_defaultType_cycle_genericFunctionType() async {
+    var library = await checkLibrary(r'''
+enum E<T extends void Function(E)> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      notSimplyBounded enum E @5
+        typeParameters
+          covariant T @7
+            bound: void Function(E<dynamic>)
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_variance_contravariant() async {
+    var library = await checkLibrary('''
+enum E<in T> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_variance_covariant() async {
+    var library = await checkLibrary('''
+enum E<out T> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @11
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_variance_invariant() async {
+    var library = await checkLibrary('''
+enum E<inout T> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          invariant T @13
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_variance_multiple() async {
+    var library = await checkLibrary('''
+enum E<inout T, in U, out V> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          invariant T @13
+            defaultType: dynamic
+          contravariant U @19
+            defaultType: dynamic
+          covariant V @26
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic static const values @-1
+            type: List<E<dynamic, dynamic, dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic, dynamic, dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get values @-1
+            returnType: List<E<dynamic, dynamic, dynamic>>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -16912,25 +18553,79 @@ library
       enum E @5
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
-          synthetic static const values @-1
-            type: List<E>
-          static const a @32
+          static const enumConstant a @32
             documentationComment: /**\n   * aaa\n   */
             type: E
-          static const b @47
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant b @47
             documentationComment: /// bbb
             type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::a
+                    staticType: E
+                    token: a @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::b
+                    staticType: E
+                    token: b @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get a @-1
             returnType: E
           synthetic static get b @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -16959,11 +18654,7 @@ library
       enum E @5
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
-          synthetic static const values @-1
-            type: List<E>
-          static const a @46
+          static const enumConstant a @46
             documentationComment: /**\n   * aaa\n   */
             metadata
               Annotation
@@ -16974,7 +18665,26 @@ library
                   staticType: null
                   token: annotation @33
             type: E
-          static const b @75
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant b @75
             documentationComment: /// bbb
             metadata
               Annotation
@@ -16985,15 +18695,54 @@ library
                   staticType: null
                   token: annotation @62
             type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::a
+                    staticType: E
+                    token: a @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::b
+                    staticType: E
+                    token: b @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get a @-1
             returnType: E
           synthetic static get b @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -17019,23 +18768,77 @@ library
       enum E @5
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant v1 @9
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant v2 @13
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const v1 @9
-            type: E
-          static const v2 @13
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v1
+                    staticType: E
+                    token: v1 @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v2
+                    staticType: E
+                    token: v2 @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get v1 @-1
             returnType: E
           synthetic static get v2 @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -17051,38 +18854,100 @@ library
       enum E1 @5
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant v1 @10
+            type: E1
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E1::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E1::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E1
+                      staticType: null
+                      token: E1 @-1
+                    type: E1
+                staticType: E1
           synthetic static const values @-1
             type: List<E1>
-          static const v1 @10
-            type: E1
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E1::@getter::v1
+                    staticType: E1
+                    token: v1 @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E1>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E1>
           synthetic static get v1 @-1
             returnType: E1
+          synthetic static get values @-1
+            returnType: List<E1>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
       enum E2 @20
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant v2 @25
+            type: E2
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E2::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E2::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E2
+                      staticType: null
+                      token: E2 @-1
+                    type: E2
+                staticType: E2
           synthetic static const values @-1
             type: List<E2>
-          static const v2 @25
-            type: E2
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E2::@getter::v2
+                    staticType: E2
+                    token: v2 @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E2>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E2>
           synthetic static get v2 @-1
             returnType: E2
+          synthetic static get values @-1
+            returnType: List<E2>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -17156,27 +19021,104 @@ library
       enum E @5
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant a @8
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant b @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant c @14
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const a @8
-            type: E
-          static const b @11
-            type: E
-          static const c @14
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::a
+                    staticType: E
+                    token: a @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::b
+                    staticType: E
+                    token: b @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::c
+                    staticType: E
+                    token: c @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get a @-1
             returnType: E
           synthetic static get b @-1
             returnType: E
           synthetic static get c @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -17862,6 +19804,7 @@ library
         parameters
           requiredPositional final this.a @16
             type: int
+            field: <null>
         returnType: void
 ''');
   }
@@ -17882,6 +19825,7 @@ library
               IntegerLiteral
                 literal: 42 @20
                 staticType: int
+            field: <null>
         returnType: void
 ''');
   }
@@ -17901,6 +19845,7 @@ library
             parameters
               requiredPositional b @22
                 type: int
+            field: <null>
         returnType: void
 ''');
   }
@@ -19495,6 +21440,63 @@ library
 ''');
   }
 
+  test_implicitCallTearoff() async {
+    var library = await checkLibrary(r'''
+class C {
+  void call() {}
+}
+
+class D {
+  const D(C c) : this.named(c);
+
+  const D.named(void Function() f);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          call @17
+            returnType: void
+      class D @36
+        constructors
+          const @48
+            parameters
+              requiredPositional c @52
+                type: C
+            constantInitializers
+              RedirectingConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    ImplicitCallReference
+                      expression: SimpleIdentifier
+                        staticElement: c@52
+                        staticType: C
+                        token: c @68
+                      staticType: void Function()
+                  leftParenthesis: ( @67
+                  rightParenthesis: ) @69
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::D::@constructor::named
+                  staticType: null
+                  token: named @62
+                period: . @61
+                staticElement: self::@class::D::@constructor::named
+                thisKeyword: this @57
+            redirectedConstructor: self::@class::D::@constructor::named
+          const named @83
+            periodOffset: 82
+            nameEnd: 88
+            parameters
+              requiredPositional f @105
+                type: void Function()
+''');
+  }
+
   test_implicitConstructor_named_const() async {
     var library = await checkLibrary('''
 class C {
@@ -19518,6 +21520,7 @@ library
             parameters
               requiredPositional final this.x @49
                 type: Object
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: Object
@@ -22407,6 +24410,7 @@ library
             parameters
               requiredPositional final this.foo @41
                 type: dynamic
+                field: <null>
             returnType: void
 ''');
   }
@@ -22432,6 +24436,7 @@ library
             parameters
               requiredPositional final this.x @23
                 type: dynamic
+                field: <null>
             returnType: void
 ''');
   }
@@ -23952,11 +25957,7 @@ library
       enum E @19
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
-          synthetic static const values @-1
-            type: List<E>
-          static const v @26
+          static const enumConstant v @26
             metadata
               Annotation
                 atSign: @ @23
@@ -23966,13 +25967,48 @@ library
                   staticType: null
                   token: a @24
             type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get v @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -24015,6 +26051,7 @@ library
             parameters
               requiredPositional final this.value @48
                 type: dynamic
+                field: self::@class::A::@field::value
         accessors
           synthetic get value @-1
             returnType: dynamic
@@ -24022,11 +26059,7 @@ library
       enum E @64
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
-          synthetic static const values @-1
-            type: List<E>
-          static const a @78
+          static const enumConstant a @78
             metadata
               Annotation
                 arguments: ArgumentList
@@ -24043,9 +26076,47 @@ library
                   staticType: null
                   token: A @71
             type: E
-          static const b @83
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant b @83
             type: E
-          static const c @96
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant c @96
             metadata
               Annotation
                 arguments: ArgumentList
@@ -24062,17 +26133,60 @@ library
                   staticType: null
                   token: A @89
             type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::a
+                    staticType: E
+                    token: a @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::b
+                    staticType: E
+                    token: b @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::c
+                    staticType: E
+                    token: c @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get a @-1
             returnType: E
           synthetic static get b @-1
             returnType: E
           synthetic static get c @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -24096,19 +26210,50 @@ library
               token: a @15
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant v @26
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const v @26
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get v @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -24349,6 +26494,7 @@ library
                       staticElement: self::@getter::a
                       staticType: null
                       token: a @40
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -24398,6 +26544,7 @@ library
                   NullLiteral
                     literal: null @48
                     staticType: Null
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -25593,11 +27740,7 @@ library
               token: foo @17
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
-          synthetic static const values @-1
-            type: List<E>
-          static const e1 @37
+          static const enumConstant e1 @37
             metadata
               Annotation
                 atSign: @ @32
@@ -25607,9 +27750,47 @@ library
                   staticType: null
                   token: foo @33
             type: E
-          static const e2 @43
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant e2 @43
             type: E
-          static const e3 @54
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant e3 @54
             metadata
               Annotation
                 atSign: @ @49
@@ -25619,17 +27800,60 @@ library
                   staticType: null
                   token: foo @50
             type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::e1
+                    staticType: E
+                    token: e1 @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::e2
+                    staticType: E
+                    token: e2 @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::e3
+                    staticType: E
+                    token: e3 @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get e1 @-1
             returnType: E
           synthetic static get e2 @-1
             returnType: E
           synthetic static get e3 @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -26646,6 +28870,95 @@ library
 ''');
   }
 
+  test_metadata_typeParameter_ofEnum() async {
+    var library = await checkLibrary('''
+const a = 42;
+enum E<@a T> {
+  v
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @19
+        typeParameters
+          covariant T @24
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign: @ @21
+                element: <null>
+                name: SimpleIdentifier
+                  staticElement: <null>
+                  staticType: null
+                  token: a @22
+        supertype: Enum
+        fields
+          static const enumConstant v @31
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: ConstructorMember
+                      base: self::@enum::E::@constructor::•
+                      substitution: {T: dynamic}
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: dynamic}
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<dynamic>
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @-1
+        returnType: int
+''');
+  }
+
   test_metadata_typeParameter_ofFunction() async {
     var library = await checkLibrary('const a = null; f<@a T>() {}');
     checkElementText(library, r'''
@@ -26837,27 +29150,104 @@ library
       enum E @5
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant a @8
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant b @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          static const enumConstant c @14
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const a @8
-            type: E
-          static const b @11
-            type: E
-          static const c @14
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::a
+                    staticType: E
+                    token: a @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::b
+                    staticType: E
+                    token: b @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::c
+                    staticType: E
+                    token: c @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get a @-1
             returnType: E
           synthetic static get b @-1
             returnType: E
           synthetic static get c @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -28148,31 +30538,86 @@ library
       enum E @5
         supertype: Enum
         fields
+          static const enumConstant a @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+            nonSynthetic: self::@enum::E::@field::a
+          static const enumConstant b @14
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+            nonSynthetic: self::@enum::E::@field::b
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::a
+                    staticType: E
+                    token: a @-1
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::b
+                    staticType: E
+                    token: b @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+            nonSynthetic: self::@enum::E
           synthetic final index @-1
             type: int
             nonSynthetic: self::@enum::E
-          synthetic static const values @-1
-            type: List<E>
+        constructors
+          synthetic const @-1
             nonSynthetic: self::@enum::E
-          static const a @11
-            type: E
-            nonSynthetic: self::@enum::E::@constant::a
-          static const b @14
-            type: E
-            nonSynthetic: self::@enum::E::@constant::b
         accessors
-          synthetic get index @-1
-            returnType: int
-            nonSynthetic: self::@enum::E
+          synthetic static get a @-1
+            returnType: E
+            nonSynthetic: self::@enum::E::@field::a
+          synthetic static get b @-1
+            returnType: E
+            nonSynthetic: self::@enum::E::@field::b
           synthetic static get values @-1
             returnType: List<E>
             nonSynthetic: self::@enum::E
-          synthetic static get a @-1
-            returnType: E
-            nonSynthetic: self::@enum::E::@constant::a
-          synthetic static get b @-1
-            returnType: E
-            nonSynthetic: self::@enum::E::@constant::b
+          synthetic get index @-1
+            returnType: int
+            nonSynthetic: self::@enum::E
         methods
           synthetic toString @-1
             returnType: String
@@ -28775,6 +31220,7 @@ library
                   IntegerLiteral
                     literal: 1 @44
                     staticType: int
+                field: self::@class::C::@field::x
           named @53
             periodOffset: 52
             nameEnd: 58
@@ -28785,6 +31231,7 @@ library
                   IntegerLiteral
                     literal: 1 @68
                     staticType: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -29368,6 +31815,32 @@ library
 ''');
   }
 
+  test_type_inference_classField_fromNullSafe_toLegacy() async {
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', '''
+class E {
+  static final a = 0;
+}
+''');
+    var library = await checkLibrary('''
+// @dart = 2.9
+import 'a.dart';
+final v = E.a;
+''');
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    topLevelVariables
+      static final v @38
+        type: int*
+    accessors
+      synthetic static get v @-1
+        returnType: int*
+''');
+  }
+
   test_type_inference_closure_with_function_typed_parameter() async {
     var library = await checkLibrary('''
 var x = (int f(String x)) => 0;
@@ -29464,6 +31937,7 @@ library
             parameters
               requiredPositional final this.value @34
                 type: T
+                field: self::@class::A::@field::value
         accessors
           synthetic get value @-1
             returnType: T
@@ -29521,6 +31995,7 @@ library
             parameters
               requiredPositional final this.value @34
                 type: T
+                field: self::@class::A::@field::value
         accessors
           synthetic get value @-1
             returnType: T
@@ -29602,6 +32077,7 @@ library
             parameters
               requiredPositional final this.f @35
                 type: int
+                field: self::@class::A::@field::f
         accessors
           synthetic get f @-1
             returnType: int
@@ -29786,6 +32262,7 @@ library
             parameters
               requiredPositional final this.f @85
                 type: T
+                field: self::@class::C::@field::f
         accessors
           synthetic get f @-1
             returnType: T
@@ -30117,19 +32594,50 @@ library
       enum E @16
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant v @20
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const v @20
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get v @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -30224,19 +32732,50 @@ library
         enum E @27
           supertype: Enum
           fields
-            synthetic final index @-1
-              type: int
+            static const enumConstant v @31
+              type: E
+              constantInitializer
+                InstanceCreationExpression
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  constructorName: ConstructorName
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E::@constructor::•
+                      staticType: null
+                      token:  @-1
+                    period: . @0
+                    staticElement: self::@enum::E::@constructor::•
+                    type: NamedType
+                      name: SimpleIdentifier
+                        staticElement: self::@enum::E
+                        staticType: null
+                        token: E @-1
+                      type: E
+                  staticType: E
             synthetic static const values @-1
               type: List<E>
-            static const v @31
-              type: E
+              constantInitializer
+                ListLiteral
+                  elements
+                    SimpleIdentifier
+                      staticElement: self::@enum::E::@getter::v
+                      staticType: E
+                      token: v @-1
+                  leftBracket: [ @0
+                  rightBracket: ] @0
+                  staticType: List<E>
+            synthetic final index @-1
+              type: int
+          constructors
+            synthetic const @-1
           accessors
-            synthetic get index @-1
-              returnType: int
-            synthetic static get values @-1
-              returnType: List<E>
             synthetic static get v @-1
               returnType: E
+            synthetic static get values @-1
+              returnType: List<E>
+            synthetic get index @-1
+              returnType: int
           methods
             synthetic toString @-1
               returnType: String
@@ -30265,19 +32804,50 @@ library
       enum E @42
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant v @46
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const v @46
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get v @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String
@@ -30343,19 +32913,50 @@ library
         enum E @27
           supertype: Enum
           fields
-            synthetic final index @-1
-              type: int
+            static const enumConstant v @31
+              type: E
+              constantInitializer
+                InstanceCreationExpression
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  constructorName: ConstructorName
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E::@constructor::•
+                      staticType: null
+                      token:  @-1
+                    period: . @0
+                    staticElement: self::@enum::E::@constructor::•
+                    type: NamedType
+                      name: SimpleIdentifier
+                        staticElement: self::@enum::E
+                        staticType: null
+                        token: E @-1
+                      type: E
+                  staticType: E
             synthetic static const values @-1
               type: List<E>
-            static const v @31
-              type: E
+              constantInitializer
+                ListLiteral
+                  elements
+                    SimpleIdentifier
+                      staticElement: self::@enum::E::@getter::v
+                      staticType: E
+                      token: v @-1
+                  leftBracket: [ @0
+                  rightBracket: ] @0
+                  staticType: List<E>
+            synthetic final index @-1
+              type: int
+          constructors
+            synthetic const @-1
           accessors
-            synthetic get index @-1
-              returnType: int
-            synthetic static get values @-1
-              returnType: List<E>
             synthetic static get v @-1
               returnType: E
+            synthetic static get values @-1
+              returnType: List<E>
+            synthetic get index @-1
+              returnType: int
           methods
             synthetic toString @-1
               returnType: String
@@ -30419,19 +33020,50 @@ library
         enum E @27
           supertype: Enum
           fields
-            synthetic final index @-1
-              type: int
+            static const enumConstant v @31
+              type: E
+              constantInitializer
+                InstanceCreationExpression
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  constructorName: ConstructorName
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E::@constructor::•
+                      staticType: null
+                      token:  @-1
+                    period: . @0
+                    staticElement: self::@enum::E::@constructor::•
+                    type: NamedType
+                      name: SimpleIdentifier
+                        staticElement: self::@enum::E
+                        staticType: null
+                        token: E @-1
+                      type: E
+                  staticType: E
             synthetic static const values @-1
               type: List<E>
-            static const v @31
-              type: E
+              constantInitializer
+                ListLiteral
+                  elements
+                    SimpleIdentifier
+                      staticElement: self::@enum::E::@getter::v
+                      staticType: E
+                      token: v @-1
+                  leftBracket: [ @0
+                  rightBracket: ] @0
+                  staticType: List<E>
+            synthetic final index @-1
+              type: int
+          constructors
+            synthetic const @-1
           accessors
-            synthetic get index @-1
-              returnType: int
-            synthetic static get values @-1
-              returnType: List<E>
             synthetic static get v @-1
               returnType: E
+            synthetic static get values @-1
+              returnType: List<E>
+            synthetic get index @-1
+              returnType: int
           methods
             synthetic toString @-1
               returnType: String
@@ -30563,19 +33195,50 @@ library
       enum E @5
         supertype: Enum
         fields
-          synthetic final index @-1
-            type: int
+          static const enumConstant v @9
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
           synthetic static const values @-1
             type: List<E>
-          static const v @9
-            type: E
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
         accessors
-          synthetic get index @-1
-            returnType: int
-          synthetic static get values @-1
-            returnType: List<E>
           synthetic static get v @-1
             returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
         methods
           synthetic toString @-1
             returnType: String

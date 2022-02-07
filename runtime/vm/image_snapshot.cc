@@ -529,7 +529,7 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
       const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
       const intptr_t payload_size = map.payload_size();
       stream->WriteFixed<uint32_t>(
-          map.ptr()->untag()->payload()->flags_and_size);
+          map.ptr()->untag()->payload()->flags_and_size());
       stream->WriteBytes(map.ptr()->untag()->payload()->data(), payload_size);
     } else if (obj.IsCodeSourceMap()) {
       const CodeSourceMap& map = CodeSourceMap::Cast(obj);
@@ -884,7 +884,8 @@ intptr_t ImageWriter::AlignWithBreakInstructions(intptr_t alignment,
     ASSERT_EQUAL(remaining, 4);
     bytes_written += WriteBytes(&kBreakInstructionFiller, remaining);
   }
-#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32) ||                 \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
   // The break instruction is a single byte, repeated to fill a word.
   bytes_written += WriteBytes(&kBreakInstructionFiller, remaining);
 #else

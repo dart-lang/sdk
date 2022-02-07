@@ -9,8 +9,9 @@ import 'dart:typed_data';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
-import 'package:watcher/watcher.dart';
+import 'package:watcher/watcher.dart' hide Watcher;
 
 /// An in-memory implementation of [ResourceProvider].
 /// Use `/` as a path separator.
@@ -22,8 +23,20 @@ class MemoryResourceProvider implements ResourceProvider {
 
   final pathos.Context _pathContext;
 
-  MemoryResourceProvider({pathos.Context? context})
-      : _pathContext = context ??= pathos.style == pathos.Style.windows
+  /// An artificial delay that's waited when initializing watchers.
+  ///
+  /// This allows mirroring how the real fs watcher works, where events may be
+  /// lost between creating the watcher and its `ready` event firing.
+  ///
+  /// Like the real file watcher, the `ready` event also requires a listener
+  /// to be attached before it will fire.
+  @visibleForTesting
+  final Duration? delayWatcherInitialization;
+
+  MemoryResourceProvider({
+    pathos.Context? context,
+    this.delayWatcherInitialization,
+  }) : _pathContext = context ??= pathos.style == pathos.Style.windows
             // On Windows, ensure that the current drive matches
             // the drive inserted by MemoryResourceProvider.convertPath
             // so that packages are mapped to the correct drive
@@ -567,21 +580,7 @@ abstract class _MemoryResource implements Resource {
 
   _MemoryResource(this.provider, this.path);
 
-  Stream<WatchEvent> get changes {
-    StreamController<WatchEvent> streamController =
-        StreamController<WatchEvent>();
-    if (!provider._pathToWatchers.containsKey(path)) {
-      provider._pathToWatchers[path] = <StreamController<WatchEvent>>[];
-    }
-    provider._pathToWatchers[path]!.add(streamController);
-    streamController.done.then((_) {
-      provider._pathToWatchers[path]!.remove(streamController);
-      if (provider._pathToWatchers[path]!.isEmpty) {
-        provider._pathToWatchers.remove(path);
-      }
-    });
-    return streamController.stream;
-  }
+  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   int get hashCode => path.hashCode;
@@ -608,6 +607,50 @@ abstract class _MemoryResource implements Resource {
 
   @override
   Uri toUri() => provider.pathContext.toUri(path);
+
+  /// Watch for changes to the files inside this folder (and in any nested
+  /// folders, including folders reachable via links).
+  ///
+  /// If [provider.delayWatcherInitialization] is not `null`, this method will
+  /// wait for this amount of time before it starts capturing/streaming events
+  /// to simulate the delay that occurs when initializing a real file system
+  /// watcher.
+  @override
+  ResourceWatcher watch() {
+    final streamController = StreamController<WatchEvent>();
+    final ready = Completer<void>();
+
+    /// A helper that sets up the watcher that may be called synchronously
+    /// or delayed, depending on the value of
+    /// [provider.delayWatcherInitialization].
+    void setupWatcher() {
+      var watchers = provider._pathToWatchers[path] ??= [];
+      watchers.add(streamController);
+      streamController.done.then((_) {
+        watchers.remove(streamController);
+        if (watchers.isEmpty) {
+          provider._pathToWatchers.remove(path);
+        }
+      });
+      ready.complete();
+    }
+
+    final delayWatcherInitialization = provider.delayWatcherInitialization;
+    if (delayWatcherInitialization != null) {
+      // Wrap this inside onListen so that (like the real watcher) it will only
+      // fire after a listener is attached.
+      streamController.onListen = () {
+        Future<void>.delayed(delayWatcherInitialization, () {
+          streamController.onListen = null;
+          setupWatcher();
+        });
+      };
+    } else {
+      setupWatcher();
+    }
+
+    return ResourceWatcher(streamController.stream, ready.future);
+  }
 }
 
 class _ResourceData {}

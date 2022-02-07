@@ -190,7 +190,9 @@ class InvocationInferenceHelper {
       // Fix up the parameter elements based on inferred method.
       arguments.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(
-              arguments, inferred.parameters, null);
+        argumentList: arguments,
+        parameters: inferred.parameters,
+      );
       node.staticInvokeType = inferred;
     }
   }
@@ -272,12 +274,11 @@ class InvocationInferenceHelper {
   ///
   /// @param expression the node whose type is to be recorded
   /// @param type the static type of the node
-  ///
-  /// TODO(scheglov) this is duplication
   void recordStaticType(ExpressionImpl expression, DartType type) {
     var hooks = _migrationResolutionHooks;
     if (hooks != null) {
-      type = hooks.modifyExpressionType(expression, type);
+      type = hooks.modifyExpressionType(
+          expression, type, InferenceContext.getContext(expression));
     }
 
     expression.staticType = type;
@@ -381,7 +382,9 @@ class InvocationInferenceHelper {
     // Get the parameters that correspond to the uninstantiated generic.
     List<ParameterElement?> rawParameters =
         ResolverVisitor.resolveArgumentsToParameters(
-            argumentList, rawType.parameters, null);
+      argumentList: argumentList,
+      parameters: rawType.parameters,
+    );
 
     List<ParameterElement> params = <ParameterElement>[];
     List<DartType> argTypes = <DartType>[];
@@ -537,9 +540,9 @@ class InvocationInferenceHelper {
     FunctionType invokeType,
   ) {
     var parameters = ResolverVisitor.resolveArgumentsToParameters(
-      argumentList,
-      invokeType.parameters,
-      _errorReporter.reportErrorForNode,
+      argumentList: argumentList,
+      parameters: invokeType.parameters,
+      errorReporter: _errorReporter,
     );
     argumentList.correspondingStaticParameters = parameters;
   }

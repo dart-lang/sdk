@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -23,6 +25,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
+import 'dart_object_printer.dart';
 
 final isDynamicType = TypeMatcher<DynamicTypeImpl>();
 
@@ -198,6 +201,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
     );
   }
 
+  void assertDartObjectText(DartObject? object, String expected) {
+    var buffer = StringBuffer();
+    DartObjectPrinter(buffer).write(object as DartObjectImpl?, '');
+    var actual = buffer.toString();
+    if (actual != expected) {
+      print(buffer);
+    }
+    expect(actual, expected);
+  }
+
   void assertElement(Object? nodeOrElement, Object? elementOrMatcher) {
     Element? element;
     if (nodeOrElement is AstNode) {
@@ -283,6 +296,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {
     expect(element.enclosingElement, expectedEnclosing);
+  }
+
+  void assertEnumConstant(
+    EnumConstantDeclaration node, {
+    required FieldElement element,
+    required Object? constructorElement,
+  }) {
+    assertElement(node.declaredElement, element);
+    assertElement(node.constructorElement, constructorElement);
   }
 
   Future<void> assertErrorsInCode(
@@ -627,9 +649,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertParameterElement(
     Expression expression,
-    ParameterElement expected,
+    Object? elementOrMatcher,
   ) {
-    expect(expression.staticParameterElement, expected);
+    assertElement(expression.staticParameterElement, elementOrMatcher);
   }
 
   void assertParameterElementType(FormalParameter node, String expected) {
@@ -702,6 +724,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }) {
     assertElement(node.propertyName.staticElement, element);
     assertType(node.staticType, type);
+  }
+
+  void assertSimpleFormalParameter(
+    SimpleFormalParameter node, {
+    required ParameterElement element,
+  }) {
+    assertElement(node.declaredElement, element);
   }
 
   void assertSimpleIdentifier(

@@ -40,9 +40,9 @@ class LintNames {
       'avoid_types_on_closure_parameters';
   static const String avoid_unused_constructor_parameters =
       'avoid_unused_constructor_parameters';
-  static const String await_only_futures = 'await_only_futures';
   static const String avoid_unnecessary_containers =
       'avoid_unnecessary_containers';
+  static const String await_only_futures = 'await_only_futures';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
   static const String diagnostic_describe_all_properties =
@@ -54,6 +54,8 @@ class LintNames {
   static const String eol_at_end_of_file = 'eol_at_end_of_file';
   static const String exhaustive_cases = 'exhaustive_cases';
   static const String hash_and_equals = 'hash_and_equals';
+  static const String leading_newlines_in_multiline_strings =
+      'leading_newlines_in_multiline_strings';
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';

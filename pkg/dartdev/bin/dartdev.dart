@@ -7,6 +7,6 @@ import 'dart:isolate';
 import 'package:dartdev/dartdev.dart';
 
 /// The entry point for dartdev.
-Future<void> main(List<String> args, SendPort port) async {
+Future<void> main(List<String> args, SendPort? port) async {
   await runDartdev(args, port);
 }

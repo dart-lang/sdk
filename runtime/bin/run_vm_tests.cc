@@ -380,6 +380,7 @@ static int Main(int argc, const char** argv) {
       /*shutdown_isolate=*/nullptr,
       /*cleanup_isolate=*/nullptr,
       /*cleanup_group=*/CleanupIsolateGroup,
+      /*thread_start=*/nullptr,
       /*thread_exit=*/nullptr, dart::bin::DartUtils::OpenFile,
       dart::bin::DartUtils::ReadFile, dart::bin::DartUtils::WriteFile,
       dart::bin::DartUtils::CloseFile, /*entropy_source=*/nullptr,
@@ -426,3 +427,8 @@ static int Main(int argc, const char** argv) {
 int main(int argc, const char** argv) {
   dart::bin::Platform::Exit(dart::Main(argc, argv));
 }
+
+// TODO(riscv): Why is this missing from libc?
+#if defined(__riscv)
+char __libc_single_threaded = 0;
+#endif

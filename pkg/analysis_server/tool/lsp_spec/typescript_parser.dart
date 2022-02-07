@@ -42,7 +42,8 @@ List<AstNode> parseString(String input) {
   return parser.parse();
 }
 
-TypeBase typeOfLiteral(TokenType tokenType) {
+TypeBase typeOfLiteral(Token token) {
+  final tokenType = token.type;
   final typeName = tokenType == TokenType.STRING
       ? 'string'
       : tokenType == TokenType.NUMBER
@@ -178,7 +179,7 @@ class Interface extends AstNode {
 }
 
 class LiteralType extends TypeBase {
-  final Type type;
+  final TypeBase type;
   final String literal;
 
   LiteralType(this.type, this.literal);
@@ -278,7 +279,7 @@ class Parser {
     final value = _match([TokenType.EQUAL]) ? _advance() : null;
 
     if (type == null && value != null) {
-      type = typeOfLiteral(value.type);
+      type = typeOfLiteral(value);
     }
 
     _consume(TokenType.SEMI_COLON, 'Expected ;');
@@ -339,7 +340,7 @@ class Parser {
     final value = _match([TokenType.EQUAL]) ? _advance() : null;
 
     if (type == null && value != null) {
-      type = typeOfLiteral(value.type);
+      type = typeOfLiteral(value);
     }
     return Const(leadingComment, name, type!, value!);
   }
@@ -601,17 +602,13 @@ class Parser {
         // Some types are in (parens), so we just parse the contents as a nested type.
         type = _type(containerName, fieldName);
         _consume(TokenType.RIGHT_PAREN, 'Expected )');
-      } else if (_check(TokenType.STRING)) {
+      } else if (_check(TokenType.STRING) || _check(TokenType.NUMBER)) {
         final token = _advance();
-        // In TS and the spec, literal strings can be types:
+        // In TS and the spec, literal values can be types:
         // export const PlainText: 'plaintext' = 'plaintext';
         // trace?: 'off' | 'messages' | 'verbose';
-        type = LiteralType(Type.identifier('string'), token.lexeme);
-      } else if (_check(TokenType.NUMBER)) {
-        final token = _advance();
-        // In TS and the spec, literal numbers can be types:
         // export const Invoked: 1 = 1;
-        type = LiteralType(Type.identifier('number'), token.lexeme);
+        type = LiteralType(typeOfLiteral(token), token.lexeme);
       } else if (_match([TokenType.LEFT_BRACKET])) {
         // Tuples will just be converted to List/Array.
         final tupleElementTypes = <TypeBase>[];

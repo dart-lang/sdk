@@ -139,6 +139,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   ReadStrategy readStrategy = ReadStrategy.fromDart;
   WriteStrategy writeStrategy = WriteStrategy.toJs;
   FeatureOptions features = FeatureOptions();
+  String invoker;
 
   void passThrough(String argument) => options.add(argument);
   void ignoreOption(String argument) {}
@@ -480,6 +481,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     passThrough(argument);
   }
 
+  void setInvoker(String argument) {
+    invoker = extractParameter(argument);
+  }
+
   void handleThrowOnError(String argument) {
     throwOnError = true;
     String parameter = extractParameter(argument, isOptionalArgument: true);
@@ -645,6 +650,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     OptionHandler(Flags.testMode, passThrough),
     OptionHandler('${Flags.dumpSsa}=.+', passThrough),
     OptionHandler('${Flags.cfeInvocationModes}=.+', passThrough),
+    OptionHandler('${Flags.invoker}=.+', setInvoker),
     OptionHandler('${Flags.verbosity}=.+', passThrough),
 
     // Experimental features.
@@ -693,6 +699,13 @@ Future<api.CompilationResult> compile(List<String> argv,
   ];
 
   parseCommandLine(handlers, argv);
+
+  if (invoker == null) {
+    warning("The 'dart2js' entrypoint script is deprecated, "
+        "please use 'dart compile js' instead.");
+  } else if (verbose != null) {
+    print("Compiler invoked from: '$invoker'");
+  }
 
   // TODO(johnniwinther): Measure time for reading files.
   SourceFileProvider inputProvider;
@@ -1128,28 +1141,25 @@ void help() {
   // before and after running the compiler. Another two lines may be
   // used to print an error message.
   print('''
-Usage: dart2js [options] dartfile
+Compile Dart to JavaScript.
 
-Compiles Dart to JavaScript.
-
-Common options:
-  -o <file> Generate the output into <file>.
-  -m        Generate minified output.
-  -h        Display this message (add -v for information about all options).''');
+Usage: dart compile js [arguments] <dart entry point>
+  -h, --help      Print this usage information (add -v for information about all options).
+  -o, --output    Write the output to <file name>.
+  -O<0,1,2,3,4>   Set the compiler optimization level (defaults to -O1).
+  ''');
 }
 
 void verboseHelp() {
   print(r'''
-Usage: dart2js [options] dartfile
+Compile Dart to JavaScript.
 
-Compiles Dart to JavaScript.
-
-Supported options:
+Usage: dart compile js [arguments] <dart entry point>
   -h, /h, /?, --help
-    Display this message (add -v for information about all options).
+    Print this usage information (add -v for information about all options).
 
-  -o <file>, --out=<file>
-    Generate the output into <file>.
+  -o <file name>, --out=<file name>
+    Write the output to <file name>.
 
   -m, --minify
     Generate minified output.
@@ -1352,6 +1362,15 @@ void helpAndFail(String message) {
   fail(message);
 }
 
+void warning(String message) {
+  if (diagnosticHandler != null) {
+    diagnosticHandler.report(
+        null, null, -1, -1, message, api.Diagnostic.WARNING);
+  } else {
+    print('Warning: $message');
+  }
+}
+
 Future<void> main(List<String> arguments) async {
   // Expand `@path/to/file`
   // When running from bazel, argument of the form `@path/to/file` might be
@@ -1359,7 +1378,7 @@ Future<void> main(List<String> arguments) async {
   // file and expanding them into the resulting argument list.
   //
   // TODO: Move this logic to a single place and share it among all tools.
-  if (arguments.last.startsWith('@')) {
+  if (arguments.length > 0 && arguments.last.startsWith('@')) {
     var extra = _readLines(arguments.last.substring(1));
     arguments = arguments.take(arguments.length - 1).followedBy(extra).toList();
   }

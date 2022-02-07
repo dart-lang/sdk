@@ -1,18 +1,68 @@
+## 2.17.0
+
+### Core libraries
+
+#### `dart:core`
+
+- Add `Finalizer` and `WeakReference` which can potentially detect when
+  objects are "garbage collected".
+
+#### `dart:ffi`
+
+- Add `ref=` and `[]=` methods to the `StructPointer` and `UnionPointer`
+  extensions. They copy a compound instance into a native memory region.
+
+#### `dart:indexed_db`
+
+- `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
+  `false`.
+
+#### `dart:io`
+
+- **Breaking Change** [#45410](https://github.com/dart-lang/sdk/issues/45410):
+  `HttpClient` no longer transmits some headers (i.e. `authorization`,
+  `www-authenticate`, `cookie`, `cookie2`) when processing redirects to
+  a different domain.
+
+### Tools
+
+#### Dart command line
+
+- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dart2js` tool has been
+  marked deprecated as previously announced.
+  Its replacement is the `dart compile js` command.
+  Should you find any issues, or missing features, in the replacement
+  command, kindly file [an issue](https://github.com/dart-lang/sdk/issues/new).
+
+- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dartdevc` tool has been marked deprecated as previously
+  announced and will be deleted in a future Dart stable relase.  This tool
+  was intended for use only by build systems like bazel, `build_web_compilers`
+  and `flutter_tools`. The functionality remains available for those systems,
+  but it is no longer exposed as a command-line tool in the SDK.
+  Please share any concerns in the 
+  [breaking change tracking issue](https://github.com/dart-lang/sdk/issues/46100).
+
+- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dartdoc` tool has been removed as
+  previously announced. Its replacement is the `dart doc` command.
+
 ## 2.16.0
 
 ### Core libraries
 
 #### `dart:core`
 
-- **Breaking Change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
-  On Windows, `Directory.rename` will no longer delete a directory if
-  `newPath` specifies one. Instead, a `FileSystemException` will be thrown.
-
 - Add `Error.throwWithStackTrace` which can `throw` an
   error with an existing stack trace, instead of creating
   a new stack trace.
 
 #### `dart:io`
+
+- **Breaking Change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
+On Windows, `Directory.rename` will no longer delete a directory if
+`newPath` specifies one. Instead, a `FileSystemException` will be thrown.
 
 - **Breaking Change** [#47769](https://github.com/dart-lang/sdk/issues/47769):
 The `Platform.packageRoot` API has been removed. It had been marked deprecated
@@ -52,9 +102,29 @@ in 2018, as it doesn't work with any Dart 2.x release.
 
 [an issue]: https://github.com/dart-lang/sdk/issues/new
 
+#### Pub
+
+- Fixed race conditions in `dart pub get`, `dart run` and `dart pub global run`.
+  It should now be safe to run these concurrently.
+- If (when) Pub crashes it will save a verbose log in
+  `$PUB_CACHE/log/pub_log.txt` This can be used for filing issues to the issue
+  tracker.
+
+  `dart --verbose pub [command]` will also cause the log file to be written.
+- `dart pub add` can now add multiple packages in one command.
+
 #### Linter
 
-Updated the Linter to `1.17.1`, which includes changes that
+Updated the Linter to `1.18.0`, which includes changes that
+
+- extends `camel_case_types` to cover enums.
+- fixes `no_leading_underscores_for_local_identifiers` to not 
+  mis-flag field formal parameters with default values.
+- fixes `prefer_function_declarations_over_variables` to not
+  mis-flag non-final fields.
+- improves performance for `prefer_contains`.
+- updates `exhaustive_cases` to skip deprecated values that
+  redirect to other values.
 - adds new lint: `unnecessary_late`.
 - improves docs for `prefer_initializing_formals`.
 - updates `secure_pubspec_urls` to check `issue_tracker` and

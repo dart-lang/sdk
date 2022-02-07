@@ -165,7 +165,7 @@ final Matcher isCompletionSuggestion =
           'hasNamedParameters': isBool,
           'parameterName': isString,
           'parameterType': isString,
-          'libraryUriToImportIndex': isInt
+          'isNotImported': isBool
         }));
 
 /// CompletionSuggestionKind
@@ -237,7 +237,8 @@ final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
       'parameters': isString,
       'returnType': isString,
       'typeParameters': isString,
-      'aliasedType': isString
+      'aliasedType': isString,
+      'libraryUri': isString
     }));
 
 /// ElementKind
@@ -378,6 +379,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   DYNAMIC_PARAMETER_REFERENCE
 ///   ENUM
 ///   ENUM_CONSTANT
+///   EXTENSION
 ///   FIELD
 ///   FIELD_STATIC
 ///   FUNCTION
@@ -459,6 +461,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'DYNAMIC_PARAMETER_REFERENCE',
   'ENUM',
   'ENUM_CONSTANT',
+  'EXTENSION',
   'FIELD',
   'FIELD_STATIC',
   'FUNCTION',

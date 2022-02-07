@@ -26,12 +26,12 @@ class PackageSimpleGenerator extends DefaultGenerator {
 
   @override
   String getInstallInstructions(
-    String directory,
-    String scriptPath,
-  ) =>
+    String directory, {
+    String? scriptPath,
+  }) =>
       super.getInstallInstructions(
         directory,
-        'example/${scriptPath}_example',
+        scriptPath: 'example/${scriptPath}_example',
       );
 }
 

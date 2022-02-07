@@ -14,18 +14,7 @@ import 'package:analysis_server/src/utilities/extensions/numeric.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart'
-    show
-        ClassElement,
-        ConstructorElement,
-        Element,
-        ElementKind,
-        FieldElement,
-        FunctionElement,
-        LibraryElement,
-        LocalVariableElement,
-        PropertyAccessorElement,
-        TopLevelVariableElement;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -60,6 +49,7 @@ double weightedAverage(
     double hasDeprecated = 0.0,
     double isConstant = 0.0,
     double isNoSuchMethod = 0.0,
+    double isNotImported = 0.0,
     double keyword = 0.0,
     double startsWithDollar = 0.0,
     double superMatches = 0.0}) {
@@ -68,6 +58,7 @@ double weightedAverage(
   assert(hasDeprecated.between(-1.0, 0.0));
   assert(isConstant.between(0.0, 1.0));
   assert(isNoSuchMethod.between(-1.0, 0.0));
+  assert(isNotImported.between(-1.0, 0.0));
   assert(keyword.between(0.0, 1.0));
   assert(startsWithDollar.between(-1.0, 0.0));
   assert(superMatches.between(0.0, 1.0));
@@ -77,6 +68,7 @@ double weightedAverage(
     hasDeprecated,
     isConstant,
     isNoSuchMethod,
+    isNotImported,
     keyword,
     startsWithDollar,
     superMatches,
@@ -147,6 +139,7 @@ class FeatureComputer {
     0.50, // hasDeprecated
     1.00, // isConstant
     1.00, // isNoSuchMethod
+    1.00, // isNotImported
     1.00, // keyword
     0.50, // startsWithDollar
     1.00, // superMatches
@@ -326,6 +319,11 @@ class FeatureComputer {
     return proposedMemberName == FunctionElement.NO_SUCH_METHOD_METHOD_NAME
         ? -1.0
         : 0.0;
+  }
+
+  /// Return the feature for the not-yet-imported property.
+  double isNotImportedFeature(bool isNotImported) {
+    return isNotImported ? -1.0 : 0.0;
   }
 
   /// Return the value of the _keyword_ feature for the [keyword] when

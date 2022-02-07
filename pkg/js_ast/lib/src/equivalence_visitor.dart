@@ -340,8 +340,6 @@ class EquivalenceVisitor implements NodeVisitor1<bool, Node> {
     if (arg is! VariableInitialization) return failAt(node, arg);
     VariableInitialization other = arg;
     return testNodes(node.declaration, other.declaration) &&
-        testNodes(node.leftHandSide, other.leftHandSide) &&
-        testValues(node, node.op, other, other.op) &&
         testNodes(node.value, other.value);
   }
 

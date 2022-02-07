@@ -387,6 +387,88 @@ class MyComponent {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_contentChild_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ContentChild('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ContentChild`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ContentChild('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_contentChildren_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ContentChildren('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ContentChildren`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ContentChildren('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_angular_optional_constructor_param() async {
     addAngularPackage();
     var content = '''
@@ -508,6 +590,47 @@ class MyComponent {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_viewChild_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ViewChild('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ViewChild`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ViewChild('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_angular_viewChild_setter() async {
     addAngularPackage();
     var content = '''
@@ -526,6 +649,47 @@ import 'package:angular/angular.dart';
 class MyComponent {
   @ViewChild('foo')
   set bar(Element? element) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_viewChildren_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ViewChildren('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ViewChildren`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ViewChildren('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -7569,6 +7733,47 @@ int f(List<int?> l) {
 
 void g() {
   f([null]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_quiver_checkNotNull_field_formal_initializer() async {
+    addQuiverPackage();
+    var content = '''
+import 'package:quiver/check.dart';
+class C {
+  final int i;
+  C(this.i) {
+    checkNotNull(i);
+  }
+}
+void f(bool b, int i) {
+  if (b) new C(i);
+}
+main() {
+  f(false, null);
+}
+''';
+    // Note: since the reference to `i` in `checkNotNull(i)` refers to the field
+    // rather than the formal parameter, this isn't considered sufficient to
+    // mark the field as non-nullable (even though that's the clear intention
+    // in this case).  Changing the behavior to match user intent would require
+    // more development work; for now we just want to make sure we provide a
+    // fairly reasonable migration without crashing.
+    var expected = '''
+import 'package:quiver/check.dart';
+class C {
+  final int? i;
+  C(this.i) {
+    checkNotNull(i);
+  }
+}
+void f(bool b, int? i) {
+  if (b) new C(i);
+}
+main() {
+  f(false, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

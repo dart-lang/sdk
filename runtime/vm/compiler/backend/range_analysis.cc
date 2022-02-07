@@ -1643,16 +1643,10 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
     Value* left = op->left()->CopyWithType();
     Value* right = op->right()->CopyWithType();
     intptr_t deopt_id = op->DeoptimizationTarget();
-    if (def->IsBinaryInt64Op()) {
-      return new (Z) BinaryUint32OpInstr(op_kind, left, right, deopt_id);
-    } else if (def->IsShiftInt64Op()) {
-      return new (Z) ShiftUint32OpInstr(op_kind, left, right, deopt_id);
-    } else if (def->IsSpeculativeShiftInt64Op()) {
-      return new (Z)
-          SpeculativeShiftUint32OpInstr(op_kind, left, right, deopt_id);
-    } else {
-      UNREACHABLE();
-    }
+    return BinaryIntegerOpInstr::Make(
+        kUnboxedUint32, op_kind, left, right, deopt_id,
+        def->IsSpeculativeShiftInt64Op() ? Instruction::kGuardInputs
+                                         : Instruction::kNotSpeculative);
   } else if (def->IsBoxInt64()) {
     Value* value = def->AsBoxInt64()->value()->CopyWithType();
     return new (Z) BoxUint32Instr(value);
@@ -2080,6 +2074,10 @@ int64_t RangeBoundary::ConstantValue() const {
 
 bool Range::IsPositive() const {
   return OnlyGreaterThanOrEqualTo(0);
+}
+
+bool Range::IsNegative() const {
+  return OnlyLessThanOrEqualTo(-1);
 }
 
 bool Range::OnlyLessThanOrEqualTo(int64_t val) const {

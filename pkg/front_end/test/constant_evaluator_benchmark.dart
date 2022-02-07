@@ -7,42 +7,32 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
-
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
-
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
-
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 import 'package:front_end/src/fasta/kernel/constant_evaluator.dart' as constants
     show EvaluationMode, transformLibraries, ErrorReporter;
-
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
-import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart'
-    show ConstantsBackend, DiagnosticReporter, Target, TargetFlags;
+    show DiagnosticReporter, Target, TargetFlags;
 import 'package:kernel/type_environment.dart';
-
 import "package:vm/target/flutter.dart" show FlutterTarget;
-
 import "package:vm/target/vm.dart" show VmTarget;
 
 import 'incremental_suite.dart' show getOptions;
-
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
 bool? tryWithNoEnvironment;
 bool verbose = false;
@@ -80,8 +70,6 @@ void benchmark(Component component, List<Library> libraries) {
 
         stopwatch.reset();
         CoreTypes coreTypes = new CoreTypes(component);
-        ConstantsBackend constantsBackend =
-            target.backendTarget.constantsBackend;
         ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
         TypeEnvironment environment = new TypeEnvironment(coreTypes, hierarchy);
         if (verbose) {
@@ -91,8 +79,9 @@ void benchmark(Component component, List<Library> libraries) {
 
         stopwatch.reset();
         constants.transformLibraries(
+            component,
             component.libraries,
-            constantsBackend,
+            target.backendTarget,
             environmentDefines,
             environment,
             new SilentErrorReporter(),

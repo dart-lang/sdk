@@ -4,18 +4,32 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/isolate_mirrors_executor/isolate_mirrors_executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
+import 'package:_fe_analyzer_shared/src/macros/isolate_mirrors_executor/isolate_mirrors_executor.dart'
+    as mirrorExecutor;
 
-import 'package:test/fake.dart';
 import 'package:test/test.dart';
+
+import '../util.dart';
 
 void main() {
   late MacroExecutor executor;
+  late File simpleMacroFile;
+
+  setUpAll(() {
+    // We support running from either the root of the SDK or the package root.
+    simpleMacroFile = File(
+        'pkg/_fe_analyzer_shared/test/macros/isolate_mirror_executor/simple_macro.dart');
+    if (!simpleMacroFile.existsSync()) {
+      simpleMacroFile =
+          File('test/macros/isolate_mirror_executor/simple_macro.dart');
+    }
+  });
 
   setUp(() async {
-    executor = await IsolateMirrorMacroExecutor.start();
+    executor = await mirrorExecutor.start();
   });
 
   tearDown(() {
@@ -23,12 +37,8 @@ void main() {
   });
 
   test('can load macros and create instances', () async {
-    var clazzId = await executor.loadMacro(
-        // Tests run from the root of the repo.
-        File('pkg/_fe_analyzer_shared/test/macros/isolate_mirror_executor/simple_macro.dart')
-            .absolute
-            .uri,
-        'SimpleMacro');
+    var clazzId =
+        await executor.loadMacro(simpleMacroFile.absolute.uri, 'SimpleMacro');
     expect(clazzId, isNotNull, reason: 'Can load a macro.');
 
     var instanceId =
@@ -46,23 +56,31 @@ void main() {
     expect(instanceId, isNotNull,
         reason: 'Can create an instance with named arguments.');
 
+    var returnType = NamedTypeAnnotationImpl(
+        id: RemoteInstance.uniqueId,
+        identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'String'),
+        isNullable: false,
+        typeArguments: const []);
     var definitionResult = await executor.executeDefinitionsPhase(
         instanceId,
-        _FunctionDeclaration(
+        FunctionDeclarationImpl(
+          id: RemoteInstance.uniqueId,
           isAbstract: false,
           isExternal: false,
           isGetter: false,
           isSetter: false,
-          name: 'foo',
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'foo'),
           namedParameters: [],
           positionalParameters: [],
-          returnType:
-              _TypeAnnotation(Code.fromString('String'), isNullable: false),
+          returnType: returnType,
           typeParameters: [],
         ),
-        _FakeTypeResolver(),
-        _FakeClassIntrospector(),
-        _FakeTypeDeclarationResolver());
+        TestTypeResolver({
+          returnType:
+              TestNamedStaticType(returnType.identifier, 'dart:core', [])
+        }),
+        FakeClassIntrospector(),
+        FakeTypeDeclarationResolver());
     expect(definitionResult.augmentations, hasLength(1));
     expect(definitionResult.augmentations.first.debugString().toString(),
         equalsIgnoringWhitespace('''
@@ -71,77 +89,4 @@ void main() {
               return augment super();
             }'''));
   });
-}
-
-class _FakeClassIntrospector with Fake implements ClassIntrospector {}
-
-class _FakeTypeResolver with Fake implements TypeResolver {}
-
-class _FakeTypeDeclarationResolver
-    with Fake
-    implements TypeDeclarationResolver {}
-
-class _FunctionDeclaration implements FunctionDeclaration {
-  @override
-  final bool isAbstract;
-
-  @override
-  final bool isExternal;
-
-  @override
-  final bool isGetter;
-
-  @override
-  final bool isSetter;
-
-  @override
-  final String name;
-
-  @override
-  final Iterable<ParameterDeclaration> namedParameters;
-
-  @override
-  final Iterable<ParameterDeclaration> positionalParameters;
-
-  @override
-  final TypeAnnotation returnType;
-
-  @override
-  final Iterable<TypeParameterDeclaration> typeParameters;
-
-  _FunctionDeclaration({
-    required this.isAbstract,
-    required this.isExternal,
-    required this.isGetter,
-    required this.isSetter,
-    required this.name,
-    required this.namedParameters,
-    required this.positionalParameters,
-    required this.returnType,
-    required this.typeParameters,
-  });
-}
-
-class _TypeAnnotation implements TypeAnnotation {
-  @override
-  final Code code;
-
-  @override
-  final bool isNullable;
-
-  _TypeAnnotation(this.code, {required this.isNullable});
-}
-
-extension _ on Code {
-  StringBuffer debugString([StringBuffer? buffer]) {
-    buffer ??= StringBuffer();
-    for (var part in parts) {
-      if (part is Code) {
-        part.debugString(buffer);
-      } else {
-        buffer.write(part.toString());
-      }
-    }
-    return buffer;
-  }
 }

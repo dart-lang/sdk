@@ -1,6 +1,6 @@
 {
   "copyright": [
-    "Copyright (c) 2021, the Dart project authors. Please see the AUTHORS ",
+    "Copyright (c) 2022, the Dart project authors. Please see the AUTHORS ",
     "file for details. All rights reserved. Use of this source code is ",
     "governed by a BSD-style license that can be found in the LICENSE file."
   ],
@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-12-10T17:31:54.553345",
+  "generated": "2022-01-12T18:16:46.198227",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -244,17 +244,23 @@
       "name": "dartdev",
       "rootUri": "../pkg/dartdev",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "dartdoc",
       "rootUri": "../third_party/pkg/dartdoc",
       "packageUri": "lib/",
-      "languageVersion": "2.11"
+      "languageVersion": "2.14"
     },
     {
       "name": "dds",
       "rootUri": "../pkg/dds",
+      "packageUri": "lib/",
+      "languageVersion": "2.13"
+    },
+    {
+      "name": "dds_service_extensions",
+      "rootUri": "../pkg/dds_service_extensions",
       "packageUri": "lib/",
       "languageVersion": "2.13"
     },
@@ -310,7 +316,7 @@
       "name": "fixnum",
       "rootUri": "../third_party/pkg/fixnum",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "front_end",
@@ -629,7 +635,7 @@
       "name": "source_span",
       "rootUri": "../third_party/pkg/source_span",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "sourcemap_testing",
@@ -778,7 +784,7 @@
       "name": "watcher",
       "rootUri": "../third_party/pkg/watcher",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "web_components",

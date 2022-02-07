@@ -10,9 +10,12 @@ import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analysis_server/src/utilities/progress.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -26,6 +29,13 @@ void main() {
 
 @reflectiveTest
 class AnalysisServerTest with ResourceProviderMixin {
+  @override
+  MemoryResourceProvider resourceProvider = MemoryResourceProvider(
+    // Force the in-memory file watchers to be slowly initialized to emulate
+    // the physical watchers (for test_concurrentContextRebuilds).
+    delayWatcherInitialization: Duration(milliseconds: 1),
+  );
+
   late MockServerChannel channel;
   late AnalysisServer server;
 
@@ -38,7 +48,7 @@ class AnalysisServerTest with ResourceProviderMixin {
     newFolder('/bar');
     newFile('/foo/foo.dart', content: 'import "../bar/bar.dart";');
     var bar = newFile('/bar/bar.dart', content: 'library bar;');
-    server.setAnalysisRoots('0', ['/foo', '/bar'], []);
+    await server.setAnalysisRoots('0', ['/foo', '/bar'], []);
     var subscriptions = <AnalysisService, Set<String>>{};
     for (var service in AnalysisService.VALUES) {
       subscriptions[service] = <String>{bar.path};
@@ -94,6 +104,73 @@ class AnalysisServerTest with ResourceProviderMixin {
         InstrumentationService.NULL_SERVICE);
   }
 
+  /// Test that modifying package_config again while a context rebuild is in
+  /// progress does not get lost due to a gap between creating a file watcher
+  /// and it raising events.
+  /// https://github.com/Dart-Code/Dart-Code/issues/3438
+  Future test_concurrentContextRebuilds() async {
+    // Subscribe to STATUS so we'll know when analysis is done.
+    server.serverServices = {ServerService.STATUS};
+    final projectRoot = convertPath('/foo');
+    final projectTestFile = convertPath('/foo/test.dart');
+    final projectPackageConfigFile =
+        convertPath('/foo/.dart_tool/package_config.json');
+
+    // Create a file that references two packages, which will we write to
+    // package_config.json individually.
+    newFolder(projectRoot);
+    newFile(
+      projectTestFile,
+      content: r'''
+      import "package:foo/foo.dart";'
+      import "package:bar/bar.dart";'
+      ''',
+    );
+
+    // Ensure the packages and package_config exist.
+    var fooLibFolder = _addSimplePackage('foo', '');
+    var barLibFolder = _addSimplePackage('bar', '');
+    final config = PackageConfigFileBuilder();
+    writePackageConfig(projectPackageConfigFile, config);
+
+    // Track diagnostics that arrive.
+    final errorsByFile = <String, List<AnalysisError>>{};
+    channel.notificationController.stream
+        .where((notification) => notification.event == 'analysis.errors')
+        .listen((notificaton) {
+      final params = AnalysisErrorsParams.fromNotification(notificaton);
+      errorsByFile[params.file] = params.errors;
+    });
+
+    /// Helper that waits for analysis then returns the relevant errors.
+    Future<List<AnalysisError>> getUriNotExistErrors() async {
+      await server.onAnalysisComplete;
+      expect(server.statusAnalyzing, isFalse);
+      return errorsByFile[projectTestFile]!
+          .where((error) => error.code == 'uri_does_not_exist')
+          .toList();
+    }
+
+    // Set roots and expect 2 uri_does_not_exist errors.
+    await server.setAnalysisRoots('0', [projectRoot], []);
+    expect(await getUriNotExistErrors(), hasLength(2));
+
+    // Write both packages, in two events so that the first one will trigger
+    // a rebuild.
+    config.add(name: 'foo', rootPath: fooLibFolder.parent2.path);
+    writePackageConfig(projectPackageConfigFile, config);
+    await pumpEventQueue(times: 1); // Allow server to begin processing.
+    config.add(name: 'bar', rootPath: barLibFolder.parent2.path);
+    writePackageConfig(projectPackageConfigFile, config);
+
+    // Allow the server to catch up with everything.
+    await pumpEventQueue(times: 5000);
+    await server.onAnalysisComplete;
+
+    // Expect both errors are gone.
+    expect(await getUriNotExistErrors(), hasLength(0));
+  }
+
   Future test_echo() {
     server.handlers = [EchoHandler(server)];
     var request = Request('my22', 'echo');
@@ -109,7 +186,7 @@ class AnalysisServerTest with ResourceProviderMixin {
     newFile('/test/lib/a.dart', content: r'''
 class A {}
 ''');
-    server.setAnalysisRoots('0', [convertPath('/test')], []);
+    await server.setAnalysisRoots('0', [convertPath('/test')], []);
 
     // Pump the event queue, so that the server has finished any analysis.
     await pumpEventQueue(times: 5000);
@@ -139,7 +216,7 @@ class A {}
     server.serverServices.add(ServerService.STATUS);
 
     newFolder('/test');
-    server.setAnalysisRoots('0', [convertPath('/test')], []);
+    await server.setAnalysisRoots('0', [convertPath('/test')], []);
 
     // Pump the event queue, so that the server has finished any analysis.
     await pumpEventQueue(times: 5000);
@@ -174,13 +251,13 @@ analyzer:
   exclude:
     - 'samples/**'
 ''');
-    server.setAnalysisRoots('0', [convertPath('/project')], []);
+    await server.setAnalysisRoots('0', [convertPath('/project')], []);
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
       AnalysisService.NAVIGATION: <String>{path}
     });
 
     // We respect subscriptions, even for excluded files.
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     expect(channel.notificationsReceived.any((notification) {
       return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
     }), isTrue);
@@ -195,13 +272,13 @@ analyzer:
   exclude:
     - 'samples/**'
 ''');
-    server.setAnalysisRoots('0', [convertPath('/project')], []);
+    await server.setAnalysisRoots('0', [convertPath('/project')], []);
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
       AnalysisService.NAVIGATION: <String>{path}
     });
 
     // We respect subscriptions, even for excluded files.
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     expect(channel.notificationsReceived.any((notification) {
       return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
     }), isTrue);
@@ -254,6 +331,20 @@ analyzer:
       expect(response.id, equals('my22'));
       expect(response.error, isNotNull);
     });
+  }
+
+  void writePackageConfig(String path, PackageConfigFileBuilder config) {
+    newFile(path, content: config.toContent(toUriStr: toUriStr));
+  }
+
+  /// Creates a simple package named [name] with [content] in the file at
+  /// `package:$name/$name.dart`.
+  ///
+  /// Returns a [Folder] that represents the packages `lib` folder.
+  Folder _addSimplePackage(String name, String content) {
+    final packagePath = '/packages/$name';
+    final file = newFile('$packagePath/lib/$name.dart', content: content);
+    return file.parent2;
   }
 }
 

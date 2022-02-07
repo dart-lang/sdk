@@ -8,6 +8,8 @@ import 'dart:collection' show Queue;
 import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/macros/executor.dart'
+    show MacroExecutor;
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -26,6 +28,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, HandleAmbiguousSupertypes;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/util/graph.dart';
 import 'package:package_config/package_config.dart' as package_config;
@@ -35,13 +38,9 @@ import '../../api_prototype/file_system.dart';
 import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
-import '../dill/dill_library_builder.dart';
-import '../builder_graph.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/constructor_builder.dart';
 import '../builder/declaration_builder.dart';
-import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
@@ -53,9 +52,11 @@ import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
+import '../builder_graph.dart';
 import '../crash.dart' show firstSourceUri;
 import '../denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
+import '../dill/dill_library_builder.dart';
 import '../export.dart' show Export;
 import '../fasta_codes.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -67,6 +68,7 @@ import '../kernel/kernel_helper.dart'
     show SynthesizedFunctionNode, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/macro.dart';
+import '../kernel/macro_annotation_parser.dart';
 import '../kernel/transform_collections.dart' show CollectionTransformer;
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
@@ -82,12 +84,16 @@ import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'name_scheme.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
+import 'source_constructor_builder.dart';
+import 'source_enum_builder.dart';
+import 'source_field_builder.dart';
 import 'source_library_builder.dart'
     show
         ImplicitLanguageVersion,
         InvalidLanguageVersion,
         LanguageVersion,
         SourceLibraryBuilder;
+import 'source_procedure_builder.dart';
 import 'stack_listener_impl.dart' show offsetForToken;
 
 class SourceLoader extends Loader {
@@ -243,6 +249,14 @@ class SourceLoader extends Loader {
     return _sourceLibraryBuilders!;
   }
 
+  void clearSourceLibraryBuilders() {
+    assert(
+        _sourceLibraryBuilders != null,
+        "Source library builder hasn't been computed yet. "
+        "The source libraries are in SourceLoader.resolveParts.");
+    _sourceLibraryBuilders!.clear();
+  }
+
   Iterable<Uri> get libraryImportUris => _builders.keys;
 
   void registerLibraryBuilder(LibraryBuilder libraryBuilder) {
@@ -306,7 +320,32 @@ class SourceLoader extends Loader {
         loader: this,
         origin: origin,
         referencesFrom: referencesFrom,
-        referenceIsPartOwner: referenceIsPartOwner);
+        referenceIsPartOwner: referenceIsPartOwner,
+        isUnsupported: origin?.library.isUnsupported ??
+            importUri.scheme == 'dart' &&
+                !target.uriTranslator.isLibrarySupported(importUri.path));
+  }
+
+  /// Return `"true"` if the [dottedName] is a 'dart.library.*' qualifier for a
+  /// supported dart:* library, and `""` otherwise.
+  ///
+  /// This is used to determine conditional imports and `bool.fromEnvironment`
+  /// constant values for "dart.library.[libraryName]" values.
+  String getLibrarySupportValue(String dottedName) {
+    if (!DartLibrarySupport.isDartLibraryQualifier(dottedName)) {
+      return "";
+    }
+    String libraryName = DartLibrarySupport.getDartLibraryName(dottedName);
+    Uri uri = new Uri(scheme: "dart", path: libraryName);
+    LibraryBuilder? library = lookupLibraryBuilder(uri);
+    // TODO(johnniwinther): Why is the dill target sometimes not loaded at this
+    // point? And does it matter?
+    library ??= target.dillTarget.loader.lookupLibraryBuilder(uri);
+    return DartLibrarySupport.getDartLibrarySupportValue(libraryName,
+        libraryExists: library != null,
+        isSynthetic: library?.isSynthetic ?? true,
+        isUnsupported: library?.isUnsupported ?? true,
+        dartLibrarySupport: target.backendTarget.dartLibrarySupport);
   }
 
   SourceLibraryBuilder _createSourceLibraryBuilder(
@@ -603,6 +642,9 @@ class SourceLoader extends Loader {
       currentUriForCrashReporting = library.importUri;
       await buildBody(library);
     }
+    // Workaround: This will return right away but avoid a "semi leak"
+    // where the latest library is saved in a context somewhere.
+    await buildBody(null);
     currentUriForCrashReporting = null;
     logSummary(templateSourceBodySummary);
   }
@@ -716,9 +758,11 @@ severity: $severity
       DeclarationBuilder? declarationBuilder,
       ModifierBuilder member,
       Scope scope,
-      Uri fileUri) {
+      Uri fileUri,
+      {Scope? formalParameterScope}) {
     return new BodyBuilder.forOutlineExpression(
-        library, declarationBuilder, member, scope, fileUri);
+        library, declarationBuilder, member, scope, fileUri,
+        formalParameterScope: formalParameterScope);
   }
 
   NnbdMode get nnbdMode => target.context.options.nnbdMode;
@@ -844,7 +888,7 @@ severity: $severity
         // setting a breakpoint on line 42 of some import uri mean, if the uri
         // represented several files?
         List<String> newPathSegments =
-            new List<String>.from(importUri.pathSegments);
+            new List<String>.of(importUri.pathSegments);
         newPathSegments.add(library.fileUri.pathSegments.last);
         newPathSegments[0] = "${newPathSegments[0]}-patch";
         importUri = importUri.replace(pathSegments: newPathSegments);
@@ -908,7 +952,7 @@ severity: $severity
   }
 
   void registerConstructorToBeInferred(
-      Constructor constructor, ConstructorBuilder builder) {
+      Constructor constructor, DeclaredSourceConstructorBuilder builder) {
     _typeInferenceEngine!.toBeInferred[constructor] = builder;
   }
 
@@ -1035,7 +1079,10 @@ severity: $severity
   }
 
   /// Builds all the method bodies found in the given [library].
-  Future<Null> buildBody(SourceLibraryBuilder library) async {
+  Future<Null> buildBody(SourceLibraryBuilder? library) async {
+    // [library] is only nullable so we can call this a "dummy-time" to get rid
+    // of a semi-leak.
+    if (library == null) return;
     Iterable<SourceLibraryBuilder>? patches = library.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
@@ -1124,6 +1171,9 @@ severity: $severity
         builder, dietListener.memberScope,
         isDeclarationInstanceMember: isClassInstanceMember,
         extensionThis: extensionThis);
+    for (VariableDeclaration variable in parameters.positionalParameters) {
+      listener.typeInferrer.assignedVariables.declare(variable);
+    }
 
     return listener.parseSingleExpression(
         new Parser(listener,
@@ -1301,18 +1351,24 @@ severity: $severity
     ticker.logMs("Resolved $typeCount types");
   }
 
-  void computeMacroDeclarations(List<SourceClassBuilder> sourceClassBuilders) {
-    if (!enableMacros) return;
+  /// Computes which macro declarations that needs to be precompiled in order
+  /// to support macro application during compilation.
+  ///
+  /// If no macros need precompilation, `null` is returned. Otherwise a map
+  /// from library uris to macro class names and the names of constructor their
+  /// constructors is returned.
+  Map<Uri, Map<String, List<String>>>? computeMacroDeclarations() {
+    if (!enableMacros) return null;
 
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
-    if (macroLibraryBuilder == null) return;
+    if (macroLibraryBuilder == null) return null;
 
     Builder? macroClassBuilder =
         macroLibraryBuilder.lookupLocalMember(macroClassName);
     if (macroClassBuilder is! ClassBuilder) {
       // TODO(johnniwinther): Report this when the actual macro builder package
       // exists. It should at least be a warning.
-      return;
+      return null;
     }
 
     _macroClassBuilder = macroClassBuilder;
@@ -1320,22 +1376,40 @@ severity: $severity
       dataForTesting!.macroDeclarationData.macrosAreAvailable = true;
     }
 
-    Set<ClassBuilder> macroClasses = {macroClassBuilder};
-    Set<Uri> macroLibraries = {macroLibraryBuilder.importUri};
+    /// Libraries containing macros that need compilation mapped to the
+    /// [ClassBuilder]s for the macro classes.
+    Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
-    for (SourceClassBuilder sourceClassBuilder in sourceClassBuilders) {
-      if (sourceClassBuilder.isMacro) {
-        macroClasses.add(sourceClassBuilder);
-        macroLibraries.add(sourceClassBuilder.library.importUri);
-        if (retainDataForTesting) {
-          (dataForTesting!.macroDeclarationData.macroDeclarations[
-                  sourceClassBuilder.library.importUri] ??= [])
-              .add(sourceClassBuilder.name);
+    /// Libraries containing precompiled macro classes.
+    Set<Uri> precompiledMacroLibraries = {};
+
+    Map<MacroClass, Uri> precompiledMacroUris =
+        target.context.options.precompiledMacroUris;
+
+    for (LibraryBuilder libraryBuilder in libraryBuilders) {
+      Iterator<Builder> iterator = libraryBuilder.iterator;
+      while (iterator.moveNext()) {
+        Builder builder = iterator.current;
+        if (builder is ClassBuilder && builder.isMacro) {
+          Uri libraryUri = builder.library.importUri;
+          MacroClass macroClass = new MacroClass(libraryUri, builder.name);
+          if (!precompiledMacroUris.containsKey(macroClass)) {
+            (macroLibraries[libraryUri] ??= []).add(builder);
+            if (retainDataForTesting) {
+              (dataForTesting!.macroDeclarationData
+                      .macroDeclarations[libraryUri] ??= [])
+                  .add(builder.name);
+            }
+          } else {
+            precompiledMacroLibraries.add(libraryUri);
+          }
         }
       }
     }
 
-    bool isDillLibrary(Uri uri) => _builders[uri]?.loader != this;
+    if (macroLibraries.isEmpty) {
+      return null;
+    }
 
     List<List<Uri>> computeCompilationSequence(Graph<Uri> libraryGraph,
         {required bool Function(Uri) filter}) {
@@ -1353,7 +1427,7 @@ severity: $severity
         for (List<Uri> component in layer) {
           for (Uri uri in component) {
             if (filter(uri)) continue;
-            if (macroLibraries.contains(uri)) {
+            if (macroLibraries.containsKey(uri)) {
               declaresMacro = true;
             }
             currentLayer.add(uri);
@@ -1370,92 +1444,192 @@ severity: $severity
       return layeredComponents;
     }
 
-    List<List<Uri>> compilationSteps = computeCompilationSequence(
-        new BuilderGraph(_builders),
-        filter: isDillLibrary);
+    Graph<Uri> graph = new BuilderGraph(_builders);
+
+    /// Libraries that are considered precompiled. These are libraries that are
+    /// either given as precompiled macro libraries, or libraries that these
+    /// depend upon.
+    // TODO(johnniwinther): Can we assume that the precompiled dills are
+    // self-contained?
+    Set<Uri> precompiledLibraries = {};
+
+    void addPrecompiledLibrary(Uri uri) {
+      if (precompiledLibraries.add(uri)) {
+        for (Uri neighbor in graph.neighborsOf(uri)) {
+          addPrecompiledLibrary(neighbor);
+        }
+      }
+    }
+
+    for (LibraryBuilder builder in _builders.values) {
+      if (builder.loader != this) {
+        addPrecompiledLibrary(builder.importUri);
+      } else if (precompiledMacroLibraries.contains(builder.importUri)) {
+        assert(
+            !macroLibraries.containsKey(builder.importUri),
+            "Macro library ${builder.importUri} is only partially "
+            "precompiled.");
+        addPrecompiledLibrary(builder.importUri);
+      }
+    }
+
+    bool isPrecompiledLibrary(Uri uri) => precompiledLibraries.contains(uri);
+
+    List<List<Uri>> compilationSteps =
+        computeCompilationSequence(graph, filter: isPrecompiledLibrary);
     if (retainDataForTesting) {
       dataForTesting!.macroDeclarationData.compilationSequence =
           compilationSteps;
     }
+
+    if (compilationSteps.length > 1) {
+      // We have at least 1 layer of macros that need to be precompiled before
+      // we can compile the program itself.
+      Map<Uri, Map<String, List<String>>> neededPrecompilations = {};
+      for (int i = 0; i < compilationSteps.length - 1; i++) {
+        List<Uri> compilationStep = compilationSteps[i];
+        for (Uri uri in compilationStep) {
+          List<ClassBuilder>? macroClasses = macroLibraries[uri];
+          // [uri] might not itself declare any macros but instead a part of the
+          // libraries that macros depend upon.
+          if (macroClasses != null) {
+            Map<String, List<String>>? constructorMap;
+            for (ClassBuilder macroClass in macroClasses) {
+              List<String> constructors =
+                  macroClass.constructors.local.keys.toList();
+              if (constructors.isNotEmpty) {
+                // TODO(johnniwinther): If there is no constructor here, it
+                // means the macro had no _explicit_ constructors. Since macro
+                // constructor are required to be const, this would be an error
+                // case. We need to handle that precompilation could result in
+                // errors like this. For this case we should probably add 'new'
+                // in case of [constructors] being empty in expectation of
+                // triggering the error during precompilation.
+                (constructorMap ??= {})[macroClass.name] = constructors;
+              }
+            }
+            if (constructorMap != null) {
+              neededPrecompilations[uri] = constructorMap;
+            }
+          }
+        }
+        if (neededPrecompilations.isNotEmpty) {
+          if (retainDataForTesting) {
+            dataForTesting!.macroDeclarationData.neededPrecompilations
+                .add(neededPrecompilations);
+          }
+          // We have found the first needed layer of precompilation. There might
+          // be more layers but we'll compute these at the next attempt at
+          // compilation, when this layer has been precompiled.
+          // TODO(johnniwinther): Use this to trigger a precompile step.
+          return neededPrecompilations;
+        }
+      }
+    }
+    return null;
   }
 
-  void computeMacroApplications() {
-    if (!enableMacros || _macroClassBuilder == null) return;
-    Class macroClass = _macroClassBuilder!.cls;
+  Future<MacroApplications?> computeMacroApplications() async {
+    if (!enableMacros || _macroClassBuilder == null) return null;
 
-    Class? computeApplication(Expression expression) {
-      if (expression is ConstructorInvocation) {
-        Class cls = expression.target.enclosingClass;
-        if (hierarchy.isSubtypeOf(cls, macroClass)) {
-          return cls;
-        }
-      }
-      return null;
-    }
-
-    MacroApplications? computeApplications(List<Expression> annotations) {
-      List<Class> macros = [];
-      for (Expression annotation in annotations) {
-        Class? cls = computeApplication(annotation);
-        if (cls != null) {
-          macros.add(cls);
-        }
-      }
-      return macros.isNotEmpty ? new MacroApplications(macros) : null;
-    }
-
+    Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
     for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
       // TODO(johnniwinther): Handle patch libraries.
       LibraryMacroApplicationData libraryMacroApplicationData =
           new LibraryMacroApplicationData();
-      Library library = libraryBuilder.library;
-      libraryMacroApplicationData.libraryApplications =
-          computeApplications(library.annotations);
-      for (Class cls in library.classes) {
-        ClassMacroApplicationData classMacroApplicationData =
-            new ClassMacroApplicationData();
-        classMacroApplicationData.classApplications =
-            computeApplications(cls.annotations);
-        for (Member member in cls.members) {
-          MacroApplications? macroApplications =
-              computeApplications(member.annotations);
+      Iterator<Builder> iterator = libraryBuilder.iterator;
+      while (iterator.moveNext()) {
+        Builder builder = iterator.current;
+        if (builder is SourceClassBuilder) {
+          SourceClassBuilder classBuilder = builder;
+          ClassMacroApplicationData classMacroApplicationData =
+              new ClassMacroApplicationData();
+          classMacroApplicationData.classApplications = prebuildAnnotations(
+              enclosingLibrary: libraryBuilder,
+              scope: classBuilder.scope,
+              fileUri: classBuilder.fileUri,
+              metadataBuilders: classBuilder.metadata);
+          builder.forEach((String name, Builder memberBuilder) {
+            if (memberBuilder is SourceProcedureBuilder) {
+              List<MacroApplication>? macroApplications = prebuildAnnotations(
+                  enclosingLibrary: libraryBuilder,
+                  scope: classBuilder.scope,
+                  fileUri: memberBuilder.fileUri,
+                  metadataBuilders: memberBuilder.metadata);
+              if (macroApplications != null) {
+                classMacroApplicationData.memberApplications[memberBuilder] =
+                    macroApplications;
+              }
+            } else if (memberBuilder is SourceFieldBuilder) {
+              List<MacroApplication>? macroApplications = prebuildAnnotations(
+                  enclosingLibrary: libraryBuilder,
+                  scope: classBuilder.scope,
+                  fileUri: memberBuilder.fileUri,
+                  metadataBuilders: memberBuilder.metadata);
+              if (macroApplications != null) {
+                classMacroApplicationData.memberApplications[memberBuilder] =
+                    macroApplications;
+              }
+            }
+          });
+          classBuilder.forEachConstructor((String name, Builder memberBuilder) {
+            if (memberBuilder is DeclaredSourceConstructorBuilder) {
+              List<MacroApplication>? macroApplications = prebuildAnnotations(
+                  enclosingLibrary: libraryBuilder,
+                  scope: classBuilder.scope,
+                  fileUri: memberBuilder.fileUri,
+                  metadataBuilders: memberBuilder.metadata);
+              if (macroApplications != null) {
+                classMacroApplicationData.memberApplications[memberBuilder] =
+                    macroApplications;
+              }
+            }
+          });
+
+          if (classMacroApplicationData.classApplications != null ||
+              classMacroApplicationData.memberApplications.isNotEmpty) {
+            libraryMacroApplicationData.classData[builder] =
+                classMacroApplicationData;
+          }
+        } else if (builder is SourceProcedureBuilder) {
+          List<MacroApplication>? macroApplications = prebuildAnnotations(
+              enclosingLibrary: libraryBuilder,
+              scope: libraryBuilder.scope,
+              fileUri: builder.fileUri,
+              metadataBuilders: builder.metadata);
           if (macroApplications != null) {
-            classMacroApplicationData.memberApplications[member] =
+            libraryMacroApplicationData.memberApplications[builder] =
+                macroApplications;
+          }
+        } else if (builder is SourceFieldBuilder) {
+          List<MacroApplication>? macroApplications = prebuildAnnotations(
+              enclosingLibrary: libraryBuilder,
+              scope: libraryBuilder.scope,
+              fileUri: builder.fileUri,
+              metadataBuilders: builder.metadata);
+          if (macroApplications != null) {
+            libraryMacroApplicationData.memberApplications[builder] =
                 macroApplications;
           }
         }
-        if (classMacroApplicationData.classApplications != null ||
-            classMacroApplicationData.memberApplications.isNotEmpty) {
-          libraryMacroApplicationData.classData[cls] =
-              classMacroApplicationData;
-        }
       }
-      for (Member member in library.members) {
-        MacroApplications? macroApplications =
-            computeApplications(member.annotations);
-        if (macroApplications != null) {
-          libraryMacroApplicationData.memberApplications[member] =
-              macroApplications;
-        }
-      }
-      for (Typedef typedef in library.typedefs) {
-        MacroApplications? macroApplications =
-            computeApplications(typedef.annotations);
-        if (macroApplications != null) {
-          libraryMacroApplicationData.typedefApplications[typedef] =
-              macroApplications;
-        }
-      }
-      if (libraryMacroApplicationData.libraryApplications != null ||
-          libraryMacroApplicationData.classData.isNotEmpty ||
-          libraryMacroApplicationData.typedefApplications.isNotEmpty ||
+      if (libraryMacroApplicationData.classData.isNotEmpty ||
           libraryMacroApplicationData.memberApplications.isNotEmpty) {
-        if (retainDataForTesting) {
-          dataForTesting!.macroApplicationData.libraryData[library] =
-              libraryMacroApplicationData;
-        }
+        libraryData[libraryBuilder] = libraryMacroApplicationData;
       }
     }
+    if (libraryData.isNotEmpty) {
+      MacroExecutor macroExecutor =
+          await target.context.options.macroExecutorProvider();
+      Map<MacroClass, Uri> precompiledMacroUris =
+          target.context.options.precompiledMacroUris;
+      return await MacroApplications.loadMacroIds(
+          macroExecutor,
+          precompiledMacroUris,
+          libraryData,
+          dataForTesting?.macroApplicationData);
+    }
+    return null;
   }
 
   void finishDeferredLoadTearoffs() {
@@ -1576,6 +1750,8 @@ severity: $severity
           denylistedCoreClasses[i],
           required: true) as ClassBuilder);
     }
+    ClassBuilder enumClass =
+        coreLibrary.lookupLocalMember("Enum", required: true) as ClassBuilder;
     if (typedDataLibrary != null) {
       for (int i = 0; i < denylistedTypedDataClasses.length; i++) {
         // Allow the member to not exist. If it doesn't, nobody can extend it.
@@ -1592,8 +1768,8 @@ severity: $severity
         topologicalSort(classGraph);
     List<SourceClassBuilder> classes = result.sortedVertices;
     for (SourceClassBuilder cls in classes) {
-      checkClassSupertypes(
-          cls, classGraph.directSupertypeMap[cls]!, denyListedClasses);
+      checkClassSupertypes(cls, classGraph.directSupertypeMap[cls]!,
+          denyListedClasses, enumClass);
     }
 
     List<SourceClassBuilder> classesWithCycles = result.cyclicVertices;
@@ -1636,20 +1812,34 @@ severity: $severity
     }
   }
 
+  bool checkEnumSupertypeIsDenylisted(SourceClassBuilder cls) {
+    if (!cls.library.enableEnhancedEnumsInLibrary) {
+      cls.addProblem(
+          templateEnumSupertypeOfNonAbstractClass.withArguments(cls.name),
+          cls.charOffset,
+          noLength);
+      return true;
+    }
+    return false;
+  }
+
   void checkClassSupertypes(
       SourceClassBuilder cls,
       Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypeMap,
-      Set<ClassBuilder> denyListedClasses) {
+      Set<ClassBuilder> denyListedClasses,
+      ClassBuilder enumClass) {
     // Check that the direct supertypes aren't deny-listed or enums.
     List<TypeDeclarationBuilder?> directSupertypes =
         directSupertypeMap.keys.toList();
     for (int i = 0; i < directSupertypes.length; i++) {
       TypeDeclarationBuilder? supertype = directSupertypes[i];
-      if (supertype is EnumBuilder) {
+      if (supertype is SourceEnumBuilder) {
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
       } else if (!cls.library.mayImplementRestrictedTypes &&
-          denyListedClasses.contains(supertype)) {
+          (denyListedClasses.contains(supertype) ||
+              identical(supertype, enumClass) &&
+                  checkEnumSupertypeIsDenylisted(cls))) {
         TypeAliasBuilder? aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
           cls.addProblem(
@@ -1829,10 +2019,11 @@ severity: $severity
     ticker.logMs("Computed core types");
   }
 
-  void checkSupertypes(List<SourceClassBuilder> sourceClasses) {
+  void checkSupertypes(
+      List<SourceClassBuilder> sourceClasses, Class enumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
-        builder.checkSupertypes(coreTypes);
+        builder.checkSupertypes(coreTypes, hierarchyBuilder, enumClass);
       }
     }
     ticker.logMs("Checked supertypes");
@@ -1911,13 +2102,13 @@ severity: $severity
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildOutlineExpressions(CoreTypes coreTypes,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     List<DelayedActionPerformer> delayedActionPerformers =
         <DelayedActionPerformer>[];
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       library.buildOutlineExpressions(
-          coreTypes, synthesizedFunctionNodes, delayedActionPerformers);
+          classHierarchy, synthesizedFunctionNodes, delayedActionPerformers);
     }
     for (DelayedActionPerformer delayedActionPerformer
         in delayedActionPerformers) {
@@ -1931,11 +2122,15 @@ severity: $severity
     ClassHierarchyBuilder hierarchyBuilder = _hierarchyBuilder =
         ClassHierarchyBuilder.build(
             objectClass, sourceClasses, this, coreTypes);
+    typeInferenceEngine.hierarchyBuilder = hierarchyBuilder;
+    ticker.logMs("Built class hierarchy");
+  }
+
+  void buildClassHierarchyMembers(List<SourceClassBuilder> sourceClasses) {
     ClassMembersBuilder membersBuilder = _membersBuilder =
         ClassMembersBuilder.build(hierarchyBuilder, sourceClasses);
-    typeInferenceEngine.hierarchyBuilder = hierarchyBuilder;
     typeInferenceEngine.membersBuilder = membersBuilder;
-    ticker.logMs("Built class hierarchy");
+    ticker.logMs("Built class hierarchy members");
   }
 
   void createTypeInferenceEngine() {
@@ -1950,7 +2145,7 @@ severity: $severity
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     membersBuilder.computeTypes();
 
-    List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
+    List<SourceFieldBuilder> allImplicitlyTypedFields = [];
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       library.collectImplicitlyTypedFields(allImplicitlyTypedFields);
     }
@@ -2477,7 +2672,8 @@ class SourceLoaderDataForTesting {
 
   final MacroDeclarationData macroDeclarationData = new MacroDeclarationData();
 
-  final MacroApplicationData macroApplicationData = new MacroApplicationData();
+  final MacroApplicationDataForTesting macroApplicationData =
+      new MacroApplicationDataForTesting();
 }
 
 class _SourceClassGraph implements Graph<SourceClassBuilder> {

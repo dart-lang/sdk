@@ -78,15 +78,37 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   }
 
   void DrainMarkingStack() {
+    while (ProcessMarkingStack()) {
+    }
+  }
+
+  void ProcessMarkingStackUntil(int64_t deadline) {
+    // We check the clock *before* starting a batch of work, but we want to
+    // *end* work before the deadline. So we compare to the deadline adjusted
+    // by a conservative estimate of the duration of one batch of work.
+    deadline -= 1500;
+
+    while ((OS::GetCurrentMonotonicMicros() < deadline) &&
+           ProcessMarkingStack()) {
+    }
+  }
+
+  bool ProcessMarkingStack() {
     ObjectPtr raw_obj = work_list_.Pop();
     if ((raw_obj == nullptr) && ProcessPendingWeakProperties()) {
       raw_obj = work_list_.Pop();
     }
 
     if (raw_obj == nullptr) {
-      return;
+      return false;  // No more work.
     }
 
+    // A 512kB budget is choosen to be large enough that we don't waste too much
+    // time on the overhead of exiting this function, querying the clock, and
+    // re-entering, and small enough that a few batches can fit in the idle time
+    // between animation frames. This amount of marking takes ~1ms on a Pixel
+    // phone.
+    intptr_t remaining_budget = 512 * KB;
     do {
       do {
         // First drain the marking stacks.
@@ -100,6 +122,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
           size = ProcessWeakProperty(raw_weak, /* did_mark */ true);
         }
         marked_bytes_ += size;
+        remaining_budget -= size;
+        if (remaining_budget < 0) {
+          return true;  // More to mark.
+        }
 
         raw_obj = work_list_.Pop();
       } while (raw_obj != nullptr);
@@ -111,6 +137,8 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // by the handling of weak properties.
       raw_obj = work_list_.Pop();
     } while (raw_obj != nullptr);
+
+    return false;  // No more work.
   }
 
   // Races: The concurrent marker is racing with the mutator, but this race is
@@ -767,6 +795,9 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
                                            &deferred_marking_stack_);
 
   const intptr_t num_tasks = FLAG_marker_tasks;
+  RELEASE_ASSERT(num_tasks >= 1);
+  const intptr_t num_concurrent_tasks =
+      num_tasks - (FLAG_mark_when_idle ? 1 : 0);
 
   {
     // Bulk increase task count before starting any task, instead of
@@ -775,9 +806,9 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
     MonitorLocker ml(page_space->tasks_lock());
     ASSERT(page_space->phase() == PageSpace::kDone);
     page_space->set_phase(PageSpace::kMarking);
-    page_space->set_tasks(page_space->tasks() + num_tasks);
+    page_space->set_tasks(page_space->tasks() + num_concurrent_tasks);
     page_space->set_concurrent_marker_tasks(
-        page_space->concurrent_marker_tasks() + num_tasks);
+        page_space->concurrent_marker_tasks() + num_concurrent_tasks);
   }
 
   ResetSlices();
@@ -793,7 +824,7 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
           this, isolate_group_, page_space, visitor);
       ASSERT(result);
     } else {
-      // Last worker is the main thread, which will only mark roots.
+      // For the last visitor, mark roots on the main thread.
       TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ConcurrentMark");
       int64_t start = OS::GetCurrentMonotonicMicros();
       IterateRoots(visitor);
@@ -803,10 +834,16 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
         THR_Print("Task marked %" Pd " bytes in %" Pd64 " micros.\n",
                   visitor->marked_bytes(), visitor->marked_micros());
       }
-      // Continue non-root marking concurrently.
-      bool result = Dart::thread_pool()->Run<ConcurrentMarkTask>(
-          this, isolate_group_, page_space, visitor);
-      ASSERT(result);
+      if (FLAG_mark_when_idle) {
+        // Not spawning a thread to continue processing with the last visitor.
+        // This visitor is instead left available for the main thread to
+        // contribute to marking during idle time.
+      } else {
+        // Continue non-root marking concurrently.
+        bool result = Dart::thread_pool()->Run<ConcurrentMarkTask>(
+            this, isolate_group_, page_space, visitor);
+        ASSERT(result);
+      }
     }
   }
 
@@ -817,6 +854,31 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
   while (root_slices_finished_ != root_slices_count_) {
     ml.Wait();
   }
+}
+
+void GCMarker::AssistConcurrentMark() {
+  if (!FLAG_mark_when_idle) return;
+
+  SyncMarkingVisitor* visitor = visitors_[FLAG_marker_tasks - 1];
+  ASSERT(visitor != nullptr);
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Mark");
+  int64_t start = OS::GetCurrentMonotonicMicros();
+  visitor->DrainMarkingStack();
+  int64_t stop = OS::GetCurrentMonotonicMicros();
+  visitor->AddMicros(stop - start);
+}
+
+void GCMarker::NotifyIdle(int64_t deadline) {
+  if (!FLAG_mark_when_idle) return;
+
+  SyncMarkingVisitor* visitor = visitors_[FLAG_marker_tasks - 1];
+  if (visitor == nullptr) return;
+
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IncrementalMark");
+  int64_t start = OS::GetCurrentMonotonicMicros();
+  visitor->ProcessMarkingStackUntil(deadline);
+  int64_t stop = OS::GetCurrentMonotonicMicros();
+  visitor->AddMicros(stop - start);
 }
 
 void GCMarker::MarkObjects(PageSpace* page_space) {

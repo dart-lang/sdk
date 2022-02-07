@@ -348,13 +348,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           name: name,
           nameOffset: nameOffset,
           parameterKind: node.kind,
-        );
+        )..constantInitializer = node.defaultValue;
       } else {
         element = DefaultParameterElementImpl(
           name: name,
           nameOffset: nameOffset,
           parameterKind: node.kind,
-        );
+        )..constantInitializer = node.defaultValue;
       }
       _elementHolder.addParameter(element);
 
@@ -383,7 +383,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           defaultValue.accept(this);
         });
       });
-      element.defaultValueCode = defaultValue.toSource();
     }
   }
 
@@ -395,6 +394,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
+
+    var arguments = node.arguments;
+    if (arguments != null) {
+      _withElementWalker(null, () {
+        _withElementHolder(ElementHolder(element), () {
+          arguments.accept(this);
+        });
+      });
+    }
   }
 
   @override
@@ -407,8 +415,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     _withElementWalker(ElementWalker.forClass(element), () {
       _withNameScope(() {
+        _buildTypeParameterElements(node.typeParameters);
+        node.typeParameters?.accept(this);
+
         _defineElements(element.accessors);
+        _defineElements(element.methods);
         node.constants.accept(this);
+        node.members.accept(this);
       });
     });
   }

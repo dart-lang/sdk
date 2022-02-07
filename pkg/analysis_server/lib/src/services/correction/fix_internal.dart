@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.d
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/add_key_to_constructors.dart';
 import 'package:analysis_server/src/services/correction/dart/add_late.dart';
+import 'package:analysis_server/src/services/correction/dart/add_leading_newline_to_string.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_enum_case_clauses.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_enum_like_case_clauses.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter.dart';
@@ -80,6 +81,7 @@ import 'package:analysis_server/src/services/correction/dart/create_no_such_meth
 import 'package:analysis_server/src/services/correction/dart/create_setter.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/extend_class_for_mixin.dart';
+import 'package:analysis_server/src/services/correction/dart/extract_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_remove_widget.dart';
 import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
 import 'package:analysis_server/src/services/correction/dart/import_library.dart';
@@ -435,6 +437,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.hash_and_equals: [
       CreateMethod.equalsOrHashCode,
     ],
+    LintNames.leading_newlines_in_multiline_strings: [
+      AddLeadingNewlineToString.newInstance,
+    ],
     LintNames.no_duplicate_case_values: [
       RemoveDuplicateCase.newInstance,
     ],
@@ -504,17 +509,11 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_if_elements_to_conditional_expressions: [
       ConvertConditionalExpressionToIfElement.newInstance,
     ],
-    LintNames.prefer_initializing_formals: [
-      ConvertToInitializingFormal.newInstance,
-    ],
-    LintNames.prefer_is_empty: [
-      ReplaceWithIsEmpty.newInstance,
-    ],
-    LintNames.prefer_is_not_empty: [
-      UseIsNotEmpty.newInstance,
-    ],
     LintNames.prefer_if_null_operators: [
       ConvertToIfNull.newInstance,
+    ],
+    LintNames.prefer_initializing_formals: [
+      ConvertToInitializingFormal.newInstance,
     ],
     LintNames.prefer_inlined_adds: [
       ConvertAddAllToSpread.newInstance,
@@ -525,6 +524,12 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.prefer_interpolation_to_compose_strings: [
       ReplaceWithInterpolation.newInstance,
+    ],
+    LintNames.prefer_is_empty: [
+      ReplaceWithIsEmpty.newInstance,
+    ],
+    LintNames.prefer_is_not_empty: [
+      UseIsNotEmpty.newInstance,
     ],
     LintNames.prefer_is_not_operator: [
       ConvertIntoIsNot.newInstance,
@@ -550,6 +555,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_void_to_null: [
       ReplaceNullWithVoid.newInstance,
     ],
+    LintNames.require_trailing_commas: [
+      AddTrailingComma.newInstance,
+    ],
     LintNames.sized_box_for_whitespace: [
       ReplaceContainerWithSizedBox.newInstance,
     ],
@@ -558,9 +566,6 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.sort_child_properties_last: [
       SortChildPropertyLast.newInstance,
-    ],
-    LintNames.require_trailing_commas: [
-      AddTrailingComma.newInstance,
     ],
     LintNames.type_annotate_public_apis: [
       AddTypeAnnotation.newInstanceBulkFixable,
@@ -656,6 +661,14 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
       DataDriven.newInstance,
       ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode
+        .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT: [
+      AddSuperConstructorInvocation.newInstance,
+    ],
+    CompileTimeErrorCode
+        .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+      AddSuperConstructorInvocation.newInstance,
     ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [
       ImportLibrary.forTopLevelVariable,
@@ -817,11 +830,11 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.CONST_WITH_NON_CONST: [
       RemoveConst.newInstance,
     ],
-    CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
-      ReplaceWithFilled.newInstance,
-    ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
+    ],
+    CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
+      ReplaceWithFilled.newInstance,
     ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       ChangeTo.classOrMixin,
@@ -888,6 +901,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
       AddRequiredKeyword.newInstance,
       MakeVariableNullable.newInstance,
+    ],
+    CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION: [
+      AddRequiredKeyword.newInstance,
     ],
     CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
       AddMissingRequiredArgument.newInstance,
@@ -979,6 +995,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
       AddNullCheck.newInstance,
+      ExtractLocalVariable.newInstance,
       ReplaceWithNullAware.single,
     ],
     CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
@@ -986,6 +1003,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
       AddNullCheck.newInstance,
+      ExtractLocalVariable.newInstance,
       ReplaceWithNullAware.single,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [

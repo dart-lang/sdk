@@ -213,6 +213,14 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
   }
 
   @override
+  NativeThrowBehavior visitVariableInitialization(
+      js.VariableInitialization node) {
+    final value = node.value;
+    if (value == null) return NativeThrowBehavior.NEVER;
+    return visit(value);
+  }
+
+  @override
   NativeThrowBehavior visitCall(js.Call node) {
     js.Expression target = node.target;
     if (target is js.PropertyAccess && _isFirstInterpolatedProperty(target)) {

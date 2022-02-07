@@ -405,11 +405,10 @@ public interface AnalysisServer {
    * {@code completion.getSuggestionDetails2}
    *
    * Clients must make this request when the user has selected a completion suggestion with the
-   * libraryUriToImportIndex field set. The server will respond with the text to insert, as well as
-   * any SourceChange that needs to be applied in case the completion requires an additional import
-   * to be added. The text to insert might be different from the original suggestion to include an
-   * import prefix if the library will be imported with a prefix to avoid shadowing conflicts in the
-   * file.
+   * isNotImported field set to true. The server will respond with the text to insert, as well as any
+   * SourceChange that needs to be applied in case the completion requires an additional import to be
+   * added. The text to insert might be different from the original suggestion to include an import
+   * prefix if the library will be imported with a prefix to avoid shadowing conflicts in the file.
    *
    * @param file The path of the file into which this completion is being inserted.
    * @param offset The offset in the file where the completion will be inserted.
@@ -441,12 +440,16 @@ public interface AnalysisServer {
    * @param offset The offset within the file at which suggestions are to be made.
    * @param maxResults The maximum number of suggestions to return. If the number of suggestions
    *         after filtering is greater than the maxResults, then isIncomplete is set to true.
+   * @param completionMode The mode of code completion being invoked. If no value is provided, BASIC
+   *         will be assumed. BASIC is also the only currently supported.
+   * @param invocationCount The number of times that the user has invoked code completion at the same
+   *         code location, counting from 1. If no value is provided, 1 will be assumed.
    * @param timeout The approximate time in milliseconds that the server should spend. The server
    *         will perform some steps anyway, even if it takes longer than the specified timeout. This
    *         field is intended to be used for benchmarking, and usually should not be provided, so
    *         that the default timeout is used.
    */
-  public void completion_getSuggestions2(String file, int offset, int maxResults, int timeout, GetSuggestions2Consumer consumer);
+  public void completion_getSuggestions2(String file, int offset, int maxResults, String completionMode, int invocationCount, int timeout, GetSuggestions2Consumer consumer);
 
   /**
    * {@code completion.registerLibraryPaths}

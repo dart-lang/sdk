@@ -3384,7 +3384,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleNegate, test) {
   EXPECT_FLOAT_EQ(-1.0, res, 0.000001f);
   EXPECT_DISASSEMBLY_NOT_WINDOWS_ENDS_WITH(
       "movups xmm10,[rax]\n"
-      "movq r11,[thr+0x2b0]\n"
+      "movq r11,[thr+0x...]\n"
       "xorpd xmm10,[r11]\n"
       "movaps xmm0,xmm10\n"
       "pop thr\n"
@@ -3413,7 +3413,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleAbsolute, test) {
   EXPECT_FLOAT_EQ(1.0, res, 0.000001f);
   EXPECT_DISASSEMBLY_NOT_WINDOWS_ENDS_WITH(
       "movups xmm10,[rax]\n"
-      "movq r11,[thr+0x2b8]\n"
+      "movq r11,[thr+0x...]\n"
       "movups xmm0,[r11]\n"
       "andpd xmm0,xmm10\n"
       "pop thr\n"
@@ -4066,7 +4066,7 @@ ASSEMBLER_TEST_RUN(PackedNegate, test) {
       "movl rax,0x4144cccd\n"
       "movd xmm0,rax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "movq r11,[thr+0x2c8]\n"
+      "movq r11,[thr+0x...]\n"
       "xorps xmm0,[r11]\n"
       "shufps xmm0,xmm0 [aa]\n"
       "pop thr\n"
@@ -4103,7 +4103,7 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
       "movl rax,-0x3e8b3333\n"
       "movd xmm0,rax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "movq r11,[thr+0x2d0]\n"
+      "movq r11,[thr+0x...]\n"
       "andps xmm0,[r11]\n"
       "shufps xmm0,xmm0 [aa]\n"
       "pop thr\n"
@@ -4138,7 +4138,7 @@ ASSEMBLER_TEST_RUN(PackedSetWZero, test) {
       "movl rax,0x4144cccd\n"
       "movd xmm0,rax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "movq r11,[thr+0x2d8]\n"
+      "movq r11,[thr+0x...]\n"
       "andps xmm0,[r11]\n"
       "shufps xmm0,xmm0 [ff]\n"
       "pop thr\n"
@@ -4288,7 +4288,7 @@ ASSEMBLER_TEST_RUN(PackedLogicalNot, test) {
   EXPECT_EQ(static_cast<uword>(0x0), res);
   EXPECT_DISASSEMBLY_NOT_WINDOWS_ENDS_WITH(
       "movups xmm9,[rax]\n"
-      "movq r11,[thr+0x2c0]\n"
+      "movq r11,[thr+0x...]\n"
       "movups xmm0,[r11]\n"
       "xorps xmm0,xmm9\n"
       "push rax\n"
@@ -5464,7 +5464,7 @@ ASSEMBLER_TEST_RUN(DoubleAbs, test) {
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
       "movq pp,[r12+0x27]\n"
-      "movq r11,[thr+0x2b8]\n"
+      "movq r11,[thr+0x...]\n"
       "andpd xmm0,[r11]\n"
       "pop thr\n"
       "pop pp\n"

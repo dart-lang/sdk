@@ -22,5 +22,4 @@ core_runtime_cc_files = [
   "stopwatch.cc",
   "string.cc",
   "uri.cc",
-  "weak_property.cc",
 ]

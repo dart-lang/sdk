@@ -8,3 +8,14 @@ class C {
     a = 0;
   }
 }
+
+class D {
+  const D(bool b) : assert(b);
+}
+
+class E {
+  final String a;
+  final String? b;
+
+  const E(this.a, {this.b});
+}

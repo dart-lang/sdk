@@ -3483,9 +3483,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when there's more than one field
-  // formal parameter for the same field in a constructor's parameter list. It
-  // isn't useful to assign a value that will immediately be overwritten.
+  // The analyzer produces this diagnostic when there's more than one
+  // initializing formal parameter for the same field in a constructor's
+  // parameter list. It isn't useful to assign a value that will immediately be
+  // overwritten.
   //
   // #### Example
   //
@@ -3502,7 +3503,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Remove one of the field formal parameters:
+  // Remove one of the initializing formal parameters:
   //
   // ```dart
   // class C {
@@ -4521,27 +4522,30 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
       CompileTimeErrorCode(
-    'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
-    "External fields cannot have initializers.",
+    'EXTERNAL_WITH_INITIALIZER',
+    "External fields can't have initializers.",
     correctionMessage:
         "Try removing the field initializer or the 'external' keyword from the "
         "field declaration.",
+    uniqueName: 'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
   );
 
   static const CompileTimeErrorCode EXTERNAL_FIELD_INITIALIZER =
       CompileTimeErrorCode(
-    'EXTERNAL_FIELD_INITIALIZER',
-    "External fields cannot have initializers.",
+    'EXTERNAL_WITH_INITIALIZER',
+    "External fields can't have initializers.",
     correctionMessage:
         "Try removing the initializer or the 'external' keyword.",
+    uniqueName: 'EXTERNAL_FIELD_INITIALIZER',
   );
 
   static const CompileTimeErrorCode EXTERNAL_VARIABLE_INITIALIZER =
       CompileTimeErrorCode(
-    'EXTERNAL_VARIABLE_INITIALIZER',
-    "External variables cannot have initializers.",
+    'EXTERNAL_WITH_INITIALIZER',
+    "External variables can't have initializers.",
     correctionMessage:
         "Try removing the initializer or the 'external' keyword.",
+    uniqueName: 'EXTERNAL_VARIABLE_INITIALIZER',
   );
 
   /**
@@ -4748,7 +4752,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Example
   //
   // The following code produces this diagnostic because the field `f` is
-  // initialized both by a field formal parameter and in the initializer list:
+  // initialized both by an initializing formal parameter and in the
+  // initializer list:
   //
   // ```dart
   // class C {
@@ -4806,14 +4811,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a factory constructor has a
-  // field formal parameter. Factory constructors can't assign values to fields
-  // because no instance is created; hence, there is no field to assign.
+  // The analyzer produces this diagnostic when a factory constructor has an
+  // initializing formal parameter. Factory constructors can't assign values to
+  // fields because no instance is created; hence, there is no field to assign.
   //
   // #### Example
   //
   // The following code produces this diagnostic because the factory constructor
-  // uses a field formal parameter:
+  // uses an initializing formal parameter:
   //
   // ```dart
   // class C {
@@ -4825,7 +4830,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Replace the field formal parameter with a normal parameter:
+  // Replace the initializing formal parameter with a normal parameter:
   //
   // ```dart
   // class C {
@@ -4921,8 +4926,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Examples
   //
   // The following code produces this diagnostic because the constructor
-  // `C.zero`, which redirects to the constructor `C`, has a field formal
-  // parameter that initializes the field `f`:
+  // `C.zero`, which redirects to the constructor `C`, has an initializing
+  // formal parameter that initializes the field `f`:
   //
   // ```dart
   // class C {
@@ -4950,8 +4955,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // If the initialization is done by a field formal parameter, then use a
-  // normal parameter:
+  // If the initialization is done by an initializing formal parameter, then
+  // use a normal parameter:
   //
   // ```dart
   // class C {
@@ -4991,14 +4996,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when the type of a field formal
-  // parameter isn't assignable to the type of the field being initialized.
+  // The analyzer produces this diagnostic when the type of an initializing
+  // formal parameter isn't assignable to the type of the field being
+  // initialized.
   //
   // #### Example
   //
-  // The following code produces this diagnostic because the field formal
-  // parameter has the type `String`, but the type of the field is `int`. The
-  // parameter must have a type that is a subtype of the field's type.
+  // The following code produces this diagnostic because the initializing
+  // formal parameter has the type `String`, but the type of the field is
+  // `int`. The parameter must have a type that is a subtype of the field's
+  // type.
   //
   // ```dart
   // class C {
@@ -5034,8 +5041,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   //
   // If the types of both the field and the parameter are correct, then use an
-  // initializer rather than a field formal parameter to convert the parameter
-  // value into a value of the correct type:
+  // initializer rather than an initializing formal parameter to convert the
+  // parameter value into a value of the correct type:
   //
   // ```dart
   // class C {
@@ -5136,7 +5143,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // For instance fields, you can add an initializer as shown in the previous
   // example, or you can initialize the field in every constructor. You can
-  // initialize the field by using a field formal parameter:
+  // initialize the field by using an initializing formal parameter:
   //
   // ```dart
   // class C {
@@ -5188,8 +5195,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // If the value should be passed in to the constructor directly, then use a
-  // field formal parameter to initialize the field `value`:
+  // If the value should be passed in to the constructor directly, then use an
+  // initializing formal parameter to initialize the field `value`:
   //
   // ```dart
   // class C {
@@ -5952,6 +5959,28 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode
+      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT =
+      CompileTimeErrorCode(
+    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT',
+    "The named parameter '{0}' is required in the implicitly invoked unnamed "
+        "constructor of '{1}'.",
+    correctionMessage:
+        "Try declaring corresponding named super-parameter, or explicitly "
+        "invoking a different constructor.",
+  );
+
+  static const CompileTimeErrorCode
+      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS =
+      CompileTimeErrorCode(
+    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "The implicitly invoked unnamed constructor of '{0}' expects {1} "
+        "positional arguments, but {2} found.",
+    correctionMessage:
+        "Try declaring positional super-parameters, or explicitly invoking a "
+        "different constructor.",
+  );
+
   /**
    * Parameters:
    * 0: the uri pointing to a library
@@ -6174,14 +6203,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a static field is initialized in
-  // a constructor using either a field formal parameter or an assignment in the
-  // initializer list.
+  // The analyzer produces this diagnostic when a static field is initialized
+  // in a constructor using either an initializing formal parameter or an
+  // assignment in the initializer list.
   //
   // #### Example
   //
-  // The following code produces this diagnostic because the static field `a` is
-  // being initialized by the field formal parameter `this.a`:
+  // The following code produces this diagnostic because the static field `a`
+  // is being initialized by the initializing formal parameter `this.a`:
   //
   // ```dart
   // class C {
@@ -6239,10 +6268,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a field formal parameter is
-  // found in a constructor in a class that doesn't declare the field being
-  // initialized. Constructors can't initialize fields that aren't declared and
-  // fields that are inherited from superclasses.
+  // The analyzer produces this diagnostic when an initializing formal
+  // parameter is found in a constructor in a class that doesn't declare the
+  // field being initialized. Constructors can't initialize fields that aren't
+  // declared and fields that are inherited from superclasses.
   //
   // #### Example
   //
@@ -6991,7 +7020,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_CAST_LITERAL_MAP =
       CompileTimeErrorCode(
     'INVALID_CAST_LITERAL_MAP',
-    "The map literal type '{0}' isn't of expected type '{1}'. The maps's type "
+    "The map literal type '{0}' isn't of expected type '{1}'. The map's type "
         "can be changed with an explicit generic type arguments or by changing "
         "the key and value types.",
   );
@@ -7042,16 +7071,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_CONSTANT = CompileTimeErrorCode(
     'INVALID_CONSTANT',
     "Invalid constant value.",
-  );
-
-  /**
-   * 7.6 Constructors: It is a compile-time error if the name of a constructor
-   * is not a constructor name.
-   */
-  static const CompileTimeErrorCode INVALID_CONSTRUCTOR_NAME =
-      CompileTimeErrorCode(
-    'INVALID_CONSTRUCTOR_NAME',
-    "Invalid constructor name.",
   );
 
   /**
@@ -7516,6 +7535,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_REFERENCE_TO_THIS',
     "Invalid reference to 'this' expression.",
     hasPublishedDocs: true,
+  );
+
+  /**
+   * Parameters:
+   * 0: the super modifier
+   */
+  static const CompileTimeErrorCode INVALID_SUPER_FORMAL_PARAMETER_LOCATION =
+      CompileTimeErrorCode(
+    'INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
+    "Super-formal parameters can only be used in non-redirecting generative "
+        "constructors.",
+    correctionMessage:
+        "Try removing the 'super' modifier, or changing the constructor to be "
+        "non-redirecting and generative.",
   );
 
   /**
@@ -8398,35 +8431,38 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * 12.1 Constants: A constant expression is ... a constant list literal.
+   *
+   * Note: This diagnostic is never displayed to the user, so it doesn't need
+   * to be documented.
    */
   static const CompileTimeErrorCode MISSING_CONST_IN_LIST_LITERAL =
       CompileTimeErrorCode(
     'MISSING_CONST_IN_LIST_LITERAL',
-    "List literals must be prefixed with 'const' when used as a constant "
-        "expression.",
-    correctionMessage: "Try adding the keyword 'const' before the literal.",
+    "Seeing this message constitutes a bug. Please report it.",
   );
 
   /**
    * 12.1 Constants: A constant expression is ... a constant map literal.
+   *
+   * Note: This diagnostic is never displayed to the user, so it doesn't need
+   * to be documented.
    */
   static const CompileTimeErrorCode MISSING_CONST_IN_MAP_LITERAL =
       CompileTimeErrorCode(
     'MISSING_CONST_IN_MAP_LITERAL',
-    "Map literals must be prefixed with 'const' when used as a constant "
-        "expression.",
-    correctionMessage: "Try adding the keyword 'const' before the literal.",
+    "Seeing this message constitutes a bug. Please report it.",
   );
 
   /**
    * 12.1 Constants: A constant expression is ... a constant set literal.
+   *
+   * Note: This diagnostic is never displayed to the user, so it doesn't need
+   * to be documented.
    */
   static const CompileTimeErrorCode MISSING_CONST_IN_SET_LITERAL =
       CompileTimeErrorCode(
     'MISSING_CONST_IN_SET_LITERAL',
-    "Set literals must be prefixed with 'const' when used as a constant "
-        "expression.",
-    correctionMessage: "Try adding the keyword 'const' before the literal.",
+    "Seeing this message constitutes a bug. Please report it.",
   );
 
   /**
@@ -8507,6 +8543,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try adding either an explicit non-'null' default value or the "
         "'required' modifier.",
     hasPublishedDocs: true,
+  );
+
+  /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION =
+      CompileTimeErrorCode(
+    'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+    "With null safety, use the 'required' keyword, not the '@required' "
+        "annotation.",
+    correctionMessage: "Try removing the '@'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
   );
 
   /**
@@ -8859,16 +8909,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * The <i>mixinMember</i> production allows the same instance or static
-   * members that a class would allow, but no constructors (for now).
-   */
-  static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR =
-      CompileTimeErrorCode(
-    'MIXIN_DECLARES_CONSTRUCTOR',
-    "Mixins can't declare constructors.",
-  );
-
-  /**
    * No parameters.
    */
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS = CompileTimeErrorCode(
@@ -8877,29 +8917,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try changing the import to not be deferred.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_DEFERRED_CLASS',
-  );
-
-  static const CompileTimeErrorCode
-      MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES = CompileTimeErrorCode(
-    'MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES',
-    "Type parameters couldn't be inferred for the mixin '{0}' because the base "
-        "class implements the mixin's supertype constraint '{1}' in multiple "
-        "conflicting ways",
-  );
-
-  static const CompileTimeErrorCode MIXIN_INFERENCE_NO_MATCHING_CLASS =
-      CompileTimeErrorCode(
-    'MIXIN_INFERENCE_NO_MATCHING_CLASS',
-    "Type parameters couldn't be inferred for the mixin '{0}' because the base "
-        "class doesn't implement the mixin's supertype constraint '{1}'",
-  );
-
-  static const CompileTimeErrorCode MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION =
-      CompileTimeErrorCode(
-    'MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION',
-    "Type parameters couldn't be inferred for the mixin '{0}' because no type "
-        "parameter substitution could be found matching the mixin's supertype "
-        "constraints",
   );
 
   /**
@@ -11614,6 +11631,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT =
+      CompileTimeErrorCode(
+    'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
+    "Positional super-formal parameters can't be used when the "
+        "super-constructor invocation has a positional argument.",
+    correctionMessage:
+        "Try removing the 'super' modifier, or changing the super-constructor "
+        "to use named parameters.",
+  );
+
+  /**
    * Parameters:
    * 0: the name of the prefix
    */
@@ -13061,6 +13092,45 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'STATIC_ACCESS_TO_INSTANCE_MEMBER',
     "Instance member '{0}' can't be accessed using static access.",
     hasPublishedDocs: true,
+  );
+
+  /**
+   * Parameters:
+   * 0: the type of super-parameter
+   * 1: the type of associated super-constructor parameter
+   */
+  static const CompileTimeErrorCode
+      SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED =
+      CompileTimeErrorCode(
+    'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
+    "The type '{0}' of this parameter is not a subtype of the type '{1}' of "
+        "the associated super-constructor parameter.",
+    correctionMessage:
+        "Try removing the explicit type annotation from the parameter.",
+  );
+
+  /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED = CompileTimeErrorCode(
+    'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
+    "No associated named super-constructor parameter.",
+    correctionMessage: "Try changing the name to the name of an existing named "
+        "super-constructor parameter, or creating such named parameter.",
+  );
+
+  /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL =
+      CompileTimeErrorCode(
+    'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
+    "No associated positional super-constructor parameter.",
+    correctionMessage:
+        "Try using named parameters instead, or adding more positional "
+        "parameters to the super-constructor.",
   );
 
   /**

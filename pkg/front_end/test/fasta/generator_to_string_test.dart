@@ -94,7 +94,8 @@ Future<void> main() async {
                 new DillTarget(c.options.ticker, uriTranslator,
                     new NoneTarget(new TargetFlags())),
                 uriTranslator)
-            .loader);
+            .loader,
+        isUnsupported: false);
     libraryBuilder.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder =
         new LoadLibraryBuilder(libraryBuilder, dummyLibraryDependency, -1);

@@ -60,11 +60,17 @@ class AbstractContextTest with ResourceProviderMixin {
 class ContentChild {
   const ContentChild(Object selector, {Object? read});
 }
+class ContentChildren {
+  const ContentChildren(Object selector, {Object? read});
+}
 class Optional {
   const Optional();
 }
 class ViewChild {
   const ViewChild(Object selector, {Object? read});
+}
+class ViewChildren {
+  const ViewChildren(Object selector, {Object? read});
 }
 ''');
     if (internalUris) {

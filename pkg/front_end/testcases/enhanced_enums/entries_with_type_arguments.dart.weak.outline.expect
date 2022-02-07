@@ -1,13 +1,24 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/entries_with_type_arguments.dart:9:3: Error: Missing arguments in enum constructor invocation.
+//   four<num, bool>; // Error.
+//   ^
+//
 import self as self;
 import "dart:core" as core;
 
-class E extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E> values = const <self::E>[self::E::one, self::E::two, self::E::three];
-  static const field self::E one = const self::E::•(0, "one");
-  static const field self::E two = const self::E::•(1, "two");
-  static const field self::E three = const self::E::•(2, "three");
-  const constructor •(core::int index, core::String name) → self::E
+class E<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E<dynamic, dynamic>> values = const <self::E<dynamic, dynamic>>[self::E::one, self::E::two, self::E::three, self::E::four];
+  static const field self::E<core::int, core::String> one = const self::E::•<core::int, core::String>(0, "one");
+  static const field self::E<core::double, core::num> two = const self::E::•<core::double, core::num>(1, "two");
+  static const field self::E<core::int, core::int> three = const self::E::named<core::int, core::int>(2, "three", 42);
+  static const field self::E<dynamic, dynamic> four = const self::E::•<core::num, core::bool>(3, "four");
+  const constructor •(core::int index, core::String name) → self::E<self::E::X%, self::E::Y%>
+    : super core::_Enum::•(index, name)
+    ;
+  const constructor named(core::int index, core::String name, core::int value) → self::E<self::E::X%, self::E::Y%>
     : super core::_Enum::•(index, name)
     ;
   method toString() → core::String
@@ -18,8 +29,9 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///entries_with_type_arguments.dart:5:6 -> ListConstant(const <E*>[const E{_Enum.index: 0, _Enum._name: "one"}, const E{_Enum.index: 1, _Enum._name: "two"}, const E{_Enum.index: 2, _Enum._name: "three"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///entries_with_type_arguments.dart:6:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "one"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///entries_with_type_arguments.dart:7:3 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "two"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///entries_with_type_arguments.dart:8:3 -> InstanceConstant(const E{_Enum.index: 2, _Enum._name: "three"})
-Extra constant evaluation: evaluated: 9, effectively constant: 4
+Evaluated: ListLiteral @ org-dartlang-testcase:///entries_with_type_arguments.dart:5:6 -> ListConstant(const <E<dynamic, dynamic>*>[const E<int*, String*>{_Enum.index: 0, _Enum._name: "one"}, const E<double*, num*>{_Enum.index: 1, _Enum._name: "two"}, const E<int*, int*>{_Enum.index: 2, _Enum._name: "three"}, const E<num*, bool*>{_Enum.index: 3, _Enum._name: "four"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///entries_with_type_arguments.dart:6:3 -> InstanceConstant(const E<int*, String*>{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///entries_with_type_arguments.dart:7:3 -> InstanceConstant(const E<double*, num*>{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///entries_with_type_arguments.dart:8:3 -> InstanceConstant(const E<int*, int*>{_Enum.index: 2, _Enum._name: "three"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///entries_with_type_arguments.dart:9:3 -> InstanceConstant(const E<num*, bool*>{_Enum.index: 3, _Enum._name: "four"})
+Extra constant evaluation: evaluated: 12, effectively constant: 5

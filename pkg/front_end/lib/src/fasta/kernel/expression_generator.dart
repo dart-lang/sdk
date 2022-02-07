@@ -4492,9 +4492,8 @@ class ThisAccessGenerator extends Generator {
       }
     } else {
       if (isSuper) {
-        Member? getter = _helper.lookupInstanceMember(name, isSuper: isSuper);
-        Member? setter = _helper.lookupInstanceMember(name,
-            isSuper: isSuper, isSetter: true);
+        Member? getter = _helper.lookupSuperMember(name);
+        Member? setter = _helper.lookupSuperMember(name, isSetter: true);
         return new SuperPropertyAccessGenerator(
             _helper,
             // TODO(ahe): This is not the 'super' token.
@@ -4576,7 +4575,14 @@ class ThisAccessGenerator extends Generator {
       // The check of the arguments is done later for super initializers if the
       // 'super-parameters' language feature is enabled. In that case the
       // additional parameters can be added at a later stage.
-      if (!(isSuper && _helper.libraryBuilder.enableSuperParametersInLibrary)) {
+      bool isPotentialSuperParametersReceiver =
+          isSuper && _helper.libraryBuilder.enableSuperParametersInLibrary;
+      // Additional arguments are added to the redirecting initializer of an
+      // enum constructor, so the check is performed later.
+      bool isEnumConstructorRedirectingInitializer =
+          constructor.enclosingClass.isEnum;
+      if (!isPotentialSuperParametersReceiver &&
+          !isEnumConstructorRedirectingInitializer) {
         message = _helper.checkArgumentsForFunction(
             constructor.function, arguments, offset, <TypeParameter>[]);
       }
@@ -4652,10 +4658,8 @@ class ThisAccessGenerator extends Generator {
           _helper,
           token,
           index,
-          _helper.lookupInstanceMember(indexGetName, isSuper: true)
-              as Procedure?,
-          _helper.lookupInstanceMember(indexSetName, isSuper: true)
-              as Procedure?);
+          _helper.lookupSuperMember(indexGetName) as Procedure?,
+          _helper.lookupSuperMember(indexSetName) as Procedure?);
     } else {
       return new ThisIndexedAccessGenerator(_helper, token, index,
           thisOffset: fileOffset, isNullAware: isNullAware);

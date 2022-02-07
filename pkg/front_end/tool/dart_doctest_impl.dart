@@ -321,7 +321,6 @@ class DartDocTest {
     options.target = target;
     options.omitPlatform = true;
     options.onDiagnostic = (DiagnosticMessage message) {
-      if (message.codeName == "InferredPackageUri") return;
       _print(message.plainTextFormatted.first);
       if (message.severity == Severity.error) {
         errors = true;
@@ -830,8 +829,11 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       packageLanguageVersion:
           new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
       loader: loader,
+      // TODO(jensj): Should probably set up scopes the same was as it's done
+      // (now) for expression compilation.
       scope: libraryBuilder.scope.createNestedScope("dartdoctest"),
       nameOrigin: libraryBuilder,
+      isUnsupported: false,
     );
 
     if (libraryBuilder is DillLibraryBuilder) {

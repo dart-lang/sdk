@@ -5286,10 +5286,16 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ CompareObjectRegisters(result_mod, ZR);
   __ b(&done, GE);
   // Result is negative, adjust it.
-  __ CompareObjectRegisters(right, ZR);
-  __ sub(TMP2, result_mod, compiler::Operand(right), compiler::kObjectBytes);
-  __ add(TMP, result_mod, compiler::Operand(right), compiler::kObjectBytes);
-  __ csel(result_mod, TMP, TMP2, GE);
+  if (RangeUtils::IsNegative(divisor_range())) {
+    __ sub(result_mod, result_mod, compiler::Operand(right));
+  } else if (RangeUtils::IsPositive(divisor_range())) {
+    __ add(result_mod, result_mod, compiler::Operand(right));
+  } else {
+    __ CompareObjectRegisters(right, ZR);
+    __ sub(TMP2, result_mod, compiler::Operand(right), compiler::kObjectBytes);
+    __ add(TMP, result_mod, compiler::Operand(right), compiler::kObjectBytes);
+    __ csel(result_mod, TMP, TMP2, GE);
+  }
   __ Bind(&done);
 }
 
@@ -5634,8 +5640,7 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
 
   // Handle modulo/division by zero exception on slow path.
   if (slow_path->has_divide_by_zero()) {
-    __ CompareRegisters(right, ZR);
-    __ b(slow_path->entry_label(), EQ);
+    __ cbz(slow_path->entry_label(), right);
   }
 
   // Perform actual operation

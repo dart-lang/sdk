@@ -114,7 +114,8 @@ class NamedTypeBuilder extends TypeBuilder {
 
   NamedTypeBuilder(this.name, this.nullabilityBuilder, this.arguments,
       this.fileUri, this.charOffset,
-      {required this.instanceTypeVariableAccess});
+      {required this.instanceTypeVariableAccess})
+      : assert(name is String || name is QualifiedName);
 
   NamedTypeBuilder.fromTypeDeclarationBuilder(
       TypeDeclarationBuilder this.declaration, this.nullabilityBuilder,

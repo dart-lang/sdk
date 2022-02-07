@@ -1145,7 +1145,7 @@ Set<Object> missingNodes(CoverageVisitor visitor) {
 
 /// Returns the set of [MemberKind]s that were not visited by [visitor].
 Set<MemberKind> missingMembers(CoverageVisitor visitor) {
-  Set<MemberKind> all = new Set<MemberKind>.from(MemberKind.values);
+  Set<MemberKind> all = new Set<MemberKind>.of(MemberKind.values);
   all.removeAll(visitor.visited);
   return all;
 }
@@ -1153,35 +1153,35 @@ Set<MemberKind> missingMembers(CoverageVisitor visitor) {
 /// Returns the set of [InitializerKind]s that were not visited by [visitor].
 Set<InitializerKind> missingInitializers(CoverageVisitor visitor) {
   Set<InitializerKind> all =
-      new Set<InitializerKind>.from(InitializerKind.values);
+      new Set<InitializerKind>.of(InitializerKind.values);
   all.removeAll(visitor.visited);
   return all;
 }
 
 /// Returns the set of [ExpressionKind]s that were not visited by [visitor].
 Set<ExpressionKind> missingExpressions(CoverageVisitor visitor) {
-  Set<ExpressionKind> all = new Set<ExpressionKind>.from(ExpressionKind.values);
+  Set<ExpressionKind> all = new Set<ExpressionKind>.of(ExpressionKind.values);
   all.removeAll(visitor.visited);
   return all;
 }
 
 /// Returns the set of [StatementKind]s that were not visited by [visitor].
 Set<StatementKind> missingStatements(CoverageVisitor visitor) {
-  Set<StatementKind> all = new Set<StatementKind>.from(StatementKind.values);
+  Set<StatementKind> all = new Set<StatementKind>.of(StatementKind.values);
   all.removeAll(visitor.visited);
   return all;
 }
 
 /// Returns the set of [DartTypeKind]s that were not visited by [visitor].
 Set<DartTypeKind> missingDartTypes(CoverageVisitor visitor) {
-  Set<DartTypeKind> all = new Set<DartTypeKind>.from(DartTypeKind.values);
+  Set<DartTypeKind> all = new Set<DartTypeKind>.of(DartTypeKind.values);
   all.removeAll(visitor.visited);
   return all;
 }
 
 /// Returns the set of [ConstantKind]s that were not visited by [visitor].
 Set<ConstantKind> missingConstants(CoverageVisitor visitor) {
-  Set<ConstantKind> all = new Set<ConstantKind>.from(ConstantKind.values);
+  Set<ConstantKind> all = new Set<ConstantKind>.of(ConstantKind.values);
   all.removeAll(visitor.visited);
   return all;
 }

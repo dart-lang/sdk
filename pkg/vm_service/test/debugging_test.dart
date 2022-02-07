@@ -91,6 +91,7 @@ var tests = <IsolateTest>[
     final SourceLocation location = bpt.location;
     expect(location.script!.id, script.id);
     expect(script.getLineNumberFromTokenPos(location.tokenPos!), 16);
+    expect(location.line, 16);
 
     isolate = await service.getIsolate(isolateId);
     expect(isolate.breakpoints!.length, 1);
@@ -103,13 +104,12 @@ var tests = <IsolateTest>[
     final isolateId = isolateRef.id!;
     final stack = await service.getStack(isolateId);
     expect(stack.frames!.length, greaterThanOrEqualTo(1));
-
-    Script script = (await service.getObject(
-        isolateId, stack.frames![0].location!.script!.id!)) as Script;
+    final location = stack.frames![0].location!;
+    Script script =
+        (await service.getObject(isolateId, location.script!.id!)) as Script;
     expect(script.uri, endsWith('debugging_test.dart'));
-    expect(
-        script.getLineNumberFromTokenPos(stack.frames![0].location!.tokenPos!),
-        16);
+    expect(script.getLineNumberFromTokenPos(location.tokenPos!), 16);
+    expect(location.line, 16);
   },
 
 // Stepping
@@ -136,13 +136,12 @@ var tests = <IsolateTest>[
     final isolateId = isolateRef.id!;
     final stack = await service.getStack(isolateId);
     expect(stack.frames!.length, greaterThanOrEqualTo(1));
-
-    final Script script = (await service.getObject(
-        isolateId, stack.frames![0].location!.script!.id!)) as Script;
+    final location = stack.frames![0].location!;
+    final Script script =
+        (await service.getObject(isolateId, location.script!.id!)) as Script;
     expect(script.uri, endsWith('debugging_test.dart'));
-    expect(
-        script.getLineNumberFromTokenPos(stack.frames![0].location!.tokenPos!),
-        17);
+    expect(script.getLineNumberFromTokenPos(location.tokenPos!), 17);
+    expect(location.line, 17);
   },
 // Remove breakpoint
   (VmService service, IsolateRef isolateRef) async {
@@ -214,6 +213,7 @@ var tests = <IsolateTest>[
         (await service.getObject(isolateId, bpt.location.script.id)) as Script;
     expect(script.uri, endsWith('debugging_test.dart'));
     expect(script.getLineNumberFromTokenPos(bpt.location.tokenPos), 14);
+    expect(bpt.location.line, 14);
 
     // Refresh isolate state.
     isolate = await service.getIsolate(isolateId);
@@ -226,13 +226,12 @@ var tests = <IsolateTest>[
     final isolateId = isolateRef.id!;
     final stack = await service.getStack(isolateId);
     expect(stack.frames!.length, greaterThanOrEqualTo(1));
-
-    final Script script = (await service.getObject(
-        isolateId, stack.frames![0].location!.script!.id!)) as Script;
+    final location = stack.frames![0].location!;
+    final Script script =
+        (await service.getObject(isolateId, location.script!.id!)) as Script;
     expect(script.uri, endsWith('debugging_test.dart'));
-    expect(
-        script.getLineNumberFromTokenPos(stack.frames![0].location!.tokenPos!),
-        14);
+    expect(script.getLineNumberFromTokenPos(location.tokenPos!), 14);
+    expect(location.line, 14);
   },
 ];
 

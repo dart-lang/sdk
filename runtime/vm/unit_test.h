@@ -101,31 +101,26 @@
 #define ASSEMBLER_TEST_RUN_WITH_EXPECTATION(name, test, expectation)           \
   static void AssemblerTestRun##name(AssemblerTest* test);                     \
   ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(name, expectation) {                 \
-    {                                                                          \
-      bool use_far_branches = false;                                           \
+    volatile intptr_t far_branch_level = 0;                                    \
+    while (true) {                                                             \
       LongJumpScope jump;                                                      \
       if (setjmp(*jump.Set()) == 0) {                                          \
         compiler::ObjectPoolBuilder object_pool_builder;                       \
-        compiler::Assembler assembler(&object_pool_builder, use_far_branches); \
+        compiler::Assembler assembler(&object_pool_builder, far_branch_level); \
         AssemblerTest test("" #name, &assembler);                              \
         AssemblerTestGenerate##name(test.assembler());                         \
         test.Assemble();                                                       \
         AssemblerTestRun##name(&test);                                         \
         return;                                                                \
+      } else {                                                                 \
+        const Error& error = Error::Handle(Thread::Current()->sticky_error()); \
+        if (error.ptr() == Object::branch_offset_error().ptr()) {              \
+          ASSERT(far_branch_level < 2);                                        \
+          far_branch_level++;                                                  \
+        } else {                                                               \
+          FATAL1("Unexpected error: %s\n", error.ToErrorCString());            \
+        }                                                                      \
       }                                                                        \
-    }                                                                          \
-                                                                               \
-    const Error& error = Error::Handle(Thread::Current()->sticky_error());     \
-    if (error.ptr() == Object::branch_offset_error().ptr()) {                  \
-      bool use_far_branches = true;                                            \
-      compiler::ObjectPoolBuilder object_pool_builder;                         \
-      compiler::Assembler assembler(&object_pool_builder, use_far_branches);   \
-      AssemblerTest test("" #name, &assembler);                                \
-      AssemblerTestGenerate##name(test.assembler());                           \
-      test.Assemble();                                                         \
-      AssemblerTestRun##name(&test);                                           \
-    } else {                                                                   \
-      FATAL1("Unexpected error: %s\n", error.ToErrorCString());                \
     }                                                                          \
   }                                                                            \
   static void AssemblerTestRun##name(AssemblerTest* test)
@@ -133,8 +128,10 @@
 #define ASSEMBLER_TEST_RUN(name, test)                                         \
   ASSEMBLER_TEST_RUN_WITH_EXPECTATION(name, test, "Pass")
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
-#if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+#if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64) ||                      \
+    defined(HOST_ARCH_RISCV32) || defined(HOST_ARCH_RISCV64)
 // Running on actual ARM hardware, execute code natively.
 #define EXECUTE_TEST_CODE_INT32(name, entry) reinterpret_cast<name>(entry)()
 #define EXECUTE_TEST_CODE_INT64(name, entry) reinterpret_cast<name>(entry)()

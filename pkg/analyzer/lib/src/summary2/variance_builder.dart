@@ -39,6 +39,8 @@ class VarianceBuilder {
             _typeParameters(node.typeParameters);
           } else if (node is ClassDeclaration) {
             _typeParameters(node.typeParameters);
+          } else if (node is EnumDeclaration) {
+            _typeParameters(node.typeParameters);
           } else if (node is FunctionTypeAlias) {
             _functionTypeAlias(node);
           } else if (node is GenericTypeAlias) {

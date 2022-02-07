@@ -29,13 +29,14 @@ void main(List<String> args) async {
   final graphs = _loadGraphs(ilFile, rename);
   final tests = await _loadTestCases(testFile);
 
-  Map<String, FlowGraph> findMatchingGraphs(String name) {
-    final suffix = '_${rename(name)}';
+  Map<String, FlowGraph> findMatchingGraphs(String name, String? closureName) {
+    final closureSuffix = closureName != null ? '_${rename(closureName)}' : '';
+    final suffix = '_${rename(name)}${closureSuffix}';
     return graphs.entries.firstWhere((f) => f.key.contains(suffix)).value;
   }
 
   for (var test in tests) {
-    test.run(findMatchingGraphs(test.name));
+    test.run(findMatchingGraphs(test.name, test.closureName));
   }
 
   exit(0); // Success.
@@ -43,6 +44,7 @@ void main(List<String> args) async {
 
 class TestCase {
   final String name;
+  final String? closureName;
   final String phasesFilter;
   final LibraryMirror library;
 
@@ -51,13 +53,16 @@ class TestCase {
 
   TestCase({
     required this.name,
+    this.closureName,
     required this.phasesFilter,
     required this.library,
   });
 
+  late final fullName = name + (closureName != null ? '_$closureName' : '');
+
   void run(Map<String, FlowGraph> graphs) {
-    print('matching IL (${phases.join(', ')}) for $name');
-    library.invoke(MirrorSystem.getSymbol('matchIL\$$name'),
+    print('matching IL (${phases.join(', ')}) for $fullName');
+    library.invoke(MirrorSystem.getSymbol('matchIL\$$fullName'),
         phases.map((phase) => graphs[phase]!).toList());
     print('... ok');
   }
@@ -104,20 +109,35 @@ Future<Set<TestCase>> _loadTestCases(String testFile) async {
       .firstWhereOrNull((p) => p.name == name);
 
   final cases = LinkedHashSet<TestCase>(
-    equals: (a, b) => a.name == b.name,
-    hashCode: (a) => a.name.hashCode,
+    equals: (a, b) => a.fullName == b.fullName,
+    hashCode: (a) => a.fullName.hashCode,
   );
 
   void processDeclaration(DeclarationMirror decl) {
-    final p = getPragma(decl, 'vm:testing:print-flow-graph');
+    TestCase? testCase;
+    pragma? p = getPragma(decl, 'vm:testing:print-flow-graph');
     if (p != null) {
       final name = MirrorSystem.getName(decl.simpleName);
-      final added = cases.add(TestCase(
+      testCase = TestCase(
         name: name,
         phasesFilter: (p.options as String?) ?? 'AllocateRegisters',
         library: library,
-      ));
-      if (!added) throw 'duplicate test case with name $name';
+      );
+    }
+    p = getPragma(decl, 'vm:testing:match-inner-flow-graph');
+    if (p != null) {
+      final name = MirrorSystem.getName(decl.simpleName);
+      final closureName = p.options as String;
+      testCase = TestCase(
+        name: name,
+        closureName: closureName,
+        phasesFilter: 'AllocateRegisters',
+        library: library,
+      );
+    }
+    if (testCase != null) {
+      final added = cases.add(testCase);
+      if (!added) throw 'duplicate test case with name ${testCase.fullName}';
     }
   }
 

@@ -25,6 +25,8 @@
 #include "vm/compiler/assembler/assembler_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/compiler/assembler/assembler_arm64.h"
+#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+#include "vm/compiler/assembler/assembler_riscv.h"
 #else
 #error Unknown architecture.
 #endif

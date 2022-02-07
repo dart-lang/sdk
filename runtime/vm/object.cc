@@ -1035,8 +1035,7 @@ void Object::Init(IsolateGroup* isolate_group) {
     CompressedStackMaps::initializeHandle(
         empty_compressed_stackmaps_,
         static_cast<CompressedStackMapsPtr>(address + kHeapObjectTag));
-    empty_compressed_stackmaps_->StoreNonPointer(
-        &empty_compressed_stackmaps_->untag()->payload()->flags_and_size, 0);
+    empty_compressed_stackmaps_->untag()->payload()->set_flags_and_size(0);
     empty_compressed_stackmaps_->SetCanonical();
   }
 
@@ -1159,10 +1158,14 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   String& error_str = String::Handle();
   error_str = String::New(
-      "Internal Dart data pointers have been acquired, please release them "
-      "using Dart_TypedDataReleaseData.",
+      "Callbacks into the Dart VM are currently prohibited. Either there are "
+      "outstanding pointers from Dart_TypedDataAcquireData that have not been "
+      "released with Dart_TypedDataReleaseData, or a finalizer is running.",
       Heap::kOld);
-  *typed_data_acquire_error_ = ApiError::New(error_str, Heap::kOld);
+  *no_callbacks_error_ = ApiError::New(error_str, Heap::kOld);
+  error_str = String::New(
+      "No api calls are allowed while unwind is in progress", Heap::kOld);
+  *unwind_in_progress_error_ = UnwindError::New(error_str, Heap::kOld);
   error_str = String::New("SnapshotWriter Error", Heap::kOld);
   *snapshot_writer_error_ =
       LanguageError::New(error_str, Report::kError, Heap::kOld);
@@ -1239,8 +1242,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(bool_false_->IsBool());
   ASSERT(smi_illegal_cid_->IsSmi());
   ASSERT(smi_zero_->IsSmi());
-  ASSERT(!typed_data_acquire_error_->IsSmi());
-  ASSERT(typed_data_acquire_error_->IsApiError());
+  ASSERT(!no_callbacks_error_->IsSmi());
+  ASSERT(no_callbacks_error_->IsApiError());
+  ASSERT(!unwind_in_progress_error_->IsSmi());
+  ASSERT(unwind_in_progress_error_->IsUnwindError());
   ASSERT(!snapshot_writer_error_->IsSmi());
   ASSERT(snapshot_writer_error_->IsLanguageError());
   ASSERT(!branch_offset_error_->IsSmi());
@@ -2505,15 +2510,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
 #if defined(DEBUG)
 bool Object::InVMIsolateHeap() const {
-  if (FLAG_verify_handles && ptr()->untag()->InVMIsolateHeap()) {
-    Heap* vm_isolate_heap = Dart::vm_isolate_group()->heap();
-    uword addr = UntaggedObject::ToAddr(ptr());
-    if (!vm_isolate_heap->Contains(addr)) {
-      ASSERT(FLAG_write_protect_code);
-      addr = UntaggedObject::ToAddr(OldPage::ToWritable(ptr()));
-      ASSERT(vm_isolate_heap->Contains(addr));
-    }
-  }
   return ptr()->untag()->InVMIsolateHeap();
 }
 #endif  // DEBUG
@@ -2605,19 +2601,6 @@ void Object::CheckHandle() const {
       cid = kInstanceCid;
     }
     ASSERT(vtable() == builtin_vtables_[cid]);
-    if (FLAG_verify_handles && ptr_->IsHeapObject()) {
-      Heap* isolate_heap = IsolateGroup::Current()->heap();
-      if (!isolate_heap->new_space()->scavenging()) {
-        Heap* vm_isolate_heap = Dart::vm_isolate_group()->heap();
-        uword addr = UntaggedObject::ToAddr(ptr_);
-        if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
-          ASSERT(FLAG_write_protect_code);
-          addr = UntaggedObject::ToAddr(OldPage::ToWritable(ptr_));
-          ASSERT(isolate_heap->Contains(addr) ||
-                 vm_isolate_heap->Contains(addr));
-        }
-      }
-    }
   }
 #endif
 }
@@ -7135,9 +7118,12 @@ void PatchClass::set_library_kernel_data(const ExternalTypedData& data) const {
 }
 
 uword Function::Hash() const {
-  const uword hash = String::HashRawSymbol(name());
+  uword hash = String::HashRawSymbol(name());
+  if (IsClosureFunction()) {
+    hash = hash ^ token_pos().Hash();
+  }
   if (untag()->owner()->IsClass()) {
-    return hash ^ Class::RawCast(untag()->owner())->untag()->id();
+    hash = hash ^ Class::RawCast(untag()->owner())->untag()->id();
   }
   return hash;
 }
@@ -8168,9 +8154,11 @@ bool Function::CanBeInlined() const {
   // being inlined (for now).
   if (ForceOptimize()) {
     if (IsFfiTrampoline()) {
-      // The CallSiteInliner::InlineCall asserts in PrepareGraphs that
-      // GraphEntryInstr::SuccessorCount() == 1, but FFI trampoline has two
-      // entries (a normal and a catch entry).
+      // We currently don't support inlining FFI trampolines. Some of them
+      // are naturally non-inlinable because they contain a try/catch block,
+      // but this condition is broader than strictly necessary.
+      // The work necessary for inlining FFI trampolines is tracked by
+      // http://dartbug.com/45055.
       return false;
     }
     return CompilerState::Current().is_aot();
@@ -8180,7 +8168,7 @@ bool Function::CanBeInlined() const {
     return false;
   }
 
-  return is_inlinable() && !is_external() && !is_generated_body();
+  return is_inlinable() && !is_generated_body();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -10162,8 +10150,9 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
     return true;
   }
 
-  // If table dispatch is disabled, all instance calls use switchable calls.
-  if (!(FLAG_precompiled_mode && FLAG_use_table_dispatch)) {
+  // AOT mode uses table dispatch.
+  // In JIT mode all instance calls use switchable calls.
+  if (!FLAG_precompiled_mode) {
     return true;
   }
 
@@ -14805,7 +14794,11 @@ void ObjectPool::DebugPrint() const {
   THR_Print("ObjectPool len:%" Pd " {\n", Length());
   for (intptr_t i = 0; i < Length(); i++) {
     intptr_t offset = OffsetFromIndex(i);
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+    THR_Print("  %" Pd "(pp) ", offset + kHeapObjectTag);
+#else
     THR_Print("  [pp+0x%" Px "] ", offset);
+#endif
     if (TypeAt(i) == EntryType::kTaggedObject) {
       const Object& obj = Object::Handle(ObjectAt(i));
       THR_Print("%s (obj)\n", obj.ToCString());
@@ -15074,12 +15067,10 @@ CompressedStackMapsPtr CompressedStackMaps::New(const void* payload,
         Heap::kOld, CompressedStackMaps::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.StoreNonPointer(
-        &result.untag()->payload()->flags_and_size,
+    result.untag()->payload()->set_flags_and_size(
         UntaggedCompressedStackMaps::GlobalTableBit::encode(is_global_table) |
-            UntaggedCompressedStackMaps::UsesTableBit::encode(
-                uses_global_table) |
-            UntaggedCompressedStackMaps::SizeField::encode(size));
+        UntaggedCompressedStackMaps::UsesTableBit::encode(uses_global_table) |
+        UntaggedCompressedStackMaps::SizeField::encode(size));
     auto cursor =
         result.UnsafeMutableNonPointer(result.untag()->payload()->data());
     memcpy(cursor, payload, size);  // NOLINT
@@ -21296,10 +21287,8 @@ void Type::set_type_class_id(intptr_t id) const {
   ASSERT(Utils::IsUint(sizeof(untag()->type_class_id_) * kBitsPerByte, id));
   // We should never need a Type object for a top-level class.
   ASSERT(!ClassTable::IsTopLevelCid(id));
-  // We must allow Types with kIllegalCid type class ids, because the class
-  // used for evaluating expressions inside a instance method call context
-  // from the debugger is not registered (and thus has kIllegalCid as an id).
-  ASSERT(id == kIllegalCid || !IsInternalOnlyClassId(id));
+  ASSERT(id != kIllegalCid);
+  ASSERT(!IsInternalOnlyClassId(id));
   StoreNonPointer(&untag()->type_class_id_, id);
 }
 

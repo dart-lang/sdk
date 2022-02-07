@@ -2602,9 +2602,7 @@ static void TestDirectAccess(Dart_Handle lib,
   // Now try allocating a string with outstanding Acquires and it should
   // return an error.
   result = NewString("We expect an error here");
-  EXPECT_ERROR(result,
-               "Internal Dart data pointers have been acquired, "
-               "please release them using Dart_TypedDataReleaseData.");
+  EXPECT_ERROR(result, "Callbacks into the Dart VM are currently prohibited");
 
   // Now modify the values in the directly accessible array and then check
   // it we see the changes back in dart.
@@ -9525,39 +9523,6 @@ TEST_CASE(DartAPI_TimelineCategories) {
     EXPECT_NOTSUBSTRING("Isolate", js_str);
     EXPECT_NOTSUBSTRING("VM", js_str);
   }
-}
-
-static void HintFreedNative(Dart_NativeArguments args) {
-  int64_t size = 0;
-  EXPECT_VALID(Dart_GetNativeIntegerArgument(args, 0, &size));
-  Dart_HintFreed(size);
-}
-
-static Dart_NativeFunction HintFreed_native_lookup(Dart_Handle name,
-                                                   int argument_count,
-                                                   bool* auto_setup_scope) {
-  return HintFreedNative;
-}
-
-TEST_CASE(DartAPI_HintFreed) {
-  const char* kScriptChars = R"(
-@pragma("vm:external-name", "Test_nativeFunc")
-external void hintFreed(int size);
-void main() {
-  var v;
-  for (var i = 0; i < 100; i++) {
-    var t = [];
-    for (var j = 0; j < 10000; j++) {
-      t.add(List.filled(100, null));
-    }
-    v = t;
-    hintFreed(100 * 10000 * 4);
-  }
-})";
-  Dart_Handle lib =
-      TestCase::LoadTestScript(kScriptChars, &HintFreed_native_lookup);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
 }
 
 static void NotifyIdleShortNative(Dart_NativeArguments args) {

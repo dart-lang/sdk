@@ -1,0 +1,28 @@
+{
+  "none": {
+    "include": [
+      {
+        "path": "extra_libraries.json",
+        "target": "_none"
+      },
+      {
+        "target": "common"
+      }
+    ],
+    "libraries": {
+      "test": {
+        "patches": [
+          "patch_lib.dart"
+        ],
+        "uri": "origin_lib.dart"
+      }
+    }
+  },
+  "common": {
+    "libraries": {
+      "common": {
+        "uri": "common_lib.dart"
+      }
+    }
+  }
+}

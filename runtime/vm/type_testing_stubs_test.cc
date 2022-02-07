@@ -15,8 +15,7 @@
 #include "vm/type_testing_stubs.h"
 #include "vm/unit_test.h"
 
-#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM) ||                  \
-    defined(TARGET_ARCH_X64)
+#if !defined(TARGET_ARCH_IA32)
 
 namespace dart {
 
@@ -2267,5 +2266,4 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Reload) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_ARM64) ||  defined(TARGET_ARCH_ARM) ||          \
-        // defined(TARGET_ARCH_X64)
+#endif  // !defined(TARGET_ARCH_IA32)

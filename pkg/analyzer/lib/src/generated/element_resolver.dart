@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -74,7 +73,7 @@ import 'package:analyzer/src/generated/super_context.dart';
 /// undeclared variables (which is an error) and names in hide and show
 /// combinators that are not defined in the imported library (which is not an
 /// error).
-class ElementResolver extends SimpleAstVisitor<void> {
+class ElementResolver {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
 
@@ -112,24 +111,19 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  @override
   void visitClassDeclaration(ClassDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitCommentReference(CommentReference node) {
     _commentReferenceResolver.resolve(node);
   }
 
-  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    super.visitConstructorDeclaration(node);
     ConstructorElement element = node.declaredElement!;
     if (element is ConstructorElementImpl) {
       var redirectedNode = node.redirectedConstructor;
@@ -150,7 +144,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
   }
 
-  @override
   void visitConstructorFieldInitializer(
       covariant ConstructorFieldInitializerImpl node) {
     var fieldName = node.fieldName;
@@ -159,7 +152,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
     fieldName.staticElement = fieldElement;
   }
 
-  @override
   void visitConstructorName(covariant ConstructorNameImpl node) {
     var type = node.type2.type;
     if (type == null) {
@@ -183,22 +175,18 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
   }
 
-  @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitExportDirective(ExportDirective node) {
     var exportElement = node.element;
     if (exportElement != null) {
@@ -210,43 +198,34 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
   }
 
-  @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     _resolveMetadataForParameter(node);
-    super.visitFieldFormalParameter(node);
   }
 
-  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     _resolveMetadataForParameter(node);
   }
 
-  @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var prefixNode = node.prefix;
     if (prefixNode != null) {
@@ -272,7 +251,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
   }
 
-  @override
   void visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node) {
     var invokedConstructor = node.constructorName.staticElement;
@@ -284,17 +262,14 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
   }
 
-  @override
   void visitLibraryDirective(LibraryDirective node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitMethodInvocation(MethodInvocation node,
       {List<WhyNotPromotedGetter>? whyNotPromotedList}) {
     whyNotPromotedList ??= [];
@@ -302,22 +277,18 @@ class ElementResolver extends SimpleAstVisitor<void> {
         node as MethodInvocationImpl, whyNotPromotedList);
   }
 
-  @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitPartDirective(PartDirective node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitPartOfDirective(PartOfDirective node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitRedirectingConstructorInvocation(
       covariant RedirectingConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
@@ -348,12 +319,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
   }
 
-  @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     _resolveMetadataForParameter(node);
   }
 
-  @override
   void visitSuperConstructorInvocation(
       covariant SuperConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
@@ -406,13 +375,16 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return;
     }
     var argumentList = node.argumentList;
-    var parameters = _resolveArgumentsToFunction(argumentList, element);
+    var parameters = _resolveArgumentsToFunction(
+      argumentList,
+      element,
+      enclosingConstructor: node.thisOrAncestorOfType<ConstructorDeclaration>(),
+    );
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
   }
 
-  @override
   void visitSuperExpression(SuperExpression node) {
     var context = SuperContext.of(node);
     if (context == SuperContext.annotation || context == SuperContext.static) {
@@ -422,20 +394,16 @@ class ElementResolver extends SimpleAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.SUPER_IN_EXTENSION, node);
     }
-    super.visitSuperExpression(node);
   }
 
-  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitTypeParameter(TypeParameter node) {
     _resolveAnnotations(node.metadata);
   }
 
-  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _resolveAnnotations(node.metadata);
   }
@@ -446,23 +414,19 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// cannot be matched to a parameter. Return the parameters that correspond to
   /// the arguments, or `null` if no correspondence could be computed.
   List<ParameterElement?>? _resolveArgumentsToFunction(
-      ArgumentList argumentList, ExecutableElement? executableElement) {
+    ArgumentList argumentList,
+    ExecutableElement? executableElement, {
+    ConstructorDeclaration? enclosingConstructor,
+  }) {
     if (executableElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = executableElement.parameters;
-    return _resolveArgumentsToParameters(argumentList, parameters);
-  }
-
-  /// Given an [argumentList] and the [parameters] related to the element that
-  /// will be invoked using those arguments, compute the list of parameters that
-  /// correspond to the list of arguments. An error will be reported if any of
-  /// the arguments cannot be matched to a parameter. Return the parameters that
-  /// correspond to the arguments.
-  List<ParameterElement?> _resolveArgumentsToParameters(
-      ArgumentList argumentList, List<ParameterElement> parameters) {
     return ResolverVisitor.resolveArgumentsToParameters(
-        argumentList, parameters, _errorReporter.reportErrorForNode);
+      argumentList: argumentList,
+      parameters: executableElement.parameters,
+      errorReporter: _errorReporter,
+      enclosingConstructor: enclosingConstructor,
+    );
   }
 
   /// Resolve the names in the given [combinators] in the scope of the given

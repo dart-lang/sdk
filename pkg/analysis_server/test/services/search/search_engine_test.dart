@@ -344,6 +344,36 @@ int t;
     assertHasOne(a, 'a');
   }
 
+  Future<void>
+      test_searchReferences_parameter_ofConstructor_super_named() async {
+    var code = '''
+class A {
+  A({required int a});
+}
+class B extends A {
+  B({required super.a}); // ref
+}
+''';
+    await resolveTestCode(code);
+
+    var element = findElement.unnamedConstructor('A').parameter('a');
+    var matches = await searchEngine.searchReferences(element);
+    expect(
+      matches,
+      unorderedEquals([
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.REFERENCE &&
+              identical(
+                m.element,
+                findElement.unnamedConstructor('B').superFormalParameter('a'),
+              ) &&
+              m.sourceRange.offset == code.indexOf('a}); // ref') &&
+              m.sourceRange.length == 1;
+        }),
+      ]),
+    );
+  }
+
   Future<void> test_searchTopLevelDeclarations() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class A {}

@@ -26,12 +26,12 @@ class ServerShelfGenerator extends DefaultGenerator {
 
   @override
   String getInstallInstructions(
-    String directory,
-    String scriptPath,
-  ) =>
+    String directory, {
+    String? scriptPath,
+  }) =>
       super.getInstallInstructions(
         directory,
-        'bin/server',
+        scriptPath: 'bin/server',
       );
 }
 

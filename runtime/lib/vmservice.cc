@@ -35,6 +35,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
   virtual void VisitIsolate(Isolate* isolate) {
     isolate_ports_.Add(isolate->main_port());
     isolate_names_.Add(&String::Handle(zone_, String::New(isolate->name())));
+    isolate->set_is_service_registered(true);
   }
 
   void RegisterIsolates() {
@@ -128,10 +129,13 @@ DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 0, 1) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_ListenStream, 0, 1) {
+DEFINE_NATIVE_ENTRY(VMService_ListenStream, 0, 2) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-  bool result = Service::ListenStream(stream_id.ToCString());
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, include_privates,
+                               arguments->NativeArgAt(1));
+  bool result =
+      Service::ListenStream(stream_id.ToCString(), include_privates.value());
   return Bool::Get(result).ptr();
 #else
   return Object::null();

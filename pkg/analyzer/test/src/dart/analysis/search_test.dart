@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1390,6 +1391,46 @@ main(A<int> a) {
       _expectIdQ(main, SearchResultKind.INVOCATION, 'm(); // ref')
     ];
     await _verifyReferences(method, expected);
+  }
+
+  test_searchReferences_ParameterElement_ofConstructor_super_named() async {
+    await resolveTestCode('''
+class A {
+  A({required int a});
+}
+class B extends A {
+  B({required super.a}); // ref
+}
+''');
+    var element = findElement.unnamedConstructor('A').parameter('a');
+    var expected = [
+      _expectIdQ(
+        findElement.unnamedConstructor('B').superFormalParameter('a'),
+        SearchResultKind.REFERENCE,
+        'a}); // ref',
+      ),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_ofConstructor_super_positional() async {
+    await resolveTestCode('''
+class A {
+  A(int a);
+}
+class B extends A {
+  B(super.a); // ref
+}
+''');
+    var element = findElement.unnamedConstructor('A').parameter('a');
+    var expected = [
+      _expectIdQ(
+        findElement.unnamedConstructor('B').superFormalParameter('a'),
+        SearchResultKind.REFERENCE,
+        'a); // ref',
+      ),
+    ];
+    await _verifyReferences(element, expected);
   }
 
   test_searchReferences_ParameterElement_optionalNamed() async {

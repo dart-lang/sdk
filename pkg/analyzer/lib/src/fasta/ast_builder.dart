@@ -31,6 +31,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateExpectedButGot,
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
+        templateExtraneousModifier,
         templateInternalProblemUnhandled,
         templateUnexpectedToken;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -51,7 +52,7 @@ import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide StringToken;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show StringToken, SyntheticStringToken, SyntheticToken;
+    show KeywordToken, StringToken, SyntheticStringToken, SyntheticToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -63,6 +64,9 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         ClassDeclarationImpl,
         CompilationUnitImpl,
         ConstructorNameImpl,
+        EnumConstantArgumentsImpl,
+        ConstructorSelectorImpl,
+        EnumConstantDeclarationImpl,
         EnumDeclarationImpl,
         ExtensionDeclarationImpl,
         ImportDirectiveImpl,
@@ -1552,6 +1556,13 @@ class AstBuilder extends StackListener {
       if (superKeyword != null) {
         assert(thisKeyword == null,
             "Can't have both 'this' and 'super' in a parameter.");
+        if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
+          handleRecoverableError(
+            templateExtraneousModifier.withArguments(keyword),
+            keyword,
+            keyword,
+          );
+        }
         node = ast.superFormalParameter(
             comment: comment,
             metadata: metadata,
@@ -2801,17 +2812,17 @@ class AstBuilder extends StackListener {
   @override
   void handleEnumElement(Token beginToken) {
     debugEvent("EnumElement");
-    var arguments = pop() as MethodInvocationImpl?;
-    var constructorName = pop() as ConstructorNameImpl?;
+    var tmpArguments = pop() as MethodInvocationImpl?;
+    var tmpConstructor = pop() as ConstructorNameImpl?;
 
     if (!enableEnhancedEnums &&
-        (arguments != null ||
-            constructorName != null &&
-                (constructorName.type2.typeArguments != null ||
-                    constructorName.name != null))) {
-      Token token = arguments != null
-          ? arguments.argumentList.beginToken
-          : constructorName!.beginToken;
+        (tmpArguments != null ||
+            tmpConstructor != null &&
+                (tmpConstructor.type2.typeArguments != null ||
+                    tmpConstructor.name != null))) {
+      Token token = tmpArguments != null
+          ? tmpArguments.argumentList.beginToken
+          : tmpConstructor!.beginToken;
       var feature = ExperimentalFeatures.enhanced_enums;
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
@@ -2822,6 +2833,37 @@ class AstBuilder extends StackListener {
         token,
       );
     }
+
+    var constant = pop() as EnumConstantDeclarationImpl;
+
+    // Replace the constant to include arguments.
+    if (tmpArguments != null) {
+      TypeArgumentListImpl? typeArguments;
+      ConstructorSelectorImpl? constructorName;
+      if (tmpConstructor != null) {
+        typeArguments = tmpConstructor.type2.typeArguments;
+        var constructorNamePeriod = tmpConstructor.period;
+        var constructorNameId = tmpConstructor.name;
+        if (constructorNamePeriod != null && constructorNameId != null) {
+          constructorName = ConstructorSelectorImpl(
+            period: constructorNamePeriod,
+            name: constructorNameId,
+          );
+        }
+      }
+      constant = EnumConstantDeclarationImpl(
+        documentationComment: constant.documentationComment,
+        metadata: constant.metadata,
+        name: constant.name,
+        arguments: EnumConstantArgumentsImpl(
+          typeArguments: typeArguments,
+          constructorSelector: constructorName,
+          argumentList: tmpArguments.argumentList,
+        ),
+      );
+    }
+
+    push(constant);
   }
 
   @override

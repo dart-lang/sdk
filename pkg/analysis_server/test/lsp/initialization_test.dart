@@ -673,8 +673,18 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
   }
 
+  Future<void> test_initialize_rootPath_trailingSlash() async {
+    await initialize(rootPath: withTrailingSlash(projectFolderPath));
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
   Future<void> test_initialize_rootUri() async {
     await initialize(rootUri: projectFolderUri);
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
+  Future<void> test_initialize_rootUri_trailingSlash() async {
+    await initialize(rootUri: withTrailingSlashUri(projectFolderUri));
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
   }
 
@@ -683,11 +693,21 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
   }
 
+  Future<void> test_initialize_workspaceFolders_trailingSlash() async {
+    await initialize(
+        workspaceFolders: [withTrailingSlashUri(projectFolderUri)]);
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
   Future<void> test_nonFileScheme_rootUri() async {
     final rootUri = Uri.parse('vsls://');
     final fileUri = rootUri.replace(path: '/file1.dart');
 
-    await initialize(rootUri: rootUri);
+    await initialize(
+      rootUri: rootUri,
+      // We expect an error notification about the invalid file we try to open.
+      failTestOnAnyErrorNotification: false,
+    );
     expect(server.contextManager.includedPaths, equals([]));
 
     // Also open a non-file file to ensure it doesn't cause the root to be added.
@@ -702,10 +722,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final rootUri = Uri.parse('vsls://');
     final fileUri = rootUri.replace(path: '/file1.dart');
 
-    await initialize(workspaceFolders: [
-      rootUri,
-      Uri.file(projectFolderPath),
-    ]);
+    await initialize(
+      workspaceFolders: [
+        rootUri,
+        Uri.file(projectFolderPath),
+      ],
+      // We expect an error notification about the invalid file we try to open.
+      failTestOnAnyErrorNotification: false,
+    );
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
     // Also open a non-file file to ensure it doesn't cause the root to be added.
@@ -875,5 +899,16 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response.result, isNull);
     expect(response.error, isNotNull);
     expect(response.error!.code, ErrorCodes.ServerNotInitialized);
+  }
+
+  String withTrailingSlash(String path) {
+    expect(path, isNot(endsWith('/')));
+    final pathSeparator = server.resourceProvider.pathContext.separator;
+    return '$path$pathSeparator';
+  }
+
+  Uri withTrailingSlashUri(Uri uri) {
+    expect(uri.path, isNot(endsWith('/')));
+    return uri.replace(path: '${uri.path}/');
   }
 }

@@ -19,6 +19,8 @@ class ToStringVisitor extends RecursiveVisitor {
   /// 'package:flutter/foundation.dart'.
   final Set<String> _packageUris;
 
+  final Map<Class, bool> _inheritedKeepAnnotations = {};
+
   /// Turn 'dart:ui' into 'dart:ui', or
   /// 'package:flutter/src/semantics_event.dart' into 'package:flutter'.
   String _importUriToPackage(Uri importUri) =>
@@ -29,7 +31,18 @@ class ToStringVisitor extends RecursiveVisitor {
         .contains(_importUriToPackage(node.enclosingLibrary.importUri));
   }
 
-  bool _hasKeepAnnotation(Procedure node) {
+  bool _hasKeepAnnotation(Procedure node) =>
+      _hasPragma(node, 'flutter:keep-to-string');
+
+  bool _hasKeepAnnotationOnClass(Class node) =>
+      _hasPragma(node, 'flutter:keep-to-string-in-subtypes');
+
+  bool _hasInheritedKeepAnnotation(Class node) =>
+      _inheritedKeepAnnotations[node] ??= (_hasKeepAnnotationOnClass(node) ||
+          node.supers
+              .any((Supertype t) => _hasInheritedKeepAnnotation(t.classNode)));
+
+  bool _hasPragma(Annotatable node, String pragma) {
     for (ConstantExpression expression
         in node.annotations.whereType<ConstantExpression>()) {
       if (expression.constant is! InstanceConstant) {
@@ -43,8 +56,7 @@ class ToStringVisitor extends RecursiveVisitor {
         for (var fieldRef in constant.fieldValues.keys) {
           if (fieldRef.asField.name.text == 'name') {
             Constant? name = constant.fieldValues[fieldRef];
-            return name is StringConstant &&
-                name.value == 'flutter:keep-to-string';
+            return name is StringConstant && name.value == pragma;
           }
         }
         return false;
@@ -61,7 +73,8 @@ class ToStringVisitor extends RecursiveVisitor {
         !node.isAbstract &&
         !node.enclosingClass!.isEnum &&
         _isInTargetPackage(node) &&
-        !_hasKeepAnnotation(node)) {
+        !_hasKeepAnnotation(node) &&
+        !_hasInheritedKeepAnnotation(node.enclosingClass!)) {
       node.function.body!.replaceWith(
         ReturnStatement(
           SuperMethodInvocation(

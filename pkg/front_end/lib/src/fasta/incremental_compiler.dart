@@ -126,7 +126,7 @@ import 'kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 
 import 'kernel/internal_ast.dart' show VariableDeclarationImpl;
 
-import 'kernel/kernel_target.dart' show KernelTarget;
+import 'kernel/kernel_target.dart' show BuildResult, KernelTarget;
 
 import 'library_graph.dart' show LibraryGraph;
 
@@ -351,13 +351,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Technically, it's the combination of
       // `currentKernelTarget.loader.libraries` and
       // `_dillLoadedData.loader.libraries`.
-      Component? componentWithDill = await currentKernelTarget.buildOutlines();
+      BuildResult buildResult = await currentKernelTarget.buildOutlines();
+      Component? componentWithDill = buildResult.component;
 
       if (!outlineOnly) {
         // Checkpoint: Build the actual bodies.
-        componentWithDill =
-            await currentKernelTarget.buildComponent(verify: c.options.verify);
+        buildResult = await currentKernelTarget.buildComponent(
+            macroApplications: buildResult.macroApplications,
+            verify: c.options.verify);
+        componentWithDill = buildResult.component;
       }
+      buildResult.macroApplications?.close();
       hierarchy ??= currentKernelTarget.loader.hierarchy;
       if (currentKernelTarget.classHierarchyChanges != null) {
         hierarchy.applyTreeChanges(
@@ -390,7 +394,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Compute which libraries to output and which (previous) errors/warnings
       // we have to reissue. In the process do some cleanup too.
       List<Library> compiledLibraries =
-          new List<Library>.from(currentKernelTarget.loader.libraries);
+          new List<Library>.of(currentKernelTarget.loader.libraries);
       Map<Uri, Source> uriToSource = componentWithDill!.uriToSource;
       _experimentalCompilationPostCompilePatchup(
           experimentalInvalidation, compiledLibraries, uriToSource);
@@ -478,6 +482,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         convertedLibraries[builder] = [dillBuilder];
       }
     }
+    nextGoodKernelTarget.loader.clearSourceLibraryBuilders();
     if (changed) {
       // We suppress finalization errors because they have already been
       // reported.
@@ -521,6 +526,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
     nextGoodKernelTarget.loader.buildersCreatedWithReferences.clear();
     nextGoodKernelTarget.loader.hierarchyBuilder.clear();
+    nextGoodKernelTarget.loader.membersBuilder.clear();
     nextGoodKernelTarget.loader.referenceFromIndex = null;
     convertedLibraries = null;
     experimentalInvalidation = null;
@@ -1731,9 +1737,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         packageLanguageVersion:
             new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
         loader: lastGoodKernelTarget.loader,
-        scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder,
+        isUnsupported: libraryBuilder.isUnsupported,
       );
+      libraryBuilder.scope.forEachLocalMember((name, member) {
+        debugLibrary.scope.addLocalMember(name, member, setter: false);
+      });
+      libraryBuilder.scope.forEachLocalSetter((name, member) {
+        debugLibrary.scope.addLocalMember(name, member, setter: true);
+      });
+      libraryBuilder.scope.forEachLocalExtension((member) {
+        debugLibrary.scope.addExtension(member);
+      });
       _ticker.logMs("Created debug library");
 
       if (libraryBuilder is DillLibraryBuilder) {
@@ -2040,7 +2055,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     IncrementalKernelTarget? lastGoodKernelTarget = this._lastGoodKernelTarget;
     if (lastGoodKernelTarget != null) {
       Set<Uri> uris =
-          new Set<Uri>.from(lastGoodKernelTarget.loader.libraryImportUris);
+          new Set<Uri>.of(lastGoodKernelTarget.loader.libraryImportUris);
       uris.removeAll(_dillLoadedData!.loader.libraryImportUris);
       if (_previousSourceBuilders != null) {
         for (Library library in _previousSourceBuilders!) {
@@ -2289,9 +2304,10 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
 }
 
 class _InitializationFromComponent extends _InitializationStrategy {
-  Component componentToInitializeFrom;
+  Component? _componentToInitializeFrom;
 
-  _InitializationFromComponent(this.componentToInitializeFrom);
+  _InitializationFromComponent(Component componentToInitializeFrom)
+      : _componentToInitializeFrom = componentToInitializeFrom;
 
   @override
   Future<int> initialize(
@@ -2302,6 +2318,11 @@ class _InitializationFromComponent extends _InitializationStrategy {
       _ComponentProblems componentProblems,
       IncrementalSerializer? incrementalSerializer,
       RecorderForTesting? recorderForTesting) {
+    Component? componentToInitializeFrom = _componentToInitializeFrom;
+    _componentToInitializeFrom = null;
+    if (componentToInitializeFrom == null) {
+      throw const InitializeFromComponentError("Initialized twice.");
+    }
     dillLoadedData.ticker.logMs("About to initializeFromComponent");
 
     Component component = data.component = new Component(
@@ -2565,7 +2586,7 @@ class _ComponentProblems {
 
     // Save any new component-problems.
     _addProblemsAsJson(componentWithDill.problemsAsJson);
-    return new List<String>.from(issuedProblems);
+    return new List<String>.of(issuedProblems);
   }
 
   void saveComponentProblems(Component component) {

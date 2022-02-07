@@ -79,7 +79,6 @@ main() {
           program: 'foo.dart',
           customTool: '/custom/dart',
           noDebug: true,
-          enableAsserts: true, // to check args are still passed through
         );
 
         await adapter.configurationDoneRequest(request, null, () {});
@@ -87,8 +86,8 @@ main() {
         await responseCompleter.future;
 
         expect(adapter.executable, equals('/custom/dart'));
-        // args should be in-tact
-        expect(adapter.processArgs, contains('--enable-asserts'));
+        // a standard built-in arg should be present.
+        expect(adapter.processArgs, contains('--disable-dart-dev'));
       });
 
       test('with all args replaced', () async {
@@ -100,7 +99,6 @@ main() {
           customTool: '/custom/dart',
           customToolReplacesArgs: 9999, // replaces all built-in args
           noDebug: true,
-          enableAsserts: true, // should not be in args
           toolArgs: ['tool_args'], // should still be in args
         );
 
@@ -111,7 +109,7 @@ main() {
         expect(adapter.executable, equals('/custom/dart'));
         // normal built-in args are replaced by customToolReplacesArgs, but
         // user-provided toolArgs are not.
-        expect(adapter.processArgs, isNot(contains('--enable-asserts')));
+        expect(adapter.processArgs, isNot(contains('--disable-dart-dev')));
         expect(adapter.processArgs, contains('tool_args'));
       });
     });

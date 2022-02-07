@@ -172,31 +172,31 @@ class FindElement extends _FindElementBase {
       }
     }
 
+    void findInClasses(List<ClassElement> classes) {
+      for (var class_ in classes) {
+        findInExecutables(class_.accessors);
+        findInExecutables(class_.constructors);
+        findInExecutables(class_.methods);
+      }
+    }
+
     findInExecutables(unitElement.accessors);
     findInExecutables(unitElement.functions);
 
-    for (var alias in unitElement.typeAliases) {
-      var aliasedElement = alias.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        findIn(aliasedElement.parameters);
-      }
-    }
+    findInClasses(unitElement.classes);
+    findInClasses(unitElement.enums);
+    findInClasses(unitElement.mixins);
 
     for (var extension_ in unitElement.extensions) {
       findInExecutables(extension_.accessors);
       findInExecutables(extension_.methods);
     }
 
-    for (var mixin in unitElement.mixins) {
-      findInExecutables(mixin.accessors);
-      findInExecutables(mixin.constructors);
-      findInExecutables(mixin.methods);
-    }
-
-    for (var class_ in unitElement.classes) {
-      findInExecutables(class_.accessors);
-      findInExecutables(class_.constructors);
-      findInExecutables(class_.methods);
+    for (var alias in unitElement.typeAliases) {
+      var aliasedElement = alias.aliasedElement;
+      if (aliasedElement is GenericFunctionTypeElement) {
+        findIn(aliasedElement.parameters);
+      }
     }
 
     unit.accept(
@@ -285,6 +285,10 @@ class FindElement extends _FindElementBase {
       findInClass(class_);
     }
 
+    for (var enum_ in unitElement.enums) {
+      findInClass(enum_);
+    }
+
     for (var extension_ in unitElement.extensions) {
       findIn(extension_.typeParameters);
     }
@@ -351,21 +355,34 @@ abstract class _FindElementBase {
 
   ConstructorElement constructor(String name, {String? of}) {
     assert(name != '');
+
     ConstructorElement? result;
-    for (var class_ in unitElement.classes) {
-      if (of == null || class_.name == of) {
-        for (var constructor in class_.constructors) {
-          if (constructor.name == name) {
-            if (result != null) {
-              throw StateError('Not unique: $name');
-            }
-            result = constructor;
+
+    void findIn(List<ConstructorElement> constructors) {
+      for (var constructor in constructors) {
+        if (constructor.name == name) {
+          if (result != null) {
+            throw StateError('Not unique: $name');
           }
+          result = constructor;
         }
       }
     }
+
+    for (var class_ in unitElement.classes) {
+      if (of == null || class_.name == of) {
+        findIn(class_.constructors);
+      }
+    }
+
+    for (var enum_ in unitElement.enums) {
+      if (of == null || enum_.name == of) {
+        findIn(enum_.constructors);
+      }
+    }
+
     if (result != null) {
-      return result;
+      return result!;
     }
     throw StateError('Not found: $name');
   }
@@ -498,18 +515,25 @@ abstract class _FindElementBase {
       }
     }
 
-    for (var extension_ in unitElement.extensions) {
-      if (of != null && extension_.name != of) {
-        continue;
-      }
-      findIn(extension_.methods);
-    }
-
     for (var class_ in unitElement.classes) {
       if (of != null && class_.name != of) {
         continue;
       }
       findIn(class_.methods);
+    }
+
+    for (var enum_ in unitElement.enums) {
+      if (of != null && enum_.name != of) {
+        continue;
+      }
+      findIn(enum_.methods);
+    }
+
+    for (var extension_ in unitElement.extensions) {
+      if (of != null && extension_.name != of) {
+        continue;
+      }
+      findIn(extension_.methods);
     }
 
     for (var mixin in unitElement.mixins) {
@@ -638,6 +662,15 @@ abstract class _FindElementBase {
 }
 
 extension ExecutableElementExtensions on ExecutableElement {
+  ParameterElement parameter(String name) {
+    for (var parameter in parameters) {
+      if (parameter.name == name) {
+        return parameter;
+      }
+    }
+    throw StateError('Not found: $name');
+  }
+
   SuperFormalParameterElement superFormalParameter(String name) {
     for (var parameter in parameters) {
       if (parameter is SuperFormalParameterElement && parameter.name == name) {

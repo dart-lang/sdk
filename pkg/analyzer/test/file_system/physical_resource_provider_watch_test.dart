@@ -146,7 +146,7 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
       var file =
           PhysicalResourceProvider.INSTANCE.getResource(filePath) as File;
       var changesReceived = <WatchEvent>[];
-      var subscription = file.changes.listen(changesReceived.add);
+      var subscription = file.watch().changes.listen(changesReceived.add);
       // Delay running the rest of the test to allow file.changes propagate.
       return _delayed(() => test(changesReceived)).whenComplete(() {
         subscription.cancel();
@@ -164,7 +164,7 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
       var folder =
           PhysicalResourceProvider.INSTANCE.getResource(filePath) as Folder;
       var changesReceived = <WatchEvent>[];
-      var subscription = folder.changes.listen(changesReceived.add);
+      var subscription = folder.watch().changes.listen(changesReceived.add);
       // Delay running the rest of the test to allow folder.changes to
       // take a snapshot of the current directory state.  Otherwise it
       // won't be able to reliably distinguish new files from modified

@@ -36,7 +36,7 @@ class FixesTest extends AbstractAnalysisTest {
 
     // Set up the original project, as the code fix code won't run at all
     // if there are no contexts.
-    createProject();
+    await createProject();
     await waitForTasksFinished();
 
     var request =
@@ -49,7 +49,7 @@ class FixesTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_fixUndefinedClass() async {
-    createProject();
+    await createProject();
     addTestFile('''
 main() {
   Completer<String> x = null;
@@ -81,7 +81,7 @@ main() {
       info: Future.value(result.toResponse('-', 1))
     };
 
-    createProject();
+    await createProject();
     addTestFile('main() {}');
     await waitForTasksFinished();
     var errorFixes = await _getFixesAt('in(');
@@ -89,7 +89,7 @@ main() {
   }
 
   Future<void> test_hasFixes() async {
-    createProject();
+    await createProject();
     addTestFile('''
 foo() {
   print(1)
@@ -134,7 +134,7 @@ bar() {
   }
 
   Future<void> test_overlayOnlyFile() async {
-    createProject();
+    await createProject();
     testCode = '''
 main() {
 print(1)
@@ -167,10 +167,8 @@ bbb:${toUri('/bbb/lib')}
     newFile('/bbb/lib/target.generated.dart', content: 'class Foo() {}');
     newFile('/bbb/lib/target.template.dart', content: 'class Foo() {}');
 
-    handleSuccessfulRequest(
-        AnalysisSetAnalysisRootsParams(
-            [convertPath('/aaa'), convertPath('/bbb')], []).toRequest('0'),
-        handler: analysisHandler);
+    await setRoots(
+        included: [convertPath('/aaa'), convertPath('/bbb')], excluded: []);
 
     // Configure the test file.
     testFile = convertPath('/aaa/main.dart');

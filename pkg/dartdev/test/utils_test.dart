@@ -64,7 +64,8 @@ void main() {
       List<dynamic> _packages = contents['packages'];
       try {
         // ignore: unused_local_variable
-        List<Map<String, dynamic>> packages = _packages;
+        List<Map<String, dynamic>> packages =
+            _packages as List<Map<String, dynamic>>;
         fail('expected implicit cast to fail');
       } on TypeError {
         // TypeError is expected

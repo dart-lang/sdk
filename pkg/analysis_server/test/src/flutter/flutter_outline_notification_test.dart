@@ -65,9 +65,9 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     flutterFolder = MockPackages.instance.addFlutter(resourceProvider);
   }
 
@@ -79,6 +79,9 @@ flutter:${flutterFolder.toUri()}
 analyzer:
   strong-mode: true
 ''');
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
     var code = '''
 import 'package:flutter/widgets.dart';
 

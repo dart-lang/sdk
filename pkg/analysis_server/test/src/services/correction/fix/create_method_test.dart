@@ -415,17 +415,21 @@ class A {
     await resolveTestCode('''
 class A {
   void f() {
-    myUndefinedMethod(0, bbb: 1.0, ccc: '2');
+    var c = '2';
+    int? d;
+    myUndefinedMethod(0, bbb: 1.0, ccc: c, ddd: d);
   }
 }
 ''');
     await assertHasFix('''
 class A {
   void f() {
-    myUndefinedMethod(0, bbb: 1.0, ccc: '2');
+    var c = '2';
+    int? d;
+    myUndefinedMethod(0, bbb: 1.0, ccc: c, ddd: d);
   }
 
-  void myUndefinedMethod(int i, {double bbb, String ccc}) {}
+  void myUndefinedMethod(int i, {required double bbb, required String ccc, int? ddd}) {}
 }
 ''');
     // linked positions

@@ -11,7 +11,7 @@ void main() {
       expect(experimentalFeatures, isNotEmpty);
       expect(
         experimentalFeatures.map((experiment) => experiment.enableString),
-        contains('non-nullable'),
+        contains('super-parameters'),
       );
     });
   });

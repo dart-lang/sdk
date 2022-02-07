@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
+
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
-import 'package:front_end/src/testing/id_testing_helper.dart';
-import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/source/source_loader.dart';
+import 'package:front_end/src/fasta/source/source_member_builder.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
+import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Variance;
 
@@ -36,15 +37,15 @@ class ReachabilityDataComputer
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
       {bool? verbose}) {
-    MemberBuilderImpl memberBuilder =
-        lookupMemberBuilder(compilerResult, member) as MemberBuilderImpl;
-    member.accept(new ReachabilityDataExtractor(compilerResult, actualMap,
+    SourceMemberBuilder memberBuilder =
+        lookupMemberBuilder(testResultData.compilerResult, member)
+            as SourceMemberBuilder;
+    member.accept(new ReachabilityDataExtractor(
+        testResultData.compilerResult,
+        actualMap,
         memberBuilder.dataForTesting!.inferenceData.flowAnalysisResult));
   }
 

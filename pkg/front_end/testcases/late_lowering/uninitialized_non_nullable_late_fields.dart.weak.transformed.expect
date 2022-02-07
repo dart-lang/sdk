@@ -14,9 +14,9 @@ class A extends core::Object {
     ;
   get x() → core::int
     return this.{self::A::_#A#x#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::A::_#A#x}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("x");
-  set x(core::int #t2) → void {
+  set x(core::int x#param) → void {
     this.{self::A::_#A#x#isSet} = true;
-    this.{self::A::_#A#x} = #t2;
+    this.{self::A::_#A#x} = x#param;
   }
 }
 static method main() → dynamic {}

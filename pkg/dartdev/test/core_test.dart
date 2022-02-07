@@ -18,6 +18,7 @@ import 'package:test/test.dart';
 import 'utils.dart';
 
 void main() {
+  initGlobalState();
   group('DartdevCommand', _dartdevCommand);
   group('PackageConfig', _packageConfig);
   group('Project', _project);
@@ -45,29 +46,35 @@ void _dartdevCommand() {
 
   test('compile/js', () {
     _assertDartdevCommandProperties(
-        CompileCommand().subcommands['js'], 'js', 'compile/js');
+        CompileCommand().subcommands['js'] as DartdevCommand,
+        'js',
+        'compile/js');
   });
 
   test('compile/jit-snapshot', () {
     _assertDartdevCommandProperties(
-        CompileCommand().subcommands['jit-snapshot'],
+        CompileCommand().subcommands['jit-snapshot'] as DartdevCommand,
         'jit-snapshot',
         'compile/jit-snapshot');
   });
 
   test('compile/kernel', () {
     _assertDartdevCommandProperties(
-        CompileCommand().subcommands['kernel'], 'kernel', 'compile/kernel');
+        CompileCommand().subcommands['kernel'] as DartdevCommand,
+        'kernel',
+        'compile/kernel');
   });
 
   test('compile/exe', () {
     _assertDartdevCommandProperties(
-        CompileCommand().subcommands['exe'], 'exe', 'compile/exe');
+        CompileCommand().subcommands['exe'] as DartdevCommand,
+        'exe',
+        'compile/exe');
   });
 
   test('compile/aot-snapshot', () {
     _assertDartdevCommandProperties(
-        CompileCommand().subcommands['aot-snapshot'],
+        CompileCommand().subcommands['aot-snapshot'] as DartdevCommand,
         'aot-snapshot',
         'compile/aot-snapshot');
   });
@@ -103,9 +110,9 @@ void _packageConfig() {
 }
 
 void _project() {
-  TestProject p;
+  late TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   test('hasPubspecFile positive', () {
     p = project();
@@ -128,7 +135,7 @@ void _project() {
     Project coreProj = Project.fromDirectory(p.dir);
     expect(coreProj.hasPackageConfigFile, isTrue);
     expect(coreProj.packageConfig, isNotNull);
-    expect(coreProj.packageConfig.packages, isNotEmpty);
+    expect(coreProj.packageConfig!.packages, isNotEmpty);
   });
 
   test('hasPackageConfigFile negative', () {

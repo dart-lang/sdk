@@ -821,6 +821,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitImplicitCallReference(ImplicitCallReference node) {
+    _writeln('ImplicitCallReference');
+    _withIndent(() {
+      var properties = _Properties();
+      properties.addNode('expression', node.expression);
+      properties.addNode('typeArguments', node.typeArguments);
+      properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes);
+      _addExpression(properties, node);
+      _writeProperties(properties);
+    });
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     _writeNextCodeLine(node);
     _writeln('ImportDirective');

@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 import '../../../../client/completion_driver_test.dart';
 
-class CompletionRelevanceTest extends AbstractCompletionDriverTest {
+abstract class CompletionRelevanceTest extends AbstractCompletionDriverTest {
   @override
   bool get supportsAvailableSuggestions => true;
 

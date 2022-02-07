@@ -1700,6 +1700,78 @@ main() {
 
 @reflectiveTest
 class UnusedElementWithNullSafetyTest extends PubPackageResolutionTest {
+  test_class_isUsed_isExpression_expression() async {
+    await assertNoErrorsInCode('''
+class _A {}
+void f(Object p) {
+  if (_A() is int) {
+  }
+}
+''');
+  }
+
+  test_class_notUsed_isExpression_typeArgument() async {
+    await assertErrorsInCode(r'''
+class _A {}
+void f(Object p) {
+  if (p is List<_A>) {
+  }
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_isExpression_typeInFunctionType() async {
+    await assertErrorsInCode(r'''
+class _A {}
+void f(Object p) {
+  if (p is void Function(_A)) {
+  }
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_isExpression_typeInTypeParameter() async {
+    await assertErrorsInCode(r'''
+class _A {}
+void f(Object p) {
+  if (p is void Function<T extends _A>()) {
+  }
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_variableDeclaration() async {
+    await assertErrorsInCode('''
+class _A {}
+void f() {
+  _A? v;
+  print(v);
+}
+print(x) {}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_variableDeclaration_typeArgument() async {
+    await assertErrorsInCode('''
+class _A {}
+main() {
+  List<_A>? v;
+  print(v);
+}
+print(x) {}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
   test_optionalParameter_isUsed_genericConstructor() async {
     await assertNoErrorsInCode('''
 class C<T> {
@@ -1784,6 +1856,98 @@ void foo() {
 ''');
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
+  }
+
+  test_parameter_optionalNamed_fieldFormal_isUsed_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A(f: 0);
+''');
+  }
+
+  test_parameter_optionalNamed_fieldFormal_isUsed_factoryRedirect() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named({int? f}) = _A;
+}
+f() => _A.named(f: 0);
+''');
+  }
+
+  test_parameter_optionalNamed_fieldFormal_notUsed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
+  }
+
+  test_parameter_optionalNamed_fieldFormal_notUsed_factoryRedirect() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
+  }
+
+  test_parameter_optionalPositional_fieldFormal_isUsed_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A(0);
+''');
+  }
+
+  test_parameter_optionalPositional_fieldFormal_isUsed_factoryRedirect() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named([int a]) = _A;
+}
+f() => _A.named(0);
+''');
+  }
+
+  test_parameter_optionalPositional_fieldFormal_notUsed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
+  }
+
+  test_parameter_optionalPositional_fieldFormal_notUsed_factoryRedirect() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
   }
 
   test_typeAlias_interfaceType_isUsed_typeName_isExpression() async {

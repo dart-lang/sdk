@@ -1,0 +1,54 @@
+class A1 {
+  final int a;
+  A1(this.a);
+}
+class B1 {}
+class C1 = A1 with B1;
+class D1 extends C1 {
+  D1(super.a);
+}
+class A2 {
+  final int a;
+  A2({this.a = 0});
+}
+class B2 {}
+class C2 = A2 with B2;
+class D2 extends C2 {
+  D2({super.a});
+}
+class A3 {
+  final int a;
+  A3([this.a = 0]);
+}
+class B3 {}
+class C3 = A3 with B3;
+class D3 extends C3 {
+  D3([super.a]);
+}
+class D4 extends C4 {
+  D4([super.foo]);
+}
+class C4 = A4 with B4;
+class B4 {}
+class A4 extends AA4 {
+  A4([super.foo]);
+}
+class AA4 {
+  final int foo;
+  AA4([this.foo = 42]);
+}
+class D5 extends C5c {
+  D5([super.foo]);
+}
+class C5c = C5b with B5;
+class C5b = C5a with B5;
+class C5a = A5 with B5;
+class B5 {}
+class A5 extends AA5 {
+  A5([super.foo]);
+}
+class AA5 {
+  final int foo;
+  AA5([this.foo = 42]);
+}
+main() {}

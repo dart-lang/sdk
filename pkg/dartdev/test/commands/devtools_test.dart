@@ -14,9 +14,9 @@ void main() {
 }
 
 void devtools() {
-  TestProject p;
+  late TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   test('--help', () async {
     p = project();
@@ -37,15 +37,17 @@ void devtools() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Open DevTools'));
-    expect(result.stdout,
-        contains('Usage: dart devtools [arguments] [service protocol uri]'));
+    expect(
+        result.stdout,
+        contains(
+            'Usage: dart [vm-options] devtools [arguments] [service protocol uri]'));
 
     // Shows verbose help.
     expect(result.stdout, contains('--try-ports'));
   });
 
   group('integration', () {
-    Process process;
+    Process? process;
 
     tearDown(() {
       process?.kill();
@@ -56,8 +58,8 @@ void devtools() {
 
       // start the devtools server
       process = await p.start(['devtools', '--no-launch-browser', '--machine']);
-
-      final Stream<String> inStream = process.stdout
+      process!.stderr.transform(utf8.decoder).listen(print);
+      final Stream<String> inStream = process!.stdout
           .transform<String>(utf8.decoder)
           .transform<String>(const LineSplitter());
 
@@ -87,7 +89,7 @@ void devtools() {
       expect(contents, contains('DevTools'));
 
       // kill the process
-      process.kill();
+      process!.kill();
       process = null;
     });
   });

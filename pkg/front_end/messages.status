@@ -111,6 +111,7 @@ ConstEvalExternalFactory/analyzerCode: Fail
 ConstEvalExternalFactory/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
+ConstEvalFailedAssertionWithNonStringMessage/example: Fail
 ConstEvalFreeTypeParameter/analyzerCode: Fail
 ConstEvalFreeTypeParameter/example: Fail
 ConstEvalGetterNotFound/analyzerCode: Fail
@@ -212,9 +213,15 @@ DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 Encoding/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/example: Fail
+EnumDeclaresConstFactory/analyzerCode: Fail
+EnumDeclaresConstFactory/example: Fail
 EnumDeclaresFactory/analyzerCode: Fail
 EnumDeclaresFactory/example: Fail
+EnumEntryWithTypeArgumentsWithoutArguments/analyzerCode: Fail
+EnumEntryWithTypeArgumentsWithoutArguments/example: Fail
 EnumInstantiation/example: Fail
+EnumSupertypeOfNonAbstractClass/analyzerCode: Fail
+EnumSupertypeOfNonAbstractClass/example: Fail
 EqualityCannotBeEqualityOperand/part_wrapped_script1: Fail
 EqualityCannotBeEqualityOperand/part_wrapped_script2: Fail
 EqualityCannotBeEqualityOperand/script1: Fail

@@ -8,7 +8,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::T%>
     ;
   get x() → self::A::T%;
-  set x(covariant-by-class self::A::T% #t1) → void;
+  set x(covariant-by-class self::A::T% x#param) → void;
 }
 class B<T extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field self::B::T? _y;

@@ -254,6 +254,7 @@ class InformativeDataApplier {
         element.nameOffset = info.nameOffset;
         element.nameEnd = info.nameEnd;
         element.documentationComment = info.documentationComment;
+
         _applyToFormalParameters(
           element.parameters_unresolved,
           info.parameters,
@@ -274,30 +275,28 @@ class InformativeDataApplier {
 
   void _applyToEnumDeclaration(
     ClassElement element,
-    _InfoEnumDeclaration info,
+    _InfoClassDeclaration info,
   ) {
     element as EnumElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    forCorrespondingPairs<FieldElement, _InfoEnumConstantDeclaration>(
-      element.constants_unresolved,
-      info.constants,
-      (element, info) {
-        element as FieldElementImpl;
-        element.setCodeRange(info.codeOffset, info.codeLength);
-        element.nameOffset = info.nameOffset;
-        element.documentationComment = info.documentationComment;
-      },
+    _applyToTypeParameters(
+      element.typeParameters_unresolved,
+      info.typeParameters,
     );
+    _applyToConstructors(element.constructors, info.constructors);
+    _applyToFields(element.fields, info.fields);
+    _applyToAccessors(element.accessors, info.accessors);
+    _applyToMethods(element.methods, info.methods);
 
     var linkedData = element.linkedData as EnumElementLinkedData;
     linkedData.applyConstantOffsets = ApplyConstantOffsets(
       info.constantOffsets,
       (applier) {
         applier.applyToMetadata(element);
-        applier.applyToEnumConstants(element.constants);
+        applier.applyToTypeParameters(element.typeParameters);
       },
     );
   }
@@ -766,60 +765,6 @@ class _InfoConstructorDeclaration {
   });
 }
 
-class _InfoEnumConstantDeclaration {
-  final int codeOffset;
-  final int codeLength;
-  final int nameOffset;
-  final String? documentationComment;
-
-  factory _InfoEnumConstantDeclaration(SummaryDataReader reader) {
-    return _InfoEnumConstantDeclaration._(
-      codeOffset: reader.readUInt30(),
-      codeLength: reader.readUInt30(),
-      nameOffset: reader.readUInt30(),
-      documentationComment: reader.readStringUtf8().nullIfEmpty,
-    );
-  }
-
-  _InfoEnumConstantDeclaration._({
-    required this.codeOffset,
-    required this.codeLength,
-    required this.nameOffset,
-    required this.documentationComment,
-  });
-}
-
-class _InfoEnumDeclaration {
-  final int codeOffset;
-  final int codeLength;
-  final int nameOffset;
-  final String? documentationComment;
-  final List<_InfoEnumConstantDeclaration> constants;
-  final Uint32List constantOffsets;
-
-  factory _InfoEnumDeclaration(SummaryDataReader reader) {
-    return _InfoEnumDeclaration._(
-      codeOffset: reader.readUInt30(),
-      codeLength: reader.readUInt30(),
-      nameOffset: reader.readUInt30(),
-      documentationComment: reader.readStringUtf8().nullIfEmpty,
-      constants: reader.readTypedList(
-        () => _InfoEnumConstantDeclaration(reader),
-      ),
-      constantOffsets: reader.readUInt30List(),
-    );
-  }
-
-  _InfoEnumDeclaration._({
-    required this.codeOffset,
-    required this.codeLength,
-    required this.nameOffset,
-    required this.documentationComment,
-    required this.constants,
-    required this.constantOffsets,
-  });
-}
-
 class _InfoExport {
   final int nameOffset;
   final List<_InfoCombinator> combinators;
@@ -1163,15 +1108,15 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
-      sink.writeList2<EnumConstantDeclaration>(node.constants, (node) {
-        sink.writeUInt30(node.offset);
-        sink.writeUInt30(node.length);
-        sink.writeUInt30(node.name.offset);
-        _writeDocumentationComment(node);
-      });
+      _writeTypeParameters(node.typeParameters);
+      _writeConstructors(node.members);
+      _writeEnumFields(node.constants, node.members);
+      _writeGettersSetters(node.members);
+      _writeMethods(node.members);
       _writeOffsets(
         metadata: node.metadata,
         enumConstants: node.constants,
+        typeParameters: node.typeParameters,
       );
     });
 
@@ -1332,27 +1277,58 @@ class _InformativeDataWriter {
     sink.writeStringUtf8(commentText ?? '');
   }
 
+  void _writeEnumFields(
+    List<EnumConstantDeclaration> constants,
+    List<ClassMember> members,
+  ) {
+    var fields = members
+        .whereType<FieldDeclaration>()
+        .expand((declaration) => declaration.fields.variables)
+        .toList();
+
+    sink.writeUInt30(constants.length + fields.length);
+
+    // Write constants in the same format as fields.
+    for (var node in constants) {
+      var codeOffset = node.offset;
+      sink.writeUInt30(codeOffset);
+      sink.writeUInt30(node.end - codeOffset);
+      sink.writeUInt30(node.name.offset);
+      _writeDocumentationComment(node);
+      _writeOffsets(
+        metadata: node.metadata,
+        enumConstantArguments: node.arguments,
+      );
+    }
+
+    for (var field in fields) {
+      _writeField(field);
+    }
+  }
+
+  void _writeField(VariableDeclaration node) {
+    var codeOffset = _codeOffsetForVariable(node);
+    sink.writeUInt30(codeOffset);
+    sink.writeUInt30(node.end - codeOffset);
+    sink.writeUInt30(node.name.offset);
+    _writeDocumentationComment(node);
+
+    // TODO(scheglov) Replace with some kind of double-iterating list.
+    var declaration = node.parent!.parent as FieldDeclaration;
+
+    _writeOffsets(
+      metadata: declaration.metadata,
+      constantInitializer: node.initializer,
+    );
+  }
+
   void _writeFields(List<ClassMember> members) {
     sink.writeList<VariableDeclaration>(
       members
           .whereType<FieldDeclaration>()
           .expand((declaration) => declaration.fields.variables)
           .toList(),
-      (node) {
-        var codeOffset = _codeOffsetForVariable(node);
-        sink.writeUInt30(codeOffset);
-        sink.writeUInt30(node.end - codeOffset);
-        sink.writeUInt30(node.name.offset);
-        _writeDocumentationComment(node);
-
-        // TODO(scheglov) Replace with some kind of double-iterating list.
-        var declaration = node.parent!.parent as FieldDeclaration;
-
-        _writeOffsets(
-          metadata: declaration.metadata,
-          constantInitializer: node.initializer,
-        );
-      },
+      _writeField,
     );
   }
 
@@ -1368,6 +1344,9 @@ class _InformativeDataWriter {
         _writeTypeParameters(notDefault.typeParameters);
         _writeFormalParameters(notDefault.parameters);
       } else if (notDefault is FunctionTypedFormalParameter) {
+        _writeTypeParameters(notDefault.typeParameters);
+        _writeFormalParameters(notDefault.parameters);
+      } else if (notDefault is SuperFormalParameter) {
         _writeTypeParameters(notDefault.typeParameters);
         _writeFormalParameters(notDefault.parameters);
       } else {
@@ -1452,6 +1431,7 @@ class _InformativeDataWriter {
     NodeList<ConstructorInitializer>? constructorInitializers,
     NodeList<EnumConstantDeclaration>? enumConstants,
     TypeAnnotation? aliasedType,
+    EnumConstantArguments? enumConstantArguments,
   }) {
     var collector = _OffsetsCollector();
 
@@ -1503,6 +1483,8 @@ class _InformativeDataWriter {
       addTypeParameters(aliasedType.typeParameters);
       addFormalParameters(aliasedType.parameters);
     }
+    enumConstantArguments?.typeArguments?.accept(collector);
+    enumConstantArguments?.argumentList.arguments.accept(collector);
     sink.writeUint30List(collector.offsets);
   }
 
@@ -1590,7 +1572,7 @@ class _InfoUnit {
   final List<_InfoPart> parts;
   final List<_InfoClassDeclaration> classDeclarations;
   final List<_InfoClassTypeAlias> classTypeAliases;
-  final List<_InfoEnumDeclaration> enums;
+  final List<_InfoClassDeclaration> enums;
   final List<_InfoClassDeclaration> extensions;
   final List<_InfoMethodDeclaration> accessors;
   final List<_InfoFunctionDeclaration> functions;
@@ -1623,7 +1605,7 @@ class _InfoUnit {
         () => _InfoClassTypeAlias(reader),
       ),
       enums: reader.readTypedList(
-        () => _InfoEnumDeclaration(reader),
+        () => _InfoClassDeclaration(reader),
       ),
       extensions: reader.readTypedList(
         () => _InfoClassDeclaration(reader, nameOffsetDelta: 1),
@@ -1678,11 +1660,10 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   _OffsetsApplier(this._iterator);
 
   void applyToConstantInitializer(Element element) {
-    if (element is ConstVariableElement) {
-      var initializer = element.constantInitializer;
-      if (initializer != null) {
-        initializer.accept(this);
-      }
+    if (element is ConstFieldElementImpl && element.isEnumConstant) {
+      _applyToEnumConstantInitializer(element);
+    } else if (element is ConstVariableElement) {
+      element.constantInitializer?.accept(this);
     }
   }
 
@@ -1753,6 +1734,16 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     var identifier = node.identifier;
     if (element is ParameterElementImpl && identifier != null) {
       element.nameOffset = identifier.offset;
+    }
+  }
+
+  void _applyToEnumConstantInitializer(ConstFieldElementImpl element) {
+    var initializer = element.constantInitializer;
+    if (initializer is InstanceCreationExpression) {
+      initializer.constructorName.type2.typeArguments?.accept(this);
+      for (var argument in initializer.argumentList.arguments) {
+        argument.accept(this);
+      }
     }
   }
 }

@@ -4,10 +4,12 @@
 
 /*library: 
  compilationSequence=[
-  apply_lib_dep.dart|macro_lib_dep.dart|main_lib_dep.dart|package:macro_builder/src/macro.dart,
-  macro_lib.dart|package:macro_builder/macro_builder.dart,
+  apply_lib_dep.dart|macro_lib.dart|macro_lib_dep.dart|main_lib_dep.dart|package:_fe_analyzer_shared/src/macros/api.dart,
   apply_lib.dart|main.dart],
- macrosAreAvailable
+ macroClassIds=[macro_lib.dart/Macro1],
+ macroInstanceIds=[macro_lib.dart/Macro1/()],
+ macrosAreAvailable,
+ neededPrecompilations=[macro_lib.dart=Macro1(new)]
 */
 
 import 'apply_lib.dart';

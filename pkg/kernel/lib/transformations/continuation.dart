@@ -223,7 +223,8 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
           resultType: elementType)
         ..fileOffset = stmt.bodyOffset);
 
-    final Block body = Block([variable, stmt.body]);
+    final Block body = Block([variable, stmt.body])
+      ..fileOffset = stmt.bodyOffset;
 
     return transform(
         Block([syncForIterator, ForStatement([], condition, [], body)]));

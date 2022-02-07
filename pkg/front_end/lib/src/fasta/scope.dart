@@ -5,7 +5,7 @@
 library fasta.scope;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import 'builder/builder.dart';
 import 'builder/extension_builder.dart';
@@ -13,11 +13,6 @@ import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
 import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
-import 'kernel/body_builder.dart' show JumpTarget;
-import 'kernel/hierarchy/class_member.dart' show ClassMember;
-import 'kernel/kernel_helper.dart';
-import 'util/helpers.dart' show DelayedActionPerformer;
-
 import 'fasta_codes.dart'
     show
         LocatedMessage,
@@ -26,8 +21,13 @@ import 'fasta_codes.dart'
         templateAccessError,
         templateDuplicatedDeclarationUse,
         templateDuplicatedNamePreviouslyUsedCause;
-
+import 'kernel/body_builder.dart' show JumpTarget;
+import 'kernel/hierarchy/class_member.dart' show ClassMember;
+import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
+import 'source/source_library_builder.dart';
+import 'source/source_member_builder.dart';
+import 'util/helpers.dart' show DelayedActionPerformer;
 
 class MutableScope {
   /// Names declared in this scope.
@@ -424,6 +424,10 @@ class Scope extends MutableScope {
     _setters.forEach(f);
   }
 
+  void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
+    _extensions?.forEach(f);
+  }
+
   Iterable<Builder> get localMembers => _local.values;
 
   Iterable<MemberBuilder> get localSetters => _setters.values;
@@ -768,7 +772,10 @@ class AmbiguousBuilder extends ProblemBuilder {
   }
 }
 
-mixin ErroneousMemberBuilderMixin implements MemberBuilder {
+mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
+  @override
+  MemberDataForTesting? get dataForTesting => null;
+
   @override
   Member get member => throw new UnsupportedError('$runtimeType.member');
 
@@ -815,12 +822,18 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
 
   @override
   void buildOutlineExpressions(
-      LibraryBuilder library,
-      CoreTypes coreTypes,
+      SourceLibraryBuilder library,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
+  }
+
+  @override
+  void buildMembers(
+      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    assert(false, "Unexpected call to $runtimeType.buildMembers.");
   }
 
   @override

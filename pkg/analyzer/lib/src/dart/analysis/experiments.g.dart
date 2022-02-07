@@ -8,7 +8,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '2.16.0';
+const _currentVersion = '2.17.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -365,7 +365,7 @@ class IsExpired {
   static const bool constant_update_2018 = true;
 
   /// Expiration status of the experiment "constructor-tearoffs"
-  static const bool constructor_tearoffs = false;
+  static const bool constructor_tearoffs = true;
 
   /// Expiration status of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;
@@ -374,13 +374,13 @@ class IsExpired {
   static const bool enhanced_enums = false;
 
   /// Expiration status of the experiment "extension-methods"
-  static const bool extension_methods = false;
+  static const bool extension_methods = true;
 
   /// Expiration status of the experiment "extension-types"
   static const bool extension_types = false;
 
   /// Expiration status of the experiment "generic-metadata"
-  static const bool generic_metadata = false;
+  static const bool generic_metadata = true;
 
   /// Expiration status of the experiment "macros"
   static const bool macros = false;
@@ -389,10 +389,10 @@ class IsExpired {
   static const bool named_arguments_anywhere = false;
 
   /// Expiration status of the experiment "non-nullable"
-  static const bool non_nullable = false;
+  static const bool non_nullable = true;
 
   /// Expiration status of the experiment "nonfunction-type-aliases"
-  static const bool nonfunction_type_aliases = false;
+  static const bool nonfunction_type_aliases = true;
 
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = true;
@@ -407,7 +407,7 @@ class IsExpired {
   static const bool test_experiment = false;
 
   /// Expiration status of the experiment "triple-shift"
-  static const bool triple_shift = false;
+  static const bool triple_shift = true;
 
   /// Expiration status of the experiment "value-class"
   static const bool value_class = false;

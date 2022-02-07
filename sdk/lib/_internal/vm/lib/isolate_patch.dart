@@ -312,7 +312,7 @@ class Isolate {
   static Isolate get current => _currentIsolate;
 
   @patch
-  String get debugName => _getDebugName(controlPort);
+  String? get debugName => _getDebugName(controlPort);
 
   @patch
   static Future<Uri?> get packageRoot {

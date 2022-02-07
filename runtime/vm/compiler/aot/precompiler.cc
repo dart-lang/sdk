@@ -87,7 +87,6 @@ DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(bool, trace_bailout);
-DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DECLARE_FLAG(int, inlining_hotness);
@@ -487,10 +486,8 @@ void Precompiler::DoCompileAll() {
       // as well as other type checks.
       HierarchyInfo hierarchy_info(T);
 
-      if (FLAG_use_table_dispatch) {
-        dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
-        dispatch_table_generator_->Initialize(IG->class_table());
-      }
+      dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
+      dispatch_table_generator_->Initialize(IG->class_table());
 
       // Precompile constructors to compute information such as
       // optimized instruction count (used in inlining heuristics).
@@ -873,6 +870,17 @@ void Precompiler::ProcessFunction(const Function& function) {
               function.ToLibNamePrefixedQualifiedCString(),
               function.token_pos().ToCString(),
               Function::KindToCString(function.kind()));
+  }
+  if (function.SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
+    THR_Print(
+        "Warning: %s from %s is too large. Some optimizations have been "
+        "disabled, and the compiler might run out of memory. "
+        "Consider refactoring this code into smaller components.\n",
+        function.QualifiedUserVisibleNameCString(),
+        String::Handle(
+            Z, Library::Handle(Z, Class::Handle(Z, function.Owner()).library())
+                   .url())
+            .ToCString());
   }
 
   ASSERT(!function.is_abstract());
@@ -1446,8 +1454,6 @@ void Precompiler::AddSelector(const String& selector) {
 }
 
 void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
-  ASSERT(FLAG_use_table_dispatch);
-
   if (is_tracing()) {
     tracer_->WriteTableSelectorRef(selector->id);
   }
@@ -1459,10 +1465,6 @@ void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
 }
 
 bool Precompiler::IsHitByTableSelector(const Function& function) {
-  if (!FLAG_use_table_dispatch) {
-    return false;
-  }
-
   const int32_t selector_id = selector_map()->SelectorId(function);
   if (selector_id == compiler::SelectorMap::kInvalidSelectorId) return false;
   return seen_table_selectors_.HasKey(selector_id);
@@ -2011,7 +2013,6 @@ void Precompiler::TraceForRetainedFunctions() {
 
 void Precompiler::FinalizeDispatchTable() {
   PRECOMPILER_TIMER_SCOPE(this, FinalizeDispatchTable);
-  if (!FLAG_use_table_dispatch) return;
   HANDLESCOPE(T);
   // Build the entries used to serialize the dispatch table before
   // dropping functions, as we may clear references to Code objects.
@@ -2462,11 +2463,6 @@ void Precompiler::TraceTypesFromRetainedClasses() {
         retain = true;
       }
       if (cls.is_allocated()) {
-        retain = true;
-      }
-      if (cls.is_enum_class()) {
-        // Enum classes have live instances, so we cannot unregister
-        // them.
         retain = true;
       }
 
@@ -3124,7 +3120,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   // true. use_far_branches is always false on ia32 and x64.
   bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
-  volatile bool use_far_branches = false;
+  volatile intptr_t far_branch_level = 0;
   SpeculativeInliningPolicy speculative_policy(
       true, FLAG_max_speculative_inlining_attempts);
 
@@ -3212,7 +3208,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // (See TryCommitToParent invocation below).
       compiler::ObjectPoolBuilder object_pool_builder(
           precompiler_->global_object_pool_builder());
-      compiler::Assembler assembler(&object_pool_builder, use_far_branches);
+      compiler::Assembler assembler(&object_pool_builder, far_branch_level);
 
       CodeStatistics* function_stats = NULL;
       if (FLAG_print_instruction_stats) {
@@ -3287,8 +3283,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Compilation failed due to an out of range branch offset in the
         // assembler. We try again (done = false) with far branches enabled.
         done = false;
-        ASSERT(!use_far_branches);
-        use_far_branches = true;
+        RELEASE_ASSERT(far_branch_level < 2);
+        far_branch_level++;
       } else if (error.ptr() == Object::speculative_inlining_error().ptr()) {
         // The return value of setjmp is the deopt id of the check instruction
         // that caused the bailout.

@@ -29,7 +29,7 @@ class AnalysisHoverBazelTest extends AbstractAnalysisTest {
       content: '// generated',
     );
 
-    createProject();
+    await createProject();
 
     addTestFile('''
 class A {}
@@ -62,9 +62,9 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
   }
 
   Future<void> test_class_declaration() async {
@@ -930,6 +930,54 @@ class A {
     var hover = await prepareHover('a=');
     // element
     expect(hover.elementDescription, '[int a = 123]');
+    expect(hover.elementKind, 'parameter');
+  }
+
+  Future<void>
+      test_parameter_ofConstructor_optionalPositional_super_defaultValue_explicit() async {
+    addTestFile('''
+class A {
+  A([int a = 1]);
+}
+class B extends A {
+  B([super.a = 2]);
+}
+''');
+    var hover = await prepareHover('a = 2]');
+    // element
+    expect(hover.elementDescription, '[int a = 2]');
+    expect(hover.elementKind, 'parameter');
+  }
+
+  Future<void>
+      test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited() async {
+    addTestFile('''
+class A {
+  A([int a = 1]);
+}
+class B extends A {
+  B([super.a]);
+}
+''');
+    var hover = await prepareHover('a]');
+    // element
+    expect(hover.elementDescription, '[int a = 1]');
+    expect(hover.elementKind, 'parameter');
+  }
+
+  Future<void>
+      test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited2() async {
+    addTestFile('''
+class A {
+  A([num a = 1.2]);
+}
+class B extends A{
+  B([int super.a]);
+}
+''');
+    var hover = await prepareHover('a]');
+    // element
+    expect(hover.elementDescription, '[int a]');
     expect(hover.elementKind, 'parameter');
   }
 

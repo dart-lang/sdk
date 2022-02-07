@@ -489,6 +489,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
         EnableAssertsBit::update(value, isolate_group_flags_);
   }
 
+  void set_branch_coverage(bool value) {
+    isolate_group_flags_ =
+        BranchCoverageBit::update(value, isolate_group_flags_);
+  }
+
 #if !defined(PRODUCT)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool HasAttemptedReload() const {
@@ -1347,6 +1352,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     UpdateIsolateFlagsBit<IsKernelIsolateBit>(value);
   }
 
+  bool is_service_registered() const {
+    return LoadIsolateFlagsBit<IsServiceRegisteredBit>();
+  }
+  void set_is_service_registered(bool value) {
+    UpdateIsolateFlagsBit<IsServiceRegisteredBit>(value);
+  }
+
   const DispatchTable* dispatch_table() const {
     return group()->dispatch_table();
   }
@@ -1540,7 +1552,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
   V(CopyParentCode)                                                            \
-  V(IsSystemIsolate)
+  V(IsSystemIsolate)                                                           \
+  V(IsServiceRegistered)
 
   // Isolate specific flags.
   enum FlagBits {

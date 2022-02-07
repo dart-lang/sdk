@@ -612,14 +612,11 @@ class CompletionSuggestion implements HasToJson {
   /// if the parameterName field is omitted.
   String? parameterType;
 
-  /// The index in the list of libraries that could be imported to make this
-  /// suggestion accessible in the file where completion was requested. The
-  /// server provides this list of libraries together with suggestions, so that
-  /// information about the library can be shared for multiple suggestions.
-  /// This field is omitted if the library is already imported, so that the
-  /// suggestion can be inserted as is, or if getSuggestions was used rather
-  /// than getSuggestions2.
-  int? libraryUriToImportIndex;
+  /// True if the suggestion is for an element from a not yet imported library.
+  /// This field is omitted if the element is declared locally, or is from
+  /// library is already imported, so that the suggestion can be inserted as
+  /// is, or if getSuggestions was used rather than getSuggestions2.
+  bool? isNotImported;
 
   CompletionSuggestion(
       this.kind,
@@ -645,7 +642,7 @@ class CompletionSuggestion implements HasToJson {
       this.hasNamedParameters,
       this.parameterName,
       this.parameterType,
-      this.libraryUriToImportIndex});
+      this.isNotImported});
 
   factory CompletionSuggestion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -784,11 +781,10 @@ class CompletionSuggestion implements HasToJson {
         parameterType = jsonDecoder.decodeString(
             jsonPath + '.parameterType', json['parameterType']);
       }
-      int? libraryUriToImportIndex;
-      if (json.containsKey('libraryUriToImportIndex')) {
-        libraryUriToImportIndex = jsonDecoder.decodeInt(
-            jsonPath + '.libraryUriToImportIndex',
-            json['libraryUriToImportIndex']);
+      bool? isNotImported;
+      if (json.containsKey('isNotImported')) {
+        isNotImported = jsonDecoder.decodeBool(
+            jsonPath + '.isNotImported', json['isNotImported']);
       }
       return CompletionSuggestion(kind, relevance, completion, selectionOffset,
           selectionLength, isDeprecated, isPotential,
@@ -808,7 +804,7 @@ class CompletionSuggestion implements HasToJson {
           hasNamedParameters: hasNamedParameters,
           parameterName: parameterName,
           parameterType: parameterType,
-          libraryUriToImportIndex: libraryUriToImportIndex);
+          isNotImported: isNotImported);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'CompletionSuggestion', json);
     }
@@ -888,9 +884,9 @@ class CompletionSuggestion implements HasToJson {
     if (parameterType != null) {
       result['parameterType'] = parameterType;
     }
-    var libraryUriToImportIndex = this.libraryUriToImportIndex;
-    if (libraryUriToImportIndex != null) {
-      result['libraryUriToImportIndex'] = libraryUriToImportIndex;
+    var isNotImported = this.isNotImported;
+    if (isNotImported != null) {
+      result['isNotImported'] = isNotImported;
     }
     return result;
   }
@@ -927,7 +923,7 @@ class CompletionSuggestion implements HasToJson {
           hasNamedParameters == other.hasNamedParameters &&
           parameterName == other.parameterName &&
           parameterType == other.parameterType &&
-          libraryUriToImportIndex == other.libraryUriToImportIndex;
+          isNotImported == other.isNotImported;
     }
     return false;
   }
@@ -957,7 +953,7 @@ class CompletionSuggestion implements HasToJson {
         hasNamedParameters,
         parameterName,
         parameterType,
-        libraryUriToImportIndex,
+        isNotImported,
       ]);
 }
 
@@ -1238,12 +1234,17 @@ class Element implements HasToJson {
   /// this field will not be defined.
   String? aliasedType;
 
+  /// If the element belongs to a library, the URI of the library. Otherwise,
+  /// this field will not be defined.
+  String? libraryUri;
+
   Element(this.kind, this.name, this.flags,
       {this.location,
       this.parameters,
       this.returnType,
       this.typeParameters,
-      this.aliasedType});
+      this.aliasedType,
+      this.libraryUri});
 
   factory Element.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1293,12 +1294,18 @@ class Element implements HasToJson {
         aliasedType = jsonDecoder.decodeString(
             jsonPath + '.aliasedType', json['aliasedType']);
       }
+      String? libraryUri;
+      if (json.containsKey('libraryUri')) {
+        libraryUri = jsonDecoder.decodeString(
+            jsonPath + '.libraryUri', json['libraryUri']);
+      }
       return Element(kind, name, flags,
           location: location,
           parameters: parameters,
           returnType: returnType,
           typeParameters: typeParameters,
-          aliasedType: aliasedType);
+          aliasedType: aliasedType,
+          libraryUri: libraryUri);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'Element', json);
     }
@@ -1337,6 +1344,10 @@ class Element implements HasToJson {
     if (aliasedType != null) {
       result['aliasedType'] = aliasedType;
     }
+    var libraryUri = this.libraryUri;
+    if (libraryUri != null) {
+      result['libraryUri'] = libraryUri;
+    }
     return result;
   }
 
@@ -1353,7 +1364,8 @@ class Element implements HasToJson {
           parameters == other.parameters &&
           returnType == other.returnType &&
           typeParameters == other.typeParameters &&
-          aliasedType == other.aliasedType;
+          aliasedType == other.aliasedType &&
+          libraryUri == other.libraryUri;
     }
     return false;
   }
@@ -1368,6 +1380,7 @@ class Element implements HasToJson {
         returnType,
         typeParameters,
         aliasedType,
+        libraryUri,
       );
 }
 
@@ -1869,6 +1882,7 @@ class HighlightRegion implements HasToJson {
 ///   DYNAMIC_PARAMETER_REFERENCE
 ///   ENUM
 ///   ENUM_CONSTANT
+///   EXTENSION
 ///   FIELD
 ///   FIELD_STATIC
 ///   FUNCTION
@@ -1981,6 +1995,9 @@ class HighlightRegionType implements Enum {
 
   static const HighlightRegionType ENUM_CONSTANT =
       HighlightRegionType._('ENUM_CONSTANT');
+
+  static const HighlightRegionType EXTENSION =
+      HighlightRegionType._('EXTENSION');
 
   /// Deprecated - no longer sent.
   static const HighlightRegionType FIELD = HighlightRegionType._('FIELD');
@@ -2197,6 +2214,7 @@ class HighlightRegionType implements Enum {
     DYNAMIC_PARAMETER_REFERENCE,
     ENUM,
     ENUM_CONSTANT,
+    EXTENSION,
     FIELD,
     FIELD_STATIC,
     FUNCTION,
@@ -2301,6 +2319,8 @@ class HighlightRegionType implements Enum {
         return ENUM;
       case 'ENUM_CONSTANT':
         return ENUM_CONSTANT;
+      case 'EXTENSION':
+        return EXTENSION;
       case 'FIELD':
         return FIELD;
       case 'FIELD_STATIC':

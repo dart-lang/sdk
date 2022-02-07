@@ -482,6 +482,20 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    var element = node.declaredElement;
+    if (element is SuperFormalParameterElementImpl) {
+      var superParameter = element.superConstructorParameter;
+      computer._addRegionForToken(node.superKeyword, superParameter);
+      computer._addRegionForNode(node.identifier, superParameter);
+    }
+
+    node.type?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     /// Return the element for the type inferred for each of the variables in
     /// the given list of [variables], or `null` if not all variable have the

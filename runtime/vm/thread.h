@@ -151,6 +151,8 @@ class Thread;
     StubCode::LazySpecializeTypeTest().ptr(), nullptr)                         \
   V(CodePtr, enter_safepoint_stub_, StubCode::EnterSafepoint().ptr(), nullptr) \
   V(CodePtr, exit_safepoint_stub_, StubCode::ExitSafepoint().ptr(), nullptr)   \
+  V(CodePtr, exit_safepoint_ignore_unwind_in_progress_stub_,                   \
+    StubCode::ExitSafepointIgnoreUnwindInProgress().ptr(), nullptr)            \
   V(CodePtr, call_native_through_safepoint_stub_,                              \
     StubCode::CallNativeThroughSafepoint().ptr(), nullptr)
 
@@ -565,7 +567,10 @@ class Thread : public ThreadState {
 
   bool is_unwind_in_progress() const { return is_unwind_in_progress_; }
 
-  void StartUnwindError() { is_unwind_in_progress_ = true; }
+  void StartUnwindError() {
+    is_unwind_in_progress_ = true;
+    SetUnwindErrorInProgress(true);
+  }
 
 #if defined(DEBUG)
   void EnterCompiler() {
@@ -654,8 +659,7 @@ class Thread : public ThreadState {
   CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_X64)
+#if !defined(TARGET_ARCH_IA32)
   static intptr_t write_barrier_wrappers_thread_offset(Register reg) {
     ASSERT((kDartAvailableCpuRegs & (1 << reg)) != 0);
     intptr_t index = 0;
@@ -813,6 +817,9 @@ class Thread : public ThreadState {
    * - Bit 4 of the safepoint_state_ field is used to indicate that the thread
    *   is blocked at a (deopt)safepoint and has to be woken up once the
    *   (deopt)safepoint operation is complete.
+   * - Bit 6 of the safepoint_state_ field is used to indicate that the isolate
+   *   running on this thread has triggered unwind error, which requires
+   *   enforced exit on a transition from native back to generated.
    *
    * The safepoint execution state (described above) for a thread is stored in
    * in the execution_state_ field.
@@ -903,6 +910,19 @@ class Thread : public ThreadState {
   static uword SetBypassSafepoints(bool value, uword state) {
     return BypassSafepointsField::update(value, state);
   }
+  bool UnwindErrorInProgress() const {
+    return UnwindErrorInProgressField::decode(safepoint_state_);
+  }
+  void SetUnwindErrorInProgress(bool value) {
+    const uword mask = UnwindErrorInProgressField::mask_in_place();
+    if (value) {
+      safepoint_state_.fetch_or(mask);
+    } else {
+      safepoint_state_.fetch_and(~mask);
+    }
+  }
+
+  uword safepoint_state() { return safepoint_state_; }
 
   enum ExecutionState {
     kThreadInVM = 0,
@@ -1120,8 +1140,7 @@ class Thread : public ThreadState {
   LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_X64)
+#if !defined(TARGET_ARCH_IA32)
   uword write_barrier_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
 #endif
 
@@ -1210,6 +1229,8 @@ class Thread : public ThreadState {
                         1> {};
   class BypassSafepointsField
       : public BitField<uword, bool, BlockedForSafepointField::kNextBit, 1> {};
+  class UnwindErrorInProgressField
+      : public BitField<uword, bool, BypassSafepointsField::kNextBit, 1> {};
 
   static uword AtSafepointBits(SafepointLevel level) {
     switch (level) {

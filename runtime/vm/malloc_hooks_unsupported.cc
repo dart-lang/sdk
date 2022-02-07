@@ -69,25 +69,7 @@ bool MallocHooks::GetStats(intptr_t* used,
     return true;
   }
 #endif
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
-#if defined(DART_USE_MALLINFO2)
-  struct mallinfo2 info = mallinfo2();
-#else
-  struct mallinfo info = mallinfo();
-#endif  // defined(DART_USE_MALLINFO2)
-  *used = info.uordblks;
-  *capacity = *used + info.fordblks;
-  *implementation = "unknown";
-  return true;
-#elif defined(DART_HOST_OS_MACOS)
-  struct mstats stats = mstats();
-  *used = stats.bytes_used;
-  *capacity = stats.bytes_total;
-  *implementation = "macos";
-  return true;
-#else
   return false;
-#endif
 #else
   return false;
 #endif

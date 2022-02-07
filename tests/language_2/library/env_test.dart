@@ -5,6 +5,7 @@
 // @dart = 2.9
 
 import 'package:expect/expect.dart';
+import 'package:expect/config.dart';
 
 main() {
   const NOT_PRESENT = false;
@@ -63,18 +64,12 @@ main() {
         const bool.fromEnvironment("dart.library.io", defaultValue: false));
   }
 
-  bool hasMirrorSupport;
-  hasMirrorSupport = true; //# has_mirror_support: ok
-  hasMirrorSupport = false; //# has_no_mirror_support: ok
-
-  if (hasMirrorSupport != null) {
-    bool expectedResult = hasMirrorSupport ? true : NOT_PRESENT;
-
-    Expect.equals(
-        expectedResult,
-        const bool.fromEnvironment("dart.library.mirrors",
-            defaultValue: NOT_PRESENT));
-  }
+  bool hasMirrorSupport = !isDart2jsConfiguration &&
+      !isDdcConfiguration && !isVmAotConfiguration;
+  Expect.equals(
+      hasMirrorSupport,
+      const bool.fromEnvironment("dart.library.mirrors",
+          defaultValue: NOT_PRESENT));
 
   Expect.equals(
       NOT_PRESENT,

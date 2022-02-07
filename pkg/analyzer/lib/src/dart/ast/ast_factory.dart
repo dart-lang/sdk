@@ -385,7 +385,11 @@ class AstFactoryImpl extends AstFactory {
   EnumConstantDeclarationImpl enumConstantDeclaration(Comment? comment,
           List<Annotation>? metadata, SimpleIdentifier name) =>
       EnumConstantDeclarationImpl(
-          comment as CommentImpl?, metadata, name as SimpleIdentifierImpl);
+        documentationComment: comment as CommentImpl?,
+        metadata: metadata,
+        name: name as SimpleIdentifierImpl,
+        arguments: null,
+      );
 
   @Deprecated('Use enumDeclaration2() instead')
   @override

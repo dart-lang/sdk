@@ -87,6 +87,10 @@ ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
   set_preallocated_unhandled_exception(UnhandledException::Handle(
       zone, UnhandledException::New(Instance::Cast(out_of_memory),
                                     preallocated_stack_trace)));
+  const UnwindError& preallocated_unwind_error =
+      UnwindError::Handle(zone, UnwindError::New(String::Handle(
+                                    zone, String::New("isolate is exiting"))));
+  set_preallocated_unwind_error(preallocated_unwind_error);
 
   return Error::null();
 }
@@ -357,6 +361,8 @@ void ObjectStore::LazyInitCoreMembers() {
   if (list_class_.load() == Type::null()) {
     ASSERT(non_nullable_list_rare_type_.load() == Type::null());
     ASSERT(non_nullable_map_rare_type_.load() == Type::null());
+    ASSERT(enum_index_field_.load() == Field::null());
+    ASSERT(enum_name_field_.load() == Field::null());
     ASSERT(_object_equals_function_.load() == Function::null());
     ASSERT(_object_hash_code_function_.load() == Function::null());
     ASSERT(_object_to_string_function_.load() == Function::null());
@@ -377,6 +383,21 @@ void ObjectStore::LazyInitCoreMembers() {
     ASSERT(!cls.IsNull());
     type ^= cls.RareType();
     non_nullable_map_rare_type_.store(type.ptr());
+
+    auto& field = Field::Handle(zone);
+
+    cls = core_lib.LookupClassAllowPrivate(Symbols::_Enum());
+    ASSERT(!cls.IsNull());
+    const auto& error = cls.EnsureIsFinalized(thread);
+    ASSERT(error == Error::null());
+
+    field = cls.LookupInstanceField(Symbols::Index());
+    ASSERT(!field.IsNull());
+    enum_index_field_.store(field.ptr());
+
+    field = cls.LookupInstanceFieldAllowPrivate(Symbols::_name());
+    ASSERT(!field.IsNull());
+    enum_name_field_.store(field.ptr());
 
     auto& function = Function::Handle(zone);
 

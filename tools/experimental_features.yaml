@@ -103,7 +103,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '2.16.0'
+current-version: '2.17.0'
 
 features:
   variance:
@@ -224,3 +224,4 @@ features:
         var c = A.new;
         c();
       }
+    expired: true

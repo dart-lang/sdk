@@ -223,6 +223,7 @@
   FIELD(Thread, enter_safepoint_stub_offset)                                   \
   FIELD(Thread, execution_state_offset)                                        \
   FIELD(Thread, exit_safepoint_stub_offset)                                    \
+  FIELD(Thread, exit_safepoint_ignore_unwind_in_progress_stub_offset)          \
   FIELD(Thread, call_native_through_safepoint_stub_offset)                     \
   FIELD(Thread, call_native_through_safepoint_entry_point_offset)              \
   FIELD(Thread, fix_allocation_stub_code_offset)                               \
@@ -334,10 +335,10 @@
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \
-  ONLY_IN_ARM_ARM64_X64(RANGE(                                                 \
-      Thread, write_barrier_wrappers_thread_offset, Register, 0,               \
-      kNumberOfCpuRegisters - 1,                                               \
-      [](Register reg) { return (kDartAvailableCpuRegs & (1 << reg)) != 0; })) \
+  NOT_IN_IA32(RANGE(Thread, write_barrier_wrappers_thread_offset, Register, 0, \
+                    kNumberOfCpuRegisters - 1, [](Register reg) {              \
+                      return (kDartAvailableCpuRegs & (1 << reg)) != 0;        \
+                    }))                                                        \
                                                                                \
   SIZEOF(AbstractType, InstanceSize, UntaggedAbstractType)                     \
   SIZEOF(ApiError, InstanceSize, UntaggedApiError)                             \
@@ -350,7 +351,7 @@
   SIZEOF(CodeSourceMap, HeaderSize, UntaggedCodeSourceMap)                     \
   SIZEOF(CompressedStackMaps, ObjectHeaderSize, UntaggedCompressedStackMaps)   \
   SIZEOF(CompressedStackMaps, PayloadHeaderSize,                               \
-         UntaggedCompressedStackMaps::Payload)                                 \
+         UntaggedCompressedStackMaps::Payload::FlagsAndSizeHeader)             \
   SIZEOF(Context, header_size, UntaggedContext)                                \
   SIZEOF(Double, InstanceSize, UntaggedDouble)                                 \
   SIZEOF(DynamicLibrary, InstanceSize, UntaggedDynamicLibrary)                 \

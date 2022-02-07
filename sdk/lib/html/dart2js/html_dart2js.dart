@@ -13989,6 +13989,41 @@ class Element extends Node
 
   int get scrollWidth => JS<num>('num', '#.scrollWidth', this).round();
 
+  /**
+   * Displays this element fullscreen.
+   *
+   * ## Other resources
+   *
+   * * [Fullscreen
+   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
+   *   from MDN.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  Future<void> requestFullscreen([Map? options]) {
+    var retValue;
+    if (options != null) {
+      retValue = JS(
+          '',
+          '(#.requestFullscreen||#.webkitRequestFullscreen).call(#, #)',
+          this,
+          this,
+          this,
+          convertDartToNative_Dictionary(options));
+    } else {
+      retValue = JS(
+          '',
+          '(#.requestFullscreen||#.webkitRequestFullscreen).call(#)',
+          this,
+          this,
+          this);
+    }
+    if (retValue != null) return promiseToFuture(retValue);
+    return Future<void>.value();
+  }
+
   // To suppress missing implicit constructor warnings.
   factory Element._() {
     throw new UnsupportedError("Not supported");
@@ -14895,21 +14930,6 @@ class Element extends Node
   void _setAttributeNS(String? namespaceURI, String name, Object value) native;
 
   void setPointerCapture(int pointerId) native;
-
-  @JSName('webkitRequestFullscreen')
-  /**
-   * Displays this element fullscreen.
-   *
-   * ## Other resources
-   *
-   * * [Fullscreen
-   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
-   *   from MDN.
-   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
-   */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  void requestFullscreen() native;
 
   // From ChildNode
 

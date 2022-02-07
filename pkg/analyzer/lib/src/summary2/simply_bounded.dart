@@ -21,6 +21,10 @@ void computeSimplyBounded(Linker linker) {
         var node = walker.getNode(element);
         nodes.add(node);
       }
+      for (var element in unit.enums) {
+        var node = walker.getNode(element);
+        nodes.add(node);
+      }
       for (var element in unit.mixins) {
         var node = walker.getNode(element);
         nodes.add(node);
@@ -42,6 +46,9 @@ void computeSimplyBounded(Linker linker) {
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is ClassTypeAlias) {
       var element = node2.declaredElement as ClassElementImpl;
+      element.isSimplyBounded = node.isSimplyBounded;
+    } else if (node2 is EnumDeclaration) {
+      var element = node2.declaredElement as EnumElementImpl;
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is GenericTypeAlias) {
       var element = node2.declaredElement as TypeAliasElementImpl;
@@ -88,6 +95,14 @@ class SimplyBoundedDependencyWalker
           const <TypeAnnotation>[],
         );
       } else if (node is ClassTypeAlias) {
+        var parameters = node.typeParameters?.typeParameters;
+        graphNode = SimplyBoundedNode(
+          this,
+          node,
+          parameters ?? const <TypeParameter>[],
+          const <TypeAnnotation>[],
+        );
+      } else if (node is EnumDeclaration) {
         var parameters = node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,

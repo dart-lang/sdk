@@ -29,7 +29,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     newPubspecYamlFile('/project', 'name: project');
     newFile('/project/bin/test.dart', content: 'main() {}');
 
-    server.setAnalysisRoots('0', [convertPath('/project')], []);
+    await server.setAnalysisRoots('0', [convertPath('/project')], []);
 
     await server.onAnalysisComplete;
 

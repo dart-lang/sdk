@@ -96,6 +96,7 @@ namespace dart {
     uword /*SmiPtr*/, uword /*SmiPtr*/, uword /*SmiPtr*/)                      \
   V(void, EnterSafepoint)                                                      \
   V(void, ExitSafepoint)                                                       \
+  V(void, ExitSafepointIgnoreUnwindInProgress)                                 \
   V(ApiLocalScope*, EnterHandleScope, Thread*)                                 \
   V(void, ExitHandleScope, Thread*)                                            \
   V(LocalHandle*, AllocateHandle, ApiLocalScope*)                              \

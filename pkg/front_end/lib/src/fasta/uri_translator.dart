@@ -50,9 +50,7 @@ class UriTranslator {
   }
 
   bool isLibrarySupported(String libraryName) {
-    // TODO(sigmund): change this to `?? false` when all backends provide the
-    // `libraries.json` file by default (Issue #32657).
-    return dartLibraries.libraryInfoFor(libraryName)?.isSupported ?? true;
+    return dartLibraries.libraryInfoFor(libraryName)?.isSupported ?? false;
   }
 
   Uri? _translateDartUri(Uri uri) {

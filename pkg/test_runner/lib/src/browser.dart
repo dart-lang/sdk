@@ -14,6 +14,7 @@ String dart2jsHtml(String title, String scriptPath) {
 <html>
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta charset="utf-8">
   <meta name="dart.unittest" content="full-stack-traces">
   <title> Test $title </title>
   <style>
@@ -172,6 +173,7 @@ String dartdevcHtml(
 <html>
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta charset="utf-8">
   <meta name="dart.unittest" content="full-stack-traces">
   <title>Test $testName</title>
   <style>

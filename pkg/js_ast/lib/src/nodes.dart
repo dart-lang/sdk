@@ -126,13 +126,8 @@ abstract class BaseVisitor<T> implements NodeVisitor<T> {
   T visitVariableDeclarationList(VariableDeclarationList node) =>
       visitExpression(node);
   T visitAssignment(Assignment node) => visitExpression(node);
-  T visitVariableInitialization(VariableInitialization node) {
-    if (node.value != null) {
-      return visitAssignment(node);
-    } else {
-      return visitExpression(node);
-    }
-  }
+  T visitVariableInitialization(VariableInitialization node) =>
+      visitExpression(node);
 
   T visitConditional(Conditional node) => visitExpression(node);
   T visitNew(New node) => visitExpression(node);
@@ -338,13 +333,8 @@ abstract class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
   R visitVariableDeclarationList(VariableDeclarationList node, A arg) =>
       visitExpression(node, arg);
   R visitAssignment(Assignment node, A arg) => visitExpression(node, arg);
-  R visitVariableInitialization(VariableInitialization node, A arg) {
-    if (node.value != null) {
-      return visitAssignment(node, arg);
-    } else {
-      return visitExpression(node, arg);
-    }
-  }
+  R visitVariableInitialization(VariableInitialization node, A arg) =>
+      visitExpression(node, arg);
 
   R visitConditional(Conditional node, A arg) => visitExpression(node, arg);
   R visitNew(New node, A arg) => visitExpression(node, arg);
@@ -1162,12 +1152,13 @@ class Parentheses extends Expression {
 class Assignment extends Expression {
   final Expression leftHandSide;
   final String op; // Null, if the assignment is not compound.
-  final Expression value; // May be null, for [VariableInitialization]s.
+  final Expression value;
 
   Assignment(leftHandSide, value) : this.compound(leftHandSide, null, value);
 
   // If `this.op == null` this will be a non-compound assignment.
-  Assignment.compound(this.leftHandSide, this.op, this.value);
+  Assignment.compound(this.leftHandSide, this.op, this.value)
+      : assert(value != null);
 
   int get precedenceLevel => ASSIGNMENT;
 
@@ -1180,29 +1171,42 @@ class Assignment extends Expression {
 
   void visitChildren<T>(NodeVisitor<T> visitor) {
     leftHandSide.accept(visitor);
-    if (value != null) value.accept(visitor);
+    value.accept(visitor);
   }
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     leftHandSide.accept1(visitor, arg);
-    if (value != null) value.accept1(visitor, arg);
+    value.accept1(visitor, arg);
   }
 
   Assignment _clone() => Assignment.compound(leftHandSide, op, value);
 }
 
-class VariableInitialization extends Assignment {
-  /// [value] may be null.
-  VariableInitialization(Declaration declaration, Expression value)
-      : super(declaration, value);
+class VariableInitialization extends Expression {
+  // TODO(sra): Can [VariableInitialization] be a non-expression?
 
-  Declaration get declaration => leftHandSide;
+  final Declaration declaration;
+  final Expression value; // [value] may be null.
+
+  VariableInitialization(this.declaration, this.value);
+
+  int get precedenceLevel => ASSIGNMENT;
 
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitVariableInitialization(this);
 
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitVariableInitialization(this, arg);
+
+  void visitChildren<T>(NodeVisitor<T> visitor) {
+    declaration.accept(visitor);
+    value?.accept(visitor);
+  }
+
+  void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
+    declaration.accept1(visitor, arg);
+    value?.accept1(visitor, arg);
+  }
 
   VariableInitialization _clone() => VariableInitialization(declaration, value);
 }

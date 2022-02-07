@@ -116,6 +116,45 @@ main() {
         'Exited.',
       ]);
     });
+
+    test('removes breakpoints/pause and resumes on detach', () async {
+      final testFile = dap.createTestFile(simpleBreakpointAndThrowProgram);
+
+      final proc = await startDartProcessPaused(
+        testFile.path,
+        [],
+        cwd: dap.testAppDir.path,
+      );
+      final vmServiceUri = await waitForStdoutVmServiceBanner(proc);
+
+      // Attach to the paused script without resuming and wait for the startup
+      // pause event.
+      await Future.wait([
+        dap.client.expectStop('entry'),
+        dap.client.start(
+          launch: () => dap.client.attach(
+            vmServiceUri: vmServiceUri.toString(),
+            autoResume: false,
+            cwd: dap.testAppDir.path,
+          ),
+        ),
+      ]);
+
+      // Set a breakpoint that we expect not to be hit, as detach should disable
+      // it and resume.
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      await dap.client.setBreakpoint(testFile, breakpointLine);
+
+      // Detach using terminateRequest. Despite the name, terminateRequest is
+      // the request for a graceful detach (and disconnectRequest is the
+      // forceful shutdown).
+      await dap.client.terminate();
+
+      // Expect the process terminates (and hasn't got stuck on the breakpoint
+      // or exception).
+      await proc.exitCode;
+    });
+
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }

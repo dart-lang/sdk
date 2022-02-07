@@ -7,6 +7,7 @@
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOSX)
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)
+#if !defined(GOOGLE3)
 
 const char* kAsanDefaultOptions =
     "strict_memcmp=0 symbolize=0 check_printf=1 use_sigaltstack=1 "
@@ -21,6 +22,7 @@ __asan_default_options() {
   return kAsanDefaultOptions;
 }
 
+#endif  // !defined(GOOGLE3)
 #endif  // __has_feature(address_sanitizer)
 #endif  // defined(__has_feature)
 #endif  //  defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOSX)

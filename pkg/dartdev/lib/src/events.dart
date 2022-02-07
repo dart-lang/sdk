@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
 import 'package:usage/usage.dart';
 
 /// The [String] identifier `dartdev`, used as the category in the events sent
@@ -54,17 +53,16 @@ Map<String, String> _useCdKeys(Map<_CustomDimensions, String> parameters) {
 Future<void> sendUsageEvent(
   Analytics analytics,
   String action, {
-  String label,
-  List<String> specifiedExperiments,
-  @required int exitCode,
-  @required List<String> commandFlags,
+  String? label,
+  List<String>? specifiedExperiments,
+  required int? exitCode,
+  required List<String> commandFlags,
 }) {
   /// The category stores the name of this cli tool, 'dartdev'. This matches the
   /// pattern from the flutter cli tool which always passes 'flutter' as the
   /// category.
   final category = _dartdev;
-  commandFlags =
-      commandFlags?.where((e) => e != 'enable-experiment')?.toList() ?? [];
+  commandFlags = commandFlags.where((e) => e != 'enable-experiment').toList();
   specifiedExperiments = specifiedExperiments?.toList() ?? [];
 
   // Sort the flag lists to slightly reduce the explosion of possibilities.

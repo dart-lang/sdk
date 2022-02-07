@@ -189,6 +189,10 @@ ConstEvalFailedAssertionWithMessage:
   problemMessage: "This assertion failed with message: #stringOKEmpty"
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
+ConstEvalFailedAssertionWithNonStringMessage:
+  problemMessage: "This assertion failed with a non-String message."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
 ConstEvalNonConstantVariableGet:
   problemMessage: "The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed."
   analyzerCode: NON_CONSTANT_VALUE_IN_INITIALIZER
@@ -4460,16 +4464,6 @@ SuperBoundedHint:
   problemMessage: "If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not."
   severity: CONTEXT
 
-InferredPackageUri:
-  problemMessage: "Interpreting this as package URI, '#uri'."
-  severity: WARNING
-  frontendInternal: true
-  script:
-    "main.dart": |
-      main() {}
-    ".packages": |
-      example:./
-
 MixinApplicationIncompatibleSupertype:
   problemMessage: "'#type' doesn't implement '#type2' so it can't be used with '#type3'."
   analyzerCode: MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE
@@ -5451,8 +5445,8 @@ NewAsSelector:
   script: |
     method(dynamic d) => d.new;
 
-EnumDeclaresFactory:
-  problemMessage: "Enums can't declare factory constructors."
+EnumDeclaresConstFactory:
+  problemMessage: "Enums can't declare const factory constructors."
   correctionMessage: "Try removing the factory constructor declaration."
 
 PositionalSuperParametersAndArguments:
@@ -5461,3 +5455,9 @@ PositionalSuperParametersAndArguments:
 SuperInitializerParameter:
   problemMessage: "This is the super-initializer parameter."
   severity: CONTEXT
+
+EnumSupertypeOfNonAbstractClass:
+  problemMessage: "Non-abstract class '#name' has 'Enum' as a superinterface."
+
+EnumEntryWithTypeArgumentsWithoutArguments:
+  problemMessage: "Missing arguments in enum constructor invocation."

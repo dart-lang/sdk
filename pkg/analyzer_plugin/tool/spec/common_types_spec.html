@@ -380,16 +380,14 @@
           omitted if the parameterName field is omitted.
         </p>
       </field>
-      <field name="libraryUriToImportIndex" experimental="true" optional="true">
-        <ref>int</ref>
+      <field name="isNotImported" optional="true" experimental="true">
+        <ref>bool</ref>
         <p>
-          The index in the list of libraries that could be imported to make
-          this suggestion accessible in the file where completion was requested.
-          The server provides this list of libraries together with suggestions,
-          so that information about the library can be shared for multiple
-          suggestions. This field is omitted if the library is  already
-          imported, so that the suggestion can be inserted as is, or if
-          <tt>getSuggestions</tt> was used rather than <tt>getSuggestions2</tt>.
+          True if the suggestion is for an element from a not yet imported
+          library. This field is omitted if the element is declared locally,
+          or is from library is already imported, so that the suggestion can
+          be inserted as is, or if <tt>getSuggestions</tt> was used rather
+          than <tt>getSuggestions2</tt>.
         </p>
       </field>
     </object>
@@ -565,6 +563,13 @@
           Otherwise this field will not be defined.
         </p>
       </field>
+      <field name="libraryUri" optional="true" experimental="true">
+        <ref>String</ref>
+        <p>
+          If the element belongs to a library, the URI of the library.
+          Otherwise, this field will not be defined.
+        </p>
+      </field>
     </object>
   </type>
   <type name="ElementKind">
@@ -714,6 +719,7 @@
       </value>
       <value><code>ENUM</code></value>
       <value><code>ENUM_CONSTANT</code></value>
+      <value><code>EXTENSION</code></value>
       <value>
         <code>FIELD</code>
         <p>Deprecated - no longer sent.</p>

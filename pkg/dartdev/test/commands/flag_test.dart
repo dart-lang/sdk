@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
+  initGlobalState();
   group('command', command, timeout: longTimeout);
   group('flag', help, timeout: longTimeout);
 }
@@ -34,30 +35,28 @@ void command() {
     DartdevRunner(['--no-analytics'])
         .commands
         .forEach((String commandKey, Command command) {
-      if (command.argParser != null) {
-        if (command.name != 'help' &&
-            command.name != 'format' &&
-            command.name != 'pub' &&
-            command.name != 'test') {
-          expect(command.argParser.usageLineLength,
-              stdout.hasTerminal ? stdout.terminalColumns : null);
-        } else if (command.name == 'pub') {
-          // TODO(sigurdm): Avoid special casing here.
-          // https://github.com/dart-lang/pub/issues/2700
-          expect(command.argParser.usageLineLength,
-              stdout.hasTerminal ? stdout.terminalColumns : 80);
-        } else {
-          expect(command.argParser.usageLineLength, isNull);
-        }
+      if (command.name != 'help' &&
+          command.name != 'format' &&
+          command.name != 'pub' &&
+          command.name != 'test') {
+        expect(command.argParser.usageLineLength,
+            stdout.hasTerminal ? stdout.terminalColumns : null);
+      } else if (command.name == 'pub') {
+        // TODO(sigurdm): Avoid special casing here.
+        // https://github.com/dart-lang/pub/issues/2700
+        expect(command.argParser.usageLineLength,
+            stdout.hasTerminal ? stdout.terminalColumns : 80);
+      } else {
+        expect(command.argParser.usageLineLength, isNull);
       }
     });
   });
 }
 
 void help() {
-  TestProject p;
+  late TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   test('--help', () async {
     p = project();

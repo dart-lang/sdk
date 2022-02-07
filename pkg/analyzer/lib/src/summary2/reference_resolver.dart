@@ -114,7 +114,27 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {}
+  void visitEnumDeclaration(EnumDeclaration node) {
+    var outerScope = scope;
+
+    var element = node.declaredElement as EnumElementImpl;
+
+    scope = TypeParameterScope(scope, element.typeParameters);
+
+    node.typeParameters?.accept(this);
+    // TODO(scheglov) implement
+    // node.extendsClause?.accept(this);
+    // node.implementsClause?.accept(this);
+    // node.withClause?.accept(this);
+
+    scope = ClassScope(scope, element);
+    LinkingNodeContext(node, scope);
+
+    node.members.accept(this);
+    nodesToBuildType.addDeclaration(node);
+
+    scope = outerScope;
+  }
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {}

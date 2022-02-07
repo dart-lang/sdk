@@ -7,7 +7,6 @@
 
 #include "vm/dart.h"
 
-#include "platform/thread_sanitizer.h"
 #include "vm/app_snapshot.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/runtime_offsets_extracted.h"
@@ -51,19 +50,10 @@
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
-#if defined(USING_THREAD_SANITIZER)
-// TODO(https://github.com/dart-lang/sdk/issues/46699): Remove.
-// TODO(https://bugs.fuchsia.dev/p/fuchsia/issues/detail?id=83298): Remove.
-#include "unicode/uchar.h"
-#include "unicode/uniset.h"
-#endif
-
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
-DEFINE_FLAG(bool, keep_code, false, "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
-DECLARE_FLAG(bool, strong);
 
 Isolate* Dart::vm_isolate_ = NULL;
 int64_t Dart::start_time_micros_ = 0;
@@ -71,6 +61,7 @@ ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 Snapshot::Kind Dart::vm_snapshot_kind_ = Snapshot::kInvalid;
+Dart_ThreadStartCallback Dart::thread_start_callback_ = NULL;
 Dart_ThreadExitCallback Dart::thread_exit_callback_ = NULL;
 Dart_FileOpenCallback Dart::file_open_callback_ = NULL;
 Dart_FileReadCallback Dart::file_read_callback_ = NULL;
@@ -262,6 +253,7 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
                      Dart_IsolateShutdownCallback shutdown,
                      Dart_IsolateCleanupCallback cleanup,
                      Dart_IsolateGroupCleanupCallback cleanup_group,
+                     Dart_ThreadStartCallback thread_start,
                      Dart_ThreadExitCallback thread_exit,
                      Dart_FileOpenCallback file_open,
                      Dart_FileReadCallback file_read,
@@ -273,13 +265,6 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
                      Dart_CodeObserver* observer,
                      Dart_PostTaskCallback post_task,
                      void* post_task_data) {
-#if defined(USING_THREAD_SANITIZER)
-  // Trigger lazy initialization in ICU to avoid spurious TSAN warning.
-  // TODO(https://github.com/dart-lang/sdk/issues/46699): Remove.
-  // TODO(https://bugs.fuchsia.dev/p/fuchsia/issues/detail?id=83298): Remove.
-  u_getPropertyValueEnum(UCHAR_SCRIPT, "foo");
-#endif
-
   CheckOffsets();
 
   if (!Flags::Initialized()) {
@@ -311,6 +296,7 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
 
   UntaggedFrame::Init();
 
+  set_thread_start_callback(thread_start);
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);
@@ -343,6 +329,7 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
   Isolate::InitVM();
   UserTags::Init();
   PortMap::Init();
+  Service::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
   Api::Init();
@@ -546,6 +533,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
                  Dart_IsolateShutdownCallback shutdown,
                  Dart_IsolateCleanupCallback cleanup,
                  Dart_IsolateGroupCleanupCallback cleanup_group,
+                 Dart_ThreadStartCallback thread_start,
                  Dart_ThreadExitCallback thread_exit,
                  Dart_FileOpenCallback file_open,
                  Dart_FileReadCallback file_read,
@@ -566,9 +554,9 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   char* retval =
       DartInit(vm_isolate_snapshot, instructions_snapshot, create_group,
                initialize_isolate, shutdown, cleanup, cleanup_group,
-               thread_exit, file_open, file_read, file_write, file_close,
-               entropy_source, get_service_assets, start_kernel_isolate,
-               observer, post_task, post_task_data);
+               thread_start, thread_exit, file_open, file_read, file_write,
+               file_close, entropy_source, get_service_assets,
+               start_kernel_isolate, observer, post_task, post_task_data);
   if (retval != NULL) {
     init_state_.ResetInitializing();
     return retval;
@@ -802,6 +790,7 @@ char* Dart::Cleanup() {
   ShutdownIsolate();
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
+  Service::Cleanup();
   PortMap::Cleanup();
   UserTags::Cleanup();
   IsolateGroup::Cleanup();
@@ -1204,7 +1193,10 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 #else
     buffer.AddString(" x64-sysv");
 #endif
-
+#elif defined(TARGET_ARCH_RISCV32)
+    buffer.AddString(" riscv32");
+#elif defined(TARGET_ARCH_RISCV64)
+    buffer.AddString(" riscv64");
 #else
 #error What architecture?
 #endif

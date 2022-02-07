@@ -67,8 +67,8 @@ constants  {
   #C9 = 2
   #C10 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C9, dimension2:#C9, dimension3:#C9, dimension4:#C6, dimension5:#C6, dimensions:#C6}
   #C11 = 0
-  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
-  #C13 = <core::int*>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
+  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
+  #C13 = <core::int*>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
   #C14 = <core::int*>[#C9, #C9]
   #C15 = "vm:prefer-inline"
   #C16 = core::pragma {name:#C15, options:#C6}
@@ -84,5 +84,5 @@ Extra constant evaluation: evaluated: 110, effectively constant: 2
 
 Constructor coverage from constants:
 org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:
-- _ArraySize. (from org-dartlang-sdk:///sdk/lib/ffi/ffi.dart:138:9)
+- _ArraySize. (from org-dartlang-sdk:///sdk/lib/ffi/ffi.dart:139:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

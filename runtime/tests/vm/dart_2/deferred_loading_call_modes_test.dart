@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--use_table_dispatch=false
-// VMOptions=--use_table_dispatch=true
-
 import "splay_test.dart" deferred as splay; // Some non-trivial code.
 
 main() async {

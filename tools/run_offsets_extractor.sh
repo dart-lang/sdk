@@ -45,6 +45,8 @@ run release ia32 ReleaseIA32
 run release simarm64 ReleaseSIMARM64
 run release x64c ReleaseX64C
 run release simarm64c ReleaseSIMARM64C
+run release simriscv32 ReleaseSIMRISCV32
+run release simriscv64 ReleaseSIMRISCV64
 echo "" >>"$TEMP_JIT"
 echo "" >>"$TEMP_AOT"
 echo "#else  // !defined(PRODUCT)" >>"$TEMP_JIT"
@@ -55,6 +57,8 @@ run product ia32 ProductIA32
 run product simarm64 ProductSIMARM64
 run product x64c ProductX64C
 run product simarm64c ProductSIMARM64C
+run product simriscv32 ProductSIMRISCV32
+run product simriscv64 ProductSIMRISCV64
 echo "" >>"$TEMP_JIT"
 echo "" >>"$TEMP_AOT"
 echo "#endif  // !defined(PRODUCT)" >>"$TEMP_JIT"
