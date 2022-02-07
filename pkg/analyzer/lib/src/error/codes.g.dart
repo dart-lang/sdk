@@ -5984,6 +5984,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the superclass
+   */
+  static const CompileTimeErrorCode
+      IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS = CompileTimeErrorCode(
+    'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
+    "The implicitly invoked unnamed constructor from '{0}' has required "
+        "parameters.",
+    correctionMessage:
+        "Try adding an explicit super initializer with the required arguments.",
+  );
+
+  /**
+   * Parameters:
    * 0: the name of the instance member
    */
   // #### Description
@@ -6040,28 +6053,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try replacing the reference to the instance member with a different "
         "expression",
     hasPublishedDocs: true,
-  );
-
-  static const CompileTimeErrorCode
-      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT =
-      CompileTimeErrorCode(
-    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT',
-    "The named parameter '{0}' is required in the implicitly invoked unnamed "
-        "constructor of '{1}'.",
-    correctionMessage:
-        "Try declaring corresponding named super-parameter, or explicitly "
-        "invoking a different constructor.",
-  );
-
-  static const CompileTimeErrorCode
-      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS =
-      CompileTimeErrorCode(
-    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    "The implicitly invoked unnamed constructor of '{0}' expects {1} "
-        "positional arguments, but {2} found.",
-    correctionMessage:
-        "Try declaring positional super-parameters, or explicitly invoking a "
-        "different constructor.",
   );
 
   /**

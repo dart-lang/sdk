@@ -200,11 +200,8 @@ class B extends A {
   B();
 }
 ''', [
-      error(
-          CompileTimeErrorCode
-              .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT,
-          58,
-          1),
+      error(CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
+          58, 1),
     ]);
   }
 
@@ -239,11 +236,8 @@ class B extends A {
   B({required super.a});
 }
 ''', [
-      error(
-          CompileTimeErrorCode
-              .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT,
-          75,
-          1),
+      error(CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
+          75, 1),
     ]);
   }
 
@@ -278,11 +272,8 @@ class B extends A {
   B();
 }
 ''', [
-      error(
-          CompileTimeErrorCode
-              .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS,
-          42,
-          1),
+      error(CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
+          42, 1),
     ]);
   }
 
