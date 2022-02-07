@@ -246,8 +246,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
-        _duplicateDefinitionVerifier =
-            DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
+        _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
+            _inheritanceManager, _currentLibrary, errorReporter) {
     _isInSystemLibrary = _currentLibrary.source.uri.isScheme('dart');
     _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;
@@ -561,14 +561,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitEnumDeclaration(EnumDeclaration node) {
     var outerClass = _enclosingClass;
     try {
-      _enclosingClass = node.declaredElement;
+      var element = node.declaredElement as EnumElementImpl;
+      _enclosingClass = element;
       _duplicateDefinitionVerifier.checkEnum(node);
 
-      // TODO(scheglov) implement
-      // List<ClassMember> members = node.members;
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      // _checkForConflictingClassTypeVariableErrorCodes();
+      _checkForConflictingEnumTypeVariableErrorCodes(element);
       var implementsClause = node.implementsClause;
       var withClause = node.withClause;
 
@@ -578,8 +577,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       // TODO(scheglov) implement
       // _checkForConflictingClassMembers();
-      // _constructorFieldsVerifier.enterClass(node);
-      // _checkForFinalNotInitializedInClass(members);
+      _constructorFieldsVerifier.enterEnum(node);
+      _checkForFinalNotInitializedInClass(node.members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction(node.name);
 
@@ -1841,6 +1840,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS;
         errorReporter.reportErrorForElement(code, typeParameter, [name]);
+      }
+    }
+  }
+
+  void _checkForConflictingEnumTypeVariableErrorCodes(
+    EnumElementImpl element,
+  ) {
+    for (var typeParameter in element.typeParameters) {
+      var name = typeParameter.name;
+      // name is same as the name of the enclosing enum
+      if (element.name == name) {
+        errorReporter.reportErrorForElement(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM,
+          typeParameter,
+          [name],
+        );
+      }
+      // check members
+      if (element.getMethod(name) != null ||
+          element.getGetter(name) != null ||
+          element.getSetter(name) != null) {
+        errorReporter.reportErrorForElement(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM,
+          typeParameter,
+          [name],
+        );
       }
     }
   }

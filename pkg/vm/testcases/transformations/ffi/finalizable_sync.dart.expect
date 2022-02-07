@@ -1,0 +1,32 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class MyFinalizable extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::MyFinalizable
+    : super core::Object::•()
+    ;
+  method use() → core::int {
+    return block {
+      final core::int :expressionValueWrappedFinalizable = self::doSomething();
+      _in::reachabilityFence(this);
+    } =>:expressionValueWrappedFinalizable;
+  }
+}
+static method doSomething() → core::int
+  return 3;
+static method useFinalizableSync(ffi::Finalizable finalizable) → core::int {
+  return block {
+    final core::int :expressionValueWrappedFinalizable = self::doSomething();
+    _in::reachabilityFence(finalizable);
+  } =>:expressionValueWrappedFinalizable;
+}
+static method main() → void {
+  final self::MyFinalizable finalizable = new self::MyFinalizable::•();
+  core::print(self::useFinalizableSync(finalizable));
+  _in::reachabilityFence(finalizable);
+}

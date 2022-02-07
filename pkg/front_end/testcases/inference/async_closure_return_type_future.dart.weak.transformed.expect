@@ -6,7 +6,7 @@ import "dart:core" as core;
 static field () →* asy::Future<core::int*>* f = () → asy::Future<core::int*>* /* originally async */ {
   final asy::_Future<core::int*>* :async_future = new asy::_Future::•<core::int*>();
   core::bool* :is_sync = false;
-  FutureOr<core::int*>* :return_value;
+  core::int? :return_value;
   (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
@@ -18,7 +18,7 @@ static field () →* asy::Future<core::int*>* f = () → asy::Future<core::int*>
         :return_value = 0;
         break #L1;
       }
-      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+      asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
     }
     on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {

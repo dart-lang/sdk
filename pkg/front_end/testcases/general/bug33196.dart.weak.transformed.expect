@@ -12,7 +12,7 @@ static method main() → dynamic {
 static method returnsString() → FutureOr<core::String*>* /* originally async */ {
   final asy::_Future<core::String*>* :async_future = new asy::_Future::•<core::String*>();
   core::bool* :is_sync = false;
-  FutureOr<core::String*>* :return_value;
+  core::String? :return_value;
   (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
@@ -24,7 +24,7 @@ static method returnsString() → FutureOr<core::String*>* /* originally async *
         :return_value = "oh no";
         break #L1;
       }
-      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+      asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
     }
     on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {

@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// A contributor for calculating suggestions for imported top level members.
@@ -27,8 +28,11 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     for (var importElement in imports) {
       var libraryElement = importElement.importedLibrary;
       if (libraryElement != null) {
-        _buildSuggestions(importElement.namespace,
-            prefix: importElement.prefix?.name);
+        _buildSuggestions(
+          libraryElement: libraryElement,
+          namespace: importElement.namespace,
+          prefix: importElement.prefix?.name,
+        );
         if (libraryElement.isDartCore &&
             request.opType.includeTypeNameSuggestions) {
           builder.suggestName('Never');
@@ -37,10 +41,16 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     }
   }
 
-  void _buildSuggestions(Namespace namespace, {String? prefix}) {
+  void _buildSuggestions({
+    required LibraryElement libraryElement,
+    required Namespace namespace,
+    String? prefix,
+  }) {
+    builder.libraryUriStr = libraryElement.source.uri.toString();
     var visitor = LibraryElementSuggestionBuilder(request, builder, prefix);
     for (var elem in namespace.definedNames.values) {
       elem.accept(visitor);
     }
+    builder.libraryUriStr = null;
   }
 }

@@ -46,7 +46,7 @@ import 'package:collection/collection.dart';
 
 /// A concrete implementation of a [ClassElement].
 abstract class AbstractClassElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, HasCompletionData
     implements ClassElement {
   /// The superclass of the class, or `null` for [Object].
   InterfaceType? _supertype;
@@ -2803,7 +2803,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
 /// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, HasCompletionData
     implements ExecutableElement, ElementImplWithFunctionType {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -3472,6 +3472,11 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
   }
+}
+
+/// This mixins is added to elements that can have cache completion data.
+mixin HasCompletionData {
+  Object? completionData;
 }
 
 /// A concrete implementation of a [HideElementCombinator].
@@ -5103,12 +5108,12 @@ class PropertyAccessorElementImpl_ImplicitGetter
 
   @override
   Element get nonSynthetic {
-    if (enclosingElement is EnumElementImpl) {
-      if (name == 'index' || name == 'values') {
-        return enclosingElement;
-      }
+    final variable = this.variable;
+    if (!variable.isSynthetic) {
+      return variable;
     }
-    return variable;
+    assert(enclosingElement is EnumElementImpl);
+    return enclosingElement;
   }
 
   @override
@@ -5435,6 +5440,7 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
 
 /// A concrete implementation of a [TopLevelVariableElement].
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
+    with HasCompletionData
     implements TopLevelVariableElement {
   /// Initialize a newly created synthetic top-level variable element to have
   /// the given [name] and [offset].

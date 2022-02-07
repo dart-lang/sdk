@@ -251,10 +251,18 @@ extension CompletionSuggestionExtension
   }
 
   @useResult
+  CheckTarget<String?> get libraryUri {
+    return nest(
+      value.suggestion.libraryUri,
+      (selected) => 'has libraryUri ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
   CheckTarget<String?> get libraryUriToImport {
     return nest(
       value.suggestion.isNotImported == true
-          ? value.suggestion.element?.libraryUri
+          ? value.suggestion.libraryUri
           : null,
       (selected) => 'has libraryUriToImport ${valueStr(selected)}',
     );

@@ -65,7 +65,8 @@ main() {
     });
 
     test('compile', () async {
-      IncrementalCompiler compiler = new IncrementalCompiler(options, main.uri);
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(options, [main.uri]);
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
 
@@ -84,7 +85,7 @@ main() {
       CompilerOptions optionsExcludeSources = getFreshOptions()
         ..embedSourceText = false;
       IncrementalCompiler compiler =
-          new IncrementalCompiler(optionsExcludeSources, main.uri);
+          new IncrementalCompiler(optionsExcludeSources, [main.uri]);
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
 
@@ -111,7 +112,7 @@ main() {
           message.plainTextFormatted.forEach(print);
         };
       IncrementalCompiler compiler =
-          new IncrementalCompiler(optionsAcceptErrors, main.uri);
+          new IncrementalCompiler(optionsAcceptErrors, [main.uri]);
       await compiler.compile();
       compiler.accept();
       {
@@ -362,7 +363,8 @@ main() {
       Directory dir = mytest.createTempSync();
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
-      IncrementalCompiler compiler = new IncrementalCompiler(options, main.uri);
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(options, [main.uri]);
       await compileAndSerialize(mainDill, libDill, compiler);
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
@@ -389,7 +391,8 @@ main() {
       Directory dir = mytest.createTempSync();
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
-      IncrementalCompiler compiler = new IncrementalCompiler(options, lib.uri);
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(options, [lib.uri]);
       await compileAndSerialize(mainDill, libDill, compiler);
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
@@ -453,7 +456,8 @@ main() {
       Directory dir = mytest.createTempSync();
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
-      IncrementalCompiler compiler = new IncrementalCompiler(options, main.uri);
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(options, [main.uri]);
       await compileAndSerialize(mainDill, libDill, compiler);
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
@@ -481,7 +485,8 @@ main() {
       Directory dir = mytest.createTempSync();
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
-      IncrementalCompiler compiler = new IncrementalCompiler(options, main.uri);
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(options, [main.uri]);
       await compileAndSerialize(mainDill, libDill, compiler);
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
@@ -642,7 +647,8 @@ main() {
       // Note that it's called 'lib1' to match with expectations from coverage
       // collector helper in this file.
       File libDill = File(p.join(dir.path, p.basename(lib1.path + ".dill")));
-      IncrementalCompiler compiler = new IncrementalCompiler(options, lib1.uri);
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(options, [lib1.uri]);
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
       expect(component.libraries.length, equals(1));
@@ -672,7 +678,7 @@ main() {
       // Then compile lib, run and verify coverage (un-named constructor
       // covered, and the named constructor coveraged too).
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
-      compilerResult = await compiler.compile(entryPoint: main.uri);
+      compilerResult = await compiler.compile(entryPoints: [main.uri]);
       component = compilerResult.component;
       expect(component.libraries.length, equals(1));
       expect(component.libraries.single.fileUri, equals(main.uri));
@@ -730,7 +736,7 @@ main() {
       int newLineForUnnamedConstructor = 8;
       int newLineForNamedConstructor = 9;
       compiler.invalidate(lib1.uri);
-      compilerResult = await compiler.compile(entryPoint: lib1.uri);
+      compilerResult = await compiler.compile(entryPoints: [lib1.uri]);
       component = compilerResult.component;
       expect(component.libraries.length, equals(1));
       expect(component.libraries.single.fileUri, equals(lib1.uri));
@@ -848,7 +854,8 @@ main() {
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       File lib1Dill = File(p.join(dir.path, p.basename(lib1.path + ".dill")));
       File lib2Dill = File(p.join(dir.path, p.basename(lib2.path + ".dill")));
-      IncrementalCompiler compiler = new IncrementalCompiler(options, main.uri);
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(options, [main.uri]);
       await compileAndSerialize(mainDill, lib1Dill, lib2Dill, compiler);
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
@@ -926,7 +933,8 @@ main() {
       fileBaz.writeAsStringSync("import 'dart:isolate';\n"
           "openReceivePortSoWeWontDie() { new RawReceivePort(); }\n");
 
-      IncrementalCompiler compiler = new IncrementalCompiler(options, file.uri);
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(options, [file.uri]);
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
 
@@ -1046,10 +1054,10 @@ main() {
       CompilerOptions optionsModified = getFreshOptions()
         ..packagesFileUri = packageUri;
       IncrementalCompiler compiler =
-          new IncrementalCompiler(optionsModified, packageEntry);
+          new IncrementalCompiler(optionsModified, [packageEntry]);
       {
         IncrementalCompilerResult compilerResult =
-            await compiler.compile(entryPoint: packageEntry);
+            await compiler.compile(entryPoints: [packageEntry]);
         Component component = compilerResult.component;
         File outputFile = new File('${mytest.path}/foo.dart.dill');
         await _writeProgramToFile(component, outputFile);
@@ -1075,7 +1083,7 @@ main() {
       compiler.invalidate(barUri);
       {
         IncrementalCompilerResult compilerResult =
-            await compiler.compile(entryPoint: packageEntry);
+            await compiler.compile(entryPoints: [packageEntry]);
         Component component = compilerResult.component;
         File outputFile = new File('${mytest.path}/foo1.dart.dill');
         await _writeProgramToFile(component, outputFile);
@@ -1124,12 +1132,12 @@ main() {
           ExperimentalFlag.alternativeInvalidationStrategy] = true;
 
       final IncrementalCompiler compiler =
-          new IncrementalCompiler(optionsModified, fooUri);
+          new IncrementalCompiler(optionsModified, [fooUri]);
       Library fooLib;
       Library barLib;
       {
         final IncrementalCompilerResult compilerResult =
-            await compiler.compile(entryPoint: fooUri);
+            await compiler.compile(entryPoints: [fooUri]);
         final Component component = compilerResult.component;
         expect(component.libraries.length, equals(2));
         fooLib = component.libraries.firstWhere((lib) => lib.fileUri == fooUri);
@@ -1168,7 +1176,7 @@ main() {
       compiler.invalidate(barUri);
       {
         final IncrementalCompilerResult compilerResult =
-            await compiler.compile(entryPoint: fooUri);
+            await compiler.compile(entryPoints: [fooUri]);
         final Component component = compilerResult.component;
         final Library? fooLib2 = component.libraries
             .firstWhereOrNull((lib) => lib.fileUri == fooUri);
@@ -1345,7 +1353,7 @@ main() {
         int extra() { return 22; }
       """);
       IncrementalCompiler compiler =
-          new IncrementalCompiler(options, mainFile.uri);
+          new IncrementalCompiler(options, [mainFile.uri]);
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
       File mainDill = new File.fromUri(mainFile.uri.resolve("main.dill"));
@@ -1419,7 +1427,7 @@ main() {
         }
       """);
       IncrementalCompiler compiler =
-          new IncrementalCompiler(options, mainFile.uri);
+          new IncrementalCompiler(options, [mainFile.uri]);
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
       File mainDill = new File.fromUri(mainFile.uri.resolve("main.dill"));
@@ -1595,7 +1603,7 @@ main() {
         CompilerOptions optionsModified = getFreshOptions()
           ..packagesFileUri = packagesFile.uri;
         IncrementalCompiler compiler =
-            new IncrementalCompiler(optionsModified, mainUri);
+            new IncrementalCompiler(optionsModified, [mainUri]);
 
         IncrementalCompilerResult compilerResult = await compiler.compile();
         Component component = compilerResult.component;

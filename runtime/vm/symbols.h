@@ -288,6 +288,7 @@ class ObjectPointerVisitor;
   V(_CombinatorMirror, "_CombinatorMirror")                                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
+  V(_CompleteWithNoFutureOnAsyncReturn, "_completeWithNoFutureOnAsyncReturn")  \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
   V(_CompleteOnAsyncError, "_completeOnAsyncError")                            \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \

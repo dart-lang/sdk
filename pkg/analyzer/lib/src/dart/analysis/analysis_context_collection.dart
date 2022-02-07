@@ -14,7 +14,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:cli_util/cli_util.dart';
+import 'package:analyzer/src/util/sdk.dart';
 
 /// An implementation of [AnalysisContextCollection].
 class AnalysisContextCollectionImpl implements AnalysisContextCollection {

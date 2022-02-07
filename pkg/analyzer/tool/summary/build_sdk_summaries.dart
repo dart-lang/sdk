@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:cli_util/cli_util.dart';
+import 'package:analyzer/src/util/sdk.dart';
 
 void main(List<String> args) {
   String command;

@@ -1,0 +1,19 @@
+import 'dart:async';
+
+Future<Object> returnsAwaitFutureOrObject() async =>
+    await getFutureOr<Object>(Object());
+Future<Object> returnsFutureObject() async => getFuture<Object>(Object());
+Future<Object> returnsFutureOrObject() async => getFutureOr<Object>(Object());
+Future<Object> returnsObject() async => Object();
+Future<String> returnsAwaitFutureOrString() async =>
+    await getFutureOr<String>('a');
+Future<String> returnsFutureOrString() async => getFutureOr<String>('a');
+Future<String> returnsFutureString() async => getFuture<String>('a');
+Future<String> returnsString() async => 'a';
+Future<T> getFuture<T>(T v) async => v;
+FutureOr<Object> returnsAwaitFutureObject() async =>
+    await getFuture<Object>(Object());
+FutureOr<String> returnsAwaitFutureString() async =>
+    await getFuture<String>('a');
+FutureOr<T> getFutureOr<T>(T v) async => v;
+main() async {}

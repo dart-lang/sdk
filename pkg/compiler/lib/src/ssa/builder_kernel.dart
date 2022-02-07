@@ -2391,15 +2391,34 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   void visitAsExpression(ir.AsExpression node) {
-    ir.Expression operand = node.operand;
+    // Recognize these special cases, where expression e has static type `T?`:
+    //
+    //     e as T
+    //     (e as dynamic) as T
+    //
+    // These patterns can only fail if `e` results in a `null` value.  The
+    // second pattern occurs when `e as dynamic` is used get an implicit
+    // downcast in order to make use of the different policies for explicit and
+    // implicit downcasts.
+    //
+    // The pattern match is syntactic which ensures the type bindings are
+    // consistent, i.e. from the same instance of a type variable scope.
+    ir.Expression operand = _skipCastsToDynamic(node.operand);
     operand.accept(this);
+
+    bool isNullRemovalPattern = false;
 
     StaticType operandType = _getStaticType(operand);
     DartType type = _elementMap.getDartType(node.type);
-    if (!node.isCovarianceCheck &&
-        _elementMap.types.isSubtype(operandType.type, type)) {
-      // Skip unneeded casts.
-      return;
+    if (!node.isCovarianceCheck) {
+      if (_elementMap.types.isSubtype(operandType.type, type)) {
+        // Skip unneeded casts.
+        return;
+      }
+      if (_elementMap.types
+          .isSubtype(operandType.type, _elementMap.types.nullableType(type))) {
+        isNullRemovalPattern = true;
+      }
     }
 
     SourceInformation sourceInformation =
@@ -2420,7 +2439,12 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           .getExplicitCastCheckPolicy(_currentFrame.member);
     }
 
-    if (policy.isEmitted) {
+    if (!policy.isEmitted) {
+      stack.add(expressionInstruction);
+      return;
+    }
+
+    void generateCheck() {
       HInstruction converted = _typeBuilder.buildAsCheck(
           expressionInstruction, localsHandler.substInContext(type),
           isTypeError: node.isTypeError, sourceInformation: sourceInformation);
@@ -2428,9 +2452,34 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         add(converted);
       }
       stack.add(converted);
-    } else {
-      stack.add(expressionInstruction);
     }
+
+    if (isNullRemovalPattern) {
+      // Generate a conditional to test only `null` values:
+      //
+      //     temp = e;
+      //     temp == null ? temp as T : temp
+      SsaBranchBuilder(this).handleConditional(
+          () {
+            push(HIdentity(
+                expressionInstruction,
+                graph.addConstantNull(closedWorld),
+                _abstractValueDomain.boolType));
+          },
+          generateCheck,
+          () {
+            stack.add(expressionInstruction);
+          });
+    } else {
+      generateCheck();
+    }
+  }
+
+  static ir.Expression _skipCastsToDynamic(ir.Expression node) {
+    if (node is ir.AsExpression && node.type is ir.DynamicType) {
+      return _skipCastsToDynamic(node.operand);
+    }
+    return node;
   }
 
   @override

@@ -305,6 +305,7 @@ final Matcher isCompletionSuggestion =
           'hasNamedParameters': isBool,
           'parameterName': isString,
           'parameterType': isString,
+          'libraryUri': isString,
           'isNotImported': isBool
         }));
 
@@ -384,8 +385,7 @@ final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
       'parameters': isString,
       'returnType': isString,
       'typeParameters': isString,
-      'aliasedType': isString,
-      'libraryUri': isString
+      'aliasedType': isString
     }));
 
 /// ElementDeclaration

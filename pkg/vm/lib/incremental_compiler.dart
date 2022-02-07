@@ -29,45 +29,44 @@ class IncrementalCompiler {
   bool initialized = false;
   bool fullComponent = false;
   Uri? initializeFromDillUri;
-  Uri _entryPoint;
+  List<Uri> _entryPoints;
   final bool forExpressionCompilationOnly;
 
-  Uri get entryPoint => _entryPoint;
+  List<Uri> get entryPoints => _entryPoints;
   IncrementalKernelGenerator get generator => _generator;
   IncrementalCompilerResult? get lastKnownGoodResult => _lastKnownGood;
 
-  IncrementalCompiler(this._compilerOptions, this._entryPoint,
+  IncrementalCompiler(this._compilerOptions, this._entryPoints,
       {this.initializeFromDillUri, bool incrementalSerialization: true})
       : forExpressionCompilationOnly = false {
     if (incrementalSerialization) {
       incrementalSerializer = new IncrementalSerializer();
     }
-    _generator = new IncrementalKernelGenerator(_compilerOptions, _entryPoint,
+    _generator = new IncrementalKernelGenerator(_compilerOptions, _entryPoints,
         initializeFromDillUri, false, incrementalSerializer);
     _pendingDeltas = <IncrementalCompilerResult>[];
   }
 
   IncrementalCompiler.forExpressionCompilationOnly(
-      Component component, this._compilerOptions, this._entryPoint)
+      Component component, this._compilerOptions, this._entryPoints)
       : forExpressionCompilationOnly = true {
     _generator = new IncrementalKernelGenerator.forExpressionCompilationOnly(
-        _compilerOptions, _entryPoint, component);
+        _compilerOptions, _entryPoints, component);
     _pendingDeltas = <IncrementalCompilerResult>[];
   }
 
   /// Recompiles invalidated files, produces incremental component.
   ///
-  /// If [entryPoint] is specified, that points to new entry point for the
-  /// compilation. Otherwise, previously set entryPoint is used.
-  Future<IncrementalCompilerResult> compile({Uri? entryPoint}) async {
+  /// If [entryPoints] is specified, that points to the new list of entry
+  /// points for the compilation. Otherwise, previously set entryPoints are
+  /// used.
+  Future<IncrementalCompilerResult> compile({List<Uri>? entryPoints}) async {
     final task = new TimelineTask();
     try {
       task.start("IncrementalCompiler.compile");
-      _entryPoint = entryPoint ?? _entryPoint;
-      List<Uri>? entryPoints;
-      if (entryPoint != null) entryPoints = [entryPoint];
+      _entryPoints = entryPoints ?? _entryPoints;
       IncrementalCompilerResult compilerResult = await _generator.computeDelta(
-          entryPoints: entryPoints, fullComponent: fullComponent);
+          entryPoints: _entryPoints, fullComponent: fullComponent);
       initialized = true;
       fullComponent = false;
       _pendingDeltas.add(compilerResult);
@@ -176,8 +175,8 @@ class IncrementalCompiler {
     _lastKnownGood?.component.relink();
 
     _generator = new IncrementalKernelGenerator.fromComponent(_compilerOptions,
-        _entryPoint, _lastKnownGood?.component, false, incrementalSerializer);
-    await _generator.computeDelta(entryPoints: [_entryPoint]);
+        _entryPoints, _lastKnownGood?.component, false, incrementalSerializer);
+    await _generator.computeDelta(entryPoints: _entryPoints);
   }
 
   /// This tells incremental compiler that it needs rescan [uri] file during

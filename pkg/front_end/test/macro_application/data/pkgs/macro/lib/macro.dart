@@ -28,9 +28,9 @@ class FunctionDefinitionMacro2 implements FunctionDefinitionMacro {
     if (function.positionalParameters.isEmpty) {
       return;
     }
-    StaticType returnType = await builder.instantiateType(function.returnType);
+    StaticType returnType = await builder.resolve(function.returnType.code);
     StaticType parameterType =
-    await builder.instantiateType(function.positionalParameters.first.type);
+    await builder.resolve(function.positionalParameters.first.type.code);
     builder.augment(new FunctionBodyCode.fromString('''{
   print('isExactly=${await returnType.isExactly(parameterType)}');
   print('isSubtype=${await returnType.isSubtypeOf(parameterType)}');
@@ -90,9 +90,9 @@ class FunctionDeclarationsMacro2 implements FunctionDeclarationsMacro {
     if (function.positionalParameters.isEmpty) {
       return;
     }
-    StaticType returnType = await builder.instantiateType(function.returnType);
+    StaticType returnType = await builder.resolve(function.returnType.code);
     StaticType parameterType =
-    await builder.instantiateType(function.positionalParameters.first.type);
+    await builder.resolve(function.positionalParameters.first.type.code);
     bool isExactly = await returnType.isExactly(parameterType);
     bool isSubtype = await returnType.isSubtypeOf(parameterType);
     String tag = '${isExactly ? 'e' : ''}${isSubtype ? 's' : ''}';
@@ -193,6 +193,59 @@ class ClassDeclarationsMacro1 implements ClassDeclarationsMacro {
     }
     builder.declareInLibrary(new DeclarationCode.fromString('''
 void ${clazz.identifier.name}GeneratedMethod_${sb}() {}
+'''));
+  }
+}
+
+macro
+
+class ClassDeclarationsMacro2 implements ClassDeclarationsMacro {
+  const ClassDeclarationsMacro2();
+
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+      ClassMemberDeclarationBuilder builder) async {
+    List<ConstructorDeclaration> constructors = await builder.constructorsOf(
+        clazz);
+    StringBuffer constructorsText = new StringBuffer();
+    String comma = '';
+    constructorsText.write('constructors=');
+    for (ConstructorDeclaration constructor in constructors) {
+      constructorsText.write(comma);
+      String name = constructor.identifier.name;
+      constructorsText.write("'$name'");
+      comma = ',';
+    }
+
+    List<FieldDeclaration> fields = await builder.fieldsOf(
+        clazz);
+    StringBuffer fieldsText = new StringBuffer();
+    comma = '';
+    fieldsText.write('fields=');
+    for (FieldDeclaration field in fields) {
+      fieldsText.write(comma);
+      String name = field.identifier.name;
+      fieldsText.write("'$name'");
+      comma = ',';
+    }
+
+    List<MethodDeclaration> methods = await builder.methodsOf(
+        clazz);
+    StringBuffer methodsText = new StringBuffer();
+    comma = '';
+    methodsText.write('methods=');
+    for (MethodDeclaration method in methods) {
+      methodsText.write(comma);
+      String name = method.identifier.name;
+      methodsText.write("'$name'");
+      comma = ',';
+    }
+
+    builder.declareInLibrary(new DeclarationCode.fromString('''
+void ${clazz.identifier.name}Introspection() {
+  print("$constructorsText");
+  print("$fieldsText");
+  print("$methodsText");
+}
 '''));
   }
 }

@@ -77,7 +77,7 @@ void main() {
           typeParameters: [],
         ),
         TestTypeResolver({
-          returnType:
+          returnType.identifier:
               TestNamedStaticType(returnType.identifier, 'dart:core', [])
         }),
         FakeClassIntrospector(),

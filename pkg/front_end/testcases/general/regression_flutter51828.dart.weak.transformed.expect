@@ -11,7 +11,7 @@ class A extends core::Object {
   method foo(dynamic x) → asy::Future<void>* /* originally async */ {
     final asy::_Future<void>* :async_future = new asy::_Future::•<void>();
     core::bool* :is_sync = false;
-    FutureOr<void>* :return_value;
+    void :return_value;
     (dynamic) →* dynamic :async_op_then;
     (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
     core::int* :await_jump_var = 0;
@@ -20,7 +20,7 @@ class A extends core::Object {
       try {
         #L1:
         {}
-        asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+        asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
         return;
       }
       on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
@@ -50,7 +50,7 @@ class B extends core::Object {
   method bar(dynamic x) → asy::Future<void>* /* originally async */ {
     final asy::_Future<void>* :async_future = new asy::_Future::•<void>();
     core::bool* :is_sync = false;
-    FutureOr<void>* :return_value;
+    void :return_value;
     (dynamic) →* dynamic :async_op_then;
     (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
     core::int* :await_jump_var = 0;
@@ -59,7 +59,7 @@ class B extends core::Object {
       try {
         #L2:
         {}
-        asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+        asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
         return;
       }
       on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
@@ -85,7 +85,7 @@ class B extends core::Object {
 static method main() → dynamic /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
-  FutureOr<dynamic>* :return_value;
+  dynamic :return_value;
   (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
@@ -105,7 +105,7 @@ static method main() → dynamic /* originally async */ {
         :return_value = core::_GrowableList::_literal2<asy::Future<void>*>(_in::unsafeCast<asy::Future<void>*>(:async_temporary_1), _in::unsafeCast<self::B*>(:async_temporary_0).{self::B::bar}(_in::unsafeCast<Null>(:result)){(dynamic) →* asy::Future<void>*});
         break #L3;
       }
-      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+      asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
     }
     on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {

@@ -72,12 +72,8 @@ class DeclarationBuilderBase extends TypeBuilderBase
       classIntrospector.superclassOf(clazz);
 
   @override
-  Future<StaticType> instantiateCode(ExpressionCode code) =>
-      typeResolver.instantiateCode(code);
-
-  @override
-  Future<StaticType> instantiateType(TypeAnnotation typeAnnotation) =>
-      typeResolver.instantiateType(typeAnnotation);
+  Future<StaticType> resolve(TypeAnnotationCode code) =>
+      typeResolver.resolve(code);
 }
 
 class DeclarationBuilderImpl extends DeclarationBuilderBase
@@ -323,31 +319,23 @@ DeclarationCode _buildFunctionAugmentation(
       '<',
       for (TypeParameterDeclaration typeParam
           in declaration.typeParameters) ...[
-        typeParam.identifier,
-        if (typeParam.bounds != null) ...['extends ', typeParam.bounds!.code],
+        typeParam.identifier.name,
+        if (typeParam.bound != null) ...[' extends ', typeParam.bound!.code],
         if (typeParam != declaration.typeParameters.last) ', ',
       ],
       '>',
     ],
     '(',
     for (ParameterDeclaration positionalRequired
-        in declaration.positionalParameters.where((p) => p.isRequired)) ...[
-      new ParameterCode.fromParts([
-        positionalRequired.type.code,
-        ' ',
-        positionalRequired.identifier.name,
-      ]),
-      ', '
+        in declaration.positionalParameters.takeWhile((p) => p.isRequired)) ...[
+      positionalRequired.code,
+      ', ',
     ],
     if (declaration.positionalParameters.any((p) => !p.isRequired)) ...[
       '[',
       for (ParameterDeclaration positionalOptional
           in declaration.positionalParameters.where((p) => !p.isRequired)) ...[
-        new ParameterCode.fromParts([
-          positionalOptional.type.code,
-          ' ',
-          positionalOptional.identifier.name,
-        ]),
+        positionalOptional.code,
         ', ',
       ],
       ']',
@@ -355,16 +343,7 @@ DeclarationCode _buildFunctionAugmentation(
     if (declaration.namedParameters.isNotEmpty) ...[
       '{',
       for (ParameterDeclaration named in declaration.namedParameters) ...[
-        new ParameterCode.fromParts([
-          if (named.isRequired) 'required ',
-          named.type.code,
-          ' ',
-          named.identifier,
-          if (named.defaultValue != null) ...[
-            ' = ',
-            named.defaultValue!,
-          ],
-        ]),
+        named.code,
         ', ',
       ],
       '}',

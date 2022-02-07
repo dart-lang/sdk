@@ -117,7 +117,7 @@ class DartCompletionManager {
                 includedElementNames == null &&
                 includedSuggestionRelevanceTags == null));
 
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<List<CompletionSuggestionBuilder>> computeSuggestions(
     DartCompletionRequest request,
     OperationPerformanceImpl performance, {
     bool enableOverrideContributor = true,
@@ -126,12 +126,12 @@ class DartCompletionManager {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
     if (!file_paths.isDart(pathContext, request.path)) {
-      return const <CompletionSuggestion>[];
+      return const <CompletionSuggestionBuilder>[];
     }
 
     // Don't suggest in comments.
     if (request.target.isCommentText) {
-      return const <CompletionSuggestion>[];
+      return const <CompletionSuggestionBuilder>[];
     }
 
     request.checkAborted();
@@ -503,8 +503,6 @@ class DartCompletionRequest {
 
 /// Information provided by [NotImportedContributor] in addition to suggestions.
 class NotImportedSuggestions {
-  final Set<protocol.CompletionSuggestion> set = Set.identity();
-
   /// This flag is set to `true` if the contributor decided to stop before it
   /// processed all available libraries, e.g. we ran out of budget.
   bool isIncomplete = false;

@@ -42,14 +42,14 @@
   was intended for use only by build systems like bazel, `build_web_compilers`
   and `flutter_tools`. The functionality remains available for those systems,
   but it is no longer exposed as a command-line tool in the SDK.
-  Please share any concerns in the 
+  Please share any concerns in the
   [breaking change tracking issue](https://github.com/dart-lang/sdk/issues/46100).
 
 - **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
   The standalone `dartdoc` tool has been removed as
   previously announced. Its replacement is the `dart doc` command.
 
-## 2.16.0
+## 2.16.0 - 2022-02-03
 
 ### Core libraries
 
@@ -118,7 +118,7 @@ in 2018, as it doesn't work with any Dart 2.x release.
 Updated the Linter to `1.18.0`, which includes changes that
 
 - extends `camel_case_types` to cover enums.
-- fixes `no_leading_underscores_for_local_identifiers` to not 
+- fixes `no_leading_underscores_for_local_identifiers` to not
   mis-flag field formal parameters with default values.
 - fixes `prefer_function_declarations_over_variables` to not
   mis-flag non-final fields.

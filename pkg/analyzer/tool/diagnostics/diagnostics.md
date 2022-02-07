@@ -2026,6 +2026,9 @@ class C extends A<String> implements B {}
 _'{0}' can't be used to name both a type variable and the class in which the
 type variable is defined._
 
+_'{0}' can't be used to name both a type variable and the enum in which the type
+variable is defined._
+
 _'{0}' can't be used to name both a type variable and the extension in which the
 type variable is defined._
 
@@ -2058,6 +2061,8 @@ class C<T> {}
 ### conflicting_type_variable_and_member
 
 _'{0}' can't be used to name both a type variable and a member in this class._
+
+_'{0}' can't be used to name both a type variable and a member in this enum._
 
 _'{0}' can't be used to name both a type variable and a member in this
 extension._
@@ -8830,7 +8835,7 @@ _Missing case clause for '{0}'._
 #### Description
 
 The analyzer produces this diagnostic when a `switch` statement for an enum
-doesn't include an option for one of the values in the enumeration.
+doesn't include an option for one of the values in the enum.
 
 Note that `null` is always a possible value for an enum and therefore also
 must be handled.

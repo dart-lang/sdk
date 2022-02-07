@@ -123,7 +123,7 @@ Future benchmark(
   final UriTranslator uriTranslator = await processedOptions.getUriTranslator();
 
   collector.start("Initial compilation");
-  var generator = new IncrementalKernelGenerator(compilerOptions, entryUri);
+  var generator = new IncrementalKernelGenerator(compilerOptions, [entryUri]);
 
   var compilerResult = await generator.computeDelta();
   var component = compilerResult.component;

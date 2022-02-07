@@ -124,7 +124,6 @@ void main() {
 
       final fooNamedParam = ParameterDeclarationImpl(
           id: RemoteInstance.uniqueId,
-          defaultValue: null,
           isNamed: true,
           isRequired: true,
           identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'foo'),
@@ -132,7 +131,6 @@ void main() {
 
       final barPositionalParam = ParameterDeclarationImpl(
           id: RemoteInstance.uniqueId,
-          defaultValue: Code.fromString('const Bar()'),
           isNamed: false,
           isRequired: false,
           identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
@@ -141,7 +139,7 @@ void main() {
       final zapTypeParam = TypeParameterDeclarationImpl(
           id: RemoteInstance.uniqueId,
           identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Zap'),
-          bounds: barType);
+          bound: barType);
 
       // Transitively tests `TypeParameterDeclaration` and
       // `ParameterDeclaration`.
@@ -218,7 +216,6 @@ void main() {
           isExternal: true,
           isFinal: false,
           isLate: true,
-          initializer: ExpressionCode.fromString('Bar()'),
           type: barType,
         );
         expectSerializationEquality(bar);
@@ -231,7 +228,6 @@ void main() {
           isExternal: false,
           isFinal: true,
           isLate: false,
-          initializer: null,
           type: barType,
           definingClass: fooType.identifier,
         );

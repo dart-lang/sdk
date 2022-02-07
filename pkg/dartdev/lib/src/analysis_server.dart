@@ -97,15 +97,16 @@ class AnalysisServer {
     ];
 
     _process = await startDartProcess(sdk, command);
+    final proc = _process!;
     // This callback hookup can't throw.
-    _process!.exitCode.whenComplete(() => _process = null);
+    proc.exitCode.whenComplete(() => _process = null);
 
-    final Stream<String> errorStream = _process!.stderr
+    final Stream<String> errorStream = proc.stderr
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter());
     errorStream.listen(log.stderr);
 
-    final Stream<String> inStream = _process!.stdout
+    final Stream<String> inStream = proc.stdout
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter());
     inStream.listen(_handleServerResponse);

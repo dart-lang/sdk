@@ -64,8 +64,14 @@ import 'class_instantiation_access_to_member_test.dart'
     as class_instantiation_access_to_member;
 import 'concrete_class_with_abstract_member_test.dart'
     as concrete_class_with_abstract_member;
+import 'conflicting_constructor_and_static_field_test.dart'
+    as conflicting_constructor_and_static_field;
+import 'conflicting_constructor_and_static_method_test.dart'
+    as conflicting_constructor_and_static_method;
+import 'conflicting_field_and_method_test.dart' as conflicting_field_and_method;
 import 'conflicting_generic_interfaces_test.dart'
     as conflicting_generic_interfaces;
+import 'conflicting_method_and_field_test.dart' as conflicting_method_and_field;
 import 'conflicting_static_and_instance_test.dart'
     as conflicting_static_and_instance;
 import 'conflicting_type_variable_and_container_test.dart'
@@ -136,6 +142,9 @@ import 'deprecated_implements_function_test.dart'
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
+import 'duplicate_constructor_default_test.dart'
+    as duplicate_constructor_default;
+import 'duplicate_constructor_name_test.dart' as duplicate_constructor_name;
 import 'duplicate_definition_test.dart' as duplicate_definition;
 import 'duplicate_field_formal_parameter_test.dart'
     as duplicate_field_formal_parameter;
@@ -583,8 +592,14 @@ import 'recursive_compile_time_constant_test.dart'
 import 'recursive_constructor_redirect_test.dart'
     as recursive_constructor_redirect;
 import 'recursive_factory_redirect_test.dart' as recursive_factory_redirect;
+import 'recursive_interface_inheritance_extends_test.dart'
+    as recursive_interface_inheritance_extends;
+import 'recursive_interface_inheritance_implements_test.dart'
+    as recursive_interface_inheritance_implements;
 import 'recursive_interface_inheritance_test.dart'
     as recursive_interface_inheritance;
+import 'recursive_interface_inheritance_with_test.dart'
+    as recursive_interface_inheritance_with;
 import 'redirect_generative_to_missing_constructor_test.dart'
     as redirect_generative_to_missing_constructor;
 import 'redirect_generative_to_non_generative_constructor_test.dart'
@@ -710,7 +725,10 @@ import 'undefined_referenced_parameter_test.dart'
     as undefined_referenced_parameter;
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
+import 'undefined_super_getter_test.dart' as undefined_super_getter;
 import 'undefined_super_method_test.dart' as undefined_super_method;
+import 'undefined_super_operator_test.dart' as undefined_super_operator;
+import 'undefined_super_setter_test.dart' as undefined_super_setter;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
@@ -800,7 +818,11 @@ main() {
     cast_to_non_type.main();
     class_instantiation_access_to_member.main();
     concrete_class_with_abstract_member.main();
+    conflicting_constructor_and_static_field.main();
+    conflicting_constructor_and_static_method.main();
+    conflicting_field_and_method.main();
     conflicting_generic_interfaces.main();
+    conflicting_method_and_field.main();
     conflicting_static_and_instance.main();
     conflicting_type_variable_and_container.main();
     conflicting_type_variable_and_member.main();
@@ -847,6 +869,8 @@ main() {
     deprecated_member_use.main();
     deprecated_mixin_function.main();
     division_optimization.main();
+    duplicate_constructor_default.main();
+    duplicate_constructor_name.main();
     duplicate_definition.main();
     duplicate_field_formal_parameter.main();
     duplicate_hidden_name.main();
@@ -1139,7 +1163,10 @@ main() {
     recursive_compile_time_constant.main();
     recursive_constructor_redirect.main();
     recursive_factory_redirect.main();
+    recursive_interface_inheritance_extends.main();
+    recursive_interface_inheritance_implements.main();
     recursive_interface_inheritance.main();
+    recursive_interface_inheritance_with.main();
     redirect_generative_to_missing_constructor.main();
     redirect_generative_to_non_generative_constructor.main();
     redirect_to_abstract_class_constructor.main();
@@ -1226,7 +1253,10 @@ main() {
     undefined_referenced_parameter.main();
     undefined_setter.main();
     undefined_shown_name.main();
+    undefined_super_getter.main();
     undefined_super_method.main();
+    undefined_super_operator.main();
+    undefined_super_setter.main();
     unignorable_ignore.main();
     unnecessary_import.main();
     unnecessary_cast.main();

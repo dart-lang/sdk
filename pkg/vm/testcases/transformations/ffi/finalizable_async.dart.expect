@@ -1,0 +1,199 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:async" as asy;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class MyFinalizable extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::MyFinalizable
+    : super core::Object::•()
+    ;
+  method use() → asy::Future<core::int> /* originally async */ {
+    final asy::_Future<core::int> :async_future = new asy::_Future::•<core::int>();
+    core::bool* :is_sync = false;
+    FutureOr<core::int>? :return_value;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L1:
+        {
+          :return_value = block {
+            final asy::Future<core::int> :expressionValueWrappedFinalizable = self::doSomething();
+            _in::reachabilityFence(this);
+          } =>:expressionValueWrappedFinalizable;
+          break #L1;
+        }
+        asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
+      }
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_op(){() → dynamic};
+    :is_sync = true;
+    return :async_future;
+  }
+  method use2() → asy::Future<core::int> /* originally async */ {
+    final asy::_Future<core::int> :async_future = new asy::_Future::•<core::int>();
+    core::bool* :is_sync = false;
+    core::int? :return_value;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L2:
+        {
+          [yield] let dynamic #t1 = asy::_awaitHelper( block {
+            final asy::Future<core::int> :expressionValueWrappedFinalizable = self::doSomething();
+            _in::reachabilityFence(this);
+          } =>:expressionValueWrappedFinalizable, :async_op_then, :async_op_error, :async_op) in null;
+          final core::int :expressionValueWrappedFinalizable = _in::unsafeCast<core::int>(:result);
+          :return_value = block {
+            _in::reachabilityFence(this);
+          } =>:expressionValueWrappedFinalizable;
+          break #L2;
+        }
+        asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
+      }
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_op(){() → dynamic};
+    :is_sync = true;
+    return :async_future;
+  }
+  method use3() → asy::Future<core::int> {
+    return block {
+      final asy::Future<core::int> :expressionValueWrappedFinalizable = self::doSomething();
+      _in::reachabilityFence(this);
+    } =>:expressionValueWrappedFinalizable;
+  }
+}
+static method doSomething() → asy::Future<core::int> /* originally async */ {
+  final asy::_Future<core::int> :async_future = new asy::_Future::•<core::int>();
+  core::bool* :is_sync = false;
+  core::int? :return_value;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L3:
+      {
+        :return_value = 3;
+        break #L3;
+      }
+      asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
+    }
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_op(){() → dynamic};
+  :is_sync = true;
+  return :async_future;
+}
+static method useFinalizableAsync(ffi::Finalizable finalizable) → asy::Future<core::int> /* originally async */ {
+  final asy::_Future<core::int> :async_future = new asy::_Future::•<core::int>();
+  core::bool* :is_sync = false;
+  FutureOr<core::int>? :return_value;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L4:
+      {
+        [yield] let dynamic #t2 = asy::_awaitHelper( block {
+          final asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 6);
+          _in::reachabilityFence(finalizable);
+        } =>:expressionValueWrappedFinalizable, :async_op_then, :async_op_error, :async_op) in null;
+        _in::unsafeCast<core::int>(:result);
+        final self::MyFinalizable finalizable2 = new self::MyFinalizable::•();
+        [yield] let dynamic #t3 = asy::_awaitHelper( block {
+          final asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 5);
+          _in::reachabilityFence(finalizable);
+          _in::reachabilityFence(finalizable2);
+        } =>:expressionValueWrappedFinalizable, :async_op_then, :async_op_error, :async_op) in null;
+        _in::unsafeCast<core::int>(:result);
+        final self::MyFinalizable finalizable3 = new self::MyFinalizable::•();
+        [yield] let dynamic #t4 = asy::_awaitHelper( block {
+          final asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 4);
+          _in::reachabilityFence(finalizable);
+          _in::reachabilityFence(finalizable2);
+          _in::reachabilityFence(finalizable3);
+        } =>:expressionValueWrappedFinalizable, :async_op_then, :async_op_error, :async_op) in null;
+        _in::unsafeCast<core::int>(:result);
+        :return_value = block {
+          final asy::Future<core::int> :expressionValueWrappedFinalizable = self::doSomething();
+          _in::reachabilityFence(finalizable);
+          _in::reachabilityFence(finalizable2);
+          _in::reachabilityFence(finalizable3);
+        } =>:expressionValueWrappedFinalizable;
+        break #L4;
+      }
+      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
+    }
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_op(){() → dynamic};
+  :is_sync = true;
+  return :async_future;
+}
+static method main() → void /* originally async */ {
+  final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
+  core::bool* :is_sync = false;
+  dynamic :return_value;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L5:
+      {
+        final self::MyFinalizable finalizable = new self::MyFinalizable::•();
+        final asy::Future<core::int> asyncResult = self::useFinalizableAsync(finalizable);
+        [yield] let dynamic #t5 = asy::_awaitHelper( block {
+          final asy::Future<core::int> :expressionValueWrappedFinalizable = asyncResult;
+          _in::reachabilityFence(finalizable);
+        } =>:expressionValueWrappedFinalizable, :async_op_then, :async_op_error, :async_op) in null;
+        core::print(_in::unsafeCast<core::int>(:result));
+        _in::reachabilityFence(finalizable);
+      }
+      asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
+    }
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_op(){() → dynamic};
+  :is_sync = true;
+  return :async_future;
+}

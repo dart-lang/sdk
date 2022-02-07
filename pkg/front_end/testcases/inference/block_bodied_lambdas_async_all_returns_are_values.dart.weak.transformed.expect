@@ -11,7 +11,7 @@ static method test() → dynamic {
   () →* asy::Future<core::num*>* f = () → asy::Future<core::num*>* /* originally async */ {
     final asy::_Future<core::num*>* :async_future = new asy::_Future::•<core::num*>();
     core::bool* :is_sync = false;
-    FutureOr<core::num*>* :return_value;
+    core::num? :return_value;
     (dynamic) →* dynamic :async_op_then;
     (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
     core::int* :await_jump_var = 0;
@@ -29,7 +29,7 @@ static method test() → dynamic {
             break #L1;
           }
         }
-        asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+        asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
         return;
       }
       on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {

@@ -351,6 +351,8 @@ class _ServiceTesterRunner {
 
     await service.streamListen(EventStreams.kIsolate);
 
+    await service.streamListen(EventStreams.kIsolate);
+
     // The isolate may have started before we subscribed.
     vm = await service.getVM();
     if (vmIsolates.isNotEmpty) {

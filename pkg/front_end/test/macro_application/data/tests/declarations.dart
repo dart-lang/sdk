@@ -54,8 +54,15 @@ void set topLevelSetter1(int? value) {}
 
 /*class: Class1:
 void Class1GeneratedMethod_() {}
+
+void Class1Introspection() {
+  print("constructors=''");
+  print("fields='instanceField1','instanceField2','instanceField3'");
+  print("methods='instanceMethod1','instanceGetter1','[]','instanceSetter1'");
+}
 */
 @ClassDeclarationsMacro1()
+@ClassDeclarationsMacro2()
 class Class1 {
   /*member: Class1.:
 augment class Class1 {
@@ -126,8 +133,15 @@ void Class1_instanceField3GeneratedMethod_fl() {}
 
 /*class: Class2:
 void Class2GeneratedMethod_a() {}
+
+void Class2Introspection() {
+  print("constructors=");
+  print("fields='instanceField1'");
+  print("methods='instanceMethod1'");
+}
 */
 @ClassDeclarationsMacro1()
+@ClassDeclarationsMacro2()
 abstract class Class2 {
   /*member: Class2.instanceMethod1:
 void Class2_instanceMethod1GeneratedMethod_a() {}

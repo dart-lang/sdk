@@ -33,7 +33,7 @@ class ContextTypeTest extends AbstractSingleUnitTest {
     );
     var builder = SuggestionBuilder(request);
     builder.suggestTopLevelFunction(findElement.topFunction('f'));
-    var suggestions = builder.suggestions.toList();
+    var suggestions = builder.suggestions.map((e) => e.build()).toList();
     expect(suggestions, hasLength(1));
     return suggestions[0];
   }

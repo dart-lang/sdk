@@ -3420,7 +3420,7 @@ class CodeRef extends ObjRef {
 }
 
 /// A `Code` object represents compiled code in the Dart VM.
-class Code extends ObjRef implements CodeRef {
+class Code extends Obj implements CodeRef {
   static Code? parse(Map<String, dynamic>? json) =>
       json == null ? null : Code._fromJson(json);
 

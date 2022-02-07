@@ -40,6 +40,11 @@ class ConstructorFieldsVerifier {
     _initFieldsMap(node.declaredElement!);
   }
 
+  void enterEnum(EnumDeclaration node) {
+    _isInNativeClass = false;
+    _initFieldsMap(node.declaredElement!);
+  }
+
   void leaveClass() {
     _isInNativeClass = false;
     _initialFieldMap = null;

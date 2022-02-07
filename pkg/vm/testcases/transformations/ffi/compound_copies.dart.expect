@@ -6,7 +6,6 @@ import "dart:typed_data" as typ;
 import "dart:_internal" as _in;
 
 import "dart:ffi";
-import "package:ffi/ffi.dart";
 
 @#C6
 class Coordinate extends ffi::Struct {

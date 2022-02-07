@@ -26,6 +26,31 @@ class B {}
     ]);
   }
 
+  test_notEnclosingClassName_named() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {
+  A.foo();
+  B.foo();
+}
+''', [
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 23, 1),
+    ]);
+  }
+
+  test_notEnclosingClassName_new() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+class B {
+  A.new();
+  B();
+}
+''', [
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 24, 1),
+    ]);
+  }
+
   test_notEnclosingClassName_undefined() async {
     await assertErrorsInCode(r'''
 class A {

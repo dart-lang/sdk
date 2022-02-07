@@ -10,7 +10,7 @@ static method method1() → (typ::Request*) →* FutureOr<typ::Response*>*
   return (typ::Request* r) → asy::Future<typ::Response*>* /* originally async */ {
     final asy::_Future<typ::Response*>* :async_future = new asy::_Future::•<typ::Response*>();
     core::bool* :is_sync = false;
-    FutureOr<typ::Response*>* :return_value;
+    typ::Response? :return_value;
     (dynamic) →* dynamic :async_op_then;
     (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
     core::int* :await_jump_var = 0;
@@ -22,7 +22,7 @@ static method method1() → (typ::Request*) →* FutureOr<typ::Response*>*
           :return_value = new typ::Response::•();
           break #L1;
         }
-        asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+        asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
         return;
       }
       on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {

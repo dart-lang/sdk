@@ -2570,6 +2570,8 @@ _awaitHelper(object, thenCallback, errorCallback, awaiter) {}
 
 _completeOnAsyncReturn(_future, value, async_jump_var) {}
 
+_completeWithNoFutureOnAsyncReturn(_future, value, async_jump_var) {}
+
 _completeOnAsyncError(_future, e, st, async_jump_var) {}
 
 class _AsyncStarStreamController {

@@ -256,10 +256,14 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
             includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
           );
 
-          final serverSuggestions = await contributor.computeSuggestions(
+          final serverSuggestions2 = await contributor.computeSuggestions(
             completionRequest,
             performance,
           );
+
+          final serverSuggestions = serverSuggestions2.map((serverSuggestion) {
+            return serverSuggestion.build();
+          }).toList();
 
           final insertLength = _computeInsertLength(
             offset,

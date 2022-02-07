@@ -24,21 +24,14 @@ abstract class TypeBuilder implements Builder {
 /// This api is only available to the declaration and definition phases of
 /// macro expansion.
 abstract class TypeResolver {
-  /// Resolves [typeAnnotation] to a [StaticType].
+  /// Instantiates a new [StaticType] for a given [type] annotation.
   ///
-  /// Throws an error if the type annotation cannot be resolved. This should
-  /// only happen in the case of incomplete or invalid programs, but macros
-  /// may be asked to run in this state during the development cycle. It is
-  /// helpful for users if macros provide a best effort implementation in that
-  /// case or handle the error in a useful way.
-  Future<StaticType> instantiateType(covariant TypeAnnotation typeAnnotation);
-
-  /// Instantiates a new [StaticType] for a given [code] expression, which must
-  /// be a type expression.
-  ///
-  /// All type identifiers in [code] must be instances of [Identifier] and not
-  /// bare strings.
-  Future<StaticType> instantiateCode(ExpressionCode code);
+  /// Throws an error if the [type] object contains [Identifier]s which cannot
+  /// be resolved. This should only happen in the case of incomplete or invalid
+  /// programs, but macros may be asked to run in this state during the
+  /// development cycle. It may be helpful for users if macros provide a best
+  /// effort implementation in that case or handle the error in a useful way.
+  Future<StaticType> resolve(TypeAnnotationCode type);
 }
 
 /// The api used to introspect on a [ClassDeclaration].

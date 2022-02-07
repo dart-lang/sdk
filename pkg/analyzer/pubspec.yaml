@@ -8,7 +8,6 @@ environment:
 
 dependencies:
   _fe_analyzer_shared: ^34.0.0
-  cli_util: ^0.3.0
   collection: ^1.15.0
   convert: ^3.0.0
   crypto: ^3.0.0

@@ -15,20 +15,39 @@ main() {
 
 @reflectiveTest
 class UndefinedSuperMethodTest extends PubPackageResolutionTest {
-  test_error_undefinedSuperMethod() async {
+  test_class() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+class B extends A {
+  void bar() {
+    super.foo();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 57, 3),
+    ]);
+
+    var invocation = findNode.methodInvocation('foo()');
+    assertElementNull(invocation.methodName);
+    assertInvokeTypeDynamic(invocation);
+    assertTypeDynamic(invocation);
+  }
+
+  test_mixin() async {
     await assertErrorsInCode(r'''
 class A {}
 
 mixin M on A {
   void bar() {
-    super.foo(42);
+    super.foo();
   }
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 52, 3),
     ]);
 
-    var invocation = findNode.methodInvocation('foo(42)');
+    var invocation = findNode.methodInvocation('foo()');
     assertElementNull(invocation.methodName);
     assertInvokeTypeDynamic(invocation);
     assertTypeDynamic(invocation);
