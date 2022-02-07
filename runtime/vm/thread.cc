@@ -657,10 +657,15 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
       // Stores into new-space objects don't need a write barrier.
       if (obj->IsSmiOrNewObject()) continue;
 
-      // To avoid adding too much work into the remembered set, skip
+      // To avoid adding too much work into the remembered set, skip large
       // arrays. Write barrier elimination will not remove the barrier
       // if we can trigger GC between array allocation and store.
-      if (obj->GetClassId() == kArrayCid) continue;
+      if (obj->GetClassId() == kArrayCid) {
+        const auto length = Smi::Value(Array::RawCast(obj)->untag()->length());
+        if (length > Array::kMaxLengthForWriteBarrierElimination) {
+          continue;
+        }
+      }
 
       // Dart code won't store into VM-internal objects except Contexts and
       // UnhandledExceptions. This assumption is checked by an assertion in

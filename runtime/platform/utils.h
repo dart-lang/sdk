@@ -84,7 +84,7 @@ class Utils {
   }
 
   template <typename T>
-  static inline T RoundDown(T x, intptr_t n) {
+  static constexpr inline T RoundDown(T x, intptr_t n) {
     ASSERT(IsPowerOfTwo(n));
     return (x & -n);
   }
@@ -95,7 +95,7 @@ class Utils {
   }
 
   template <typename T>
-  static inline T RoundUp(T x, intptr_t n) {
+  static constexpr inline T RoundUp(T x, intptr_t n) {
     return RoundDown(x + n - 1, n);
   }
 
