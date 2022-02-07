@@ -5021,6 +5021,9 @@ CompileTimeErrorCode:
   ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
     problemMessage: The language version must be {0}.
     correctionMessage: Try removing the language version override and migrating the code.
+  ILLEGAL_NON_ABSTRACT_ENUM_INDEX:
+    problemMessage: A non-abstract instance member named 'index' can't be declared in a class that implements 'Enum'.
+    correctionMessage: Try using a different name.
   ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
     problemMessage: "Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'."
     correctionMessage: "Try fixing the return type of the function, or removing the modifier 'sync*' from the function body."

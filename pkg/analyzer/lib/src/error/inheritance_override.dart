@@ -73,6 +73,7 @@ class InheritanceOverrideVerifier {
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           withClause: declaration.withClause,
+          members: declaration.members,
         ).verify();
       } else if (declaration is MixinDeclaration) {
         _ClassVerifier(
@@ -118,6 +119,9 @@ class _ClassVerifier {
 
   final List<InterfaceType> directSuperInterfaces = [];
 
+  late final implementsDartCoreEnum =
+      classElement.allSupertypes.any((e) => e.isDartCoreEnum);
+
   _ClassVerifier({
     required this.typeSystem,
     required this.typeProvider,
@@ -143,7 +147,7 @@ class _ClassVerifier {
 
     if (!classElement.isEnum &&
         !classElement.isAbstract &&
-        classElement.allSupertypes.any((e) => e.isDartCoreEnum)) {
+        implementsDartCoreEnum) {
       reporter.reportErrorForNode(
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE,
         classNameNode,
@@ -194,6 +198,9 @@ class _ClassVerifier {
           var fieldElement = field.declaredElement as FieldElement;
           _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
+          if (!member.isStatic) {
+            _checkIllegalNonAbstractEnumIndex(field.name);
+          }
         }
       } else if (member is MethodDeclaration) {
         var hasError = _reportNoCombinedSuperSignature(member);
@@ -203,6 +210,9 @@ class _ClassVerifier {
 
         _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
             methodParameterNodes: member.parameters?.parameters);
+        if (!(member.isStatic || member.isAbstract || member.isSetter)) {
+          _checkIllegalNonAbstractEnumIndex(member.name);
+        }
       }
     }
 
@@ -614,6 +624,15 @@ class _ClassVerifier {
 
     path.removeAt(path.length - 1);
     return false;
+  }
+
+  void _checkIllegalNonAbstractEnumIndex(SimpleIdentifier name) {
+    if (implementsDartCoreEnum && name.name == 'index') {
+      reporter.reportErrorForNode(
+        CompileTimeErrorCode.ILLEGAL_NON_ABSTRACT_ENUM_INDEX,
+        name,
+      );
+    }
   }
 
   /// Return the error code that should be used when the given class [element]

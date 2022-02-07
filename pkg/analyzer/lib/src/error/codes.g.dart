@@ -5745,6 +5745,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try removing the language version override and migrating the code.",
   );
 
+  static const CompileTimeErrorCode ILLEGAL_NON_ABSTRACT_ENUM_INDEX =
+      CompileTimeErrorCode(
+    'ILLEGAL_NON_ABSTRACT_ENUM_INDEX',
+    "A non-abstract instance member named 'index' can't be declared in a class "
+        "that implements 'Enum'.",
+    correctionMessage: "Try using a different name.",
+  );
+
   /**
    * No parameters.
    */
