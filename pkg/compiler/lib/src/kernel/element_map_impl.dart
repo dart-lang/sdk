@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.kernel.element_map;
-
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:js_runtime/shared/embedded_names.dart';
@@ -40,7 +38,6 @@ import '../js/js.dart' as js;
 import '../js_backend/annotations.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
-import '../js_backend/no_such_method_registry.dart';
 import '../js_model/locals.dart';
 import '../kernel/dart2js_target.dart';
 import '../native/behavior.dart';
@@ -55,8 +52,6 @@ import 'element_map.dart';
 import 'env.dart';
 import 'kelements.dart';
 import 'kernel_impact.dart';
-
-part 'no_such_method_resolver.dart';
 
 /// Implementation of [KernelToElementMap] that only supports world
 /// impact computation.
@@ -1450,7 +1445,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].
-  ir.Procedure _lookupProcedure(KFunction method) {
+  ir.Procedure lookupProcedure(KFunction method) {
     return members.getData(method).node;
   }
 

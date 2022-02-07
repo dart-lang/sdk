@@ -187,8 +187,8 @@ class JsClosedWorldBuilder {
     BackendUsage backendUsage =
         _convertBackendUsage(map, closedWorld.backendUsage);
 
-    NoSuchMethodDataImpl oldNoSuchMethodData = closedWorld.noSuchMethodData;
-    NoSuchMethodData noSuchMethodData = NoSuchMethodDataImpl(
+    NoSuchMethodData oldNoSuchMethodData = closedWorld.noSuchMethodData;
+    NoSuchMethodData noSuchMethodData = NoSuchMethodData(
         map.toBackendFunctionSet(oldNoSuchMethodData.throwingImpls),
         map.toBackendFunctionSet(oldNoSuchMethodData.otherImpls),
         map.toBackendFunctionSet(oldNoSuchMethodData.forwardingSyntaxImpls));
