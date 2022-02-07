@@ -37,6 +37,17 @@ class C {
     ]);
   }
 
+  test_class_new_empty() async {
+    await assertErrorsInCode(r'''
+class C {
+  C.new();
+  C();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 1),
+    ]);
+  }
+
   test_class_new_new() async {
     await assertErrorsInCode(r'''
 class C {
@@ -45,6 +56,54 @@ class C {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 5),
+    ]);
+  }
+
+  test_enum_empty_empty() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  const E();
+  const E();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 35, 1),
+    ]);
+  }
+
+  test_enum_empty_new() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  const E();
+  const E.new();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 35, 5),
+    ]);
+  }
+
+  test_enum_new_empty() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  const E.new();
+  const E();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 39, 1),
+    ]);
+  }
+
+  test_enum_new_new() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  const E.new();
+  const E.new();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 39, 5),
     ]);
   }
 }

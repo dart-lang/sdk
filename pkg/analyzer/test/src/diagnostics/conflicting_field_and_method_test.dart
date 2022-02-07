@@ -53,4 +53,49 @@ class B extends A {
       error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 49, 3),
     ]);
   }
+
+  test_enum_inMixin_field() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  void foo() {}
+}
+
+enum E with M {
+  v;
+  final int foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 62, 3),
+    ]);
+  }
+
+  test_enum_inMixin_getter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  void foo() {}
+}
+
+enum E with M {
+  v;
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 60, 3),
+    ]);
+  }
+
+  test_enum_inMixin_setter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  void foo() {}
+}
+
+enum E with M {
+  v;
+  set foo(int _) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 56, 3),
+    ]);
+  }
 }

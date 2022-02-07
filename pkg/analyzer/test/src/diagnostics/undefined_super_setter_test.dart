@@ -27,4 +27,32 @@ class B extends A {
       error(CompileTimeErrorCode.UNDEFINED_SUPER_SETTER, 49, 1),
     ]);
   }
+
+  test_enum() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void f() {
+    super.foo = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_SETTER, 37, 3),
+    ]);
+  }
+
+  test_enum_OK() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  set foo(int _) {}
+}
+
+enum E with M {
+  v;
+  void f() {
+    super.foo = 0;
+  }
+}
+''');
+  }
 }

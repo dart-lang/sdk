@@ -47,6 +47,7 @@ class DuplicateDefinitionVerifier {
     var enumElement = node.declaredElement as EnumElementImpl;
     var enumName = enumElement.name;
 
+    var constructorNames = <String>{};
     var instanceGetters = <String, Element>{};
     var instanceSetters = <String, Element>{};
     var staticGetters = <String, Element>{};
@@ -57,7 +58,25 @@ class DuplicateDefinitionVerifier {
     }
 
     for (var member in node.members) {
-      if (member is FieldDeclaration) {
+      if (member is ConstructorDeclaration) {
+        if (member.returnType.name == enumElement.name) {
+          var name = member.declaredElement!.name;
+          if (!constructorNames.add(name)) {
+            if (name.isEmpty) {
+              _errorReporter.reportErrorForName(
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
+                member,
+              );
+            } else {
+              _errorReporter.reportErrorForName(
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
+                member,
+                arguments: [name],
+              );
+            }
+          }
+        }
+      } else if (member is FieldDeclaration) {
         for (var field in member.fields.variables) {
           var identifier = field.name;
           _checkDuplicateIdentifier(
@@ -84,26 +103,57 @@ class DuplicateDefinitionVerifier {
       }
     }
 
-    var staticExecutable = [
-      ...enumElement.accessors,
-      ...enumElement.methods,
-    ].where((element) => element.isStatic);
-    for (var executable in staticExecutable) {
-      var baseName = executable.displayName;
-      var instanceGetter = _inheritanceManager.getMember2(
-        enumElement,
-        Name(_currentLibrary.source.uri, baseName),
-      );
-      var instanceSetter = _inheritanceManager.getMember2(
-        enumElement,
-        Name(_currentLibrary.source.uri, '$baseName='),
-      );
-      if (instanceGetter != null || instanceSetter != null) {
-        _errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-          executable,
-          [enumName, baseName, enumName],
-        );
+    for (var accessor in enumElement.accessors) {
+      var baseName = accessor.displayName;
+      if (accessor.isStatic) {
+        var instance = _getInterfaceMember(enumElement, baseName);
+        if (instance != null) {
+          _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            accessor,
+            [enumName, baseName, enumName],
+          );
+        }
+      } else {
+        var inherited = _getInheritedMember(enumElement, baseName);
+        if (inherited is MethodElement) {
+          _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
+            accessor,
+            [
+              enumElement.displayName,
+              baseName,
+              inherited.enclosingElement.displayName,
+            ],
+          );
+        }
+      }
+    }
+
+    for (var method in enumElement.methods) {
+      var baseName = method.displayName;
+      if (method.isStatic) {
+        var instance = _getInterfaceMember(enumElement, baseName);
+        if (instance != null) {
+          _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            method,
+            [enumName, baseName, enumName],
+          );
+        }
+      } else {
+        var inherited = _getInheritedMember(enumElement, baseName);
+        if (inherited is PropertyAccessorElement) {
+          _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
+            method,
+            [
+              enumElement.displayName,
+              baseName,
+              inherited.enclosingElement.displayName,
+            ],
+          );
+        }
       }
     }
   }
@@ -457,6 +507,34 @@ class DuplicateDefinitionVerifier {
         }
       }
     }
+  }
+
+  ExecutableElement? _getInheritedMember(
+      ClassElement element, String baseName) {
+    var libraryUri = _currentLibrary.source.uri;
+
+    var getterName = Name(libraryUri, baseName);
+    var getter = _inheritanceManager.getInherited2(element, getterName);
+    if (getter != null) {
+      return getter;
+    }
+
+    var setterName = Name(libraryUri, '$baseName=');
+    return _inheritanceManager.getInherited2(element, setterName);
+  }
+
+  ExecutableElement? _getInterfaceMember(
+      ClassElement element, String baseName) {
+    var libraryUri = _currentLibrary.source.uri;
+
+    var getterName = Name(libraryUri, baseName);
+    var getter = _inheritanceManager.getMember2(element, getterName);
+    if (getter != null) {
+      return getter;
+    }
+
+    var setterName = Name(libraryUri, '$baseName=');
+    return _inheritanceManager.getMember2(element, setterName);
   }
 
   static bool _isGetterSetterPair(Element a, Element b) {

@@ -27,4 +27,32 @@ class B extends A {
       error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 58, 1),
     ]);
   }
+
+  test_enum() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void f() {
+    super.foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 37, 3),
+    ]);
+  }
+
+  test_enum_OK() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int get foo => 0;
+}
+
+enum E with M {
+  v;
+  void f() {
+    super.foo;
+  }
+}
+''');
+  }
 }

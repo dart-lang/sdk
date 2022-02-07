@@ -34,6 +34,34 @@ class B extends A {
     assertTypeDynamic(invocation);
   }
 
+  test_enum() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void f() {
+    super.foo();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 37, 3),
+    ]);
+  }
+
+  test_enum_OK() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  void foo() {}
+}
+
+enum E with M {
+  v;
+  void f() {
+    super.foo();
+  }
+}
+''');
+  }
+
   test_mixin() async {
     await assertErrorsInCode(r'''
 class A {}

@@ -25,4 +25,16 @@ class C {
       error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5),
     ]);
   }
+
+  test_enum() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v.foo();
+  const E.foo();
+  const E.foo();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 45, 5),
+    ]);
+  }
 }
