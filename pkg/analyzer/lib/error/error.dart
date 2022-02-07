@@ -725,6 +725,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.DUPLICATE_PREFIX,
   ParserErrorCode.DUPLICATED_MODIFIER,
   ParserErrorCode.EMPTY_ENUM_BODY,
+  ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
   ParserErrorCode.ENUM_IN_CLASS,
   ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
   ParserErrorCode.EXPECTED_BODY,

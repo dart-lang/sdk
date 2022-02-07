@@ -15,7 +15,29 @@ extension KeywordTokenExtension on CheckTarget<KeywordToken> {
   }
 }
 
-extension TokenExtension on CheckTarget<Token?> {
+extension TokenExtension on CheckTarget<Token> {
+  void get isCloseParenthesis {
+    type.isEqualTo(TokenType.CLOSE_PAREN);
+  }
+
+  void get isOpenParenthesis {
+    type.isEqualTo(TokenType.OPEN_PAREN);
+  }
+
+  void get isSynthetic {
+    if (value.isSynthetic) return;
+    fail('Not synthetic');
+  }
+
+  CheckTarget<TokenType> get type {
+    return nest(
+      value.type,
+      (selected) => 'has type ${valueStr(selected)}',
+    );
+  }
+}
+
+extension TokenQuestionExtension on CheckTarget<Token?> {
   CheckTarget<KeywordToken> get isKeyword {
     return isA<KeywordToken>();
   }

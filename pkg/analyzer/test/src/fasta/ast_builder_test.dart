@@ -58,6 +58,24 @@ class A {
     expect(member.initializers, hasLength(1));
   }
 
+  void test_enum_constant_withTypeArgumentsWithoutArguments() {
+    var parseResult = parseStringWithErrors(r'''
+enum E<T> {
+  v<int>;
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
+          15, 5),
+    ]);
+
+    var v = parseResult.findNode.enumConstantDeclaration('v<int>');
+    check(v).name.name.isEqualTo('v');
+    check(v).arguments.isNotNull
+      ..typeArguments.isNotNull
+      ..argumentList.isSynthetic;
+  }
+
   void test_getter_sameNameAsClass() {
     var parseResult = parseStringWithErrors(r'''
 class A {
