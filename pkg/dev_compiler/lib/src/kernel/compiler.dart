@@ -3013,14 +3013,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //   * `class A extends B {...}` where B is the InterfaceType.
     //   * Emitting non-null constructor calls.
     // * The InterfaceType is the Null type.
-    // * The types were written in JS context or as part of the dart:_runtime
-    //   library.
-    if (!emitNullability ||
-        type == _coreTypes.deprecatedNullType ||
-        // TODO(38701) Remove these once the SDK has unforked and is running
-        // "opted-in"
-        !coreLibrary.isNonNullableByDefault &&
-            (_isInForeignJS || isSdkInternalRuntime(currentLibrary))) {
+    if (!emitNullability || type == _coreTypes.deprecatedNullType) {
       return typeRep;
     }
 
