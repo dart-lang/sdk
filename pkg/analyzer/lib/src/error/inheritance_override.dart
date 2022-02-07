@@ -73,7 +73,6 @@ class InheritanceOverrideVerifier {
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           withClause: declaration.withClause,
-          members: declaration.members,
         ).verify();
       } else if (declaration is MixinDeclaration) {
         _ClassVerifier(
