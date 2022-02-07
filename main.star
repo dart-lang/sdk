@@ -658,6 +658,7 @@ def dart_builder(
         expiration_timeout = None,
         goma = None,
         fyi = False,
+        main_channel = True,
         notifies = "dart",
         priority = NORMAL,
         properties = None,
@@ -686,6 +687,7 @@ def dart_builder(
         expiration_timeout: How long builds should wait for a bot to run on.
         goma: Whether to use goma or not.
         fyi: Whether this is an FYI builder or not.
+        main_channel: Whether to add to the main channel (default: True).
         notifies: Which luci notifier group to notify (default: "dart").
         priority: What swarming priority this builder gets (default: NORMAL).
         properties: Extra properties to set for builds.
@@ -789,7 +791,8 @@ def dart_builder(
                             console_view = "alt",
                         )
 
-    builder(None, notifies = notifies, triggered_by = triggered_by)
+    if main_channel:
+        builder(None, notifies = notifies, triggered_by = triggered_by)
     for channel in channels:
         if enabled:
             builder(channel, notifies = None, triggered_by = triggered_by)
@@ -1573,6 +1576,7 @@ dart_ci_builder(
     "dart-sdk-linux",
     category = "sdk|l",
     channels = CHANNELS,
+    main_channel = False,
     properties = {
         "$dart/build": {
             "timeout": 100 * 60,  # 100 minutes,
@@ -1584,6 +1588,7 @@ dart_ci_builder(
     category = "sdk|m",
     channels = CHANNELS,
     dimensions = mac(),
+    main_channel = False,
     properties = PINNED_XCODE,
 )
 dart_ci_builder(
@@ -1591,6 +1596,7 @@ dart_ci_builder(
     category = "sdk|m1",
     channels = CHANNELS,
     dimensions = mac(cpu = "arm64"),
+    main_channel = False,
     properties = union(NO_ANDROID, PINNED_XCODE),
 )
 
@@ -1599,6 +1605,7 @@ dart_ci_builder(
     category = "sdk|w",
     channels = CHANNELS,
     dimensions = windows(),
+    main_channel = False,
     on_cq = True,
 )
 
