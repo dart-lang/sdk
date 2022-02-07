@@ -3672,6 +3672,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the name of the abstract method
+   * 1: the name of the enclosing enum
+   */
+  static const CompileTimeErrorCode ENUM_WITH_ABSTRACT_MEMBER =
+      CompileTimeErrorCode(
+    'ENUM_WITH_ABSTRACT_MEMBER',
+    "'{0}' must have a method body because '{1}' is an enum.",
+    correctionMessage: "Try adding a body to '{0}'.",
+  );
+
+  /**
    * No parameters.
    */
   // #### Description

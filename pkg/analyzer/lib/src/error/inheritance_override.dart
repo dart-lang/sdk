@@ -71,6 +71,7 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
+          members: declaration.members,
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is MixinDeclaration) {
@@ -645,9 +646,12 @@ class _ClassVerifier {
     bool checkMemberNameCombo(ClassMember member, String memberName) {
       if (memberName == name) {
         reporter.reportErrorForNode(
-            CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-            member,
-            [name, classElement.name]);
+          classElement.isEnum
+              ? CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER
+              : CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          member,
+          [name, classElement.name],
+        );
         return true;
       } else {
         return false;

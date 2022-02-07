@@ -702,6 +702,108 @@ class B implements A {
     ]);
   }
 
+  test_enum_getter_fromInterface() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+enum E implements A {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          38,
+          1),
+    ]);
+  }
+
+  test_enum_getter_fromMixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  int get foo;
+}
+
+enum E with M {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          33,
+          1),
+    ]);
+  }
+
+  test_enum_method_fromInterface() async {
+    await assertErrorsInCode('''
+class A {
+  void foo() {}
+}
+
+enum E implements A {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          34,
+          1),
+    ]);
+  }
+
+  test_enum_method_fromMixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  void foo();
+}
+
+enum E with M {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          32,
+          1),
+    ]);
+  }
+
+  test_enum_setter_fromInterface() async {
+    await assertErrorsInCode('''
+class A {
+  set foo(int _) {}
+}
+
+enum E implements A {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          38,
+          1),
+    ]);
+  }
+
+  test_enum_setter_fromMixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  set foo(int _);
+}
+
+enum E with M {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          36,
+          1),
+    ]);
+  }
+
   test_external_field_final_implement_getter() async {
     await assertNoErrorsInCode('''
 class A {
