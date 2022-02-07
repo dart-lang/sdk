@@ -508,6 +508,7 @@ bool Directory::Rename(Namespace* namespc,
   Utf8ToWideScope system_path(prefixed_dir);
   ExistsResult exists = ExistsHelper(system_path.wide());
   if (exists != EXISTS) {
+    SetLastError(ERROR_FILE_NOT_FOUND);
     return false;
   }
   const char* prefixed_new_dir = PrefixLongDirectoryPath(new_path);
