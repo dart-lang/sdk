@@ -75,7 +75,7 @@ abstract class FutureOr<T> {
 /// Here the `File.readAsString` method from `dart:io` is an asychronous
 /// function returning a `Future<String>`.
 /// The `fileContains` function is marked with `async` right before its body,
-/// which means that you can use `await` insider it,
+/// which means that you can use `await` inside it,
 /// and that it must return a future.
 /// The call to `File(path).readAsString()` initiates reading the file into
 /// a string and produces a `Future<String>` which will eventually contain the
