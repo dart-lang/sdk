@@ -40,6 +40,31 @@ int a = null;
     ]);
   }
 
+  test_hasPackageLanguage_less_hasOverride_greater() async {
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: '2.9',
+    );
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.12
+void f() {}
+''');
+  }
+
+  test_hasPackageLanguage_less_noOverride_less() async {
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: '2.9',
+    );
+
+    await assertErrorsInCode(r'''
+void f() {}
+''', [
+      error(CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE, 0, 0),
+    ]);
+  }
+
   test_noOverride() async {
     await assertNoErrorsInCode(r'''
 void f() {}
