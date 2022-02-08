@@ -1839,13 +1839,14 @@ Fragment FlowGraphBuilder::CheckBoolean(TokenPosition position) {
 
 Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
                                            const String& dst_name,
-                                           AssertAssignableInstr::Kind kind) {
+                                           AssertAssignableInstr::Kind kind,
+                                           TokenPosition token_pos) {
   Fragment instructions;
   if (!dst_type.IsTopTypeForSubtyping()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
-    instructions += AssertAssignableLoadTypeArguments(TokenPosition::kNoSource,
-                                                      dst_type, dst_name, kind);
+    instructions +=
+        AssertAssignableLoadTypeArguments(token_pos, dst_type, dst_name, kind);
     instructions += Drop();
   }
   return instructions;
@@ -3679,7 +3680,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
                                   setter_value->needs_type_check();
     if (needs_type_check) {
       body += CheckAssignable(setter_value->type(), setter_value->name(),
-                              AssertAssignableInstr::kParameterCheck);
+                              AssertAssignableInstr::kParameterCheck,
+                              field.token_pos());
     }
     body += BuildNullAssertions();
     if (field.is_late()) {

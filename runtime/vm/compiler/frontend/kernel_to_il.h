@@ -243,7 +243,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment CheckAssignable(
       const AbstractType& dst_type,
       const String& dst_name,
-      AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown);
+      AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown,
+      TokenPosition token_pos = TokenPosition::kNoSource);
 
   Fragment AssertAssignableLoadTypeArguments(
       TokenPosition position,
