@@ -604,7 +604,9 @@ class _Future<T> implements Future<T> {
   /// succeed by the way the function is called.
   /// Should be used judiciously.
   void _asyncCompleteUnchecked(/*FutureOr<T>*/ dynamic value) {
-    assert((value as FutureOr<T>) == value);
+    // Ensure [value] is FutureOr<T>, do so using an `as` check so it works
+    // also correctly in non-sound null-safety mode.
+    assert(identical(value as FutureOr<T>, value));
     final typedValue = unsafeCast<FutureOr<T>>(value);
 
     // Doing just "is Future" is not sufficient.
@@ -625,7 +627,9 @@ class _Future<T> implements Future<T> {
   /// [Future].
   /// Should be used judiciously.
   void _asyncCompleteUncheckedNoFuture(/*T*/ dynamic value) {
-    assert((value as T) == value);
+    // Ensure [value] is T, do so using an `as` check so it works also correctly
+    // in non-sound null-safety mode.
+    assert(identical(value as T, value));
     _asyncCompleteWithValue(unsafeCast<T>(value));
   }
 
