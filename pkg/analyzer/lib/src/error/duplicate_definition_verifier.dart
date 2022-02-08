@@ -53,6 +53,11 @@ class DuplicateDefinitionVerifier {
     var staticGetters = <String, Element>{};
     var staticSetters = <String, Element>{};
 
+    var valuesField = enumElement.valuesField;
+    if (valuesField != null) {
+      staticGetters['values'] = valuesField;
+    }
+
     for (EnumConstantDeclaration constant in node.constants) {
       _checkDuplicateIdentifier(staticGetters, constant.name);
     }

@@ -329,6 +329,26 @@ f(,[]) {}
 
 @reflectiveTest
 class DuplicateDefinitionEnumTest extends PubPackageResolutionTest {
+  test_constant() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo, foo
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 16, 3),
+    ]);
+  }
+
+  test_constant_values() async {
+    await assertErrorsInCode(r'''
+enum E {
+  values
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 11, 6),
+    ]);
+  }
+
   test_instance_field_field() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -491,6 +511,48 @@ enum E {
     ]);
   }
 
+  test_static_constant_field() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo;
+  static int foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 29, 3),
+    ]);
+  }
+
+  test_static_constant_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo;
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 33, 3),
+    ]);
+  }
+
+  test_static_constant_method() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo;
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 30, 3),
+    ]);
+  }
+
+  test_static_constant_setter() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  foo;
+  static set foo(int _) {}
+}
+''');
+  }
+
   test_static_field_field() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -524,6 +586,17 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 50, 3),
+    ]);
+  }
+
+  test_static_field_values() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static int values = 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 27, 6),
     ]);
   }
 

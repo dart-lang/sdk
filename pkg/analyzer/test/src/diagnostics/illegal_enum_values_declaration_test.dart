@@ -98,16 +98,6 @@ enum E {
     ]);
   }
 
-  /// TODO(scheglov) this is wrong, we should get an error
-  test_enum_field_static() async {
-    await assertNoErrorsInCode(r'''
-enum E {
-  v;
-  static int values = 0;
-}
-''');
-  }
-
   test_enum_getter() async {
     await assertErrorsInCode(r'''
 enum E {

@@ -2788,6 +2788,17 @@ class EnumElementImpl extends AbstractClassElementImpl {
     return super.typeParameters;
   }
 
+  ConstFieldElementImpl? get valuesField {
+    for (var field in fields) {
+      if (field is ConstFieldElementImpl &&
+          field.name == 'values' &&
+          field.isSyntheticEnumField) {
+        return field;
+      }
+    }
+    return null;
+  }
+
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeEnumElement(this);
