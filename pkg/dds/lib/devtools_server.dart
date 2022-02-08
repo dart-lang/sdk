@@ -47,8 +47,24 @@ class DevToolsServer {
   late ClientManager clientManager;
   final bool _isChromeOS = File('/dev/.cros_milestone').existsSync();
 
-  static ArgParser buildArgParser({bool verbose = false}) {
+  /// Builds an arg parser for the DevTools server.
+  ///
+  /// [includeHelpOption] should be set to false if this arg parser will be used
+  /// in a Command subclass.
+  static ArgParser buildArgParser({
+    bool verbose = false,
+    bool includeHelpOption = true,
+  }) {
     final argParser = ArgParser();
+
+    if (includeHelpOption) {
+      argParser.addFlag(
+        argHelp,
+        negatable: false,
+        abbr: 'h',
+        help: 'Prints help output.',
+      );
+    }
     argParser
       ..addFlag(
         argVersion,
