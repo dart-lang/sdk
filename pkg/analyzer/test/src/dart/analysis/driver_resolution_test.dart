@@ -1522,24 +1522,13 @@ main() async {
 
     {
       var prefixed = findNode.prefixed('a.v = 1;');
-      if (hasAssignmentLeftResolution) {
-        assertElement(prefixed, v.setter);
-        assertType(prefixed, 'int');
-      } else {
-        assertElementNull(prefixed);
-        assertTypeNull(prefixed);
-      }
+      assertElementNull(prefixed);
+      assertTypeNull(prefixed);
 
       assertElement(prefixed.prefix, import.prefix);
       assertType(prefixed.prefix, null);
 
-      if (hasAssignmentLeftResolution) {
-        assertElement(prefixed.identifier, v.setter);
-        assertType(prefixed.identifier, 'int');
-      } else {
-        assertElementNull(prefixed.identifier);
-        assertTypeNull(prefixed.identifier);
-      }
+      assertUnresolvedSimpleIdentifier(prefixed.identifier);
     }
   }
 
@@ -1770,13 +1759,7 @@ main(C<int> c) {
 
     {
       var fRef = findNode.simple('f = 1;');
-      if (hasAssignmentLeftResolution) {
-        assertMember(fRef, findElement.setter('f'), {'T': 'int'});
-        assertType(fRef, 'int');
-      } else {
-        assertElementNull(fRef);
-        assertTypeNull(fRef);
-      }
+      assertUnresolvedSimpleIdentifier(fRef);
     }
   }
 
@@ -5944,13 +5927,7 @@ void f(int x) {
     await resolveTestFile();
 
     var xRef = findNode.simple('x ++');
-    if (hasAssignmentLeftResolution) {
-      assertElement(xRef, findElement.parameter('x'));
-      assertType(xRef, 'int');
-    } else {
-      // assertElementNull(xRef);
-      assertTypeNull(xRef);
-    }
+    assertUnresolvedSimpleIdentifier(xRef, disableElementCheck: true);
   }
 
   test_postfixExpression_local() async {
@@ -5982,13 +5959,7 @@ main() {
       expect(postfix.staticType, typeProvider.intType);
 
       var operand = postfix.operand as SimpleIdentifier;
-      if (hasAssignmentLeftResolution) {
-        expect(operand.staticElement, same(v));
-        expect(operand.staticType, typeProvider.intType);
-      } else {
-        // expect(operand.staticElement, same(v));
-        expect(operand.staticType, isNull);
-      }
+      assertUnresolvedSimpleIdentifier(operand, disableElementCheck: true);
     }
   }
 
@@ -6004,11 +5975,6 @@ class C {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-
-    var cClassDeclaration = unit.declarations[1] as ClassDeclaration;
-    ClassElement cClassElement = cClassDeclaration.declaredElement!;
-    FieldElement fElement = cClassElement.getField('f')!;
 
     List<Statement> mainStatements = _getMainStatements(result);
 
@@ -6021,20 +5987,10 @@ class C {
       expect(postfix.staticType, typeProvider.intType);
 
       var propertyAccess = postfix.operand as PropertyAccess;
-      if (hasAssignmentLeftResolution) {
-        expect(propertyAccess.staticType, typeProvider.intType);
-      } else {
-        assertTypeNull(propertyAccess);
-      }
+      assertUnresolvedPropertyAccess(propertyAccess);
 
       SimpleIdentifier propertyName = propertyAccess.propertyName;
-      if (hasAssignmentLeftResolution) {
-        expect(propertyName.staticElement, same(fElement.setter));
-        expect(propertyName.staticType, typeProvider.intType);
-      } else {
-        assertElementNull(propertyName);
-        assertTypeNull(propertyName);
-      }
+      assertUnresolvedSimpleIdentifier(propertyName);
     }
   }
 
@@ -6060,13 +6016,7 @@ void f(int x) {
     await resolveTestFile();
 
     var xRef = findNode.simple('x++');
-    if (hasAssignmentLeftResolution) {
-      assertElement(xRef, findElement.parameter('x'));
-      assertType(xRef, 'int');
-    } else {
-      // assertElementNull(xRef);
-      assertTypeNull(xRef);
-    }
+    assertUnresolvedSimpleIdentifier(xRef, disableElementCheck: true);
   }
 
   test_prefix_increment_of_prefix_increment() async {
@@ -6078,13 +6028,7 @@ void f(int x) {
     await resolveTestFile();
 
     var xRef = findNode.simple('x;');
-    if (hasAssignmentLeftResolution) {
-      assertElement(xRef, findElement.parameter('x'));
-      assertType(xRef, 'int');
-    } else {
-      // assertElementNull(xRef);
-      assertTypeNull(xRef);
-    }
+    assertUnresolvedSimpleIdentifier(xRef, disableElementCheck: true);
   }
 
   test_prefixedIdentifier_classInstance_instanceField() async {
@@ -6268,14 +6212,7 @@ main() {
       var assignment = statement.expression as AssignmentExpression;
       var left = assignment.leftHandSide as PrefixedIdentifier;
       assertPrefix(left.prefix);
-
-      if (hasAssignmentLeftResolution) {
-        expect(left.identifier.staticElement, same(mySetter));
-        expect(left.identifier.staticType, typeProvider.intType);
-      } else {
-        assertElementNull(left.identifier);
-        assertTypeNull(left.identifier);
-      }
+      assertUnresolvedSimpleIdentifier(left.identifier);
     }
   }
 
@@ -6309,13 +6246,7 @@ main() {
       expect(prefix.staticType, typeProvider.intType);
 
       var operand = prefix.operand as SimpleIdentifier;
-      if (hasAssignmentLeftResolution) {
-        expect(operand.staticElement, same(v));
-        expect(operand.staticType, typeProvider.intType);
-      } else {
-        // assertElementNull(operand);
-        assertTypeNull(operand);
-      }
+      assertUnresolvedSimpleIdentifier(operand, disableElementCheck: true);
     }
 
     {
@@ -6396,20 +6327,10 @@ class C {
       expect(prefix.staticType, typeProvider.intType);
 
       var propertyAccess = prefix.operand as PropertyAccess;
-      if (hasAssignmentLeftResolution) {
-        expect(propertyAccess.staticType, typeProvider.intType);
-      } else {
-        assertTypeNull(propertyAccess);
-      }
+      assertUnresolvedPropertyAccess(propertyAccess);
 
       SimpleIdentifier propertyName = propertyAccess.propertyName;
-      if (hasAssignmentLeftResolution) {
-        expect(propertyName.staticElement, same(fElement.setter));
-        expect(propertyName.staticType, typeProvider.intType);
-      } else {
-        assertElementNull(propertyName.staticElement);
-        assertTypeNull(propertyName);
-      }
+      assertUnresolvedSimpleIdentifier(propertyName);
     }
 
     {
@@ -6635,8 +6556,6 @@ class B extends A {
     var methodElement = aNode.members[0].declaredElement as MethodElement;
     var getterElement =
         aNode.members[1].declaredElement as PropertyAccessorElement;
-    var setterElement =
-        aNode.members[2].declaredElement as PropertyAccessorElement;
     var operatorElement = aNode.members[3].declaredElement as MethodElement;
 
     var testNode = bNode.members[0] as MethodDeclaration;
@@ -6694,13 +6613,7 @@ class B extends A {
       var assignment = statement.expression as AssignmentExpression;
 
       var identifier = assignment.leftHandSide as SimpleIdentifier;
-      if (hasAssignmentLeftResolution) {
-        expect(identifier.staticElement, same(setterElement));
-        expect(identifier.staticType, typeProvider.intType);
-      } else {
-        assertElementNull(identifier);
-        assertTypeNull(identifier);
-      }
+      assertUnresolvedSimpleIdentifier(identifier);
     }
 
     // this.setter = 4;
@@ -6714,13 +6627,7 @@ class B extends A {
       expect(
           target.staticType, interfaceTypeNone(bNode.declaredElement!)); // raw
 
-      if (hasAssignmentLeftResolution) {
-        expect(propertyAccess.propertyName.staticElement, same(setterElement));
-        expect(propertyAccess.propertyName.staticType, typeProvider.intType);
-      } else {
-        assertElementNull(propertyAccess.propertyName);
-        assertTypeNull(propertyAccess.propertyName);
-      }
+      assertUnresolvedSimpleIdentifier(propertyAccess.propertyName);
     }
 
     // super + 5;
@@ -6763,8 +6670,6 @@ class A {
     var methodElement = aNode.members[0].declaredElement as MethodElement;
     var getterElement =
         aNode.members[1].declaredElement as PropertyAccessorElement;
-    var setterElement =
-        aNode.members[2].declaredElement as PropertyAccessorElement;
     var operatorElement = aNode.members[3].declaredElement as MethodElement;
 
     var testNode = aNode.members[4] as MethodDeclaration;
@@ -6823,13 +6728,7 @@ class A {
       var assignment = statement.expression as AssignmentExpression;
 
       var identifier = assignment.leftHandSide as SimpleIdentifier;
-      if (hasAssignmentLeftResolution) {
-        expect(identifier.staticElement, same(setterElement));
-        expect(identifier.staticType, typeProvider.intType);
-      } else {
-        assertElementNull(identifier);
-        assertTypeNull(identifier);
-      }
+      assertUnresolvedSimpleIdentifier(identifier);
     }
 
     // this.setter = 4;
@@ -6842,13 +6741,7 @@ class A {
       var target = propertyAccess.target as ThisExpression;
       expect(target.staticType, thisTypeA); // raw
 
-      if (hasAssignmentLeftResolution) {
-        expect(propertyAccess.propertyName.staticElement, same(setterElement));
-        expect(propertyAccess.propertyName.staticType, typeProvider.intType);
-      } else {
-        assertElementNull(propertyAccess.propertyName);
-        assertTypeNull(propertyAccess.propertyName);
-      }
+      assertUnresolvedSimpleIdentifier(propertyAccess.propertyName);
     }
 
     // this + 5;
@@ -8274,13 +8167,7 @@ main() {
     assertTypeDynamic(postfix);
 
     var aRef = postfix.operand as SimpleIdentifier;
-    if (hasAssignmentLeftResolution) {
-      assertElementNull(aRef);
-      assertTypeDynamic(aRef);
-    } else {
-      assertElementNull(aRef);
-      assertTypeNull(aRef);
-    }
+    assertUnresolvedSimpleIdentifier(aRef);
   }
 
   test_unresolved_postfix_operator() async {
@@ -8299,13 +8186,7 @@ class A {}
     assertType(postfix, 'A');
 
     var aRef = postfix.operand as SimpleIdentifier;
-    if (hasAssignmentLeftResolution) {
-      assertElement(aRef, findElement.topSet('a'));
-      assertType(aRef, 'A');
-    } else {
-      assertElementNull(aRef);
-      assertTypeNull(aRef);
-    }
+    assertUnresolvedSimpleIdentifier(aRef);
   }
 
   test_unresolved_prefix_operand() async {
@@ -8322,13 +8203,7 @@ main() {
     assertTypeDynamic(prefix);
 
     var aRef = prefix.operand as SimpleIdentifier;
-    if (hasAssignmentLeftResolution) {
-      assertElementNull(aRef);
-      assertTypeDynamic(aRef);
-    } else {
-      assertElementNull(aRef);
-      assertTypeNull(aRef);
-    }
+    assertUnresolvedSimpleIdentifier(aRef);
   }
 
   test_unresolved_prefix_operator() async {
@@ -8347,13 +8222,7 @@ class A {}
     assertTypeDynamic(prefix);
 
     var aRef = prefix.operand as SimpleIdentifier;
-    if (hasAssignmentLeftResolution) {
-      assertElement(aRef, findElement.topSet('a'));
-      assertType(aRef, 'A');
-    } else {
-      assertElementNull(aRef);
-      assertTypeNull(aRef);
-    }
+    assertUnresolvedSimpleIdentifier(aRef);
   }
 
   test_unresolved_prefixedIdentifier_identifier() async {

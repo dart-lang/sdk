@@ -169,13 +169,6 @@ f(C c) {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertElement(
-        findNode.simple('a = 2;'),
-        findElement.setter('a'),
-      );
-    }
   }
 
   test_method_reference() async {

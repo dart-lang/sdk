@@ -166,15 +166,6 @@ void f(Never x) {
       type: 'dynamic',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertIndexExpression(
-        findNode.index('x[0]'),
-        readElement: null,
-        writeElement: null,
-        type: 'dynamic',
-      );
-    }
-
     assertType(findNode.binary('1 + 2'), 'int');
   }
 
@@ -235,15 +226,6 @@ void f(Never? x) {
       operatorElement: null,
       type: 'dynamic',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertIndexExpression(
-        findNode.index('x[0]'),
-        readElement: null,
-        writeElement: null,
-        type: 'dynamic',
-      );
-    }
 
     assertType(findNode.binary('1 + 2'), 'int');
   }

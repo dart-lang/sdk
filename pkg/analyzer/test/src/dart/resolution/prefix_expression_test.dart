@@ -91,10 +91,6 @@ void f(Object x) {
       element: findElement.method('+'),
       type: 'Object',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertType(findNode.simple('x;'), 'A');
-    }
   }
 
   test_plusPlus_nullShorting() async {

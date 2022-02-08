@@ -42,13 +42,6 @@ main() {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertElement(
-        findNode.simple('_foo = 0'),
-        aImport.setter('_foo'),
-      );
-    }
   }
 
   test_typeLiteral_privateField_sameLibrary() async {
@@ -93,13 +86,6 @@ main() {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertElement(
-        findNode.simple('_foo = 0'),
-        aImport.setter('_foo'),
-      );
-    }
   }
 
   test_typeLiteral_privateSetter_differentLibrary_noGetter() async {
@@ -129,13 +115,6 @@ main() {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertElement(
-        findNode.simple('_foo = 0'),
-        aImport.setter('_foo'),
-      );
-    }
   }
 
   test_typeLiteral_privateSetter_sameLibrary() async {

@@ -4087,11 +4087,15 @@ main() {
   v = 3;
   v; // marker
 }''');
-    if (hasAssignmentLeftResolution) {
-      assertTypeDynamic(findNode.simple('v ='));
-    } else {
-      assertTypeNull(findNode.simple('v ='));
-    }
+    assertAssignment(
+      findNode.assignment('= 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.localVar('v'),
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'int',
+    );
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
