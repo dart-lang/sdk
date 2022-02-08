@@ -53,3 +53,6 @@ dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a un
 [ $compiler == none && $runtime == vm ]
 new_from_env_test: SkipByDesign # dart2js only test
 unconditional_dartio_import_test: SkipByDesign # dart2js only test
+
+[ $compiler == dartkp || $runtime == vm ]
+weak_reference_test: SkipByDesign # Web only test

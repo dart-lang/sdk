@@ -27,7 +27,7 @@ import 'dart:_js_embedded_names'
 
 import 'dart:collection';
 
-import 'dart:async' show Completer, DeferredLoadException, Future;
+import 'dart:async' show Completer, DeferredLoadException, Future, Zone;
 
 import 'dart:_foreign_helper'
     show
@@ -3028,4 +3028,12 @@ void assertInteropArgs(List<Object?> args) {
 
 Object? rawStartupMetrics() {
   return JS('JSArray', '#.a', JS_EMBEDDED_GLOBAL('', STARTUP_METRICS));
+}
+
+/// Wraps the given [callback] within the current Zone.
+void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
+  // For performance reasons avoid wrapping if we are in the root zone.
+  if (Zone.current == Zone.root) return callback;
+  if (callback == null) return null;
+  return Zone.current.bindUnaryCallbackGuarded(callback);
 }

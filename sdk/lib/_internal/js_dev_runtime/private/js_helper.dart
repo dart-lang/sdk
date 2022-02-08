@@ -4,6 +4,7 @@
 
 library dart._js_helper;
 
+import 'dart:async' show Zone;
 import 'dart:collection';
 
 import 'dart:_foreign_helper' show JS, JSExportName;
@@ -828,3 +829,11 @@ void assertInterop(Object? value) {
 /// Like [assertInterop], except iterates over a list of arguments
 /// non-recursively.
 void assertInteropArgs(List<Object?> args) => args.forEach(assertInterop);
+
+/// Wraps the given [callback] within the current Zone.
+void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
+  // For performance reasons avoid wrapping if we are in the root zone.
+  if (Zone.current == Zone.root) return callback;
+  if (callback == null) return null;
+  return Zone.current.bindUnaryCallbackGuarded(callback);
+}
