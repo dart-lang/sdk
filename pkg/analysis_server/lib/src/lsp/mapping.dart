@@ -810,7 +810,7 @@ ErrorOr<String> pathOfUri(Uri? uri) {
 }
 
 lsp.Diagnostic pluginToDiagnostic(
-  server.LineInfo Function(String) getLineInfo,
+  server.LineInfo? Function(String) getLineInfo,
   plugin.AnalysisError error, {
   required Set<lsp.DiagnosticTag>? supportedTags,
   required bool clientSupportsCodeDescription,
@@ -832,7 +832,14 @@ lsp.Diagnostic pluginToDiagnostic(
 
   final range = locationToRange(error.location) ??
       locationOffsetLenToRange(
-          getLineInfo(error.location.file), error.location);
+        // TODO(dantup): This null assertion is not sound and can lead to
+        //   errors (for example during a large rename where files may be
+        //   removed as diagnostics are being mapped). To remove this,
+        //   error.location should be updated to require line/col information
+        //   (which involves breaking changes).
+        getLineInfo(error.location.file)!,
+        error.location,
+      );
   var documentationUrl = error.url;
   return lsp.Diagnostic(
     range: range,

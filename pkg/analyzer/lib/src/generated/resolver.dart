@@ -1583,20 +1583,38 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           }
         }
       }
-      var arguments = node.arguments;
-      if (arguments != null) {
-        var argumentList = arguments.argumentList;
-        if (constructorElement != null) {
+      if (constructorElement != null) {
+        var arguments = node.arguments;
+        if (arguments != null) {
+          var argumentList = arguments.argumentList;
           argumentList.correspondingStaticParameters =
               ResolverVisitor.resolveArgumentsToParameters(
             argumentList: argumentList,
             parameters: constructorElement.parameters,
+            errorReporter: errorReporter,
           );
           for (var argument in argumentList.arguments) {
             analyzeExpression(argument, argument.staticParameterElement?.type);
           }
+          arguments.typeArguments?.accept(this);
+
+          var whyNotPromotedList =
+              <Map<DartType, NonPromotionReason> Function()>[];
+          checkForArgumentTypesNotAssignableInList(
+              argumentList, whyNotPromotedList);
+        } else if (definingLibrary.featureSet
+            .isEnabled(Feature.enhanced_enums)) {
+          var requiredParameterCount = constructorElement.parameters
+              .where((e) => e.isRequiredPositional)
+              .length;
+          if (requiredParameterCount != 0) {
+            errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
+              node.name,
+              [requiredParameterCount, 0],
+            );
+          }
         }
-        arguments.typeArguments?.accept(this);
       }
     }
 

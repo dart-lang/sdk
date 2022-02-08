@@ -102,14 +102,6 @@ void f(E e) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    if (hasAssignmentLeftResolution) {
-      assertPrefixedIdentifier(
-        prefixed,
-        element: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
-
     assertSimpleIdentifier(
       prefixed.prefix,
       element: findElement.parameter('e'),
@@ -363,14 +355,6 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    if (hasAssignmentLeftResolution) {
-      assertPrefixedIdentifier(
-        prefixed,
-        element: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
-
     assertSimpleIdentifier(
       prefixed.prefix,
       element: findElement.parameter('a'),
@@ -405,14 +389,6 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    if (hasAssignmentLeftResolution) {
-      assertPrefixedIdentifier(
-        prefixed,
-        element: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
-
     assertSimpleIdentifier(
       prefixed.prefix,
       element: findElement.parameter('a'),

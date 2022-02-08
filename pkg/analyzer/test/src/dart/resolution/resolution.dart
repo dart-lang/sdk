@@ -51,9 +51,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   ClassElement get futureElement => typeProvider.futureElement;
 
-  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
-  bool get hasAssignmentLeftResolution => false;
-
   ClassElement get intElement => typeProvider.intType.element;
 
   InterfaceType get intType => typeProvider.intType;
@@ -111,6 +108,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     );
     assertElement(node.staticElement, operatorElement);
     assertType(node, type);
+
+    _assertUnresolvedAssignmentTarget(node.leftHandSide);
   }
 
   void assertBinaryExpression(
@@ -684,6 +683,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     );
     assertElement(node.staticElement, element);
     assertType(node, type);
+
+    if (writeElement != null) {
+      _assertUnresolvedAssignmentTarget(node.operand);
+    }
   }
 
   void assertPrefixedIdentifier(
@@ -713,6 +716,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     );
     assertElement(node.staticElement, element);
     assertType(node, type);
+
+    if (writeElement != null) {
+      _assertUnresolvedAssignmentTarget(node.operand);
+    }
   }
 
   void assertPropertyAccess(
@@ -882,6 +889,40 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
+  void assertUnresolvedIndexExpression(IndexExpression node) {
+    assertElementNull(node);
+    assertTypeNull(node);
+  }
+
+  void assertUnresolvedPrefixedIdentifier(PrefixedIdentifier node) {
+    assertElementNull(node);
+    assertTypeNull(node);
+    assertUnresolvedSimpleIdentifier(node.identifier);
+  }
+
+  /// TODO(scheglov) Remove [disableElementCheck]
+  void assertUnresolvedPropertyAccess(
+    PropertyAccess node, {
+    bool disableElementCheck = false,
+  }) {
+    if (!disableElementCheck) {
+      assertElementNull(node);
+    }
+    assertTypeNull(node);
+    assertUnresolvedSimpleIdentifier(node.propertyName);
+  }
+
+  /// TODO(scheglov) Remove [disableElementCheck]
+  void assertUnresolvedSimpleIdentifier(
+    SimpleIdentifier node, {
+    bool disableElementCheck = false,
+  }) {
+    if (!disableElementCheck) {
+      assertElementNull(node);
+    }
+    assertTypeNull(node);
+  }
+
   /// TODO(scheglov) Remove `?` from [declaration].
   Matcher elementMatcher(
     Element? declaration, {
@@ -1028,6 +1069,22 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return nullable;
     } else {
       return legacy;
+    }
+  }
+
+  /// Nodes that are targets of an assignment should not be resolved,
+  /// instead the enclosing [CompoundAssignmentExpression] is resolved.
+  void _assertUnresolvedAssignmentTarget(Expression node) {
+    if (node is IndexExpression) {
+      assertUnresolvedIndexExpression(node);
+    } else if (node is PrefixedIdentifier) {
+      assertUnresolvedPrefixedIdentifier(node);
+    } else if (node is PropertyAccess) {
+      assertUnresolvedPropertyAccess(node);
+    } else if (node is SimpleIdentifier) {
+      assertUnresolvedSimpleIdentifier(node, disableElementCheck: true);
+    } else {
+      // Not LValue.
     }
   }
 

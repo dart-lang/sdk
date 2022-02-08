@@ -85,6 +85,26 @@ n(int i) {}
 ''');
   }
 
+  test_enumConstant() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v(0);
+  const E(String a);
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 13, 1),
+    ]);
+  }
+
+  test_enumConstant_implicitDouble() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v(0);
+  const E(double a);
+}
+''');
+  }
+
   test_expressionFromConstructorTearoff_withoutTypeArgs() async {
     await assertNoErrorsInCode('''
 class C<T> {

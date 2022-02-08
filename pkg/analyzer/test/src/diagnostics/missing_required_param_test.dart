@@ -328,6 +328,28 @@ class D extends C {
     ]);
   }
 
+  test_enumConstant_withArguments() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v();
+  const E({required int a});
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 11, 1),
+    ]);
+  }
+
+  test_enumConstant_withoutArguments() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  const E({required int a});
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 11, 1),
+    ]);
+  }
+
   test_function() async {
     await assertErrorsInCode(r'''
 void f({required int a}) {}

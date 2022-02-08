@@ -86,13 +86,13 @@ enum E {
   test_enum_redirectionOnly() async {
     await assertErrorsInCode(r'''
 enum E {
-  v;
+  v(0);
   final int x;
   const E.named();
   const E(this.x) : this.named();
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 58,
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 61,
           6),
     ]);
   }

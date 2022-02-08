@@ -146,8 +146,6 @@ void f(A<int> a) {
   a.foo = 0;
 }
 ''');
-    var propertyAccess = findNode.prefixed('.foo =');
-
     assertAssignment(
       findNode.assignment('foo ='),
       readElement: null,
@@ -160,14 +158,6 @@ void f(A<int> a) {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertMember(
-        propertyAccess,
-        findElement.setter('foo', of: 'E'),
-        {'T': 'int'},
-      );
-    }
   }
 
   test_implicit_targetTypeParameter_hasBound_methodInvocation() async {
@@ -265,17 +255,6 @@ void f<S extends num>(S x) {
         type: 'S',
       );
 
-      if (hasAssignmentLeftResolution) {
-        assertPropertyAccess2(
-          findNode.propertyAccess('.test'),
-          element: elementMatcher(
-            findElement.setter('test'),
-            substitution: {'T': 'S'},
-          ),
-          type: 'S',
-        );
-      }
-
       assertTypeArgumentTypes(
         findNode.methodInvocation('g()'),
         ['S'],
@@ -293,17 +272,6 @@ void f<S extends num>(S x) {
         operatorElement: null,
         type: 'num',
       );
-
-      if (hasAssignmentLeftResolution) {
-        assertPropertyAccess2(
-          findNode.propertyAccess('.test'),
-          element: elementMatcher(
-            findElement.setter('test'),
-            substitution: {'T': 'num'},
-          ),
-          type: 'num',
-        );
-      }
 
       assertTypeArgumentTypes(
         findNode.methodInvocation('g()'),
@@ -465,15 +433,6 @@ void f(A<int> a) {
       operatorElement: null,
       type: 'double',
     );
-
-    if (hasAssignmentLeftResolution) {
-      var propertyAccess = findNode.propertyAccess('.foo =');
-      assertMember(
-        propertyAccess,
-        findElement.setter('foo', of: 'E'),
-        {'T': 'num'},
-      );
-    }
   }
 
   test_override_inferTypeArguments_error_couldNotInfer() async {
@@ -606,14 +565,5 @@ void f(A<int> a) {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      var propertyAccess = findNode.propertyAccess('.foo =');
-      assertMember(
-        propertyAccess,
-        findElement.setter('foo', of: 'E'),
-        {'T': 'int'},
-      );
-    }
   }
 }

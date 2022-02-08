@@ -96,6 +96,22 @@ enum E {
 ''');
   }
 
+  test_generative_named_redirectingFactory() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+
+  const factory E() = E.named;
+  const E.named();
+}
+''', [
+      error(
+          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          37,
+          7),
+    ]);
+  }
+
   test_generative_unnamed_constructorReference() async {
     await assertErrorsInCode('''
 enum E {
@@ -173,5 +189,21 @@ enum E {
   const E.named() : this();
 }
 ''');
+  }
+
+  test_generative_unnamed_redirectingFactory() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+
+  const factory E.named() = E;
+  const E();
+}
+''', [
+      error(
+          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          43,
+          1),
+    ]);
   }
 }

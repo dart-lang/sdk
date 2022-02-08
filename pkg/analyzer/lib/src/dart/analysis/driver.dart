@@ -268,37 +268,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _search = Search(this);
   }
 
-  /// Create a new instance of [AnalysisDriver].
-  ///
-  /// The given [SourceFactory] is cloned to ensure that it does not contain a
-  /// reference to a [AnalysisContext] in which it could have been used.
-  @Deprecated('Use the unnamed constructor instead')
-  AnalysisDriver.tmp1({
-    required AnalysisDriverScheduler scheduler,
-    required PerformanceLog logger,
-    required ResourceProvider resourceProvider,
-    required ByteStore byteStore,
-    required SourceFactory sourceFactory,
-    required AnalysisOptionsImpl analysisOptions,
-    required Packages packages,
-    FileContentCache? fileContentCache,
-    bool enableIndex = false,
-    SummaryDataStore? externalSummaries,
-    bool retainDataForTesting = false,
-  }) : this(
-          scheduler: scheduler,
-          logger: logger,
-          resourceProvider: resourceProvider,
-          byteStore: byteStore,
-          sourceFactory: sourceFactory,
-          analysisOptions: analysisOptions,
-          packages: packages,
-          fileContentCache: fileContentCache,
-          enableIndex: enableIndex,
-          externalSummaries: externalSummaries,
-          retainDataForTesting: retainDataForTesting,
-        );
-
   /// Return the set of files explicitly added to analysis using [addFile].
   Set<String> get addedFiles => _fileTracker.addedFiles;
 

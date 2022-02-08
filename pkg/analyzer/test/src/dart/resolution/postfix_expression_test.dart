@@ -55,10 +55,6 @@ void f(Object x) {
 }
 ''');
 
-    if (hasAssignmentLeftResolution) {
-      assertType(findNode.simple('x++;'), 'A');
-    }
-
     assertPostfixExpression(
       findNode.postfix('x++'),
       readElement: findElement.parameter('x'),
