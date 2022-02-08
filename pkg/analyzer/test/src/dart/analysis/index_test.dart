@@ -215,6 +215,19 @@ class C = Object with A implements B; // 3
       ..isReferencedAt('B; // 3', false);
   }
 
+  test_isImplementedBy_enum() async {
+    await _indexTestUnit('''
+class A {} // 1
+enum E implements A { // 2
+  v;
+}
+''');
+    ClassElement elementA = findElement.class_('A');
+    assertThat(elementA)
+      ..isImplementedAt('A { // 2', false)
+      ..isReferencedAt('A { // 2', false);
+  }
+
   test_isImplementedBy_MixinDeclaration_implementsClause() async {
     await _indexTestUnit('''
 class A {} // 1
@@ -269,7 +282,7 @@ main() {
     assertThat(element).isInvokedAt('loadLibrary(); // 2', true);
   }
 
-  test_isInvokedBy_MethodElement() async {
+  test_isInvokedBy_MethodElement_class() async {
     await _indexTestUnit('''
 class A {
   foo() {}
@@ -282,6 +295,26 @@ class A {
     assertThat(element)
       ..isInvokedAt('foo(); // q', true)
       ..isInvokedAt('foo(); // nq', false);
+  }
+
+  test_isInvokedBy_MethodElement_enum() async {
+    await _indexTestUnit('''
+enum E {
+  v;
+  void foo() {}
+  void bar() {
+    this.foo(); // q1
+    foo(); // nq
+  }
+}
+void f(E e) {
+  e.foo(); // q2
+}
+''');
+    assertThat(findElement.method('foo'))
+      ..isInvokedAt('foo(); // q1', true)
+      ..isInvokedAt('foo(); // nq', false)
+      ..isInvokedAt('foo(); // q2', true);
   }
 
   test_isInvokedBy_MethodElement_ofNamedExtension_instance() async {
@@ -351,7 +384,7 @@ main() {
     assertThat(element).isInvokedAt('foo();', true);
   }
 
-  test_isInvokedBy_operator_binary() async {
+  test_isInvokedBy_operator_class_binary() async {
     await _indexTestUnit('''
 class A {
   operator +(other) => this;
@@ -371,7 +404,7 @@ main(A a) {
       ..isInvokedAt('++;', true, length: 2);
   }
 
-  test_isInvokedBy_operator_index() async {
+  test_isInvokedBy_operator_class_index() async {
     await _indexTestUnit('''
 class A {
   operator [](i) => null;
@@ -388,7 +421,7 @@ main(A a) {
     assertThat(writeElement).isInvokedAt('[1]', true, length: 1);
   }
 
-  test_isInvokedBy_operator_prefix() async {
+  test_isInvokedBy_operator_class_prefix() async {
     await _indexTestUnit('''
 class A {
   A operator ~() => this;
@@ -399,6 +432,58 @@ main(A a) {
 ''');
     MethodElement element = findElement.method('~');
     assertThat(element).isInvokedAt('~a', true, length: 1);
+  }
+
+  test_isInvokedBy_operator_enum_binary() async {
+    await _indexTestUnit('''
+enum E {
+  v;
+  int operator +(other) => 0;
+}
+void f(E e) {
+  e + 1;
+  e += 2;
+  ++e;
+  e++;
+}
+''');
+    assertThat(findElement.method('+'))
+      ..isInvokedAt('+ 1', true, length: 1)
+      ..isInvokedAt('+= 2', true, length: 2)
+      ..isInvokedAt('++e', true, length: 2)
+      ..isInvokedAt('++;', true, length: 2);
+  }
+
+  test_isInvokedBy_operator_enum_index() async {
+    await _indexTestUnit('''
+enum E {
+  v;
+  int operator [](int index) => 0;
+  operator []=(int index, int vlaue) {}
+}
+void f(E e) {
+  e[0];
+  e[1] = 42;
+}
+''');
+    MethodElement readElement = findElement.method('[]');
+    MethodElement writeElement = findElement.method('[]=');
+    assertThat(readElement).isInvokedAt('[0]', true, length: 1);
+    assertThat(writeElement).isInvokedAt('[1]', true, length: 1);
+  }
+
+  test_isInvokedBy_operator_enum_prefix() async {
+    await _indexTestUnit('''
+enum E {
+  e;
+  int operator ~() => 0;
+}
+void f(E e) {
+  ~e;
+}
+''');
+    MethodElement element = findElement.method('~');
+    assertThat(element).isInvokedAt('~e', true, length: 1);
   }
 
   test_isMixedBy_ClassDeclaration_TypeAliasElement() async {
@@ -463,6 +548,18 @@ class B = Object with A; // 2
 ''');
     ClassElement elementA = findElement.mixin('A');
     assertThat(elementA).isMixedInAt('A; // 2', false);
+  }
+
+  test_isMixedInBy_enum_mixin() async {
+    await _indexTestUnit('''
+mixin M {} // 1
+enum E with M { // 2
+  v
+}
+''');
+    assertThat(findElement.mixin('M'))
+      ..isMixedInAt('M { // 2', false)
+      ..isReferencedAt('M { // 2', false);
   }
 
   test_isReferencedAt_PropertyAccessorElement_field_call() async {
@@ -659,6 +756,141 @@ part 'b.dart';
     // No exception, even though a.dart is a part of b.dart part.
   }
 
+  test_isReferencedBy_ConstructorElement_class_named() async {
+    await _indexTestUnit('''
+/// [new A.foo] 1
+class A {
+  A.foo() {}
+  A.bar() : this.foo(); // 2
+}
+class B extends A {
+  B() : super.foo(); // 3
+  factory B.bar() = A.foo; // 4
+}
+void f() {
+  A.foo(); // 5
+  A.foo; // 6
+}
+''');
+    var element = findElement.constructor('foo');
+    assertThat(element)
+      ..hasRelationCount(6)
+      ..isReferencedAt('.foo] 1', true, length: 4)
+      ..isInvokedAt('.foo(); // 2', true, length: 4)
+      ..isInvokedAt('.foo(); // 3', true, length: 4)
+      ..isReferencedAt('.foo; // 4', true, length: 4)
+      ..isInvokedAt('.foo(); // 5', true, length: 4)
+      ..isReferencedByConstructorTearOffAt('.foo; // 6', length: 4);
+  }
+
+  test_isReferencedBy_ConstructorElement_class_namedOnlyWithDot() async {
+    await _indexTestUnit('''
+class A {
+  A.named() {}
+}
+main() {
+  new A.named();
+}
+''');
+    // has ".named()", but does not have "named()"
+    var constructorName = findNode.constructorName('.named();');
+    var offsetWithoutDot = constructorName.name!.offset;
+    var offsetWithDot = constructorName.period!.offset;
+    expect(index.usedElementOffsets, isNot(contains(offsetWithoutDot)));
+    expect(index.usedElementOffsets, contains(offsetWithDot));
+  }
+
+  test_isReferencedBy_ConstructorElement_class_redirection() async {
+    await _indexTestUnit('''
+class A {
+  A() : this.bar(); // 1
+  A.foo() : this(); // 2
+  A.bar();
+}
+''');
+    var constA = findElement.unnamedConstructor('A');
+    var constA_bar = findElement.constructor('bar');
+    assertThat(constA).isInvokedAt('(); // 2', true, length: 0);
+    assertThat(constA_bar).isInvokedAt('.bar(); // 1', true, length: 4);
+  }
+
+  test_isReferencedBy_ConstructorElement_class_unnamed_declared() async {
+    await _indexTestUnit('''
+/// [new A] 1
+class A {
+  A() {}
+  A.other() : this(); // 2
+}
+class B extends A {
+  B() : super(); // 3
+  factory B.other() = A; // 4
+}
+void f() {
+  A(); // 5
+  A.new; // 6
+}
+''');
+    var element = findElement.unnamedConstructor('A');
+    assertThat(element)
+      ..hasRelationCount(6)
+      ..isReferencedAt('] 1', true, length: 0)
+      ..isInvokedAt('(); // 2', true, length: 0)
+      ..isInvokedAt('(); // 3', true, length: 0)
+      ..isReferencedAt('; // 4', true, length: 0)
+      ..isInvokedAt('(); // 5', true, length: 0)
+      ..isReferencedByConstructorTearOffAt('.new; // 6', length: 4);
+  }
+
+  test_isReferencedBy_ConstructorElement_class_unnamed_declared_new() async {
+    await _indexTestUnit('''
+/// [new A] 1
+class A {
+  A.new() {}
+  A.other() : this(); // 2
+}
+class B extends A {
+  B() : super(); // 3
+  factory B.bar() = A; // 4
+}
+void f() {
+  A(); // 5
+  A.new; // 6
+}
+''');
+    var element = findElement.unnamedConstructor('A');
+    assertThat(element)
+      ..hasRelationCount(6)
+      ..isReferencedAt('] 1', true, length: 0)
+      ..isInvokedAt('(); // 2', true, length: 0)
+      ..isInvokedAt('(); // 3', true, length: 0)
+      ..isReferencedAt('; // 4', true, length: 0)
+      ..isInvokedAt('(); // 5', true, length: 0)
+      ..isReferencedByConstructorTearOffAt('.new; // 6', length: 4);
+  }
+
+  test_isReferencedBy_ConstructorElement_class_unnamed_synthetic() async {
+    await _indexTestUnit('''
+/// [new A] 1
+class A {}
+class B extends A {
+  B() : super(); // 2
+  factory B.bar() = A; // 3
+}
+void f() {
+  A(); // 4
+  A.new; // 5
+}
+''');
+    var element = findElement.unnamedConstructor('A');
+    assertThat(element)
+      ..hasRelationCount(5)
+      ..isReferencedAt('] 1', true, length: 0)
+      ..isInvokedAt('(); // 2', true, length: 0)
+      ..isReferencedAt('; // 3', true, length: 0)
+      ..isInvokedAt('(); // 4', true, length: 0)
+      ..isReferencedByConstructorTearOffAt('.new; // 5', length: 4);
+  }
+
   test_isReferencedBy_ConstructorElement_classTypeAlias() async {
     await _indexTestUnit('''
 class M {}
@@ -698,139 +930,75 @@ main() {
     // No additional validation, but it should not fail with stack overflow.
   }
 
-  test_isReferencedBy_ConstructorElement_named() async {
+  test_isReferencedBy_ConstructorElement_enum_named() async {
     await _indexTestUnit('''
-/// [new A.foo] 1
-class A {
-  A.foo() {}
-  A.bar() : this.foo(); // 2
-}
-class B extends A {
-  B() : super.foo(); // 3
-  factory B.bar() = A.foo; // 4
-}
-void f() {
-  A.foo(); // 5
-  A.foo; // 6
+/// [new E.foo] 1
+enum E {
+  v.foo(); // 2
+  E.foo();
+  E.bar() : this.foo(); // 3
 }
 ''');
     var element = findElement.constructor('foo');
     assertThat(element)
-      ..hasRelationCount(6)
+      ..hasRelationCount(3)
       ..isReferencedAt('.foo] 1', true, length: 4)
       ..isInvokedAt('.foo(); // 2', true, length: 4)
-      ..isInvokedAt('.foo(); // 3', true, length: 4)
-      ..isReferencedAt('.foo; // 4', true, length: 4)
-      ..isInvokedAt('.foo(); // 5', true, length: 4)
-      ..isReferencedByConstructorTearOffAt('.foo; // 6', length: 4);
+      ..isInvokedAt('.foo(); // 3', true, length: 4);
   }
 
-  test_isReferencedBy_ConstructorElement_namedOnlyWithDot() async {
+  test_isReferencedBy_ConstructorElement_enum_unnamed_declared() async {
     await _indexTestUnit('''
-class A {
-  A.named() {}
-}
-main() {
-  new A.named();
+/// [new E] 1
+enum E {
+  v1, // 2
+  v2.new(); // 3
+  E();
+  E.other() : this(); // 4
 }
 ''');
-    // has ".named()", but does not have "named()"
-    var constructorName = findNode.constructorName('.named();');
-    var offsetWithoutDot = constructorName.name!.offset;
-    var offsetWithDot = constructorName.period!.offset;
-    expect(index.usedElementOffsets, isNot(contains(offsetWithoutDot)));
-    expect(index.usedElementOffsets, contains(offsetWithDot));
-  }
-
-  test_isReferencedBy_ConstructorElement_redirection() async {
-    await _indexTestUnit('''
-class A {
-  A() : this.bar(); // 1
-  A.foo() : this(); // 2
-  A.bar();
-}
-''');
-    var constA = findElement.unnamedConstructor('A');
-    var constA_bar = findElement.constructor('bar');
-    assertThat(constA).isInvokedAt('(); // 2', true, length: 0);
-    assertThat(constA_bar).isInvokedAt('.bar(); // 1', true, length: 4);
-  }
-
-  test_isReferencedBy_ConstructorElement_unnamed_declared() async {
-    await _indexTestUnit('''
-/// [new A] 1
-class A {
-  A() {}
-  A.other() : this(); // 2
-}
-class B extends A {
-  B() : super(); // 3
-  factory B.other() = A; // 4
-}
-void f() {
-  A(); // 5
-  A.new; // 6
-}
-''');
-    var element = findElement.unnamedConstructor('A');
+    var element = findElement.unnamedConstructor('E');
     assertThat(element)
-      ..hasRelationCount(6)
+      ..hasRelationCount(4)
       ..isReferencedAt('] 1', true, length: 0)
-      ..isInvokedAt('(); // 2', true, length: 0)
-      ..isInvokedAt('(); // 3', true, length: 0)
-      ..isReferencedAt('; // 4', true, length: 0)
-      ..isInvokedAt('(); // 5', true, length: 0)
-      ..isReferencedByConstructorTearOffAt('.new; // 6', length: 4);
+      ..isInvokedAt(', // 2', true, length: 0)
+      ..isInvokedAt('.new(); // 3', true, length: 4)
+      ..isInvokedAt('(); // 4', true, length: 0);
   }
 
-  test_isReferencedBy_ConstructorElement_unnamed_declared_new() async {
+  test_isReferencedBy_ConstructorElement_enum_unnamed_declared_new() async {
     await _indexTestUnit('''
-/// [new A] 1
-class A {
-  A.new() {}
-  A.other() : this(); // 2
-}
-class B extends A {
-  B() : super(); // 3
-  factory B.bar() = A; // 4
-}
-void f() {
-  A(); // 5
-  A.new; // 6
+/// [new E] 1
+enum E {
+  v1, // 2
+  v2.new(); // 3
+  E.new() {}
+  E.other() : this(); // 4
 }
 ''');
-    var element = findElement.unnamedConstructor('A');
+    var element = findElement.unnamedConstructor('E');
     assertThat(element)
-      ..hasRelationCount(6)
+      ..hasRelationCount(4)
       ..isReferencedAt('] 1', true, length: 0)
-      ..isInvokedAt('(); // 2', true, length: 0)
-      ..isInvokedAt('(); // 3', true, length: 0)
-      ..isReferencedAt('; // 4', true, length: 0)
-      ..isInvokedAt('(); // 5', true, length: 0)
-      ..isReferencedByConstructorTearOffAt('.new; // 6', length: 4);
+      ..isInvokedAt(', // 2', true, length: 0)
+      ..isInvokedAt('.new(); // 3', true, length: 4)
+      ..isInvokedAt('(); // 4', true, length: 0);
   }
 
-  test_isReferencedBy_ConstructorElement_unnamed_synthetic() async {
+  test_isReferencedBy_ConstructorElement_enum_unnamed_synthetic() async {
     await _indexTestUnit('''
-/// [new A] 1
-class A {}
-class B extends A {
-  B() : super(); // 2
-  factory B.bar() = A; // 3
-}
-void f() {
-  A(); // 4
-  A.new; // 5
+/// [new E] 1
+enum E {
+  v1, // 2
+  v2.new(); // 3
 }
 ''');
-    var element = findElement.unnamedConstructor('A');
+    var element = findElement.unnamedConstructor('E');
     assertThat(element)
-      ..hasRelationCount(5)
+      ..hasRelationCount(3)
       ..isReferencedAt('] 1', true, length: 0)
-      ..isInvokedAt('(); // 2', true, length: 0)
-      ..isReferencedAt('; // 3', true, length: 0)
-      ..isInvokedAt('(); // 4', true, length: 0)
-      ..isReferencedByConstructorTearOffAt('.new; // 5', length: 4);
+      ..isInvokedAt(', // 2', true, length: 0)
+      ..isInvokedAt('.new(); // 3', true, length: 4);
   }
 
   test_isReferencedBy_DynamicElement() async {
@@ -854,7 +1022,7 @@ main() {
     assertThat(element)..isReferencedAt('E(0).foo()', false);
   }
 
-  test_isReferencedBy_FieldElement() async {
+  test_isReferencedBy_FieldElement_class() async {
     await _indexTestUnit('''
 class A {
   var field;
@@ -884,7 +1052,7 @@ main(A a) {
     assertThat(field)..isReferencedAt('field: 4', true);
   }
 
-  test_isReferencedBy_FieldElement_multiple() async {
+  test_isReferencedBy_FieldElement_class_multiple() async {
     await _indexTestUnit('''
 class A {
   var aaa;
@@ -918,7 +1086,72 @@ class A {
     }
   }
 
-  test_isReferencedBy_FieldElement_ofEnum() async {
+  test_isReferencedBy_FieldElement_class_synthetic_hasGetter() async {
+    await _indexTestUnit('''
+class A {
+  A() : f = 42;
+  int get f => 0;
+}
+''');
+    ClassElement element2 = findElement.class_('A');
+    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+  }
+
+  test_isReferencedBy_FieldElement_class_synthetic_hasGetterSetter() async {
+    await _indexTestUnit('''
+class A {
+  A() : f = 42;
+  int get f => 0;
+  set f(_) {}
+}
+''');
+    ClassElement element2 = findElement.class_('A');
+    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+  }
+
+  test_isReferencedBy_FieldElement_class_synthetic_hasSetter() async {
+    await _indexTestUnit('''
+class A {
+  A() : f = 42;
+  set f(_) {}
+}
+''');
+    ClassElement element2 = findElement.class_('A');
+    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+  }
+
+  test_isReferencedBy_FieldElement_enum() async {
+    await _indexTestUnit('''
+enum E {
+  v;
+  int? field; // a compile-time error
+  E({this.field});
+  void foo() {
+    field = 2; // nq
+    field; // nq
+  }
+}
+void f(E e) {
+  e.field = 3; // q
+  e.field; // q
+  E(field: 4);
+}
+''');
+    FieldElement field = findElement.field('field');
+    PropertyAccessorElement getter = field.getter!;
+    PropertyAccessorElement setter = field.setter!;
+    // E()
+    assertThat(field)..isWrittenAt('field});', true);
+    // foo()
+    assertThat(setter)..isReferencedAt('field = 2; // nq', false);
+    assertThat(getter)..isReferencedAt('field; // nq', false);
+    // f()
+    assertThat(setter)..isReferencedAt('field = 3; // q', true);
+    assertThat(getter)..isReferencedAt('field; // q', true);
+    assertThat(field)..isReferencedAt('field: 4', true);
+  }
+
+  test_isReferencedBy_FieldElement_enum_index() async {
     await _indexTestUnit('''
 enum MyEnum {
   A, B, C
@@ -939,38 +1172,38 @@ main() {
     assertThat(enumElement.getGetter('B')!)..isReferencedAt('B);', true);
   }
 
-  test_isReferencedBy_FieldElement_synthetic_hasGetter() async {
+  test_isReferencedBy_FieldElement_enum_synthetic_hasGetter() async {
     await _indexTestUnit('''
-class A {
-  A() : f = 42;
+enum E {
+  v;
+  E() : f = 42;
   int get f => 0;
 }
 ''');
-    ClassElement element2 = findElement.class_('A');
-    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+    assertThat(findElement.field('f')).isWrittenAt('f = 42', true);
   }
 
-  test_isReferencedBy_FieldElement_synthetic_hasGetterSetter() async {
+  test_isReferencedBy_FieldElement_enum_synthetic_hasGetterSetter() async {
     await _indexTestUnit('''
-class A {
-  A() : f = 42;
+enum E {
+  v;
+  E() : f = 42;
   int get f => 0;
   set f(_) {}
 }
 ''');
-    ClassElement element2 = findElement.class_('A');
-    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+    assertThat(findElement.field('f')).isWrittenAt('f = 42', true);
   }
 
-  test_isReferencedBy_FieldElement_synthetic_hasSetter() async {
+  test_isReferencedBy_FieldElement_enum_synthetic_hasSetter() async {
     await _indexTestUnit('''
-class A {
-  A() : f = 42;
+enum E {
+  v;
+  E() : f = 42;
   set f(_) {}
 }
 ''');
-    ClassElement element2 = findElement.class_('A');
-    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+    assertThat(findElement.field('f')).isWrittenAt('f = 42', true);
   }
 
   test_isReferencedBy_FunctionElement() async {
@@ -1031,7 +1264,7 @@ var myVariable = null;
     assertThat(element)..isReferencedAt('A] text', false);
   }
 
-  test_isReferencedBy_MethodElement() async {
+  test_isReferencedBy_MethodElement_class() async {
     await _indexTestUnit('''
 class A {
   method() {}
@@ -1044,6 +1277,26 @@ class A {
     assertThat(element)
       ..isReferencedAt('method); // q', true)
       ..isReferencedAt('method); // nq', false);
+  }
+
+  test_isReferencedBy_MethodElement_enum() async {
+    await _indexTestUnit('''
+enum E {
+  v;
+  void foo() {}
+  void bar() {
+    this.foo; // q1
+    foo; // nq
+  }
+}
+void f(E e) {
+  e.foo; // q2
+}
+''');
+    assertThat(findElement.method('foo'))
+      ..isReferencedAt('foo; // q1', true)
+      ..isReferencedAt('foo; // nq', false)
+      ..isReferencedAt('foo; // q2', true);
   }
 
   test_isReferencedBy_MultiplyDefinedElement() async {
