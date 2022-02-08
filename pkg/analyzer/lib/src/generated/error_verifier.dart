@@ -3993,6 +3993,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           redirectedConstructor,
           [constructorStrName, redirectedClass.name]);
     }
+    _checkForInvalidGenerativeConstructorReference(redirectedConstructor);
   }
 
   /// Check whether the redirecting constructor, [element], is const, and
