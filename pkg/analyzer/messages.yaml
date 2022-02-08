@@ -3351,6 +3351,9 @@ CompileTimeErrorCode:
   ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
     problemMessage: "The name of the enum constant can't be the same as the enum's name."
     correctionMessage: Try renaming the constant.
+  ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
+    problemMessage: The invoked constructor isn't a const constructor.
+    correctionMessage: Try invoking a const generative constructor.
   ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
     problemMessage: Mixins applied to enums can't have instance variables.
     correctionMessage: Try replacing the instance variables with getters.

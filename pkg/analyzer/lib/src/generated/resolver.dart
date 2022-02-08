@@ -1565,6 +1565,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var constructorElement = constructorName.staticElement;
       if (constructorElement != null) {
         node.constructorElement = constructorElement;
+        if (!constructorElement.isConst && constructorElement.isFactory) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR,
+            node.arguments?.constructorSelector?.name ?? node.name,
+          );
+        }
       } else {
         var typeName = constructorName.type2.name;
         if (typeName.staticElement is EnumElementImpl) {

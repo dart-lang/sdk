@@ -3664,6 +3664,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try renaming the constant.",
   );
 
+  static const CompileTimeErrorCode ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR',
+    "The invoked constructor isn't a const constructor.",
+    correctionMessage: "Try invoking a const generative constructor.",
+  );
+
   static const CompileTimeErrorCode ENUM_MIXIN_WITH_INSTANCE_VARIABLE =
       CompileTimeErrorCode(
     'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
