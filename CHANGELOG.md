@@ -49,6 +49,13 @@
   The standalone `dartdoc` tool has been removed as
   previously announced. Its replacement is the `dart doc` command.
 
+## 2.16.1 - 2022-02-09
+
+This is a patch release that fixes an AOT precompiler crash when building some
+Flutter apps (issue [flutter/flutter#97301][]).
+
+[flutter/flutter#97301]: https://github.com/flutter/flutter/issues/97301
+
 ## 2.16.0 - 2022-02-03
 
 ### Core libraries
