@@ -712,6 +712,46 @@ enum E {
 
 @reflectiveTest
 class ConflictingStaticAndInstanceMixinTest extends PubPackageResolutionTest {
+  test_dartCoreEnum_index_field() async {
+    await assertErrorsInCode(r'''
+mixin M on Enum {
+  static int index = 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 31, 5),
+    ]);
+  }
+
+  test_dartCoreEnum_index_getter() async {
+    await assertErrorsInCode(r'''
+mixin M on Enum {
+  static int get index => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 35, 5),
+    ]);
+  }
+
+  test_dartCoreEnum_index_method() async {
+    await assertErrorsInCode(r'''
+mixin M on Enum {
+  static int index() => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 31, 5),
+    ]);
+  }
+
+  test_dartCoreEnum_index_setter() async {
+    await assertErrorsInCode(r'''
+mixin M on Enum {
+  static set index(int _) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 31, 5),
+    ]);
+  }
+
   test_inConstraint_getter_getter() async {
     await assertErrorsInCode(r'''
 class A {

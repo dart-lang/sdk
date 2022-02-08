@@ -16,6 +16,18 @@ main() {
 @reflectiveTest
 class ConflictingConstructorAndStaticMethodTest
     extends PubPackageResolutionTest {
+  test_class() async {
+    await assertErrorsInCode(r'''
+class C {
+  C.foo();
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD, 14,
+          3),
+    ]);
+  }
+
   test_class_OK_notSameClass() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -36,15 +48,13 @@ class C {
 ''');
   }
 
-  test_error_conflictingConstructorAndStaticMethod() async {
-    await assertErrorsInCode(r'''
-class C {
-  C.foo();
+  test_enum() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v.foo();
+  const E.foo(); // _$foo
   static void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD, 14,
-          3),
-    ]);
+''');
   }
 }

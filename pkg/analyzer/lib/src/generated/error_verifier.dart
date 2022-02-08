@@ -4379,22 +4379,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     );
 
     if (requiredPositionalParameterCount >
-        superParametersResult.positionalArgumentCount) {
+            superParametersResult.positionalArgumentCount ||
+        requiredNamedParameters.isNotEmpty) {
       reportError(
-        CompileTimeErrorCode
-            .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS,
-        [
-          superType,
-          requiredPositionalParameterCount,
-          superParametersResult.positionalArgumentCount,
-        ],
-      );
-    }
-    for (var requiredNamedParameterName in requiredNamedParameters) {
-      reportError(
-        CompileTimeErrorCode
-            .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT,
-        [requiredNamedParameterName, superType],
+        CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
+        [superType],
       );
     }
   }

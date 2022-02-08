@@ -3354,6 +3354,13 @@ CompileTimeErrorCode:
   ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
     problemMessage: Mixins applied to enums can't have instance variables.
     correctionMessage: Try replacing the instance variables with getters.
+  ENUM_WITH_ABSTRACT_MEMBER:
+    problemMessage: "'{0}' must have a method body because '{1}' is an enum."
+    correctionMessage: "Try adding a body to '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the abstract method
+      1: the name of the enclosing enum
   EQUAL_ELEMENTS_IN_CONST_SET:
     problemMessage: "Two elements in a constant set literal can't be equal."
     correctionMessage: Change or remove the duplicate element.
@@ -5011,9 +5018,21 @@ CompileTimeErrorCode:
       ```dart
       int f() => 0;
       ```
+  ILLEGAL_ENUM_VALUES_DECLARATION:
+    problemMessage: An instance member named 'values' can't be declared in a class that implements 'Enum'.
+    correctionMessage: Try using a different name.
+  ILLEGAL_ENUM_VALUES_INHERITANCE:
+    problemMessage: An instance member named 'values' can't be inherited from '{0}' in a class that implements 'Enum'.
+    correctionMessage: Try using a different name.
+    comment: |-
+      Parameters:
+      0: the name of the class that declares 'values'
   ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
     problemMessage: The language version must be {0}.
     correctionMessage: Try removing the language version override and migrating the code.
+  ILLEGAL_NON_ABSTRACT_ENUM_INDEX:
+    problemMessage: A non-abstract instance member named 'index' can't be declared in a class that implements 'Enum'.
+    correctionMessage: Try using a different name.
   ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
     problemMessage: "Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'."
     correctionMessage: "Try fixing the return type of the function, or removing the modifier 'sync*' from the function body."
@@ -5217,12 +5236,12 @@ CompileTimeErrorCode:
         int get defaultX => 0;
       }
       ```
-  IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT:
-    problemMessage: The named parameter '{0}' is required in the implicitly invoked unnamed constructor of '{1}'.
-    correctionMessage: Try declaring corresponding named super-parameter, or explicitly invoking a different constructor.
-  IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS:
-    problemMessage: The implicitly invoked unnamed constructor of '{0}' expects {1} positional arguments, but {2} found.
-    correctionMessage: Try declaring positional super-parameters, or explicitly invoking a different constructor.
+  IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
+    problemMessage: The implicitly invoked unnamed constructor from '{0}' has required parameters.
+    correctionMessage: Try adding an explicit super initializer with the required arguments.
+    comment: |-
+      Parameters:
+      0: the name of the superclass
   IMPORT_INTERNAL_LIBRARY:
     problemMessage: "The library '{0}' is internal and can't be imported."
     hasPublishedDocs: true
@@ -12271,6 +12290,17 @@ CompileTimeErrorCode:
 
       var e = E.b;
       ```
+  UNDEFINED_ENUM_CONSTRUCTOR_NAMED:
+    sharedName: UNDEFINED_ENUM_CONSTRUCTOR
+    problemMessage: The enum doesn't have a constructor named '{0}'.
+    correctionMessage: Try correcting the name to the name of an existing constructor, or defining constructor with the name '{0}'.
+    comment: |-
+      Parameters:
+      0: the name of the constructor that is undefined
+  UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED:
+    sharedName: UNDEFINED_ENUM_CONSTRUCTOR
+    problemMessage: The enum doesn't have an unnamed constructor.
+    correctionMessage: Try adding the name of an existing constructor, or defining an unnamed constructor.
   UNDEFINED_EXTENSION_GETTER:
     problemMessage: "The getter '{0}' isn't defined for the extension '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter named '{0}'."
@@ -18939,6 +18969,9 @@ ParserErrorCode:
   EMPTY_ENUM_BODY:
     problemMessage: An enum must declare at least one constant name.
     correctionMessage: Try declaring a constant.
+  ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS:
+    problemMessage: Missing arguments in enum constructor invocation.
+    correctionMessage: Try adding an argument list.
   EXPECTED_CASE_OR_DEFAULT:
     problemMessage: "Expected 'case' or 'default'."
     correctionMessage: Try placing this code inside a case clause.

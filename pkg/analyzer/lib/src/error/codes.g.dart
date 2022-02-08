@@ -3672,6 +3672,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the name of the abstract method
+   * 1: the name of the enclosing enum
+   */
+  static const CompileTimeErrorCode ENUM_WITH_ABSTRACT_MEMBER =
+      CompileTimeErrorCode(
+    'ENUM_WITH_ABSTRACT_MEMBER',
+    "'{0}' must have a method body because '{1}' is an enum.",
+    correctionMessage: "Try adding a body to '{0}'.",
+  );
+
+  /**
    * No parameters.
    */
   // #### Description
@@ -5725,12 +5737,40 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode ILLEGAL_ENUM_VALUES_DECLARATION =
+      CompileTimeErrorCode(
+    'ILLEGAL_ENUM_VALUES_DECLARATION',
+    "An instance member named 'values' can't be declared in a class that "
+        "implements 'Enum'.",
+    correctionMessage: "Try using a different name.",
+  );
+
+  /**
+   * Parameters:
+   * 0: the name of the class that declares 'values'
+   */
+  static const CompileTimeErrorCode ILLEGAL_ENUM_VALUES_INHERITANCE =
+      CompileTimeErrorCode(
+    'ILLEGAL_ENUM_VALUES_INHERITANCE',
+    "An instance member named 'values' can't be inherited from '{0}' in a "
+        "class that implements 'Enum'.",
+    correctionMessage: "Try using a different name.",
+  );
+
   static const CompileTimeErrorCode ILLEGAL_LANGUAGE_VERSION_OVERRIDE =
       CompileTimeErrorCode(
     'ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
     "The language version must be {0}.",
     correctionMessage:
         "Try removing the language version override and migrating the code.",
+  );
+
+  static const CompileTimeErrorCode ILLEGAL_NON_ABSTRACT_ENUM_INDEX =
+      CompileTimeErrorCode(
+    'ILLEGAL_NON_ABSTRACT_ENUM_INDEX',
+    "A non-abstract instance member named 'index' can't be declared in a class "
+        "that implements 'Enum'.",
+    correctionMessage: "Try using a different name.",
   );
 
   /**
@@ -5944,6 +5984,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the superclass
+   */
+  static const CompileTimeErrorCode
+      IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS = CompileTimeErrorCode(
+    'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
+    "The implicitly invoked unnamed constructor from '{0}' has required "
+        "parameters.",
+    correctionMessage:
+        "Try adding an explicit super initializer with the required arguments.",
+  );
+
+  /**
+   * Parameters:
    * 0: the name of the instance member
    */
   // #### Description
@@ -6000,28 +6053,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try replacing the reference to the instance member with a different "
         "expression",
     hasPublishedDocs: true,
-  );
-
-  static const CompileTimeErrorCode
-      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT =
-      CompileTimeErrorCode(
-    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT',
-    "The named parameter '{0}' is required in the implicitly invoked unnamed "
-        "constructor of '{1}'.",
-    correctionMessage:
-        "Try declaring corresponding named super-parameter, or explicitly "
-        "invoking a different constructor.",
-  );
-
-  static const CompileTimeErrorCode
-      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS =
-      CompileTimeErrorCode(
-    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    "The implicitly invoked unnamed constructor of '{0}' expects {1} "
-        "positional arguments, but {2} found.",
-    correctionMessage:
-        "Try declaring positional super-parameters, or explicitly invoking a "
-        "different constructor.",
   );
 
   /**
@@ -14290,6 +14321,30 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try correcting the name to the name of an existing constant, or "
         "defining a constant named '{0}'.",
     hasPublishedDocs: true,
+  );
+
+  /**
+   * Parameters:
+   * 0: the name of the constructor that is undefined
+   */
+  static const CompileTimeErrorCode UNDEFINED_ENUM_CONSTRUCTOR_NAMED =
+      CompileTimeErrorCode(
+    'UNDEFINED_ENUM_CONSTRUCTOR',
+    "The enum doesn't have a constructor named '{0}'.",
+    correctionMessage:
+        "Try correcting the name to the name of an existing constructor, or "
+        "defining constructor with the name '{0}'.",
+    uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
+  );
+
+  static const CompileTimeErrorCode UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED =
+      CompileTimeErrorCode(
+    'UNDEFINED_ENUM_CONSTRUCTOR',
+    "The enum doesn't have an unnamed constructor.",
+    correctionMessage:
+        "Try adding the name of an existing constructor, or defining an "
+        "unnamed constructor.",
+    uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED',
   );
 
   /**

@@ -71,4 +71,34 @@ class C {
           3),
     ]);
   }
+
+  test_enum_field() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v.foo();
+  const E.foo(); // _$foo
+  static int foo = 0;
+}
+''');
+  }
+
+  test_enum_getter() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v.foo();
+  const E.foo(); // _$foo
+  static int get foo => 0;
+}
+''');
+  }
+
+  test_enum_setter() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v.foo();
+  const E.foo(); // _$foo
+  static void set foo(_) {}
+}
+''');
+  }
 }

@@ -851,9 +851,6 @@ abstract class CommonElements {
   FunctionEntity get rawStartupMetrics =>
       _rawStartupMetrics ??= _findHelperFunction('rawStartupMetrics');
 
-  FunctionEntity get loadLibraryWrapper =>
-      _findHelperFunction("_loadLibraryWrapper");
-
   FunctionEntity get loadDeferredLibrary =>
       _findHelperFunction("loadDeferredLibrary");
 
@@ -1593,10 +1590,6 @@ abstract class KElementEnvironment extends ElementEnvironment {
   /// Calls [f] for each class that is mixed into [cls] or one of its
   /// superclasses.
   void forEachMixin(ClassEntity cls, void f(ClassEntity mixin));
-
-  /// Returns `true` if [member] a the synthetic getter `loadLibrary` injected
-  /// on deferred libraries.
-  bool isDeferredLoadLibraryGetter(MemberEntity member);
 
   /// Returns the imports seen in [library]
   Iterable<ImportEntity> getImports(LibraryEntity library);

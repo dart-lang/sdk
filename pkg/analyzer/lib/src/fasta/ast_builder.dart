@@ -61,11 +61,12 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show
+        ArgumentListImpl,
         ClassDeclarationImpl,
         CompilationUnitImpl,
         ConstructorNameImpl,
-        EnumConstantArgumentsImpl,
         ConstructorSelectorImpl,
+        EnumConstantArgumentsImpl,
         EnumConstantDeclarationImpl,
         EnumDeclarationImpl,
         ExtensionDeclarationImpl,
@@ -76,6 +77,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         TypeArgumentListImpl,
         TypeParameterImpl;
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
@@ -2814,6 +2816,7 @@ class AstBuilder extends StackListener {
     debugEvent("EnumElement");
     var tmpArguments = pop() as MethodInvocationImpl?;
     var tmpConstructor = pop() as ConstructorNameImpl?;
+    var constant = pop() as EnumConstantDeclarationImpl;
 
     if (!enableEnhancedEnums &&
         (tmpArguments != null ||
@@ -2834,23 +2837,31 @@ class AstBuilder extends StackListener {
       );
     }
 
-    var constant = pop() as EnumConstantDeclarationImpl;
+    var argumentList = tmpArguments?.argumentList;
+
+    TypeArgumentListImpl? typeArguments;
+    ConstructorSelectorImpl? constructorName;
+    if (tmpConstructor != null) {
+      typeArguments = tmpConstructor.type2.typeArguments;
+      var constructorNamePeriod = tmpConstructor.period;
+      var constructorNameId = tmpConstructor.name;
+      if (constructorNamePeriod != null && constructorNameId != null) {
+        constructorName = ConstructorSelectorImpl(
+          period: constructorNamePeriod,
+          name: constructorNameId,
+        );
+      }
+      if (typeArguments != null && argumentList == null) {
+        errorReporter.errorReporter?.reportErrorForNode(
+          ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
+          typeArguments,
+        );
+        argumentList = _syntheticArgumentList(typeArguments.endToken);
+      }
+    }
 
     // Replace the constant to include arguments.
-    if (tmpArguments != null) {
-      TypeArgumentListImpl? typeArguments;
-      ConstructorSelectorImpl? constructorName;
-      if (tmpConstructor != null) {
-        typeArguments = tmpConstructor.type2.typeArguments;
-        var constructorNamePeriod = tmpConstructor.period;
-        var constructorNameId = tmpConstructor.name;
-        if (constructorNamePeriod != null && constructorNameId != null) {
-          constructorName = ConstructorSelectorImpl(
-            period: constructorNamePeriod,
-            name: constructorNameId,
-          );
-        }
-      }
+    if (argumentList != null) {
       constant = EnumConstantDeclarationImpl(
         documentationComment: constant.documentationComment,
         metadata: constant.metadata,
@@ -2858,7 +2869,7 @@ class AstBuilder extends StackListener {
         arguments: EnumConstantArgumentsImpl(
           typeArguments: typeArguments,
           constructorSelector: constructorName,
-          argumentList: tmpArguments.argumentList,
+          argumentList: argumentList,
         ),
       );
     }
@@ -4257,12 +4268,13 @@ class AstBuilder extends StackListener {
     return ast.variableDeclaration(name, equals, initializer);
   }
 
-  ArgumentList _syntheticArgumentList(Token precedingToken) {
-    int syntheticOffset = precedingToken.end;
-    return ast.argumentList(
-        SyntheticToken(TokenType.OPEN_PAREN, syntheticOffset),
-        [],
-        SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset));
+  ArgumentListImpl _syntheticArgumentList(Token precedingToken) {
+    var syntheticOffset = precedingToken.end;
+    var left = SyntheticToken(TokenType.OPEN_PAREN, syntheticOffset)
+      ..previous = precedingToken;
+    var right = SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset)
+      ..previous = left;
+    return ast.argumentList(left, [], right);
   }
 
   SimpleIdentifier _tmpSimpleIdentifier() {

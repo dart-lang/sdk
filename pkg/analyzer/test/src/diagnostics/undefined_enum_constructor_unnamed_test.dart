@@ -9,50 +9,31 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UndefinedSuperSetterTest);
+    defineReflectiveTests(UndefinedEnumConstructorUnnamedTest);
   });
 }
 
 @reflectiveTest
-class UndefinedSuperSetterTest extends PubPackageResolutionTest {
-  test_class() async {
+class UndefinedEnumConstructorUnnamedTest extends PubPackageResolutionTest {
+  test_withArguments() async {
     await assertErrorsInCode(r'''
-class A {}
-class B extends A {
-  f() {
-    super.m = 0;
-  }
+enum E {
+  v();
+  const E.named();
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_SETTER, 49, 1),
+      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1),
     ]);
   }
 
-  test_enum() async {
+  test_withoutArguments() async {
     await assertErrorsInCode(r'''
 enum E {
   v;
-  void f() {
-    super.foo = 0;
-  }
+  const E.named();
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_SETTER, 37, 3),
+      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1),
     ]);
-  }
-
-  test_enum_OK() async {
-    await assertNoErrorsInCode(r'''
-mixin M {
-  set foo(int _) {}
-}
-
-enum E with M {
-  v;
-  void f() {
-    super.foo = 0;
-  }
-}
-''');
   }
 }

@@ -2,19 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.kernel.element_map;
+import 'package:kernel/ast.dart' as ir;
+
+import '../common/elements.dart';
+import '../common/names.dart';
+import '../elements/entities.dart';
+
+import 'element_map_impl.dart';
+import 'kelements.dart';
 
 /// Interface for determining the form of a `noSuchMethod` implementation.
-class KernelNoSuchMethodResolver implements NoSuchMethodResolver {
+class NoSuchMethodResolver {
   final KernelToElementMapImpl elementMap;
 
-  KernelNoSuchMethodResolver(this.elementMap);
+  NoSuchMethodResolver(this.elementMap);
 
   CommonElements get _commonElements => elementMap.commonElements;
 
-  @override
+  /// Computes whether [method] is of the form
+  ///
+  ///     noSuchMethod(i) => super.noSuchMethod(i);
+  ///
   bool hasForwardingSyntax(KFunction method) {
-    ir.Procedure node = elementMap._lookupProcedure(method);
+    ir.Procedure node = elementMap.lookupProcedure(method);
     if (node.function.positionalParameters.isEmpty) return false;
     ir.VariableDeclaration firstParameter =
         node.function.positionalParameters.first;
@@ -45,9 +55,12 @@ class KernelNoSuchMethodResolver implements NoSuchMethodResolver {
     return false;
   }
 
-  @override
+  /// Computes whether [method] is of the form
+  ///
+  ///     noSuchMethod(i) => throw new Error();
+  ///
   bool hasThrowingSyntax(KFunction method) {
-    ir.Procedure node = elementMap._lookupProcedure(method);
+    ir.Procedure node = elementMap.lookupProcedure(method);
     ir.Statement body = node.function.body;
     if (body is ir.Block && body.statements.isNotEmpty) {
       ir.Block block = body;
@@ -62,7 +75,7 @@ class KernelNoSuchMethodResolver implements NoSuchMethodResolver {
     return expr is ir.Throw;
   }
 
-  @override
+  /// Returns the `noSuchMethod` that [method] overrides.
   FunctionEntity getSuperNoSuchMethod(FunctionEntity method) {
     return elementMap.getSuperNoSuchMethod(method.enclosingClass);
   }

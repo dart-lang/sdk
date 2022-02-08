@@ -71,6 +71,7 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
+          members: declaration.members,
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is MixinDeclaration) {
@@ -117,6 +118,9 @@ class _ClassVerifier {
 
   final List<InterfaceType> directSuperInterfaces = [];
 
+  late final implementsDartCoreEnum =
+      classElement.allSupertypes.any((e) => e.isDartCoreEnum);
+
   _ClassVerifier({
     required this.typeSystem,
     required this.typeProvider,
@@ -142,7 +146,7 @@ class _ClassVerifier {
 
     if (!classElement.isEnum &&
         !classElement.isAbstract &&
-        classElement.allSupertypes.any((e) => e.isDartCoreEnum)) {
+        implementsDartCoreEnum) {
       reporter.reportErrorForNode(
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE,
         classNameNode,
@@ -193,6 +197,10 @@ class _ClassVerifier {
           var fieldElement = field.declaredElement as FieldElement;
           _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
+          if (!member.isStatic) {
+            _checkIllegalNonAbstractEnumIndex(field.name);
+            _checkIllegalEnumValuesDeclaration(field.name);
+          }
         }
       } else if (member is MethodDeclaration) {
         var hasError = _reportNoCombinedSuperSignature(member);
@@ -202,8 +210,16 @@ class _ClassVerifier {
 
         _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
             methodParameterNodes: member.parameters?.parameters);
+        if (!member.isStatic) {
+          _checkIllegalEnumValuesDeclaration(member.name);
+        }
+        if (!(member.isStatic || member.isAbstract || member.isSetter)) {
+          _checkIllegalNonAbstractEnumIndex(member.name);
+        }
       }
     }
+
+    _checkIllegalEnumValuesInheritance();
 
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
@@ -615,6 +631,45 @@ class _ClassVerifier {
     return false;
   }
 
+  void _checkIllegalEnumValuesDeclaration(SimpleIdentifier name) {
+    if (implementsDartCoreEnum && name.name == 'values') {
+      reporter.reportErrorForNode(
+        CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION,
+        name,
+      );
+    }
+  }
+
+  void _checkIllegalEnumValuesInheritance() {
+    if (implementsDartCoreEnum) {
+      var getter = inheritance.getInherited2(
+        classElement,
+        Name(libraryUri, 'values'),
+      );
+      var setter = inheritance.getInherited2(
+        classElement,
+        Name(libraryUri, 'values='),
+      );
+      var inherited = getter ?? setter;
+      if (inherited != null) {
+        reporter.reportErrorForNode(
+          CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE,
+          classNameNode,
+          [inherited.enclosingElement.name!],
+        );
+      }
+    }
+  }
+
+  void _checkIllegalNonAbstractEnumIndex(SimpleIdentifier name) {
+    if (implementsDartCoreEnum && name.name == 'index') {
+      reporter.reportErrorForNode(
+        CompileTimeErrorCode.ILLEGAL_NON_ABSTRACT_ENUM_INDEX,
+        name,
+      );
+    }
+  }
+
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
   ErrorCode _getRecursiveErrorCode(ClassElement element) {
@@ -645,9 +700,12 @@ class _ClassVerifier {
     bool checkMemberNameCombo(ClassMember member, String memberName) {
       if (memberName == name) {
         reporter.reportErrorForNode(
-            CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-            member,
-            [name, classElement.name]);
+          classElement.isEnum
+              ? CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER
+              : CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          member,
+          [name, classElement.name],
+        );
         return true;
       } else {
         return false;

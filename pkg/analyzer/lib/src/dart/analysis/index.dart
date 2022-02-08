@@ -644,6 +644,27 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitEnumConstantDeclaration(node) {
+    var constructorElement = node.constructorElement;
+    if (constructorElement != null) {
+      int offset;
+      int length;
+      var constructorSelector = node.arguments?.constructorSelector;
+      if (constructorSelector != null) {
+        offset = constructorSelector.period.offset;
+        length = constructorSelector.name.end - offset;
+      } else {
+        offset = node.name.end;
+        length = 0;
+      }
+      recordRelationOffset(constructorElement, IndexRelationKind.IS_INVOKED_BY,
+          offset, length, true);
+    }
+
+    super.visitEnumConstantDeclaration(node);
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     ExportElement? element = node.element;
     recordUriReference(element?.exportedLibrary, node.uri);

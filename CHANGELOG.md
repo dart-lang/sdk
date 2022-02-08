@@ -49,6 +49,13 @@
   The standalone `dartdoc` tool has been removed as
   previously announced. Its replacement is the `dart doc` command.
 
+## 2.16.1 - 2022-02-09
+
+This is a patch release that fixes an AOT precompiler crash when building some
+Flutter apps (issue [flutter/flutter#97301][]).
+
+[flutter/flutter#97301]: https://github.com/flutter/flutter/issues/97301
+
 ## 2.16.0 - 2022-02-03
 
 ### Core libraries
@@ -101,6 +108,14 @@ in 2018, as it doesn't work with any Dart 2.x release.
   command, kindly file [an issue][].
 
 [an issue]: https://github.com/dart-lang/sdk/issues/new
+
+- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The deprecated standalone `pub` tool has been removed.
+  Its replacement is the `dart pub` command.
+  Should you find any issues, or missing features, in the replacement
+  command, kindly file [an issue][].
+
+[an issue]: https://github.com/dart-lang/pub/issues/new
 
 #### Pub
 

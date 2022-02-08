@@ -9,32 +9,19 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DuplicateConstructorNameTest);
+    defineReflectiveTests(UndefinedEnumConstructorNamedTest);
   });
 }
 
 @reflectiveTest
-class DuplicateConstructorNameTest extends PubPackageResolutionTest {
-  test_class() async {
-    await assertErrorsInCode(r'''
-class C {
-  C.foo();
-  C.foo();
-}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5),
-    ]);
-  }
-
-  test_enum() async {
+class UndefinedEnumConstructorNamedTest extends PubPackageResolutionTest {
+  test_it() async {
     await assertErrorsInCode(r'''
 enum E {
-  v.foo();
-  const E.foo();
-  const E.foo();
+  v.named()
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 45, 5),
+      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED, 13, 5),
     ]);
   }
 }

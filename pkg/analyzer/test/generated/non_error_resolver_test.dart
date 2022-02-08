@@ -3303,4 +3303,34 @@ main(A<V> p) {
 }
 ''');
   }
+
+  test_yieldStar_inside_method_async() async {
+    await assertNoErrorsInCode('''
+class A {
+  m() async* {
+    yield* Stream.fromIterable([1]);
+  }
+}
+''');
+
+    assertType(
+        findNode
+            .yieldStatement('yield* Stream.fromIterable([1]);')
+            .expression
+            .staticType,
+        'Stream<int>');
+  }
+
+  test_yieldStar_inside_method_sync() async {
+    await assertNoErrorsInCode('''
+class A {
+  m() sync* {
+    yield* [1];
+  }
+}
+''');
+
+    assertType(findNode.yieldStatement('yield* [1];').expression.staticType,
+        'List<int>');
+  }
 }

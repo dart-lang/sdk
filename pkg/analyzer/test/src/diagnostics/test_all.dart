@@ -158,6 +158,7 @@ import 'enum_constant_same_name_as_enclosing_test.dart'
     as enum_constant_same_name_as_enclosing;
 import 'enum_mixin_with_instance_variable_test.dart'
     as enum_mixin_with_instance_variable;
+import 'enum_with_abstract_member_test.dart' as enum_with_abstract_member;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
@@ -252,8 +253,14 @@ import 'if_element_condition_from_deferred_library_test.dart'
 import 'illegal_async_generator_return_type_test.dart'
     as illegal_async_generator_return_type;
 import 'illegal_async_return_type_test.dart' as illegal_async_return_type;
+import 'illegal_enum_values_declaration_test.dart'
+    as illegal_enum_values_declaration;
+import 'illegal_enum_values_inheritance_test.dart'
+    as illegal_enum_values_inheritance;
 import 'illegal_language_version_override_test.dart'
     as illegal_language_version_override;
+import 'illegal_non_abstract_enum_index_test.dart'
+    as illegal_non_abstract_enum_index;
 import 'illegal_sync_generator_return_type_test.dart'
     as illegal_sync_generator_return_type;
 import 'implements_deferred_class_test.dart' as implements_deferred_class;
@@ -709,6 +716,10 @@ import 'undefined_constructor_in_initializer_default_test.dart'
 import 'undefined_constructor_in_initializer_test.dart'
     as undefined_constructor_in_initializer;
 import 'undefined_enum_constant_test.dart' as undefined_enum_constant;
+import 'undefined_enum_constructor_named_test.dart'
+    as undefined_enum_constructor_named;
+import 'undefined_enum_constructor_unnamed_test.dart'
+    as undefined_enum_constructor_unnamed;
 import 'undefined_extension_getter_test.dart' as undefined_extension_getter;
 import 'undefined_extension_method_test.dart' as undefined_extension_method;
 import 'undefined_extension_operator_test.dart' as undefined_extension_operator;
@@ -881,6 +892,7 @@ main() {
     duplicate_shown_name.main();
     enum_constant_same_name_as_enclosing.main();
     enum_mixin_with_instance_variable.main();
+    enum_with_abstract_member.main();
     equal_elements_in_const_set.main();
     equal_elements_in_set.main();
     equal_keys_in_const_map.main();
@@ -941,7 +953,10 @@ main() {
     if_element_condition_from_deferred_library.main();
     illegal_async_generator_return_type.main();
     illegal_async_return_type.main();
+    illegal_enum_values_declaration.main();
+    illegal_enum_values_inheritance.main();
     illegal_language_version_override.main();
+    illegal_non_abstract_enum_index.main();
     illegal_sync_generator_return_type.main();
     implements_deferred_class.main();
     implements_disallowed_class.main();
@@ -1238,6 +1253,8 @@ main() {
     undefined_constructor_in_initializer_default.main();
     undefined_constructor_in_initializer.main();
     undefined_enum_constant.main();
+    undefined_enum_constructor_named.main();
+    undefined_enum_constructor_unnamed.main();
     undefined_extension_getter.main();
     undefined_extension_method.main();
     undefined_extension_operator.main();

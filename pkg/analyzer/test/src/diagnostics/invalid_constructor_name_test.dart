@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class InvalidConstructorNameTest extends PubPackageResolutionTest {
-  test_notEnclosingClassName_defined() async {
+  test_class_notEnclosingClassName_defined() async {
     await assertErrorsInCode(r'''
 class A {
   B() : super();
@@ -26,7 +26,7 @@ class B {}
     ]);
   }
 
-  test_notEnclosingClassName_named() async {
+  test_class_notEnclosingClassName_named() async {
     await assertErrorsInCode(r'''
 class A {}
 class B {
@@ -38,7 +38,7 @@ class B {
     ]);
   }
 
-  test_notEnclosingClassName_new() async {
+  test_class_notEnclosingClassName_new() async {
     await assertErrorsInCode(r'''
 class A {}
 
@@ -51,13 +51,27 @@ class B {
     ]);
   }
 
-  test_notEnclosingClassName_undefined() async {
+  test_class_notEnclosingClassName_undefined() async {
     await assertErrorsInCode(r'''
 class A {
   B() : super();
 }
 ''', [
       error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
+    ]);
+  }
+
+  test_enum_named() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+enum E {
+  v.foo();
+  const A.foo();
+  const E.foo();
+}
+''', [
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 40, 1),
     ]);
   }
 }

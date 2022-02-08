@@ -505,7 +505,11 @@ abstract class _FindElementBase {
   }
 
   ConstructorElement unnamedConstructor(String name) {
-    return class_(name).unnamedConstructor!;
+    return _findInClassesLike(
+      className: name,
+      fromClass: (e) => e.unnamedConstructor,
+      fromExtension: (_) => null,
+    );
   }
 
   T _findInClassesLike<T extends Element>({

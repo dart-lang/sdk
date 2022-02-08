@@ -36,6 +36,7 @@ import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/resolution_listener.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../kernel/dart2js_target.dart';
+import '../kernel/no_such_method_resolver.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
@@ -89,8 +90,8 @@ class KernelFrontendStrategy extends FrontendStrategy {
     _elementMap = KernelToElementMapImpl(reporter, environment, this, _options);
     _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
     _backendUsageBuilder = BackendUsageBuilderImpl(this);
-    noSuchMethodRegistry = NoSuchMethodRegistryImpl(
-        commonElements, KernelNoSuchMethodResolver(_elementMap));
+    noSuchMethodRegistry =
+        NoSuchMethodRegistry(commonElements, NoSuchMethodResolver(_elementMap));
   }
 
   NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>

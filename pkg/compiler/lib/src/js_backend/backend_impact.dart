@@ -716,8 +716,6 @@ class BackendImpacts {
   /// prefix.
   BackendImpact get loadLibrary {
     return _loadLibrary ??= BackendImpact(globalUses: [
-      // TODO(redemption): delete wrapper when we sunset the old frontend.
-      _commonElements.loadLibraryWrapper,
       _commonElements.loadDeferredLibrary,
     ]);
   }

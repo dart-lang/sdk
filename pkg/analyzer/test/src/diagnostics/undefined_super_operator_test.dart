@@ -67,4 +67,88 @@ class B extends A {
       error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 71, 7),
     ]);
   }
+
+  test_enum_binaryExpression() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void f() {
+    super + 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 37, 1),
+    ]);
+  }
+
+  test_enum_binaryExpression_OK() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int operator +(int a) => 0;
+}
+
+enum E with M {
+  v;
+  void f() {
+    super + 0;
+  }
+}
+''');
+  }
+
+  test_enum_indexBoth() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void f() {
+    super[0]++;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
+    ]);
+  }
+
+  test_enum_indexBoth_OK() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int operator [](int index) => 0;
+  void operator []=(int index, int value) {}
+}
+
+enum E with M {
+  v;
+  void f() {
+    super[0]++;
+  }
+}
+''');
+  }
+
+  test_enum_indexGetter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void f() {
+    super[0];
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
+    ]);
+  }
+
+  test_enum_indexSetter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void f() {
+    super[0] = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
+    ]);
+  }
 }

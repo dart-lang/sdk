@@ -6,6 +6,74 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_utilities/check/check.dart';
 
+import 'token_check.dart';
+
+extension ArgumentListExtension on CheckTarget<ArgumentList> {
+  CheckTarget<List<Expression>> get arguments {
+    return nest(
+      value.arguments,
+      (selected) => 'has arguments ${valueStr(selected)}',
+    );
+  }
+
+  void get isSynthetic {
+    leftParenthesis
+      ..isOpenParenthesis
+      ..isSynthetic;
+    rightParenthesis
+      ..isCloseParenthesis
+      ..isSynthetic;
+    arguments.isEmpty;
+  }
+
+  CheckTarget<Token> get leftParenthesis {
+    return nest(
+      value.leftParenthesis,
+      (selected) => 'has leftParenthesis ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<Token> get rightParenthesis {
+    return nest(
+      value.rightParenthesis,
+      (selected) => 'has rightParenthesis ${valueStr(selected)}',
+    );
+  }
+}
+
+extension EnumConstantArgumentsExtension on CheckTarget<EnumConstantArguments> {
+  CheckTarget<ArgumentList> get argumentList {
+    return nest(
+      value.argumentList,
+      (selected) => 'has argumentList ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<TypeArgumentList?> get typeArguments {
+    return nest(
+      value.typeArguments,
+      (selected) => 'has typeArguments ${valueStr(selected)}',
+    );
+  }
+}
+
+extension EnumConstantDeclarationExtension
+    on CheckTarget<EnumConstantDeclaration> {
+  CheckTarget<EnumConstantArguments?> get arguments {
+    return nest(
+      value.arguments,
+      (selected) => 'has arguments ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<SimpleIdentifier> get name {
+    return nest(
+      value.name,
+      (selected) => 'has name ${valueStr(selected)}',
+    );
+  }
+}
+
 extension FormalParameterExtension on CheckTarget<FormalParameter> {
   CheckTarget<SimpleIdentifier?> get identifier {
     return nest(

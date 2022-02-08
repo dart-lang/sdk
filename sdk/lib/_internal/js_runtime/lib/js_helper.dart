@@ -397,7 +397,7 @@ class Primitives {
   /// In minified mode, uses the unminified names if available, otherwise tags
   /// them with 'minified:'.
   @pragma('dart2js:noInline')
-  static String objectTypeName(Object object) {
+  static String objectTypeName(Object? object) {
     return _objectTypeNameNewRti(object);
   }
 
@@ -406,7 +406,7 @@ class Primitives {
   ///
   /// In minified mode, uses the unminified names if available, otherwise tags
   /// them with 'minified:'.
-  static String _objectTypeNameNewRti(Object object) {
+  static String _objectTypeNameNewRti(Object? object) {
     var dartObjectConstructor = JS_BUILTIN(
         'depends:none;effects:none;', JsBuiltin.dartObjectConstructor);
     if (JS('bool', '# instanceof #', object, dartObjectConstructor)) {
@@ -452,7 +452,7 @@ class Primitives {
       name != null && name != 'Object' && name != '';
 
   /// In minified mode, uses the unminified names if available.
-  static String objectToHumanReadableString(Object object) {
+  static String objectToHumanReadableString(Object? object) {
     String name = objectTypeName(object);
     return "Instance of '$name'";
   }
@@ -2664,12 +2664,6 @@ String jsonEncodeNative(String string) {
 String getIsolateAffinityTag(String name) {
   var isolateTagGetter = JS_EMBEDDED_GLOBAL('', GET_ISOLATE_TAG);
   return JS('String', '#(#)', isolateTagGetter, name);
-}
-
-typedef Future<Null> LoadLibraryFunctionType();
-
-LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
-  return () => loadDeferredLibrary(loadId);
 }
 
 final Map<String, Future<Null>?> _loadingLibraries = <String, Future<Null>?>{};
