@@ -91,6 +91,55 @@ class TypeArgumentsVerifier {
     }
   }
 
+  void checkEnumConstantDeclaration(EnumConstantDeclaration node) {
+    var constructorElement = node.constructorElement;
+    if (constructorElement == null) {
+      return;
+    }
+
+    var enumElement = constructorElement.enclosingElement;
+    var typeParameters = enumElement.typeParameters;
+
+    var typeArgumentList = node.arguments?.typeArguments;
+    var typeArgumentNodes = typeArgumentList?.arguments;
+    if (typeArgumentList != null &&
+        typeArgumentNodes != null &&
+        typeArgumentNodes.length != typeParameters.length) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM,
+        typeArgumentList,
+        [typeParameters.length, typeArgumentNodes.length],
+      );
+    }
+
+    if (typeParameters.isEmpty) {
+      return;
+    }
+
+    // Check that type arguments are regular-bounded.
+    var typeArguments = constructorElement.returnType.typeArguments;
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    for (var i = 0; i < typeArguments.length; i++) {
+      var typeParameter = typeParameters[i];
+      var typeArgument = typeArguments[i];
+
+      var bound = typeParameter.bound;
+      if (bound == null) {
+        continue;
+      }
+
+      bound = substitution.substituteType(bound);
+
+      if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          typeArgumentNodes?[i] ?? node.name,
+          [typeArgument, typeParameter.name, bound],
+        );
+      }
+    }
+  }
+
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _checkInvocationTypeArguments(
       node.typeArguments?.arguments,

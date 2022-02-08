@@ -13632,6 +13632,13 @@ CompileTimeErrorCode:
       }
       C f() => C.named();
       ```
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
+    problemMessage: The enum is declared with {0} type parameters, but {1} type arguments were given.
+    correctionMessage: Try adjusting the number of type arguments.
+    comment: |-
+      Parameters:
+      0: the number of type parameters that were declared
+      1: the number of type arguments provided
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION:
     problemMessage: "The extension '{0}' is declared with {1} type parameters, but {2} type arguments were given."
     correctionMessage: Try adjusting the number of type arguments.

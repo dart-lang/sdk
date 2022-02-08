@@ -15895,6 +15895,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the number of type parameters that were declared
+   * 1: the number of type arguments provided
+   */
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM =
+      CompileTimeErrorCode(
+    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
+    "The enum is declared with {0} type parameters, but {1} type arguments "
+        "were given.",
+    correctionMessage: "Try adjusting the number of type arguments.",
+  );
+
+  /**
+   * Parameters:
    * 0: the name of the extension being referenced
    * 1: the number of type parameters that were declared
    * 2: the number of type arguments provided

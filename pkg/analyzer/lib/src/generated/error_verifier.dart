@@ -560,6 +560,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _requiredParametersVerifier.visitEnumConstantDeclaration(node);
+    _typeArgumentsVerifier.checkEnumConstantDeclaration(node);
     super.visitEnumConstantDeclaration(node);
   }
 
