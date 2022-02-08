@@ -101,12 +101,12 @@ enum E {
   test_enum_synthetic() async {
     await assertErrorsInCode(r'''
 enum E {
-  v;
+  v(0);
   const E(this.x);
   int get x => 1;
 }
 ''', [
-      error(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, 24,
+      error(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, 27,
           6),
     ]);
   }

@@ -58,17 +58,17 @@ class B {
   test_enum_assertBeforeRedirection() async {
     await assertErrorsInCode(r'''
 enum E {
-  v;
+  v(0);
   const E(int x) : assert(x > 0), this.name();
   const E.name();
 }
-''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 33, 13)]);
+''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 36, 13)]);
   }
 
   test_enum_justAssert() async {
     await assertNoErrorsInCode(r'''
 enum E {
-  v;
+  v(0);
   const E(int x) : assert(x > 0);
 }
 ''');
@@ -77,7 +77,7 @@ enum E {
   test_enum_justRedirection() async {
     await assertNoErrorsInCode(r'''
 enum E {
-  v;
+  v(0);
   const E(int x) : this.name();
   const E.name();
 }
@@ -87,10 +87,10 @@ enum E {
   test_enum_redirectionBeforeAssert() async {
     await assertErrorsInCode(r'''
 enum E {
-  v;
+  v(0);
   const E(int x) : this.name(), assert(x > 0);
   const E.name();
 }
-''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 46, 13)]);
+''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 49, 13)]);
   }
 }

@@ -28,7 +28,7 @@ class A {
   test_enum() async {
     await assertNoErrorsInCode(r'''
 enum E {
-  v;
+  v(0);
   final int f;
   const E(this.f);
 }

@@ -18,7 +18,7 @@ class NonConstGenerativeEnumConstructorTest extends PubPackageResolutionTest {
   test_factory() async {
     await assertNoErrorsInCode(r'''
 enum E {
-  v;
+  v(0);
   factory E(int i) => values[i];
 }
 ''');

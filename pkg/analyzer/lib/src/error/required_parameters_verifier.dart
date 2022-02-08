@@ -18,12 +18,21 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   RequiredParametersVerifier(this._errorReporter);
 
   @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    _check(
+      node.constructorElement?.parameters,
+      node.arguments?.argumentList.arguments ?? <Expression>[],
+      node.name,
+    );
+  }
+
+  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var type = node.staticInvokeType;
     if (type is FunctionType) {
       _check(
         type.parameters,
-        node.argumentList,
+        node.argumentList.arguments,
         node,
       );
     }
@@ -33,7 +42,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _check(
       node.constructorName.staticElement?.parameters,
-      node.argumentList,
+      node.argumentList.arguments,
       node.constructorName,
     );
   }
@@ -43,14 +52,15 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     if (node.methodName.name == FunctionElement.CALL_METHOD_NAME) {
       var targetType = node.realTarget?.staticType;
       if (targetType is FunctionType) {
-        _check(targetType.parameters, node.argumentList, node.argumentList);
+        _check(targetType.parameters, node.argumentList.arguments,
+            node.argumentList);
         return;
       }
     }
 
     _check(
       _executableElement(node.methodName.staticElement)?.parameters,
-      node.argumentList,
+      node.argumentList.arguments,
       node.methodName,
     );
   }
@@ -60,7 +70,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
       RedirectingConstructorInvocation node) {
     _check(
       _executableElement(node.staticElement)?.parameters,
-      node.argumentList,
+      node.argumentList.arguments,
       node,
     );
   }
@@ -69,14 +79,14 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _check(
       _executableElement(node.staticElement)?.parameters,
-      node.argumentList,
+      node.argumentList.arguments,
       node,
     );
   }
 
   void _check(
     List<ParameterElement>? parameters,
-    ArgumentList argumentList,
+    List<Expression> arguments,
     AstNode node,
   ) {
     if (parameters == null) {
@@ -86,7 +96,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     for (ParameterElement parameter in parameters) {
       if (parameter.isRequiredNamed) {
         String parameterName = parameter.name;
-        if (!_containsNamedExpression(argumentList, parameterName)) {
+        if (!_containsNamedExpression(arguments, parameterName)) {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
             node,
@@ -98,7 +108,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
         var annotation = _requiredAnnotation(parameter);
         if (annotation != null) {
           String parameterName = parameter.name;
-          if (!_containsNamedExpression(argumentList, parameterName)) {
+          if (!_containsNamedExpression(arguments, parameterName)) {
             var reason = annotation.reason;
             if (reason != null) {
               _errorReporter.reportErrorForNode(
@@ -119,8 +129,10 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     }
   }
 
-  static bool _containsNamedExpression(ArgumentList args, String name) {
-    NodeList<Expression> arguments = args.arguments;
+  static bool _containsNamedExpression(
+    List<Expression> arguments,
+    String name,
+  ) {
     for (int i = arguments.length - 1; i >= 0; i--) {
       Expression expression = arguments[i];
       if (expression is NamedExpression) {
