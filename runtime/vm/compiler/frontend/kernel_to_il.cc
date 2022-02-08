@@ -1585,7 +1585,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       // Initialize the result's data pointer field.
       body += LoadLocal(typed_data_object);
       body += LoadLocal(arg_pointer);
-      body += LoadNativeField(Slot::Pointer_data_field());
+      body += LoadUntagged(compiler::target::Pointer::data_field_offset());
+      body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
       body += StoreNativeField(Slot::TypedDataBase_data_field(),
                                StoreInstanceFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
