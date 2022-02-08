@@ -11,7 +11,7 @@ If you'd like to improve the documentation, you have three options:
       click that icon to report a bug on the page.
     * To report an API doc bug,
       [create an SDK issue](https://github.com/dart-lang/sdk/issues/new?title=API%20doc%20issue:).
-  * Contribute to the Dart developer websites such as [dart.dev](https://dart.dev) (repo: [dart-lang/site-www](https://github.com/dart-lang/site-www)) and [dart.dev/web](https://dart.dev/web) (repo: [dart-lang/site-www/src/web](https://github.com/dart-lang/site-www/tree/master/src/web)). For more information, see [Writing for Dart and Flutter websites](https://github.com/dart-lang/site-shared/wiki/Writing-for-Dart-and-Flutter-websites).
+  * Contribute to the Dart developer websites such as [dart.dev](https://dart.dev) (repo: [dart-lang/site-www](https://github.com/dart-lang/site-www)). For more information, see [Writing for Dart and Flutter websites](https://github.com/dart-lang/site-shared/blob/master/doc/writing-for-dart-and-flutter-websites.md).
   * Improve the API reference docs at [api.dart.dev](https://api.dart.dev) by editing doc comments in the [Dart SDK repo](https://github.com/dart-lang/sdk/tree/main/sdk/lib). For more information on how to write API docs, see [Effective Dart: Documentation](https://dart.dev/guides/language/effective-dart/documentation).
 
 ## Before you contribute

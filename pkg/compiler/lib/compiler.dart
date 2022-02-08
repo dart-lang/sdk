@@ -118,7 +118,7 @@ Future<CompilationResult> compile(Uri script, Uri librariesSpecificationUri,
 /// Kind of diagnostics that the compiler can report.
 class Diagnostic {
   /// An error as identified by the "Dart Programming Language
-  /// Specification" [http://www.dartlang.org/docs/spec/].
+  /// Specification" [https://dart.dev/guides/language/spec].
   ///
   /// Note: the compiler may still produce an executable result after
   /// reporting a compilation error. The specification says:
@@ -133,7 +133,7 @@ class Diagnostic {
   static const Diagnostic ERROR = const Diagnostic(1, 'error');
 
   /// A warning as identified by the "Dart Programming Language
-  /// Specification" [http://www.dartlang.org/docs/spec/].
+  /// Specification" [https://dart.dev/guides/language/spec].
   static const Diagnostic WARNING = const Diagnostic(2, 'warning');
 
   /// Any other warning that is not covered by [WARNING].
