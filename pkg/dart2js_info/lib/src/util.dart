@@ -116,7 +116,7 @@ String packageName(Info info) {
     info = info.parent;
   }
   if (info is LibraryInfo) {
-    if (info.uri.scheme == 'package') {
+    if (info.uri.isScheme('package')) {
       return '${info.uri}'.split('/').first;
     }
   }

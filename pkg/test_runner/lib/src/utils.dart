@@ -306,7 +306,7 @@ class LastModifiedCache {
   /// In case [uri] is not a local file, this method will always return
   /// the current date.
   DateTime getLastModified(Uri uri) {
-    if (uri.scheme == "file") {
+    if (uri.isScheme("file")) {
       if (_cache.containsKey(uri.path)) {
         return _cache[uri.path];
       }

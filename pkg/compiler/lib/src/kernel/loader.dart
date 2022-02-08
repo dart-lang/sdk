@@ -269,7 +269,7 @@ class KernelLoaderTask extends CompilerTask {
 
       // Libraries dependencies do not show implicit imports to `dart:core`.
       var dartCore = component.libraries.firstWhere((lib) {
-        return lib.importUri.scheme == 'dart' && lib.importUri.path == 'core';
+        return lib.importUri.isScheme('dart') && lib.importUri.path == 'core';
       });
       search(dartCore);
 

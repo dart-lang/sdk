@@ -21,8 +21,8 @@ ClassEntity findClass(JClosedWorld closedWorld, String name) {
       closedWorld.commonElements.jsHelperLibrary, name);
   if (cls == null) {
     for (LibraryEntity library in elementEnvironment.libraries) {
-      if (library.canonicalUri.scheme != 'dart' &&
-          library.canonicalUri.scheme != 'package') {
+      if (!library.canonicalUri.isScheme('dart') &&
+          !library.canonicalUri.isScheme('package')) {
         cls = elementEnvironment.lookupClass(library, name);
         if (cls != null) {
           break;
@@ -70,8 +70,8 @@ MemberEntity findMember(JClosedWorld closedWorld, String name) {
       setter: isSetter);
   if (member == null) {
     for (LibraryEntity library in elementEnvironment.libraries) {
-      if (library.canonicalUri.scheme != 'dart' &&
-          library.canonicalUri.scheme != 'package') {
+      if (!library.canonicalUri.isScheme('dart') &&
+          !library.canonicalUri.isScheme('package')) {
         member = elementEnvironment.lookupLibraryMember(library, name,
             setter: isSetter);
         if (member != null) {

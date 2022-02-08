@@ -992,7 +992,7 @@ Set<Library> _getAllRelevantLibraries(
   for (Library lib in component.libraries) {
     // Skip real dart: libraries. dart:core imports dart:ffi, but that doesn't
     // mean we have to transform anything.
-    if (lib.importUri.scheme == "dart" && !lib.isSynthetic) continue;
+    if (lib.importUri.isScheme("dart") && !lib.isSynthetic) continue;
     allLibs.add(lib);
   }
   return allLibs;

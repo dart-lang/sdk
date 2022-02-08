@@ -185,5 +185,5 @@ bool isLibEmpty(Library lib) {
 }
 
 bool isCoreLibrary(Library library) {
-  return library.importUri.scheme == 'dart';
+  return library.importUri.isScheme('dart');
 }

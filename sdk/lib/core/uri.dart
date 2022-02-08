@@ -2184,7 +2184,9 @@ class _Uri implements Uri {
           }
         }
         String slice = host.substring(sectionStart, index);
-        (buffer ??= StringBuffer())..write(slice)..write(_escapeChar(char));
+        (buffer ??= StringBuffer())
+          ..write(slice)
+          ..write(_escapeChar(char));
         index += sourceLength;
         sectionStart = index;
       }
@@ -2261,7 +2263,9 @@ class _Uri implements Uri {
         }
         String slice = host.substring(sectionStart, index);
         if (!isNormalized) slice = slice.toLowerCase();
-        (buffer ??= StringBuffer())..write(slice)..write(_escapeChar(char));
+        (buffer ??= StringBuffer())
+          ..write(slice)
+          ..write(_escapeChar(char));
         index += sourceLength;
         sectionStart = index;
       }
@@ -2928,7 +2932,10 @@ class _Uri implements Uri {
 
   String _initializeText() {
     StringBuffer sb = StringBuffer();
-    if (scheme.isNotEmpty) sb..write(scheme)..write(":");
+    if (scheme.isNotEmpty)
+      sb
+        ..write(scheme)
+        ..write(":");
     if (hasAuthority || (scheme == "file")) {
       // File URIS always have the authority, even if it is empty.
       // The empty URI means "localhost".
@@ -2936,8 +2943,14 @@ class _Uri implements Uri {
       _writeAuthority(sb);
     }
     sb.write(path);
-    if (_query != null) sb..write("?")..write(_query);
-    if (_fragment != null) sb..write("#")..write(_fragment);
+    if (_query != null)
+      sb
+        ..write("?")
+        ..write(_query);
+    if (_fragment != null)
+      sb
+        ..write("#")
+        ..write(_fragment);
     return sb.toString();
   }
 
@@ -3439,7 +3452,7 @@ class UriData {
   /// and the path (concatenated with the query, if there is one) must be valid
   /// as data URI content with the same rules as [parse].
   factory UriData.fromUri(Uri uri) {
-    if (uri.scheme != "data") {
+    if (!uri.isScheme("data")) {
       throw ArgumentError.value(uri, "uri", "Scheme must be 'data'");
     }
     if (uri.hasAuthority) {
@@ -3487,7 +3500,10 @@ class UriData {
     }
     if (charsetName != null) {
       // TODO(39209): Use ?.. when sequences are properly supported.
-      if (indices != null) indices..add(buffer.length)..add(buffer.length + 8);
+      if (indices != null)
+        indices
+          ..add(buffer.length)
+          ..add(buffer.length + 8);
       buffer.write(";charset=");
       buffer.write(_Uri._uriEncode(_tokenCharTable, charsetName, utf8, false));
     }

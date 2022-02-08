@@ -421,7 +421,7 @@ class CompileTask {
         userCode.setMainMethodAndMode(
             outline.mainMethodName, true, outline.mode);
         for (Library library in outline.libraries) {
-          if (library.importUri.scheme != "dart") {
+          if (!library.importUri.isScheme("dart")) {
             userCode.libraries.add(library);
           }
         }
@@ -465,13 +465,13 @@ class CompileTask {
       userCode.setMainMethodAndMode(
           component.mainMethodName, true, component.mode);
       for (Library library in component.libraries) {
-        if (library.importUri.scheme != "dart") {
+        if (!library.importUri.isScheme("dart")) {
           userCode.libraries.add(library);
         }
       }
       component = userCode;
     }
-    if (uri.scheme == "file") {
+    if (uri.isScheme("file")) {
       benchmarker?.enterPhase(BenchmarkPhases.writeComponent);
       await writeComponentToFile(component, uri);
       ticker.logMs("Wrote component to ${uri.toFilePath()}");

@@ -1707,7 +1707,7 @@ class LibraryReferenceCollector extends RecursiveVisitor {
 
   void defaultMemberReference(Member node) {
     Library lib = node.enclosingLibrary;
-    if (lib.importUri.scheme != "dart") {
+    if (!lib.importUri.isScheme("dart")) {
       librariesReferenced.add(lib);
     }
     return super.defaultMemberReference(node);

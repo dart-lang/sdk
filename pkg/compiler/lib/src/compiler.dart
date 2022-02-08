@@ -726,7 +726,7 @@ abstract class Compiler {
   Uri getCanonicalUri(Entity element) {
     Uri libraryUri = _uriFromElement(element);
     if (libraryUri == null) return null;
-    if (libraryUri.scheme == 'package') {
+    if (libraryUri.isScheme('package')) {
       int slashPos = libraryUri.path.indexOf('/');
       if (slashPos != -1) {
         String packageName = libraryUri.path.substring(0, slashPos);

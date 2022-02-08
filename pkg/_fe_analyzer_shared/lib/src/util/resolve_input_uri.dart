@@ -18,7 +18,7 @@ Uri resolveInputUri(String path) {
 
 Uri parseUri(String path) {
   if (path.startsWith("file:")) {
-    if (Uri.base.scheme == "file") {
+    if (Uri.base.isScheme("file")) {
       // The Uri class doesn't handle relative file URIs correctly, the
       // following works around that issue.
       return new Uri(path: Uri.parse("x-$path").path);

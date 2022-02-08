@@ -103,7 +103,7 @@ class _LibraryGraph implements Graph<Library> {
     return <Library>[
       for (LibraryDependency dependency in vertex.dependencies)
         if (!loadedLibraries.contains(dependency.targetLibrary) &&
-            dependency.targetLibrary.importUri.scheme != 'dart')
+            !dependency.targetLibrary.importUri.isScheme('dart'))
           dependency.targetLibrary
     ];
   }

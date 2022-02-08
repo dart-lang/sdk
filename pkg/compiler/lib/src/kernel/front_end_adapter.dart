@@ -23,7 +23,7 @@ class CompilerFileSystem implements fe.FileSystem {
 
   @override
   fe.FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme == 'data') {
+    if (uri.isScheme('data')) {
       return fe.DataFileSystemEntity(Uri.base.resolveUri(uri));
     } else {
       return _CompilerFileSystemEntity(uri, this);

@@ -289,12 +289,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             new Scope.top()) {
     assert(
         _packageUri == null ||
-            importUri.scheme != 'package' ||
+            !importUri.isScheme('package') ||
             importUri.path.startsWith(_packageUri!.path),
         "Foreign package uri '$_packageUri' set on library with import uri "
         "'${importUri}'.");
     assert(
-        importUri.scheme != 'dart' || _packageUri == null,
+        !importUri.isScheme('dart') || _packageUri == null,
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
   }
@@ -638,7 +638,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return previous;
   }
 
-  bool uriIsValid(Uri uri) => uri.scheme != MALFORMED_URI_SCHEME;
+  bool uriIsValid(Uri uri) => !uri.isScheme(MALFORMED_URI_SCHEME);
 
   Uri resolve(Uri baseUri, String? uri, int uriOffset, {isPart: false}) {
     if (uri == null) {
@@ -657,7 +657,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return new Uri(
           scheme: MALFORMED_URI_SCHEME, query: Uri.encodeQueryComponent(uri));
     }
-    if (isPart && baseUri.scheme == "dart") {
+    if (isPart && baseUri.isScheme("dart")) {
       // Resolve using special rules for dart: URIs
       return resolveRelativeUri(baseUri, parsedUri);
     } else {
@@ -1668,7 +1668,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (className != "Function") {
       return;
     }
-    if (decType == "class" && importUri.scheme == "dart") {
+    if (decType == "class" && importUri.isScheme("dart")) {
       // Allow declaration of class Function in the sdk.
       return;
     }
@@ -3158,9 +3158,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         preferred = declaration;
       } else if (other is LoadLibraryBuilder) {
         preferred = other;
-      } else if (otherUri.scheme == "dart" && uri.scheme != "dart") {
+      } else if (otherUri.isScheme("dart") && !uri.isScheme("dart")) {
         preferred = declaration;
-      } else if (uri.scheme == "dart" && otherUri.scheme != "dart") {
+      } else if (uri.isScheme("dart") && !otherUri.isScheme("dart")) {
         preferred = other;
       }
     }
@@ -3901,7 +3901,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void exportMemberFromPatch(String name, Builder member) {
-    if (importUri.scheme != "dart" || !importUri.path.startsWith("_")) {
+    if (!importUri.isScheme("dart") || !importUri.path.startsWith("_")) {
       addProblem(templatePatchInjectionFailed.withArguments(name, importUri),
           member.charOffset, noLength, member.fileUri);
     }

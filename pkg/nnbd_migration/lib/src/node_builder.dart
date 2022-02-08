@@ -969,7 +969,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   /// Determines whether the given [uri] comes from the Angular package.
   bool _isAngularUri(Uri uri) {
-    if (uri.scheme != 'package') return false;
+    if (!uri.isScheme('package')) return false;
     var packageName = uri.pathSegments[0];
     if (packageName == 'angular') return true;
     if (packageName == 'third_party.dart_src.angular.angular') {

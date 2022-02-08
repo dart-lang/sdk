@@ -80,7 +80,7 @@ class FileSource extends Source {
 
   @Deprecated('Use uri.isScheme("dart") instead')
   @override
-  bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
+  bool get isInSystemLibrary => uri.isScheme(DartUriResolver.DART_SCHEME);
 
   @Deprecated('Not used anymore')
   @override

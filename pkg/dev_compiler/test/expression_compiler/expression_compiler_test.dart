@@ -42,7 +42,7 @@ class Module {
 
   Module(this.importUri, this.fileUri)
       : name = libraryUriToJsIdentifier(importUri),
-        path = importUri.scheme == 'package'
+        path = importUri.isScheme('package')
             ? 'packages/${importUri.path}'
             : importUri.path;
 

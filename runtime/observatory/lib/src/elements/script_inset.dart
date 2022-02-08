@@ -439,7 +439,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
         return l as S.Library;
       }
     }
-    if (targetUri.scheme == 'package') {
+    if (targetUri.isScheme('package')) {
       var targetUriString = "packages/${targetUri.path}";
       for (M.Library l in script.isolate!.libraries) {
         if (targetUriString == l.uri) {
@@ -482,7 +482,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
   S.Script? resolvePart(String relativeUri) {
     S.Script script = _loadedScript as S.Script;
     var rootUri = Uri.parse(script.library!.uri!);
-    if (rootUri.scheme == 'dart') {
+    if (rootUri.isScheme('dart')) {
       // The relative paths from dart:* libraries to their parts are not valid.
       rootUri = Uri.parse(script.library!.uri! + '/');
     }

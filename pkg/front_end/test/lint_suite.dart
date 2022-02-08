@@ -315,7 +315,7 @@ class ImportsTwiceLintListener extends LintListener {
       importUri = importUri.substring(1, importUri.length - 1);
     }
     Uri resolved = uri.resolve(importUri);
-    if (resolved.scheme == "package") {
+    if (resolved.isScheme("package")) {
       if (description.cache.packages != null) {
         resolved = description.cache.packages!.resolve(resolved)!;
       }
@@ -345,7 +345,7 @@ class ExportsLintListener extends LintListener {
       exportUri = exportUri.substring(1, exportUri.length - 1);
     }
     Uri resolved = uri.resolve(exportUri);
-    if (resolved.scheme == "package") {
+    if (resolved.isScheme("package")) {
       if (description.cache.packages != null) {
         resolved = description.cache.packages!.resolve(resolved)!;
       }

@@ -52,7 +52,7 @@ class MultiRootFileSystemEntity implements FileSystemEntity {
       _delegate ??= await _resolveEntity();
 
   Future<FileSystemEntity> _resolveEntity() async {
-    if (uri.scheme == multiRootFileSystem.markerScheme) {
+    if (uri.isScheme(multiRootFileSystem.markerScheme)) {
       if (!uri.isAbsolute) {
         throw new FileSystemException(
             uri, "This MultiRootFileSystem only handles absolutes URIs: $uri");

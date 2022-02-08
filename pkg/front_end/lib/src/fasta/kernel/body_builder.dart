@@ -355,7 +355,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         stringExpectedAfterNative = libraryBuilder
             .loader.target.backendTarget.nativeExtensionExpectsString,
         ignoreMainInGetMainClosure =
-            libraryBuilder.importUri.scheme == 'dart' &&
+            libraryBuilder.importUri.isScheme('dart') &&
                 (libraryBuilder.importUri.path == "_builtin" ||
                     libraryBuilder.importUri.path == "ui"),
         needsImplicitSuperInitializer =

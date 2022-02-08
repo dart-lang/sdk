@@ -43,14 +43,14 @@ class ConvertToPackageImport extends CorrectionProducer {
       }
 
       var importUri = uriSource.uri;
-      if (importUri.scheme != 'package') {
+      if (!importUri.isScheme('package')) {
         return;
       }
 
       // Don't offer to convert a 'package:' URI to itself.
       try {
         var uriContent = importDirective.uriContent;
-        if (uriContent == null || Uri.parse(uriContent).scheme == 'package') {
+        if (uriContent == null || Uri.parse(uriContent).isScheme('package')) {
           return;
         }
       } on FormatException {

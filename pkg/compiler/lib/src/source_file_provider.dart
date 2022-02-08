@@ -40,9 +40,9 @@ abstract class SourceFileProvider implements CompilerInput {
     }
     if (input != null) return Future.value(input);
 
-    if (resourceUri.scheme == 'file') {
+    if (resourceUri.isScheme('file')) {
       return _readFromFile(resourceUri, inputKind);
-    } else if (resourceUri.scheme == 'http' || resourceUri.scheme == 'https') {
+    } else if (resourceUri.isScheme('http') || resourceUri.isScheme('https')) {
       return _readFromHttp(resourceUri, inputKind);
     } else {
       throw ArgumentError("Unknown scheme in uri '$resourceUri'");
@@ -50,7 +50,7 @@ abstract class SourceFileProvider implements CompilerInput {
   }
 
   api.Input _readFromFileSync(Uri resourceUri, api.InputKind inputKind) {
-    assert(resourceUri.scheme == 'file');
+    assert(resourceUri.isScheme('file'));
     List<int> source;
     try {
       source = readAll(resourceUri.toFilePath(),
@@ -99,7 +99,7 @@ abstract class SourceFileProvider implements CompilerInput {
 
   Future<api.Input<List<int>>> _readFromHttp(
       Uri resourceUri, api.InputKind inputKind) {
-    assert(resourceUri.scheme == 'http');
+    assert(resourceUri.isScheme('http'));
     HttpClient client = HttpClient();
     return client
         .getUrl(resourceUri)
@@ -279,7 +279,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
       api.Input file = provider.getUtf8SourceFile(uri);
       if (file == null &&
           autoReadFileUri &&
-          (uri.scheme == 'file' || !uri.isAbsolute) &&
+          (uri.isScheme('file') || !uri.isAbsolute) &&
           uri.path.endsWith('.dart')) {
         if (!uri.isAbsolute) {
           uri = provider.cwd.resolveUri(uri);
@@ -379,7 +379,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
     Uri uri = createUri(name, extension, type);
     bool isPrimaryOutput = uri == out;
 
-    if (uri.scheme != 'file') {
+    if (!uri.isScheme('file')) {
       onFailure('Unhandled scheme ${uri.scheme} in $uri.');
     }
 
@@ -428,7 +428,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
 
     allOutputFiles.add(fe.relativizeUri(Uri.base, uri, Platform.isWindows));
 
-    if (uri.scheme != 'file') {
+    if (!uri.isScheme('file')) {
       onFailure('Unhandled scheme ${uri.scheme} in $uri.');
     }
 
@@ -608,7 +608,7 @@ class MultiRootInputProvider extends SourceFileProvider {
   Future<api.Input<List<int>>> readFromUri(Uri uri,
       {InputKind inputKind = InputKind.UTF8}) async {
     var resolvedUri = uri;
-    if (resolvedUri.scheme == markerScheme) {
+    if (resolvedUri.isScheme(markerScheme)) {
       var path = resolvedUri.path;
       if (path.startsWith('/')) path = path.substring(1);
       for (var dir in roots) {
@@ -634,7 +634,7 @@ class MultiRootInputProvider extends SourceFileProvider {
 
   @override
   api.Input autoReadFromFile(Uri resourceUri) {
-    if (resourceUri.scheme == markerScheme) {
+    if (resourceUri.isScheme(markerScheme)) {
       var path = resourceUri.path;
       for (var dir in roots) {
         var file = dir.resolve(path);

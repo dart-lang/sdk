@@ -28,13 +28,13 @@ abstract class LegacyUpperBoundTest {
         "the core library and the test library.");
     Library firstLibrary = env.component.libraries.first;
     Library secondLibrary = env.component.libraries.last;
-    if (firstLibrary.importUri.scheme == "dart" &&
+    if (firstLibrary.importUri.isScheme("dart") &&
         firstLibrary.importUri.path == "core") {
       coreLibrary = firstLibrary;
       testLibrary = secondLibrary;
     } else {
       assert(
-          secondLibrary.importUri.scheme == "dart" &&
+          secondLibrary.importUri.isScheme("dart") &&
               secondLibrary.importUri.path == "core",
           "One of the libraries is expected to be 'dart:core'.");
       coreLibrary = secondLibrary;

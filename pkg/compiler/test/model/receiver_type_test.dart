@@ -52,7 +52,7 @@ Future runTest() async {
   Selector callSelector = new Selector.callClosure(0);
   closedWorld.classHierarchy.forEachStrictSubclassOf(
       closedWorld.commonElements.objectClass, (ClassEntity cls) {
-    if (cls.library.canonicalUri.scheme != 'memory')
+    if (!cls.library.canonicalUri.isScheme('memory'))
       return IterationStep.CONTINUE;
 
     TypeMask mask = new TypeMask.nonNullSubclass(cls, closedWorld);

@@ -630,7 +630,7 @@ class FrontendCompiler implements CompilerInterface {
     Set<Uri> uris = Set<Uri>();
     for (Uri uri in compiledSources) {
       // Skip empty or corelib dependencies.
-      if (uri == null || uri.scheme == 'org-dartlang-sdk') continue;
+      if (uri == null || uri.isScheme('org-dartlang-sdk')) continue;
       uris.add(uri);
     }
     for (Uri uri in uris) {
@@ -986,7 +986,7 @@ class FrontendCompiler implements CompilerInterface {
 
     for (var lib in deltaProgram.libraries) {
       Uri uri = lib.importUri;
-      if (uri.scheme == "package") {
+      if (uri.isScheme("package")) {
         packageLibraries.add(lib);
       } else {
         libraries.add(lib);
@@ -1040,7 +1040,7 @@ class FrontendCompiler implements CompilerInterface {
       for (Library lib in libraries) {
         for (LibraryDependency dep in lib.dependencies) {
           Library dependencyLibrary = dep.importedLibraryReference.asLibrary;
-          if (dependencyLibrary.importUri.scheme != "package") continue;
+          if (!dependencyLibrary.importUri.isScheme("package")) continue;
           Uri dependencyLibraryUri =
               dep.importedLibraryReference.asLibrary.fileUri;
           if (libraryUris.contains(dependencyLibraryUri)) continue;

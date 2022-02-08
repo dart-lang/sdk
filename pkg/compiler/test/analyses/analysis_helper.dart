@@ -40,7 +40,7 @@ main(List<String> args) {
   Uri packageConfig = getPackages(argResults);
   List<String> options = getOptions(argResults);
   run(entryPoint, null,
-      analyzedUrisFilter: (Uri uri) => uri.scheme != 'dart',
+      analyzedUrisFilter: (Uri uri) => !uri.isScheme('dart'),
       librariesSpecificationUri: librariesSpecificationUri,
       packageConfig: packageConfig,
       options: options);
@@ -362,7 +362,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   String reportAssertionFailure(ir.Node node, String message) {
     SourceSpan span = computeSourceSpanFromTreeNode(node);
     Uri uri = span.uri;
-    if (uri.scheme == 'org-dartlang-sdk') {
+    if (uri.isScheme('org-dartlang-sdk')) {
       span = new SourceSpan(
           Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
     }
@@ -378,7 +378,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     String uriString = relativizeUri(Uri.base, uri, Platform.isWindows);
     Map<String, List<DiagnosticMessage>> actualMap = _actualMessages
         .putIfAbsent(uriString, () => <String, List<DiagnosticMessage>>{});
-    if (uri.scheme == 'org-dartlang-sdk') {
+    if (uri.isScheme('org-dartlang-sdk')) {
       span = new SourceSpan(
           Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
     }

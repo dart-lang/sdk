@@ -57,7 +57,7 @@ Future<VersionAndPackageUri> languageVersionForUri(
     UriTranslator uriTranslator = await context.options.getUriTranslator();
     Uri? fileUri;
     Package? package;
-    if (uri.scheme == "package") {
+    if (uri.isScheme("package")) {
       fileUri = uriTranslator.translate(uri);
       package = uriTranslator.getPackage(uri);
     } else {
@@ -65,8 +65,8 @@ Future<VersionAndPackageUri> languageVersionForUri(
       package = uriTranslator.packages.packageOf(uri);
     }
     Uri packageUri = uri;
-    if (packageUri.scheme != 'dart' &&
-        packageUri.scheme != 'package' &&
+    if (!packageUri.isScheme('dart') &&
+        !packageUri.isScheme('package') &&
         package != null &&
         // ignore: unnecessary_null_comparison
         package.name != null) {

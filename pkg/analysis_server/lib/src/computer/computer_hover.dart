@@ -82,7 +82,7 @@ class DartUnitHoverComputer {
           if (library != null) {
             var uri = library.source.uri;
             var analysisSession = _unit.declaredElement?.session;
-            if (uri.scheme == 'file' && analysisSession != null) {
+            if (uri.isScheme('file') && analysisSession != null) {
               // for 'file:' URIs, use the path after the project root
               var context = analysisSession.resourceProvider.pathContext;
               var projectRootDir =

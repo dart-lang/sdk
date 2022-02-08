@@ -826,7 +826,7 @@ class CompilerOptions implements DiagnosticOptions {
       return true;
     }
     if (shownPackageWarnings != null) {
-      return uri.scheme == 'package' &&
+      return uri.isScheme('package') &&
           shownPackageWarnings!.contains(uri.pathSegments.first);
     }
     return false;

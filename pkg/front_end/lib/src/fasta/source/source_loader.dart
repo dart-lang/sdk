@@ -265,7 +265,7 @@ class SourceLoader extends Loader {
 
   void registerLibraryBuilder(LibraryBuilder libraryBuilder) {
     Uri uri = libraryBuilder.importUri;
-    if (uri.scheme == "dart" && uri.path == "core") {
+    if (uri.isScheme("dart") && uri.path == "core") {
       _coreLibrary = libraryBuilder;
     }
     _builders[uri] = libraryBuilder;
@@ -326,7 +326,7 @@ class SourceLoader extends Loader {
         referencesFrom: referencesFrom,
         referenceIsPartOwner: referenceIsPartOwner,
         isUnsupported: origin?.library.isUnsupported ??
-            importUri.scheme == 'dart' &&
+            importUri.isScheme('dart') &&
                 !target.uriTranslator.isLibrarySupported(importUri.path));
   }
 
@@ -359,9 +359,9 @@ class SourceLoader extends Loader {
       Library? referencesFrom,
       bool? referenceIsPartOwner) {
     if (fileUri != null &&
-        (fileUri.scheme == "dart" ||
-            fileUri.scheme == "package" ||
-            fileUri.scheme == "dart-ext")) {
+        (fileUri.isScheme("dart") ||
+            fileUri.isScheme("package") ||
+            fileUri.isScheme("dart-ext"))) {
       fileUri = null;
     }
     package_config.Package? packageForLanguageVersion;
@@ -373,7 +373,7 @@ class SourceLoader extends Loader {
               new Uri(
                   scheme: untranslatableUriScheme,
                   path: Uri.encodeComponent("$uri"));
-          if (uri.scheme == "package") {
+          if (uri.isScheme("package")) {
             packageForLanguageVersion = target.uriTranslator.getPackage(uri);
           } else {
             packageForLanguageVersion =
@@ -396,8 +396,8 @@ class SourceLoader extends Loader {
     Message? packageLanguageVersionProblem;
     if (packageForLanguageVersion != null) {
       Uri importUri = origin?.importUri ?? uri;
-      if (importUri.scheme != 'dart' &&
-          importUri.scheme != 'package' &&
+      if (!importUri.isScheme('dart') &&
+          !importUri.isScheme('package') &&
           // ignore: unnecessary_null_comparison
           packageForLanguageVersion.name != null) {
         packageUri =
@@ -455,7 +455,7 @@ class SourceLoader extends Loader {
     if (target.backendTarget.mayDefineRestrictedType(libraryUri)) {
       libraryBuilder.mayImplementRestrictedTypes = true;
     }
-    if (uri.scheme == "dart") {
+    if (uri.isScheme("dart")) {
       target.readPatchFiles(libraryBuilder);
     }
     _unparsedLibraries.addLast(libraryBuilder);
@@ -516,7 +516,7 @@ class SourceLoader extends Loader {
   }
 
   void _checkForDartCore(Uri uri, LibraryBuilder libraryBuilder) {
-    if (uri.scheme == "dart") {
+    if (uri.isScheme("dart")) {
       if (uri.path == "core") {
         _coreLibrary = libraryBuilder;
       } else if (uri.path == "typed_data") {
@@ -595,7 +595,7 @@ class SourceLoader extends Loader {
   }
 
   bool _hasLibraryAccess({required Uri imported, required Uri? importer}) {
-    if (imported.scheme == "dart" && imported.path.startsWith("_")) {
+    if (imported.isScheme("dart") && imported.path.startsWith("_")) {
       if (importer == null) {
         return false;
       } else {
@@ -810,7 +810,7 @@ severity: $severity
 
     if (bytes == null) {
       // Error recovery.
-      if (fileUri.scheme == untranslatableUriScheme) {
+      if (fileUri.isScheme(untranslatableUriScheme)) {
         Message message =
             templateUntranslatableUri.withArguments(library.importUri);
         library.addProblemAtAccessors(message);
@@ -820,7 +820,7 @@ severity: $severity
             templateInternalProblemUriMissingScheme.withArguments(fileUri),
             -1,
             library.importUri);
-      } else if (fileUri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
+      } else if (fileUri.isScheme(SourceLibraryBuilder.MALFORMED_URI_SCHEME)) {
         library.addProblemAtAccessors(messageExpectedUri);
         bytes = synthesizeSourceForMissingFile(library.importUri, null);
       }
@@ -1027,7 +1027,7 @@ severity: $severity
           continue;
         }
       }
-      if (libraryBuilder.importUri.scheme == 'package') {
+      if (libraryBuilder.importUri.isScheme('package')) {
         (libraryByPackage[null] ??= []).add(libraryBuilder);
       } else {
         if (emitNonPackageErrors) {
@@ -1965,7 +1965,7 @@ severity: $severity
     for (LibraryBuilder libraryBuilder in libraryBuilders) {
       if (!libraryBuilder.isPatch &&
           (libraryBuilder.loader == this ||
-              libraryBuilder.importUri.scheme == "dart" ||
+              libraryBuilder.importUri.isScheme("dart") ||
               libraryBuilder == this.first)) {
         if (libraries.add(libraryBuilder.library)) {
           workList.add(libraryBuilder.library);

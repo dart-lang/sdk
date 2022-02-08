@@ -23,12 +23,12 @@ class StandardFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme == 'file') {
+    if (uri.isScheme('file')) {
       return new _IoFileSystemEntity(uri);
-    } else if (uri.scheme == '') {
+    } else if (!uri.hasScheme) {
       // TODO(askesc): Empty schemes should have been handled elsewhere.
       return new _IoFileSystemEntity(Uri.base.resolveUri(uri));
-    } else if (uri.scheme == 'data') {
+    } else if (uri.isScheme('data')) {
       return new DataFileSystemEntity(Uri.base.resolveUri(uri));
     } else {
       throw new FileSystemException(
@@ -125,7 +125,7 @@ class DataFileSystemEntity implements FileSystemEntity {
   final Uri uri;
 
   DataFileSystemEntity(this.uri)
-      : assert(uri.scheme == 'data'),
+      : assert(uri.isScheme('data')),
         assert(uri.data != null);
 
   @override

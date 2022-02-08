@@ -77,7 +77,7 @@ class MixinFullResolution {
     Library enclosingLibrary = class_.enclosingLibrary;
 
     if (!librariesToBeTransformed.contains(enclosingLibrary) &&
-        enclosingLibrary.importUri.scheme == "dart") {
+        enclosingLibrary.importUri.isScheme("dart")) {
       // If we're not asked to transform the platform libraries then we expect
       // that they will be already transformed.
       return;

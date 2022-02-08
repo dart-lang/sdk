@@ -1102,7 +1102,7 @@ class AbortLeg {
 
 void writeString(Uri uri, String text) {
   if (!enableWriteString) return;
-  if (uri.scheme != 'file') {
+  if (!uri.isScheme('file')) {
     fail('Unhandled scheme ${uri.scheme}.');
   }
   var file = (File(uri.toFilePath())..createSync(recursive: true))

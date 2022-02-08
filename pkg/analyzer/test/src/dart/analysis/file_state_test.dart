@@ -783,7 +783,7 @@ part of 'a.dart';
       if (file is LibraryCycle) {
         return !file.libraries.any((file) => file.uri.isScheme('dart'));
       } else if (file is FileState) {
-        return file.uri.scheme != 'dart';
+        return !file.uri.isScheme('dart');
       } else if (file == null) {
         return true;
       } else {

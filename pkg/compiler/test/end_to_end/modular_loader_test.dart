@@ -109,7 +109,7 @@ class TestFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme == 'file') return physical.entityForUri(uri);
+    if (uri.isScheme('file')) return physical.entityForUri(uri);
     return memory.entityForUri(uri);
   }
 }

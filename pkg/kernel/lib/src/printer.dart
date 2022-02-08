@@ -266,7 +266,7 @@ class AstPrinter {
               type.className.node != null &&
               type.classNode.name == 'Object') {
             Uri uri = type.classNode.enclosingLibrary.importUri;
-            return uri.scheme == 'dart' &&
+            return uri.isScheme('dart') &&
                 uri.path == 'core' &&
                 (type.nullability == Nullability.legacy ||
                     type.nullability == Nullability.nullable);

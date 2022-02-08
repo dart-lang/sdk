@@ -638,7 +638,7 @@ Future<void> resolveScripts(Options options) async {
       String sourceUriOrPath, String relativeSnapshotPath) async {
     Uri sourceUri = sdkRoot.resolve(sourceUriOrPath);
     String result =
-        sourceUri.scheme == 'file' ? sourceUri.toFilePath() : sourceUriOrPath;
+        sourceUri.isScheme('file') ? sourceUri.toFilePath() : sourceUriOrPath;
     if (_options.useSdk) {
       String snapshot = Uri.file(Platform.resolvedExecutable)
           .resolve(relativeSnapshotPath)

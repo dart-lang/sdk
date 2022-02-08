@@ -83,7 +83,7 @@ class BazelPackageUriResolver extends UriResolver {
   }
 
   Source? _resolveAbsolute(Uri uri) {
-    if (uri.scheme == 'file') {
+    if (uri.isScheme('file')) {
       var path = fileUriToNormalizedPath(_context, uri);
       var pathRelativeToRoot = _workspace._relativeToRoot(path);
       if (pathRelativeToRoot == null) return null;
@@ -91,7 +91,7 @@ class BazelPackageUriResolver extends UriResolver {
       var file = _workspace.findFile(fullFilePath);
       return file?.createSource(uri);
     }
-    if (uri.scheme != 'package') {
+    if (!uri.isScheme('package')) {
       return null;
     }
     String uriPath = Uri.decodeComponent(uri.path);

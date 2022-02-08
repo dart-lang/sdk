@@ -384,8 +384,8 @@ class KernelTextSerialization
       TextSerializationVerifier verifier =
           new TextSerializationVerifier(root: component.root);
       for (Library library in component.libraries) {
-        if (library.importUri.scheme != "dart" &&
-            library.importUri.scheme != "package") {
+        if (!library.importUri.isScheme("dart") &&
+            !library.importUri.isScheme("package")) {
           verifier.verify(library);
         }
       }
@@ -401,7 +401,7 @@ class KernelTextSerialization
 
       if (writeRoundTripStatus) {
         Uri uri = component.uriToSource.keys
-            .firstWhere((uri) => uri.scheme == "file");
+            .firstWhere((uri) => uri.isScheme("file"));
         String filename = "${uri.toFilePath()}${suffix}";
         uri = new File(filename).uri;
         StringBuffer buffer = new StringBuffer();

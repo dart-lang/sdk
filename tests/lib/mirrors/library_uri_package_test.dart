@@ -15,7 +15,7 @@ testLibraryUri(var value, Uri expectedUri) {
   ClassMirror valueClass = valueMirror.type;
   LibraryMirror valueLibrary = valueClass.owner as LibraryMirror;
   Uri uri = valueLibrary.uri;
-  if (uri.scheme != "https" ||
+  if (!uri.isScheme("https") ||
       uri.host != "dartlang.org" ||
       uri.path != "/dart2js-stripped-uri") {
     expect(uri, equals(expectedUri));

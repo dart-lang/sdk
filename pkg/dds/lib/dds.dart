@@ -46,13 +46,13 @@ abstract class DartDevelopmentService {
     DevToolsConfiguration? devToolsConfiguration,
     bool logRequests = false,
   }) async {
-    if (remoteVmServiceUri.scheme != 'http') {
+    if (!remoteVmServiceUri.isScheme('http')) {
       throw ArgumentError(
         'remoteVmServiceUri must have an HTTP scheme. Actual: ${remoteVmServiceUri.scheme}',
       );
     }
     if (serviceUri != null) {
-      if (serviceUri.scheme != 'http') {
+      if (!serviceUri.isScheme('http')) {
         throw ArgumentError(
           'serviceUri must have an HTTP scheme. Actual: ${serviceUri.scheme}',
         );

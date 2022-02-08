@@ -98,9 +98,9 @@ String constructorNameToString(String constructorName) {
 }
 
 String importUriToString(Uri importUri) {
-  if (importUri.scheme == 'package') {
+  if (importUri.isScheme('package')) {
     return importUri.toString();
-  } else if (importUri.scheme == 'dart') {
+  } else if (importUri.isScheme('dart')) {
     return importUri.toString();
   } else {
     return importUri.pathSegments.last;

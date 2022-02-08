@@ -965,7 +965,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Map<String, String> _computeSupportedLibraries() {
     Map<String, String> map = {};
     for (Library library in component.libraries) {
-      if (library.importUri.scheme == 'dart') {
+      if (library.importUri.isScheme('dart')) {
         map[library.importUri.path] =
             DartLibrarySupport.getDartLibrarySupportValue(
                 library.importUri.path,

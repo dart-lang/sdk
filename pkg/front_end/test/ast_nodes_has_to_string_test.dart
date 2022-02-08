@@ -55,7 +55,7 @@ Future<void> main(List<String> args) async {
               .where((Member m) =>
                   !m.isAbstract &&
                   m.name.text == "toString" &&
-                  m.enclosingLibrary.importUri.scheme != "dart")
+                  !m.enclosingLibrary.importUri.isScheme("dart"))
               .toList();
           if (toStringList.length > 1) throw "What?";
           if (toStringList.length == 1) {
@@ -157,7 +157,7 @@ Future<void> main(List<String> args) async {
             .where((Member m) =>
                 !m.isAbstract &&
                 m.name.text == "toString" &&
-                m.enclosingLibrary.importUri.scheme != "dart")
+                !m.enclosingLibrary.importUri.isScheme("dart"))
             .toList();
         Member toString = toStringList.single;
         if (toString.fileUri != uri) continue;

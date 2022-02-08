@@ -598,7 +598,7 @@ class FastaContext extends ChainContext with MatchContext {
         }
         for (String argument in parsedOptions.arguments) {
           Uri uri = description.uri.resolve(argument);
-          if (uri.scheme != 'package') {
+          if (!uri.isScheme('package')) {
             File f = new File.fromUri(uri);
             if (!f.existsSync()) {
               throw new UnsupportedError("No file found: $f ($argument)");
@@ -1328,11 +1328,11 @@ class FuzzCompiles
     Map<Uri, LibraryBuilder> builders = {};
     for (LibraryBuilder builder
         in incrementalCompiler.kernelTargetForTesting!.loader.libraryBuilders) {
-      if (builder.importUri.scheme == "dart" && !builder.isSynthetic) continue;
+      if (builder.importUri.isScheme("dart") && !builder.isSynthetic) continue;
       builders[builder.fileUri] = builder;
       for (LibraryPart part in builder.library.parts) {
         Uri thisPartUri = builder.importUri.resolve(part.partUri);
-        if (thisPartUri.scheme == "package") {
+        if (thisPartUri.isScheme("package")) {
           thisPartUri = incrementalCompiler
               .kernelTargetForTesting!.uriTranslator
               .translate(thisPartUri)!;
@@ -1761,8 +1761,8 @@ Set<Uri> createUserLibrariesImportUriSet(
       component.libraries.map((Library library) => library.importUri).toSet();
   Set<Uri> userLibraries = component.libraries
       .where((Library library) =>
-          library.importUri.scheme != 'dart' &&
-          library.importUri.scheme != 'package' &&
+          !library.importUri.isScheme('dart') &&
+          !library.importUri.isScheme('package') &&
           !excludedLibraries.contains(library))
       .map((Library library) => library.importUri)
       .toSet();
@@ -2171,7 +2171,7 @@ class MatchHierarchy
       ComponentResult result, FastaContext context) {
     Component component = result.component;
     Uri uri =
-        component.uriToSource.keys.firstWhere((uri) => uri.scheme == "file");
+        component.uriToSource.keys.firstWhere((uri) => uri.isScheme("file"));
     KernelTarget target = result.sourceTarget;
     ClassHierarchyBuilder hierarchy = target.loader.hierarchyBuilder;
     StringBuffer sb = new StringBuffer();

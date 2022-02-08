@@ -460,11 +460,11 @@ class AmdModuleBuilder extends _ModuleBuilder {
 }
 
 bool isSdkInternalRuntimeUri(Uri importUri) {
-  return importUri.scheme == 'dart' && importUri.path == '_runtime';
+  return importUri.isScheme('dart') && importUri.path == '_runtime';
 }
 
 String libraryUriToJsIdentifier(Uri importUri) {
-  if (importUri.scheme == 'dart') {
+  if (importUri.isScheme('dart')) {
     return isSdkInternalRuntimeUri(importUri) ? 'dart' : importUri.path;
   }
   return pathToJSIdentifier(p.withoutExtension(importUri.pathSegments.last));

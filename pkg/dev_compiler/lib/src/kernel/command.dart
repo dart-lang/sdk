@@ -177,7 +177,7 @@ Future<CompilerResult> _compile(List<String> args,
       options.multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
 
   Uri toCustomUri(Uri uri) {
-    if (uri.scheme == '') {
+    if (!uri.hasScheme) {
       return Uri(scheme: options.multiRootScheme, path: '/' + uri.path);
     }
     return uri;
@@ -486,7 +486,7 @@ Future<CompilerResult> _compile(List<String> args,
       compilerState.incrementalCompiler.updateNeededDillLibrariesWithHierarchy(
           neededDillLibraries, result.classHierarchy);
       for (var lib in neededDillLibraries) {
-        if (lib.importUri.scheme == 'dart') continue;
+        if (lib.importUri.isScheme('dart')) continue;
         var uri = compilerState.libraryToInputDill[lib.importUri];
         if (uri == null) {
           throw StateError('Library ${lib.importUri} was recorded as used, '
@@ -552,7 +552,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var component = loadComponentFromBinary(inputs.single);
   var invalidLibraries = <Uri>[];
   for (var library in component.libraries) {
-    if (library.importUri.scheme != 'dart') {
+    if (!library.importUri.isScheme('dart')) {
       invalidLibraries.add(library.importUri);
     }
   }

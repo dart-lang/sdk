@@ -32,7 +32,7 @@ bool _isTestee() {
 }
 
 Uri _getTestUri(String script) {
-  if (io.Platform.script.scheme == 'data') {
+  if (io.Platform.script.isScheme('data')) {
     // If running from pub we can assume that we're in the root of the package
     // directory.
     return Uri.parse('test/$script');

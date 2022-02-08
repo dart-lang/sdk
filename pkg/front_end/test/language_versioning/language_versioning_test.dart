@@ -85,7 +85,7 @@ class LanguageVersioningDataComputer extends DataComputer<Features> {
     CompilerOptions options = testResultData.customData;
     Component component = testResultData.compilerResult.component!;
     for (Library library in component.libraries) {
-      if (library.importUri.scheme == "dart") continue;
+      if (library.importUri.isScheme("dart")) continue;
       Version lvFile =
           (await lv.languageVersionForUri(library.fileUri, options)).version;
       Version lvImportUri =

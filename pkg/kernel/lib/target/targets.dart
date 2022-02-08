@@ -368,8 +368,8 @@ abstract class Target {
   /// By default only `dart:*` libraries are allowed. May be overridden for
   /// testing purposes.
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
-      importer.scheme == "dart" ||
-      (importer.scheme == "package" &&
+      importer.isScheme("dart") ||
+      (importer.isScheme("package") &&
           importer.path.startsWith("dart_internal/"));
 
   /// Whether the `native` language extension is supported within [library].
