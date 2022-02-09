@@ -208,7 +208,7 @@ class NativeCodeOracle {
     for (var annotation in member.annotations) {
       ParsedPragma? pragma = _matcher.parsePragma(annotation);
       if (pragma is ParsedDisableUnboxedParameters) {
-        if (member.enclosingLibrary.importUri.scheme != "dart") {
+        if (!member.enclosingLibrary.importUri.isScheme("dart")) {
           throw "ERROR: Cannot use @pragma(vm:disable-unboxed-parameters) outside core libraries.";
         }
         return true;
@@ -236,7 +236,7 @@ class NativeCodeOracle {
         // We can only use the 'vm:exact-result-type' pragma on methods in core
         // libraries for safety reasons. See 'result_type_pragma.md', detail 1.2
         // for explanation.
-        if (member.enclosingLibrary.importUri.scheme != "dart") {
+        if (!member.enclosingLibrary.importUri.isScheme("dart")) {
           throw "ERROR: Cannot use $kVmExactResultTypePragmaName "
               "outside core libraries.";
         }

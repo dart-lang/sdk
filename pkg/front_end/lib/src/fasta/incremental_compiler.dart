@@ -1272,7 +1272,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _platformBuilders = <LibraryBuilder>[];
       for (DillLibraryBuilder builder
           in dillLoadedData.loader.libraryBuilders) {
-        if (builder.importUri.scheme == "dart") {
+        if (builder.importUri.isScheme("dart")) {
           _platformBuilders!.add(builder);
         } else {
           _userBuilders![builder.importUri] = builder;
@@ -1425,7 +1425,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         _platformBuilders = <LibraryBuilder>[];
         for (DillLibraryBuilder builder
             in _dillLoadedData!.loader.libraryBuilders) {
-          if (builder.importUri.scheme == "dart") {
+          if (builder.importUri.isScheme("dart")) {
             _platformBuilders!.add(builder);
           } else {
             _userBuilders![builder.importUri] = builder;
@@ -1492,7 +1492,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           partUriToLibraryImportUri[partUri] = library.importUri;
         }
       }
-      if (library.importUri.scheme == "dart") {
+      if (library.importUri.isScheme("dart")) {
         result.add(library);
         inputLibrariesFiltered?.add(library);
       } else {
@@ -1501,7 +1501,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
     for (LibraryBuilder libraryBuilder in reusedLibraries) {
-      if (libraryBuilder.importUri.scheme == "dart" &&
+      if (libraryBuilder.importUri.isScheme("dart") &&
           !libraryBuilder.isSynthetic) {
         continue;
       }
@@ -1550,7 +1550,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Library> removedLibraries = <Library>[];
     bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
-      if (uri.scheme == "package") continue;
+      if (uri.isScheme("package")) continue;
       LibraryBuilder? builder =
           currentKernelTarget.loader.deregisterLibraryBuilder(uri);
       if (builder != null) {
@@ -1913,7 +1913,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
         return true;
       }
-      if (_hasToCheckPackageUris && importUri.scheme == "package") {
+      if (_hasToCheckPackageUris && importUri.isScheme("package")) {
         // Get package name, check if the base URI has changed for the package,
         // if it has, translate the URI again,
         // otherwise the URI cannot have changed.
@@ -1935,7 +1935,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     void addBuilderAndInvalidateUris(Uri uri, LibraryBuilder libraryBuilder) {
-      if (uri.scheme == "dart" && !libraryBuilder.isSynthetic) {
+      if (uri.isScheme("dart") && !libraryBuilder.isSynthetic) {
         if (seenUris.add(libraryBuilder.importUri)) {
           reusedLibraries.add(libraryBuilder);
         }
@@ -2355,7 +2355,7 @@ class _InitializationFromComponent extends _InitializationStrategy {
     bool foundDartCore = false;
     for (int i = 0; i < component.libraries.length; i++) {
       Library library = component.libraries[i];
-      if (library.importUri.scheme == "dart" &&
+      if (library.importUri.isScheme("dart") &&
           library.importUri.path == "core") {
         foundDartCore = true;
         break;
@@ -2501,7 +2501,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
         // (e.g. the package still exists and hasn't been updated).
         // Also verify NNBD settings.
         for (Library lib in data.component!.libraries) {
-          if (lib.importUri.scheme == "package" &&
+          if (lib.importUri.isScheme("package") &&
               uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
             // Package has been removed or updated.
             // This library should be thrown away.
@@ -2649,7 +2649,7 @@ class _ComponentProblems {
 extension on UriTranslator {
   Uri? getPartFileUri(Uri parentFileUri, LibraryPart part) {
     Uri? fileUri = getPartUri(parentFileUri, part);
-    if (fileUri.scheme == "package") {
+    if (fileUri.isScheme("package")) {
       // Part was specified via package URI and the resolve above thus
       // did not go as expected. Translate the package URI to get the
       // actual file URI.

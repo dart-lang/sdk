@@ -298,7 +298,7 @@ class WidgetCreatorTracker {
     for (Library library in libraries) {
       final Uri importUri = library.importUri;
       // ignore: unnecessary_null_comparison
-      if (importUri != null && importUri.scheme == 'package') {
+      if (importUri != null && importUri.isScheme('package')) {
         if (importUri.path == 'flutter/src/widgets/framework.dart') {
           for (Class class_ in library.classes) {
             if (class_.name == 'Widget') {

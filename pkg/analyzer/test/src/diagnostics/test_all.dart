@@ -156,6 +156,8 @@ import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'enum_constant_same_name_as_enclosing_test.dart'
     as enum_constant_same_name_as_enclosing;
+import 'enum_constant_with_non_const_constructor_test.dart'
+    as enum_constant_with_non_const_constructor;
 import 'enum_mixin_with_instance_variable_test.dart'
     as enum_mixin_with_instance_variable;
 import 'enum_with_abstract_member_test.dart' as enum_with_abstract_member;
@@ -774,6 +776,8 @@ import 'wrong_number_of_parameters_for_operator_test.dart'
     as wrong_number_of_parameters_for_operator;
 import 'wrong_number_of_parameters_for_setter_test.dart'
     as wrong_number_of_parameters_for_setter;
+import 'wrong_number_of_type_arguments_enum_test.dart'
+    as wrong_number_of_type_arguments_enum;
 import 'wrong_number_of_type_arguments_extension_test.dart'
     as wrong_number_of_type_arguments_extension;
 import 'wrong_number_of_type_arguments_test.dart'
@@ -891,6 +895,7 @@ main() {
     duplicate_part.main();
     duplicate_shown_name.main();
     enum_constant_same_name_as_enclosing.main();
+    enum_constant_with_non_const_constructor.main();
     enum_mixin_with_instance_variable.main();
     enum_with_abstract_member.main();
     equal_elements_in_const_set.main();
@@ -1303,6 +1308,7 @@ main() {
     void_with_type_arguments_test.main();
     wrong_number_of_parameters_for_operator.main();
     wrong_number_of_parameters_for_setter.main();
+    wrong_number_of_type_arguments_enum.main();
     wrong_number_of_type_arguments_extension.main();
     wrong_number_of_type_arguments.main();
     wrong_type_parameter_variance_in_superinterface.main();

@@ -93,9 +93,9 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
   if (!enabled!) {
     allowedExperimentalFlags ??= defaultAllowedExperimentalFlags;
     Set<ExperimentalFlag>? allowedFlags;
-    if (canonicalUri.scheme == 'dart') {
+    if (canonicalUri.isScheme('dart')) {
       allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
-    } else if (canonicalUri.scheme == 'package') {
+    } else if (canonicalUri.isScheme('package')) {
       int index = canonicalUri.path.indexOf('/');
       String packageName;
       if (index >= 0) {
@@ -123,9 +123,9 @@ Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
   allowedExperimentalFlags ??= defaultAllowedExperimentalFlags;
 
   Set<ExperimentalFlag>? allowedFlags;
-  if (canonicalUri.scheme == 'dart') {
+  if (canonicalUri.isScheme('dart')) {
     allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
-  } else if (canonicalUri.scheme == 'package') {
+  } else if (canonicalUri.isScheme('package')) {
     int index = canonicalUri.path.indexOf('/');
     String packageName;
     if (index >= 0) {
@@ -187,9 +187,9 @@ bool isExperimentEnabledInLibraryByVersion(
 
   Set<ExperimentalFlag>? allowedFlags;
   bool enabledByAllowed = false;
-  if (canonicalUri.scheme == 'dart') {
+  if (canonicalUri.isScheme('dart')) {
     allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
-  } else if (canonicalUri.scheme == 'package') {
+  } else if (canonicalUri.isScheme('package')) {
     int index = canonicalUri.path.indexOf('/');
     String packageName;
     if (index >= 0) {

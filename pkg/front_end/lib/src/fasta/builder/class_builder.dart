@@ -326,7 +326,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
     if (name == "FutureOr") {
       LibraryBuilder parentLibrary = parent as LibraryBuilder;
-      if (parentLibrary.importUri.scheme == "dart" &&
+      if (parentLibrary.importUri.isScheme("dart") &&
           parentLibrary.importUri.path == "async") {
         assert(arguments != null && arguments.length == 1);
         return new FutureOrType(arguments!.single, nullability);

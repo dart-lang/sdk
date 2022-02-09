@@ -296,7 +296,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     if (recordUsedInputs) {
       Set<Uri> usedOutlines = {};
       for (Library lib in incrementalCompilerResult.neededDillLibraries) {
-        if (lib.importUri.scheme == "dart") continue;
+        if (lib.importUri.isScheme("dart")) continue;
         Uri uri = state.libraryToInputDill[lib.importUri];
         if (uri == null) {
           throw new StateError("Library ${lib.importUri} was recorded as used, "

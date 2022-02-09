@@ -347,7 +347,7 @@ Uri sourcePathToUri(String source, {bool windows}) {
 
 Uri sourcePathToRelativeUri(String source, {bool windows}) {
   var uri = sourcePathToUri(source, windows: windows);
-  if (uri.scheme == 'file') {
+  if (uri.isScheme('file')) {
     var uriPath = uri.path;
     var root = Uri.base.path;
     if (uriPath.startsWith(root)) {
@@ -400,7 +400,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
       return sourcePath;
     }
 
-    if (uri.scheme == 'http') return sourcePath;
+    if (uri.isScheme('http')) return sourcePath;
 
     // Convert to a local file path if it's not.
     sourcePath = sourcePathToUri(p.absolute(p.fromUri(uri))).path;

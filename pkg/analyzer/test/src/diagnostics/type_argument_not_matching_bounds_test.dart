@@ -431,6 +431,35 @@ class C extends Object with G<B>{}
 class TypeArgumentNotMatchingBoundsWithNullSafetyTest
     extends PubPackageResolutionTest
     with TypeArgumentNotMatchingBoundsTestCases {
+  test_enum_inferred() async {
+    await assertErrorsInCode('''
+enum E<T extends int> {
+  v('');
+  const E(T t);
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 26, 1),
+    ]);
+  }
+
+  test_enum_superBounded() async {
+    await assertNoErrorsInCode('''
+enum E<T extends E<T>> {
+  v<Never>()
+}
+''');
+  }
+
+  test_enum_withTypeArguments() async {
+    await assertErrorsInCode('''
+enum E<T extends int> {
+  v<String>()
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 28, 6),
+    ]);
+  }
+
   test_extends_optIn_fromOptOut_Null() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A<X extends int> {}

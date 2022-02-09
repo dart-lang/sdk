@@ -530,9 +530,9 @@ class TestSourceWithUri extends TestSource {
   @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind {
-    if (uri.scheme == 'dart') {
+    if (uri.isScheme('dart')) {
       return UriKind.DART_URI;
-    } else if (uri.scheme == 'package') {
+    } else if (uri.isScheme('package')) {
       return UriKind.PACKAGE_URI;
     }
     return UriKind.FILE_URI;

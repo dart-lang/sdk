@@ -34,7 +34,7 @@ class CachingFileProvider implements FileProvider {
 /// deobfuscation locally for debugging purposes.
 class DownloadedFileProvider extends CachingFileProvider {
   _localize(uri) {
-    if (uri.scheme == 'http' || uri.scheme == 'https') {
+    if (uri.isScheme('http') || uri.isScheme('https')) {
       String filename = uri.path.substring(uri.path.lastIndexOf('/') + 1);
       return Uri.base.resolve(filename);
     }

@@ -1064,7 +1064,7 @@ class TypeInferrerImpl implements TypeInferrer {
               onType,
               onTypeInstantiateToBounds,
               target,
-              isPlatform: extensionBuilder.library.importUri.scheme == 'dart');
+              isPlatform: extensionBuilder.library.importUri.isScheme('dart'));
           if (noneMoreSpecific.isNotEmpty) {
             bool isMostSpecific = true;
             for (ExtensionAccessCandidate other in noneMoreSpecific) {

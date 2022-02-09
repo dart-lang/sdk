@@ -778,9 +778,9 @@ worlds:
   void _rewriteImportsExportsToUriInternal(
       Token uriToken, Uri oldUri, List<_Replacement> replacements, Uri newUri) {
     Uri tokenUri = _getUri(uriToken, oldUri, resolvePackage: false);
-    if (tokenUri.scheme == "package" || tokenUri.scheme == "dart") return;
+    if (tokenUri.isScheme("package") || tokenUri.isScheme("dart")) return;
     Uri asPackageUri = _getImportUri(tokenUri);
-    if (asPackageUri.scheme == "package") {
+    if (asPackageUri.isScheme("package")) {
       // Just replace with this package uri.
       replacements.add(new _Replacement(
         uriToken.offset - 1,
@@ -803,7 +803,7 @@ worlds:
     String uriString = uriToken.lexeme;
     uriString = uriString.substring(1, uriString.length - 1);
     Uri uriTokenUri = uri.resolve(uriString);
-    if (resolvePackage && uriTokenUri.scheme == "package") {
+    if (resolvePackage && uriTokenUri.isScheme("package")) {
       Package package = _latestCrashingIncrementalCompiler!
           .getPackageForPackageName(uriTokenUri.pathSegments.first)!;
       uriTokenUri = package.packageUriRoot

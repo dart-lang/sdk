@@ -270,7 +270,7 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     }
     Uri clsImportUri = cls.enclosingLibrary.importUri;
     bool isNull = cls.name == "Null" &&
-        clsImportUri.scheme == "dart" &&
+        clsImportUri.isScheme("dart") &&
         clsImportUri.path == "core";
     if (!isNull) {
       writeNullability(node.nullability, sb);

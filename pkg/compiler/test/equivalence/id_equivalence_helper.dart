@@ -248,8 +248,8 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
 
   bool excludeLibrary(LibraryEntity library) {
     return forUserLibrariesOnly &&
-        (library.canonicalUri.scheme == 'dart' ||
-            library.canonicalUri.scheme == 'package');
+        (library.canonicalUri.isScheme('dart') ||
+            library.canonicalUri.isScheme('package'));
   }
 
   ir.Library getIrLibrary(LibraryEntity library) {

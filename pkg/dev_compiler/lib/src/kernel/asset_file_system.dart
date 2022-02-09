@@ -32,7 +32,7 @@ class AssetFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme == 'file') {
+    if (uri.isScheme('file')) {
       return original.entityForUri(uri);
     }
 

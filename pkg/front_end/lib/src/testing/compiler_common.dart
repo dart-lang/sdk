@@ -140,7 +140,7 @@ String _invalidLibrariesSpec = '''
 ''';
 
 bool isDartCoreLibrary(Library lib) => isDartCore(lib.importUri);
-bool isDartCore(Uri uri) => uri.scheme == 'dart' && uri.path == 'core';
+bool isDartCore(Uri uri) => uri.isScheme('dart') && uri.path == 'core';
 
 /// Find a library in [component] whose Uri ends with the given [suffix]
 Library findLibrary(Component component, String suffix) {

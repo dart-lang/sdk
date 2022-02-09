@@ -65,7 +65,7 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
     SourceFileProvider provider = data.compiler.provider;
     for (Uri uri in data.actualMaps.keys) {
       Uri fileUri = uri;
-      if (fileUri.scheme == 'org-dartlang-sdk') {
+      if (fileUri.isScheme('org-dartlang-sdk')) {
         fileUri = Uri.base.resolve(fileUri.path.substring(1));
       }
       if (show != null && !show.any((f) => '$fileUri'.endsWith(f))) {

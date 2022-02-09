@@ -44,7 +44,7 @@ class LibraryIndex {
   /// Indexes `dart:` libraries.
   LibraryIndex.coreLibraries(Component component) {
     for (Library library in component.libraries) {
-      if (library.importUri.scheme == 'dart') {
+      if (library.importUri.isScheme('dart')) {
         _libraries['${library.importUri}'] = new _ClassTable(library);
       }
     }

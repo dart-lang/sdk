@@ -322,7 +322,7 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
 /// Computes the best URI to import [what] into [from].
 String getLibrarySourceUri(
     path.Context pathContext, LibraryElement from, Uri what) {
-  if (what.scheme == 'file') {
+  if (what.isScheme('file')) {
     var fromFolder = pathContext.dirname(from.source.fullName);
     var relativeFile = pathContext.relative(what.path, from: fromFolder);
     return pathContext.split(relativeFile).join('/');

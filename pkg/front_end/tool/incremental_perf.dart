@@ -168,7 +168,7 @@ Future<void> applyEdits(
       print('edit $edit');
     }
     var uri = edit.uri;
-    if (uri.scheme == 'package') uri = uriTranslator.translate(uri)!;
+    if (uri.isScheme('package')) uri = uriTranslator.translate(uri)!;
     generator.invalidate(uri);
     OverlayFileSystemEntity entity =
         fs.entityForUri(uri) as OverlayFileSystemEntity;
@@ -212,9 +212,9 @@ class OverlayFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme == 'org-dartlang-overlay') {
+    if (uri.isScheme('org-dartlang-overlay')) {
       return new OverlayFileSystemEntity(uri, this);
-    } else if (uri.scheme == 'file') {
+    } else if (uri.isScheme('file')) {
       // The IKG compiler reads ".packages" which might contain absolute file
       // URIs (which it will then try to use on the FS).  We therefore replace
       // them with overlay-fs URIs as usual.

@@ -31,7 +31,7 @@ abstract class BasicSource extends Source {
 
   @Deprecated('Use uri.isScheme("dart") instead')
   @override
-  bool get isInSystemLibrary => uri.scheme == 'dart';
+  bool get isInSystemLibrary => uri.isScheme('dart');
 
   @override
   String get shortName => pathos.basename(fullName);

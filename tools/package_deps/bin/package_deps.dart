@@ -168,7 +168,7 @@ class Package implements Comparable<Package> {
       for (var import in _collectImports(file)) {
         try {
           var uri = Uri.parse(import);
-          if (uri.hasScheme && uri.scheme == 'package') {
+          if (uri.hasScheme && uri.isScheme('package')) {
             var packageName = path.split(uri.path).first;
             importedPackages.add(packageName);
           }

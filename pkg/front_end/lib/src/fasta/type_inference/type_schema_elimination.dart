@@ -70,7 +70,7 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
     assert(topType == const DynamicType() ||
         topType is InterfaceType &&
             topType.nullability == Nullability.nullable &&
-            topType.classNode.enclosingLibrary.importUri.scheme == "dart" &&
+            topType.classNode.enclosingLibrary.importUri.isScheme("dart") &&
             topType.classNode.enclosingLibrary.importUri.path == "core" &&
             topType.classNode.name == "Object");
     assert(

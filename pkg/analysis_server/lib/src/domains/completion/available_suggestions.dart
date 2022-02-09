@@ -173,7 +173,7 @@ protocol.ElementKind protocolElementKind(DeclarationKind kind) {
 
 /// Computes the best URI to import [what] into the [unit] library.
 String? _getRelativeFileUri(DartCompletionRequest request, Uri what) {
-  if (what.scheme == 'file') {
+  if (what.isScheme('file')) {
     var pathContext = request.analysisSession.resourceProvider.pathContext;
 
     var libraryPath = request.libraryElement.source.fullName;

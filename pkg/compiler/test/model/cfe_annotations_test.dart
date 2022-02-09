@@ -351,7 +351,7 @@ main(List<String> args) {
         }
 
         for (ir.Library library in component.libraries) {
-          if (library.importUri.scheme == 'memory') {
+          if (library.importUri.isScheme('memory')) {
             String libraryId = library.importUri.path;
             LibraryEntity libraryEntity = elementMap.getLibrary(library);
 

@@ -552,7 +552,7 @@ Future _processExpressionCompilationRequest(request) async {
       // If it does not, try to load from dart_platform_kernel or from file.
       bool foundDartCore = false;
       for (Library library in component.libraries) {
-        if (library.importUri.scheme == "dart" &&
+        if (library.importUri.isScheme("dart") &&
             library.importUri.path == "core" &&
             !library.isSynthetic) {
           foundDartCore = true;
@@ -665,12 +665,12 @@ void _recordDependencies(
 
   if (component != null) {
     for (var lib in component.libraries) {
-      if (lib.importUri.scheme == "dart") continue;
+      if (lib.importUri.isScheme("dart")) continue;
 
       dependencies.add(lib.fileUri);
       for (var part in lib.parts) {
         final fileUri = lib.fileUri.resolve(part.partUri);
-        if (fileUri.scheme != "" && fileUri.scheme != "file") {
+        if (fileUri.hasScheme && !fileUri.isScheme("file")) {
           // E.g. part 'package:foo/foo.dart';
           // Maybe the front end should resolve this?
           continue;
@@ -827,7 +827,7 @@ Future _processLoadRequest(request) async {
     if (packageConfigWithDefault != null) {
       packagesUri = Uri.parse(packageConfigWithDefault);
     }
-    if (packagesUri != null && packagesUri.scheme == '') {
+    if (packagesUri != null && !packagesUri.hasScheme) {
       // Script does not have a scheme, assume that it is a path,
       // resolve it against the working directory.
       packagesUri = Uri.directory(workingDirectory!).resolveUri(packagesUri);

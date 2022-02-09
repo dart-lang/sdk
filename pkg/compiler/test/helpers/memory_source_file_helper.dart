@@ -31,7 +31,7 @@ class MemorySourceFileProvider extends SourceFileProvider {
   @override
   Future<Input<List<int>>> readBytesFromUri(
       Uri resourceUri, InputKind inputKind) {
-    if (resourceUri.scheme != 'memory') {
+    if (!resourceUri.isScheme('memory')) {
       return super.readBytesFromUri(resourceUri, inputKind);
     }
     // TODO(johnniwinther): We should use inputs already in the cache. Some

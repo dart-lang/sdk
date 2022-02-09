@@ -451,8 +451,8 @@ Future<TestResult<T>> runTestForConfig<T>(
 
   bool excludeLibrary(Library library) {
     return forUserLibrariesOnly &&
-        (library.importUri.scheme == 'dart' ||
-            library.importUri.scheme == 'package');
+        (library.importUri.isScheme('dart') ||
+            library.importUri.isScheme('package'));
   }
 
   await dataComputer.inspectTestResultData(testResultData);

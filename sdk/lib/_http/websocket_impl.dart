@@ -996,7 +996,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       {CompressionOptions compression = CompressionOptions.compressionDefault,
       HttpClient? customClient}) {
     Uri uri = Uri.parse(url);
-    if (uri.scheme != "ws" && uri.scheme != "wss") {
+    if (!uri.isScheme("ws") && !uri.isScheme("wss")) {
       throw WebSocketException("Unsupported URL scheme '${uri.scheme}'");
     }
 
@@ -1011,7 +1011,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     final callerStackTrace = StackTrace.current;
 
     uri = Uri(
-        scheme: uri.scheme == "wss" ? "https" : "http",
+        scheme: uri.isScheme("wss") ? "https" : "http",
         userInfo: uri.userInfo,
         host: uri.host,
         port: uri.port,

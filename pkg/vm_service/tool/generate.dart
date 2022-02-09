@@ -67,7 +67,12 @@ Future _generateDart(String appDirPath, List<Node> nodes) async {
 Future _generateJava(String appDirPath, List<Node> nodes) async {
   var srcDirPath = normalize(join(appDirPath, '..', 'java', 'src'));
   var generator = java.JavaGenerator(srcDirPath);
-  java.api = java.Api();
+
+  final scriptPath = Platform.script.toFilePath();
+  final kSdk = '/sdk/';
+  final scriptLocation =
+      scriptPath.substring(scriptPath.indexOf(kSdk) + kSdk.length);
+  java.api = java.Api(scriptLocation);
   java.api.parse(nodes);
   java.api.generate(generator);
 

@@ -330,7 +330,7 @@ Future<Null> writeProgram(Component component, Uri outputUri) async {
   // TODO(sigmund): the incremental generator should always filter these
   // libraries instead.
   new BinaryPrinter(sink,
-          libraryFilter: (library) => library.importUri.scheme != 'dart')
+          libraryFilter: (library) => !library.importUri.isScheme('dart'))
       .writeComponentFile(component);
   await sink.close();
 }

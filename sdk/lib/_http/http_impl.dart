@@ -1094,7 +1094,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
       {_HttpHeaders? initialHeaders})
       : _uri = uri,
         headers = _HttpHeaders(protocolVersion,
-            defaultPortForScheme: uri.scheme == 'https'
+            defaultPortForScheme: uri.isScheme('https')
                 ? HttpClient.defaultHttpsPort
                 : HttpClient.defaultHttpPort,
             initialHeaders: initialHeaders),
@@ -2665,7 +2665,7 @@ class _HttpClient implements HttpClient {
     if (method != "CONNECT") {
       if (uri.host.isEmpty) {
         throw ArgumentError("No host specified in URI $uri");
-      } else if (uri.scheme != "http" && uri.scheme != "https") {
+      } else if (!uri.isScheme("http") && !uri.isScheme("https")) {
         throw ArgumentError("Unsupported scheme '${uri.scheme}' in URI $uri");
       }
     }
@@ -2717,7 +2717,7 @@ class _HttpClient implements HttpClient {
   }
 
   static bool _isSubdomain(Uri subdomain, Uri domain) {
-    return (subdomain.scheme == domain.scheme &&
+    return (subdomain.isScheme(domain.scheme) &&
         subdomain.port == domain.port &&
         (subdomain.host == domain.host ||
             subdomain.host.endsWith("." + domain.host)));
@@ -2928,13 +2928,13 @@ class _HttpClient implements HttpClient {
       return proxyCfg;
     }
 
-    if (url.scheme == "http") {
+    if (url.isScheme("http")) {
       String? proxy = environment["http_proxy"] ?? environment["HTTP_PROXY"];
       proxyCfg = checkProxy(proxy);
       if (proxyCfg != null) {
         return proxyCfg;
       }
-    } else if (url.scheme == "https") {
+    } else if (url.isScheme("https")) {
       String? proxy = environment["https_proxy"] ?? environment["HTTPS_PROXY"];
       proxyCfg = checkProxy(proxy);
       if (proxyCfg != null) {

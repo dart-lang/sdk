@@ -15,15 +15,6 @@ main() {
 
 @reflectiveTest
 class NonConstGenerativeEnumConstructorTest extends PubPackageResolutionTest {
-  test_factory() async {
-    await assertNoErrorsInCode(r'''
-enum E {
-  v(0);
-  factory E(int i) => values[i];
-}
-''');
-  }
-
   test_generative_const() async {
     await assertNoErrorsInCode(r'''
 enum E {

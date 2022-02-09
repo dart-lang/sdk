@@ -95,7 +95,7 @@ class IncrementalCompiler {
       uriToSource.addAll(delta.uriToSource);
       for (Library library in delta.libraries) {
         bool isPlatform =
-            library.importUri.scheme == "dart" && !library.isSynthetic;
+            library.importUri.isScheme("dart") && !library.isSynthetic;
         if (!includePlatform && isPlatform) continue;
         combined[library.importUri] = library;
       }

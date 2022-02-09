@@ -363,7 +363,7 @@ class RegisterCallTransformer extends RecursiveVisitor {
 
   @override
   void visitLibrary(Library node) {
-    if (node.importUri.scheme == "package" &&
+    if (node.importUri.isScheme("package") &&
         node.importUri.pathSegments.first == "front_end") {
       super.visitLibrary(node);
     }
@@ -395,7 +395,7 @@ class RegisterTimeTransformer extends RecursiveVisitor {
 
   @override
   void visitLibrary(Library node) {
-    if (node.importUri.scheme == "package" &&
+    if (node.importUri.isScheme("package") &&
         node.importUri.pathSegments.first == "front_end") {
       super.visitLibrary(node);
     }

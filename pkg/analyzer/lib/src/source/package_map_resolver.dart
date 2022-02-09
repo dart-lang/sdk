@@ -79,6 +79,6 @@ class PackageMapUriResolver extends UriResolver {
 
   /// Returns `true` if [uri] is a `package` URI.
   static bool isPackageUri(Uri uri) {
-    return uri.scheme == PACKAGE_SCHEME;
+    return uri.isScheme(PACKAGE_SCHEME);
   }
 }

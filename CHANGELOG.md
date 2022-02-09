@@ -3943,8 +3943,8 @@ significant changes across all areas of the platform. Large changes include:
 - **(Breaking)** "dart:isolate" and "dart:mirrors" are no longer supported when
   using Dart for the web. They are still supported in the command-line VM.
 
-- **(Breaking)** Pub's transformer-based build system has been [replaced by a
-  new build system][transformers].
+- **(Breaking)** Pub's transformer-based build system has been replaced by a
+  [new build system][build system].
 
 - The `new` keyword is optional and can be omitted. Likewise, `const` can be
   omitted inside a const context ([issue 30921][]).
@@ -3953,8 +3953,8 @@ significant changes across all areas of the platform. Large changes include:
 
 [issue 30345]: https://github.com/dart-lang/sdk/issues/30345
 [issue 30921]: https://github.com/dart-lang/sdk/issues/30921
-[strong mode]: https://www.dartlang.org/guides/language/sound-dart
-[transformers]: https://www.dartlang.org/tools/pub/obsolete
+[strong mode]: https://dart.dev/guides/language/type-system
+[build system]: https://github.com/dart-lang/build
 
 ### Language
 
@@ -4881,7 +4881,7 @@ void test() {
 ```
 
 To opt back into the warnings, add the following to the
-[.analysis_options](https://www.dartlang.org/guides/language/analysis-options)
+[.analysis_options](https://dart.dev/guides/language/analysis-options)
 file for your project.
 
 ```
@@ -5316,7 +5316,7 @@ Patch release, resolves one issue:
 
 - We have improved the way that the VM locates the native code library for a
   native extension (e.g. `dart-ext:` import). We have updated this
-  [article on native extensions](https://www.dartlang.org/articles/dart-vm/native-extensions)
+  [article on native extensions](https://dart.dev/server/c-interop-native-extensions)
   to reflect the VM's improved behavior.
 
 - Linux builds of the VM will now use the `tcmalloc` library for memory
@@ -6107,7 +6107,7 @@ Patch release, resolves three issues:
 ### Tool changes
 
 - `dart2js` and Dartium now support improved Javascript Interoperability via the
-  [js package](https://pub.dartlang.org/packages/js).
+  [js package](https://pub.dev/packages/js).
 
 - `docgen` and `dartdocgen` no longer ship in the SDK. The `docgen` sources have
   been removed from the repository.
@@ -6223,7 +6223,7 @@ Patch release, resolves three issues:
 - Documentation tools
 
   - `dartdoc` is now the default tool to generate static HTML for API docs.
-    [Learn more](https://pub.dartlang.org/packages/dartdoc).
+    [Learn more](https://pub.dev/packages/dartdoc).
 
   - `docgen` and `dartdocgen` have been deprecated. Currently plan is to remove
     them in 1.13.
@@ -6416,7 +6416,7 @@ Patch release, resolves three issues:
 ### Tool changes
 
 - This is the first release that does not include the Eclipse-based **Dart
-  Editor**. See [dartlang.org/tools](https://www.dartlang.org/tools/) for
+  Editor**. See [dart.dev/tools](https://dart.dev/tools#ides-and-editors) for
   alternatives.
 - This is the last release that ships the (unsupported) dart2dart (aka
   `dart2js --output-type=dart`) utility as part of dart2js
@@ -6496,8 +6496,8 @@ This is a bug fix release which merges a number of commits from `bleeding_edge`.
 
 - Enum support is fully enabled. See [the language tour][enum] for more details.
 
-[async]: https://www.dartlang.org/docs/dart-up-and-running/ch02.html#asynchrony
-[enum]: https://www.dartlang.org/docs/dart-up-and-running/ch02.html#enums
+[async]: https://dart.dev/guides/language/language-tour#asynchrony
+[enum]: https://dart.dev/guides/language/language-tour#enums
 
 ### Tool changes
 
@@ -6511,7 +6511,7 @@ This is a bug fix release which merges a number of commits from `bleeding_edge`.
 - Analysis supports more and better hints, including unused variables and unused
   private members.
 
-[dartfmt]: https://www.dartlang.org/tools/dartfmt/
+[dartfmt]: https://dart.dev/tools/dart-format
 
 ### Core library changes
 
@@ -6529,7 +6529,7 @@ This is a bug fix release which merges a number of commits from `bleeding_edge`.
 #### Details
 
 For more information on any of these changes, see the corresponding
-documentation on the [Dart API site](http://api.dartlang.org).
+documentation on the [Dart API site](http://api.dart.dev).
 
 - `dart:async`:
 
@@ -6681,7 +6681,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
   the same page.
 
 [pub global activate]:
-  https://www.dartlang.org/tools/pub/cmd/pub-global.html#running-a-script-from-your-path
+  https://dart.dev/tools/pub/cmd/pub-global#running-a-script-from-your-path
 
 ### Core library changes
 

@@ -560,6 +560,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _requiredParametersVerifier.visitEnumConstantDeclaration(node);
+    _typeArgumentsVerifier.checkEnumConstantDeclaration(node);
     super.visitEnumConstantDeclaration(node);
   }
 
@@ -2744,21 +2745,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var languageVersionToken = node.languageVersionToken;
-    if (languageVersionToken == null) {
-      return;
-    }
-
     var languageVersion = _currentLibrary.languageVersion.effective;
     if (sourceLanguageConstraint.allows(languageVersion)) {
       return;
     }
 
-    errorReporter.reportErrorForToken(
-      CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE,
-      languageVersionToken,
-      ['$sourceLanguageConstraint'],
-    );
+    var languageVersionToken = node.languageVersionToken;
+    if (languageVersionToken != null) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE,
+        languageVersionToken,
+        ['$sourceLanguageConstraint'],
+      );
+    } else {
+      errorReporter.reportErrorForOffset(
+        CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE,
+        0,
+        0,
+        ['$sourceLanguageConstraint'],
+      );
+    }
   }
 
   /// Verify that the given implements [clause] does not implement classes such

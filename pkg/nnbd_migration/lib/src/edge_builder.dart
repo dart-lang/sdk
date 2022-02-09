@@ -3167,7 +3167,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var calleeUri = callee?.library?.source.uri;
     var isQuiverCheckNull = callee?.name == 'checkNotNull' &&
         calleeUri != null &&
-        calleeUri.scheme == 'package' &&
+        calleeUri.isScheme('package') &&
         calleeUri.path.startsWith('quiver/');
 
     if (isQuiverCheckNull && node.argumentList.arguments.isNotEmpty) {
@@ -3215,7 +3215,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         if (enclosingInvocation.name == 'setUp') {
           var uri = enclosingInvocation.staticElement!.library?.source.uri;
           if (uri != null &&
-              uri.scheme == 'package' &&
+              uri.isScheme('package') &&
               uri.path.startsWith('test_core/')) {
             return true;
           }

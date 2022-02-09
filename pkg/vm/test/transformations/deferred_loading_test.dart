@@ -28,7 +28,7 @@ runTestCase(Uri source) async {
 
   // Remove core libraries so the expected output isn't enormous and broken by
   // core libraries changes.
-  component.libraries.removeWhere((lib) => lib.importUri.scheme == "dart");
+  component.libraries.removeWhere((lib) => lib.importUri.isScheme("dart"));
 
   String actual = kernelComponentToString(component);
 

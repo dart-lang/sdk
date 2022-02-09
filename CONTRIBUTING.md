@@ -11,7 +11,7 @@ If you'd like to improve the documentation, you have three options:
       click that icon to report a bug on the page.
     * To report an API doc bug,
       [create an SDK issue](https://github.com/dart-lang/sdk/issues/new?title=API%20doc%20issue:).
-  * Contribute to the Dart developer websites such as [dart.dev](https://dart.dev) (repo: [dart-lang/site-www](https://github.com/dart-lang/site-www)) and [dart.dev/web](https://dart.dev/web) (repo: [dart-lang/site-www/src/web](https://github.com/dart-lang/site-www/tree/master/src/web)). For more information, see [Writing for Dart and Flutter websites](https://github.com/dart-lang/site-shared/wiki/Writing-for-Dart-and-Flutter-websites).
+  * Contribute to the Dart developer websites such as [dart.dev](https://dart.dev) (repo: [dart-lang/site-www](https://github.com/dart-lang/site-www)). For more information, see [Writing for Dart and Flutter websites](https://github.com/dart-lang/site-shared/blob/master/doc/writing-for-dart-and-flutter-websites.md).
   * Improve the API reference docs at [api.dart.dev](https://api.dart.dev) by editing doc comments in the [Dart SDK repo](https://github.com/dart-lang/sdk/tree/main/sdk/lib). For more information on how to write API docs, see [Effective Dart: Documentation](https://dart.dev/guides/language/effective-dart/documentation).
 
 ## Before you contribute
@@ -20,9 +20,13 @@ Before we can use your code, you must sign the [Google Individual Contributor Li
 
 Before you start working on a larger contribution, you should get in touch with us first through the  [Dart Issue Tracker](https://dartbug.com) with your idea so that we can help out and possibly guide you. Coordinating up front makes it much easier to avoid frustration later on.
 
-All submissions, including submissions by project members, require review.  We use the same code-review tools and process as the chromium project.  In order to submit a patch, you need to get the [depot\_tools](http://dev.chromium.org/developers/how-tos/depottools).
+All submissions, including submissions by project members, require review.  We use the same code-review tools and process as the chromium project.
 
-We occasionally take pull requests, e.g., for comment changes, but the main flow is to use the Rietveld review system as explained below.
+We occasionally take pull requests, e.g., for comment changes, but the main flow is to use the Gerrit review system as explained below.
+
+## Setting up Environment
+
+In order to submit a patch, you need to get the [depot\_tools](http://dev.chromium.org/developers/how-tos/depottools).
 
 ## Getting the code
 
@@ -69,7 +73,9 @@ Upload the patch for review:
 git cl upload -s
 ```
 
-The above command returns a URL for the review. Attach this review to your issue in https://dartbug.com
+The above command returns a URL for the review. Attach this review to your issue in https://dartbug.com.
+
+To update the cl, just commit your changes and run `git cl upload -s` for your branch.
 
 If you have commit access, when the review is done and the patch is good to go, submit the patch on https://dart-review.googlesource.com:
 

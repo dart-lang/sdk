@@ -116,7 +116,7 @@ Future<void> test(
   Expect.isFalse(
       hadDiagnostic, "Compilation had diagnostics (errors, warnings)!");
   for (Library library in result.component!.libraries) {
-    if (library.importUri.scheme != 'dart') {
+    if (!library.importUri.isScheme('dart')) {
       bool usesLegacy =
           await uriUsesLegacyLanguageVersion(library.fileUri, options);
       VersionAndPackageUri versionAndPackageUri =
@@ -143,7 +143,7 @@ Future<void> test(
           "Expected library ${library.importUri} with version "
           "${library.languageVersion} to be opted in.");
       Expect.isTrue(
-          versionAndPackageUri.packageUri.scheme != 'package' ||
+          !versionAndPackageUri.packageUri.isScheme('package') ||
               !versionAndPackageUri.packageUri.path
                   .startsWith('allowed_package') ||
               library.languageVersion < versionOptsInAllowed ||

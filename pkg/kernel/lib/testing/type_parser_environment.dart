@@ -289,7 +289,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       Nullability nullability =
           interpretParsedNullability(node.parsedNullability);
       if (declaration.name == 'Null' &&
-          declaration.enclosingLibrary.importUri.scheme == 'dart' &&
+          declaration.enclosingLibrary.importUri.isScheme('dart') &&
           declaration.enclosingLibrary.importUri.path == 'core') {
         if (node.parsedNullability != ParsedNullability.omitted) {
           throw "Null type must be written without explicit nullability";

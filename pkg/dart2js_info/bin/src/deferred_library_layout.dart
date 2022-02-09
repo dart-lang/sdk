@@ -64,7 +64,7 @@ _showLayout(String file) async {
     print('  contains:');
     map.forEach((lib, elements) {
       var uri = lib.uri;
-      var shortUri = (uri.scheme == 'file' && uri.path.startsWith(dir))
+      var shortUri = (uri.isScheme('file') && uri.path.startsWith(dir))
           ? uri.path.substring(dir.length + 1)
           : '$uri';
 

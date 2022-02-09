@@ -3664,6 +3664,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try renaming the constant.",
   );
 
+  static const CompileTimeErrorCode ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR',
+    "The invoked constructor isn't a const constructor.",
+    correctionMessage: "Try invoking a const generative constructor.",
+  );
+
   static const CompileTimeErrorCode ENUM_MIXIN_WITH_INSTANCE_VARIABLE =
       CompileTimeErrorCode(
     'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
@@ -15884,6 +15891,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The constructor '{0}.{1}' doesn't have type parameters.",
     correctionMessage: "Try moving type arguments to after the type name.",
     hasPublishedDocs: true,
+  );
+
+  /**
+   * Parameters:
+   * 0: the number of type parameters that were declared
+   * 1: the number of type arguments provided
+   */
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM =
+      CompileTimeErrorCode(
+    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
+    "The enum is declared with {0} type parameters, but {1} type arguments "
+        "were given.",
+    correctionMessage: "Try adjusting the number of type arguments.",
   );
 
   /**

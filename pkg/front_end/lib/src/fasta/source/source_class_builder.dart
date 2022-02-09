@@ -714,7 +714,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 this.charOffset,
                 noLength);
           } else if (interface.cls.name == "FutureOr" &&
-              interface.cls.enclosingLibrary.importUri.scheme == "dart" &&
+              interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
               interface.cls.enclosingLibrary.importUri.path == "async") {
             addProblem(messageImplementsFutureOr, this.charOffset, noLength);
           } else if (implemented.contains(interface)) {

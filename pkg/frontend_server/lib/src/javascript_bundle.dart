@@ -110,7 +110,7 @@ class JavaScriptBundler {
 
     for (Library library in _originalComponent.libraries) {
       if (loadedLibraries.contains(library) ||
-          library.importUri.scheme == 'dart') {
+          library.importUri.isScheme('dart')) {
         continue;
       }
       final Uri moduleUri =
@@ -156,7 +156,7 @@ class JavaScriptBundler {
 
       final moduleUrl = urlForComponentUri(moduleUri);
       String sourceMapBase;
-      if (moduleUri.scheme == 'package') {
+      if (moduleUri.isScheme('package')) {
         // Source locations come through as absolute file uris. In order to
         // make relative paths in the source map we get the absolute uri for
         // the module and make them relative to that.
@@ -218,7 +218,7 @@ class JavaScriptBundler {
   }
 }
 
-String urlForComponentUri(Uri componentUri) => componentUri.scheme == 'package'
+String urlForComponentUri(Uri componentUri) => componentUri.isScheme('package')
     ? '/packages/${componentUri.path}'
     : componentUri.path;
 

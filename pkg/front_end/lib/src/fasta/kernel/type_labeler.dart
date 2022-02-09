@@ -66,7 +66,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   static bool isObject(DartType type) {
     if (type is InterfaceType && type.classNode.name == 'Object') {
       Uri importUri = type.classNode.enclosingLibrary.importUri;
-      return importUri.scheme == 'dart' && importUri.path == 'core';
+      return importUri.isScheme('dart') && importUri.path == 'core';
     }
     return false;
   }
@@ -504,7 +504,7 @@ class LabeledNode {
   }
 
   String get originMessage {
-    if (importUri.scheme == 'dart' && importUri.path == 'core') {
+    if (importUri.isScheme('dart') && importUri.path == 'core') {
       if (node is Class && denylistedCoreClasses.contains(name)) {
         // Denylisted core class. Only print if ambiguous.
         List<LabeledNode> entityForName = typeLabeler.nameMap[name]!;
@@ -521,7 +521,7 @@ class LabeledNode {
         return "";
       }
     }
-    Message message = (importUri == fileUri || importUri.scheme == 'dart')
+    Message message = (importUri == fileUri || importUri.isScheme('dart'))
         ? templateTypeOrigin.withArguments(toString(), importUri)
         : templateTypeOriginWithFileUri.withArguments(
             toString(), importUri, fileUri);

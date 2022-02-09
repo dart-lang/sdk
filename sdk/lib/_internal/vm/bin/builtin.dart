@@ -96,7 +96,7 @@ _sanitizeWindowsPath(path) {
 _setPackagesConfig(String packagesParam) {
   var packagesName = _sanitizeWindowsPath(packagesParam);
   var packagesUri = Uri.parse(packagesName);
-  if (packagesUri.scheme == '') {
+  if (!packagesUri.hasScheme) {
     // Script does not have a scheme, assume that it is a path,
     // resolve it against the working directory.
     packagesUri = _workingDirectory.resolveUri(packagesUri);
@@ -107,7 +107,7 @@ _setPackagesConfig(String packagesParam) {
 // Given a uri with a 'package' scheme, return a Uri that is prefixed with
 // the package root or resolved relative to the package configuration.
 Uri _resolvePackageUri(Uri uri) {
-  assert(uri.scheme == "package");
+  assert(uri.isScheme("package"));
   assert(_packagesReady);
 
   if (uri.host.isNotEmpty) {
@@ -444,7 +444,7 @@ bool _isValidUtf8DataUrl(UriData data) {
 _handlePackagesRequest(bool traceLoading, int tag, Uri resource) {
   try {
     if (tag == -1) {
-      if (resource.scheme == '' || resource.scheme == 'file') {
+      if (!resource.hasScheme || resource.isScheme('file')) {
         return _findPackagesConfiguration(traceLoading, resource);
       } else {
         return "Unsupported scheme used to locate .packages file:'$resource'.";
@@ -454,13 +454,13 @@ _handlePackagesRequest(bool traceLoading, int tag, Uri resource) {
         _log("Handling load of packages map: '$resource'.");
       }
       late Uint8List bytes;
-      if (resource.scheme == '' || resource.scheme == 'file') {
+      if (!resource.hasScheme || resource.isScheme('file')) {
         final file = File.fromUri(resource);
         if (!file.existsSync()) {
           return "Packages file '$resource' does not exit.";
         }
         bytes = file.readAsBytesSync();
-      } else if (resource.scheme == 'data') {
+      } else if (resource.isScheme('data')) {
         final uriData = resource.data!;
         if (!_isValidUtf8DataUrl(uriData)) {
           return "The data resource '$resource' must have a 'text/plain' mime "
@@ -543,7 +543,7 @@ String _setPackagesMap(String packagesParam) {
   }
   var packagesName = _sanitizeWindowsPath(packagesParam);
   var packagesUri = Uri.parse(packagesName);
-  if (packagesUri.scheme == '') {
+  if (!packagesUri.hasScheme) {
     // Script does not have a scheme, assume that it is a path,
     // resolve it against the working directory.
     packagesUri = _workingDirectory.resolveUri(packagesUri);
@@ -569,7 +569,7 @@ String _resolveScriptUri(String scriptName) {
   scriptName = _sanitizeWindowsPath(scriptName);
 
   var scriptUri = Uri.parse(scriptName);
-  if (scriptUri.scheme == '') {
+  if (!scriptUri.hasScheme) {
     // Script does not have a scheme, assume that it is a path,
     // resolve it against the working directory.
     scriptUri = _workingDirectory.resolveUri(scriptUri);
@@ -608,7 +608,7 @@ Future<Uri?> _resolvePackageUriFuture(Uri packageUri) {
   if (_traceLoading) {
     _log("Request for package Uri resolution from user code: $packageUri");
   }
-  if (packageUri.scheme != "package") {
+  if (!packageUri.isScheme("package")) {
     if (_traceLoading) {
       _log("Non-package Uri, returning unmodified: $packageUri");
     }

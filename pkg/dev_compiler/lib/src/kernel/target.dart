@@ -120,11 +120,11 @@ class DevCompilerTarget extends Target {
   /// test framework.
   bool _allowedTestLibrary(Uri uri) {
     // Multi-root scheme used by modular test framework.
-    if (uri.scheme == 'dev-dart-app') return true;
+    if (uri.isScheme('dev-dart-app')) return true;
     return allowedNativeTest(uri);
   }
 
-  bool _allowedDartLibrary(Uri uri) => uri.scheme == 'dart';
+  bool _allowedDartLibrary(Uri uri) => uri.isScheme('dart');
 
   @override
   bool enableNative(Uri uri) =>

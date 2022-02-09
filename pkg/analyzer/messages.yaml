@@ -3351,6 +3351,9 @@ CompileTimeErrorCode:
   ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
     problemMessage: "The name of the enum constant can't be the same as the enum's name."
     correctionMessage: Try renaming the constant.
+  ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
+    problemMessage: The invoked constructor isn't a const constructor.
+    correctionMessage: Try invoking a const generative constructor.
   ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
     problemMessage: Mixins applied to enums can't have instance variables.
     correctionMessage: Try replacing the instance variables with getters.
@@ -13629,6 +13632,13 @@ CompileTimeErrorCode:
       }
       C f() => C.named();
       ```
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
+    problemMessage: The enum is declared with {0} type parameters, but {1} type arguments were given.
+    correctionMessage: Try adjusting the number of type arguments.
+    comment: |-
+      Parameters:
+      0: the number of type parameters that were declared
+      1: the number of type arguments provided
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION:
     problemMessage: "The extension '{0}' is declared with {1} type parameters, but {2} type arguments were given."
     correctionMessage: Try adjusting the number of type arguments.
