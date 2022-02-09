@@ -120,6 +120,16 @@ class ExpressionImplTest extends ParserTestCase {
     testUnit = parseCompilationUnit(source) as CompilationUnitImpl;
   }
 
+  test_inConstantContext_enumConstant_true() {
+    parse('''
+enum E {
+  v([]);
+  const E(_);
+}
+''');
+    assertInContext('[]', true);
+  }
+
   test_inConstantContext_instanceCreation_annotation_true() {
     parse('''
 @C(C(0))

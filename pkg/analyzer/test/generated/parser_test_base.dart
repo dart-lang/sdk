@@ -1170,7 +1170,13 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     analyzer.Parser parser = analyzer.Parser(
       source,
       listener,
-      featureSet: FeatureSet.latestLanguageVersion(),
+      featureSet: FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.currentVersion,
+        flags: [
+          Feature.enhanced_enums.enableString,
+          Feature.super_parameters.enableString,
+        ],
+      ),
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(result.tokens);
