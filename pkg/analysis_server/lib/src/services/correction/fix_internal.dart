@@ -170,6 +170,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_null_a
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
+import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
 import 'package:analysis_server/src/services/correction/dart/use_const.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
@@ -570,6 +571,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.sort_child_properties_last: [
       SortChildPropertyLast.newInstance,
+    ],
+    LintNames.sort_unnamed_constructors_first: [
+      SortUnnamedConstructorFirst.newInstance,
     ],
     LintNames.type_annotate_public_apis: [
       AddTypeAnnotation.newInstanceBulkFixable,

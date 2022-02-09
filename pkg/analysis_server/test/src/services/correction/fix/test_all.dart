@@ -207,6 +207,8 @@ import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
+import 'sort_unnamed_constructor_first_test.dart'
+    as sort_unnamed_constructor_first_test;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_const_test.dart' as use_const;
 import 'use_curly_braces_test.dart' as use_curly_braces;
@@ -398,6 +400,7 @@ void main() {
     replace_with_tear_off.main();
     replace_with_var.main();
     sort_properties_last.main();
+    sort_unnamed_constructor_first_test.main();
     update_sdk_constraints.main();
     use_const.main();
     use_curly_braces.main();

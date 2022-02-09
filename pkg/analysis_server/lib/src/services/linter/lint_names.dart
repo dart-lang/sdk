@@ -113,6 +113,8 @@ class LintNames {
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
   static const String sort_child_properties_last = 'sort_child_properties_last';
   static const String sort_constructors_first = 'sort_constructors_first';
+  static const String sort_unnamed_constructors_first =
+      'sort_unnamed_constructors_first';
   static const String type_annotate_public_apis = 'type_annotate_public_apis';
   static const String type_init_formals = 'type_init_formals';
   static const String unawaited_futures = 'unawaited_futures';
