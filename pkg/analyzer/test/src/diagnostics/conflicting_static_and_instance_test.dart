@@ -491,6 +491,17 @@ enum E {
     ]);
   }
 
+  test_constant_this_setter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo;
+  set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 11, 3),
+    ]);
+  }
+
   test_constant_toString() async {
     await assertErrorsInCode(r'''
 enum E {
