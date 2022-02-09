@@ -11,7 +11,6 @@ set -e
 checkout=$(pwd)
 export PATH=$checkout/out/ReleaseX64/dart-sdk/bin:$PATH
 dart=$checkout/out/ReleaseX64/dart-sdk/bin/dart
-pub=$checkout/out/ReleaseX64/dart-sdk/bin/pub
 sdk=$checkout/out/ReleaseX64/dart-sdk
 tmpdir=$(mktemp -d)
 
