@@ -14,33 +14,11 @@ import '../universe/world_impact.dart'
 import 'behavior.dart';
 import 'resolver.dart' show NativeClassFinder;
 
-/// This could be an abstract class but we use it as a stub for the
-/// dart_backend.
-class NativeEnqueuer {
-  /// Called when a [type] has been instantiated natively.
-  void onInstantiatedType(InterfaceType type) {}
-
-  /// Initial entry point to native enqueuer.
-  WorldImpact processNativeClasses(Iterable<Uri> libraries) =>
-      const WorldImpact();
-
-  /// Registers the [nativeBehavior]. Adds the liveness of its instantiated
-  /// types to the world.
-  void registerNativeBehavior(
-      WorldImpactBuilder impactBuilder, NativeBehavior nativeBehavior, cause) {}
-
-  /// Returns whether native classes are being used.
-  bool get hasInstantiatedNativeClasses => false;
-
-  /// Emits a summary information using the [log] function.
-  void logSummary(void log(String message)) {}
-}
-
-abstract class NativeEnqueuerBase implements NativeEnqueuer {
+abstract class NativeEnqueuer {
   final Set<ClassEntity> _registeredClasses = {};
   final Set<ClassEntity> _unusedClasses = {};
 
-  @override
+  /// Returns whether native classes are being used.
   bool get hasInstantiatedNativeClasses => !_registeredClasses.isEmpty;
 
   /// Log message reported if all native types are used.
@@ -52,17 +30,20 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   final CommonElements _commonElements;
 
   /// Subclasses of [NativeEnqueuerBase] are constructed by the backend.
-  NativeEnqueuerBase(this._options, this._elementEnvironment,
-      this._commonElements, this._dartTypes);
+  NativeEnqueuer(this._options, this._elementEnvironment, this._commonElements,
+      this._dartTypes);
 
   bool get enableLiveTypeAnalysis => _options.enableNativeLiveTypeAnalysis;
 
-  @override
+  /// Called when a [type] has been instantiated natively.
   void onInstantiatedType(InterfaceType type) {
     if (_unusedClasses.remove(type.element)) {
       _registeredClasses.add(type.element);
     }
   }
+
+  /// Initial entry point to native enqueuer.
+  WorldImpact processNativeClasses(Iterable<Uri> libraries);
 
   /// Register [classes] as natively instantiated in [impactBuilder].
   void _registerTypeUses(
@@ -79,7 +60,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     }
   }
 
-  @override
+  /// Registers the [nativeBehavior]. Adds the liveness of its instantiated
+  /// types to the world.
   void registerNativeBehavior(
       WorldImpactBuilder impactBuilder, NativeBehavior nativeBehavior, cause) {
     _processNativeBehavior(impactBuilder, nativeBehavior, cause);
@@ -169,7 +151,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     });
   }
 
-  @override
+  /// Emits a summary information using the [log] function.
   void logSummary(void log(String message)) {
     if (_allUsedMessage != null) {
       log(_allUsedMessage);
@@ -177,7 +159,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 }
 
-class NativeResolutionEnqueuer extends NativeEnqueuerBase {
+class NativeResolutionEnqueuer extends NativeEnqueuer {
   final NativeClassFinder _nativeClassFinder;
 
   /// The set of all native classes.  Each native class is in [nativeClasses]
@@ -219,7 +201,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
   }
 }
 
-class NativeCodegenEnqueuer extends NativeEnqueuerBase {
+class NativeCodegenEnqueuer extends NativeEnqueuer {
   final CodeEmitterTask _emitter;
   final Iterable<ClassEntity> _nativeClasses;
   final NativeData _nativeData;
