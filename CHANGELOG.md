@@ -29,14 +29,14 @@
 
 #### Dart command line
 
-- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
   The standalone `dart2js` tool has been
   marked deprecated as previously announced.
   Its replacement is the `dart compile js` command.
   Should you find any issues, or missing features, in the replacement
   command, kindly file [an issue](https://github.com/dart-lang/sdk/issues/new).
 
-- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
   The standalone `dartdevc` tool has been marked deprecated as previously
   announced and will be deleted in a future Dart stable relase.  This tool
   was intended for use only by build systems like bazel, `build_web_compilers`
@@ -45,7 +45,7 @@
   Please share any concerns in the
   [breaking change tracking issue](https://github.com/dart-lang/sdk/issues/46100).
 
-- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
   The standalone `dartdoc` tool has been removed as
   previously announced. Its replacement is the `dart doc` command.
 
@@ -68,22 +68,23 @@ Flutter apps (issue [flutter/flutter#97301][]).
 
 #### `dart:io`
 
-- **Breaking Change** [#45410](https://github.com/dart-lang/sdk/issues/45410),
-  **security advisory** [CVE-2022-0451](https://github.com/dart-lang/sdk/security/advisories/GHSA-c8mh-jj22-xg5h):
+- **Security advisory**
+  [CVE-2022-0451](https://github.com/dart-lang/sdk/security/advisories/GHSA-c8mh-jj22-xg5h),
+  **breaking change** [#45410](https://github.com/dart-lang/sdk/issues/45410):
   `HttpClient` no longer transmits some headers (i.e. `authorization`,
   `www-authenticate`, `cookie`, `cookie2`) when processing redirects to a
   different domain.
-- **Breaking Change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
+- **Breaking change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
   On Windows, `Directory.rename` will no longer delete a directory if
   `newPath` specifies one. Instead, a `FileSystemException` will be thrown.
-- **Breaking Change** [#47769](https://github.com/dart-lang/sdk/issues/47769):
+- **Breaking change** [#47769](https://github.com/dart-lang/sdk/issues/47769):
   The `Platform.packageRoot` API has been removed. It had been marked deprecated
   in 2018, as it doesn't work with any Dart 2.x release.
 - Add optional `sourcePort` parameter to `Socket.connect`, `Socket.startConnect`, `RawSocket.connect` and `RawSocket.startConnect`
 
 #### `dart:isolate`
 
-- **Breaking Change** [#47769](https://github.com/dart-lang/sdk/issues/47769):
+- **Breaking change** [#47769](https://github.com/dart-lang/sdk/issues/47769):
 The `Isolate.packageRoot` API has been removed. It had been marked deprecated
 in 2018, as it doesn't work with any Dart 2.x release.
 
@@ -91,7 +92,7 @@ in 2018, as it doesn't work with any Dart 2.x release.
 
 #### Dart command line
 
-- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
   The standalone `dartanalyzer` tool has been
   marked deprecated as previously announced.
   Its replacement is the `dart analyze` command.
@@ -100,7 +101,7 @@ in 2018, as it doesn't work with any Dart 2.x release.
 
 [an issue]: https://github.com/dart-lang/sdk/issues/new
 
-- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
   The standalone `dartdoc` tool has been
   marked deprecated as previously announced.
   Its replacement is the `dart doc` command.
@@ -159,6 +160,22 @@ This is a patch release that fixes:
 [dart-lang/pub#3244]: https://github.com/dart-lang/pub/pull/3244
 
 ## 2.15.0 - 2021-12-08
+
+- **Security advisory**
+  [CVE-2021-22567](https://github.com/dart-lang/sdk/security/advisories/GHSA-8pcp-6qc9-rqmv):
+  Bidirectional Unicode text can be interpreted and compiled differently than
+  how it appears in editors and code-review tools. Exploiting this an attacker
+  could embed source that is invisible to a code reviewer but that modifies the
+  behavior of a program in unexpected ways. Dart 2.15.0 introduces new analysis
+  warnings that flags the use of these.
+
+- **Security advisory**
+  [CVE-2021-22568](https://github.com/dart-lang/sdk/security/advisories/GHSA-r32f-vhjp-qhj7):
+  A malicious third-party package repository may impersonate a user on pub.dev
+  for up to one hour after the user has published a package to that third-party
+  package repository using `dart pub publish`. As of Dart SDK version 2.15.0
+  requests to third-party package repositories will no longer include an OAuth2
+  `access_token` intended for pub.dev.
 
 ### Language
 
@@ -471,7 +488,7 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 #### `dart:io`
 
-- **Breaking Change** [#46875](https://github.com/dart-lang/sdk/issues/46875):
+- **Breaking change** [#46875](https://github.com/dart-lang/sdk/issues/46875):
   The `SecurityContext` class in `dart:io` has been updated to set the minimum
   TLS protocol version to TLS1_2_VERSION (1.2) instead of TLS1_VERSION.
 - Add `RawSocket.sendMessage`, `RawSocket.receiveMessage` that allow passing of
@@ -488,14 +505,14 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 #### `dart:web_sql`
 
-- **Breaking Change** [#46316](https://github.com/dart-lang/sdk/issues/46316):
+- **Breaking change** [#46316](https://github.com/dart-lang/sdk/issues/46316):
   The WebSQL standard was abandoned more than 10
   years ago and is not supported by many browsers. This release completely
   deletes the `dart:web_sql` library.
 
 #### `dart:html`
 
-- **Breaking Change** [#46316](https://github.com/dart-lang/sdk/issues/46316):
+- **Breaking change** [#46316](https://github.com/dart-lang/sdk/issues/46316):
   Related to the removal of `dart:web_sql` (see above), `window.openDatabase`
   has been removed.
 
@@ -503,12 +520,12 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 #### Dart command line
 
-- **Breaking Change** [#46100][]: The standalone `dart2native` tool has been
+- **Breaking change** [#46100][]: The standalone `dart2native` tool has been
   removed as previously announced. Its replacements are the
   `dart compile exe` and `dart compile aot-snapshot` commands, which offer the
   same functionality.
 
-- **Breaking Change**: The standalone `dartfmt` tool has been removed as
+- **Breaking change**: The standalone `dartfmt` tool has been removed as
   previously announced. Its replacement is the `dart format` command.
 
   Note that `dart format` has [a different set of options and
@@ -519,11 +536,11 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 #### Dart VM
 
-- **Breaking Change** [#45451](https://github.com/dart-lang/sdk/issues/45451):
+- **Breaking change** [#45451](https://github.com/dart-lang/sdk/issues/45451):
   Support for `dart-ext:`-style native extensions has been removed as previously
   announced. Use `dart:ffi` to bind to native libraries instead.
 
-- **Breaking Change** [#46754](https://github.com/dart-lang/sdk/issues/46754):
+- **Breaking change** [#46754](https://github.com/dart-lang/sdk/issues/46754):
   Isolates spawned via the `Isolate.spawn()` API are now grouped, operate on the
   same managed heap and can therefore share various VM-internal data structures.
 
@@ -812,7 +829,7 @@ This is a patch release that fixes:
 
 ### Dart VM
 
-- **Breaking Change** [#45071][]: `Dart_NewWeakPersistentHandle`'s and
+- **Breaking change** [#45071][]: `Dart_NewWeakPersistentHandle`'s and
   `Dart_NewFinalizableHandle`'s `object` parameter no longer accepts `Pointer`s
   and subtypes of `Struct`. Expandos no longer accept `Pointer`s and subtypes of
   `Struct`s.
@@ -823,13 +840,13 @@ This is a patch release that fixes:
 
 #### Dart command line
 
-- **Breaking Change** [#46100][]: The standalone `dart2native` tool has been
+- **Breaking change** [#46100][]: The standalone `dart2native` tool has been
   marked deprecated, and now prints a warning message. Its replacements are the
   `dart compile exe` and `dart compile aot-snapshot` commands, which offer the
   same functionality. The `dart2native` tool will be removed from the Dart SDK
   in Dart 2.15.
 
-- **Breaking Change**: The standalone `dartfmt` tool has been marked deprecated,
+- **Breaking change**: The standalone `dartfmt` tool has been marked deprecated,
   and now prints a warning message. Instead, use `dart format`. The `dartfmt`
   tool will be removed from the Dart SDK in Dart 2.15.
 
@@ -953,7 +970,7 @@ Updated the Linter to `1.8.0`, which includes changes that
 
 #### Dart2JS
 
-*   **Breaking Change** [#46545][]: Dart2JS emits ES6+ JavaScript by default,
+*   **Breaking change** [#46545][]: Dart2JS emits ES6+ JavaScript by default,
     thereby no longer supporting legacy browsers. Passing the
     `--legacy-javascript` flag will let you opt out of this update, but this
     flag will be removed in a future release. Modern browsers will not be
@@ -965,7 +982,7 @@ Updated the Linter to `1.8.0`, which includes changes that
 
 #### Dart Dev Compiler (DDC)
 
-- **Breaking Change** [#44154][]: Subtyping relations of `package:js` classes
+- **Breaking change** [#44154][]: Subtyping relations of `package:js` classes
   have been changed to be more correct and consistent with Dart2JS.
   Like `anonymous` classes, non-`anonymous` classes will no longer check the
   underlying type in DDC. The internal type representation of these objects have
@@ -1134,10 +1151,10 @@ initializers containing async closures (issue [#45306][]).
 
 ## 2.12.3 - 2021-04-14
 
-This is a patch release that fixes a vulnerability in `dart:html` related to DOM
-clobbering. See the [vulnerability advisory][cve-2021-22540] for more details.
-Thanks again to **Vincenzo di Cicco** for finding and reporting this
-vulnerability.
+**Security advisory**: This is a patch release that fixes a vulnerability in
+`dart:html` related to DOM clobbering. See the security advisory
+[CVE-2021-22540][cve-2021-22540] for more details. Thanks again to **Vincenzo di
+Cicco** for finding and reporting this vulnerability.
 
 [cve-2021-22540]:
   https://github.com/dart-lang/sdk/security/advisories/GHSA-3rfv-4jvg-9522
@@ -1163,7 +1180,7 @@ This is a patch release that fixes:
 
 ### Language
 
-- **Breaking Change** [Null safety][] is now enabled by default in all code that
+- **Breaking change** [Null safety][] is now enabled by default in all code that
   has not opted out. With null safety, types in your code are non-nullable by
   default. Null can only flow into parts of your program where you want it. With
   null safety, your runtime null-dereference bugs turn into edit-time analysis
@@ -1183,7 +1200,7 @@ This is a patch release that fixes:
   - The postfix `!` null assertion operator
   - The `?..` and `?[]` null-aware operators
 
-- **Breaking Change** [#44660][]: Fixed an implementation bug where `this` would
+- **Breaking change** [#44660][]: Fixed an implementation bug where `this` would
   sometimes undergo type promotion in extensions.
 
 [null safety]: https://dart.dev/null-safety/understanding-null-safety
@@ -1235,12 +1252,12 @@ This is a patch release that fixes:
 
 ### Dart VM
 
-- **Breaking Change** [#42312][]: `Dart_WeakPersistentHandle`s no longer
+- **Breaking change** [#42312][]: `Dart_WeakPersistentHandle`s no longer
   auto-delete themselves when the referenced object is garbage collected to
   avoid race conditions, but they are still automatically deleted when the
   isolate group shuts down.
 
-- **Breaking Change** [#42312][]: `Dart_WeakPersistentHandleFinalizer` is
+- **Breaking change** [#42312][]: `Dart_WeakPersistentHandleFinalizer` is
   renamed to `Dart_HandleFinalizer` and had its `handle` argument removed. All
   API functions using that type have been updated.
 
@@ -1248,7 +1265,7 @@ This is a patch release that fixes:
 
 ### Foreign Function Interface (`dart:ffi`)
 
-- **Breaking Change** [#44621][]: Invocations with a generic `T` of `sizeOf<T>`,
+- **Breaking change** [#44621][]: Invocations with a generic `T` of `sizeOf<T>`,
   `Pointer<T>.elementAt()`, `Pointer<T extends Struct>.ref`, and
   `Pointer<T extends Struct>[]` are being deprecated in the current stable
   release (2.12), and are planned to be fully removed in the following stable
@@ -1258,7 +1275,7 @@ This is a patch release that fixes:
   constant `T` on invocations. For migration notes see the breaking change
   request.
 
-- **Breaking Change** [#44622][]: Subtypes of `Struct` without any native member
+- **Breaking change** [#44622][]: Subtypes of `Struct` without any native member
   are being deprecated in the current stable release (2.12), and are planned to
   be fully removed in the following stable release (2.13). Migrate opaque types
   to extend `Opaque` rather than `Struct`.
@@ -1540,7 +1557,7 @@ This is a patch release that fixes the following issues:
 
 ### Dart VM
 
-- **Breaking Change** [#42982][]: `dart_api_dl.cc` is renamed to `dart_api_dl.c`
+- **Breaking change** [#42982][]: `dart_api_dl.cc` is renamed to `dart_api_dl.c`
   and changed to a pure C file.
 - Introduces `Dart_FinalizableHandle`s. They do auto-delete, and the weakly
   referred object cannot be accessed through them.
@@ -1629,7 +1646,7 @@ applications (issue [flutter/flutter#63038][]).
 
 #### `dart:convert`
 
-- **Breaking Change** [#41100][]: When encoding a string containing unpaired
+- **Breaking change** [#41100][]: When encoding a string containing unpaired
   surrogates as UTF-8, the unpaired surrogates will be encoded as replacement
   characters (`U+FFFD`). When decoding UTF-8, encoded surrogates will be treated
   as malformed input. When decoding UTF-8 with `allowMalformed: true`, the
@@ -1661,7 +1678,7 @@ applications (issue [flutter/flutter#63038][]).
 
 #### `dart:html`
 
-- **Breaking Change**: `CssClassSet.add()` previously returned `null` if the
+- **Breaking change**: `CssClassSet.add()` previously returned `null` if the
   `CssClassSet` corresponded to multiple elements. In order to align with the
   null-safe changes in the `Set` interface, it will now return `false` instead.
   The same applies for `CssClassSet.toggle`.
@@ -1682,7 +1699,7 @@ applications (issue [flutter/flutter#63038][]).
 
 #### `dart:mirrors`
 
-- **Breaking Change** [#42714][]: web compilers (dart2js and DDC) now produce a
+- **Breaking change** [#42714][]: web compilers (dart2js and DDC) now produce a
   compile-time error if `dart:mirrors` is imported.
 
   Most projects should not be affected. Since 2.0.0 this library was unsupported
@@ -1733,7 +1750,7 @@ Updated the Linter to `0.1.117`, which includes:
 
 ### Dart VM
 
-- **Breaking Change** [#41100][]: When printing a string using the `print`
+- **Breaking change** [#41100][]: When printing a string using the `print`
   function, the default implementation (used when not overridden by the embedder
   or the current zone) will print any unpaired surrogates in the string as
   replacement characters (`U+FFFD`). Similarly, the `Dart_StringToUTF8` function
@@ -1891,12 +1908,12 @@ breaking changes:
 
 #### `dart:html`
 
-- **Breaking Change** [#39627][]: Changed the return type of several HTML native
+- **Breaking change** [#39627][]: Changed the return type of several HTML native
   methods involving futures. In return types that matched `Future<List<T>>`,
   `T was` changed to `dynamic`. These methods would have resulted in a runtime
   error if they were used.
 
-- **Breaking Change**: `Node.insertAllBefore()` erroneously had a return type of
+- **Breaking change**: `Node.insertAllBefore()` erroneously had a return type of
   `Node`, even though it was not returning anything. This has been corrected to
   `void`.
 
@@ -2030,7 +2047,7 @@ breaking changes:
 
 ### Foreign Function Interface (`dart:ffi`)
 
-- **Breaking Change**: Changed `Pointer.asFunction()` and
+- **Breaking change**: Changed `Pointer.asFunction()` and
   `DynamicLibrary.lookupFunction()` to extension methods. Invoking them
   dynamically previously already threw an exception, so the runtime behavior
   stays the same. However, the extension methods are only visible if `dart:ffi`
@@ -2049,7 +2066,7 @@ We fixed several inconsistencies between DDC and Dart2JS so that users less
 frequently encounter code that is accepted by one compiler but then fails in the
 other.
 
-- **Breaking Change**: Deleted the legacy (analyzer based) version of DDC. For
+- **Breaking change**: Deleted the legacy (analyzer based) version of DDC. For
   additional details see the [announcement][ddc].
 
   - The `--kernel` option is now ignored and defaults to true. There is no
@@ -2062,12 +2079,12 @@ other.
     deleted from `dart-sdk/lib/dev_compiler` in favor of the versions located at
     `dart-sdk/lib/dev_compiler/kernel`.
 
-- **Breaking Change**: Functions passed to JavaScript using the recommended
+- **Breaking change**: Functions passed to JavaScript using the recommended
   `package:js` interop specification must now be wrapped with a call to
   `allowInterop`. This behavior was always enforced by Dart2JS, but was not
   enforced consistently by DDC. It is now enforced by both.
 
-- **Breaking Change**: Constructors in `@JS()` classes must be marked with
+- **Breaking change**: Constructors in `@JS()` classes must be marked with
   `external`. Previously the `external` could be omitted in some cases with DDC
   but doing so would cause incorrect behavior with Dart2JS.
 
@@ -2138,16 +2155,16 @@ In addition, we fixed some inconsistencies between Dart2JS and DDC:
 - JS interop classes with an index operator are now static errors instead of
   causing invalid code in Dart2JS.
 
-- **Breaking Change**: The subtyping rule for generic functions is now more
+- **Breaking change**: The subtyping rule for generic functions is now more
   forgiving. Corresponding type parameter bounds now only need to be mutual
   subtypes rather than structurally equal up to renaming of bound type variables
   and equating all top types.
 
-- **Breaking Change**: Types are now normalized. See [normalization][] for the
+- **Breaking change**: Types are now normalized. See [normalization][] for the
   full specification. Types will now be printed in their normal form, and mutual
   subtypes with the same normal form will now be considered equal.
 
-- **Breaking Change**: Constructors in `@JS()` classes must be marked with
+- **Breaking change**: Constructors in `@JS()` classes must be marked with
   `external`. Previously, the external could be omitted for unused constructors.
   Omitting `external` for a constructor which is used would cause incorrect
   behavior at runtime, now omitting it on any constructor is a static error.
@@ -2158,7 +2175,7 @@ In addition, we fixed some inconsistencies between Dart2JS and DDC:
 
 Other dart2js changes:
 
-- **Breaking Change**: The `--package-root` flag, which was hidden and disabled
+- **Breaking change**: The `--package-root` flag, which was hidden and disabled
   in Dart 2.0.0, has been completely removed. Passing this flag will now cause
   `dart2js` to fail.
 
@@ -2222,10 +2239,10 @@ Updated the Linter to `0.1.114`, which includes:
 
 ## 2.7.2 - 2020-03-23
 
-This is a patch release that addresses a vulnerability in `dart:html`
-[NodeValidator][] related to DOM clobbering of `previousSibling`. See the
-[vulnerability advisory][cve-2020-8923] for more details. Thanks to **Vincenzo
-di Cicco** for finding and reporting this issue.
+**Security advisory**: This is a patch release that addresses a vulnerability in
+`dart:html` [NodeValidator][] related to DOM clobbering of `previousSibling`.
+See the security advisory [CVE-2020-8923][cve-2020-8923] for more details.
+Thanks to **Vincenzo di Cicco** for finding and reporting this issue.
 
 This release also improves compatibility with ARMv8 processors (issue [40001][])
 and dart:io stability (issue [40589][]).
@@ -2242,7 +2259,7 @@ This is a patch release that improves dart2js compile-time (issue [40217][]).
 
 [40217]: https://github.com/dart-lang/sdk/issues/40217
 
-**Breaking Change**: The Dart SDK for macOS is now only available for x64 (issue
+**Breaking change**: The Dart SDK for macOS is now only available for x64 (issue
 [39810][]).
 
 [39810]: https://github.com/dart-lang/sdk/issues/39810
@@ -2257,7 +2274,7 @@ https://medium.com/dartlang/extension-methods-2d466cd8b308
 
 ### Language
 
-- **Breaking Change**: [Static extension members][] are accessible when imported
+- **Breaking change**: [Static extension members][] are accessible when imported
   with a prefix (issue [671][]). In the extension method **preview** launch,
   importing a library with a prefix hid all extension members in addition to
   hiding the extension name, thereby making them inaccessible in the importing
@@ -3238,7 +3255,7 @@ This release has no language changes.
 
 #### `dart:io`
 
-- **Breaking Change:** Adding to a closed `IOSink` now throws a `StateError`.
+- **Breaking change:** Adding to a closed `IOSink` now throws a `StateError`.
 - Added ability to get and set low level socket options.
 
 [29554]: https://github.com/dart-lang/sdk/issues/29554
