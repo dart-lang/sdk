@@ -46,6 +46,17 @@ class C {
 ''');
   }
 
+  test_class_instance_field() async {
+    await assertErrorsInCode('''
+class C {
+  final num foo = 0;
+  set foo(int v) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 22, 3),
+    ]);
+  }
+
   test_class_instance_interfaces() async {
     await assertErrorsInCode(r'''
 class A {
@@ -213,6 +224,64 @@ class C {
     ]);
   }
 
+  test_class_static_field() async {
+    await assertErrorsInCode('''
+class C {
+  static final num foo = 0;
+  static set foo(int v) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 29, 3),
+    ]);
+  }
+
+  test_enum_instance() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  num get foo => 0;
+  set foo(int v) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 24, 3),
+    ]);
+  }
+
+  test_enum_instance_field() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  final num foo = 0;
+  set foo(int v) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 26, 3),
+    ]);
+  }
+
+  test_enum_static() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  static num get foo => 0;
+  static set foo(int v) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 31, 3),
+    ]);
+  }
+
+  test_enum_static_field() async {
+    await assertErrorsInCode('''
+enum E {
+  foo;
+  static set foo(int v) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 11, 3),
+    ]);
+  }
+
   test_extension_instance() async {
     await assertErrorsInCode('''
 extension E on Object {
@@ -232,6 +301,17 @@ extension E on Object {
 }
 ''', [
       error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 41, 3),
+    ]);
+  }
+
+  test_extension_static_field() async {
+    await assertErrorsInCode('''
+extension E on Object {
+  static final int foo = 0;
+  static set foo(String v) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 43, 3),
     ]);
   }
 
@@ -265,5 +345,14 @@ set foo(v) {}
 int get foo => 0;
 set foo(int v) {}
 ''');
+  }
+
+  test_topLevel_variable() async {
+    await assertErrorsInCode('''
+final int foo = 0;
+set foo(String v) {}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 10, 3),
+    ]);
   }
 }
