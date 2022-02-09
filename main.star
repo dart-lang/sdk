@@ -134,6 +134,14 @@ luci.gitiles_poller(
 )
 
 luci.gitiles_poller(
+    name = "dart-gitiles-trigger-flutter-daily",
+    bucket = "ci",
+    repo = "https://dart.googlesource.com/linear_sdk_flutter_engine/",
+    refs = ["refs/heads/master"],
+    schedule = "0 8 * * *",  # daily, at 08:00 UTC
+)
+
+luci.gitiles_poller(
     name = "dart-ci-test-data-trigger",
     bucket = "ci",
     path_regexps = ["tools/bots/ci_test_data_trigger"],
@@ -275,6 +283,16 @@ dart.ci_sandbox_builder(
             "web_tool_tests",
         ],
     },
+)
+
+dart.ci_builder(
+    "flutter-engine-ios",
+    recipe = "dart/flutter/engine",
+    category = "flutter|i",
+    channels = [],
+    execution_timeout = 2 * time.hour,
+    triggered_by = ["dart-gitiles-trigger-flutter-daily"],
+    notifies = None,
 )
 
 vm = exec("//vm.star")
