@@ -64,16 +64,3 @@ abstract class AnnotationProcessor {
 
   void extractJsInteropAnnotations(LibraryEntity library);
 }
-
-/// Class that deletes the contents of an [WorldImpact] cache.
-// TODO(redemption): this can be deleted when we sunset the old front end.
-abstract class ImpactCacheDeleter {
-  /// Removes the [WorldImpact] for [element] from the resolution cache. Later
-  /// calls to [getWorldImpact] or [computeWorldImpact] returns an empty impact.
-  void uncacheWorldImpact(Entity element);
-
-  /// Removes the [WorldImpact]s for all [Element]s in the resolution cache. ,
-  /// Later calls to [getWorldImpact] or [computeWorldImpact] returns an empty
-  /// impact.
-  void emptyCache();
-}

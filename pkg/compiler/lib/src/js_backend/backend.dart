@@ -10,7 +10,6 @@ import '../deferred_load/deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/entities.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;
-import '../frontend_strategy.dart';
 import '../inferrer/types.dart';
 import '../js_model/elements.dart';
 import '../tracer.dart';
@@ -263,12 +262,11 @@ class FunctionInlineCache {
 }
 
 class JavaScriptImpactStrategy extends ImpactStrategy {
-  final ImpactCacheDeleter impactCacheDeleter;
   final DumpInfoTask dumpInfoTask;
   final bool supportDeferredLoad;
   final bool supportDumpInfo;
 
-  JavaScriptImpactStrategy(this.impactCacheDeleter, this.dumpInfoTask,
+  JavaScriptImpactStrategy(this.dumpInfoTask,
       {this.supportDeferredLoad, this.supportDumpInfo});
 
   @override
@@ -289,13 +287,6 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
       dumpInfoTask.unregisterImpact(impactSource);
     } else {
       impact.apply(visitor);
-    }
-  }
-
-  @override
-  void onImpactUsed(ImpactUseCase impactUse) {
-    if (impactUse == DeferredLoadTask.IMPACT_USE) {
-      impactCacheDeleter.emptyCache();
     }
   }
 }

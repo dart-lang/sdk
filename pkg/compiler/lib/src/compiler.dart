@@ -73,7 +73,6 @@ abstract class Compiler {
   BackendStrategy backendStrategy;
   CompilerDiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
-  ImpactCacheDeleter _impactCacheDeleter;
 
   ImpactStrategy impactStrategy = const ImpactStrategy();
 
@@ -98,7 +97,6 @@ abstract class Compiler {
 
   DiagnosticReporter get reporter => _reporter;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
-  ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
 
   final Environment environment;
 
@@ -170,7 +168,6 @@ abstract class Compiler {
         kernelFrontEndTask, options, reporter, environment);
     backendStrategy = createBackendStrategy();
     _impactCache = <Entity, WorldImpact>{};
-    _impactCacheDeleter = _MapImpactCacheDeleter(_impactCache);
 
     if (options.showInternalProgress) {
       progress = InteractiveProgress();
@@ -437,7 +434,7 @@ abstract class Compiler {
     // this until after the resolution queue is processed.
     deferredLoadTask.beforeResolution(rootLibraryUri, libraries);
 
-    impactStrategy = JavaScriptImpactStrategy(impactCacheDeleter, dumpInfoTask,
+    impactStrategy = JavaScriptImpactStrategy(dumpInfoTask,
         supportDeferredLoad: deferredLoadTask.isProgramSplit,
         supportDumpInfo: options.dumpInfo);
 
@@ -469,8 +466,7 @@ abstract class Compiler {
     _userCodeLocations
         .addAll(result.moduleLibraries.map((module) => CodeLocation(module)));
     selfTask.measureSubtask('runModularAnalysis', () {
-      impactStrategy = JavaScriptImpactStrategy(
-          impactCacheDeleter, dumpInfoTask,
+      impactStrategy = JavaScriptImpactStrategy(dumpInfoTask,
           supportDeferredLoad: true, supportDumpInfo: true);
       var included = result.moduleLibraries.toSet();
       var elementMap = (frontendStrategy as KernelFrontendStrategy).elementMap;
@@ -590,6 +586,11 @@ abstract class Compiler {
 
     KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);
     OutputUnitData result = deferredLoadTask.run(mainFunction, kClosedWorld);
+
+    // Impact data is no longer needed.
+    if (!retainDataForTesting) {
+      _impactCache.clear();
+    }
     JClosedWorld jClosedWorld =
         backendStrategy.createJClosedWorld(kClosedWorld, result);
     return jClosedWorld;
@@ -626,9 +627,6 @@ abstract class Compiler {
       emptyQueue(enqueuer, onProgress: onProgress);
       enqueuer.queueIsClosed = true;
       enqueuer.close();
-      // Notify the impact strategy impacts are no longer needed for this
-      // enqueuer.
-      impactStrategy.onImpactUsed(enqueuer.impactUse);
       assert(compilationFailed ||
           enqueuer.checkNoEnqueuedInvokedInstanceMethods(elementEnvironment));
     });
@@ -1063,23 +1061,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
             const <DiagnosticMessage>[], api.Diagnostic.HINT);
       });
     }
-  }
-}
-
-class _MapImpactCacheDeleter implements ImpactCacheDeleter {
-  final Map<Entity, WorldImpact> _impactCache;
-  _MapImpactCacheDeleter(this._impactCache);
-
-  @override
-  void uncacheWorldImpact(Entity element) {
-    if (retainDataForTesting) return;
-    _impactCache.remove(element);
-  }
-
-  @override
-  void emptyCache() {
-    if (retainDataForTesting) return;
-    _impactCache.clear();
   }
 }
 
