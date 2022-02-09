@@ -323,12 +323,6 @@ class ImpactStrategy {
     // Apply unconditionally.
     impact.apply(visitor);
   }
-
-  /// Notifies the strategy that no more impacts of [impactUseCase] will be
-  /// applied.
-  void onImpactUsed(ImpactUseCase impactUseCase) {
-    // Do nothing.
-  }
 }
 
 /// Visitor used to process the uses of a [WorldImpact].

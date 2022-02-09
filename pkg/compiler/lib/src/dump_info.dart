@@ -666,9 +666,6 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       }
     }
 
-    // Notify the impact strategy impacts are no longer needed for dump info.
-    compiler.impactStrategy.onImpactUsed(IMPACT_USE);
-
     // Track dependencies that come from inlining.
     for (Entity entity in inlineMap.keys) {
       CodeInfo outerInfo = infoCollector._entityToInfo[entity];

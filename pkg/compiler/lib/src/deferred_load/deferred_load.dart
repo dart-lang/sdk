@@ -445,10 +445,6 @@ class DeferredLoadTask extends CompilerTask {
     }
 
     reporter.withCurrentElement(main.library, () => measure(work));
-
-    // Notify that we no longer need impacts for deferred load, so they can be
-    // discarded at this time.
-    compiler.impactStrategy.onImpactUsed(DeferredLoadTask.IMPACT_USE);
     return _buildResult();
   }
 
