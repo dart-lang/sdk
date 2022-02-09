@@ -344,6 +344,68 @@ int t;
     assertHasOne(a, 'a');
   }
 
+  Future<void> test_searchReferences_enum_constructor_named() async {
+    var code = '''
+enum E {
+  v.named(); // 1
+  const E.named();
+}
+''';
+    await resolveTestCode(code);
+
+    var element = findElement.constructor('named');
+    var matches = await searchEngine.searchReferences(element);
+    expect(
+      matches,
+      unorderedEquals([
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.INVOCATION &&
+              identical(m.element, findElement.field('v')) &&
+              m.sourceRange.offset == code.indexOf('.named(); // 1') &&
+              m.sourceRange.length == '.named'.length;
+        }),
+      ]),
+    );
+  }
+
+  Future<void> test_searchReferences_enum_constructor_unnamed() async {
+    var code = '''
+enum E {
+  v1, // 1
+  v2(), // 2
+  v3.new(), // 3
+}
+''';
+    await resolveTestCode(code);
+
+    var element = findElement.unnamedConstructor('E');
+    var matches = await searchEngine.searchReferences(element);
+    expect(
+      matches,
+      unorderedEquals([
+        predicate((SearchMatch m) {
+          return m.kind ==
+                  MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS &&
+              identical(m.element, findElement.field('v1')) &&
+              m.sourceRange.offset == code.indexOf(', // 1') &&
+              m.sourceRange.length == 0;
+        }),
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.INVOCATION &&
+              identical(m.element, findElement.field('v2')) &&
+              m.sourceRange.offset == code.indexOf('(), // 2') &&
+              m.sourceRange.length == 0;
+        }),
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.INVOCATION &&
+              identical(m.element, findElement.field('v3')) &&
+              m.sourceRange.offset == code.indexOf('.new(), // 3') &&
+              m.sourceRange.length == '.new'.length;
+        }),
+      ]),
+    );
+  }
+
   Future<void>
       test_searchReferences_parameter_ofConstructor_super_named() async {
     var code = '''
