@@ -679,15 +679,6 @@ _TODO: complete the documentation for the following files_.
 `lib/src/scanner`
 `lib/src/scanner/scanner_task.dart`
 
-`lib/src/helpers`
-`lib/src/helpers/trace.dart`
-`lib/src/helpers/debug_collection.dart`
-`lib/src/helpers/expensive_map.dart`
-`lib/src/helpers/helpers.dart`
-`lib/src/helpers/track_map.dart`
-`lib/src/helpers/expensive_set.dart`
-`lib/src/helpers/stats.dart`
-
 `lib/src/js`
 `lib/src/js/js.dart`
 `lib/src/js/placeholder_safety.dart`
