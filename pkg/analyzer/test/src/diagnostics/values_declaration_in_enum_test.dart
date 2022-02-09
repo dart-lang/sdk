@@ -47,6 +47,18 @@ enum E {
     ]);
   }
 
+  test_field_withConstructor() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final values = [];
+  const E();
+}
+''', [
+      error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 22, 6),
+    ]);
+  }
+
   test_getter() async {
     await assertErrorsInCode(r'''
 enum E {

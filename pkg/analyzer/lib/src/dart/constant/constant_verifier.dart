@@ -103,7 +103,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (constKeyword != null) {
       _validateConstructorInitializers(node);
       if (node.factoryKeyword == null) {
-        _validateFieldInitializers(node.parent.classMembers, constKeyword);
+        _validateFieldInitializers(
+          node.parent.classMembers,
+          constKeyword,
+          isEnumDeclaration: node.parent is EnumDeclaration,
+        );
       }
     }
     _validateDefaultValues(node.parameters);
@@ -558,11 +562,17 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// required if the class has a constant constructor, the error is reported at
   /// [constKeyword], the const keyword on such a constant constructor.
   void _validateFieldInitializers(
-      List<ClassMember> members, Token constKeyword) {
+    List<ClassMember> members,
+    Token constKeyword, {
+    required bool isEnumDeclaration,
+  }) {
     for (ClassMember member in members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration variableDeclaration
             in member.fields.variables) {
+          if (isEnumDeclaration && variableDeclaration.name.name == 'values') {
+            continue;
+          }
           var initializer = variableDeclaration.initializer;
           if (initializer != null) {
             // Ignore any errors produced during validation--if the constant
