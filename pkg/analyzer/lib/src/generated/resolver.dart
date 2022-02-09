@@ -3131,11 +3131,25 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       ClassElement element = node.declaredElement!;
       node.metadata.accept(this);
 
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+      );
+      _setNodeNameScope(node, nameScope);
+      visitEnumDeclarationInScope(node);
+
       nameScope = ClassScope(nameScope, element);
       visitEnumMembersInScope(node);
     } finally {
       nameScope = outerScope;
     }
+  }
+
+  void visitEnumDeclarationInScope(EnumDeclaration node) {
+    node.name.accept(this);
+    node.typeParameters?.accept(this);
+    node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
   }
 
   void visitEnumMembersInScope(EnumDeclaration node) {

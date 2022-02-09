@@ -17,6 +17,23 @@ main() {
 @reflectiveTest
 class SimpleIdentifierResolutionTest extends PubPackageResolutionTest
     with SimpleIdentifierResolutionTestCases {
+  test_enum_typeParameter_in_method() async {
+    await assertNoErrorsInCode('''
+enum E<T> {
+  v;
+  void foo() {
+    T;
+  }
+}
+''');
+
+    assertSimpleIdentifier(
+      findNode.simple('T;'),
+      element: findElement.typeParameter('T'),
+      type: 'Type',
+    );
+  }
+
   test_functionReference() async {
     await assertErrorsInCode('''
 // @dart = 2.7
