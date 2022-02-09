@@ -339,16 +339,6 @@ enum E {
     ]);
   }
 
-  test_constant_values() async {
-    await assertErrorsInCode(r'''
-enum E {
-  values
-}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 11, 6),
-    ]);
-  }
-
   test_instance_field_field() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -586,17 +576,6 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 50, 3),
-    ]);
-  }
-
-  test_static_field_values() async {
-    await assertErrorsInCode(r'''
-enum E {
-  v;
-  static int values = 0;
-}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 27, 6),
     ]);
   }
 

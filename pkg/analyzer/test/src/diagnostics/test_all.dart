@@ -158,6 +158,8 @@ import 'enum_constant_same_name_as_enclosing_test.dart'
     as enum_constant_same_name_as_enclosing;
 import 'enum_constant_with_non_const_constructor_test.dart'
     as enum_constant_with_non_const_constructor;
+import 'enum_instantiated_to_bounds_is_not_well_bounded_test.dart'
+    as enum_instantiated_to_bounds_is_not_well_bounded;
 import 'enum_mixin_with_instance_variable_test.dart'
     as enum_mixin_with_instance_variable;
 import 'enum_with_abstract_member_test.dart' as enum_with_abstract_member;
@@ -770,6 +772,7 @@ import 'uri_with_interpolation_test.dart' as uri_with_interpolation;
 import 'use_of_native_extension_test.dart' as use_of_native_extension;
 import 'use_of_nullable_value_test.dart' as use_of_nullable_value_test;
 import 'use_of_void_result_test.dart' as use_of_void_result;
+import 'values_declaration_in_enum_test.dart' as values_declaration_in_enum;
 import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
 import 'void_with_type_arguments_test.dart' as void_with_type_arguments_test;
 import 'wrong_number_of_parameters_for_operator_test.dart'
@@ -896,6 +899,7 @@ main() {
     duplicate_shown_name.main();
     enum_constant_same_name_as_enclosing.main();
     enum_constant_with_non_const_constructor.main();
+    enum_instantiated_to_bounds_is_not_well_bounded.main();
     enum_mixin_with_instance_variable.main();
     enum_with_abstract_member.main();
     equal_elements_in_const_set.main();
@@ -1304,6 +1308,7 @@ main() {
     use_of_native_extension.main();
     use_of_nullable_value_test.main();
     use_of_void_result.main();
+    values_declaration_in_enum.main();
     variable_type_mismatch.main();
     void_with_type_arguments_test.main();
     wrong_number_of_parameters_for_operator.main();

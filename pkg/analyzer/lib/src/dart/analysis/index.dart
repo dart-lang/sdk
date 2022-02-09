@@ -644,7 +644,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitEnumConstantDeclaration(node) {
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     var constructorElement = node.constructorElement;
     if (constructorElement != null) {
       int offset;
@@ -657,8 +657,15 @@ class _IndexContributor extends GeneralizingAstVisitor {
         offset = node.name.end;
         length = 0;
       }
-      recordRelationOffset(constructorElement, IndexRelationKind.IS_INVOKED_BY,
-          offset, length, true);
+      recordRelationOffset(
+        constructorElement,
+        node.arguments == null
+            ? IndexRelationKind.IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS
+            : IndexRelationKind.IS_INVOKED_BY,
+        offset,
+        length,
+        true,
+      );
     }
 
     super.visitEnumConstantDeclaration(node);

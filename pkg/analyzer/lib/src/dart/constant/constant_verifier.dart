@@ -120,6 +120,16 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  visitEnumConstantDeclaration(node) {
+    super.visitEnumConstantDeclaration(node);
+
+    var argumentList = node.arguments?.argumentList;
+    if (argumentList != null) {
+      _validateConstantArguments(argumentList);
+    }
+  }
+
+  @override
   void visitFunctionExpression(FunctionExpression node) {
     super.visitFunctionExpression(node);
     _validateDefaultValues(node.parameters);

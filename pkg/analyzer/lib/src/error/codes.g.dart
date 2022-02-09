@@ -3671,6 +3671,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try invoking a const generative constructor.",
   );
 
+  static const CompileTimeErrorCode
+      ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED = CompileTimeErrorCode(
+    'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
+    "The result of instantiating the enum to bounds is not well-bounded.",
+    correctionMessage: "Try using different bounds for type parameters.",
+  );
+
   static const CompileTimeErrorCode ENUM_MIXIN_WITH_INSTANCE_VARIABLE =
       CompileTimeErrorCode(
     'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
@@ -15581,6 +15588,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "function or call that returns void you didn't expect. Also check type "
         "parameters and variables which might also be void.",
     hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode VALUES_DECLARATION_IN_ENUM =
+      CompileTimeErrorCode(
+    'VALUES_DECLARATION_IN_ENUM',
+    "A member named 'values' can't be declared in an enum.",
+    correctionMessage: "Try using a different name.",
   );
 
   /**

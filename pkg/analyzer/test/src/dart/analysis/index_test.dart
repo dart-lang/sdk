@@ -459,7 +459,7 @@ void f(E e) {
 enum E {
   v;
   int operator [](int index) => 0;
-  operator []=(int index, int vlaue) {}
+  operator []=(int index, int value) {}
 }
 void f(E e) {
   e[0];
@@ -952,18 +952,20 @@ enum E {
 /// [new E] 1
 enum E {
   v1, // 2
-  v2.new(); // 3
+  v2(), // 3
+  v3.new(); // 4
   E();
-  E.other() : this(); // 4
+  E.other() : this(); // 5
 }
 ''');
     var element = findElement.unnamedConstructor('E');
     assertThat(element)
-      ..hasRelationCount(4)
+      ..hasRelationCount(5)
       ..isReferencedAt('] 1', true, length: 0)
-      ..isInvokedAt(', // 2', true, length: 0)
-      ..isInvokedAt('.new(); // 3', true, length: 4)
-      ..isInvokedAt('(); // 4', true, length: 0);
+      ..isInvokedByEnumConstantWithoutArgumentsAt(', // 2', length: 0)
+      ..isInvokedAt('(), // 3', true, length: 0)
+      ..isInvokedAt('.new(); // 4', true, length: 4)
+      ..isInvokedAt('(); // 5', true, length: 0);
   }
 
   test_isReferencedBy_ConstructorElement_enum_unnamed_declared_new() async {
@@ -971,18 +973,20 @@ enum E {
 /// [new E] 1
 enum E {
   v1, // 2
-  v2.new(); // 3
+  v2(), // 3
+  v3.new(); // 4
   E.new() {}
-  E.other() : this(); // 4
+  E.other() : this(); // 5
 }
 ''');
     var element = findElement.unnamedConstructor('E');
     assertThat(element)
-      ..hasRelationCount(4)
+      ..hasRelationCount(5)
       ..isReferencedAt('] 1', true, length: 0)
-      ..isInvokedAt(', // 2', true, length: 0)
-      ..isInvokedAt('.new(); // 3', true, length: 4)
-      ..isInvokedAt('(); // 4', true, length: 0);
+      ..isInvokedByEnumConstantWithoutArgumentsAt(', // 2', length: 0)
+      ..isInvokedAt('(), // 3', true, length: 0)
+      ..isInvokedAt('.new(); // 4', true, length: 4)
+      ..isInvokedAt('(); // 5', true, length: 0);
   }
 
   test_isReferencedBy_ConstructorElement_enum_unnamed_synthetic() async {
@@ -990,15 +994,17 @@ enum E {
 /// [new E] 1
 enum E {
   v1, // 2
-  v2.new(); // 3
+  v2(), // 3
+  v3.new(); // 4
 }
 ''');
     var element = findElement.unnamedConstructor('E');
     assertThat(element)
-      ..hasRelationCount(3)
+      ..hasRelationCount(4)
       ..isReferencedAt('] 1', true, length: 0)
-      ..isInvokedAt(', // 2', true, length: 0)
-      ..isInvokedAt('.new(); // 3', true, length: 4);
+      ..isInvokedByEnumConstantWithoutArgumentsAt(', // 2', length: 0)
+      ..isInvokedAt('(), // 3', true, length: 0)
+      ..isInvokedAt('.new(); // 4', true, length: 4);
   }
 
   test_isReferencedBy_DynamicElement() async {
@@ -1892,6 +1898,16 @@ class _ElementIndexAssert {
   void isInvokedAt(String search, bool isQualified, {int? length}) {
     test._assertHasRelation(element, relations, IndexRelationKind.IS_INVOKED_BY,
         test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isInvokedByEnumConstantWithoutArgumentsAt(String search,
+      {required int length}) {
+    test._assertHasRelation(
+      element,
+      relations,
+      IndexRelationKind.IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS,
+      test._expectedLocation(search, true, length: length),
+    );
   }
 
   void isMixedInAt(String search, bool isQualified, {int? length}) {

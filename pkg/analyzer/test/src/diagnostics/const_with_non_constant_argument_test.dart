@@ -47,6 +47,28 @@ class Foo {
     ]);
   }
 
+  test_enumConstant() async {
+    await assertErrorsInCode(r'''
+var a = 42;
+
+enum E {
+  v(a);
+  const E(_);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 26, 1),
+    ]);
+  }
+
+  test_enumConstant_constantContext() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v([]);
+  const E(_);
+}
+''');
+  }
+
   test_instanceCreation() async {
     await assertErrorsInCode(r'''
 class A {
