@@ -118,7 +118,7 @@ Constructor coverage from constants:
 org-dartlang-testcase:///enum_as_supertype.dart:
 - EA. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
 - _EA&_Enum&A. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - EB. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)
 - _EB&_Enum&B. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)
