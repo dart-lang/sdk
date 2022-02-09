@@ -394,6 +394,9 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     super.visitChildren(visitor);
     safelyVisitChildren(accessors, visitor);
     safelyVisitChildren(fields, visitor);
+    safelyVisitChildren(constructors, visitor);
+    safelyVisitChildren(methods, visitor);
+    safelyVisitChildren(typeParameters, visitor);
   }
 
   /// Return an iterable containing all of the implementations of a getter with
@@ -818,14 +821,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
     reference.element = this;
 
     this.linkedData = linkedData;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(constructors, visitor);
-    safelyVisitChildren(methods, visitor);
-    safelyVisitChildren(typeParameters, visitor);
   }
 
   /// Compute a list of constructors for this class, which is a mixin
