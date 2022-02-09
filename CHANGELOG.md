@@ -25,21 +25,6 @@
 - `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
   `false`.
 
-#### `dart:io`
-
-- **Breaking Change** [#47887](https://github.com/dart-lang/sdk/issues/47887):
-  `HttpClient` has a new `connectionFactory` property, which allows socket
-  creation to be customized. Classes that `implement HttpClient` may be broken
-  by this change. Add the following method to your classes to fix them:
-
-  ```dart
-  void set connectionFactory(
-      Future<ConnectionTask<Socket>> Function(
-              Uri url, String? proxyHost, int? proxyPort)?
-          f) =>
-      throw UnsupportedError("connectionFactory not implemented");
-  ```
-
 ### Tools
 
 #### Dart command line
