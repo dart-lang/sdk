@@ -30,6 +30,7 @@ import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
+import 'package:analyzer/src/dart/element/well_bounded.dart';
 
 /// The [TypeSystem] implementation.
 class TypeSystemImpl implements TypeSystem {
@@ -1176,6 +1177,17 @@ class TypeSystemImpl implements TypeSystem {
 
     // TOP(T) is false otherwise
     return false;
+  }
+
+  /// See `15.2 Super-bounded types` in the language specification.
+  TypeBoundedResult isWellBounded(
+    DartType type, {
+    required bool allowSuperBounded,
+  }) {
+    return TypeBoundedHelper(this).isWellBounded(
+      type,
+      allowSuperBounded: allowSuperBounded,
+    );
   }
 
   /// Returns the least closure of [type] with respect to [typeParameters].

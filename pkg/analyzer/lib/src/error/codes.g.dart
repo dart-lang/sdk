@@ -3671,6 +3671,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try invoking a const generative constructor.",
   );
 
+  static const CompileTimeErrorCode
+      ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED = CompileTimeErrorCode(
+    'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
+    "The result of instantiating the enum to bounds is not well-bounded.",
+    correctionMessage: "Try using different bounds for type parameters.",
+  );
+
   static const CompileTimeErrorCode ENUM_MIXIN_WITH_INSTANCE_VARIABLE =
       CompileTimeErrorCode(
     'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',

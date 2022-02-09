@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -582,12 +583,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkClassInheritance(node, null, withClause, implementsClause);
       }
 
-      // TODO(scheglov) implement
-      // _checkForConflictingClassMembers();
       _constructorFieldsVerifier.enterEnum(node);
       _checkForFinalNotInitializedInClass(node.members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction(node.name);
+      _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, element);
 
       super.visitEnumDeclaration(node);
     } finally {
@@ -2461,6 +2461,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     return true;
+  }
+
+  void _checkForEnumInstantiatedToBoundsIsNotWellBounded(
+    EnumDeclaration node,
+    EnumElementImpl element,
+  ) {
+    var valuesFieldType = element.valuesField?.type;
+    if (valuesFieldType is InterfaceType) {
+      var isWellBounded = typeSystem.isWellBounded(
+        valuesFieldType.typeArguments.single,
+        allowSuperBounded: true,
+      );
+      if (isWellBounded is NotWellBoundedTypeResult) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED,
+          node.name,
+        );
+      }
+    }
   }
 
   /// Check that if the visiting library is not system, then any given library
