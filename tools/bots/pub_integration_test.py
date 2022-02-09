@@ -35,10 +35,10 @@ def Main():
     mode = ('Debug' if options.mode == 'debug' else 'Release')
 
     out_dir = 'xcodebuild' if sys.platform == 'darwin' else 'out'
-    extension = '' if not sys.platform == 'win32' else '.exe'
-    dart = os.path.abspath('%s/%s%s/dart-sdk/bin/dart%s' %
-                           (out_dir, mode, arch, extension))
-    print(dart)
+    extension = '' if not sys.platform == 'win32' else '.bat'
+    pub = os.path.abspath('%s/%s%s/dart-sdk/bin/pub%s' %
+                          (out_dir, mode, arch, extension))
+    print(pub)
 
     working_dir = tempfile.mkdtemp()
     try:
@@ -49,15 +49,11 @@ def Main():
         with open(working_dir + '/pubspec.yaml', 'w') as pubspec_yaml:
             pubspec_yaml.write(PUBSPEC)
 
-        exit_code = subprocess.call([dart, 'pub', 'get'],
-                                    cwd=working_dir,
-                                    env=env)
+        exit_code = subprocess.call([pub, 'get'], cwd=working_dir, env=env)
         if exit_code != 0:
             return exit_code
 
-        exit_code = subprocess.call([dart, 'pub', 'upgrade'],
-                                    cwd=working_dir,
-                                    env=env)
+        exit_code = subprocess.call([pub, 'upgrade'], cwd=working_dir, env=env)
         if exit_code != 0:
             return exit_code
     finally:
