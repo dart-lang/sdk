@@ -87,50 +87,6 @@ abstract class A implements Enum {
 ''');
   }
 
-  test_enum_field() async {
-    await assertErrorsInCode(r'''
-enum E {
-  v;
-  int values = 0;
-}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 20, 6),
-    ]);
-  }
-
-  test_enum_getter() async {
-    await assertErrorsInCode(r'''
-enum E {
-  v;
-  int get values => 0;
-}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 24, 6),
-    ]);
-  }
-
-  test_enum_method() async {
-    await assertErrorsInCode(r'''
-enum E {
-  v;
-  void values() {}
-}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 21, 6),
-    ]);
-  }
-
-  test_enum_setter() async {
-    await assertErrorsInCode(r'''
-enum E {
-  v;
-  set values(int _) {}
-}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 20, 6),
-    ]);
-  }
-
   test_mixin_field() async {
     await assertErrorsInCode(r'''
 mixin M on Enum {

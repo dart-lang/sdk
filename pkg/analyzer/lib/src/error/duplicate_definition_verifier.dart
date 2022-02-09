@@ -53,13 +53,9 @@ class DuplicateDefinitionVerifier {
     var staticGetters = <String, Element>{};
     var staticSetters = <String, Element>{};
 
-    var valuesField = enumElement.valuesField;
-    if (valuesField != null) {
-      staticGetters['values'] = valuesField;
-    }
-
     for (EnumConstantDeclaration constant in node.constants) {
       _checkDuplicateIdentifier(staticGetters, constant.name);
+      _checkValuesDeclarationInEnum(constant.name);
     }
 
     for (var member in node.members) {
@@ -89,6 +85,7 @@ class DuplicateDefinitionVerifier {
             identifier,
             setterScope: member.isStatic ? staticSetters : instanceSetters,
           );
+          _checkValuesDeclarationInEnum(identifier);
         }
       } else if (member is MethodDeclaration) {
         _checkDuplicateIdentifier(
@@ -96,6 +93,7 @@ class DuplicateDefinitionVerifier {
           member.name,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
+        _checkValuesDeclarationInEnum(member.name);
       }
     }
 
@@ -511,6 +509,15 @@ class DuplicateDefinitionVerifier {
           setterScope[name] = element;
         }
       }
+    }
+  }
+
+  void _checkValuesDeclarationInEnum(SimpleIdentifier name) {
+    if (name.name == 'values') {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM,
+        name,
+      );
     }
   }
 

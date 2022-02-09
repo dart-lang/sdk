@@ -770,6 +770,7 @@ import 'uri_with_interpolation_test.dart' as uri_with_interpolation;
 import 'use_of_native_extension_test.dart' as use_of_native_extension;
 import 'use_of_nullable_value_test.dart' as use_of_nullable_value_test;
 import 'use_of_void_result_test.dart' as use_of_void_result;
+import 'values_declaration_in_enum_test.dart' as values_declaration_in_enum;
 import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
 import 'void_with_type_arguments_test.dart' as void_with_type_arguments_test;
 import 'wrong_number_of_parameters_for_operator_test.dart'
@@ -1304,6 +1305,7 @@ main() {
     use_of_native_extension.main();
     use_of_nullable_value_test.main();
     use_of_void_result.main();
+    values_declaration_in_enum.main();
     variable_type_mismatch.main();
     void_with_type_arguments_test.main();
     wrong_number_of_parameters_for_operator.main();

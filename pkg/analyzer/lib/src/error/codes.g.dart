@@ -15583,6 +15583,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode VALUES_DECLARATION_IN_ENUM =
+      CompileTimeErrorCode(
+    'VALUES_DECLARATION_IN_ENUM',
+    "A member named 'values' can't be declared in an enum.",
+    correctionMessage: "Try using a different name.",
+  );
+
   /**
    * Parameters:
    * 0: the type of the object being assigned.

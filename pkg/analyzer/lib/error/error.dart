@@ -478,6 +478,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.URI_WITH_INTERPOLATION,
   CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
   CompileTimeErrorCode.USE_OF_VOID_RESULT,
+  CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM,
   CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
   CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
   CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,

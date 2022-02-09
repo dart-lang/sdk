@@ -13377,6 +13377,9 @@ CompileTimeErrorCode:
 
       Either rewrite the code so that the expression has a value or rewrite the
       code so that it doesn't depend on the value.
+  VALUES_DECLARATION_IN_ENUM:
+    problemMessage: A member named 'values' can't be declared in an enum.
+    correctionMessage: Try using a different name.
   VARIABLE_TYPE_MISMATCH:
     problemMessage: "A value of type '{0}' can't be assigned to a const variable of type '{1}'."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"

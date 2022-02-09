@@ -197,9 +197,11 @@ class _ClassVerifier {
           var fieldElement = field.declaredElement as FieldElement;
           _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
+          if (!member.isStatic && !classElement.isEnum) {
+            _checkIllegalEnumValuesDeclaration(field.name);
+          }
           if (!member.isStatic) {
             _checkIllegalNonAbstractEnumIndex(field.name);
-            _checkIllegalEnumValuesDeclaration(field.name);
           }
         }
       } else if (member is MethodDeclaration) {
@@ -210,7 +212,7 @@ class _ClassVerifier {
 
         _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
             methodParameterNodes: member.parameters?.parameters);
-        if (!member.isStatic) {
+        if (!member.isStatic && !classElement.isEnum) {
           _checkIllegalEnumValuesDeclaration(member.name);
         }
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
