@@ -287,7 +287,7 @@ dart.ci_sandbox_builder(
 
 dart.ci_builder(
     "flutter-engine-ios",
-    recipe = "dart/flutter/engine",
+    recipe = "flutter/engine",
     category = "flutter|i",
     channels = [],
     execution_timeout = 2 * time.hour,
