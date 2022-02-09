@@ -8,5 +8,15 @@ s6 float
 s7 float
 s8 float
 s9 float
+s10 float
+s11 float
+s12 float
+s13 float
+s14 float
+s15 float
+S+0 float
+S+4 float
+S+8 float
+S+12 float
 =>
 q0 float
