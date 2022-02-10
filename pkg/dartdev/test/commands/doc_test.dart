@@ -76,7 +76,10 @@ class Foo {
 }
 ''');
     final result = await p.run(['doc', '--dry-run', '--verbose', p.dirPath]);
-    expect(result.stdout, contains('Documenting dartdev_temp'));
+    expect(result.stdout, contains('Using the following options: [--input='));
+    // TODO(devoncarew): We should update package:dartdoc to emit some
+    // "Documenting ..." text here.
+    expect(result.stdout, isNot(contains('Documenting dartdev_temp')));
     expect(result.exitCode, 0);
   });
 
