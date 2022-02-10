@@ -2340,7 +2340,7 @@ class _ConnectionTarget {
   final SecurityContext? context;
   final Set<_HttpClientConnection> _idle = HashSet();
   final Set<_HttpClientConnection> _active = HashSet();
-  final Set<ConnectionTask<Socket>> _socketTasks = HashSet();
+  final Set<ConnectionTask> _socketTasks = HashSet();
   final _pending = ListQueue<void Function()>();
   int _connecting = 0;
 
@@ -2434,14 +2434,14 @@ class _ConnectionTarget {
       return currentBadCertificateCallback(certificate, uriHost, uriPort);
     }
 
-    Future<ConnectionTask<Socket>> connectionTask = (isSecure && proxy.isDirect
+    Future<ConnectionTask> connectionTask = (isSecure && proxy.isDirect
         ? SecureSocket.startConnect(host, port,
             context: context, onBadCertificate: callback)
         : Socket.startConnect(host, port));
     _connecting++;
-    return connectionTask.then((ConnectionTask<Socket> task) {
+    return connectionTask.then((ConnectionTask task) {
       _socketTasks.add(task);
-      Future<Socket> socketFuture = task.socket;
+      Future socketFuture = task.socket;
       final Duration? connectionTimeout = client.connectionTimeout;
       if (connectionTimeout != null) {
         socketFuture = socketFuture.timeout(connectionTimeout);

@@ -29,9 +29,8 @@ class _TimerHeap {
     if (_used == _list.length) {
       _resize();
     }
-    var index = _used++;
-    timer._indexOrNext = index;
-    _list[index] = timer;
+    timer._indexOrNext = _used++;
+    _list[timer._indexOrNext] = timer;
     _bubbleUp(timer);
   }
 
@@ -50,9 +49,8 @@ class _TimerHeap {
     }
     var last = _list[_used];
     if (!identical(last, timer)) {
-      var index = timer._indexOrNext as int;
-      last._indexOrNext = index;
-      _list[index] = last;
+      last._indexOrNext = timer._indexOrNext;
+      _list[last._indexOrNext] = last;
       if (last._compareTo(timer) < 0) {
         _bubbleUp(last);
       } else {
@@ -83,8 +81,8 @@ class _TimerHeap {
 
   void _bubbleDown(_Timer timer) {
     while (true) {
-      var leftIndex = _leftChildIndex(timer._indexOrNext as int);
-      var rightIndex = _rightChildIndex(timer._indexOrNext as int);
+      int leftIndex = _leftChildIndex(timer._indexOrNext);
+      int rightIndex = _rightChildIndex(timer._indexOrNext);
       _Timer newest = timer;
       if (leftIndex < _used && _list[leftIndex]._compareTo(newest) < 0) {
         newest = _list[leftIndex];
@@ -101,16 +99,14 @@ class _TimerHeap {
   }
 
   void _swap(_Timer first, _Timer second) {
-    var newFirstIndex = second._indexOrNext as int;
-    var newSecondIndex = first._indexOrNext as int;
-    first._indexOrNext = newFirstIndex;
-    second._indexOrNext = newSecondIndex;
-    _list[newFirstIndex] = first;
-    _list[newSecondIndex] = second;
+    int tmp = first._indexOrNext;
+    first._indexOrNext = second._indexOrNext;
+    second._indexOrNext = tmp;
+    _list[first._indexOrNext] = first;
+    _list[second._indexOrNext] = second;
   }
 
-  _Timer _parent(_Timer timer) =>
-      _list[_parentIndex(timer._indexOrNext as int)];
+  _Timer _parent(_Timer timer) => _list[_parentIndex(timer._indexOrNext)];
 
   static int _parentIndex(int index) => (index - 1) ~/ 2;
   static int _leftChildIndex(int index) => 2 * index + 1;
@@ -140,19 +136,18 @@ class _Timer implements Timer {
   static const _ID_MASK = 0x1fffffff;
   static int _idCount = 0;
 
-  static _RawReceivePortImpl? _receivePort;
+  static RawReceivePort? _receivePort;
   static SendPort? _sendPort;
   static bool _receivePortActive = false;
   static int _scheduledWakeupTime = 0;
 
   static bool _handlingCallbacks = false;
 
-  void Function(Timer)?
-      _callback; // Closure to call when timer fires. null if canceled.
+  Function? _callback; // Closure to call when timer fires. null if canceled.
   int _wakeupTime; // Expiration time.
   final int _milliSeconds; // Duration specified at creation.
   final bool _repeating; // Indicates periodic timers.
-  Object? _indexOrNext; // Index if part of the TimerHeap, link otherwise.
+  var _indexOrNext; // Index if part of the TimerHeap, link otherwise.
   int _id; // Incrementing id to enable sorting of timers with same expiry.
 
   int _tick = 0; // Backing for [tick],
@@ -276,20 +271,20 @@ class _Timer implements Timer {
 
   // Handle the notification of a zero timer. Make sure to also execute non-zero
   // timers with a lower expiration time.
-  static List<_Timer> _queueFromZeroEvent() {
-    var pendingTimers = <_Timer>[];
+  static List _queueFromZeroEvent() {
+    var pendingTimers = <dynamic>[];
     final firstTimer = _firstZeroTimer;
     if (firstTimer != null) {
       // Collect pending timers from the timer heap that have an expiration prior
       // to the currently notified zero timer.
-      _Timer timer;
+      var timer;
       while (!_heap.isEmpty && (_heap.first._compareTo(firstTimer) < 0)) {
         timer = _heap.removeFirst();
         pendingTimers.add(timer);
       }
       // Append the first zero timer to the pending timers.
-      timer = firstTimer;
-      _firstZeroTimer = timer._indexOrNext as _Timer?;
+      timer = _firstZeroTimer;
+      _firstZeroTimer = timer._indexOrNext;
       timer._indexOrNext = null;
       pendingTimers.add(timer);
     }
@@ -326,8 +321,8 @@ class _Timer implements Timer {
     }
   }
 
-  static List<_Timer> _queueFromTimeoutEvent() {
-    var pendingTimers = <_Timer>[];
+  static List _queueFromTimeoutEvent() {
+    var pendingTimers = [];
     final firstTimer = _firstZeroTimer;
     if (firstTimer != null) {
       // Collect pending timers from the timer heap that have an expiration
@@ -336,23 +331,25 @@ class _Timer implements Timer {
       // current time, meaning all timers which are "less than" the first zero
       // timer are expired. The first zero timer will be dispatched when its
       // corresponding message is delivered.
+      var timer;
       while (!_heap.isEmpty && (_heap.first._compareTo(firstTimer) < 0)) {
-        var timer = _heap.removeFirst();
+        timer = _heap.removeFirst();
         pendingTimers.add(timer);
       }
     } else {
       // Collect pending timers from the timer heap which have expired at this
       // time.
       var currentTime = VMLibraryHooks.timerMillisecondClock();
+      var timer;
       while (!_heap.isEmpty && (_heap.first._wakeupTime <= currentTime)) {
-        var timer = _heap.removeFirst();
+        timer = _heap.removeFirst();
         pendingTimers.add(timer);
       }
     }
     return pendingTimers;
   }
 
-  static void _runTimers(List<_Timer> pendingTimers) {
+  static void _runTimers(List pendingTimers) {
     // If there are no pending timers currently reset the id space before we
     // have a chance to enqueue new timers.
     if (_heap.isEmpty && (_firstZeroTimer == null)) {
@@ -378,8 +375,8 @@ class _Timer implements Timer {
         // One of the timers in the pending_timers list can cancel
         // one of the later timers which will set the callback to
         // null. Or the pending zero timer has been canceled earlier.
-        var callback = timer._callback;
-        if (callback != null) {
+        if (timer._callback != null) {
+          var callback = timer._callback;
           if (!timer._repeating) {
             // Mark timer as inactive.
             timer._callback = null;
@@ -417,7 +414,7 @@ class _Timer implements Timer {
   }
 
   static void _handleMessage(msg) {
-    List<_Timer> pendingTimers;
+    var pendingTimers;
     if (msg == _ZERO_EVENT) {
       pendingTimers = _queueFromZeroEvent();
       assert(pendingTimers.length > 0);
@@ -437,14 +434,14 @@ class _Timer implements Timer {
     if (!_receivePortActive) {
       _createTimerHandler();
     }
-    VMLibraryHooks.eventHandlerSendData(null, _sendPort!, wakeupTime);
+    VMLibraryHooks.eventHandlerSendData(null, _sendPort, wakeupTime);
     _scheduledWakeupTime = wakeupTime;
   }
 
   // Cancel pending wakeups in the event handler.
   static void _cancelWakeup() {
     if (_sendPort != null) {
-      VMLibraryHooks.eventHandlerSendData(null, _sendPort!, _NO_TIMER);
+      VMLibraryHooks.eventHandlerSendData(null, _sendPort, _NO_TIMER);
       _scheduledWakeupTime = 0;
     }
   }
@@ -452,23 +449,22 @@ class _Timer implements Timer {
   // Create a receive port and register a message handler for the timer
   // events.
   static void _createTimerHandler() {
-    var receivePort = _receivePort;
-    if (receivePort == null) {
+    if (_receivePort == null) {
+      assert(_receivePort == null);
       assert(_sendPort == null);
-      final port = _RawReceivePortImpl('Timer');
-      port.handler = _handleMessage;
-      _sendPort = port.sendPort;
+      final port = RawReceivePort(_handleMessage, 'Timer');
       _receivePort = port;
+      _sendPort = port.sendPort;
       _scheduledWakeupTime = 0;
     } else {
-      receivePort._setActive(true);
+      (_receivePort as _RawReceivePortImpl)._setActive(true);
     }
     _receivePortActive = true;
   }
 
   static void _shutdownTimerHandler() {
     _scheduledWakeupTime = 0;
-    _receivePort!._setActive(false);
+    (_receivePort as _RawReceivePortImpl)._setActive(false);
     _receivePortActive = false;
   }
 

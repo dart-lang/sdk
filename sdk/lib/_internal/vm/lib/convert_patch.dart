@@ -28,7 +28,12 @@ import "dart:typed_data" show Uint8List, Uint16List;
 @patch
 dynamic _parseJson(
     String source, Object? Function(Object? key, Object? value)? reviver) {
-  _JsonListener listener = new _JsonListener(reviver);
+  _BuildJsonListener listener;
+  if (reviver == null) {
+    listener = new _BuildJsonListener();
+  } else {
+    listener = new _ReviverJsonListener(reviver);
+  }
   var parser = new _JsonStringParser(listener);
   parser.chunk = source;
   parser.chunkEnd = source.length;
@@ -83,16 +88,36 @@ class _JsonUtf8Decoder extends Converter<List<int>, Object?> {
 // Simple API for JSON parsing.
 
 /**
- * A [_JsonListener] builds data objects from the parser events.
+ * Listener for parsing events from [_ChunkedJsonParser].
+ */
+abstract class _JsonListener {
+  void handleString(String value) {}
+  void handleNumber(num value) {}
+  void handleBool(bool value) {}
+  void handleNull() {}
+  void beginObject() {}
+  void propertyName() {}
+  void propertyValue() {}
+  void endObject() {}
+  void beginArray() {}
+  void arrayElement() {}
+  void endArray() {}
+
+  /**
+   * Read out the final result of parsing a JSON string.
+   *
+   * Must only be called when the entire input has been parsed.
+   */
+  dynamic get result;
+}
+
+/**
+ * A [_JsonListener] that builds data objects from the parser events.
  *
  * This is a simple stack-based object builder. It keeps the most recently
  * seen value in a variable, and uses it depending on the following event.
  */
-class _JsonListener {
-  _JsonListener(this.reviver);
-
-  final Object? Function(Object? key, Object? value)? reviver;
-
+class _BuildJsonListener extends _JsonListener {
   /**
    * Stack used to handle nested containers.
    *
@@ -101,17 +126,12 @@ class _JsonListener {
    * which is also stored on the stack.
    */
   final List<Object?> stack = [];
-
-  /** The current [Map] or [List] being built, or null if not building a
-  * container.
-  */
-  Object? currentContainer;
-
+  /** The current [Map] or [List] being built. */
+  dynamic currentContainer;
   /** The most recently read property key. */
   String key = '';
-
   /** The most recently read value. */
-  Object? value;
+  dynamic value;
 
   /** Pushes the currently active container (and key, if a [Map]). */
   void pushContainer() {
@@ -148,16 +168,12 @@ class _JsonListener {
   }
 
   void propertyName() {
-    key = value as String;
+    key = value;
     value = null;
   }
 
   void propertyValue() {
-    var map = currentContainer as Map;
-    var reviver = this.reviver;
-    if (reviver != null) {
-      value = reviver(key, value);
-    }
+    Map map = currentContainer;
     map[key] = value;
     key = '';
     value = null;
@@ -169,16 +185,11 @@ class _JsonListener {
 
   void beginArray() {
     pushContainer();
-    currentContainer = <dynamic>[];
+    currentContainer = [];
   }
 
   void arrayElement() {
-    var list = currentContainer as List;
-    var reviver = this.reviver;
-    if (reviver != null) {
-      value = reviver(list.length, value);
-    }
-    list.add(value);
+    currentContainer.add(value);
     value = null;
   }
 
@@ -186,19 +197,30 @@ class _JsonListener {
     popContainer();
   }
 
-  /**
-   * Read out the final result of parsing a JSON string.
-   *
-   * Must only be called when the entire input has been parsed.
-   */
+  /** Read out the final result of parsing a JSON string. */
   dynamic get result {
     assert(currentContainer == null);
-    var reviver = this.reviver;
-    if (reviver != null) {
-      return reviver(null, value);
-    } else {
-      return value;
-    }
+    return value;
+  }
+}
+
+class _ReviverJsonListener extends _BuildJsonListener {
+  final Object? Function(Object? key, Object? value) reviver;
+  _ReviverJsonListener(this.reviver);
+
+  void arrayElement() {
+    List list = currentContainer;
+    value = reviver(list.length, value);
+    super.arrayElement();
+  }
+
+  void propertyValue() {
+    value = reviver(key, value);
+    super.propertyValue();
+  }
+
+  dynamic get result {
+    return reviver(null, value);
   }
 }
 
@@ -1455,7 +1477,13 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
 
   static _JsonStringParser _createParser(
       Object? Function(Object? key, Object? value)? reviver) {
-    return new _JsonStringParser(new _JsonListener(reviver));
+    _BuildJsonListener listener;
+    if (reviver == null) {
+      listener = new _BuildJsonListener();
+    } else {
+      listener = new _ReviverJsonListener(reviver);
+    }
+    return new _JsonStringParser(listener);
   }
 
   void addSlice(String chunk, int start, int end, bool isLast) {
@@ -1563,7 +1591,13 @@ class _JsonUtf8DecoderSink extends ByteConversionSinkBase {
   static _JsonUtf8Parser _createParser(
       Object? Function(Object? key, Object? value)? reviver,
       bool allowMalformed) {
-    return new _JsonUtf8Parser(new _JsonListener(reviver), allowMalformed);
+    _BuildJsonListener listener;
+    if (reviver == null) {
+      listener = new _BuildJsonListener();
+    } else {
+      listener = new _ReviverJsonListener(reviver);
+    }
+    return new _JsonUtf8Parser(listener, allowMalformed);
   }
 
   void addSlice(List<int> chunk, int start, int end, bool isLast) {

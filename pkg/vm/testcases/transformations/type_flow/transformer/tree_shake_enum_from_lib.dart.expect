@@ -51,6 +51,6 @@ class ConstClass extends core::Object {
   synthetic constructor •() → self::ConstClass
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3335,getterSelectorId:3336]  method method([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::ConstEnum e) → core::int
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3402,getterSelectorId:3403]  method method([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::ConstEnum e) → core::int
     return [@vm.inferred-type.metadata=!] e.{core::_Enum::index}{core::int};
 }
