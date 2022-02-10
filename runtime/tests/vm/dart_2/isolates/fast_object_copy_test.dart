@@ -8,6 +8,8 @@
 // VMOptions=--enable-fast-object-copy
 // VMOptions=--no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
 // VMOptions=--enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
+// VMOptions=--no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer --deterministic
+// VMOptions=--enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer --deterministic
 
 // The tests in this file are particularly for an implementation that tries to
 // allocate the entire graph in BFS order using a fast new space allocation

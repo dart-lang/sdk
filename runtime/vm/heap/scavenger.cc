@@ -180,8 +180,13 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     if (!parallel) {
       const uword td_header = ReadHeaderRelaxed(td);
       ASSERT(!IsForwarding(td_header) || td->IsOldObject());
-
-      ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassId()), is_external);
+      if (td != Object::null()) {
+        // Fast object copy temporarily stores null in the typed_data field of
+        // views. This can cause the RecomputeDataFieldForInternalTypedData to
+        // run inappropriately, but when the object copy continues it will fix
+        // the data_ pointer.
+        ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassId()), is_external);
+      }
     }
 #endif
 
