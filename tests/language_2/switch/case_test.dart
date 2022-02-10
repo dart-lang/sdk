@@ -35,6 +35,8 @@ main() {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
     case const A.B(): Expect.fail("bad switch"); break;
+    //         ^
+    // [cfe] Case expression 'B {}' does not have a primitive operator '=='.
   }
 
   switch (new C()) {
@@ -59,5 +61,7 @@ main() {
     case const A.B(): Expect.fail("bad switch"); break;
     //   ^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INCONSISTENT_CASE_EXPRESSION_TYPES
+    //         ^
+    // [cfe] Case expression 'B {}' does not have a primitive operator '=='.
   }
 }

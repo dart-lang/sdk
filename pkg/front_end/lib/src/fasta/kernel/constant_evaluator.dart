@@ -728,7 +728,7 @@ class ConstantsTransformer extends RemovingTransformer {
     TreeNode result = super.visitSwitchStatement(node, removalSentinel);
     Library library = constantEvaluator.libraryOf(node);
     // ignore: unnecessary_null_comparison
-    if (library != null && library.isNonNullableByDefault) {
+    if (library != null) {
       for (SwitchCase switchCase in node.cases) {
         for (Expression caseExpression in switchCase.expressions) {
           if (caseExpression is ConstantExpression) {
