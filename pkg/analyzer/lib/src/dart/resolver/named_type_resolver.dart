@@ -213,7 +213,7 @@ class NamedTypeResolver {
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );
-        type = typeSystem.toLegacyType(type);
+        type = typeSystem.toLegacyTypeIfOptOut(type);
         return _verifyTypeAliasForContext(node, element, type);
       } else if (_isInstanceCreation(node)) {
         _ErrorHelper(errorReporter).reportNewWithNonType(node);
