@@ -1996,7 +1996,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitIntegerLiteral(IntegerLiteral node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitIntegerLiteral(node);
+    typeAnalyzer.visitIntegerLiteral(node as IntegerLiteralImpl);
   }
 
   @override

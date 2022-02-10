@@ -223,6 +223,17 @@ void main() {
     ]);
   }
 
+  test_unaryNegativeVoidFunction() async {
+    await assertErrorsInCode('''
+void test(void f()) {
+  -f();
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 25, 3),
+    ]);
+  }
+
   test_unaryNegativeVoidValueError() async {
     await assertErrorsInCode('''
 void main() {
