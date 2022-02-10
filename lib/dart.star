@@ -114,7 +114,6 @@ def _try_builder(
         priority = priority.high,
         properties = builder_properties,
         service_account = accounts.try_builder,
-        swarming_tags = ["vpython:native-python-wrapper"],
     )
     includable_only = (not on_cq and not experiment_percentage and
                        not location_regexp)
@@ -245,7 +244,6 @@ def _builder(
                 notifies = notifies if enabled else None,
                 schedule = schedule if enabled else None,
                 service_account = service_account,
-                swarming_tags = ["vpython:native-python-wrapper"],
                 triggered_by = triggered_by if enabled else None,
                 triggering_policy = triggering_policy,
             )
