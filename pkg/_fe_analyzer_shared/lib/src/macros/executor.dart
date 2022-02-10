@@ -89,7 +89,7 @@ abstract class MacroExecutor {
   /// The [resolveIdentifier] argument should return the import uri to be used
   /// for that identifier.
   String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
-      Uri Function(Identifier) resolveIdentifier);
+      ResolvedIdentifier Function(Identifier) resolveIdentifier);
 
   /// Tell the executor to shut down and clean up any resources it may have
   /// allocated.
@@ -218,6 +218,41 @@ class Arguments implements Serializable {
       throw new UnsupportedError('Unsupported argument type $arg');
     }
   }
+}
+
+/// A resolved [Identifier], this is used when creating augmentation libraries
+/// to qualify identifiers where needed.
+class ResolvedIdentifier extends Identifier {
+  /// The import URI for the library that defines the member that is referenced
+  /// by this identifier.
+  final Uri uri;
+
+  /// Type type of identifier this is (instance, static, top level).
+  final IdentifierKind kind;
+
+  /// The unqualified name of this identifier.
+  @override
+  final String name;
+
+  /// If this is a static member, then the name of the fully qualified scope
+  /// surrounding this member. Should not contain a trailing `.`.
+  ///
+  /// Typically this would just be the name of a type.
+  final String? staticScope;
+
+  ResolvedIdentifier({
+    required this.kind,
+    required this.name,
+    required this.staticScope,
+    required this.uri,
+  });
+}
+
+/// The types of identifiers.
+enum IdentifierKind {
+  instanceMember,
+  staticInstanceMember,
+  topLevelMember,
 }
 
 /// An opaque identifier for a macro class, retrieved by

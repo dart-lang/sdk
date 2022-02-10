@@ -5,6 +5,7 @@
 import 'dart:mirrors';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
 
@@ -108,13 +109,22 @@ class TestNamedStaticType implements NamedStaticType {
       (library == other.library && identifier.name == other.identifier.name);
 }
 
-/// An identifier that knows what URI should be used to import it.
+/// An identifier that knows the resolved version of itself.
 class TestIdentifier extends IdentifierImpl {
-  final Uri libraryImportUri;
+  final ResolvedIdentifier resolved;
 
-  TestIdentifier(
-      {required int id, required String name, required this.libraryImportUri})
-      : super(id: id, name: name);
+  TestIdentifier({
+    required int id,
+    required String name,
+    required IdentifierKind kind,
+    required Uri uri,
+    required String? staticScope,
+  })  : resolved = ResolvedIdentifier(
+            kind: kind, name: name, staticScope: staticScope, uri: uri),
+        super(
+          id: id,
+          name: name,
+        );
 }
 
 extension DebugCodeString on Code {

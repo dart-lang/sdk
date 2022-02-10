@@ -10,26 +10,44 @@ import '../executor.dart';
 mixin AugmentationLibraryBuilder on MacroExecutor {
   @override
   String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
-      Uri Function(Identifier) resolveIdentifier) {
+      ResolvedIdentifier Function(Identifier) resolveIdentifier) {
     StringBuffer importsBuffer = new StringBuffer();
     StringBuffer directivesBuffer = new StringBuffer();
     Map<Uri, String> importPrefixes = {};
     int nextPrefix = 0;
 
+    // Keeps track of the last part written in `lastDirectivePart`.
+    String lastDirectivePart = '';
+    void writeDirectivePart(String part) {
+      lastDirectivePart = part;
+      directivesBuffer.write(part);
+    }
+
     void buildCode(Code code) {
       for (Object part in code.parts) {
         if (part is String) {
-          directivesBuffer.write(part);
+          writeDirectivePart(part);
         } else if (part is Code) {
           buildCode(part);
         } else if (part is Identifier) {
-          Uri uri = resolveIdentifier(part);
-          String prefix = importPrefixes.putIfAbsent(uri, () {
+          ResolvedIdentifier resolved = resolveIdentifier(part);
+          String prefix = importPrefixes.putIfAbsent(resolved.uri, () {
             String prefix = 'i${nextPrefix++}';
-            importsBuffer.writeln("import '$uri' as $prefix;");
+            importsBuffer.writeln("import '${resolved.uri}' as $prefix;");
             return prefix;
           });
-          directivesBuffer.write('$prefix.${part.name}');
+          if (resolved.kind == IdentifierKind.instanceMember) {
+            // Qualify with `this.` if we don't have a receiver.
+            if (!lastDirectivePart.trimRight().endsWith('.')) {
+              writeDirectivePart('this.');
+            }
+          } else {
+            writeDirectivePart('${prefix}.');
+          }
+          if (resolved.kind == IdentifierKind.staticInstanceMember) {
+            writeDirectivePart('${resolved.staticScope!}.');
+          }
+          writeDirectivePart('${part.name}');
         } else {
           throw new ArgumentError(
               'Code objects only support String, Identifier, and Code '

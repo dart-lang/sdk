@@ -282,7 +282,7 @@ class TestMacroExecutor implements MacroExecutor {
 
   @override
   String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
-      Uri Function(Identifier) resolveIdentifier) {
+      ResolvedIdentifier Function(Identifier) resolveIdentifier) {
     // TODO: implement buildAugmentationLibrary
     throw UnimplementedError();
   }
