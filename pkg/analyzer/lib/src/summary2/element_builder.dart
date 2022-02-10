@@ -564,6 +564,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     if (node.isGetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
       element.isGetter = true;
+      element.isStatic = true;
 
       reference = _enclosingContext.addGetter(name, element);
       executableElement = element;
@@ -572,6 +573,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     } else if (node.isSetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
       element.isSetter = true;
+      element.isStatic = true;
 
       reference = _enclosingContext.addSetter(name, element);
       executableElement = element;
@@ -579,6 +581,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _buildSyntheticVariable(name: name, accessorElement: element);
     } else {
       var element = FunctionElementImpl(name, nameOffset);
+      element.isStatic = true;
       reference = _enclosingContext.addFunction(name, element);
       executableElement = element;
     }

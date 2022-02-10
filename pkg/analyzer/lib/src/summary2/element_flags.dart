@@ -119,6 +119,7 @@ class FunctionElementFlags {
   static const int _isAsynchronous = 1 << 1;
   static const int _isExternal = 1 << 2;
   static const int _isGenerator = 1 << 3;
+  static const int _isStatic = 1 << 4;
 
   static void read(SummaryDataReader reader, FunctionElementImpl element) {
     var byte = reader.readByte();
@@ -126,6 +127,7 @@ class FunctionElementFlags {
     element.isAsynchronous = (byte & _isAsynchronous) != 0;
     element.isExternal = (byte & _isExternal) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
+    element.isStatic = (byte & _isStatic) != 0;
   }
 
   static void write(BufferedSink sink, FunctionElementImpl element) {
@@ -134,6 +136,7 @@ class FunctionElementFlags {
     result |= element.isAsynchronous ? _isAsynchronous : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
+    result |= element.isStatic ? _isStatic : 0;
     sink.writeByte(result);
   }
 }

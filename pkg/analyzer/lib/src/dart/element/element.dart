@@ -1365,9 +1365,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  bool get isStatic => false;
-
-  @override
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override
@@ -2880,6 +2877,15 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   bool get isOperator => false;
 
   @override
+  bool get isStatic {
+    return hasModifier(Modifier.STATIC);
+  }
+
+  set isStatic(bool isStatic) {
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
+  @override
   bool get isSynchronous => !isAsynchronous;
 
   @override
@@ -3250,16 +3256,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
     return hasModifier(Modifier.EXTERNAL);
   }
 
-  @override
-  bool get isStatic {
-    return hasModifier(Modifier.STATIC);
-  }
-
-  /// Set whether this field is static.
-  set isStatic(bool isStatic) {
-    setModifier(Modifier.STATIC, isStatic);
-  }
-
   /// Return `true` if this element is a synthetic enum field.
   ///
   /// It is synthetic because it is not written explicitly in code, but it
@@ -3351,9 +3347,6 @@ class FunctionElementImpl extends ExecutableElementImpl
   bool get isEntryPoint {
     return isStatic && displayName == FunctionElement.MAIN_FUNCTION_NAME;
   }
-
-  @override
-  bool get isStatic => enclosingElement is CompilationUnitElement;
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
@@ -4209,16 +4202,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   }
 
   @override
-  bool get isStatic {
-    return hasModifier(Modifier.STATIC);
-  }
-
-  /// Set whether this method is static.
-  set isStatic(bool isStatic) {
-    setModifier(Modifier.STATIC, isStatic);
-  }
-
-  @override
   ElementKind get kind => ElementKind.METHOD;
 
   @override
@@ -5045,16 +5028,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   /// Set whether this accessor is a setter.
   set isSetter(bool isSetter) {
     setModifier(Modifier.SETTER, isSetter);
-  }
-
-  @override
-  bool get isStatic {
-    return hasModifier(Modifier.STATIC);
-  }
-
-  /// Set whether this accessor is static.
-  set isStatic(bool isStatic) {
-    setModifier(Modifier.STATIC, isStatic);
   }
 
   @override
@@ -5930,6 +5903,10 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   bool get isStatic => hasModifier(Modifier.STATIC);
+
+  set isStatic(bool isStatic) {
+    setModifier(Modifier.STATIC, isStatic);
+  }
 
   @override
   String get name => super.name!;
