@@ -1,0 +1,8 @@
+M(a0 int64, a1 int64) Struct(size: 12)
+M(a2 int64, tmp int64) Struct(size: 12)
+M(tmp2 int64, pp int64) Struct(size: 12)
+M(a6 int64, a7 int64) Struct(size: 12)
+M(S+0 int64, S+8 int64) Struct(size: 12)
+M(S+16 int64, S+24 int64) Struct(size: 12)
+=>
+a0 int64

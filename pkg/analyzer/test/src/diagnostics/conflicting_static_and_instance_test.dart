@@ -491,6 +491,17 @@ enum E {
     ]);
   }
 
+  test_constant_this_setter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo;
+  set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 11, 3),
+    ]);
+  }
+
   test_constant_toString() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -554,6 +565,17 @@ enum E with M {
 }
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 73, 3),
+    ]);
+  }
+
+  test_field_this_constant() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo;
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 11, 3),
     ]);
   }
 
@@ -658,6 +680,17 @@ enum E with M {
 }
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 68, 3),
+    ]);
+  }
+
+  test_method_this_constant() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo;
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 11, 3),
     ]);
   }
 

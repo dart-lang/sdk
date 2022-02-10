@@ -389,6 +389,21 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    computer._addRegionForNode(node.name, node.constructorElement);
+
+    var arguments = node.arguments;
+    if (arguments != null) {
+      computer._addRegionForNode(
+        arguments.constructorSelector?.name,
+        node.constructorElement,
+      );
+      arguments.typeArguments?.accept(this);
+      arguments.argumentList.accept(this);
+    }
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     var exportElement = node.element;
     if (exportElement != null) {

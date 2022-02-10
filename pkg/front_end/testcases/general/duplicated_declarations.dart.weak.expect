@@ -295,7 +295,7 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations.dart:94:3: Error: Can't declare a member that conflicts with an inherited one.
 //   index,
 //   ^^^^^
-// sdk/lib/core/enum.dart:74:13: Context: This is the inherited member.
+// sdk/lib/core/enum.dart:101:13: Context: This is the inherited member.
 //   final int index;
 //             ^^^^^
 //
@@ -687,7 +687,7 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///duplicated_declarations.dart:
 - Enum#1. (from org-dartlang-testcase:///duplicated_declarations.dart:83:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - Enum. (from org-dartlang-testcase:///duplicated_declarations.dart:76:6)
 - AnotherEnum. (from org-dartlang-testcase:///duplicated_declarations.dart:89:6)

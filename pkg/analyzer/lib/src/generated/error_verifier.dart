@@ -423,8 +423,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitClassDeclaration(ClassDeclaration node) {
     var outerClass = _enclosingClass;
     try {
+      var element = node.declaredElement as ClassElementImpl;
       _isInNativeClass = node.nativeClause != null;
-      _enclosingClass = node.declaredElement as ClassElementImpl;
+      _enclosingClass = element;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkClass(node);
@@ -448,6 +449,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForBadFunctionUse(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction(node.name);
+
+      GetterSetterTypesVerifier(
+        typeSystem: typeSystem,
+        errorReporter: errorReporter,
+      ).checkStaticAccessors(element.accessors);
+
       super.visitClassDeclaration(node);
     } finally {
       _isInNativeClass = false;
@@ -485,10 +492,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
+    var element = node.declaredElement as CompilationUnitElement;
     _featureSet = node.featureSet;
     _duplicateDefinitionVerifier.checkUnit(node);
     _checkForDeferredPrefixCollisions(node);
     _checkForIllegalLanguageOverride(node);
+
+    GetterSetterTypesVerifier(
+      typeSystem: typeSystem,
+      errorReporter: errorReporter,
+    ).checkStaticAccessors(element.accessors);
+
     super.visitCompilationUnit(node);
     _featureSet = null;
   }
@@ -589,6 +603,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForMainFunction(node.name);
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, element);
 
+      GetterSetterTypesVerifier(
+        typeSystem: typeSystem,
+        errorReporter: errorReporter,
+      ).checkStaticAccessors(element.accessors);
+
       super.visitEnumDeclaration(node);
     } finally {
       _enclosingClass = outerClass;
@@ -620,7 +639,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    _enclosingExtension = node.declaredElement;
+    var element = node.declaredElement!;
+    _enclosingExtension = element;
     _duplicateDefinitionVerifier.checkExtension(node);
     _checkForConflictingExtensionTypeVariableErrorCodes();
     _checkForFinalNotInitializedInClass(node.members);
@@ -628,7 +648,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
-    ).checkExtension(node);
+    ).checkExtension(element);
 
     final name = node.name;
     if (name != null) {
@@ -727,13 +747,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _withEnclosingExecutable(functionElement, () {
       SimpleIdentifier identifier = node.name;
       TypeAnnotation? returnType = node.returnType;
-      if (node.isGetter) {
-        GetterSetterTypesVerifier(
-          typeSystem: typeSystem,
-          errorReporter: errorReporter,
-        ).checkGetter(
-            node.name, node.declaredElement as PropertyAccessorElement);
-      }
       if (node.isSetter) {
         FunctionExpression functionExpression = node.functionExpression;
         _checkForWrongNumberOfParametersForSetter(
@@ -918,13 +931,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitMethodDeclaration(MethodDeclaration node) {
     _withEnclosingExecutable(node.declaredElement!, () {
       var returnType = node.returnType;
-      if (node.isStatic && node.isGetter) {
-        GetterSetterTypesVerifier(
-          typeSystem: typeSystem,
-          errorReporter: errorReporter,
-        ).checkGetter(
-            node.name, node.declaredElement as PropertyAccessorElement);
-      }
       if (node.isSetter) {
         _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
         _checkForNonVoidReturnTypeForSetter(returnType);

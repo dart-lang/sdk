@@ -643,5 +643,5 @@ Extra constant evaluation: evaluated: 720, effectively constant: 18
 Constructor coverage from constants:
 org-dartlang-testcase:///unsound_checks_lib.dart:
 - E. (from org-dartlang-testcase:///unsound_checks_lib.dart:145:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

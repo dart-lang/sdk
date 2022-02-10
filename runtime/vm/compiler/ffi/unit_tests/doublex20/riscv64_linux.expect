@@ -1,0 +1,22 @@
+fa0 double
+fa1 double
+fa2 double
+fa3 double
+fa4 double
+fa5 double
+fa6 double
+fa7 double
+a0 int64[double]
+a1 int64[double]
+a2 int64[double]
+tmp int64[double]
+tmp2 int64[double]
+pp int64[double]
+a6 int64[double]
+a7 int64[double]
+S+0 double
+S+8 double
+S+16 double
+S+24 double
+=>
+fa0 double

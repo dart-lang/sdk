@@ -256,6 +256,8 @@ class EnumTest {
     // use SearchResultKind inside the analysis server?
     EnumTester<MatchKind, SearchResultKind>()
         .run(newSearchResultKind_fromEngine, exceptions: {
+      MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS:
+          SearchResultKind.INVOCATION,
       MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF: SearchResultKind.REFERENCE,
     });
   }

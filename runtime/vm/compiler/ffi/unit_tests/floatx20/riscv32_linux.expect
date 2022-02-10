@@ -1,0 +1,22 @@
+fa0 float
+fa1 float
+fa2 float
+fa3 float
+fa4 float
+fa5 float
+fa6 float
+fa7 float
+(a0, a1) int64[float]
+(a2, tmp) int64[float]
+(tmp2, pp) int64[float]
+(a6, a7) int64[float]
+S+0 float
+S+4 float
+S+8 float
+S+12 float
+S+16 float
+S+20 float
+S+24 float
+S+28 float
+=>
+fa0 float

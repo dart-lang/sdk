@@ -8,14 +8,14 @@ library dart2js.constants.values.test;
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/helpers/helpers.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/constants/values.dart';
+import 'package:compiler/src/diagnostics/invariant.dart' show DEBUG_MODE;
 import '../helpers/type_test_helper.dart';
 
 void main() {
-  enableDebugMode();
+  DEBUG_MODE = true;
 
   asyncTest(() async {
     TypeEnvironment env = await TypeEnvironment.create("""

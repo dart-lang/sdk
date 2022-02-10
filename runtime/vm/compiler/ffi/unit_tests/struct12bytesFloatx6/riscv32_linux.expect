@@ -1,0 +1,8 @@
+P(a0 uint32) Struct(size: 12)
+P(a1 uint32) Struct(size: 12)
+P(a2 uint32) Struct(size: 12)
+P(tmp uint32) Struct(size: 12)
+P(tmp2 uint32) Struct(size: 12)
+P(pp uint32) Struct(size: 12)
+=>
+(a0, a1) int64

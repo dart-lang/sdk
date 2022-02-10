@@ -538,7 +538,7 @@ enum E {
     await assertNoErrorsInCode(r'''
 enum E {
   foo;
-  static set foo(int _) {}
+  static set foo(_) {}
 }
 ''');
   }

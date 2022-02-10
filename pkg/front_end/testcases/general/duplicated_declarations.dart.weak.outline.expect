@@ -295,7 +295,7 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations.dart:94:3: Error: Can't declare a member that conflicts with an inherited one.
 //   index,
 //   ^^^^^
-// sdk/lib/core/enum.dart:74:13: Context: This is the inherited member.
+// sdk/lib/core/enum.dart:101:13: Context: This is the inherited member.
 //   final int index;
 //             ^^^^^
 //

@@ -49,12 +49,13 @@ abstract class DiagnosticReporter {
   void reportHint(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]);
 
+  void reportInfoMessage(Spannable node, MessageKind errorCode,
+      [Map<String, String> arguments = const {}]) {
+    reportInfo(createMessage(node, errorCode, arguments));
+  }
+
   void reportInfo(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]);
-
-  @deprecated
-  void reportInfoMessage(Spannable node, MessageKind errorCode,
-      [Map<String, String> arguments = const {}]);
 
   /// Set current element of this reporter to [element]. This is used for
   /// creating [SourceSpan] in [spanFromSpannable].
