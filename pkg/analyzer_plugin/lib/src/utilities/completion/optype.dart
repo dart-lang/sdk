@@ -496,6 +496,17 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    if (node.semicolon != null) {
+      if (node.members.contains(entity) ||
+          identical(entity, node.rightBracket)) {
+        optype.completionLocation = 'EnumDeclaration_member';
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
+  }
+
+  @override
   void visitExpression(Expression node) {
     // This should never be called; we should always dispatch to the visitor
     // for a particular kind of expression.

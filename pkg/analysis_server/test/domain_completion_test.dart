@@ -14,6 +14,7 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -37,6 +38,52 @@ void main() {
     defineReflectiveTests(CompletionDomainHandlerGetSuggestions2Test);
     defineReflectiveTests(CompletionDomainHandlerGetSuggestionsTest);
   });
+}
+
+/// TODO(scheglov) this is duplicate
+class AnalysisOptionsFileConfig {
+  final List<String> experiments;
+  final bool implicitCasts;
+  final bool implicitDynamic;
+  final List<String> lints;
+  final bool strictCasts;
+  final bool strictInference;
+  final bool strictRawTypes;
+
+  AnalysisOptionsFileConfig({
+    this.experiments = const [],
+    this.implicitCasts = true,
+    this.implicitDynamic = true,
+    this.lints = const [],
+    this.strictCasts = false,
+    this.strictInference = false,
+    this.strictRawTypes = false,
+  });
+
+  String toContent() {
+    var buffer = StringBuffer();
+
+    buffer.writeln('analyzer:');
+    buffer.writeln('  enable-experiment:');
+    for (var experiment in experiments) {
+      buffer.writeln('    - $experiment');
+    }
+    buffer.writeln('  language:');
+    buffer.writeln('    strict-casts: $strictCasts');
+    buffer.writeln('    strict-inference: $strictInference');
+    buffer.writeln('    strict-raw-types: $strictRawTypes');
+    buffer.writeln('  strong-mode:');
+    buffer.writeln('    implicit-casts: $implicitCasts');
+    buffer.writeln('    implicit-dynamic: $implicitDynamic');
+
+    buffer.writeln('linter:');
+    buffer.writeln('  rules:');
+    for (var lint in lints) {
+      buffer.writeln('    - $lint');
+    }
+
+    return buffer.toString();
+  }
 }
 
 @reflectiveTest
@@ -2882,6 +2929,12 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     return server.handlers.whereType<CompletionDomainHandler>().single;
   }
 
+  List<String> get experiments => [
+        EnableString.enhanced_enums,
+        EnableString.named_arguments_anywhere,
+        EnableString.super_parameters,
+      ];
+
   String get testFileContent => getFile(testFilePath).readAsStringSync();
 
   String get testFilePath => '$testPackageLibPath/test.dart';
@@ -2929,6 +2982,12 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
     writeTestPackageConfig();
 
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+      ),
+    );
+
     server = AnalysisServer(
       serverChannel,
       resourceProvider,
@@ -2945,6 +3004,13 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     newPackageConfigJsonFile(
       root.path,
       content: config.toContent(toUriStr: toUriStr),
+    );
+  }
+
+  void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      content: config.toContent(),
     );
   }
 
