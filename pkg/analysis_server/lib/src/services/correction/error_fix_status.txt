@@ -369,7 +369,7 @@ CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY: needs evaluation
 CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER: needs evaluation
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED: needs fix; new in 2.17
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: needs evaluation; new in 2.17
-CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL: needs fix; new in 2.17
+CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL: needs fix; https://github.com/dart-lang/sdk/issues/48359
 CompileTimeErrorCode.SUPER_IN_EXTENSION: needs evaluation
 CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT: needs evaluation
 CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR: needs evaluation
