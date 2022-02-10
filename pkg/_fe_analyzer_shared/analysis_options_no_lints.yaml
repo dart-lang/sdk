@@ -19,3 +19,4 @@ analyzer:
     - test/inference/inferred_type_arguments/data/**
     - test/inference/inferred_variable_types/data/**
     - test/inheritance/data/**
+    - test/macros/api/**
