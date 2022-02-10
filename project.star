@@ -22,17 +22,7 @@ ROLL_TRIGGERERS = {
 CI_SANDBOX_TRIGGERERS = [accounts.ci_builder, accounts.try_builder]
 
 lucicfg.config(
-    config_dir = ".",
-    tracked_files = [
-        "commit-queue.cfg",
-        "cr-buildbucket.cfg",
-        "luci-logdog.cfg",
-        "luci-milo.cfg",
-        "luci-notify.cfg",
-        "luci-scheduler.cfg",
-        "project.cfg",
-        "realms.cfg",
-    ],
+    tracked_files = ["*"],
     lint_checks = ["all"],
 )
 
