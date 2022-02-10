@@ -366,7 +366,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
   /// These calls are handled by the higher level executor.
   @override
   String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
-          Uri Function(Identifier) resolveIdentifier) =>
+          ResolvedIdentifier Function(Identifier) resolveIdentifier) =>
       throw new StateError('Unreachable');
 
   @override

@@ -238,22 +238,24 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       }
 
       if (_hasSuperInitializingFormals) {
+        List<Initializer>? initializers;
         if (beginInitializers != null) {
           BodyBuilder bodyBuilder = library.loader
               .createBodyBuilderForOutlineExpression(
                   library, classBuilder, this, classBuilder.scope, fileUri);
           bodyBuilder.constantContext = ConstantContext.required;
-          bodyBuilder.parseInitializers(beginInitializers!,
+          initializers = bodyBuilder.parseInitializers(beginInitializers!,
               doFinishConstructor: false);
         }
         finalizeSuperInitializingFormals(
-            classHierarchy, _superParameterDefaultValueCloners);
+            classHierarchy, _superParameterDefaultValueCloners, initializers);
       }
     }
     _hasFormalsInferred = true;
   }
 
-  ConstructorBuilder? _computeSuperTargetBuilder() {
+  ConstructorBuilder? _computeSuperTargetBuilder(
+      List<Initializer>? initializers) {
     Constructor superTarget;
     ClassBuilder superclassBuilder;
 
@@ -279,9 +281,10 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       return null;
     }
 
-    if (constructor.initializers.isNotEmpty &&
-        constructor.initializers.last is SuperInitializer) {
-      superTarget = (constructor.initializers.last as SuperInitializer).target;
+    if (initializers != null &&
+        initializers.isNotEmpty &&
+        initializers.last is SuperInitializer) {
+      superTarget = (initializers.last as SuperInitializer).target;
     } else {
       MemberBuilder? memberBuilder = superclassBuilder.constructors
           .lookup("", charOffset, library.fileUri);
@@ -299,8 +302,10 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     return constructorBuilder is ConstructorBuilder ? constructorBuilder : null;
   }
 
-  void finalizeSuperInitializingFormals(ClassHierarchy classHierarchy,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+  void finalizeSuperInitializingFormals(
+      ClassHierarchy classHierarchy,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes,
+      List<Initializer>? initializers) {
     if (formals == null) return;
     if (!_hasSuperInitializingFormals) return;
 
@@ -312,7 +317,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       }
     }
 
-    ConstructorBuilder? superTargetBuilder = _computeSuperTargetBuilder();
+    ConstructorBuilder? superTargetBuilder =
+        _computeSuperTargetBuilder(initializers);
     Constructor superTarget;
     List<FormalParameterBuilder>? superFormals;
     if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
@@ -468,7 +474,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   void addSuperParameterDefaultValueCloners(
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
-    ConstructorBuilder? superTargetBuilder = _computeSuperTargetBuilder();
+    ConstructorBuilder? superTargetBuilder =
+        _computeSuperTargetBuilder(constructor.initializers);
     if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
       superTargetBuilder
           .addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);

@@ -35,7 +35,7 @@ void main() {
           ]),
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
-          results, (Identifier i) => (i as TestIdentifier).libraryImportUri);
+          results, (Identifier i) => (i as TestIdentifier).resolved);
       expect(library, equalsIgnoringWhitespace('''
         augment class Foo00 {
           int get i => 0;
@@ -68,15 +68,33 @@ void main() {
       var fooIdentifier = TestIdentifier(
           id: RemoteInstance.uniqueId,
           name: 'Foo',
-          libraryImportUri: Uri.parse('package:foo/foo.dart'));
+          kind: IdentifierKind.topLevelMember,
+          staticScope: null,
+          uri: Uri.parse('package:foo/foo.dart'));
       var barIdentifier = TestIdentifier(
           id: RemoteInstance.uniqueId,
           name: 'Bar',
-          libraryImportUri: Uri.parse('package:bar/bar.dart'));
+          kind: IdentifierKind.topLevelMember,
+          staticScope: null,
+          uri: Uri.parse('package:bar/bar.dart'));
       var builderIdentifier = TestIdentifier(
           id: RemoteInstance.uniqueId,
           name: 'Builder',
-          libraryImportUri: Uri.parse('package:builder/builder.dart'));
+          kind: IdentifierKind.topLevelMember,
+          staticScope: null,
+          uri: Uri.parse('package:builder/builder.dart'));
+      var barInstanceMember = TestIdentifier(
+          id: RemoteInstance.uniqueId,
+          name: 'baz',
+          kind: IdentifierKind.instanceMember,
+          staticScope: null,
+          uri: Uri.parse('package:bar/bar.dart'));
+      var barStaticMember = TestIdentifier(
+          id: RemoteInstance.uniqueId,
+          name: 'zap',
+          kind: IdentifierKind.staticInstanceMember,
+          staticScope: 'Bar',
+          uri: Uri.parse('package:bar/bar.dart'));
       var results = [
         MacroExecutionResultImpl(augmentations: [
           DeclarationCode.fromParts([
@@ -87,24 +105,32 @@ void main() {
             '<',
             barIdentifier,
             '<T>> {\n',
+            'late int ${barInstanceMember.name};\n',
             barIdentifier,
             '<T> build() => new ',
             barIdentifier,
-            '();\n}',
+            '()..',
+            barInstanceMember,
+            ' = ',
+            barStaticMember,
+            ';',
+            '\n}',
           ]),
         ], newTypeNames: [
           'FooBuilder',
         ])
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
-          results, (Identifier i) => (i as TestIdentifier).libraryImportUri);
+          results, (Identifier i) => (i as TestIdentifier).resolved);
       expect(library, equalsIgnoringWhitespace('''
         import 'package:foo/foo.dart' as i0;
         import 'package:builder/builder.dart' as i1;
         import 'package:bar/bar.dart' as i2;
 
         class FooBuilder<T extends i0.Foo> implements i1.Builder<i2.Bar<T>> {
-          i2.Bar<T> build() => new i2.Bar();
+          late int baz;
+
+          i2.Bar<T> build() => new i2.Bar()..baz = i2.Bar.zap;
         }
       '''));
     });

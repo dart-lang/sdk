@@ -1,0 +1,26 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class S<T extends core::Object? = dynamic> extends core::Object {
+  field core::num n;
+  covariant-by-class field self::S::T% t;
+  constructor •(core::num n, self::S::T% t) → self::S<self::S::T%>
+    : self::S::n = n, self::S::t = t, super core::Object::•()
+    ;
+  constructor named(self::S::T% t, core::num n) → self::S<self::S::T%>
+    : self::S::t = t, self::S::n = n, super core::Object::•()
+    ;
+}
+class C<T extends core::Object? = dynamic> extends self::S<self::C::T%> {
+  constructor constr1(core::num n, core::String s, self::C::T% t) → self::C<self::C::T%>
+    : super self::S::•(n, t)
+    ;
+  constructor constr2(core::int i, core::num n, core::String s, self::C::T% t) → self::C<self::C::T%>
+    : super self::S::•(n, t)
+    ;
+  constructor constr3(core::int i, self::C::T% t, core::String s, core::num n) → self::C<self::C::T%>
+    : super self::S::named(t, n)
+    ;
+}
+static method main() → dynamic {}

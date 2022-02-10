@@ -219,6 +219,7 @@ regress/issue_41265.crash: FormatterCrash
 super_parameters/circular_dependency_inference: FormatterCrash
 super_parameters/default_values: FormatterCrash
 super_parameters/issue48142: FormatterCrash
+super_parameters/issue48286: FormatterCrash
 super_parameters/simple: FormatterCrash
 super_parameters/simple_inference: FormatterCrash
 super_parameters/simple_named_super_parameters: FormatterCrash
