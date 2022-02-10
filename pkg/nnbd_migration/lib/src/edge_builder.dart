@@ -392,7 +392,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           respectImplicitlyTypedVarInitializers: true);
     }
     try {
-      _dispatch(node.name);
       _dispatch(node.constructorName);
       _dispatchList(node.arguments?.arguments);
     } finally {
