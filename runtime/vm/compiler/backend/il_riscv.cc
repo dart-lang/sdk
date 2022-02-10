@@ -7163,7 +7163,53 @@ LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 }
 
 void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  switch (from()) {
+    case kUnboxedFloat: {
+      ASSERT(to() == kUnboxedInt64);
+      const FpuRegister src = locs()->in(0).fpu_reg();
+      const Register dst = locs()->out(0).reg();
+      __ fmvxw(dst, src);
+      break;
+    }
+#if XLEN >= 64
+    case kUnboxedDouble: {
+      ASSERT(to() == kUnboxedInt64);
+      const FpuRegister src = locs()->in(0).fpu_reg();
+      const Register dst = locs()->out(0).reg();
+      __ fmvxd(dst, src);
+      break;
+    }
+#endif
+    case kUnboxedInt64: {
+      const Register src = locs()->in(0).reg();
+      switch (to()) {
+#if XLEN >= 64
+        case kUnboxedDouble: {
+          const FpuRegister dst = locs()->out(0).fpu_reg();
+          __ fmvdx(dst, src);
+          break;
+        }
+#endif
+        case kUnboxedFloat: {
+          const FpuRegister dst = locs()->out(0).fpu_reg();
+          __ fmvwx(dst, src);
+          break;
+        }
+        default:
+          UNREACHABLE();
+      }
+      break;
+    }
+    case kUnboxedInt32: {
+      ASSERT(to() == kUnboxedFloat);
+      const Register src = locs()->in(0).reg();
+      const FpuRegister dst = locs()->out(0).fpu_reg();
+      __ fmvwx(dst, src);
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
 }
 
 LocationSummary* StopInstr::MakeLocationSummary(Zone* zone, bool opt) const {

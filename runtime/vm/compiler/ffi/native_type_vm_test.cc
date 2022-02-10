@@ -11,9 +11,6 @@ namespace dart {
 namespace compiler {
 namespace ffi {
 
-// TODO(https://github.com/dart-lang/sdk/issues/48164)
-#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
-
 ISOLATE_UNIT_TEST_CASE(Ffi_NativeType_Primitive_FromAbstractType) {
   Zone* Z = thread->zone();
 
@@ -88,8 +85,6 @@ ISOLATE_UNIT_TEST_CASE(Ffi_NativeType_Struct_FromAbstractType) {
   EXPECT_EQ(compiler::target::kWordSize,
             native_type.members()[1]->SizeInBytes());
 }
-
-#endif  // !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 
 }  // namespace ffi
 }  // namespace compiler

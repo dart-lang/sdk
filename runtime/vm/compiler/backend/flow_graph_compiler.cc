@@ -3476,8 +3476,9 @@ void FlowGraphCompiler::EmitNativeMove(
     return;
   }
 
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
   // Split moves from stack to stack, none of the architectures provides
-  // memory to memory move instructions.
+  // memory to memory move instructions. But RISC-V needs to avoid TMP.
   if (source.IsStack() && destination.IsStack()) {
     Register scratch = TMP;
     if (TMP == kNoRegister) {
@@ -3493,6 +3494,7 @@ void FlowGraphCompiler::EmitNativeMove(
     }
     return;
   }
+#endif
 
   const bool sign_or_zero_extend = dst_container_size > src_container_size;
 

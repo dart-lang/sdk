@@ -1,0 +1,13 @@
+P(a1 uint32) Union(size: 16)
+P(a2 uint32) Union(size: 16)
+P(tmp uint32) Union(size: 16)
+P(tmp2 uint32) Union(size: 16)
+P(pp uint32) Union(size: 16)
+P(a6 uint32) Union(size: 16)
+P(a7 uint32) Union(size: 16)
+P(S+0 uint32) Union(size: 16)
+P(S+4 uint32) Union(size: 16)
+S+8 int8
+P(S+12 uint32) Union(size: 16)
+=>
+P(a0 uint32) Union(size: 16)

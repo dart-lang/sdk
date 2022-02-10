@@ -1,0 +1,12 @@
+M(a0 int64) Union(size: 5)
+M(a1 int64) Union(size: 5)
+M(a2 int64) Union(size: 5)
+M(tmp int64) Union(size: 5)
+M(tmp2 int64) Union(size: 5)
+M(pp int64) Union(size: 5)
+M(a6 int64) Union(size: 5)
+M(a7 int64) Union(size: 5)
+M(S+0 int64) Union(size: 5)
+M(S+8 int64) Union(size: 5)
+=>
+M(a0 int64) Union(size: 5)

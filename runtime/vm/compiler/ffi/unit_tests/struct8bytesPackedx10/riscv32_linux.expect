@@ -1,0 +1,12 @@
+M(a0 uint32, a1 uint32) Struct(size: 8)
+M(a2 uint32, tmp uint32) Struct(size: 8)
+M(tmp2 uint32, pp uint32) Struct(size: 8)
+M(a6 uint32, a7 uint32) Struct(size: 8)
+M(S+0 uint32, S+4 uint32) Struct(size: 8)
+M(S+8 uint32, S+12 uint32) Struct(size: 8)
+M(S+16 uint32, S+20 uint32) Struct(size: 8)
+M(S+24 uint32, S+28 uint32) Struct(size: 8)
+M(S+32 uint32, S+36 uint32) Struct(size: 8)
+M(S+40 uint32, S+44 uint32) Struct(size: 8)
+=>
+M(a0 uint32, a1 uint32) Struct(size: 8)

@@ -1,0 +1,12 @@
+a0 int32[int8]
+a1 int32[int8]
+a2 int32[int8]
+tmp int32[int8]
+tmp2 int32[int8]
+pp int32[int8]
+a6 int32[int8]
+a7 int32[int8]
+S+0 int8
+S+1 int8
+=>
+a0 int32[int8]

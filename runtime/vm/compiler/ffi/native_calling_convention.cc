@@ -112,6 +112,25 @@ class ArgumentAllocator : public ValueObject {
           NativeFpuRegistersLocation(payload_type, payload_type, reg);
     }
 
+#if defined(TARGET_ARCH_RISCV64)
+    // After using up F registers, start bitcasting to X registers.
+    if (HasAvailableCpuRegisters(1)) {
+      const Register reg = AllocateCpuRegister();
+      const auto& container_type = *new (zone_) NativePrimitiveType(kInt64);
+      return *new (zone_)
+          NativeRegistersLocation(zone_, payload_type, container_type, reg);
+    }
+#elif defined(TARGET_ARCH_RISCV32)
+    // After using up F registers, start bitcasting to X register pairs.
+    if (HasAvailableCpuRegisters(2)) {
+      const Register reg1 = AllocateCpuRegister();
+      const Register reg2 = AllocateCpuRegister();
+      const auto& container_type = *new (zone_) NativePrimitiveType(kInt64);
+      return *new (zone_) NativeRegistersLocation(zone_, payload_type,
+                                                  container_type, reg1, reg2);
+    }
+#endif
+
     BlockAllFpuRegisters();
     if (CallingConventions::kArgumentIntRegXorFpuReg) {
       ASSERT(cpu_regs_used == CallingConventions::kNumArgRegs);
@@ -365,32 +384,85 @@ class ArgumentAllocator : public ValueObject {
 #endif  // defined(TARGET_ARCH_ARM64)
 
 #if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
-  // If total size is <= XLEN, passed like an XLEN scalar: use a register if
-  // available or pass by value on the stack.
-  // If total size is <= 2*XLEN, passed like two XLEN scalars: use registers
-  // if available or pass by value on the stack. If only one register is
-  // available, pass the low part by register and the high part on the stack.
-  // Otherwise, passed by reference.
+  // See RISC-V ABIs Specification
+  // https://github.com/riscv-non-isa/riscv-elf-psabi-doc/releases
   const NativeLocation& AllocateCompound(
       const NativeCompoundType& payload_type) {
-    const auto& pointer_type = *new (zone_) NativePrimitiveType(kFfiIntPtr);
     const auto& compound_type = payload_type.AsCompound();
+
+    // 2.2. Hardware Floating-point Calling Convention.
+    const NativePrimitiveType* first = nullptr;
+    const NativePrimitiveType* second = nullptr;
+    const intptr_t num_primitive_members =
+        compound_type.PrimitivePairMembers(&first, &second);
+
+    // If exactly one floating-point member, pass like a scalar.
+    if ((num_primitive_members == 1) && first->IsFloat()) {
+      NativeLocations& multiple_locations =
+          *new (zone_) NativeLocations(zone_, 1);
+      multiple_locations.Add(&AllocateArgument(*first));
+      return *new (zone_)
+          MultipleNativeLocations(compound_type, multiple_locations);
+    }
+
+    if (num_primitive_members == 2) {
+      if (first->IsFloat() && second->IsFloat()) {
+        // If exactly two floating-point members, pass like two scalars if two F
+        // registers are available.
+        if (HasAvailableFpuRegisters(2)) {
+          NativeLocations& multiple_locations =
+              *new (zone_) NativeLocations(zone_, 2);
+          multiple_locations.Add(&AllocateArgument(*first));
+          multiple_locations.Add(&AllocateArgument(*second));
+          return *new (zone_)
+              MultipleNativeLocations(compound_type, multiple_locations);
+        }
+      } else if (first->IsFloat() || second->IsFloat()) {
+        // If exactly two members, one is integer and one is float in either
+        // order, pass like two scalars if both an X and F register are
+        // available.
+        if (HasAvailableFpuRegisters(1) && HasAvailableCpuRegisters(1)) {
+          NativeLocations& multiple_locations =
+              *new (zone_) NativeLocations(zone_, 2);
+          multiple_locations.Add(&AllocateArgument(*first));
+          multiple_locations.Add(&AllocateArgument(*second));
+          return *new (zone_)
+              MultipleNativeLocations(compound_type, multiple_locations);
+        }
+      }
+    }
+
+    // 2.1. Integer Calling Convention.
+    const auto& pointer_type = *new (zone_) NativePrimitiveType(kFfiIntPtr);
     const intptr_t size = compound_type.SizeInBytes();
+
+    // If total size is <= XLEN, passed like an XLEN scalar: use a register if
+    // available or pass by value on the stack.
     if (size <= target::kWordSize) {
-      return AllocateArgument(pointer_type);
-    } else if (size <= 2 * target::kWordSize) {
+      NativeLocations& multiple_locations =
+          *new (zone_) NativeLocations(zone_, 1);
+      multiple_locations.Add(&AllocateArgument(pointer_type));
+      return *new (zone_)
+          MultipleNativeLocations(compound_type, multiple_locations);
+    }
+
+    // If total size is <= 2*XLEN, passed like two XLEN scalars: use registers
+    // if available or pass by value on the stack. If only one register is
+    // available, pass the low part by register and the high part on the
+    // stack.
+    if (size <= 2 * target::kWordSize) {
       NativeLocations& multiple_locations =
           *new (zone_) NativeLocations(zone_, 2);
       multiple_locations.Add(&AllocateArgument(pointer_type));
       multiple_locations.Add(&AllocateArgument(pointer_type));
       return *new (zone_)
           MultipleNativeLocations(compound_type, multiple_locations);
-    } else {
-      const auto& pointer_type = *new (zone_) NativePrimitiveType(kFfiIntPtr);
-      const auto& pointer_location = AllocateArgument(pointer_type);
-      return *new (zone_)
-          PointerToMemoryLocation(pointer_location, compound_type);
     }
+
+    // Otherwise, passed by reference.
+    const auto& pointer_location = AllocateArgument(pointer_type);
+    return *new (zone_)
+        PointerToMemoryLocation(pointer_location, compound_type);
   }
 #endif
 
@@ -435,7 +507,7 @@ class ArgumentAllocator : public ValueObject {
     stack_height_in_bytes = Utils::RoundUp(stack_height_in_bytes, alignment);
   }
 
-  int NumFpuRegisters(FpuRegisterKind kind) {
+  static int NumFpuRegisters(FpuRegisterKind kind) {
 #if defined(TARGET_ARCH_ARM)
     if (SoftFpAbi()) return 0;
     if (kind == kSingleFpuReg) return CallingConventions::kNumSFpuArgRegs;
@@ -446,7 +518,7 @@ class ArgumentAllocator : public ValueObject {
   }
 
   // If no register is free, returns -1.
-  int FirstFreeFpuRegisterIndex(FpuRegisterKind kind, int amount = 1) {
+  int FirstFreeFpuRegisterIndex(FpuRegisterKind kind, int amount = 1) const {
     const intptr_t size = SizeFromFpuRegisterKind(kind) / 4;
     ASSERT(size == 1 || size == 2 || size == 4);
     if (fpu_reg_parts_used == -1) return kNoFpuRegister;
@@ -487,6 +559,13 @@ class ArgumentAllocator : public ValueObject {
   void BlockAllFpuRegisters() {
     // Set all bits to 1.
     fpu_reg_parts_used = -1;
+  }
+
+  bool HasAvailableCpuRegisters(intptr_t count) const {
+    return cpu_regs_used + count <= CallingConventions::kNumArgRegs;
+  }
+  bool HasAvailableFpuRegisters(intptr_t count) const {
+    return FirstFreeFpuRegisterIndex(kQuadFpuReg, count) != kNoFpuRegister;
   }
 
   intptr_t cpu_regs_used = 0;

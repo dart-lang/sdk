@@ -1,0 +1,15 @@
+M(a0 int32[int8], fa0 double) Struct(size: 9)
+M(a1 int32[int8], fa1 double) Struct(size: 9)
+M(a2 int32[int8], fa2 double) Struct(size: 9)
+M(tmp int32[int8], fa3 double) Struct(size: 9)
+M(tmp2 int32[int8], fa4 double) Struct(size: 9)
+M(pp int32[int8], fa5 double) Struct(size: 9)
+M(a6 int32[int8], fa6 double) Struct(size: 9)
+M(a7 int32[int8], fa7 double) Struct(size: 9)
+M(S+0 int64, S+8 int64) Struct(size: 9)
+M(S+16 int64, S+24 int64) Struct(size: 9)
+S+32 double
+S+40 int32
+S+44 int32
+=>
+fa0 double

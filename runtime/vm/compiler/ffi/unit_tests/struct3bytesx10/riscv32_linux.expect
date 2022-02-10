@@ -1,0 +1,12 @@
+M(a0 uint32) Struct(size: 3)
+M(a1 uint32) Struct(size: 3)
+M(a2 uint32) Struct(size: 3)
+M(tmp uint32) Struct(size: 3)
+M(tmp2 uint32) Struct(size: 3)
+M(pp uint32) Struct(size: 3)
+M(a6 uint32) Struct(size: 3)
+M(a7 uint32) Struct(size: 3)
+M(S+0 uint32) Struct(size: 3)
+M(S+4 uint32) Struct(size: 3)
+=>
+M(a0 uint32) Struct(size: 3)
