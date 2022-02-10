@@ -201,7 +201,7 @@ class DevToolsServer {
     bool debugMode = false,
     bool launchBrowser = false,
     bool enableNotifications = false,
-    bool allowEmbedding = false,
+    bool allowEmbedding = true,
     bool headlessMode = false,
     bool verboseMode = false,
     String? hostname,
@@ -268,6 +268,9 @@ class DevToolsServer {
     final _server = server!;
     if (allowEmbedding) {
       _server.defaultResponseHeaders.remove('x-frame-options', 'SAMEORIGIN');
+      // The origin-agent-cluster header is required to support the embedding of
+      // Dart DevTools in Chrome DevTools.
+      _server.defaultResponseHeaders.add('origin-agent-cluster', '?1');
     }
 
     // Ensure browsers don't cache older versions of the app.
