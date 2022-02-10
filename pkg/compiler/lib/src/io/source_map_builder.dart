@@ -6,7 +6,7 @@ library dart2js.source_map_builder;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' show Location;
-import '../../compiler_new.dart' show CompilerOutput, OutputSink, OutputType;
+import '../../compiler.dart' show CompilerOutput, OutputSink, OutputType;
 import '../util/util.dart';
 import 'location_provider.dart';
 import 'code_output.dart' show SourceLocationsProvider, SourceLocations;

@@ -7,7 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import 'package:front_end/src/fasta/util/bytes_sink.dart';
-import '../../compiler_new.dart' as api;
+import '../../compiler.dart' as api;
 import '../backend_strategy.dart';
 import '../commandline_options.dart' show Flags;
 import '../common/codegen.dart';

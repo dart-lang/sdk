@@ -6,7 +6,7 @@
 
 library compiler.null_api;
 
-import '../compiler_new.dart';
+import '../compiler.dart';
 
 /// Null pattern implementation of the [CompilerOutput] interface.
 class NullCompilerOutput implements CompilerOutput {

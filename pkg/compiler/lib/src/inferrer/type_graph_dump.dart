@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 library dart2js.inferrer.type_graph_dump;
 
-import '../../compiler_new.dart';
+import '../../compiler.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import 'abstract_value_domain.dart';

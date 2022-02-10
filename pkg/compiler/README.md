@@ -14,10 +14,10 @@ The compiler will operate in these general phases:
 
   1. **load kernel**: Load all the code as kernel
       * Collect dart sources transtively
-      * Convert to kernel AST  
-  
+      * Convert to kernel AST
+
   (this will be handled by invoking the front-end package)
-  
+
   Alternatively, the compiler can start compilation directly from kernel files.
 
   2. **model**: Create a Dart model of the program
@@ -245,20 +245,12 @@ revisited
 command-line tool to launch dart2js, but also by pub to invoke dart2js as a
 library during `pub-build` and `pub-serve`.
 
-* `lib/compiler_new.dart`: the current API. This API is used by our command-line
+* `lib/compiler.dart`: the compiler API. This API is used by our command-line
   tool to spawn the dart2js compiler. This API (and everything that is
   transitively created from it) has no dependencies on `dart:io` so that the
   compiler can be used in contexts where `dart:io` is not available (e.g.
   running in a browser worker) or where `dart:io` is not used explicitly (e.g.
   running as a pub transformer).
-
-  AI: rename to `compiler.dart`.
-
-* `lib/compiler.dart`: a legacy API that now is implemented by adapting calls to
-  the new API in `compiler_new.dart`.
-
-  AI: migrate users to the new API (pub is one of those users, possibly dart-pad
-  is another), and delete the legacy API.
 
 **lib/src folder**: most of the compiler lives here, as very little of its
 functionality is publicly exposed.
@@ -267,7 +259,7 @@ functionality is publicly exposed.
 * `lib/src/dart2js.dart`: the command-line script that runs dart2js. When
   building the SDK, the dart2js snapshot is built using the main method on this
   script.  This file creates the parameters needed to invoke the API defined in
-  `lib/compiler_new.dart`. All dependencies on `dart:io` come from here. This is
+  `lib/compiler.dart`. All dependencies on `dart:io` come from here. This is
   also where we process options (although some of the logic is done in
   `options.dart`).
 
@@ -288,9 +280,6 @@ functionality is publicly exposed.
 
   AI: Once all tests are migrated to this memory compiler, we should merge
   `Compiler` and `CompilerImpl` and remove this file.
-
-* `lib/src/old_to_new_api.dart`: helper library used to adapt the public API in
-  `lib/compiler.dart` to `lib/compiler_new.dart`.
 
 * `lib/src/closure.dart`: closures are compiled as classes, this file has the
   logic to do this kind of conversion in the Dart element model. This includes
@@ -404,7 +393,7 @@ functionality is publicly exposed.
 * Input/output: the compiler is designed to avoid all dependencies on dart:io.
   Most data is consumed and emitted via provider APIs.
 
-  * `lib/src/compiler_new.dart`: defines the interface of these providers (see
+  * `lib/src/compiler.dart`: defines the interface of these providers (see
     `CompilerInput` and `CompilerOutput`).
 
   * `lib/src/null_compiler_output.dart`: a `CompilerOutput` that discards all

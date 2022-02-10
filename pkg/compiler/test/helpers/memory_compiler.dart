@@ -8,8 +8,7 @@ library dart2js.test.memory_compiler;
 
 import 'dart:async';
 
-import 'package:compiler/compiler.dart' show DiagnosticHandler;
-import 'package:compiler/compiler_new.dart'
+import 'package:compiler/compiler.dart'
     show CompilationResult, CompilerDiagnostics, CompilerOutput, Diagnostic;
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -24,7 +23,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'memory_source_file_helper.dart';
 
 export 'output_collector.dart';
-export 'package:compiler/compiler_new.dart' show CompilationResult;
+export 'package:compiler/compiler.dart' show CompilationResult;
 export 'diagnostic_helper.dart';
 
 String sdkPath = 'sdk/lib';
@@ -178,25 +177,6 @@ CompilerImpl compilerFor(
       provider, outputProvider, diagnosticHandler, compilerOptions);
 
   return compiler;
-}
-
-DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
-    SourceFileProvider provider, bool showDiagnostics) {
-  var handler = diagnosticHandler;
-  if (showDiagnostics) {
-    if (diagnosticHandler == null) {
-      handler = new FormattingDiagnosticHandler(provider);
-    } else {
-      var formattingHandler = new FormattingDiagnosticHandler(provider);
-      handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {
-        diagnosticHandler(uri, begin, end, message, kind);
-        formattingHandler(uri, begin, end, message, kind);
-      };
-    }
-  } else if (diagnosticHandler == null) {
-    handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {};
-  }
-  return handler;
 }
 
 main() {

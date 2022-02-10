@@ -275,7 +275,7 @@ import 'entity_data.dart';
 import 'import_set.dart';
 import 'output_unit.dart';
 
-import '../../compiler_new.dart' show OutputType;
+import '../../compiler.dart' show OutputType;
 import '../common.dart';
 import '../common/elements.dart' show KElementEnvironment;
 import '../common/metrics.dart'

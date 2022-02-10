@@ -9,7 +9,7 @@ library dart2js.test.memory_source_file_helper;
 import 'dart:async' show Future;
 export 'dart:io' show Platform;
 
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 
 export 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 

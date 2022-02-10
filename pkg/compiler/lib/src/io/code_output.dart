@@ -4,7 +4,7 @@
 
 library dart2js.code_output;
 
-import '../../compiler_new.dart';
+import '../../compiler.dart';
 import 'source_information.dart';
 
 /// Listener interface for [CodeOutput] activity.

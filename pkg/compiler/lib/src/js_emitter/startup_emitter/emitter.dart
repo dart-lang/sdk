@@ -4,7 +4,7 @@
 
 library dart2js.js_emitter.startup_emitter;
 
-import '../../../compiler_new.dart';
+import '../../../compiler.dart';
 import '../../common.dart';
 import '../../common/codegen.dart';
 import '../../constants/values.dart';

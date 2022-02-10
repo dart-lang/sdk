@@ -8,7 +8,7 @@ library sourcemap.helper;
 
 import 'dart:async';
 import 'dart:io';
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 import 'package:compiler/src/apiimpl.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';

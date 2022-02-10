@@ -7,7 +7,7 @@
 library compiler_helper;
 
 import 'dart:async';
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;

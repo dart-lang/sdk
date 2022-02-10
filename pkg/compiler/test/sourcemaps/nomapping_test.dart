@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';

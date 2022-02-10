@@ -32,7 +32,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
 
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
-import '../../../compiler_new.dart';
+import '../../../compiler.dart';
 import '../../common.dart';
 import '../../common/elements.dart' show CommonElements, JElementEnvironment;
 import '../../common/tasks.dart';

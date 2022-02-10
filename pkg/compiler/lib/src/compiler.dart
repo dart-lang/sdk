@@ -11,7 +11,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
     show clearStringTokenCanonicalizer;
 import 'package:kernel/ast.dart' as ir;
 
-import '../compiler_new.dart' as api;
+import '../compiler.dart' as api;
 import 'backend_strategy.dart';
 import 'common.dart';
 import 'common/codegen.dart';

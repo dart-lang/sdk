@@ -1,4 +1,4 @@
-import '../../compiler_new.dart' as api;
+import '../../compiler.dart' as api;
 
 class BinaryOutputSinkAdapter implements Sink<List<int>> {
   api.BinaryOutputSink output;

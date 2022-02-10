@@ -11,7 +11,7 @@ import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 
-import '../compiler_new.dart';
+import '../compiler.dart';
 import 'backend_strategy.dart';
 import 'common.dart';
 import 'common/elements.dart' show JElementEnvironment;
