@@ -53,7 +53,7 @@ part 'websocket_impl.dart';
 /// ```dart
 /// import 'dart:io';
 ///
-/// Future<void> main() async {
+/// void main() async {
 ///   var server = await HttpServer.bind(InternetAddress.anyIPv6, 80);
 ///   await server.forEach((HttpRequest request) {
 ///     request.response.write('Hello, world!');
@@ -82,7 +82,7 @@ part 'websocket_impl.dart';
 /// ```dart
 /// import 'dart:io';
 ///
-/// Future<void> main() async {
+/// void main() async {
 ///   var chain =
 ///       Platform.script.resolve('certificates/server_chain.pem').toFilePath();
 ///   var key = Platform.script.resolve('certificates/server_key.pem').toFilePath();
