@@ -9,39 +9,12 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AwaitExpressionResolutionTest);
-    defineReflectiveTests(AwaitExpressionResolutionWithNullSafetyTest);
+    defineReflectiveTests(AwaitExpressionResolutionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class AwaitExpressionResolutionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  test_future() async {
-    await assertNoErrorsInCode(r'''
-f(Future<int> a) async {
-  await a;
-}
-''');
-
-    assertType(findNode.awaitExpression('await a'), 'int');
-  }
-
-  test_futureOr() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:async';
-
-f(FutureOr<int> a) async {
-  await a;
-}
-''');
-
-    assertType(findNode.awaitExpression('await a'), 'int');
-  }
-}
-
-@reflectiveTest
-class AwaitExpressionResolutionWithNullSafetyTest
-    extends PubPackageResolutionTest {
+class AwaitExpressionResolutionTest extends PubPackageResolutionTest {
   test_futureOrQ() async {
     await assertNoErrorsInCode(r'''
 import 'dart:async';
@@ -62,5 +35,31 @@ f(Future<int>? a) async {
 ''');
 
     assertType(findNode.awaitExpression('await a'), 'int?');
+  }
+}
+
+@reflectiveTest
+class AwaitExpressionResolutionWithoutNullSafetyTest
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
+  test_future() async {
+    await assertNoErrorsInCode(r'''
+f(Future<int> a) async {
+  await a;
+}
+''');
+
+    assertType(findNode.awaitExpression('await a'), 'int');
+  }
+
+  test_futureOr() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+
+f(FutureOr<int> a) async {
+  await a;
+}
+''');
+
+    assertType(findNode.awaitExpression('await a'), 'int');
   }
 }

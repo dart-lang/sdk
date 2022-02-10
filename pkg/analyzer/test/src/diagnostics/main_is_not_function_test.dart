@@ -10,13 +10,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MainIsNotFunctionTest);
-    defineReflectiveTests(MainIsNotFunctionWithNullSafetyTest);
+    defineReflectiveTests(MainIsNotFunctionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class MainIsNotFunctionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, MainIsNotFunctionTestCases {}
+    with MainIsNotFunctionTestCases {}
 
 mixin MainIsNotFunctionTestCases on PubPackageResolutionTest {
   test_class() async {
@@ -104,5 +104,5 @@ var main = 0;
 }
 
 @reflectiveTest
-class MainIsNotFunctionWithNullSafetyTest extends PubPackageResolutionTest
-    with MainIsNotFunctionTestCases {}
+class MainIsNotFunctionWithoutNullSafetyTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, MainIsNotFunctionTestCases {}

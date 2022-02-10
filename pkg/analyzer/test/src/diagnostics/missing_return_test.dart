@@ -10,12 +10,62 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingReturnTest);
-    defineReflectiveTests(MissingReturnWithNullSafetyTest);
+    defineReflectiveTests(MissingReturnWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class MissingReturnTest extends PubPackageResolutionTest
+class MissingReturnTest extends PubPackageResolutionTest {
+  test_function_async_block_futureOrVoid() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+FutureOr<void> f() async {}
+''');
+  }
+
+  test_function_async_block_void() async {
+    await assertNoErrorsInCode('''
+void f() async {}
+''');
+  }
+
+  test_function_sync_block_dynamic() async {
+    await assertNoErrorsInCode('''
+dynamic f() {}
+''');
+  }
+
+  test_function_sync_block_Never() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+Never foo() {
+  throw 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.8
+import 'a.dart';
+
+int f() {
+  foo();
+}
+''');
+  }
+
+  test_function_sync_block_Null() async {
+    await assertNoErrorsInCode('''
+Null f() {}
+''');
+  }
+
+  test_function_sync_block_void() async {
+    await assertNoErrorsInCode('''
+void f() {}
+''');
+  }
+}
+
+@reflectiveTest
+class MissingReturnWithoutNullSafetyTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_alwaysThrows() async {
     writeTestPackageConfigWithMeta();
@@ -212,55 +262,5 @@ class B extends A {
 ''', [
       error(HintCode.MISSING_RETURN, 55, 1),
     ]);
-  }
-}
-
-@reflectiveTest
-class MissingReturnWithNullSafetyTest extends PubPackageResolutionTest {
-  test_function_async_block_futureOrVoid() async {
-    await assertNoErrorsInCode('''
-import 'dart:async';
-FutureOr<void> f() async {}
-''');
-  }
-
-  test_function_async_block_void() async {
-    await assertNoErrorsInCode('''
-void f() async {}
-''');
-  }
-
-  test_function_sync_block_dynamic() async {
-    await assertNoErrorsInCode('''
-dynamic f() {}
-''');
-  }
-
-  test_function_sync_block_Never() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-Never foo() {
-  throw 0;
-}
-''');
-    await assertNoErrorsInCode(r'''
-// @dart = 2.8
-import 'a.dart';
-
-int f() {
-  foo();
-}
-''');
-  }
-
-  test_function_sync_block_Null() async {
-    await assertNoErrorsInCode('''
-Null f() {}
-''');
-  }
-
-  test_function_sync_block_void() async {
-    await assertNoErrorsInCode('''
-void f() {}
-''');
   }
 }

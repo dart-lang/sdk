@@ -12,12 +12,295 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InheritanceManager3Test);
-    defineReflectiveTests(InheritanceManager3WithNullSafetyTest);
+    defineReflectiveTests(InheritanceManager3WithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class InheritanceManager3Test extends _InheritanceManager3Base {
+  test_getInheritedMap_topMerge_method() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.6
+class A {
+  void foo({int a}) {}
+}
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+class B {
+  void foo({required int? a}) {}
+}
+
+class C implements A, B {
+  void foo({int? a}) {}
+}
+''');
+
+    _assertInheritedMap('C', r'''
+A.foo: void Function({int a})
+''');
+  }
+
+  test_getMember_mixin_notMerge_replace() async {
+    await resolveTestCode('''
+class A<T> {
+  T foo() => throw 0;
+}
+
+mixin M<T> {
+  T foo() => throw 1;
+}
+
+class X extends A<dynamic> with M<Object?> {}
+class Y extends A<Object?> with M<dynamic> {}
+''');
+    _assertGetMember2(
+      className: 'X',
+      name: 'foo',
+      expected: 'M.foo: Object? Function()',
+    );
+    _assertGetMember2(
+      className: 'Y',
+      name: 'foo',
+      expected: 'M.foo: dynamic Function()',
+    );
+  }
+
+  test_getMember_optIn_inheritsOptIn() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  int foo(int a, int? b) => 0;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class B extends A {
+  int? bar(int a) => 0;
+}
+''');
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      expected: 'A.foo: int Function(int, int?)',
+    );
+    _assertGetMember(
+      className: 'B',
+      name: 'bar',
+      expected: 'B.bar: int? Function(int)',
+    );
+  }
+
+  test_getMember_optIn_inheritsOptOut() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.6
+class A {
+  int foo(int a, int b) => 0;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class B extends A {
+  int? bar(int a) => 0;
+}
+''');
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      expected: 'A.foo: int* Function(int*, int*)*',
+    );
+    _assertGetMember(
+      className: 'B',
+      name: 'bar',
+      expected: 'B.bar: int? Function(int)',
+    );
+  }
+
+  test_getMember_optIn_topMerge_getter_existing() async {
+    await resolveTestCode('''
+class A {
+  dynamic get foo => 0;
+}
+
+class B {
+  Object? get foo => 0;
+}
+
+class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'B.foo: Object? Function()',
+    );
+  }
+
+  test_getMember_optIn_topMerge_getter_synthetic() async {
+    await resolveTestCode('''
+abstract class A {
+  Future<void> get foo;
+}
+
+abstract class B {
+  Future<dynamic> get foo;
+}
+
+abstract class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'X.foo: Future<Object?> Function()',
+    );
+  }
+
+  test_getMember_optIn_topMerge_method() async {
+    await resolveTestCode('''
+class A {
+  Object? foo(dynamic x) {}
+}
+
+class B {
+  dynamic foo(Object? x) {}
+}
+
+class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'X.foo: Object? Function(Object?)',
+    );
+  }
+
+  test_getMember_optIn_topMerge_setter_existing() async {
+    await resolveTestCode('''
+class A {
+  set foo(dynamic _) {}
+}
+
+class B {
+  set foo(Object? _) {}
+}
+
+class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo=',
+      expected: 'B.foo=: void Function(Object?)',
+    );
+  }
+
+  test_getMember_optIn_topMerge_setter_synthetic() async {
+    await resolveTestCode('''
+abstract class A {
+  set foo(Future<void> _);
+}
+
+abstract class B {
+  set foo(Future<dynamic> _);
+}
+
+abstract class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo=',
+      expected: 'X.foo=: void Function(Future<Object?>)',
+    );
+  }
+
+  test_getMember_optOut_inheritsOptIn() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  int foo(int a, int? b) => 0;
+}
+''');
+    await resolveTestCode('''
+// @dart = 2.6
+import 'a.dart';
+class B extends A {
+  int bar(int a) => 0;
+}
+''');
+    _assertGetMember2(
+      className: 'B',
+      name: 'foo',
+      expected: 'A.foo: int* Function(int*, int*)*',
+    );
+
+    _assertGetMember2(
+      className: 'B',
+      name: 'bar',
+      expected: 'B.bar: int* Function(int*)*',
+    );
+  }
+
+  test_getMember_optOut_mixesOptIn() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  int foo(int a, int? b) => 0;
+}
+''');
+    await resolveTestCode('''
+// @dart = 2.6
+import 'a.dart';
+class B with A {
+  int bar(int a) => 0;
+}
+''');
+    _assertGetMember2(
+      className: 'B',
+      name: 'foo',
+      expected: 'A.foo: int* Function(int*, int*)*',
+    );
+    _assertGetMember2(
+      className: 'B',
+      name: 'bar',
+      expected: 'B.bar: int* Function(int*)*',
+    );
+  }
+
+  test_getMember_optOut_passOptIn() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  int foo(int a, int? b) => 0;
+}
+''');
+    newFile('$testPackageLibPath/b.dart', content: r'''
+// @dart = 2.6
+import 'a.dart';
+class B extends A {
+  int bar(int a) => 0;
+}
+''');
+    await resolveTestCode('''
+import 'b.dart';
+class C extends B {}
+''');
+    _assertGetMember(
+      className: 'C',
+      name: 'foo',
+      expected: 'A.foo: int* Function(int*, int*)*',
+    );
+    _assertGetMember(
+      className: 'C',
+      name: 'bar',
+      expected: 'B.bar: int* Function(int*)*',
+    );
+  }
+}
+
+@reflectiveTest
+class InheritanceManager3WithoutNullSafetyTest
+    extends _InheritanceManager3Base {
   test_getInherited_closestSuper() async {
     await resolveTestCode('''
 class A {
@@ -1118,288 +1401,6 @@ class B extends A {
       name: 'foo',
       forSuper: true,
       expected: 'A.foo: void Function()',
-    );
-  }
-}
-
-@reflectiveTest
-class InheritanceManager3WithNullSafetyTest extends _InheritanceManager3Base {
-  test_getInheritedMap_topMerge_method() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.6
-class A {
-  void foo({int a}) {}
-}
-''');
-
-    await resolveTestCode('''
-import 'a.dart';
-
-class B {
-  void foo({required int? a}) {}
-}
-
-class C implements A, B {
-  void foo({int? a}) {}
-}
-''');
-
-    _assertInheritedMap('C', r'''
-A.foo: void Function({int a})
-''');
-  }
-
-  test_getMember_mixin_notMerge_replace() async {
-    await resolveTestCode('''
-class A<T> {
-  T foo() => throw 0;
-}
-
-mixin M<T> {
-  T foo() => throw 1;
-}
-
-class X extends A<dynamic> with M<Object?> {}
-class Y extends A<Object?> with M<dynamic> {}
-''');
-    _assertGetMember2(
-      className: 'X',
-      name: 'foo',
-      expected: 'M.foo: Object? Function()',
-    );
-    _assertGetMember2(
-      className: 'Y',
-      name: 'foo',
-      expected: 'M.foo: dynamic Function()',
-    );
-  }
-
-  test_getMember_optIn_inheritsOptIn() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A {
-  int foo(int a, int? b) => 0;
-}
-''');
-    await resolveTestCode('''
-import 'a.dart';
-class B extends A {
-  int? bar(int a) => 0;
-}
-''');
-    _assertGetMember(
-      className: 'B',
-      name: 'foo',
-      expected: 'A.foo: int Function(int, int?)',
-    );
-    _assertGetMember(
-      className: 'B',
-      name: 'bar',
-      expected: 'B.bar: int? Function(int)',
-    );
-  }
-
-  test_getMember_optIn_inheritsOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.6
-class A {
-  int foo(int a, int b) => 0;
-}
-''');
-    await resolveTestCode('''
-import 'a.dart';
-class B extends A {
-  int? bar(int a) => 0;
-}
-''');
-    _assertGetMember(
-      className: 'B',
-      name: 'foo',
-      expected: 'A.foo: int* Function(int*, int*)*',
-    );
-    _assertGetMember(
-      className: 'B',
-      name: 'bar',
-      expected: 'B.bar: int? Function(int)',
-    );
-  }
-
-  test_getMember_optIn_topMerge_getter_existing() async {
-    await resolveTestCode('''
-class A {
-  dynamic get foo => 0;
-}
-
-class B {
-  Object? get foo => 0;
-}
-
-class X extends A implements B {}
-''');
-
-    _assertGetMember(
-      className: 'X',
-      name: 'foo',
-      expected: 'B.foo: Object? Function()',
-    );
-  }
-
-  test_getMember_optIn_topMerge_getter_synthetic() async {
-    await resolveTestCode('''
-abstract class A {
-  Future<void> get foo;
-}
-
-abstract class B {
-  Future<dynamic> get foo;
-}
-
-abstract class X extends A implements B {}
-''');
-
-    _assertGetMember(
-      className: 'X',
-      name: 'foo',
-      expected: 'X.foo: Future<Object?> Function()',
-    );
-  }
-
-  test_getMember_optIn_topMerge_method() async {
-    await resolveTestCode('''
-class A {
-  Object? foo(dynamic x) {}
-}
-
-class B {
-  dynamic foo(Object? x) {}
-}
-
-class X extends A implements B {}
-''');
-
-    _assertGetMember(
-      className: 'X',
-      name: 'foo',
-      expected: 'X.foo: Object? Function(Object?)',
-    );
-  }
-
-  test_getMember_optIn_topMerge_setter_existing() async {
-    await resolveTestCode('''
-class A {
-  set foo(dynamic _) {}
-}
-
-class B {
-  set foo(Object? _) {}
-}
-
-class X extends A implements B {}
-''');
-
-    _assertGetMember(
-      className: 'X',
-      name: 'foo=',
-      expected: 'B.foo=: void Function(Object?)',
-    );
-  }
-
-  test_getMember_optIn_topMerge_setter_synthetic() async {
-    await resolveTestCode('''
-abstract class A {
-  set foo(Future<void> _);
-}
-
-abstract class B {
-  set foo(Future<dynamic> _);
-}
-
-abstract class X extends A implements B {}
-''');
-
-    _assertGetMember(
-      className: 'X',
-      name: 'foo=',
-      expected: 'X.foo=: void Function(Future<Object?>)',
-    );
-  }
-
-  test_getMember_optOut_inheritsOptIn() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A {
-  int foo(int a, int? b) => 0;
-}
-''');
-    await resolveTestCode('''
-// @dart = 2.6
-import 'a.dart';
-class B extends A {
-  int bar(int a) => 0;
-}
-''');
-    _assertGetMember2(
-      className: 'B',
-      name: 'foo',
-      expected: 'A.foo: int* Function(int*, int*)*',
-    );
-
-    _assertGetMember2(
-      className: 'B',
-      name: 'bar',
-      expected: 'B.bar: int* Function(int*)*',
-    );
-  }
-
-  test_getMember_optOut_mixesOptIn() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A {
-  int foo(int a, int? b) => 0;
-}
-''');
-    await resolveTestCode('''
-// @dart = 2.6
-import 'a.dart';
-class B with A {
-  int bar(int a) => 0;
-}
-''');
-    _assertGetMember2(
-      className: 'B',
-      name: 'foo',
-      expected: 'A.foo: int* Function(int*, int*)*',
-    );
-    _assertGetMember2(
-      className: 'B',
-      name: 'bar',
-      expected: 'B.bar: int* Function(int*)*',
-    );
-  }
-
-  test_getMember_optOut_passOptIn() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A {
-  int foo(int a, int? b) => 0;
-}
-''');
-    newFile('$testPackageLibPath/b.dart', content: r'''
-// @dart = 2.6
-import 'a.dart';
-class B extends A {
-  int bar(int a) => 0;
-}
-''');
-    await resolveTestCode('''
-import 'b.dart';
-class C extends B {}
-''');
-    _assertGetMember(
-      className: 'C',
-      name: 'foo',
-      expected: 'A.foo: int* Function(int*, int*)*',
-    );
-    _assertGetMember(
-      className: 'C',
-      name: 'bar',
-      expected: 'B.bar: int* Function(int*)*',
     );
   }
 }

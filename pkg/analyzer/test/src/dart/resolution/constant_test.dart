@@ -16,12 +16,187 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantResolutionTest);
-    defineReflectiveTests(ConstantResolutionWithNullSafetyTest);
+    defineReflectiveTests(ConstantResolutionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ConstantResolutionTest extends PubPackageResolutionTest
+class ConstantResolutionTest extends PubPackageResolutionTest {
+  test_constructor_nullSafe_fromLegacy_super() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  const A(List<Object> a);
+}
+
+class B extends A {
+  const B(List<Object> a) : super(a);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.8
+import 'a.dart';
+
+const a = <dynamic>[];
+const b = B(a);
+''');
+
+    var b = findElement.topVar('b');
+    assertType(b.computeConstantValue()!.type, 'B*');
+  }
+
+  test_constructor_nullSafe_fromLegacy_this() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  const A(List<Object> a) : this(a);
+  const A.second(List<Object> a);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.8
+import 'a.dart';
+
+const a = <dynamic>[];
+const b = A(a);
+''');
+
+    var b = findElement.topVar('b');
+    assertType(b.computeConstantValue()!.type, 'A*');
+  }
+
+  test_context_eliminateTypeVariables() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A({List<T> a = const []});
+}
+''');
+    assertType(findNode.listLiteral('const []'), 'List<Never>');
+  }
+
+  test_context_eliminateTypeVariables_functionType() async {
+    await assertNoErrorsInCode(r'''
+class A<T, U> {
+  const A({List<T Function(U)> a = const []});
+}
+''');
+    assertType(
+      findNode.listLiteral('const []'),
+      'List<Never Function(Object?)>',
+    );
+  }
+
+  test_field_optIn_fromOptOut() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  static const foo = 42;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+import 'a.dart';
+
+const bar = A.foo;
+''');
+
+    var bar = findElement.topVar('bar');
+    _assertIntValue(bar, 42);
+  }
+
+  test_fromEnvironment_optOut_fromOptIn() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.5
+
+const cBool = const bool.fromEnvironment('foo', defaultValue: false);
+const cInt = const int.fromEnvironment('foo', defaultValue: 1);
+const cString = const String.fromEnvironment('foo', defaultValue: 'bar');
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+
+const vBool = cBool;
+const vInt = cInt;
+const vString = cString;
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
+
+    DartObjectImpl evaluate(String name) {
+      return findElement.topVar(name).computeConstantValue() as DartObjectImpl;
+    }
+
+    expect(evaluate('vBool').toBoolValue(), false);
+    expect(evaluate('vInt').toIntValue(), 1);
+    expect(evaluate('vString').toStringValue(), 'bar');
+  }
+
+  test_topLevelVariable_optIn_fromOptOut() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+const foo = 42;
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+import 'a.dart';
+
+const bar = foo;
+''');
+
+    var bar = findElement.topVar('bar');
+    assertType(bar.type, 'int*');
+    _assertIntValue(bar, 42);
+  }
+
+  test_topLevelVariable_optOut2() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+const a = 42;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: r'''
+import 'a.dart';
+
+const b = a;
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+import 'b.dart';
+
+const c = b;
+''');
+
+    var c = findElement.topVar('c');
+    assertType(c.type, 'int*');
+    _assertIntValue(c, 42);
+  }
+
+  test_topLevelVariable_optOut3() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+const a = int.fromEnvironment('a', defaultValue: 42);
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart';
+
+const b = a;
+''');
+
+    var c = findElement.topVar('b');
+    assertType(c.type, 'int*');
+    _assertIntValue(c, 42);
+  }
+
+  void _assertIntValue(VariableElement element, int value) {
+    expect(element.computeConstantValue()!.toIntValue(), value);
+  }
+}
+
+@reflectiveTest
+class ConstantResolutionWithoutNullSafetyTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
@@ -249,180 +424,5 @@ void f() {
   const Wrapper(0);
 }
 ''');
-  }
-}
-
-@reflectiveTest
-class ConstantResolutionWithNullSafetyTest extends PubPackageResolutionTest {
-  test_constructor_nullSafe_fromLegacy_super() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A {
-  const A(List<Object> a);
-}
-
-class B extends A {
-  const B(List<Object> a) : super(a);
-}
-''');
-
-    await assertNoErrorsInCode(r'''
-// @dart = 2.8
-import 'a.dart';
-
-const a = <dynamic>[];
-const b = B(a);
-''');
-
-    var b = findElement.topVar('b');
-    assertType(b.computeConstantValue()!.type, 'B*');
-  }
-
-  test_constructor_nullSafe_fromLegacy_this() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A {
-  const A(List<Object> a) : this(a);
-  const A.second(List<Object> a);
-}
-''');
-
-    await assertNoErrorsInCode(r'''
-// @dart = 2.8
-import 'a.dart';
-
-const a = <dynamic>[];
-const b = A(a);
-''');
-
-    var b = findElement.topVar('b');
-    assertType(b.computeConstantValue()!.type, 'A*');
-  }
-
-  test_context_eliminateTypeVariables() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {
-  const A({List<T> a = const []});
-}
-''');
-    assertType(findNode.listLiteral('const []'), 'List<Never>');
-  }
-
-  test_context_eliminateTypeVariables_functionType() async {
-    await assertNoErrorsInCode(r'''
-class A<T, U> {
-  const A({List<T Function(U)> a = const []});
-}
-''');
-    assertType(
-      findNode.listLiteral('const []'),
-      'List<Never Function(Object?)>',
-    );
-  }
-
-  test_field_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A {
-  static const foo = 42;
-}
-''');
-
-    await assertNoErrorsInCode(r'''
-// @dart = 2.5
-import 'a.dart';
-
-const bar = A.foo;
-''');
-
-    var bar = findElement.topVar('bar');
-    _assertIntValue(bar, 42);
-  }
-
-  test_fromEnvironment_optOut_fromOptIn() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.5
-
-const cBool = const bool.fromEnvironment('foo', defaultValue: false);
-const cInt = const int.fromEnvironment('foo', defaultValue: 1);
-const cString = const String.fromEnvironment('foo', defaultValue: 'bar');
-''');
-
-    await assertErrorsInCode(r'''
-import 'a.dart';
-
-const vBool = cBool;
-const vInt = cInt;
-const vString = cString;
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-
-    DartObjectImpl evaluate(String name) {
-      return findElement.topVar(name).computeConstantValue() as DartObjectImpl;
-    }
-
-    expect(evaluate('vBool').toBoolValue(), false);
-    expect(evaluate('vInt').toIntValue(), 1);
-    expect(evaluate('vString').toStringValue(), 'bar');
-  }
-
-  test_topLevelVariable_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-const foo = 42;
-''');
-
-    await assertNoErrorsInCode(r'''
-// @dart = 2.5
-import 'a.dart';
-
-const bar = foo;
-''');
-
-    var bar = findElement.topVar('bar');
-    assertType(bar.type, 'int*');
-    _assertIntValue(bar, 42);
-  }
-
-  test_topLevelVariable_optOut2() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-const a = 42;
-''');
-
-    newFile('$testPackageLibPath/b.dart', content: r'''
-import 'a.dart';
-
-const b = a;
-''');
-
-    await assertNoErrorsInCode(r'''
-// @dart = 2.5
-import 'b.dart';
-
-const c = b;
-''');
-
-    var c = findElement.topVar('c');
-    assertType(c.type, 'int*');
-    _assertIntValue(c, 42);
-  }
-
-  test_topLevelVariable_optOut3() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-const a = int.fromEnvironment('a', defaultValue: 42);
-''');
-
-    await assertNoErrorsInCode(r'''
-// @dart = 2.7
-import 'a.dart';
-
-const b = a;
-''');
-
-    var c = findElement.topVar('b');
-    assertType(c.type, 'int*');
-    _assertIntValue(c, 42);
-  }
-
-  void _assertIntValue(VariableElement element, int value) {
-    expect(element.computeConstantValue()!.toIntValue(), value);
   }
 }

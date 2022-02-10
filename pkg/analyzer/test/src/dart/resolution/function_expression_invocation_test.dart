@@ -10,49 +10,12 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionExpressionInvocationTest);
-    defineReflectiveTests(FunctionExpressionInvocationWithNullSafetyTest);
+    defineReflectiveTests(FunctionExpressionInvocationWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class FunctionExpressionInvocationTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  test_dynamic_withoutTypeArguments() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  (main as dynamic)(0);
-}
-''');
-
-    assertFunctionExpressionInvocation(
-      findNode.functionExpressionInvocation('(0)'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
-  }
-
-  test_dynamic_withTypeArguments() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  (main as dynamic)<bool, int>(0);
-}
-''');
-
-    assertFunctionExpressionInvocation(
-      findNode.functionExpressionInvocation('(0)'),
-      element: null,
-      typeArgumentTypes: ['bool', 'int'],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
-  }
-}
-
-@reflectiveTest
-class FunctionExpressionInvocationWithNullSafetyTest
-    extends PubPackageResolutionTest {
+class FunctionExpressionInvocationTest extends PubPackageResolutionTest {
   test_call_infer_fromArguments() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -227,6 +190,42 @@ class B {
       findNode.propertyAccess('isEven'),
       element: intElement.getGetter('isEven'),
       type: 'bool?',
+    );
+  }
+}
+
+@reflectiveTest
+class FunctionExpressionInvocationWithoutNullSafetyTest
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
+  test_dynamic_withoutTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  (main as dynamic)(0);
+}
+''');
+
+    assertFunctionExpressionInvocation(
+      findNode.functionExpressionInvocation('(0)'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
+  test_dynamic_withTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  (main as dynamic)<bool, int>(0);
+}
+''');
+
+    assertFunctionExpressionInvocation(
+      findNode.functionExpressionInvocation('(0)'),
+      element: null,
+      typeArgumentTypes: ['bool', 'int'],
+      invokeType: 'dynamic',
+      type: 'dynamic',
     );
   }
 }

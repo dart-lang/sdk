@@ -9,36 +9,17 @@ import '../dart/resolution/resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MixinInferenceNoPossibleSubstitutionTest);
     defineReflectiveTests(
-      MixinInferenceNoPossibleSubstitutionWithNullSafetyTest,
+      MixinInferenceNoPossibleSubstitutionTest,
+    );
+    defineReflectiveTests(
+      MixinInferenceNoPossibleSubstitutionWithoutNullSafetyTest,
     );
   });
 }
 
 @reflectiveTest
 class MixinInferenceNoPossibleSubstitutionTest extends PubPackageResolutionTest
-    with
-        WithoutNullSafetyMixin,
-        MixinInferenceNoPossibleSubstitutionTestCases {}
-
-mixin MixinInferenceNoPossibleSubstitutionTestCases on ResolutionTest {
-  test_valid_single() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {}
-
-mixin M<T> on A<T> {}
-
-class X extends A<int> with M {}
-''');
-
-    assertType(findNode.namedType('M {}'), 'M<int>');
-  }
-}
-
-@reflectiveTest
-class MixinInferenceNoPossibleSubstitutionWithNullSafetyTest
-    extends PubPackageResolutionTest
     with MixinInferenceNoPossibleSubstitutionTestCases {
   test_valid_nonNullableMixins_legacyApplication() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
@@ -59,3 +40,24 @@ class D extends A<int> with B<int>, C {}
     assertType(findNode.namedType('C {}'), 'C<int*>*');
   }
 }
+
+mixin MixinInferenceNoPossibleSubstitutionTestCases on ResolutionTest {
+  test_valid_single() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+
+mixin M<T> on A<T> {}
+
+class X extends A<int> with M {}
+''');
+
+    assertType(findNode.namedType('M {}'), 'M<int>');
+  }
+}
+
+@reflectiveTest
+class MixinInferenceNoPossibleSubstitutionWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with
+        WithoutNullSafetyMixin,
+        MixinInferenceNoPossibleSubstitutionTestCases {}

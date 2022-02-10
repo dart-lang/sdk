@@ -11,7 +11,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeprecatedMemberUse_BasicWorkspaceTest);
     defineReflectiveTests(
-        DeprecatedMemberUse_BasicWorkspace_WithNullSafetyTest);
+      DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest,
+    );
     defineReflectiveTests(DeprecatedMemberUse_BazelWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_GnWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_PackageBuildWorkspaceTest);
@@ -29,8 +30,12 @@ main() {
 }
 
 @reflectiveTest
-class DeprecatedMemberUse_BasicWorkspace_WithNullSafetyTest
+class DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest
     extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, DeprecatedMemberUse_BasicWorkspaceTestCases {}
+
+@reflectiveTest
+class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
     with DeprecatedMemberUse_BasicWorkspaceTestCases {
   test_instanceCreation_namedParameter_fromLegacy() async {
     newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
@@ -106,10 +111,6 @@ class B extends A {
     ]);
   }
 }
-
-@reflectiveTest
-class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, DeprecatedMemberUse_BasicWorkspaceTestCases {}
 
 mixin DeprecatedMemberUse_BasicWorkspaceTestCases on PubPackageResolutionTest {
   @override
