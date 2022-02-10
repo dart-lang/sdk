@@ -27,8 +27,8 @@ class B1 extends self::A1 {
   constructor named2(core::int foo) → self::B1
     : super self::A1::named2(foo)
     ;
-  constructor named3({required dynamic foo = #C1}) → self::B1
-    : super self::A1::named3(foo: foo as{TypeError,ForDynamic,ForNonNullableByDefault} core::int)
+  constructor named3({required core::int foo = #C1}) → self::B1
+    : super self::A1::named3(foo: foo)
     ;
 }
 class A2 extends core::Object {

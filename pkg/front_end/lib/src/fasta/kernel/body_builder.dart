@@ -1622,7 +1622,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return fakeReturn.expression!;
   }
 
-  void parseInitializers(Token token, {bool doFinishConstructor = true}) {
+  List<Initializer>? parseInitializers(Token token,
+      {bool doFinishConstructor = true}) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     if (!token.isEof) {
@@ -1635,6 +1636,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       finishConstructor(
           member as DeclaredSourceConstructorBuilder, AsyncMarker.Sync, null);
     }
+    return _initializers;
   }
 
   Expression parseFieldInitializer(Token token) {
