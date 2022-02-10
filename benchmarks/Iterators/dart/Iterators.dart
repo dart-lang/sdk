@@ -331,6 +331,60 @@ class BenchmarkListIntGrowable extends MonoBenchmark {
   }
 }
 
+class BenchmarkListIntSystem1 extends MonoBenchmark {
+  // The List type here is not quite monomorphic. It is the choice between two
+  // 'system' Lists: a const List and a growable List. It is quite common to
+  // have growable and const lists at the same use-site (e.g. the const coming
+  // from a default argument).
+  //
+  // Ideally some combination of the class heirarchy or compiler tricks would
+  // ensure there is little cost of having this gentle polymorphism.
+  BenchmarkListIntSystem1(int size)
+      : _list1 = List.generate(size, (i) => i),
+        _list2 = generateConstListOfInt(size),
+        super('List.int.growable.and.const', size);
+
+  final List<int> _list1;
+  final List<int> _list2;
+  bool _flip = false;
+
+  @override
+  void sinkMono() {
+    _flip = !_flip;
+    final list = _flip ? _list1 : _list2;
+    for (final value in list) {
+      sink = value;
+    }
+  }
+}
+
+class BenchmarkListIntSystem2 extends MonoBenchmark {
+  // The List type here is not quite monomorphic. It is the choice between two
+  // 'system' Lists: a const List and a fixed-length List. It is quite common to
+  // have fixed-length and const lists at the same use-site (e.g. the const
+  // coming from a default argument).
+  //
+  // Ideally some combination of the class heirarchy or compiler tricks would
+  // ensure there is little cost of having this gentle polymorphism.
+  BenchmarkListIntSystem2(int size)
+      : _list1 = List.generate(size, (i) => i, growable: false),
+        _list2 = generateConstListOfInt(size),
+        super('List.int.fixed.and.const', size);
+
+  final List<int> _list1;
+  final List<int> _list2;
+  bool _flip = false;
+
+  @override
+  void sinkMono() {
+    _flip = !_flip;
+    final list = _flip ? _list1 : _list2;
+    for (final value in list) {
+      sink = value;
+    }
+  }
+}
+
 /// A simple Iterable that yields the integers 0 through `length`.
 ///
 /// This Iterable serves as the minimal interesting example to serve as a
@@ -492,6 +546,8 @@ void main(List<String> commandLineArguments) {
       Benchmark('Runes', size, (n) => generateString(n).runes),
       // ---
       BenchmarkListIntGrowable(size),
+      BenchmarkListIntSystem1(size),
+      BenchmarkListIntSystem2(size),
       Benchmark('List.int.growable', size,
           (n) => List<int>.of(UpTo(n), growable: true)),
       Benchmark('List.int.fixed', size,
