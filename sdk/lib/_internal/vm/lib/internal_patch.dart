@@ -7,6 +7,7 @@
 /// used by patches of that library. We plan to change this when we have a
 /// shared front end and simply use parts.
 
+import "dart:async" show Timer;
 import "dart:core" hide Symbol;
 
 import "dart:isolate" show SendPort;
@@ -69,36 +70,30 @@ external void writeIntoTwoByteString(String string, int index, int codePoint);
 
 class VMLibraryHooks {
   // Example: "dart:isolate _Timer._factory"
-  static var timerFactory;
+  static Timer Function(int, void Function(Timer), bool)? timerFactory;
 
   // Example: "dart:io _EventHandler._sendData"
-  static var eventHandlerSendData;
+  static late void Function(Object?, SendPort, int) eventHandlerSendData;
 
   // A nullary closure that answers the current clock value in milliseconds.
   // Example: "dart:io _EventHandler._timerMillisecondClock"
-  static var timerMillisecondClock;
-
-  // Implementation of Resource.readAsBytes.
-  static var resourceReadAsBytes;
+  static late int Function() timerMillisecondClock;
 
   // Implementation of package root/map provision.
-  static var packageRootString;
-  static var packageConfigString;
-  static var packageConfigUriFuture;
-  static var resolvePackageUriFuture;
+  static String? packageRootString;
+  static String? packageConfigString;
+  static Future<Uri?> Function()? packageConfigUriFuture;
+  static Future<Uri?> Function(Uri)? resolvePackageUriFuture;
 
-  static var _computeScriptUri;
-  static var _cachedScript;
-  static set platformScript(var f) {
+  static Uri Function()? _computeScriptUri;
+  static Uri? _cachedScript;
+  static set computePlatformScript(Uri Function() f) {
     _computeScriptUri = f;
     _cachedScript = null;
   }
 
-  static get platformScript {
-    if (_cachedScript == null && _computeScriptUri != null) {
-      _cachedScript = _computeScriptUri();
-    }
-    return _cachedScript;
+  static Uri? get platformScript {
+    return _cachedScript ??= _computeScriptUri?.call();
   }
 }
 
