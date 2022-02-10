@@ -193,6 +193,8 @@ namespace dart {
   F(RegExp, external_two_byte_sticky_)                                         \
   F(WeakProperty, key_)                                                        \
   F(WeakProperty, value_)                                                      \
+  F(WeakReference, target_)                                                    \
+  F(WeakReference, type_arguments_)                                            \
   F(MirrorReference, referent_)                                                \
   F(UserTag, label_)                                                           \
   F(PointerBase, data_)                                                        \

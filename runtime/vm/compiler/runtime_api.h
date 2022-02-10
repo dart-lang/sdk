@@ -1037,6 +1037,14 @@ class WeakProperty : public AllStatic {
   FINAL_CLASS();
 };
 
+class WeakReference : public AllStatic {
+ public:
+  static word target_offset();
+  static word type_arguments_offset();
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
 class MirrorReference : public AllStatic {
  public:
   static word InstanceSize();

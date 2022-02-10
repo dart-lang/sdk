@@ -485,6 +485,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -577,6 +580,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
@@ -1058,6 +1062,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -1152,6 +1159,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
@@ -1624,6 +1632,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 12;
@@ -1713,6 +1724,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
@@ -2194,6 +2206,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -2289,6 +2304,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
@@ -2767,6 +2783,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -2861,6 +2880,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 24;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 24;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
@@ -3339,6 +3359,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -3434,6 +3457,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 24;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 24;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
@@ -3906,6 +3930,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -4000,6 +4027,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_RISCV32) && !defined(DART_COMPRESSED_POINTERS)
@@ -4481,6 +4509,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -4576,6 +4607,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_RISCV64) && !defined(DART_COMPRESSED_POINTERS)
@@ -5044,6 +5076,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -5136,6 +5171,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
@@ -5611,6 +5647,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -5705,6 +5744,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
@@ -6171,6 +6211,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 12;
@@ -6260,6 +6303,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
@@ -6735,6 +6779,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -6830,6 +6877,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
@@ -7302,6 +7350,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -7396,6 +7447,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 24;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 24;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
@@ -7868,6 +7920,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -7963,6 +8018,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 24;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 24;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
@@ -8429,6 +8485,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -8523,6 +8582,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_RISCV32) && !defined(DART_COMPRESSED_POINTERS)
@@ -8998,6 +9058,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -9093,6 +9156,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_RISCV64) && !defined(DART_COMPRESSED_POINTERS)
@@ -9620,6 +9684,10 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    4;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -9726,6 +9794,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    16;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 12;
@@ -10253,6 +10323,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -10360,6 +10434,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;
@@ -10890,6 +10966,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -10998,6 +11078,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;
@@ -11524,6 +11606,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -11631,6 +11717,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    24;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     24;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 16;
@@ -12157,6 +12245,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -12265,6 +12357,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    24;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     24;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 16;
@@ -12789,6 +12883,10 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    4;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -12897,6 +12995,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    16;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 12;
@@ -13424,6 +13524,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -13532,6 +13636,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;
@@ -14051,6 +14157,10 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    4;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -14157,6 +14267,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    16;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 12;
@@ -14677,6 +14789,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -14784,6 +14900,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;
@@ -15307,6 +15425,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -15415,6 +15537,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;
@@ -15934,6 +16058,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -16041,6 +16169,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    24;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     24;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 16;
@@ -16560,6 +16690,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -16668,6 +16802,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    24;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     24;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 16;
@@ -17185,6 +17321,10 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    4;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -17293,6 +17433,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    16;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 12;
@@ -17813,6 +17955,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -17921,6 +18067,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;

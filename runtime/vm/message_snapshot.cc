@@ -502,7 +502,7 @@ class ClassMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     Library& lib = Library::Handle(s->zone());
     String& str = String::Handle(s->zone());
@@ -597,7 +597,7 @@ class TypeArgumentsMessageSerializationCluster
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       TypeArguments* type_args = objects_[i];
@@ -608,7 +608,7 @@ class TypeArgumentsMessageSerializationCluster
   }
 
   void WriteEdges(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       TypeArguments* type_args = objects_[i];
       intptr_t hash = Smi::Value(type_args->untag()->hash());
@@ -637,7 +637,7 @@ class TypeArgumentsMessageDeserializationCluster
   ~TypeArgumentsMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       intptr_t length = d->ReadUnsigned();
       d->AssignRef(TypeArguments::New(length));
@@ -705,7 +705,7 @@ class FunctionMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     Library& lib = Library::Handle(s->zone());
     Class& cls = Class::Handle(s->zone());
@@ -736,7 +736,7 @@ class FunctionMessageDeserializationCluster
   ~FunctionMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     String& str = String::Handle(d->zone());
     Library& lib = Library::Handle(d->zone());
     Class& cls = Class::Handle(d->zone());
@@ -810,7 +810,7 @@ class InstanceMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteEdges(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       Instance* instance = objects_[i];
 
@@ -964,7 +964,7 @@ class TypeMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       Type* type = objects_[i];
@@ -973,7 +973,7 @@ class TypeMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteEdges(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       Type* type = objects_[i];
       s->WriteRef(type->type_class());
@@ -993,7 +993,7 @@ class TypeMessageDeserializationCluster : public MessageDeserializationCluster {
   ~TypeMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(Type::New());
     }
@@ -1050,7 +1050,7 @@ class TypeRefMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       TypeRef* type = objects_[i];
@@ -1059,7 +1059,7 @@ class TypeRefMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteEdges(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       TypeRef* type = objects_[i];
       s->WriteRef(type->type());
@@ -1078,7 +1078,7 @@ class TypeRefMessageDeserializationCluster
   ~TypeRefMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(TypeRef::New());
     }
@@ -1150,7 +1150,7 @@ class ClosureMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       Closure* closure = objects_[i];
@@ -1214,7 +1214,7 @@ class SmiMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       Smi* smi = static_cast<Smi*>(objects_[i]);
@@ -1250,7 +1250,7 @@ class SmiMessageDeserializationCluster : public MessageDeserializationCluster {
   ~SmiMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(Smi::New(d->Read<intptr_t>()));
     }
@@ -1289,7 +1289,7 @@ class MintMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       Mint* mint = static_cast<Mint*>(objects_[i]);
@@ -1325,7 +1325,7 @@ class MintMessageDeserializationCluster : public MessageDeserializationCluster {
   ~MintMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       int64_t value = d->Read<int64_t>();
       d->AssignRef(is_canonical() ? Mint::NewCanonical(value)
@@ -1367,7 +1367,7 @@ class DoubleMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       Double* dbl = objects_[i];
@@ -1402,7 +1402,7 @@ class DoubleMessageDeserializationCluster
   ~DoubleMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       double value = d->Read<double>();
       d->AssignRef(is_canonical() ? Double::NewCanonical(value)
@@ -1440,7 +1440,7 @@ class GrowableObjectArrayMessageSerializationCluster
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       GrowableObjectArray* array = objects_[i];
@@ -1450,7 +1450,7 @@ class GrowableObjectArrayMessageSerializationCluster
   }
 
   void WriteEdges(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       GrowableObjectArray* array = objects_[i];
       s->WriteRef(array->GetTypeArguments());
@@ -1472,7 +1472,7 @@ class GrowableObjectArrayMessageDeserializationCluster
   ~GrowableObjectArrayMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     GrowableObjectArray& array = GrowableObjectArray::Handle(d->zone());
     for (intptr_t i = 0; i < count; i++) {
       intptr_t length = d->ReadUnsigned();
@@ -1876,7 +1876,7 @@ class NativePointerMessageDeserializationCluster
   ~NativePointerMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       FinalizableData finalizable_data = d->finalizable_data()->Take();
       intptr_t ptr = reinterpret_cast<intptr_t>(finalizable_data.data);
@@ -1910,7 +1910,7 @@ class TypedDataViewMessageSerializationCluster
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       TypedDataView* view = objects_[i];
@@ -1919,7 +1919,7 @@ class TypedDataViewMessageSerializationCluster
   }
 
   void WriteEdges(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       TypedDataView* view = objects_[i];
       s->WriteRef(view->untag()->length());
@@ -1940,7 +1940,7 @@ class TypedDataViewMessageDeserializationCluster
   ~TypedDataViewMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(TypedDataView::New(cid_));
     }
@@ -2083,7 +2083,7 @@ class TransferableTypedDataMessageSerializationCluster
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       TransferableTypedData* transferable = objects_[i];
@@ -2125,7 +2125,7 @@ class TransferableTypedDataMessageDeserializationCluster
   ~TransferableTypedDataMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       intptr_t length = d->ReadUnsigned();
       const FinalizableData finalizable_data = d->finalizable_data()->Take();
@@ -2159,7 +2159,7 @@ class Simd128MessageSerializationCluster : public MessageSerializationCluster {
   void Trace(MessageSerializer* s, Object* object) { objects_.Add(object); }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       Object* vector = objects_[i];
@@ -2183,7 +2183,7 @@ class Simd128MessageDeserializationCluster
   ~Simd128MessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       ASSERT_EQUAL(Int32x4::InstanceSize(), Float32x4::InstanceSize());
       ASSERT_EQUAL(Int32x4::InstanceSize(), Float64x2::InstanceSize());
@@ -2219,7 +2219,7 @@ class RegExpMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RegExp* regexp = objects_[i];
@@ -2275,7 +2275,7 @@ class SendPortMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       SendPort* port = objects_[i];
@@ -2312,7 +2312,7 @@ class SendPortMessageDeserializationCluster
   ~SendPortMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       Dart_Port id = d->Read<Dart_Port>();
       Dart_Port origin_id = d->Read<Dart_Port>();
@@ -2347,7 +2347,7 @@ class CapabilityMessageSerializationCluster
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       Capability* cap = objects_[i];
@@ -2382,7 +2382,7 @@ class CapabilityMessageDeserializationCluster
   ~CapabilityMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       uint64_t id = d->Read<uint64_t>();
       d->AssignRef(Capability::New(id));
@@ -2423,7 +2423,7 @@ class WeakPropertyMessageSerializationCluster
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       WeakProperty* property = objects_[i];
@@ -2432,7 +2432,7 @@ class WeakPropertyMessageSerializationCluster
   }
 
   void WriteEdges(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       WeakProperty* property = objects_[i];
       if (s->HasRef(property->untag()->key())) {
@@ -2457,7 +2457,7 @@ class WeakPropertyMessageDeserializationCluster
   ~WeakPropertyMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(WeakProperty::New());
     }
@@ -2469,6 +2469,73 @@ class WeakPropertyMessageDeserializationCluster
       WeakPropertyPtr property = static_cast<WeakPropertyPtr>(d->Ref(id));
       property->untag()->set_key(d->ReadRef());
       property->untag()->set_value(d->ReadRef());
+    }
+  }
+};
+
+class WeakReferenceMessageSerializationCluster
+    : public MessageSerializationCluster {
+ public:
+  WeakReferenceMessageSerializationCluster()
+      : MessageSerializationCluster("WeakReference",
+                                    MessagePhase::kNonCanonicalInstances,
+                                    kWeakReferenceCid) {}
+  ~WeakReferenceMessageSerializationCluster() {}
+
+  void Trace(MessageSerializer* s, Object* object) {
+    WeakReference* reference = static_cast<WeakReference*>(object);
+    objects_.Add(reference);
+
+    s->Push(reference->untag()->type_arguments());
+  }
+
+  void WriteNodes(MessageSerializer* s) {
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      WeakReference* reference = objects_[i];
+      s->AssignRef(reference);
+    }
+  }
+
+  void WriteEdges(MessageSerializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      WeakReference* reference = objects_[i];
+      if (s->HasRef(reference->untag()->target())) {
+        s->WriteRef(reference->untag()->target());
+      } else {
+        s->WriteRef(Object::null());
+      }
+      s->WriteRef(reference->untag()->type_arguments());
+    }
+  }
+
+ private:
+  GrowableArray<WeakReference*> objects_;
+};
+
+class WeakReferenceMessageDeserializationCluster
+    : public MessageDeserializationCluster {
+ public:
+  WeakReferenceMessageDeserializationCluster()
+      : MessageDeserializationCluster("WeakReference") {}
+  ~WeakReferenceMessageDeserializationCluster() {}
+
+  void ReadNodes(MessageDeserializer* d) {
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(WeakReference::New());
+    }
+  }
+
+  void ReadEdges(MessageDeserializer* d) {
+    ASSERT(!is_canonical());  // Never canonical.
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      WeakReferencePtr reference = static_cast<WeakReferencePtr>(d->Ref(id));
+      reference->untag()->set_target(d->ReadRef());
+      reference->untag()->set_type_arguments(
+          static_cast<TypeArgumentsPtr>(d->ReadRef()));
     }
   }
 };
@@ -2498,7 +2565,7 @@ class LinkedHashMapMessageSerializationCluster
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       LinkedHashMap* map = objects_[i];
@@ -2507,7 +2574,7 @@ class LinkedHashMapMessageSerializationCluster
   }
 
   void WriteEdges(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       LinkedHashMap* map = objects_[i];
       s->WriteRef(map->untag()->type_arguments());
@@ -2529,7 +2596,7 @@ class LinkedHashMapMessageDeserializationCluster
   ~LinkedHashMapMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(LinkedHashMap::NewUninitialized(cid_));
     }
@@ -2594,7 +2661,7 @@ class LinkedHashSetMessageSerializationCluster
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       LinkedHashSet* map = objects_[i];
@@ -2603,7 +2670,7 @@ class LinkedHashSetMessageSerializationCluster
   }
 
   void WriteEdges(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       LinkedHashSet* map = objects_[i];
       s->WriteRef(map->untag()->type_arguments());
@@ -2625,7 +2692,7 @@ class LinkedHashSetMessageDeserializationCluster
   ~LinkedHashSetMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(LinkedHashSet::NewUninitialized(cid_));
     }
@@ -2689,7 +2756,7 @@ class ArrayMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       Array* array = objects_[i];
@@ -2700,7 +2767,7 @@ class ArrayMessageSerializationCluster : public MessageSerializationCluster {
   }
 
   void WriteEdges(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       Array* array = objects_[i];
       intptr_t length = array->Length();
@@ -2753,7 +2820,7 @@ class ArrayMessageDeserializationCluster
   ~ArrayMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       intptr_t length = d->ReadUnsigned();
       d->AssignRef(Array::New(cid_, length));
@@ -2834,7 +2901,7 @@ class OneByteStringMessageSerializationCluster
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       String* str = objects_[i];
@@ -2886,7 +2953,7 @@ class OneByteStringMessageDeserializationCluster
   ~OneByteStringMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       intptr_t length = d->ReadUnsigned();
       const uint8_t* data = d->CurrentBufferAddress();
@@ -2940,7 +3007,7 @@ class TwoByteStringMessageSerializationCluster
   }
 
   void WriteNodes(MessageSerializer* s) {
-    intptr_t count = objects_.length();
+    const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       String* str = objects_[i];
@@ -2995,7 +3062,7 @@ class TwoByteStringMessageDeserializationCluster
   ~TwoByteStringMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       intptr_t length = d->ReadUnsigned();
       const uint16_t* data =
@@ -3414,6 +3481,8 @@ MessageSerializationCluster* BaseSerializer::NewClusterForClass(
     case kWeakPropertyCid:
       ephemeron_cluster_ = new (Z) WeakPropertyMessageSerializationCluster();
       return ephemeron_cluster_;
+    case kWeakReferenceCid:
+      return new (Z) WeakReferenceMessageSerializationCluster();
     case kLinkedHashMapCid:
     case kImmutableLinkedHashMapCid:
       return new (Z)
@@ -3513,6 +3582,9 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
     case kWeakPropertyCid:
       ASSERT(!is_canonical);
       return new (Z) WeakPropertyMessageDeserializationCluster();
+    case kWeakReferenceCid:
+      ASSERT(!is_canonical);
+      return new (Z) WeakReferenceMessageDeserializationCluster();
     case kLinkedHashMapCid:
     case kImmutableLinkedHashMapCid:
       return new (Z)

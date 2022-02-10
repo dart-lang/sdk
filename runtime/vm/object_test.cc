@@ -3857,6 +3857,130 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
   EXPECT(weak2.value() == Object::null());
 }
 
+static void WeakReference_PreserveOne(Thread* thread, Heap::Space space) {
+  auto& weak = WeakReference::Handle();
+  const auto& target = String::Handle(OneByteString::New("target", space));
+  {
+    HANDLESCOPE(thread);
+    ObjectStore* object_store = thread->isolate_group()->object_store();
+    const auto& type_arguments =
+        TypeArguments::Handle(object_store->type_argument_double());
+    weak ^= WeakReference::New(space);
+    weak.set_target(target);
+    weak.SetTypeArguments(type_arguments);
+  }
+  GCTestHelper::CollectAllGarbage();
+  EXPECT(weak.target() != Object::null());
+  EXPECT(weak.GetTypeArguments() != Object::null());
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakReference_PreserveOne_NewSpace) {
+  WeakReference_PreserveOne(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakReference_PreserveOne_OldSpace) {
+  WeakReference_PreserveOne(thread, Heap::kOld);
+}
+
+static void WeakReference_ClearOne(Thread* thread, Heap::Space space) {
+  auto& weak = WeakReference::Handle();
+  {
+    HANDLESCOPE(thread);
+    const auto& target = String::Handle(OneByteString::New("target", space));
+    ObjectStore* object_store = thread->isolate_group()->object_store();
+    const auto& type_arguments =
+        TypeArguments::Handle(object_store->type_argument_double());
+    weak ^= WeakReference::New(space);
+    weak.set_target(target);
+    weak.SetTypeArguments(type_arguments);
+  }
+  GCTestHelper::CollectAllGarbage();
+  EXPECT(weak.target() == Object::null());
+  EXPECT(weak.GetTypeArguments() != Object::null());
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakReference_ClearOne_NewSpace) {
+  WeakReference_ClearOne(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakReference_ClearOne_OldSpace) {
+  WeakReference_ClearOne(thread, Heap::kOld);
+}
+
+static void WeakReference_Clear_ReachableThroughWeakProperty(
+    Thread* thread,
+    Heap::Space space) {
+  auto& weak_property = WeakProperty::Handle();
+  const auto& key = String::Handle(OneByteString::New("key", space));
+  {
+    HANDLESCOPE(thread);
+    ObjectStore* object_store = thread->isolate_group()->object_store();
+    const auto& type_arguments =
+        TypeArguments::Handle(object_store->type_argument_double());
+    const auto& weak_reference =
+        WeakReference::Handle(WeakReference::New(space));
+    const auto& target = String::Handle(OneByteString::New("target", space));
+    weak_reference.set_target(target);
+    weak_reference.SetTypeArguments(type_arguments);
+
+    weak_property ^= WeakProperty::New(space);
+    weak_property.set_key(key);
+    weak_property.set_value(weak_reference);
+  }
+  GCTestHelper::CollectAllGarbage();
+  const auto& weak_reference =
+      WeakReference::CheckedHandle(Z, weak_property.value());
+  EXPECT(weak_reference.target() == Object::null());
+  EXPECT(weak_reference.GetTypeArguments() != Object::null());
+}
+
+ISOLATE_UNIT_TEST_CASE(
+    WeakReference_Clear_ReachableThroughWeakProperty_NewSpace) {
+  WeakReference_Clear_ReachableThroughWeakProperty(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(
+    WeakReference_Clear_ReachableThroughWeakProperty_OldSpace) {
+  WeakReference_Clear_ReachableThroughWeakProperty(thread, Heap::kOld);
+}
+
+static void WeakReference_Preserve_ReachableThroughWeakProperty(
+    Thread* thread,
+    Heap::Space space) {
+  auto& weak_property = WeakProperty::Handle();
+  const auto& key = String::Handle(OneByteString::New("key", space));
+  const auto& target = String::Handle(OneByteString::New("target", space));
+  {
+    HANDLESCOPE(thread);
+    ObjectStore* object_store = thread->isolate_group()->object_store();
+    const auto& type_arguments =
+        TypeArguments::Handle(object_store->type_argument_double());
+    const auto& weak_reference =
+        WeakReference::Handle(WeakReference::New(space));
+    weak_reference.set_target(target);
+    weak_reference.SetTypeArguments(type_arguments);
+
+    weak_property ^= WeakProperty::New(space);
+    weak_property.set_key(key);
+    weak_property.set_value(weak_reference);
+  }
+  GCTestHelper::CollectAllGarbage();
+  const auto& weak_reference =
+      WeakReference::CheckedHandle(Z, weak_property.value());
+  EXPECT(weak_reference.target() != Object::null());
+  EXPECT(weak_reference.GetTypeArguments() != Object::null());
+}
+
+ISOLATE_UNIT_TEST_CASE(
+    WeakReference_Preserve_ReachableThroughWeakProperty_NewSpace) {
+  WeakReference_Preserve_ReachableThroughWeakProperty(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(
+    WeakReference_Preserve_ReachableThroughWeakProperty_OldSpace) {
+  WeakReference_Preserve_ReachableThroughWeakProperty(thread, Heap::kOld);
+}
+
 ISOLATE_UNIT_TEST_CASE(MirrorReference) {
   const MirrorReference& reference =
       MirrorReference::Handle(MirrorReference::New(Object::Handle()));

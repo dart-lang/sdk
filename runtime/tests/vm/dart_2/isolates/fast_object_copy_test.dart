@@ -246,6 +246,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     await testSlowOnly();
 
     await testWeakProperty();
+    await testWeakReference();
 
     await testForbiddenClosures();
   }
@@ -694,6 +695,69 @@ class SendReceiveTest extends SendReceiveTestBase {
     }
   }
 
+  Future testWeakReference() async {
+    print('testWeakReference');
+
+    final object1 = Nonce(1);
+    final weakRef1 = WeakReference(object1);
+    final object2 = Nonce(2);
+    final weakRef2 = WeakReference(object2);
+    final object3 = Nonce(3);
+    final weakRef3 = WeakReference(object3);
+    final object4 = Nonce(4);
+    final weakRef4 = WeakReference(object4);
+
+    final key3 = Object();
+    final expando3 = Expando()..[key3] = object3;
+    final key4 = Object();
+    final expando4 = Expando()..[key4] = object4;
+
+    {
+      final result = await sendReceive([
+        weakRef1, // Does not have its target inluded.
+        weakRef2, // Has its target included later than itself.
+        object2,
+        weakRef3, // Does not have its target inluded.
+        expando3,
+        weakRef4, // Has its target included due to expando.
+        expando4,
+        key4,
+      ]);
+
+      final weakRef1copy = result[0] as WeakReference<Nonce>;
+      final weakRef2copy = result[1] as WeakReference<Nonce>;
+      final weakRef3copy = result[3] as WeakReference<Nonce>;
+      final weakRef4copy = result[5] as WeakReference<Nonce>;
+      Expect.isNull(weakRef1copy.target);
+      Expect.equals(weakRef2.target?.value, weakRef2copy.target?.value);
+      Expect.isNull(weakRef3copy.target);
+      Expect.equals(weakRef4.target?.value, weakRef4copy.target?.value);
+    }
+
+    {
+      final result = await sendReceive([
+        weakRef1, // Does not have its target inluded.
+        weakRef2, // Has its target included later than itself.
+        notAllocatableInTLAB,
+        object2,
+        weakRef3, // Does not have its target inluded.
+        expando3,
+        weakRef4, // Has its target included due to expando.
+        expando4,
+        key4,
+      ]);
+
+      final weakRef1copy = result[0] as WeakReference<Nonce>;
+      final weakRef2copy = result[1] as WeakReference<Nonce>;
+      final weakRef3copy = result[4] as WeakReference<Nonce>;
+      final weakRef4copy = result[6] as WeakReference<Nonce>;
+      Expect.isNull(weakRef1copy.target);
+      Expect.equals(weakRef2.target?.value, weakRef2copy.target?.value);
+      Expect.isNull(weakRef3copy.target);
+      Expect.equals(weakRef4.target?.value, weakRef4copy.target?.value);
+    }
+  }
+
   Future testForbiddenClosures() async {
     print('testForbiddenClosures');
     for (final closure in nonCopyableClosures) {
@@ -707,6 +771,14 @@ class SendReceiveTest extends SendReceiveTestBase {
           () => sendPort.send([notAllocatableInTLAB, closure]));
     }
   }
+}
+
+class Nonce {
+  final int value;
+
+  Nonce(this.value);
+
+  String toString() => 'Nonce($value)';
 }
 
 main() async {

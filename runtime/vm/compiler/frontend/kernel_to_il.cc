@@ -898,6 +898,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kWeakProperty_setKey:
     case MethodRecognizer::kWeakProperty_getValue:
     case MethodRecognizer::kWeakProperty_setValue:
+    case MethodRecognizer::kWeakReference_getTarget:
+    case MethodRecognizer::kWeakReference_setTarget:
     case MethodRecognizer::kFfiAbi:
     case MethodRecognizer::kReachabilityFence:
     case MethodRecognizer::kUtf8DecoderScan:
@@ -1317,6 +1319,18 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += StoreNativeField(Slot::WeakProperty_value());
+      body += NullConstant();
+      break;
+    case MethodRecognizer::kWeakReference_getTarget:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::WeakReference_target());
+      break;
+    case MethodRecognizer::kWeakReference_setTarget:
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += StoreNativeField(Slot::WeakReference_target());
       body += NullConstant();
       break;
     case MethodRecognizer::kUtf8DecoderScan:

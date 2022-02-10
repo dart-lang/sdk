@@ -186,6 +186,8 @@ namespace dart {
   V(_WeakProperty, set:key, WeakProperty_setKey, 0x963a095f)                   \
   V(_WeakProperty, get:value, WeakProperty_getValue, 0xd2f28aae)               \
   V(_WeakProperty, set:value, WeakProperty_setValue, 0x8b2bafab)               \
+  V(_WeakReferenceImpl, get:target, WeakReference_getTarget, 0x632d6ca8)       \
+  V(_WeakReferenceImpl, set:_target, WeakReference_setTarget, 0x6edc7518)      \
   V(::, _classRangeCheck, ClassRangeCheck, 0x00269620)                         \
   V(::, _abi, FfiAbi, 0x7c4ab3b4)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x92ae104f)                \

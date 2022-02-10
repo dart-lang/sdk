@@ -69,7 +69,9 @@ class ParsedFunction;
   V(TypeParameters, UntaggedTypeParameters, bounds, TypeArguments, FINAL)      \
   V(TypeParameters, UntaggedTypeParameters, defaults, TypeArguments, FINAL)    \
   V(WeakProperty, UntaggedWeakProperty, key, Dynamic, VAR)                     \
-  V(WeakProperty, UntaggedWeakProperty, value, Dynamic, VAR)
+  V(WeakProperty, UntaggedWeakProperty, value, Dynamic, VAR)                   \
+  V(WeakReference, UntaggedWeakReference, target, Dynamic, VAR)                \
+  V(WeakReference, UntaggedWeakReference, type_arguments, TypeArguments, FINAL)
 
 // The list of slots that correspond to non-nullable boxed fields of native
 // objects in the following format:
