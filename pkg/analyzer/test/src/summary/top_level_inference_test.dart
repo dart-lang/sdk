@@ -1999,7 +1999,7 @@ library
           requiredPositional _r_instanceClassMethod @-1
             type: String Function(int)
         returnType: void
-      get topLevelGetter @74
+      static get topLevelGetter @74
         returnType: int
     functions
       topLevelFunction @7

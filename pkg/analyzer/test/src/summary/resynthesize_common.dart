@@ -22411,7 +22411,7 @@ library
       synthetic static foo @-1
         type: Future<int>
     accessors
-      get foo @16 async
+      static get foo @16 async
         returnType: Future<int>
 ''');
   }
@@ -22430,7 +22430,7 @@ library
       synthetic static foo @-1
         type: Stream<int>
     accessors
-      get foo @37 async*
+      static get foo @37 async*
         returnType: Stream<int>
 ''');
   }
@@ -22449,7 +22449,7 @@ library
       synthetic static x @-1
         type: dynamic
     accessors
-      get x @64
+      static get x @64
         documentationComment: /**\n * Docs\n */
         returnType: dynamic
 ''');
@@ -22464,7 +22464,7 @@ library
       synthetic static x @-1
         type: int
     accessors
-      external get x @17
+      static external get x @17
         returnType: int
 ''');
   }
@@ -22510,7 +22510,7 @@ library
       synthetic static foo @-1
         type: Iterator<int>
     accessors
-      get foo @18 sync*
+      static get foo @18 sync*
         returnType: Iterator<int>
 ''');
   }
@@ -22526,9 +22526,9 @@ library
       synthetic static y @-1
         type: dynamic
     accessors
-      get x @8
+      static get x @8
         returnType: int
-      get y @23
+      static get y @23
         returnType: dynamic
 ''');
   }
@@ -22659,9 +22659,9 @@ library
       synthetic static x @-1
         type: int
     accessors
-      get x @8
+      static get x @8
         returnType: int
-      set x @25
+      static set x @25
         parameters
           requiredPositional value @31
             type: int
@@ -22679,12 +22679,12 @@ library
       synthetic static x @-1
         type: int
     accessors
-      set x @9
+      static set x @9
         parameters
           requiredPositional value @15
             type: int
         returnType: void
-      get x @33
+      static get x @33
         returnType: int
 ''');
   }
@@ -25701,7 +25701,7 @@ library
       synthetic static g @-1
         type: dynamic
     accessors
-      get g @4
+      static get g @4
         returnType: dynamic
 ''');
   }
@@ -25845,7 +25845,7 @@ library
       synthetic static main @-1
         type: dynamic
     accessors
-      get main @4
+      static get main @4
         returnType: dynamic
 ''');
   }
@@ -27709,7 +27709,7 @@ library
     accessors
       synthetic static get a @-1
         returnType: dynamic
-      get f @23
+      static get f @23
         metadata
           Annotation
             atSign: @ @16
@@ -27739,7 +27739,7 @@ library
     accessors
       synthetic static get a @-1
         returnType: dynamic
-      set f @23
+      static set f @23
         metadata
           Annotation
             atSign: @ @16
@@ -29441,7 +29441,7 @@ library
     accessors
       synthetic static get foo @-1
         returnType: int
-      get getter @29
+      static get getter @29
         metadata
           Annotation
             atSign: @ @16
@@ -29476,7 +29476,7 @@ library
     accessors
       synthetic static get foo @-1
         returnType: int
-      set setter @25
+      static set setter @25
         metadata
           Annotation
             atSign: @ @16
@@ -29737,7 +29737,7 @@ library
     accessors
       synthetic static get a @-1
         returnType: dynamic
-      set foo @21
+      static set foo @21
         parameters
           requiredPositional x @32
             type: int
@@ -31285,7 +31285,7 @@ library
       synthetic static foo @-1
         type: int
     accessors
-      get foo @8
+      static get foo @8
         returnType: int
 ''');
   }
@@ -31890,7 +31890,7 @@ library
         type: int
         nonSynthetic: self::@getter::foo
     accessors
-      get foo @8
+      static get foo @8
         returnType: int
         nonSynthetic: self::@getter::foo
 ''',
@@ -31912,10 +31912,10 @@ library
         type: int
         nonSynthetic: self::@getter::foo
     accessors
-      get foo @8
+      static get foo @8
         returnType: int
         nonSynthetic: self::@getter::foo
-      set foo @22
+      static set foo @22
         parameters
           requiredPositional value @30
             type: int
@@ -31940,7 +31940,7 @@ library
         type: int
         nonSynthetic: self::@setter::foo
     accessors
-      set foo @4
+      static set foo @4
         parameters
           requiredPositional value @12
             type: int
@@ -32508,7 +32508,7 @@ library
       synthetic static x @-1
         type: dynamic
     accessors
-      set x @69
+      static set x @69
         documentationComment: /**\n * Docs\n */
         parameters
           requiredPositional value @71
@@ -32526,7 +32526,7 @@ library
       synthetic static x @-1
         type: int
     accessors
-      external set x @18
+      static external set x @18
         parameters
           requiredPositional value @24
             type: int
@@ -32543,7 +32543,7 @@ library
       synthetic static f @-1
         type: int
     accessors
-      set f @4
+      static set f @4
         parameters
           requiredPositional value @10
             type: int
@@ -32563,12 +32563,12 @@ library
       synthetic static y @-1
         type: dynamic
     accessors
-      set x @9
+      static set x @9
         parameters
           requiredPositional value @15
             type: int
         returnType: void
-      set y @29
+      static set y @29
         parameters
           requiredPositional value @31
             type: dynamic
@@ -36957,9 +36957,9 @@ library
       synthetic static x @-1
         type: int
     accessors
-      get x @8
+      static get x @8
         returnType: int
-      set x @25
+      static set x @25
         parameters
           requiredPositional value @31
             type: int
@@ -36979,12 +36979,12 @@ library
       synthetic static x @-1
         type: int
     accessors
-      set x @9
+      static set x @9
         parameters
           requiredPositional value @15
             type: int
         returnType: void
-      get x @33
+      static get x @33
         returnType: int
 ''');
   }
@@ -37003,7 +37003,7 @@ library
     accessors
       synthetic static get foo @-1
         returnType: int
-      set foo @23
+      static set foo @23
         parameters
           requiredPositional newValue @31
             type: int
@@ -37660,7 +37660,7 @@ library
       synthetic static x @-1
         type: int
     accessors
-      get x @39
+      static get x @39
         returnType: int
   parts
     a.dart
@@ -37668,7 +37668,7 @@ library
         synthetic static x @-1
           type: int
       accessors
-        set x @25
+        static set x @25
           parameters
             requiredPositional _ @31
               type: int
@@ -37695,7 +37695,7 @@ library
       synthetic static x @-1
         type: int
     accessors
-      set x @40
+      static set x @40
         parameters
           requiredPositional _ @46
             type: int
@@ -37706,7 +37706,7 @@ library
         synthetic static x @-1
           type: int
       accessors
-        get x @24
+        static get x @24
           returnType: int
 ''');
   }
@@ -37727,14 +37727,14 @@ library
         synthetic static x @-1
           type: int
       accessors
-        get x @24
+        static get x @24
           returnType: int
     b.dart
       topLevelVariables
         synthetic static x @-1
           type: int
       accessors
-        set x @25
+        static set x @25
           parameters
             requiredPositional _ @31
               type: int
@@ -38058,7 +38058,7 @@ library
         synthetic static x @-1
           type: int
       accessors
-        set x @25
+        static set x @25
           parameters
             requiredPositional _ @31
               type: int
@@ -38068,7 +38068,7 @@ library
         synthetic static x @-1
           type: int
       accessors
-        get x @24
+        static get x @24
           returnType: int
 ''');
   }

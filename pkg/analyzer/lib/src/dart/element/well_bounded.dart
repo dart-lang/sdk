@@ -101,7 +101,7 @@ class TypeBoundedHelper {
         continue;
       }
 
-      bound = typeSystem.toLegacyType(bound);
+      bound = typeSystem.toLegacyTypeIfOptOut(bound);
       bound = substitution.substituteType(bound);
 
       if (!typeSystem.isSubtypeOf(typeArgument, bound)) {

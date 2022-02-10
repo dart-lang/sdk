@@ -1440,6 +1440,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Move child properties to ends of arguments everywhere in file',
   );
+  static const SORT_CONSTRUCTOR_FIRST = FixKind(
+    'dart.fix.sort.sortConstructorFirst',
+    DartFixKindPriority.DEFAULT,
+    'Move before other members',
+  );
+  static const SORT_CONSTRUCTOR_FIRST_MULTI = FixKind(
+    'dart.fix.sort.sortConstructorFirst.multi',
+    DartFixKindPriority.DEFAULT,
+    'Move all constructors before other members',
+  );
   static const SORT_UNNAMED_CONSTRUCTOR_FIRST = FixKind(
     'dart.fix.sort.sortUnnamedConstructorFirst',
     DartFixKindPriority.DEFAULT,

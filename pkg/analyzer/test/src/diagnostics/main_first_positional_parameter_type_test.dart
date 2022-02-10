@@ -10,13 +10,31 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MainFirstPositionalParameterTest);
-    defineReflectiveTests(MainFirstPositionalParameterWithNullSafetyTest);
+    defineReflectiveTests(MainFirstPositionalParameterWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class MainFirstPositionalParameterTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, MainFirstPositionalParameterTestCases {}
+    with MainFirstPositionalParameterTestCases {
+  test_positionalRequired_listOfStringQuestion() async {
+    await assertNoErrorsInCode('''
+void main(List<String?> args) {}
+''');
+  }
+
+  test_positionalRequired_listQuestionOfString() async {
+    await assertNoErrorsInCode('''
+void main(List<String>? args) {}
+''');
+  }
+
+  test_positionalRequired_objectQuestion() async {
+    await assertNoErrorsInCode('''
+void main(Object? args) {}
+''');
+  }
+}
 
 mixin MainFirstPositionalParameterTestCases on PubPackageResolutionTest {
   test_positionalOptional_listOfInt() async {
@@ -72,24 +90,6 @@ void main(Object args) {}
 }
 
 @reflectiveTest
-class MainFirstPositionalParameterWithNullSafetyTest
+class MainFirstPositionalParameterWithoutNullSafetyTest
     extends PubPackageResolutionTest
-    with MainFirstPositionalParameterTestCases {
-  test_positionalRequired_listOfStringQuestion() async {
-    await assertNoErrorsInCode('''
-void main(List<String?> args) {}
-''');
-  }
-
-  test_positionalRequired_listQuestionOfString() async {
-    await assertNoErrorsInCode('''
-void main(List<String>? args) {}
-''');
-  }
-
-  test_positionalRequired_objectQuestion() async {
-    await assertNoErrorsInCode('''
-void main(Object? args) {}
-''');
-  }
-}
+    with WithoutNullSafetyMixin, MainFirstPositionalParameterTestCases {}

@@ -10,88 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FinalNotInitializedTest);
-    defineReflectiveTests(FinalNotInitializedWithNullSafetyTest);
+    defineReflectiveTests(FinalNotInitializedWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class FinalNotInitializedTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  test_class_instanceField_final_factoryConstructor_only() async {
-    await assertNoErrorsInCode('''
-class A {
-  final int x;
-
-  factory A() => throw 0;
-}''');
-  }
-
-  test_extension_static() async {
-    await assertErrorsInCode('''
-extension E on String {
-  static final F;
-}''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 39, 1),
-    ]);
-  }
-
-  test_instanceField_final() async {
-    await assertErrorsInCode('''
-class A {
-  final F;
-}''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1),
-    ]);
-  }
-
-  test_instanceField_final_static() async {
-    await assertErrorsInCode('''
-class A {
-  static final F;
-}''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 25, 1),
-    ]);
-  }
-
-  test_library_final() async {
-    await assertErrorsInCode('''
-final F;
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 6, 1),
-    ]);
-  }
-
-  test_local_final() async {
-    await assertErrorsInCode('''
-f() {
-  final int x;
-}''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1),
-    ]);
-  }
-
-  test_mixin() async {
-    await assertErrorsInCode('''
-mixin M {
-  final int x;
-}
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1),
-    ]);
-  }
-
-  test_mixin_OK() async {
-    await assertNoErrorsInCode(r'''
-mixin M {
-  final int f = 0;
-}
-''');
-  }
-}
-
-@reflectiveTest
-class FinalNotInitializedWithNullSafetyTest extends PubPackageResolutionTest {
+class FinalNotInitializedTest extends PubPackageResolutionTest {
   test_class_field_abstract() async {
     await assertNoErrorsInCode('''
 abstract class A {
@@ -259,6 +183,82 @@ f() {
   test_topLevel_external() async {
     await assertNoErrorsInCode('''
 external final int x;
+''');
+  }
+}
+
+@reflectiveTest
+class FinalNotInitializedWithoutNullSafetyTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  test_class_instanceField_final_factoryConstructor_only() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int x;
+
+  factory A() => throw 0;
+}''');
+  }
+
+  test_extension_static() async {
+    await assertErrorsInCode('''
+extension E on String {
+  static final F;
+}''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 39, 1),
+    ]);
+  }
+
+  test_instanceField_final() async {
+    await assertErrorsInCode('''
+class A {
+  final F;
+}''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1),
+    ]);
+  }
+
+  test_instanceField_final_static() async {
+    await assertErrorsInCode('''
+class A {
+  static final F;
+}''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 25, 1),
+    ]);
+  }
+
+  test_library_final() async {
+    await assertErrorsInCode('''
+final F;
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 6, 1),
+    ]);
+  }
+
+  test_local_final() async {
+    await assertErrorsInCode('''
+f() {
+  final int x;
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1),
+    ]);
+  }
+
+  test_mixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  final int x;
+}
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1),
+    ]);
+  }
+
+  test_mixin_OK() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  final int f = 0;
+}
 ''');
   }
 }

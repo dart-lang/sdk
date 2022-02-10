@@ -9,18 +9,287 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonAbstractClassInheritsAbstractMemberTest);
     defineReflectiveTests(
-        NonAbstractClassInheritsAbstractMemberWithNullSafetyTest);
+      NonAbstractClassInheritsAbstractMemberTest,
+    );
+    defineReflectiveTests(
+      NonAbstractClassInheritsAbstractMemberWithoutNullSafetyTest,
+    );
   });
 }
 
 @reflectiveTest
 class NonAbstractClassInheritsAbstractMemberTest
     extends PubPackageResolutionTest
-    with
-        WithoutNullSafetyMixin,
-        NonAbstractClassInheritsAbstractMemberTestCases {}
+    with NonAbstractClassInheritsAbstractMemberTestCases {
+  test_abstract_field_final_implement_getter() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+class B implements A {
+  int get x => 0;
+}
+''');
+  }
+
+  test_abstract_field_final_implement_none() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+class B implements A {}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          51,
+          1),
+    ]);
+  }
+
+  test_abstract_field_implement_getter() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {
+  int get x => 0;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          45,
+          1),
+    ]);
+  }
+
+  test_abstract_field_implement_getter_and_setter() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {
+  int get x => 0;
+  void set x(int value) {}
+}
+''');
+  }
+
+  test_abstract_field_implement_none() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          45,
+          1),
+    ]);
+  }
+
+  test_abstract_field_implement_setter() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {
+  void set x(int value) {}
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          45,
+          1),
+    ]);
+  }
+
+  test_enum_getter_fromInterface() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+enum E implements A {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          38,
+          1),
+    ]);
+  }
+
+  test_enum_getter_fromMixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  int get foo;
+}
+
+enum E with M {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          33,
+          1),
+    ]);
+  }
+
+  test_enum_method_fromInterface() async {
+    await assertErrorsInCode('''
+class A {
+  void foo() {}
+}
+
+enum E implements A {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          34,
+          1),
+    ]);
+  }
+
+  test_enum_method_fromMixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  void foo();
+}
+
+enum E with M {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          32,
+          1),
+    ]);
+  }
+
+  test_enum_setter_fromInterface() async {
+    await assertErrorsInCode('''
+class A {
+  set foo(int _) {}
+}
+
+enum E implements A {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          38,
+          1),
+    ]);
+  }
+
+  test_enum_setter_fromMixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  set foo(int _);
+}
+
+enum E with M {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          36,
+          1),
+    ]);
+  }
+
+  test_external_field_final_implement_getter() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int x;
+}
+class B implements A {
+  int get x => 0;
+}
+''');
+  }
+
+  test_external_field_final_implement_none() async {
+    await assertErrorsInCode('''
+class A {
+  external final int x;
+}
+class B implements A {}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          42,
+          1),
+    ]);
+  }
+
+  test_external_field_implement_getter() async {
+    await assertErrorsInCode('''
+class A {
+  external int x;
+}
+class B implements A {
+  int get x => 0;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          36,
+          1),
+    ]);
+  }
+
+  test_external_field_implement_getter_and_setter() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
+}
+class B implements A {
+  int get x => 0;
+  void set x(int value) {}
+}
+''');
+  }
+
+  test_external_field_implement_none() async {
+    await assertErrorsInCode('''
+class A {
+  external int x;
+}
+class B implements A {}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          36,
+          1),
+    ]);
+  }
+
+  test_external_field_implement_setter() async {
+    await assertErrorsInCode('''
+class A {
+  external int x;
+}
+class B implements A {
+  void set x(int value) {}
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          36,
+          1),
+    ]);
+  }
+}
 
 mixin NonAbstractClassInheritsAbstractMemberTestCases
     on PubPackageResolutionTest {
@@ -616,274 +885,8 @@ class C implements I {
 }
 
 @reflectiveTest
-class NonAbstractClassInheritsAbstractMemberWithNullSafetyTest
+class NonAbstractClassInheritsAbstractMemberWithoutNullSafetyTest
     extends PubPackageResolutionTest
-    with NonAbstractClassInheritsAbstractMemberTestCases {
-  test_abstract_field_final_implement_getter() async {
-    await assertNoErrorsInCode('''
-abstract class A {
-  abstract final int x;
-}
-class B implements A {
-  int get x => 0;
-}
-''');
-  }
-
-  test_abstract_field_final_implement_none() async {
-    await assertErrorsInCode('''
-abstract class A {
-  abstract final int x;
-}
-class B implements A {}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          51,
-          1),
-    ]);
-  }
-
-  test_abstract_field_implement_getter() async {
-    await assertErrorsInCode('''
-abstract class A {
-  abstract int x;
-}
-class B implements A {
-  int get x => 0;
-}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          45,
-          1),
-    ]);
-  }
-
-  test_abstract_field_implement_getter_and_setter() async {
-    await assertNoErrorsInCode('''
-abstract class A {
-  abstract int x;
-}
-class B implements A {
-  int get x => 0;
-  void set x(int value) {}
-}
-''');
-  }
-
-  test_abstract_field_implement_none() async {
-    await assertErrorsInCode('''
-abstract class A {
-  abstract int x;
-}
-class B implements A {}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
-          45,
-          1),
-    ]);
-  }
-
-  test_abstract_field_implement_setter() async {
-    await assertErrorsInCode('''
-abstract class A {
-  abstract int x;
-}
-class B implements A {
-  void set x(int value) {}
-}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          45,
-          1),
-    ]);
-  }
-
-  test_enum_getter_fromInterface() async {
-    await assertErrorsInCode('''
-class A {
-  int get foo => 0;
-}
-
-enum E implements A {
-  v;
-}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          38,
-          1),
-    ]);
-  }
-
-  test_enum_getter_fromMixin() async {
-    await assertErrorsInCode('''
-mixin M {
-  int get foo;
-}
-
-enum E with M {
-  v;
-}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          33,
-          1),
-    ]);
-  }
-
-  test_enum_method_fromInterface() async {
-    await assertErrorsInCode('''
-class A {
-  void foo() {}
-}
-
-enum E implements A {
-  v;
-}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          34,
-          1),
-    ]);
-  }
-
-  test_enum_method_fromMixin() async {
-    await assertErrorsInCode('''
-mixin M {
-  void foo();
-}
-
-enum E with M {
-  v;
-}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          32,
-          1),
-    ]);
-  }
-
-  test_enum_setter_fromInterface() async {
-    await assertErrorsInCode('''
-class A {
-  set foo(int _) {}
-}
-
-enum E implements A {
-  v;
-}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          38,
-          1),
-    ]);
-  }
-
-  test_enum_setter_fromMixin() async {
-    await assertErrorsInCode('''
-mixin M {
-  set foo(int _);
-}
-
-enum E with M {
-  v;
-}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          36,
-          1),
-    ]);
-  }
-
-  test_external_field_final_implement_getter() async {
-    await assertNoErrorsInCode('''
-class A {
-  external final int x;
-}
-class B implements A {
-  int get x => 0;
-}
-''');
-  }
-
-  test_external_field_final_implement_none() async {
-    await assertErrorsInCode('''
-class A {
-  external final int x;
-}
-class B implements A {}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          42,
-          1),
-    ]);
-  }
-
-  test_external_field_implement_getter() async {
-    await assertErrorsInCode('''
-class A {
-  external int x;
-}
-class B implements A {
-  int get x => 0;
-}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          36,
-          1),
-    ]);
-  }
-
-  test_external_field_implement_getter_and_setter() async {
-    await assertNoErrorsInCode('''
-class A {
-  external int x;
-}
-class B implements A {
-  int get x => 0;
-  void set x(int value) {}
-}
-''');
-  }
-
-  test_external_field_implement_none() async {
-    await assertErrorsInCode('''
-class A {
-  external int x;
-}
-class B implements A {}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
-          36,
-          1),
-    ]);
-  }
-
-  test_external_field_implement_setter() async {
-    await assertErrorsInCode('''
-class A {
-  external int x;
-}
-class B implements A {
-  void set x(int value) {}
-}
-''', [
-      error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          36,
-          1),
-    ]);
-  }
-}
+    with
+        WithoutNullSafetyMixin,
+        NonAbstractClassInheritsAbstractMemberTestCases {}

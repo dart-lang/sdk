@@ -248,7 +248,7 @@ class InterfaceLeastUpperBoundHelper {
       return result;
     } else {
       return result.map((e) {
-        return e.mapArguments(typeSystem.toLegacyType);
+        return e.mapArguments(typeSystem.toLegacyTypeIfOptOut);
       }).toSet();
     }
   }

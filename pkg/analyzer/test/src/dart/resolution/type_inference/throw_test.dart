@@ -8,12 +8,12 @@ import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ThrowWithNullSafetyTest);
+    defineReflectiveTests(ThrowTest);
   });
 }
 
 @reflectiveTest
-class ThrowWithNullSafetyTest extends PubPackageResolutionTest {
+class ThrowTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f() {

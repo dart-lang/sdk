@@ -10,95 +10,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NoDefaultSuperConstructorTest);
-    defineReflectiveTests(NoDefaultSuperConstructorWithNullSafetyTest);
+    defineReflectiveTests(NoDefaultSuperConstructorWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class NoDefaultSuperConstructorTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, NoDefaultSuperConstructorTestCases {
-  test_super_requiredPositional_subclass_explicit() async {
-    await assertErrorsInCode(r'''
-class A {
-  A(p);
-}
-class B extends A {
-  B();
-}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT, 42, 1),
-    ]);
-  }
-}
-
-mixin NoDefaultSuperConstructorTestCases on PubPackageResolutionTest {
-  test_super_implicit_subclass_explicit() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B extends A {
-  B();
-}
-''');
-  }
-
-  test_super_implicit_subclass_implicit() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B extends A {}
-''');
-  }
-
-  test_super_noParameters() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  A();
-}
-class B extends A {
-  B();
-}
-''');
-  }
-
-  test_super_requiredPositional_subclass_explicit_language214() async {
-    await assertErrorsInCode(r'''
-// @dart = 2.14
-class A {
-  A(p);
-}
-class B extends A {
-  B();
-}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT, 58, 1),
-    ]);
-  }
-
-  test_super_requiredPositional_subclass_external() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  A(p);
-}
-class B extends A {
-  external B();
-}
-''');
-  }
-
-  test_super_requiredPositional_subclass_implicit() async {
-    await assertErrorsInCode(r'''
-class A {
-  A(p);
-}
-class B extends A {}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 26, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class NoDefaultSuperConstructorWithNullSafetyTest
-    extends PubPackageResolutionTest with NoDefaultSuperConstructorTestCases {
+    with NoDefaultSuperConstructorTestCases {
   test_super_optionalNamed_subclass_explicit() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -308,5 +226,88 @@ class B extends A {
   B(super.a);
 }
 ''');
+  }
+}
+
+mixin NoDefaultSuperConstructorTestCases on PubPackageResolutionTest {
+  test_super_implicit_subclass_explicit() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {
+  B();
+}
+''');
+  }
+
+  test_super_implicit_subclass_implicit() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+''');
+  }
+
+  test_super_noParameters() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A();
+}
+class B extends A {
+  B();
+}
+''');
+  }
+
+  test_super_requiredPositional_subclass_explicit_language214() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.14
+class A {
+  A(p);
+}
+class B extends A {
+  B();
+}
+''', [
+      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT, 58, 1),
+    ]);
+  }
+
+  test_super_requiredPositional_subclass_external() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(p);
+}
+class B extends A {
+  external B();
+}
+''');
+  }
+
+  test_super_requiredPositional_subclass_implicit() async {
+    await assertErrorsInCode(r'''
+class A {
+  A(p);
+}
+class B extends A {}
+''', [
+      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 26, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NoDefaultSuperConstructorWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, NoDefaultSuperConstructorTestCases {
+  test_super_requiredPositional_subclass_explicit() async {
+    await assertErrorsInCode(r'''
+class A {
+  A(p);
+}
+class B extends A {
+  B();
+}
+''', [
+      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT, 42, 1),
+    ]);
   }
 }

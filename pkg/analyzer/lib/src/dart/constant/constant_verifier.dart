@@ -623,7 +623,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
         );
 
-        var expressionValueType = _typeSystem.toLegacyType(
+        var expressionValueType = _typeSystem.toLegacyTypeIfOptOut(
           expressionValue.type,
         );
 

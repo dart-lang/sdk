@@ -2605,7 +2605,7 @@ extension RuntimeExtensions on TypeSystemImpl {
     DartType type,
   ) {
     if (!isNonNullableByDefault) {
-      type = toLegacyType(type);
+      type = toLegacyTypeIfOptOut(type);
     }
     var objType = obj.type;
     return isSubtypeOf(objType, type);

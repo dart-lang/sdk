@@ -86,10 +86,7 @@ class GetterSetterTypesVerifier {
 
   void checkStaticAccessors(List<PropertyAccessorElement> accessors) {
     for (var getter in accessors) {
-      // TODO(scheglov) Update `isStatic` instead
-      if ((getter.isStatic ||
-              getter.enclosingElement is CompilationUnitElement) &&
-          getter.isGetter) {
+      if (getter.isStatic && getter.isGetter) {
         _checkLocalGetter(getter);
       }
     }
