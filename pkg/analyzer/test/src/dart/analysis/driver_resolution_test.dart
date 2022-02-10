@@ -1685,9 +1685,6 @@ main(MyEnum e) {
 ''');
     await resolveTestFile();
 
-    var enumNode = result.unit.declarations[0] as EnumDeclaration;
-    ClassElement enumElement = enumNode.declaredElement!;
-
     List<Statement> mainStatements = _getMainStatements(result);
 
     var statement = mainStatements[0] as ExpressionStatement;
@@ -1696,7 +1693,7 @@ main(MyEnum e) {
 
     var methodElement = invocation.methodName.staticElement as MethodElement;
     expect(methodElement.name, 'toString');
-    expect(methodElement.enclosingElement, same(enumElement));
+    expect(methodElement.enclosingElement, same(objectElement));
   }
 
   test_error_unresolvedTypeAnnotation() async {

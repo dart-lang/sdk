@@ -25,14 +25,12 @@ class ImplicitEnumNodes {
   final FieldElementImpl indexField;
   final ast.NamedTypeImpl valuesTypeNode;
   final ConstFieldElementImpl valuesField;
-  final MethodElementImpl? syntheticToStringMethod;
 
   ImplicitEnumNodes({
     required this.element,
     required this.indexField,
     required this.valuesTypeNode,
     required this.valuesField,
-    required this.syntheticToStringMethod,
   });
 }
 
@@ -145,7 +143,6 @@ class LibraryBuilder {
       );
       enum_.valuesTypeNode.type = valuesType;
       enum_.valuesField.type = valuesType;
-      enum_.syntheticToStringMethod?.returnType = typeProvider.stringType;
     }
   }
 

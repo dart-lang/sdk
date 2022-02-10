@@ -362,20 +362,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
     }
 
-    MethodElementImpl? syntheticToStringMethod;
-    if (holder.getMethod('toString').element == null) {
-      syntheticToStringMethod = MethodElementImpl('toString', -1)
-        ..isSynthetic = true;
-      holder.addMethod(name, syntheticToStringMethod);
-    }
-
     _libraryBuilder.implicitEnumNodes.add(
       ImplicitEnumNodes(
         element: element,
         indexField: indexField,
         valuesTypeNode: valuesTypeNode,
         valuesField: valuesField,
-        syntheticToStringMethod: syntheticToStringMethod,
       ),
     );
 

@@ -8405,9 +8405,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''',
         withCodeRanges: true);
   }
@@ -13651,9 +13648,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     typeAliases
       functionTypeAliasBased F @50
         aliasedType: dynamic Function(int, String)
@@ -15946,9 +15940,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static final vValue @23
         type: E
@@ -16022,9 +16013,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static final vToString @17
         type: String
@@ -17050,9 +17038,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
       enum E @19
         supertype: Enum
         fields
@@ -17154,9 +17139,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17481,9 +17463,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17545,9 +17524,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17633,9 +17609,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17696,9 +17669,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17763,9 +17733,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17827,9 +17794,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17903,9 +17867,6 @@ library
             returnType: int
           synthetic get x @-1
             returnType: dynamic
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17981,9 +17942,6 @@ library
             returnType: int
           synthetic get x @-1
             returnType: String
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18049,9 +18007,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18122,9 +18077,6 @@ library
             returnType: int
           synthetic get x @-1
             returnType: num
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18195,9 +18147,6 @@ library
             returnType: int
           synthetic get x @-1
             returnType: dynamic
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18268,9 +18217,6 @@ library
             returnType: int
           synthetic get x @-1
             returnType: dynamic
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18341,9 +18287,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18412,9 +18355,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18477,9 +18417,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18549,9 +18486,6 @@ library
             returnType: int
           synthetic get foo @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18617,9 +18551,6 @@ library
             returnType: int
           get foo @23
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18687,9 +18618,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18767,9 +18695,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18842,9 +18767,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18923,8 +18845,6 @@ library
               requiredPositional u @37
                 type: U
             returnType: int
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19052,9 +18972,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     mixins
       mixin M @6
         superclassConstraints
@@ -19126,9 +19043,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     mixins
       mixin M1 @6
         typeParameters
@@ -19214,9 +19128,6 @@ library
               requiredPositional _ @27
                 type: int
             returnType: void
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19284,9 +19195,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19358,9 +19266,6 @@ library
             returnType: List<E<num, num>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19395,9 +19300,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19438,9 +19340,6 @@ library
             returnType: List<E<dynamic, num, dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19475,9 +19374,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19511,9 +19407,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19547,9 +19440,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19583,9 +19473,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19623,9 +19510,6 @@ library
             returnType: List<E<dynamic, dynamic, dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19719,9 +19603,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19836,9 +19717,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static const annotation @91
         type: int
@@ -19932,9 +19810,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19991,9 +19866,6 @@ library
             returnType: List<E1>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
       enum E2 @20
         supertype: Enum
         fields
@@ -20041,9 +19913,6 @@ library
             returnType: List<E2>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -20212,9 +20081,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -27102,9 +26968,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static const a @6
         type: int
@@ -27280,9 +27143,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -27347,9 +27207,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static const a @6
         type: int
@@ -28947,9 +28804,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static const foo @6
         type: int
@@ -30036,9 +29890,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static const a @6
         type: int
@@ -30341,9 +30192,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -31710,10 +31558,6 @@ library
             nonSynthetic: self::@enum::E
           synthetic get index @-1
             returnType: int
-            nonSynthetic: self::@enum::E
-        methods
-          synthetic toString @-1
-            returnType: String
             nonSynthetic: self::@enum::E
 ''',
         withNonSynthetic: true);
@@ -33731,9 +33575,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     typeAliases
       functionTypeAliasBased F @32
         aliasedType: dynamic Function()
@@ -33869,9 +33710,6 @@ library
               returnType: List<E>
             synthetic get index @-1
               returnType: int
-          methods
-            synthetic toString @-1
-              returnType: String
       typeAliases
         functionTypeAliasBased F @43
           aliasedType: dynamic Function()
@@ -33941,9 +33779,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     typeAliases
       functionTypeAliasBased F @58
         aliasedType: dynamic Function()
@@ -34050,9 +33885,6 @@ library
               returnType: List<E>
             synthetic get index @-1
               returnType: int
-          methods
-            synthetic toString @-1
-              returnType: String
       typeAliases
         functionTypeAliasBased F @43
           aliasedType: dynamic Function()
@@ -34157,9 +33989,6 @@ library
               returnType: List<E>
             synthetic get index @-1
               returnType: int
-          methods
-            synthetic toString @-1
-              returnType: String
       typeAliases
         functionTypeAliasBased F @43
           aliasedType: dynamic Function()
@@ -34332,9 +34161,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static e @15
         type: E
