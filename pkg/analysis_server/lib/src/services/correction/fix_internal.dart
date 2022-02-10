@@ -347,6 +347,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.always_specify_types: [
       AddTypeAnnotation.newInstanceBulkFixable,
     ],
+    LintNames.always_use_package_imports: [
+      ConvertToPackageImport.newInstance,
+    ],
     LintNames.annotate_overrides: [
       AddOverride.newInstance,
     ],

@@ -633,7 +633,7 @@ LintNames.always_put_control_body_on_new_line: needs evaluation
 LintNames.always_put_required_named_parameters_first: needs evaluation
 LintNames.always_require_non_null_named_parameters: has fix(es)
 LintNames.always_specify_types: has fix(es)
-LintNames.always_use_package_imports: needs evaluation
+LintNames.always_use_package_imports: has fix(es)
 LintNames.annotate_overrides: has fix(es)
 LintNames.avoid_annotating_with_dynamic: has fix(es)
 LintNames.avoid_as: needs evaluation
