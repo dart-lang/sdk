@@ -3429,6 +3429,9 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// The enumeration constants being declared.
   final NodeListImpl<EnumConstantDeclaration> _constants = NodeListImpl._();
 
+  @override
+  Token? semicolon;
+
   /// The members defined by the enum.
   final NodeListImpl<ClassMember> _members = NodeListImpl._();
 
@@ -3450,6 +3453,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
       this._implementsClause,
       this.leftBracket,
       List<EnumConstantDeclaration> constants,
+      this.semicolon,
       List<ClassMember> members,
       this.rightBracket)
       : super(comment, metadata, name) {

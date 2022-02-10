@@ -24,6 +24,10 @@ extension TokenExtension on CheckTarget<Token> {
     type.isEqualTo(TokenType.OPEN_PAREN);
   }
 
+  void get isSemicolon {
+    type.isEqualTo(TokenType.SEMICOLON);
+  }
+
   void get isSynthetic {
     if (value.isSynthetic) return;
     fail('Not synthetic');

@@ -329,6 +329,7 @@ abstract class AstFactory {
     required ImplementsClause? implementsClause,
     required Token leftBracket,
     required List<EnumConstantDeclaration> constants,
+    required Token? semicolon,
     required List<ClassMember> members,
     required Token rightBracket,
   });

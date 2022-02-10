@@ -74,6 +74,15 @@ extension EnumConstantDeclarationExtension
   }
 }
 
+extension EnumDeclarationExtension on CheckTarget<EnumDeclaration> {
+  CheckTarget<Token?> get semicolon {
+    return nest(
+      value.semicolon,
+      (selected) => 'has semicolon ${valueStr(selected)}',
+    );
+  }
+}
+
 extension FormalParameterExtension on CheckTarget<FormalParameter> {
   CheckTarget<SimpleIdentifier?> get identifier {
     return nest(

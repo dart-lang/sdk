@@ -1654,6 +1654,9 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
   /// Return the right curly bracket.
   Token get rightBracket;
 
+  /// Return the optional semicolon after the last constant.
+  Token? get semicolon;
+
   /// Returns the type parameters for the enumeration, or `null` if the
   /// enumeration does not have any type parameters.
   TypeParameterList? get typeParameters;
