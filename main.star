@@ -30,13 +30,13 @@ load("//lib/priority.star", "priority")
 
 lucicfg.check_version("1.30.9")
 
+# Use LUCI Scheduler BBv2 names and add Scheduler realms configs.
+lucicfg.enable_experiment("crbug.com/1182002")
+
 # Global builder defaults
 # These need to be set at the top level to affect all uses of luci.builder.
 luci.builder.defaults.experiments.set({
-    "luci.buildbucket.use_bbagent": 100,
     "luci.recipes.use_python3": 100,
-    # Launch 100% of Swarming tasks in "realms-aware mode", crbug.com/1170330.
-    "luci.use_realms": 100,
 })
 luci.builder.defaults.properties.set({
     "$recipe_engine/isolated": {
