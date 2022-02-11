@@ -156,7 +156,7 @@ class E8 extends self::_E8&_Enum&A8 /*isEnum*/  {
   const constructor •(core::int index, core::String name) → self::E8
     ;
   method toString() → core::String
-    ;
+    return "E8.${this.{core::_Enum::_name}{core::String}}";
 }
 class A9 extends core::Object {
   field core::int element;
@@ -178,7 +178,7 @@ class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   const constructor •(core::int index, core::String name) → self::E9
     ;
   method toString() → core::String
-    ;
+    return "E9.${this.{core::_Enum::_name}{core::String}}";
 }
 class A10 extends core::Object {
   synthetic constructor •() → self::A10
@@ -199,7 +199,7 @@ class E10 extends self::_E10&_Enum&A10 /*isEnum*/  {
   const constructor •(core::int index, core::String name) → self::E10
     ;
   method toString() → core::String
-    ;
+    return "E10.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic
   ;
@@ -222,4 +222,4 @@ Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:57:6
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:58:3 -> InstanceConstant(const E9{})
 Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:65:6 -> ListConstant(const <E10*>[const E10{}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:66:3 -> InstanceConstant(const E10{})
-Extra constant evaluation: evaluated: 63, effectively constant: 16
+Extra constant evaluation: evaluated: 72, effectively constant: 16

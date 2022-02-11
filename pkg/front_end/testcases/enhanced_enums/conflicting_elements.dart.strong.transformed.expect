@@ -156,7 +156,7 @@ class E8 extends self::_E8&_Enum&A8 /*isEnum*/  {
     : super self::_E8&_Enum&A8::•(index, name)
     ;
   method toString() → core::String
-    ;
+    return "E8.${this.{core::_Enum::_name}{core::String}}";
 }
 class A9 extends core::Object {
   field core::int element = 42;
@@ -177,7 +177,7 @@ class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
     : super self::_E9&_Enum&A9::•(index, name)
     ;
   method toString() → core::String
-    ;
+    return "E9.${this.{core::_Enum::_name}{core::String}}";
 }
 class A10 extends core::Object {
   synthetic constructor •() → self::A10
@@ -198,7 +198,7 @@ class E10 extends self::_E10&_Enum&A10 /*isEnum*/  {
     : super self::_E10&_Enum&A10::•(index, name)
     ;
   method toString() → core::String
-    ;
+    return "E10.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {}
 
