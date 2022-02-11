@@ -456,6 +456,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
   }
 
   @override
+  bool get isEnum => true;
+
+  @override
   TypeBuilder? get mixedInTypeBuilder => null;
 
   @override

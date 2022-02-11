@@ -5371,7 +5371,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         target = b.member;
       }
-      if (type is SourceEnumBuilder &&
+      if (type.isEnum &&
           !(libraryBuilder.enableEnhancedEnumsInLibrary &&
               target is Procedure &&
               target.kind == ProcedureKind.Factory)) {
