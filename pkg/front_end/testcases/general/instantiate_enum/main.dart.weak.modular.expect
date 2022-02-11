@@ -1,0 +1,72 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/instantiate_enum/main.dart:12:3: Error: Enums can't be instantiated.
+//   Enum1(123, 'foo');
+//   ^^^^^
+//
+// pkg/front_end/testcases/general/instantiate_enum/main.dart:13:3: Error: Enums can't be instantiated.
+//   Enum2(123, 'foo');
+//   ^^^^^
+//
+// pkg/front_end/testcases/general/instantiate_enum/main.dart:14:3: Error: Enums can't be instantiated.
+//   Alias1(123, 'foo');
+//   ^^^^^^
+//
+// pkg/front_end/testcases/general/instantiate_enum/main.dart:15:3: Error: Enums can't be instantiated.
+//   Alias2(123, 'foo');
+//   ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+typedef Alias1 = self::Enum1;
+class Enum1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Enum1> values = #C10;
+  static const field self::Enum1 a = #C3;
+  static const field self::Enum1 b = #C6;
+  static const field self::Enum1 c = #C9;
+  const constructor •(core::int index, core::String name) → self::Enum1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "Enum1.${this.{core::_Enum::_name}{core::String}}";
+}
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/instantiate_enum/main.dart:12:3: Error: Enums can't be instantiated.
+  Enum1(123, 'foo');
+  ^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/instantiate_enum/main.dart:13:3: Error: Enums can't be instantiated.
+  Enum2(123, 'foo');
+  ^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/instantiate_enum/main.dart:14:3: Error: Enums can't be instantiated.
+  Alias1(123, 'foo');
+  ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/instantiate_enum/main.dart:15:3: Error: Enums can't be instantiated.
+  Alias2(123, 'foo');
+  ^^^^^^";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = "a"
+  #C3 = self::Enum1 {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "b"
+  #C6 = self::Enum1 {index:#C4, _name:#C5}
+  #C7 = 2
+  #C8 = "c"
+  #C9 = self::Enum1 {index:#C7, _name:#C8}
+  #C10 = <self::Enum1*>[#C3, #C6, #C9]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main.dart:
+- Enum1. (from org-dartlang-testcase:///main.dart:7:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

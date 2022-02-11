@@ -14,7 +14,6 @@ dependencies:
   bazel_worker: any
   build_integration:
     path: ../build_integration
-  cli_util: any
   collection: ^1.15.0
   front_end:
     path: ../front_end

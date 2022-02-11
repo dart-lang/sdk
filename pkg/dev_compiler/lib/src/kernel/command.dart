@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
@@ -836,6 +835,9 @@ String defaultSdkSummaryPath({bool soundNullSafety}) {
 }
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
+
+/// Return the path to the runtime Dart SDK.
+String getSdkPath() => p.dirname(p.dirname(Platform.resolvedExecutable));
 
 /// Returns the absolute path to the default `package_config.json` file, or
 /// `null` if one could not be found.

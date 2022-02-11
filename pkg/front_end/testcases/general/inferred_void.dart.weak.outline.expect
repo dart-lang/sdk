@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static field void v1;
+static field void v2;
+static field core::List<void> l1;
+static field core::List<void> l2;
+static method method() → void
+  ;
+static method test(core::Iterable<void> iterable, asy::Stream<void> stream) → dynamic async 
+  ;
+static method main() → dynamic
+  ;

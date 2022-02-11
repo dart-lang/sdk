@@ -35,6 +35,7 @@ enhanced_enums/inference_in_constructor_parameters: FormatterCrash
 enhanced_enums/instantiated_generic_enum_types: FormatterCrash
 enhanced_enums/issue48084: FormatterCrash
 enhanced_enums/issue48181: FormatterCrash
+enhanced_enums/issue48232: FormatterCrash
 enhanced_enums/malformed_constructors: FormatterCrash
 enhanced_enums/members: FormatterCrash
 enhanced_enums/named_arguments: FormatterCrash

@@ -1,0 +1,4 @@
+import 'dart:async';
+
+main() {}
+test(StreamController<void> _eventStreamController) async {}

@@ -28,6 +28,9 @@ abstract class TypeDeclarationBuilder implements ModifierBuilder {
   @override
   TypeDeclarationBuilder get origin;
 
+  /// Return `true` if this type declaration is an enum.
+  bool get isEnum;
+
   /// Creates the [DartType] corresponding to this declaration applied with
   /// [arguments] in [library] with the syntactical nullability defined by
   /// [nullabilityBuilder].
@@ -73,6 +76,9 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
 
   @override
   bool get isTypeDeclaration => true;
+
+  @override
+  bool get isEnum => false;
 
   @override
   String get fullNameForErrors => name;

@@ -1,0 +1,6 @@
+import 'main_lib.dart';
+
+enum Enum1 { a, b, c }
+typedef Alias1 = Enum1;
+test() {}
+main() {}

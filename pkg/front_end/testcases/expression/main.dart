@@ -127,3 +127,5 @@ void hasClosure() {
       .fold<int>(0, (previousValue, element) => previousValue + element.length);
   print("xCombinedLength = $xCombinedLength");
 }
+
+enum En { a, b, c }

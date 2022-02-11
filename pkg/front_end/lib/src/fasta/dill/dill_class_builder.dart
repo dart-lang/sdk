@@ -47,6 +47,9 @@ class DillClassBuilder extends ClassBuilderImpl {
             cls.fileOffset);
 
   @override
+  bool get isEnum => cls.isEnum;
+
+  @override
   DillClassBuilder get origin => this;
 
   @override
