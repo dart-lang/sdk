@@ -9,6 +9,7 @@ class LintNames {
   static const String always_require_non_null_named_parameters =
       'always_require_non_null_named_parameters';
   static const String always_specify_types = 'always_specify_types';
+  static const String always_use_package_imports = 'always_use_package_imports';
   static const String annotate_overrides = 'annotate_overrides';
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';

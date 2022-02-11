@@ -4,7 +4,7 @@
 
 library ssa.tracer;
 
-import '../../compiler_new.dart' show OutputSink;
+import '../../compiler.dart' show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/namer.dart' show suffixForGetInterceptor;

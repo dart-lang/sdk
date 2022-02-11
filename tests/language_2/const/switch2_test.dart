@@ -13,6 +13,7 @@ int main() {
   // [analyzer] COMPILE_TIME_ERROR.SWITCH_EXPRESSION_NOT_ASSIGNABLE
     case 0.0:
     //   ^
+    // [cfe] Case expression '0.0' does not have a primitive operator '=='.
     // [cfe] Type 'int' of the switch expression isn't assignable to the type 'double' of this case expression.
       print("illegal");
       break;

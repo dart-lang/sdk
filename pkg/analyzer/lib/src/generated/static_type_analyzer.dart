@@ -170,13 +170,11 @@ class StaticTypeAnalyzer {
   /// type of $e$ is the same as the static type of an integer literal with the
   /// same contexttype
   /// </blockquote>
-  void visitIntegerLiteral(IntegerLiteral node) {
-    // Check the parent context for negated integer literals.
-    var context = InferenceContext.getContext(
-        (node as IntegerLiteralImpl).immediatelyNegated ? node.parent : node);
-    if (context == null ||
-        _typeSystem.isAssignableTo(_typeProvider.intType, context) ||
-        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context)) {
+  void visitIntegerLiteral(IntegerLiteralImpl node) {
+    var contextType = InferenceContext.getContext(node);
+    if (contextType == null ||
+        _typeSystem.isAssignableTo(_typeProvider.intType, contextType) ||
+        !_typeSystem.isAssignableTo(_typeProvider.doubleType, contextType)) {
       _inferenceHelper.recordStaticType(node, _typeProvider.intType);
     } else {
       _inferenceHelper.recordStaticType(node, _typeProvider.doubleType);

@@ -2715,7 +2715,8 @@ class KytheVName implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LinkedEditGroup implements HasToJson {
-  /// The positions of the regions that should be edited simultaneously.
+  /// The positions of the regions (after applying the relevant edits) that
+  /// should be edited simultaneously.
   List<Position> positions;
 
   /// The length of the regions that should be edited simultaneously.

@@ -40,7 +40,8 @@ public class LinkedEditGroup {
   public static final List<LinkedEditGroup> EMPTY_LIST = Lists.newArrayList();
 
   /**
-   * The positions of the regions that should be edited simultaneously.
+   * The positions of the regions (after applying the relevant edits) that should be edited
+   * simultaneously.
    */
   private final List<Position> positions;
 
@@ -102,7 +103,8 @@ public class LinkedEditGroup {
   }
 
   /**
-   * The positions of the regions that should be edited simultaneously.
+   * The positions of the regions (after applying the relevant edits) that should be edited
+   * simultaneously.
    */
   public List<Position> getPositions() {
     return positions;

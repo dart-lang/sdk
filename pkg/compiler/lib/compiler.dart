@@ -6,114 +6,13 @@ library compiler;
 
 import 'dart:async';
 
-import 'compiler_new.dart' as new_api;
-import 'src/old_to_new_api.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+
+import 'src/apiimpl.dart';
 import 'src/options.dart' show CompilerOptions;
 
 // Unless explicitly allowed, passing [:null:] for any argument to the
 // methods of library will result in an Error being thrown.
-
-/// Returns a future that completes to the source corresponding to [uri].
-/// If an exception occurs, the future completes with this exception.
-///
-/// The source can be represented either as a [:List<int>:] of UTF-8 bytes or as
-/// a [String].
-///
-/// The following text is non-normative:
-///
-/// It is recommended to return a UTF-8 encoded list of bytes because the
-/// scanner is more efficient in this case. In either case, the data structure
-/// is expected to hold a zero element at the last position. If this is not the
-/// case, the entire data structure is copied before scanning.
-typedef Future /* <String | List<int>> */ CompilerInputProvider(Uri uri);
-
-/// Deprecated, please use [CompilerInputProvider] instead.
-typedef Future<String> ReadStringFromUri(Uri uri);
-
-/// Returns an [EventSink] that will serve as compiler output for the given
-/// component.
-///
-/// Components are identified by [name] and [extension]. By convention,
-/// the empty string [:"":] will represent the main script
-/// (corresponding to the script parameter of [compile]) even if the
-/// main script is a library. For libraries that are compiled
-/// separately, the library name is used.
-///
-/// At least the following extensions can be expected:
-///
-/// * "js" for JavaScript output.
-/// * "js.map" for source maps.
-/// * "dart" for Dart output.
-/// * "dart.map" for source maps.
-///
-/// As more features are added to the compiler, new names and
-/// extensions may be introduced.
-typedef EventSink<String> CompilerOutputProvider(String name, String extension);
-
-/// Invoked by the compiler to report diagnostics. If [uri] is
-/// [:null:], so are [begin] and [end]. No other arguments may be
-/// [:null:]. If [uri] is not [:null:], neither are [begin] and
-/// [end]. [uri] indicates the compilation unit from where the
-/// diagnostic originates. [begin] and [end] are zero-based character
-/// offsets from the beginning of the compilation unit. [message] is the
-/// diagnostic message, and [kind] indicates indicates what kind of
-/// diagnostic it is.
-typedef void DiagnosticHandler(
-    Uri uri, int begin, int end, String message, Diagnostic kind);
-
-/// Information resulting from the compilation.
-class CompilationResult {
-  /// `true` if the compilation succeeded, that is, compilation didn't fail due
-  /// to compile-time errors and/or internal errors.
-  final bool isSuccess;
-
-  /// The compiler object used for the compilation.
-  ///
-  /// Note: The type of [compiler] is implementation dependent and may vary.
-  /// Use only for debugging and testing.
-  final compiler;
-
-  CompilationResult(this.compiler, {this.isSuccess: true});
-}
-
-/// Returns a future that completes to a non-null String when [script]
-/// has been successfully compiled.
-///
-/// The compiler output is obtained by providing an [outputProvider].
-///
-/// If the compilation fails, the future's value will be [:null:] and
-/// [handler] will have been invoked at least once with [:kind ==
-/// Diagnostic.ERROR:] or [:kind == Diagnostic.CRASH:].
-///
-/// Deprecated: if no [outputProvider] is given, the future completes
-/// to the compiled script. This behavior will be removed in the future
-/// as the compiler may create multiple files to support lazy loading
-/// of libraries.
-Future<CompilationResult> compile(Uri script, Uri librariesSpecificationUri,
-    CompilerInputProvider inputProvider, DiagnosticHandler handler,
-    [List<String> options = const [],
-    CompilerOutputProvider outputProvider,
-    Map<String, String> environment = const {},
-    Uri packageConfig]) {
-  CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      librariesSpecificationUri: librariesSpecificationUri)
-    ..entryUri = script
-    ..packageConfig = packageConfig
-    ..environment = environment;
-
-  new_api.CompilerInput compilerInput = new LegacyCompilerInput(inputProvider);
-  new_api.CompilerDiagnostics compilerDiagnostics =
-      new LegacyCompilerDiagnostics(handler);
-  new_api.CompilerOutput compilerOutput =
-      new LegacyCompilerOutput(outputProvider);
-
-  return new_api
-      .compile(
-          compilerOptions, compilerInput, compilerDiagnostics, compilerOutput)
-      .then((new_api.CompilationResult result) {
-    return new CompilationResult(result.compiler, isSuccess: result.isSuccess);
-  });
-}
 
 /// Kind of diagnostics that the compiler can report.
 class Diagnostic {
@@ -167,4 +66,188 @@ class Diagnostic {
 
   @override
   String toString() => name;
+}
+
+// Unless explicitly allowed, passing `null` for any argument to the
+// methods of library will result in an Error being thrown.
+
+/// Input kinds used by [CompilerInput.readFromUri].
+enum InputKind {
+  /// Data is read as UTF8 either as a [String] or a zero-terminated
+  /// `List<int>`.
+  UTF8,
+
+  /// Data is read as bytes in a `List<int>`.
+  binary,
+}
+
+/// Interface for data read through [CompilerInput.readFromUri].
+abstract class Input<T> {
+  /// The URI from which data was read.
+  Uri get uri;
+
+  /// The format of the read [data].
+  InputKind get inputKind;
+
+  /// The raw data read from [uri].
+  T get data;
+
+  /// Release any resources held by the input. After releasing, a call to `get
+  /// data` will fail, and previously returned data may be invalid.
+  void release();
+}
+
+/// Interface for providing the compiler with input. That is, Dart source files,
+/// package config files, etc.
+abstract class CompilerInput {
+  /// Returns a future that completes to the source corresponding to [uri].
+  /// If an exception occurs, the future completes with this exception.
+  ///
+  /// If [inputKind] is `InputKind.UTF8` the source can be represented either as
+  /// a zero-terminated `List<int>` of UTF-8 bytes or as a [String]. If
+  /// [inputKind] is `InputKind.binary` the source is a read a `List<int>`.
+  ///
+  /// The following text is non-normative:
+  ///
+  /// It is recommended to return a UTF-8 encoded list of bytes because the
+  /// scanner is more efficient in this case. In either case, the data structure
+  /// is expected to hold a zero element at the last position. If this is not
+  /// the case, the entire data structure is copied before scanning.
+  Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.UTF8});
+}
+
+/// Output types used in `CompilerOutput.createOutputSink`.
+enum OutputType {
+  /// The main JavaScript output.
+  js,
+
+  /// A deferred JavaScript output part.
+  jsPart,
+
+  /// A source map for a JavaScript output.
+  sourceMap,
+
+  /// Dump info output.
+  dumpInfo,
+
+  /// Deferred map output.
+  deferredMap,
+
+  /// Unused libraries output.
+  dumpUnusedLibraries,
+
+  /// Implementation specific output used for debugging the compiler.
+  debug,
+}
+
+/// Sink interface used for generating output from the compiler.
+abstract class OutputSink {
+  /// Adds [text] to the sink.
+  void add(String text);
+
+  /// Closes the sink.
+  void close();
+}
+
+/// Sink interface used for generating binary data from the compiler.
+abstract class BinaryOutputSink {
+  /// Writes indices [start] to [end] of [buffer] to the sink.
+  void write(List<int> buffer, [int start = 0, int end]);
+
+  /// Closes the sink.
+  void close();
+}
+
+/// Interface for producing output from the compiler. That is, JavaScript target
+/// files, source map files, dump info files, etc.
+abstract class CompilerOutput {
+  /// Returns an [OutputSink] that will serve as compiler output for the given
+  /// component.
+  ///
+  /// Components are identified by [name], [extension], and [type]. By
+  /// convention, the empty string `""` will represent the main output of the
+  /// provided [type]. [name] and [extension] are otherwise suggestive.
+  // TODO(johnniwinther): Replace [name] and [extension] with something like
+  // [id] and [uri].
+  OutputSink createOutputSink(String name, String extension, OutputType type);
+
+  /// Returns an [BinaryOutputSink] that will serve as compiler output for the
+  /// given URI.
+  BinaryOutputSink createBinarySink(Uri uri);
+}
+
+/// Interface for receiving diagnostic message from the compiler. That is,
+/// errors, warnings, hints, etc.
+abstract class CompilerDiagnostics {
+  /// Invoked by the compiler to report diagnostics. If [uri] is `null`, so are
+  /// [begin] and [end]. No other arguments may be `null`. If [uri] is not
+  /// `null`, neither are [begin] and [end]. [uri] indicates the compilation
+  /// unit from where the diagnostic originates. [begin] and [end] are
+  /// zero-based character offsets from the beginning of the compilation unit.
+  /// [message] is the diagnostic message, and [kind] indicates indicates what
+  /// kind of diagnostic it is.
+  ///
+  /// Experimental: [code] gives access to an id for the messages. Currently it
+  /// is the [Message] used to create the diagnostic, if available, from which
+  /// the [MessageKind] is accessible.
+  void report(
+      var code, Uri uri, int begin, int end, String text, Diagnostic kind);
+}
+
+/// Information resulting from the compilation.
+class CompilationResult {
+  /// `true` if the compilation succeeded, that is, compilation didn't fail due
+  /// to compile-time errors and/or internal errors.
+  final bool isSuccess;
+
+  /// The compiler object used for the compilation.
+  ///
+  /// Note: The type of [compiler] is implementation dependent and may vary.
+  /// Use only for debugging and testing.
+  final compiler;
+
+  /// Shared state between compilations.
+  ///
+  /// This is used to speed up batch mode.
+  final fe.InitializedCompilerState kernelInitializedCompilerState;
+
+  CompilationResult(this.compiler,
+      {this.isSuccess: true, this.kernelInitializedCompilerState: null});
+}
+
+/// Returns a future that completes to a [CompilationResult] when the Dart
+/// sources in [options] have been compiled.
+///
+/// The generated compiler output is obtained by providing a [compilerOutput].
+///
+/// If the compilation fails, the future's `CompilationResult.isSuccess` is
+/// `false` and [CompilerDiagnostics.report] on [compilerDiagnostics]
+/// is invoked at least once with `kind == Diagnostic.ERROR` or
+/// `kind == Diagnostic.CRASH`.
+Future<CompilationResult> compile(
+    CompilerOptions compilerOptions,
+    CompilerInput compilerInput,
+    CompilerDiagnostics compilerDiagnostics,
+    CompilerOutput compilerOutput) {
+  if (compilerOptions == null) {
+    throw new ArgumentError("compilerOptions must be non-null");
+  }
+  if (compilerInput == null) {
+    throw new ArgumentError("compilerInput must be non-null");
+  }
+  if (compilerDiagnostics == null) {
+    throw new ArgumentError("compilerDiagnostics must be non-null");
+  }
+  if (compilerOutput == null) {
+    throw new ArgumentError("compilerOutput must be non-null");
+  }
+
+  CompilerImpl compiler = new CompilerImpl(
+      compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
+  return compiler.run().then((bool success) {
+    return new CompilationResult(compiler,
+        isSuccess: success,
+        kernelInitializedCompilerState:
+            compiler.kernelLoader.initializedCompilerState);
+  });
 }

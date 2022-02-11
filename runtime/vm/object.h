@@ -12001,6 +12001,38 @@ class WeakProperty : public Instance {
   friend class Class;
 };
 
+class WeakReference : public Instance {
+ public:
+  ObjectPtr target() const { return untag()->target(); }
+  void set_target(const Object& target) const {
+    untag()->set_target(target.ptr());
+  }
+  static intptr_t target_offset() {
+    return OFFSET_OF(UntaggedWeakReference, target_);
+  }
+
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(UntaggedWeakReference, type_arguments_);
+  }
+
+  static WeakReferencePtr New(Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedWeakReference));
+  }
+
+  static void Clear(WeakReferencePtr raw_weak) {
+    ASSERT(raw_weak->untag()->next_ ==
+           CompressedWeakReferencePtr(WeakReference::null()));
+    // This action is performed by the GC. No barrier.
+    raw_weak->untag()->target_ = Object::null();
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakReference, Instance);
+  friend class Class;
+};
+
 class MirrorReference : public Instance {
  public:
   ObjectPtr referent() const { return untag()->referent(); }

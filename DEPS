@@ -93,7 +93,7 @@ vars = {
   "collection_rev": "a4c941ab94044d118b2086a3f261c30377604127",
   "convert_rev": "e063fdca4bebffecbb5e6aa5525995120982d9ce",
   "crypto_rev": "b5024e4de2b1c474dd558bef593ddbf0bfade152",
-  "csslib_rev": "158bfa94eed08c12c07a8ee0a3fded0ebdcd1fcb",
+  "csslib_rev": "f746368a0a53cf8f68fd71b218239034e88841d5",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
@@ -130,7 +130,7 @@ vars = {
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "7479783f0493f6717e1d7ae31cb37d39a91026b2",
   "matcher_rev": "07595a7739d47a8315caba5a8e58fb9ae3d81261",
-  "mime_rev": "c931f4bed87221beaece356494b43731445ce7b8",
+  "mime_rev": "7f4252d469de032aa4df9f90e827dbac4b8efa48",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
   "package_config_rev": "8731bf10b5375542792a32a0f7c8a6f370583d96",

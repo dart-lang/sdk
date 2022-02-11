@@ -2723,7 +2723,8 @@ class _HttpClient implements HttpClient {
             subdomain.host.endsWith("." + domain.host)));
   }
 
-  static bool _shouldCopyHeaderOnRedirect(
+  // Only visible for testing.
+  static bool shouldCopyHeaderOnRedirect(
       String headerKey, Uri originalUrl, Uri redirectUri) {
     if (_isSubdomain(redirectUri, originalUrl)) {
       return true;
@@ -2754,7 +2755,7 @@ class _HttpClient implements HttpClient {
       for (var header in previous.headers._headers.keys) {
         if (request.headers[header] == null &&
             (!isRedirect ||
-                _shouldCopyHeaderOnRedirect(header, resolved, previous.uri))) {
+                shouldCopyHeaderOnRedirect(header, resolved, previous.uri))) {
           request.headers.set(header, previous.headers[header]!);
         }
       }

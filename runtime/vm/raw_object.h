@@ -3285,6 +3285,29 @@ class UntaggedWeakProperty : public UntaggedInstance {
   friend class SlowObjectCopy;  // For OFFSET_OF
 };
 
+class UntaggedWeakReference : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(WeakReference);
+
+  COMPRESSED_POINTER_FIELD(ObjectPtr, target)
+  VISIT_FROM(target)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  VISIT_TO(type_arguments)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+
+  // Linked list is chaining all pending weak properties. Not visited by
+  // pointer visitors.
+  CompressedWeakReferencePtr next_;
+
+  friend class GCMarker;
+  template <bool>
+  friend class MarkingVisitorBase;
+  friend class Scavenger;
+  template <bool>
+  friend class ScavengerVisitorBase;
+  friend class FastObjectCopy;  // For OFFSET_OF
+  friend class SlowObjectCopy;  // For OFFSET_OF
+};
+
 // MirrorReferences are used by mirrors to hold reflectees that are VM
 // internal objects, such as libraries, classes, functions or types.
 class UntaggedMirrorReference : public UntaggedInstance {

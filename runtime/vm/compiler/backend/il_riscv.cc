@@ -4340,9 +4340,6 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-#if XLEN == 32
   // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
   // FLAG_use_bare_instructions mode and only after VM isolate stubs where
   // replaced with isolate-specific stubs.
@@ -4356,51 +4353,30 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
           ->InVMIsolateHeap();
   const bool shared_slow_path_call =
       SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi()
           ? LocationSummary::kNoCall
           : ((shared_slow_path_call ? LocationSummary::kCallOnSharedSlowPath
                                     : LocationSummary::kCallOnSlowPath)));
+#if XLEN == 32
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  if (ValueFitsSmi()) {
-    summary->set_out(0, Location::RequiresRegister());
-  } else if (shared_slow_path_call) {
-    summary->set_out(0,
-                     Location::RegisterLocation(AllocateMintABI::kResultReg));
-  } else {
-    summary->set_out(0, Location::RequiresRegister());
-  }
 #else
-  // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
-  // FLAG_use_bare_instructions mode and only after VM isolate stubs where
-  // replaced with isolate-specific stubs.
-  auto object_store = IsolateGroup::Current()->object_store();
-  const bool stubs_in_vm_isolate =
-      object_store->allocate_mint_with_fpu_regs_stub()
-          ->untag()
-          ->InVMIsolateHeap() ||
-      object_store->allocate_mint_without_fpu_regs_stub()
-          ->untag()
-          ->InVMIsolateHeap();
-  const bool shared_slow_path_call =
-      SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps,
-      ValueFitsSmi() ? LocationSummary::kNoCall
-      : shared_slow_path_call ? LocationSummary::kCallOnSharedSlowPath
-                              : LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
+#endif
   if (ValueFitsSmi()) {
     summary->set_out(0, Location::RequiresRegister());
   } else if (shared_slow_path_call) {
     summary->set_out(0,
                      Location::RegisterLocation(AllocateMintABI::kResultReg));
+    summary->set_temp(0, Location::RegisterLocation(AllocateMintABI::kTempReg));
   } else {
     summary->set_out(0, Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
   }
-#endif
   return summary;
 }
 

@@ -332,6 +332,8 @@
   FIELD(MonomorphicSmiableCall, entrypoint_offset)                             \
   FIELD(WeakProperty, key_offset)                                              \
   FIELD(WeakProperty, value_offset)                                            \
+  FIELD(WeakReference, target_offset)                                          \
+  FIELD(WeakReference, type_arguments_offset)                                  \
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \
@@ -413,6 +415,7 @@
   SIZEOF(UnwindError, InstanceSize, UntaggedUnwindError)                       \
   SIZEOF(UserTag, InstanceSize, UntaggedUserTag)                               \
   SIZEOF(WeakProperty, InstanceSize, UntaggedWeakProperty)                     \
+  SIZEOF(WeakReference, InstanceSize, UntaggedWeakReference)                   \
   SIZEOF(WeakSerializationReference, InstanceSize,                             \
          UntaggedWeakSerializationReference)                                   \
   PAYLOAD_SIZEOF(CodeSourceMap, InstanceSize, HeaderSize)                      \

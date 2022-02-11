@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/fasta/messages.dart'
     show templateCantReadFile, messageMissingMain;
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 import '../helpers/memory_compiler.dart';
 
 final EXCEPTION = 'Crash-marker';

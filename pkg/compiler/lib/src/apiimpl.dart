@@ -6,7 +6,7 @@ library leg_apiimpl;
 
 import 'dart:async';
 
-import '../compiler_new.dart' as api;
+import '../compiler.dart' as api;
 import 'common/metrics.dart' show Metrics, Metric;
 import 'common/tasks.dart' show GenericTask, Measurer;
 import 'common.dart';

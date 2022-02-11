@@ -124,6 +124,7 @@ class ObjectPointerVisitor;
   RW(Class, error_class)                                                       \
   RW(Class, expando_class)                                                     \
   RW(Class, weak_property_class)                                               \
+  RW(Class, weak_reference_class)                                              \
   ARW_AR(Array, symbol_table)                                                  \
   RW(Array, canonical_types)                                                   \
   RW(Array, canonical_function_types)                                          \

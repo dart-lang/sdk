@@ -76,6 +76,30 @@ enum E<T> {
       ..argumentList.isSynthetic;
   }
 
+  void test_enum_semicolon_null() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v
+}
+''');
+    parseResult.assertNoErrors();
+
+    var v = parseResult.findNode.enumDeclaration('enum E');
+    check(v).semicolon.isNull;
+  }
+
+  void test_enum_semicolon_optional() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var v = parseResult.findNode.enumDeclaration('enum E');
+    check(v).semicolon.isNotNull.isSemicolon;
+  }
+
   void test_getter_sameNameAsClass() {
     var parseResult = parseStringWithErrors(r'''
 class A {

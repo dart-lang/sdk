@@ -243,6 +243,8 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kUnhandledException_stacktrace:
     case Slot::Kind::kWeakProperty_key:
     case Slot::Kind::kWeakProperty_value:
+    case Slot::Kind::kWeakReference_target:
+    case Slot::Kind::kWeakReference_type_arguments:
       return false;
   }
   UNREACHABLE();

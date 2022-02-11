@@ -173,16 +173,22 @@ class WeakReference<T extends Object> {
   factory WeakReference(T object) = _WeakReferenceImpl<T>;
 }
 
+@pragma("vm:entry-point")
 class _WeakReferenceImpl<T extends Object> implements WeakReference<T> {
-  // TODO(http://dartbug.com/48162): Implement _WeakReference in the VM
-  // instead of reusing WeakProperty.
-  final _WeakProperty _weakProperty;
-
-  _WeakReferenceImpl(T object) : _weakProperty = _WeakProperty()..key = object {
+  _WeakReferenceImpl(T object) {
     Expando._checkType(object);
+    _target = object;
   }
 
-  T? get target => unsafeCast<T?>(_weakProperty.key);
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "WeakReference_getTarget")
+  external T? get target;
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "WeakReference_setTarget")
+  external set _target(T? value);
 }
 
 @patch

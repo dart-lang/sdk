@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../../compiler_new.dart';
+import '../../compiler.dart';
 import '../closure.dart';
 import '../common.dart';
 import '../common/elements.dart';

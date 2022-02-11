@@ -3,8 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_utilities/check/check.dart';
 import 'package:meta/meta.dart';
+
+typedef CompletionSuggestionChecker = void Function(
+  CompletionSuggestionTarget suggestion,
+);
+
+typedef CompletionSuggestionTarget
+    = CheckTarget<CompletionSuggestionForTesting>;
 
 class CompletionResponseForTesting {
   final int requestOffset;
@@ -209,9 +217,18 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isPrefix;
   }
 
+  void get isKeywordAny {
+    kind.isKeyword;
+  }
+
   void get isMethodInvocation {
     kind.isInvocation;
     element.isNotNull.kind.isMethod;
+  }
+
+  void get isMixin {
+    kind.isIdentifier;
+    element.isNotNull.kind.isMixin;
   }
 
   void get isNamedArgument {
@@ -335,6 +352,11 @@ extension CompletionSuggestionExtension
     selectionOffset.isEqualTo(offset);
     selectionLength.isEqualTo(length);
   }
+
+  void isKeyword(Keyword keyword) {
+    kind.isKeyword;
+    completion.isEqualTo(keyword.lexeme);
+  }
 }
 
 extension CompletionSuggestionKindExtension
@@ -345,6 +367,10 @@ extension CompletionSuggestionKindExtension
 
   void get isInvocation {
     isEqualTo(CompletionSuggestionKind.INVOCATION);
+  }
+
+  void get isKeyword {
+    isEqualTo(CompletionSuggestionKind.KEYWORD);
   }
 
   void get isNamedArgument {
@@ -437,6 +463,10 @@ extension ElementKindExtension on CheckTarget<ElementKind> {
     isEqualTo(ElementKind.METHOD);
   }
 
+  void get isMixin {
+    isEqualTo(ElementKind.MIXIN);
+  }
+
   void get isParameter {
     isEqualTo(ElementKind.PARAMETER);
   }
@@ -451,5 +481,12 @@ extension ElementKindExtension on CheckTarget<ElementKind> {
 
   void get isTopLevelVariable {
     isEqualTo(ElementKind.TOP_LEVEL_VARIABLE);
+  }
+}
+
+extension KeywordsExtension on Iterable<Keyword> {
+  List<CompletionSuggestionChecker> get asKeywordChecks {
+    return map((e) => (CompletionSuggestionTarget suggestion) =>
+        suggestion.isKeyword(e)).toList();
   }
 }

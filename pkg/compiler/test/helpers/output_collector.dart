@@ -8,7 +8,7 @@
 
 library output_collector;
 
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 
 class BufferedOutputSink implements OutputSink {
   StringBuffer sb = new StringBuffer();

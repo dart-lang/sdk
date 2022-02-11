@@ -48,6 +48,7 @@ class PrefixExpressionResolver {
       return;
     }
 
+    var operand = node.operand;
     if (operator.isIncrementOperator) {
       var operandResolution = _resolver.resolveForWrite(
         node: node.operand,
@@ -57,7 +58,6 @@ class PrefixExpressionResolver {
       var readElement = operandResolution.readElement;
       var writeElement = operandResolution.writeElement;
 
-      var operand = node.operand;
       _resolver.setReadElement(operand, readElement);
       _resolver.setWriteElement(operand, writeElement);
       _resolver.migrationResolutionHooks
@@ -65,7 +65,14 @@ class PrefixExpressionResolver {
 
       _assignmentShared.checkFinalAlreadyAssigned(node.operand);
     } else {
-      node.operand.accept(_resolver);
+      DartType? innerContextType;
+      if (operator == TokenType.MINUS && operand is IntegerLiteralImpl) {
+        // Negated integer literals should undergo int->double conversion in the
+        // same circumstances as non-negated integer literals, so pass the
+        // context type through.
+        innerContextType = InferenceContext.getContext(node);
+      }
+      _resolver.analyzeExpression(operand, innerContextType);
     }
 
     _resolve1(node);

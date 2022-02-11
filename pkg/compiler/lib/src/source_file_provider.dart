@@ -11,8 +11,8 @@ import 'dart:typed_data';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../compiler_new.dart' as api;
-import '../compiler_new.dart';
+import '../compiler.dart' as api;
+import '../compiler.dart';
 import 'colors.dart' as colors;
 import 'dart2js.dart' show AbortLeg;
 import 'io/source_file.dart';
@@ -136,12 +136,6 @@ abstract class SourceFileProvider implements CompilerInput {
     });
   }
 
-  // TODO(johnniwinther): Remove this when no longer needed for the old compiler
-  // API.
-  Future /* <List<int> | String> */ call(Uri resourceUri) {
-    throw "unimplemented";
-  }
-
   relativizeUri(Uri uri) => fe.relativizeUri(cwd, uri, isWindows);
 
   SourceFile<List<int>> getUtf8SourceFile(Uri resourceUri) {
@@ -171,12 +165,6 @@ List<int> readAll(String filename, {bool zeroTerminated = true}) {
 }
 
 class CompilerSourceFileProvider extends SourceFileProvider {
-  // TODO(johnniwinther): Remove this when no longer needed for the old compiler
-  // API.
-  @override
-  Future<List<int>> call(Uri resourceUri) =>
-      readFromUri(resourceUri).then((input) => input.data);
-
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
           {InputKind inputKind = InputKind.UTF8}) =>
@@ -301,12 +289,6 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
       isAborting = true;
       throw AbortLeg(message);
     }
-  }
-
-  // TODO(johnniwinther): Remove this when no longer needed for the old compiler
-  // API.
-  void call(Uri uri, int begin, int end, String message, api.Diagnostic kind) {
-    return report(null, uri, begin, end, message, kind);
   }
 }
 

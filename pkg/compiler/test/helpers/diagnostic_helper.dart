@@ -8,8 +8,7 @@ library dart2js.test.diagnostic_helper;
 
 import 'dart:collection';
 
-import 'package:compiler/compiler_new.dart'
-    show CompilerDiagnostics, Diagnostic;
+import 'package:compiler/compiler.dart' show CompilerDiagnostics, Diagnostic;
 import 'package:compiler/src/diagnostics/messages.dart'
     show Message, MessageKind;
 import 'package:expect/expect.dart';

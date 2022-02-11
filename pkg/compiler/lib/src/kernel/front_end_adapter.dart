@@ -10,7 +10,7 @@ import 'dart:async';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../../compiler_new.dart' as api;
+import '../../compiler.dart' as api;
 
 import '../common.dart';
 import '../io/source_file.dart';

@@ -264,6 +264,29 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    if (!request.featureSet.isEnabled(Feature.enhanced_enums)) {
+      return;
+    }
+
+    if (entity == node.name) {
+      return;
+    }
+
+    var semicolon = node.semicolon;
+    if (request.offset <= node.leftBracket.offset) {
+      if (node.withClause == null) {
+        _addSuggestion(Keyword.WITH);
+      }
+      if (node.implementsClause == null) {
+        _addSuggestion(Keyword.IMPLEMENTS);
+      }
+    } else if (semicolon != null && semicolon.end <= request.offset) {
+      _addEnumBodyKeywords();
+    }
+  }
+
+  @override
   void visitExpression(Expression node) {
     _addExpressionKeywords(node);
   }
@@ -858,6 +881,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (request.featureSet.isEnabled(Feature.non_nullable)) {
       _addSuggestion(Keyword.LATE);
     }
+  }
+
+  void _addEnumBodyKeywords() {
+    _addSuggestions([
+      Keyword.CONST,
+      Keyword.DYNAMIC,
+      Keyword.FINAL,
+      Keyword.GET,
+      Keyword.LATE,
+      Keyword.OPERATOR,
+      Keyword.SET,
+      Keyword.STATIC,
+      Keyword.VAR,
+      Keyword.VOID
+    ]);
   }
 
   void _addExpressionKeywords(AstNode node) {

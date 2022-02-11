@@ -1935,6 +1935,14 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_weak_property_class(cls);
     RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
 
+    cls = Class::New<WeakReference, RTN::WeakReference>(isolate_group);
+    cls.set_type_arguments_field_offset(
+        WeakReference::type_arguments_offset(),
+        RTN::WeakReference::type_arguments_offset());
+    cls.set_num_type_arguments_unsafe(1);
+    object_store->set_weak_reference_class(cls);
+    RegisterPrivateClass(cls, Symbols::_WeakReferenceImpl(), core_lib);
+
     // Pre-register the mirrors library so we can place the vm class
     // MirrorReference there rather than the core library.
     lib = Library::LookupLibrary(thread, Symbols::DartMirrors());
@@ -2498,6 +2506,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     cls = Class::New<WeakProperty, RTN::WeakProperty>(isolate_group);
     object_store->set_weak_property_class(cls);
+    cls = Class::New<WeakReference, RTN::WeakReference>(isolate_group);
+    object_store->set_weak_reference_class(cls);
 
     cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
     cls = Class::New<UserTag, RTN::UserTag>(isolate_group);
@@ -25873,6 +25883,22 @@ WeakPropertyPtr WeakProperty::New(Heap::Space space) {
 
 const char* WeakProperty::ToCString() const {
   return "_WeakProperty";
+}
+
+WeakReferencePtr WeakReference::New(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->weak_reference_class() !=
+         Class::null());
+  ObjectPtr raw =
+      Object::Allocate(WeakReference::kClassId, WeakReference::InstanceSize(),
+                       space, WeakReference::ContainsCompressedPointers());
+  return static_cast<WeakReferencePtr>(raw);
+}
+
+const char* WeakReference::ToCString() const {
+  TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
+  String& type_args_name = String::Handle(type_args.UserVisibleName());
+  return OS::SCreate(Thread::Current()->zone(), "WeakReference%s",
+                     type_args_name.ToCString());
 }
 
 AbstractTypePtr MirrorReference::GetAbstractTypeReferent() const {

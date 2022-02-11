@@ -2884,6 +2884,10 @@ class AstBuilder extends StackListener {
     var constants = popTypedList2<EnumConstantDeclaration>(elementsCount);
     enumDeclaration!.constants.addAll(constants);
 
+    if (optional(';', elementsEndToken)) {
+      enumDeclaration!.semicolon = elementsEndToken;
+    }
+
     if (!enableEnhancedEnums && optional(';', elementsEndToken)) {
       var feature = ExperimentalFeatures.enhanced_enums;
       handleRecoverableError(
@@ -2941,6 +2945,7 @@ class AstBuilder extends StackListener {
         implementsClause: implementsClause,
         leftBracket: leftBrace,
         constants: [],
+        semicolon: null,
         members: [],
         rightBracket: leftBrace.endGroup!,
       ),

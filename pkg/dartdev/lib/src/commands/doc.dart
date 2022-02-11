@@ -49,8 +49,6 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
       negatable: false,
       help: 'Try to generate the docs without saving them.',
     );
-    argParser.addFlag('fatal-warnings',
-        help: 'Treat warning level issues as fatal.', defaultsTo: false);
   }
 
   @override
@@ -87,9 +85,9 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     options.addAll([
       '--output=${args['output']}',
       '--resources-dir=$resourcesPath',
-      if (args['validate-links']) '--validate-links',
+      args['validate-links'] ? '--validate-links' : '--no-validate-links',
       if (args['dry-run']) '--no-generate-docs',
-      if (verbose) '--no-quiet',
+      if (verbose) ...['--verbose-warnings', '--show-stats'],
     ]);
 
     final config = await parseOptions(pubPackageMetaProvider, options);

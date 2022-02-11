@@ -411,6 +411,7 @@ class AstFactoryImpl extends AstFactory {
           implementsClause: null,
           leftBracket: leftBracket,
           constants: constants,
+          semicolon: null,
           members: [],
           rightBracket: rightBracket);
 
@@ -426,6 +427,7 @@ class AstFactoryImpl extends AstFactory {
     required Token leftBracket,
     required List<EnumConstantDeclaration> constants,
     required List<ClassMember> members,
+    required Token? semicolon,
     required Token rightBracket,
   }) {
     return EnumDeclarationImpl(
@@ -438,6 +440,7 @@ class AstFactoryImpl extends AstFactory {
       implementsClause as ImplementsClauseImpl?,
       leftBracket,
       constants,
+      semicolon,
       members,
       rightBracket,
     );

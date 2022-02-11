@@ -335,7 +335,8 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNode(node.implementsClause, prefix: ' ');
     sink.write(' {');
     _visitNodeList(node.constants, separator: ', ');
-    _visitNodeList(node.members, prefix: '; ', separator: ' ');
+    _visitToken(node.semicolon);
+    _visitNodeList(node.members, prefix: ' ', separator: ' ');
     sink.write('}');
   }
 

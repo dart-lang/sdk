@@ -265,6 +265,8 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT_EQUAL(ImmutableArray::InstanceSize(), cls.host_instance_size());
   cls = object_store->weak_property_class();
   ASSERT_EQUAL(WeakProperty::InstanceSize(), cls.host_instance_size());
+  cls = object_store->weak_reference_class();
+  ASSERT_EQUAL(WeakReference::InstanceSize(), cls.host_instance_size());
   cls = object_store->linked_hash_map_class();
   ASSERT_EQUAL(LinkedHashMap::InstanceSize(), cls.host_instance_size());
   cls = object_store->immutable_linked_hash_map_class();

@@ -695,6 +695,30 @@ class myComponent {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_annotation_named_constructor() async {
+    var content = '''
+class C {
+  final List<Object> values;
+  const factory C.ints(List<int> list) = C;
+  const C(this.values);
+}
+
+@C.ints([1, 2, 3])
+class D {}
+''';
+    var expected = '''
+class C {
+  final List<Object> values;
+  const factory C.ints(List<int> list) = C;
+  const C(this.values);
+}
+
+@C.ints([1, 2, 3])
+class D {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_argumentError_checkNotNull_implies_non_null_intent() async {
     var content = '''
 void f(int i) {
