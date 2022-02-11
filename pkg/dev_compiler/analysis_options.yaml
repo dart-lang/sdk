@@ -22,6 +22,7 @@ linter:
   rules:
     # Not enforced by lints at any version.
     - always_declare_return_types
+    - depend_on_referenced_packages
     - directives_ordering
     - omit_local_variable_types
     - prefer_single_quotes
