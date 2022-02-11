@@ -2840,23 +2840,28 @@ class AstBuilder extends StackListener {
     var argumentList = tmpArguments?.argumentList;
 
     TypeArgumentListImpl? typeArguments;
-    ConstructorSelectorImpl? constructorName;
+    ConstructorSelectorImpl? constructorSelector;
     if (tmpConstructor != null) {
       typeArguments = tmpConstructor.type2.typeArguments;
       var constructorNamePeriod = tmpConstructor.period;
       var constructorNameId = tmpConstructor.name;
       if (constructorNamePeriod != null && constructorNameId != null) {
-        constructorName = ConstructorSelectorImpl(
+        constructorSelector = ConstructorSelectorImpl(
           period: constructorNamePeriod,
           name: constructorNameId,
         );
       }
+      // enum E { v<int> }
       if (typeArguments != null && argumentList == null) {
         errorReporter.errorReporter?.reportErrorForNode(
           ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
           typeArguments,
         );
         argumentList = _syntheticArgumentList(typeArguments.endToken);
+      }
+      // enum E { v.^ }
+      if (constructorSelector != null) {
+        argumentList ??= _syntheticArgumentList(constructorSelector.endToken);
       }
     }
 
@@ -2868,7 +2873,7 @@ class AstBuilder extends StackListener {
         name: constant.name,
         arguments: EnumConstantArgumentsImpl(
           typeArguments: typeArguments,
-          constructorSelector: constructorName,
+          constructorSelector: constructorSelector,
           argumentList: argumentList,
         ),
       );
