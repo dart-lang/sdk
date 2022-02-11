@@ -6,15 +6,10 @@ library js_backend.backend;
 
 import '../common.dart';
 import '../common/codegen.dart';
-import '../deferred_load/deferred_load.dart' show DeferredLoadTask;
-import '../dump_info.dart' show DumpInfoTask;
 import '../elements/entities.dart';
-import '../enqueue.dart' show ResolutionEnqueuer;
 import '../inferrer/types.dart';
 import '../js_model/elements.dart';
 import '../tracer.dart';
-import '../universe/world_impact.dart'
-    show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import 'annotations.dart';
 import 'checked_mode_helpers.dart';
 import 'namer.dart';
@@ -258,36 +253,6 @@ class FunctionInlineCache {
   bool markedAsTryInline(FunctionEntity element) {
     assert(checkFunction(element), failedAt(element));
     return _tryInlineFunctions.contains(element);
-  }
-}
-
-class JavaScriptImpactStrategy extends ImpactStrategy {
-  final DumpInfoTask dumpInfoTask;
-  final bool supportDeferredLoad;
-  final bool supportDumpInfo;
-
-  JavaScriptImpactStrategy(this.dumpInfoTask,
-      {this.supportDeferredLoad, this.supportDumpInfo});
-
-  @override
-  void visitImpact(var impactSource, WorldImpact impact,
-      WorldImpactVisitor visitor, ImpactUseCase impactUse) {
-    // TODO(johnniwinther): Compute the application strategy once for each use.
-    if (impactUse == ResolutionEnqueuer.IMPACT_USE) {
-      if (supportDeferredLoad) {
-        impact.apply(visitor);
-      } else {
-        impact.apply(visitor);
-      }
-    } else if (impactUse == DeferredLoadTask.IMPACT_USE) {
-      impact.apply(visitor);
-      // Impacts are uncached globally in [onImpactUsed].
-    } else if (impactUse == DumpInfoTask.IMPACT_USE) {
-      impact.apply(visitor);
-      dumpInfoTask.unregisterImpact(impactSource);
-    } else {
-      impact.apply(visitor);
-    }
   }
 }
 

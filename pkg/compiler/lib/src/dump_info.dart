@@ -27,8 +27,7 @@ import 'inferrer/types.dart'
 import 'js/js.dart' as jsAst;
 import 'js_backend/field_analysis.dart';
 import 'universe/codegen_world_builder.dart';
-import 'universe/world_impact.dart'
-    show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
+import 'universe/world_impact.dart' show WorldImpact, WorldImpactVisitorImpl;
 import 'util/sink_adapter.dart';
 import 'world.dart' show JClosedWorld;
 
@@ -427,7 +426,6 @@ abstract class InfoReporter {
 }
 
 class DumpInfoTask extends CompilerTask implements InfoReporter {
-  static const ImpactUseCase IMPACT_USE = ImpactUseCase('Dump info');
   final Compiler compiler;
   final bool useBinaryFormat;
 
@@ -493,20 +491,17 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     if (impact == null) return const <Selection>[];
 
     var selections = <Selection>[];
-    compiler.impactStrategy.visitImpact(
-        entity,
-        impact,
-        WorldImpactVisitorImpl(visitDynamicUse: (member, dynamicUse) {
-          AbstractValue mask = dynamicUse.receiverConstraint;
-          selections.addAll(closedWorld
-              // TODO(het): Handle `call` on `Closure` through
-              // `world.includesClosureCall`.
-              .locateMembers(dynamicUse.selector, mask)
-              .map((MemberEntity e) => Selection(e, mask)));
-        }, visitStaticUse: (member, staticUse) {
-          selections.add(Selection(staticUse.element, null));
-        }),
-        IMPACT_USE);
+    impact.apply(WorldImpactVisitorImpl(visitDynamicUse: (member, dynamicUse) {
+      AbstractValue mask = dynamicUse.receiverConstraint;
+      selections.addAll(closedWorld
+          // TODO(het): Handle `call` on `Closure` through
+          // `world.includesClosureCall`.
+          .locateMembers(dynamicUse.selector, mask)
+          .map((MemberEntity e) => Selection(e, mask)));
+    }, visitStaticUse: (member, staticUse) {
+      selections.add(Selection(staticUse.element, null));
+    }));
+    unregisterImpact(entity);
     return selections;
   }
 

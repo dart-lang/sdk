@@ -303,28 +303,6 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
   }
 }
 
-/// Constant used to denote a specific use of a [WorldImpact].
-class ImpactUseCase {
-  final String name;
-
-  const ImpactUseCase(this.name);
-
-  @override
-  String toString() => 'ImpactUseCase($name)';
-}
-
-/// Strategy used for processing [WorldImpact] object in various use cases.
-class ImpactStrategy {
-  const ImpactStrategy();
-
-  /// Applies [impact] to [visitor] for the [impactUseCase] of [impactSource].
-  void visitImpact(var impactSource, WorldImpact impact,
-      WorldImpactVisitor visitor, ImpactUseCase impactUseCase) {
-    // Apply unconditionally.
-    impact.apply(visitor);
-  }
-}
-
 /// Visitor used to process the uses of a [WorldImpact].
 abstract class WorldImpactVisitor {
   void visitStaticUse(MemberEntity member, StaticUse staticUse);

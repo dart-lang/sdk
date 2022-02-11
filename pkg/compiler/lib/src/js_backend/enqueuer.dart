@@ -24,8 +24,7 @@ import '../universe/use.dart'
         StaticUseKind,
         TypeUse,
         TypeUseKind;
-import '../universe/world_impact.dart'
-    show ImpactUseCase, WorldImpact, WorldImpactVisitor;
+import '../universe/world_impact.dart' show WorldImpactVisitor;
 import '../util/enumset.dart';
 import '../util/util.dart' show Setlet;
 
@@ -45,7 +44,8 @@ class CodegenEnqueuer extends Enqueuer {
   final EnqueuerListener listener;
   final AnnotationsData _annotationsData;
 
-  WorldImpactVisitor _impactVisitor;
+  @override
+  WorldImpactVisitor impactVisitor;
 
   final Queue<WorkItem> _queue = Queue<WorkItem>();
 
@@ -56,12 +56,10 @@ class CodegenEnqueuer extends Enqueuer {
   // applying additional impacts before re-emptying the queue.
   void Function() onEmptyForTesting;
 
-  static const ImpactUseCase IMPACT_USE = ImpactUseCase('CodegenEnqueuer');
-
   CodegenEnqueuer(this.task, this._worldBuilder, this._workItemBuilder,
       this.listener, this._annotationsData)
       : this.name = 'codegen enqueuer' {
-    _impactVisitor = EnqueuerImpactVisitor(this);
+    impactVisitor = EnqueuerImpactVisitor(this);
   }
 
   @override
@@ -95,13 +93,6 @@ class CodegenEnqueuer extends Enqueuer {
 
     applyImpact(listener.registerUsedElement(entity));
     _queue.add(workItem);
-  }
-
-  @override
-  void applyImpact(WorldImpact worldImpact, {var impactSource}) {
-    if (worldImpact.isEmpty) return;
-    impactStrategy.visitImpact(
-        impactSource, worldImpact, _impactVisitor, impactUse);
   }
 
   void _registerInstantiatedType(InterfaceType type,
@@ -306,9 +297,6 @@ class CodegenEnqueuer extends Enqueuer {
 
   @override
   String toString() => 'Enqueuer($name)';
-
-  @override
-  ImpactUseCase get impactUse => IMPACT_USE;
 
   @override
   Iterable<MemberEntity> get processedEntities => _processedEntities;

@@ -137,18 +137,15 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   void onQueueOpen(
       Enqueuer enqueuer, FunctionEntity mainMethod, Iterable<Uri> libraries) {
     if (_deferredLoadTask.isProgramSplit) {
-      enqueuer.applyImpact(_computeDeferredLoadingImpact(),
-          impactSource: 'deferred load');
+      enqueuer.applyImpact(_computeDeferredLoadingImpact());
     }
-    enqueuer.applyImpact(_nativeEnqueuer.processNativeClasses(libraries),
-        impactSource: 'native classes');
+    enqueuer.applyImpact(_nativeEnqueuer.processNativeClasses(libraries));
     if (mainMethod != null) {
-      enqueuer.applyImpact(_computeMainImpact(mainMethod),
-          impactSource: 'main impact');
+      enqueuer.applyImpact(_computeMainImpact(mainMethod));
     }
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
-    enqueuer.applyImpact(computeHelpersImpact(), impactSource: 'helpers');
+    enqueuer.applyImpact(computeHelpersImpact());
   }
 
   @override
@@ -158,8 +155,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
-    enqueuer.applyImpact(_customElementsAnalysis.flush(),
-        impactSource: _customElementsAnalysis);
+    enqueuer.applyImpact(_customElementsAnalysis.flush());
 
     for (ClassEntity cls in recentClasses) {
       MemberEntity element = _elementEnvironment.lookupLocalClassMember(

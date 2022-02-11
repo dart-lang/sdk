@@ -286,7 +286,6 @@ import '../constants/values.dart' show ConstantValue;
 import '../elements/types.dart';
 import '../elements/entities.dart';
 import '../kernel/element_map.dart';
-import '../universe/world_impact.dart' show ImpactUseCase;
 import '../util/util.dart' show makeUnique;
 import '../world.dart' show KClosedWorld;
 
@@ -324,8 +323,6 @@ class DeferredLoadTask extends CompilerTask {
 
   /// Will be `true` if the program contains deferred libraries.
   bool isProgramSplit = false;
-
-  static const ImpactUseCase IMPACT_USE = ImpactUseCase('Deferred load');
 
   /// A cache of the result of calling `computeImportDeferName` on the keys of
   /// this map.
