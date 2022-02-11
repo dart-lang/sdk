@@ -4,9 +4,9 @@ import "dart:core" as core;
 
 class E extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E> values = #C9;
+  final field core::String field;
   static const field self::E one = #C4;
   static const field self::E two = #C8;
-  final field core::String field;
   const constructor •(core::int index, core::String name, core::String field) → self::E
     : self::E::field = field, super core::_Enum::•(index, name)
     ;

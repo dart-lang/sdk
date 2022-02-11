@@ -40,8 +40,8 @@ class _InvocationMirror implements Invocation {
 
   // Internal representation of the invocation mirror.
   String? _functionName;
-  List? _argumentsDescriptor;
-  List? _arguments;
+  List<Object?>? _argumentsDescriptor;
+  List<Object?>? _arguments;
   bool _isSuperInvocation = false;
   int _delayedTypeArgumentsLen = 0;
 
@@ -49,8 +49,8 @@ class _InvocationMirror implements Invocation {
   Symbol? _memberName;
   int _type = _UNINITIALIZED;
   List<Type>? _typeArguments;
-  List? _positionalArguments;
-  Map<Symbol, dynamic>? _namedArguments;
+  List<Object?>? _positionalArguments;
+  Map<Symbol, Object?>? _namedArguments;
 
   _InvocationMirror._withType(this._memberName, int? type, this._typeArguments,
       this._positionalArguments, this._namedArguments)
@@ -87,7 +87,7 @@ class _InvocationMirror implements Invocation {
   }
 
   int get _typeArgsLen {
-    int typeArgsLen = _argumentsDescriptor![_TYPE_ARGS_LEN];
+    var typeArgsLen = _argumentsDescriptor![_TYPE_ARGS_LEN] as int;
     return typeArgsLen == 0 ? _delayedTypeArgumentsLen : typeArgsLen;
   }
 
@@ -113,12 +113,13 @@ class _InvocationMirror implements Invocation {
     if (_positionalArguments == null) {
       // The argument descriptor counts the receiver, but not the type arguments
       // as positional arguments.
-      int numPositionalArguments = _argumentsDescriptor![_POSITIONAL_COUNT] - 1;
+      var numPositionalArguments =
+          (_argumentsDescriptor![_POSITIONAL_COUNT] as int) - 1;
       if (numPositionalArguments == 0) {
         return _positionalArguments = const [];
       }
       // Exclude receiver and type args in the returned list.
-      int receiverIndex = _typeArgsLen > 0 ? 1 : 0;
+      var receiverIndex = _typeArgsLen > 0 ? 1 : 0;
       var args = _arguments!;
       _positionalArguments = new _ImmutableList._from(
           args, receiverIndex + 1, numPositionalArguments);
@@ -129,18 +130,20 @@ class _InvocationMirror implements Invocation {
   Map<Symbol, dynamic> get namedArguments {
     if (_namedArguments == null) {
       final argsDescriptor = _argumentsDescriptor!;
-      int numArguments = argsDescriptor[_COUNT] - 1; // Exclude receiver.
-      int numPositionalArguments = argsDescriptor[_POSITIONAL_COUNT] - 1;
-      int numNamedArguments = numArguments - numPositionalArguments;
+      var numArguments =
+          (argsDescriptor[_COUNT] as int) - 1; // Exclude receiver.
+      var numPositionalArguments =
+          (argsDescriptor[_POSITIONAL_COUNT] as int) - 1;
+      var numNamedArguments = numArguments - numPositionalArguments;
       if (numNamedArguments == 0) {
         return _namedArguments = const {};
       }
-      int receiverIndex = _typeArgsLen > 0 ? 1 : 0;
-      final namedArguments = new Map<Symbol, dynamic>();
-      for (int i = 0; i < numNamedArguments; i++) {
-        int namedEntryIndex = _FIRST_NAMED_ENTRY + 2 * i;
-        int pos = argsDescriptor[namedEntryIndex + 1];
-        String arg_name = argsDescriptor[namedEntryIndex];
+      var receiverIndex = _typeArgsLen > 0 ? 1 : 0;
+      final namedArguments = new Map<Symbol, Object?>();
+      for (var i = 0; i < numNamedArguments; i++) {
+        var namedEntryIndex = _FIRST_NAMED_ENTRY + 2 * i;
+        var pos = argsDescriptor[namedEntryIndex + 1] as int;
+        var arg_name = argsDescriptor[namedEntryIndex] as String;
         var arg_value = _arguments![receiverIndex + pos];
         namedArguments[new internal.Symbol.unvalidated(arg_name)] = arg_value;
       }

@@ -12,9 +12,9 @@ import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E1> values = const <self::E1>[self::E1::one, self::E1::two];
+  final field core::int foo;
   static const field self::E1 one = const self::E1::•(0, "one", 1);
   static const field self::E1 two = const self::E1::named(1, "two", 2);
-  final field core::int foo;
   const constructor •(core::int index, core::String name, core::int foo) → self::E1
     : self::E1::foo = foo, super core::_Enum::•(index, name)
     ;
@@ -26,9 +26,9 @@ class E1 extends core::_Enum /*isEnum*/  {
 }
 class E2 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E2> values = const <self::E2>[self::E2::one, self::E2::two];
+  final field core::int foo;
   static const field self::E2 one = const self::E2::•(0, "one", 1);
   static const field self::E2 two = const self::E2::named(1, "two", 2);
-  final field core::int foo;
   const constructor •(core::int index, core::String name, core::int foo) → self::E2
     : self::E2::foo = foo, super core::_Enum::•(index, name)
     ;

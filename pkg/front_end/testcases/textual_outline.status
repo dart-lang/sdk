@@ -28,6 +28,7 @@ constructor_tearoffs/issue47075: FormatterCrash
 constructor_tearoffs/new_as_selector: FormatterCrash
 dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
+enhanced_enums/conflicting_elements: FormatterCrash
 enhanced_enums/constructor_calls: FormatterCrash
 enhanced_enums/entries_with_type_arguments: FormatterCrash
 enhanced_enums/enum_as_supertype: FormatterCrash
@@ -36,6 +37,7 @@ enhanced_enums/instantiated_generic_enum_types: FormatterCrash
 enhanced_enums/issue48084: FormatterCrash
 enhanced_enums/issue48181: FormatterCrash
 enhanced_enums/issue48232: FormatterCrash
+enhanced_enums/issue48303: FormatterCrash
 enhanced_enums/malformed_constructors: FormatterCrash
 enhanced_enums/members: FormatterCrash
 enhanced_enums/named_arguments: FormatterCrash

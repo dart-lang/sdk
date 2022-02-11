@@ -335,6 +335,15 @@ class SourceEnumBuilder extends SourceClassBuilder {
       members["toString"] = toStringBuilder;
     }
     String className = name;
+    final int startCharOffsetComputed =
+        metadata == null ? startCharOffset : metadata.first.charOffset;
+    scope.forEachLocalMember((name, member) {
+      members[name] = member as MemberBuilder;
+    });
+    scope.forEachLocalSetter((name, member) {
+      setters[name] = member;
+    });
+
     if (enumConstantInfos != null) {
       for (int i = 0; i < enumConstantInfos.length; i++) {
         EnumConstantInfo enumConstantInfo = enumConstantInfos[i]!;
@@ -345,6 +354,18 @@ class SourceEnumBuilder extends SourceClassBuilder {
           // The existing declaration is synthetic if it has the same
           // charOffset as the enclosing enum.
           bool isSynthetic = existing.charOffset == charOffset;
+
+          // Report the error on the member that occurs later in the code.
+          int existingOffset;
+          int duplicateOffset;
+          if (existing.charOffset < enumConstantInfo.charOffset) {
+            existingOffset = existing.charOffset;
+            duplicateOffset = enumConstantInfo.charOffset;
+          } else {
+            existingOffset = enumConstantInfo.charOffset;
+            duplicateOffset = existing.charOffset;
+          }
+
           List<LocatedMessage> context = isSynthetic
               ? <LocatedMessage>[
                   templateDuplicatedDeclarationSyntheticCause
@@ -355,11 +376,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
               : <LocatedMessage>[
                   templateDuplicatedDeclarationCause
                       .withArguments(name)
-                      .withLocation(
-                          parent.fileUri, existing.charOffset, name.length)
+                      .withLocation(parent.fileUri, existingOffset, name.length)
                 ];
           parent.addProblem(templateDuplicatedDeclaration.withArguments(name),
-              enumConstantInfo.charOffset, name.length, parent.fileUri,
+              duplicateOffset, name.length, parent.fileUri,
               context: context);
           enumConstantInfos[i] = null;
         } else if (name == className) {
@@ -396,14 +416,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         members[name] = fieldBuilder..next = existing;
       }
     }
-    final int startCharOffsetComputed =
-        metadata == null ? startCharOffset : metadata.first.charOffset;
-    scope.forEachLocalMember((name, member) {
-      members[name] = member as MemberBuilder;
-    });
-    scope.forEachLocalSetter((name, member) {
-      setters[name] = member;
-    });
+
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder.internal(
         metadata,
         name,
@@ -461,14 +474,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
   @override
   TypeBuilder? get mixedInTypeBuilder => null;
 
-  @override
-  Class build(SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
-    cls.isEnum = true;
-    intType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
-    stringType.resolveIn(
-        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
-    objectType.resolveIn(
-        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+  NamedTypeBuilder? _computeEnumSupertype() {
     TypeBuilder? supertypeBuilder = this.supertypeBuilder;
     NamedTypeBuilder? enumType;
 
@@ -482,6 +488,18 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
     assert(enumType is NamedTypeBuilder && enumType.name == "_Enum");
+    return enumType;
+  }
+
+  @override
+  Class build(SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
+    cls.isEnum = true;
+    intType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    stringType.resolveIn(
+        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    objectType.resolveIn(
+        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    NamedTypeBuilder? enumType = _computeEnumSupertype();
     enumType!.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
 
     listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
@@ -682,21 +700,20 @@ class SourceEnumBuilder extends SourceClassBuilder {
     SourceProcedureBuilder toStringBuilder =
         firstMemberNamed("toString") as SourceProcedureBuilder;
 
-    TypeBuilder supertypeBuilder = this.supertypeBuilder!;
-    ClassBuilder enumClass = supertypeBuilder.declaration as ClassBuilder;
+    ClassBuilder enumClass =
+        _computeEnumSupertype()!.declaration as ClassBuilder;
     MemberBuilder? nameFieldBuilder =
         enumClass.lookupLocalMember("_name") as MemberBuilder?;
-    if (nameFieldBuilder != null) {
-      Field nameField = nameFieldBuilder.member as Field;
+    assert(nameFieldBuilder != null);
+    Field nameField = nameFieldBuilder!.member as Field;
 
-      toStringBuilder.body = new ReturnStatement(new StringConcatenation([
-        new StringLiteral("${cls.demangledName}."),
-        new InstanceGet.byReference(
-            InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
-            interfaceTargetReference: nameField.getterReference,
-            resultType: nameField.getterType),
-      ]));
-    }
+    toStringBuilder.body = new ReturnStatement(new StringConcatenation([
+      new StringLiteral("${cls.demangledName}."),
+      new InstanceGet.byReference(
+          InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
+          interfaceTargetReference: nameField.getterReference,
+          resultType: nameField.getterType),
+    ]));
 
     super.buildOutlineExpressions(library, classHierarchy,
         delayedActionPerformers, synthesizedFunctionNodes);

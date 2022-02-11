@@ -2514,9 +2514,11 @@ class Object {
 }
 
 abstract class Enum {
+  String get _name;
 }
 
 abstract class _Enum {
+  final String _name;
 }
 
 class String {}

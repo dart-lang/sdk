@@ -33,7 +33,7 @@ class E<S extends core::num, T extends core::num> extends self::_E&_Enum&GM&M<se
     : super self::_E&_Enum&GM&M::•(index, name)
     ;
   method toString() → core::String
-    ;
+    return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {}
 
