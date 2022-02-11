@@ -474,14 +474,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
   @override
   TypeBuilder? get mixedInTypeBuilder => null;
 
-  @override
-  Class build(SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
-    cls.isEnum = true;
-    intType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
-    stringType.resolveIn(
-        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
-    objectType.resolveIn(
-        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+  NamedTypeBuilder? _computeEnumSupertype() {
     TypeBuilder? supertypeBuilder = this.supertypeBuilder;
     NamedTypeBuilder? enumType;
 
@@ -495,6 +488,18 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
     assert(enumType is NamedTypeBuilder && enumType.name == "_Enum");
+    return enumType;
+  }
+
+  @override
+  Class build(SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
+    cls.isEnum = true;
+    intType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    stringType.resolveIn(
+        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    objectType.resolveIn(
+        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    NamedTypeBuilder? enumType = _computeEnumSupertype();
     enumType!.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
 
     listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
@@ -695,21 +700,20 @@ class SourceEnumBuilder extends SourceClassBuilder {
     SourceProcedureBuilder toStringBuilder =
         firstMemberNamed("toString") as SourceProcedureBuilder;
 
-    TypeBuilder supertypeBuilder = this.supertypeBuilder!;
-    ClassBuilder enumClass = supertypeBuilder.declaration as ClassBuilder;
+    ClassBuilder enumClass =
+        _computeEnumSupertype()!.declaration as ClassBuilder;
     MemberBuilder? nameFieldBuilder =
         enumClass.lookupLocalMember("_name") as MemberBuilder?;
-    if (nameFieldBuilder != null) {
-      Field nameField = nameFieldBuilder.member as Field;
+    assert(nameFieldBuilder != null);
+    Field nameField = nameFieldBuilder!.member as Field;
 
-      toStringBuilder.body = new ReturnStatement(new StringConcatenation([
-        new StringLiteral("${cls.demangledName}."),
-        new InstanceGet.byReference(
-            InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
-            interfaceTargetReference: nameField.getterReference,
-            resultType: nameField.getterType),
-      ]));
-    }
+    toStringBuilder.body = new ReturnStatement(new StringConcatenation([
+      new StringLiteral("${cls.demangledName}."),
+      new InstanceGet.byReference(
+          InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
+          interfaceTargetReference: nameField.getterReference,
+          resultType: nameField.getterType),
+    ]));
 
     super.buildOutlineExpressions(library, classHierarchy,
         delayedActionPerformers, synthesizedFunctionNodes);

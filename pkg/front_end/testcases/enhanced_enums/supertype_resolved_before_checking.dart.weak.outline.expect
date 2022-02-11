@@ -30,7 +30,7 @@ class E<S extends core::num, T extends core::num> extends self::_E&_Enum&GM&M<se
   const constructor •(core::int index, core::String name) → self::E<self::E::S, self::E::T>
     ;
   method toString() → core::String
-    ;
+    return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic
   ;
@@ -39,4 +39,4 @@ static method main() → dynamic
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///supertype_resolved_before_checking.dart:16:6 -> ListConstant(const <E<dynamic, dynamic>*>[const E<num*, num*>{}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///supertype_resolved_before_checking.dart:18:27 -> InstanceConstant(const E<num*, num*>{})
-Extra constant evaluation: evaluated: 6, effectively constant: 2
+Extra constant evaluation: evaluated: 9, effectively constant: 2
