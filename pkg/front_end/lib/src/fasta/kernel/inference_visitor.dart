@@ -1111,6 +1111,7 @@ class InferenceVisitor
     TreeNode parent = variable.parent!;
     Expression implicitDowncast = inferrer.ensureAssignable(
         variable.type, inferredType, variableGet,
+        isVoidAllowed: true,
         fileOffset: parent.fileOffset,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
         nullabilityErrorTemplate:

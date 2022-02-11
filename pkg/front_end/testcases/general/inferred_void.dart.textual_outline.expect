@@ -1,0 +1,7 @@
+void method() {}
+void v1 = method();
+var v2 = method();
+List<void> l1 = [method()];
+var l2 = [method()];
+test(Iterable<void> iterable, Stream<void> stream) async {}
+main() {}

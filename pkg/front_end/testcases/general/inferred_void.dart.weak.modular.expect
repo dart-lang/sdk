@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static field void v1 = self::method();
+static field void v2 = self::method();
+static field core::List<void> l1 = <void>[self::method()];
+static field core::List<void> l2 = <void>[self::method()];
+static method method() → void {}
+static method test(core::Iterable<void> iterable, asy::Stream<void> stream) → dynamic async {
+  void v1 = self::method();
+  void v2 = self::method();
+  for (void v3 in iterable) {
+  }
+  for (void v4 in iterable) {
+  }
+  await for (void v5 in stream) {
+  }
+  await for (void v6 in stream) {
+  }
+  core::List<void> l1 = <void>[self::method()];
+  core::List<void> l2 = <void>[self::method()];
+}
+static method main() → dynamic {}

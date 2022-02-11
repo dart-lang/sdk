@@ -1,0 +1,59 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+import "dart:async";
+
+static method test(asy::StreamController<void> _eventStreamController) → dynamic /* originally async */ {
+  final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
+  core::bool* :is_sync = false;
+  dynamic :return_value;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :saved_try_context_var1;
+  dynamic :exception0;
+  dynamic :stack_trace0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L1:
+      {
+        {
+          asy::Stream<void> :stream = _eventStreamController.{asy::StreamController::stream}{asy::Stream<void>};
+          asy::_StreamIterator<void>? :for-iterator = new asy::_StreamIterator::•<void>(:stream);
+          try
+            #L2:
+            while (true) {
+              dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t2 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
+              if(_in::unsafeCast<core::bool>(:result)) {
+                final void _ = :for-iterator.{asy::_StreamIterator::current}{void};
+                {}
+              }
+              else
+                break #L2;
+            }
+          finally
+            if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<void>?} == null)) {
+              [yield] let dynamic #t3 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+      }
+      asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
+    }
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_op(){() → dynamic};
+  :is_sync = true;
+  return :async_future;
+}
+static method main() → dynamic {}
