@@ -126,6 +126,46 @@ luci.list_view(
     title = "Infra Console",
 )
 
+# Put the SDK category first on the consoles
+def sdk_builder_category():
+    for channel, console in [
+        ["main", "be"],
+        ["main", "alt"],
+        ["beta", "beta"],
+        ["dev", "dev"],
+        ["stable", "stable"],
+    ]:
+        for builder_type, short_name in [
+            ["linux", "l"],
+            ["mac", "m"],
+            ["mac-arm64", "m1"],
+            ["win", "w"],
+        ]:
+            luci.console_view_entry(
+                builder = "dart-internal:ci/dart-sdk-%s-%s" %
+                          (builder_type, channel),
+                short_name = short_name,
+                category = "sdk",
+                console_view = console,
+            )
+
+sdk_builder_category()
+
+# Debian builder on main consoles
+luci.console_view_entry(
+    builder = "dart-internal:ci/debianpackage-linux-main",
+    short_name = "dp",
+    category = "sdk",
+    console_view = "be",
+)
+
+luci.console_view_entry(
+    builder = "dart-internal:ci/debianpackage-linux-main",
+    short_name = "dp",
+    category = "sdk",
+    console_view = "alt",
+)
+
 luci.gitiles_poller(
     name = "dart-gitiles-trigger-flutter",
     bucket = "ci",
@@ -534,7 +574,7 @@ dart.ci_sandbox_builder(
 dart.ci_sandbox_builder("gclient", recipe = "dart/gclient", category = "misc|g")
 dart.ci_builder(
     "debianpackage-linux",
-    category = "misc|dp",
+    category = "sdk|dp",
     channels = dart.release_channels,
     main_channel = False,
     notifies = "infra",
@@ -547,7 +587,7 @@ dart.ci_builder(
 dart.ci_sandbox_builder(
     "google",
     recipe = "dart/external",
-    category = "flutter|g3",
+    category = "sdk|g3",
     channels = [],
     execution_timeout = 5 * time.minute,
     notifies = None,
@@ -697,46 +737,6 @@ luci.console_view_entry(
 luci.list_view_entry(
     builder = "iso-stress-linux",
     list_view = "iso-stress",
-)
-
-# SDK builders on consoles
-def sdk_builder_category():
-    for channel, console in [
-        ["main", "be"],
-        ["main", "alt"],
-        ["beta", "beta"],
-        ["dev", "dev"],
-        ["stable", "stable"],
-    ]:
-        for builder_type, short_name in [
-            ["linux", "l"],
-            ["mac", "m"],
-            ["mac-arm64", "m1"],
-            ["win", "w"],
-        ]:
-            luci.console_view_entry(
-                builder = "dart-internal:ci/dart-sdk-%s-%s" %
-                          (builder_type, channel),
-                short_name = short_name,
-                category = "sdk",
-                console_view = console,
-            )
-
-sdk_builder_category()
-
-# Debian builder on main consoles
-luci.console_view_entry(
-    builder = "dart-internal:ci/debianpackage-linux-main",
-    short_name = "dp",
-    category = "misc",
-    console_view = "be",
-)
-
-luci.console_view_entry(
-    builder = "dart-internal:ci/debianpackage-linux-main",
-    short_name = "dp",
-    category = "misc",
-    console_view = "alt",
 )
 
 exec("//recipes.star")
