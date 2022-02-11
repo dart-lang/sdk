@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 class C extends core::_Enum /*isEnum*/  {
   static const field core::List<self::C> values = const <self::C>[self::C::a, self::C::b, self::C::c, self::C::d, self::C::e, self::C::f];
+  final field core::String log;
   static const field self::C a = const self::C::•(0, "a", 1, 2, z: 3);
   static const field self::C b = let final core::int #t1 = 1 in let final core::String #t2 = "b" in let final core::int #t3 = 3 in const self::C::•(#t1, #t2, 1, 2, z: #t3);
   static const field self::C c = let final core::int #t4 = 2 in let final core::String #t5 = "c" in let final core::int #t6 = 1 in let final core::int #t7 = 3 in const self::C::•(#t4, #t5, #t6, 2, z: #t7);
   static const field self::C d = const self::C::named1(3, "d", 1, 2, 3);
   static const field self::C e = const self::C::named2(4, "e", 1, 2, 3);
   static const field self::C f = const self::C::named3(5, "f", 1, 2, 3);
-  final field core::String log;
   const constructor •(core::int index, core::String name, core::int x, core::int y, {core::int z = 42}) → self::C
     : self::C::log = "x=${x}, y=${y}, z=${z}", super core::_Enum::•(index, name)
     ;

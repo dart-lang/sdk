@@ -335,6 +335,15 @@ class SourceEnumBuilder extends SourceClassBuilder {
       members["toString"] = toStringBuilder;
     }
     String className = name;
+    final int startCharOffsetComputed =
+        metadata == null ? startCharOffset : metadata.first.charOffset;
+    scope.forEachLocalMember((name, member) {
+      members[name] = member as MemberBuilder;
+    });
+    scope.forEachLocalSetter((name, member) {
+      setters[name] = member;
+    });
+
     if (enumConstantInfos != null) {
       for (int i = 0; i < enumConstantInfos.length; i++) {
         EnumConstantInfo enumConstantInfo = enumConstantInfos[i]!;
@@ -345,6 +354,18 @@ class SourceEnumBuilder extends SourceClassBuilder {
           // The existing declaration is synthetic if it has the same
           // charOffset as the enclosing enum.
           bool isSynthetic = existing.charOffset == charOffset;
+
+          // Report the error on the member that occurs later in the code.
+          int existingOffset;
+          int duplicateOffset;
+          if (existing.charOffset < enumConstantInfo.charOffset) {
+            existingOffset = existing.charOffset;
+            duplicateOffset = enumConstantInfo.charOffset;
+          } else {
+            existingOffset = enumConstantInfo.charOffset;
+            duplicateOffset = existing.charOffset;
+          }
+
           List<LocatedMessage> context = isSynthetic
               ? <LocatedMessage>[
                   templateDuplicatedDeclarationSyntheticCause
@@ -355,11 +376,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
               : <LocatedMessage>[
                   templateDuplicatedDeclarationCause
                       .withArguments(name)
-                      .withLocation(
-                          parent.fileUri, existing.charOffset, name.length)
+                      .withLocation(parent.fileUri, existingOffset, name.length)
                 ];
           parent.addProblem(templateDuplicatedDeclaration.withArguments(name),
-              enumConstantInfo.charOffset, name.length, parent.fileUri,
+              duplicateOffset, name.length, parent.fileUri,
               context: context);
           enumConstantInfos[i] = null;
         } else if (name == className) {
@@ -396,14 +416,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         members[name] = fieldBuilder..next = existing;
       }
     }
-    final int startCharOffsetComputed =
-        metadata == null ? startCharOffset : metadata.first.charOffset;
-    scope.forEachLocalMember((name, member) {
-      members[name] = member as MemberBuilder;
-    });
-    scope.forEachLocalSetter((name, member) {
-      setters[name] = member;
-    });
+
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder.internal(
         metadata,
         name,

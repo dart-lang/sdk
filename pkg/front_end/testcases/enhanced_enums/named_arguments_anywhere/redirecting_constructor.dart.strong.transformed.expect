@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 class C extends core::_Enum /*isEnum*/  {
   static const field core::List<self::C> values = #C20;
+  final field core::String log;
   static const field self::C a = #C4;
   static const field self::C b = #C7;
   static const field self::C c = #C10;
   static const field self::C d = #C13;
   static const field self::C e = #C16;
   static const field self::C f = #C19;
-  final field core::String log;
   const constructor •(core::int index, core::String name, core::int x, core::int y, {core::int z = #C21}) → self::C
     : self::C::log = "x=${x}, y=${y}, z=${z}", super core::_Enum::•(index, name)
     ;

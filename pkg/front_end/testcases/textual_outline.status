@@ -28,6 +28,7 @@ constructor_tearoffs/issue47075: FormatterCrash
 constructor_tearoffs/new_as_selector: FormatterCrash
 dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
+enhanced_enums/conflicting_elements: FormatterCrash
 enhanced_enums/constructor_calls: FormatterCrash
 enhanced_enums/entries_with_type_arguments: FormatterCrash
 enhanced_enums/enum_as_supertype: FormatterCrash
