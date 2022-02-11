@@ -8390,8 +8390,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -8403,8 +8401,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''',
         withCodeRanges: true);
   }
@@ -13633,8 +13629,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -13646,8 +13640,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     typeAliases
       functionTypeAliasBased F @50
         aliasedType: dynamic Function(int, String)
@@ -15925,8 +15917,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -15938,8 +15928,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     topLevelVariables
       static final vValue @23
         type: E
@@ -16002,8 +15990,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -16011,8 +15997,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     topLevelVariables
       static final vToString @17
         type: String
@@ -17025,8 +17009,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -17036,8 +17018,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
       enum E @19
         supertype: Enum
         fields
@@ -17124,8 +17104,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -17137,8 +17115,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -17447,8 +17423,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           const @43
             parameters
@@ -17461,8 +17435,6 @@ library
             returnType: E<String>
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -17513,8 +17485,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -17522,8 +17492,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -17595,8 +17563,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           const @37
             parameters
@@ -17607,8 +17573,6 @@ library
             returnType: E<double>
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -17658,8 +17622,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -17667,8 +17629,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -17719,8 +17679,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           factory named @26
             periodOffset: 25
@@ -17731,8 +17689,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -17783,8 +17739,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           factory @24
         accessors
@@ -17792,8 +17746,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -17845,8 +17797,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
           final x @22
             type: dynamic
         constructors
@@ -17863,8 +17813,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
           synthetic get x @-1
             returnType: dynamic
 ''');
@@ -17919,8 +17867,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
           final x @26
             type: int
           final x @44
@@ -17936,8 +17882,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
           synthetic get x @-1
             returnType: int
           synthetic get x @-1
@@ -17992,8 +17936,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           const @22
             parameters
@@ -18005,8 +17947,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -18058,8 +17998,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
           final x @26
             type: num
         constructors
@@ -18073,8 +18011,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
           synthetic get x @-1
             returnType: num
 ''');
@@ -18128,8 +18064,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
           final x @22
             type: dynamic
         constructors
@@ -18143,8 +18077,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
           synthetic get x @-1
             returnType: dynamic
 ''');
@@ -18198,8 +18130,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
           final x @22
             type: dynamic
         constructors
@@ -18213,8 +18143,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
           synthetic get x @-1
             returnType: dynamic
 ''');
@@ -18271,8 +18199,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           const named @34
             periodOffset: 33
@@ -18285,8 +18211,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -18341,8 +18265,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           const @26
             parameters
@@ -18353,8 +18275,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -18406,8 +18326,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18415,8 +18333,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -18467,8 +18383,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
           final foo @22
             type: int
             constantInitializer
@@ -18482,8 +18396,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
           synthetic get foo @-1
             returnType: int
 ''');
@@ -18536,8 +18448,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
           synthetic foo @-1
             type: int
         constructors
@@ -18547,8 +18457,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
           get foo @23
             returnType: int
 ''');
@@ -18607,8 +18515,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18616,8 +18522,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -18684,8 +18588,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18693,8 +18595,6 @@ library
             returnType: E<dynamic>
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -18756,8 +18656,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18765,8 +18663,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -18824,8 +18720,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18833,8 +18727,6 @@ library
             returnType: E<dynamic>
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
         methods
           foo @23
             typeParameters
@@ -18895,8 +18787,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18904,8 +18794,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
         methods
           toString @23
             returnType: String
@@ -18961,8 +18849,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18970,8 +18856,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     mixins
       mixin M @6
         superclassConstraints
@@ -19032,8 +18916,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -19041,8 +18923,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     mixins
       mixin M1 @6
         typeParameters
@@ -19110,8 +18990,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
           synthetic foo @-1
             type: int
         constructors
@@ -19121,8 +18999,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
           set foo @19
             parameters
               requiredPositional _ @27
@@ -19184,8 +19060,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -19193,8 +19067,6 @@ library
             returnType: E<dynamic>
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -19255,8 +19127,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<num, num>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -19264,8 +19134,6 @@ library
             returnType: E<num, num>
           synthetic static get values @-1
             returnType: List<E<num, num>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -19291,15 +19159,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -19331,15 +19195,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic, num, dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic, num, dynamic>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -19365,15 +19225,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -19398,15 +19254,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -19431,15 +19283,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -19464,15 +19312,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -19501,15 +19345,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic, dynamic, dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic, dynamic, dynamic>>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -19590,8 +19430,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -19601,8 +19439,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -19704,8 +19540,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -19715,8 +19549,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     topLevelVariables
       static const annotation @91
         type: int
@@ -19797,8 +19629,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -19808,8 +19638,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -19855,8 +19683,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E1>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -19864,8 +19690,6 @@ library
             returnType: E1
           synthetic static get values @-1
             returnType: List<E1>
-          synthetic get index @-1
-            returnType: int
       enum E2 @20
         supertype: Enum
         fields
@@ -19902,8 +19726,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E2>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -19911,8 +19733,6 @@ library
             returnType: E2
           synthetic static get values @-1
             returnType: List<E2>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -20066,8 +19886,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -20079,8 +19897,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -26957,8 +26773,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -26966,8 +26780,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     topLevelVariables
       static const a @6
         type: int
@@ -27128,8 +26940,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -27141,8 +26951,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -27196,8 +27004,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -27205,8 +27011,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     topLevelVariables
       static const a @6
         type: int
@@ -28789,8 +28593,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -28802,8 +28604,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     topLevelVariables
       static const foo @6
         type: int
@@ -29879,8 +29679,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -29888,8 +29686,6 @@ library
             returnType: E<dynamic>
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
     topLevelVariables
       static const a @6
         type: int
@@ -30177,8 +29973,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -30190,8 +29984,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
 ''');
   }
 
@@ -31540,9 +31332,6 @@ library
                 rightBracket: ] @0
                 staticType: List<E>
             nonSynthetic: self::@enum::E
-          synthetic final index @-1
-            type: int
-            nonSynthetic: self::@enum::E
         constructors
           synthetic const @-1
             nonSynthetic: self::@enum::E
@@ -31555,9 +31344,6 @@ library
             nonSynthetic: self::@enum::E::@field::b
           synthetic static get values @-1
             returnType: List<E>
-            nonSynthetic: self::@enum::E
-          synthetic get index @-1
-            returnType: int
             nonSynthetic: self::@enum::E
 ''',
         withNonSynthetic: true);
@@ -33564,8 +33350,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -33573,8 +33357,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     typeAliases
       functionTypeAliasBased F @32
         aliasedType: dynamic Function()
@@ -33699,8 +33481,6 @@ library
                   leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E>
-            synthetic final index @-1
-              type: int
           constructors
             synthetic const @-1
           accessors
@@ -33708,8 +33488,6 @@ library
               returnType: E
             synthetic static get values @-1
               returnType: List<E>
-            synthetic get index @-1
-              returnType: int
       typeAliases
         functionTypeAliasBased F @43
           aliasedType: dynamic Function()
@@ -33768,8 +33546,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -33777,8 +33553,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     typeAliases
       functionTypeAliasBased F @58
         aliasedType: dynamic Function()
@@ -33874,8 +33648,6 @@ library
                   leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E>
-            synthetic final index @-1
-              type: int
           constructors
             synthetic const @-1
           accessors
@@ -33883,8 +33655,6 @@ library
               returnType: E
             synthetic static get values @-1
               returnType: List<E>
-            synthetic get index @-1
-              returnType: int
       typeAliases
         functionTypeAliasBased F @43
           aliasedType: dynamic Function()
@@ -33978,8 +33748,6 @@ library
                   leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E>
-            synthetic final index @-1
-              type: int
           constructors
             synthetic const @-1
           accessors
@@ -33987,8 +33755,6 @@ library
               returnType: E
             synthetic static get values @-1
               returnType: List<E>
-            synthetic get index @-1
-              returnType: int
       typeAliases
         functionTypeAliasBased F @43
           aliasedType: dynamic Function()
@@ -34150,8 +33916,6 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -34159,8 +33923,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
     topLevelVariables
       static e @15
         type: E

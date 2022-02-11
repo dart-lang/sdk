@@ -295,7 +295,6 @@ enum E {
     expect(findElement.field('a').isEnumConstant, isTrue);
     expect(findElement.field('b').isEnumConstant, isTrue);
 
-    expect(findElement.field('index').isEnumConstant, isFalse);
     expect(findElement.field('values').isEnumConstant, isFalse);
   }
 
@@ -417,7 +416,7 @@ void f() {
 
     assertPropertyAccess2(
       findNode.propertyAccess('index'),
-      element: findElement.getter('index', of: 'E'),
+      element: typeProvider.enumElement!.getGetter('index')!,
       type: 'int',
     );
   }

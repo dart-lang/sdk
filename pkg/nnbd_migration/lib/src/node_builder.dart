@@ -283,13 +283,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
                   DecoratedType(classElement.thisType,
                       makeNonNullNode(valuesTarget.typeArgument(0)))
                 ])));
-    final indexGetter = classElement.getGetter('index')!;
-    var indexTarget = NullabilityNodeTarget.element(indexGetter, _getLineInfo);
-    _variables!.recordDecoratedElementType(
-        indexGetter,
-        DecoratedType(indexGetter.type, makeNonNullNode(indexTarget),
-            returnType: DecoratedType(indexGetter.returnType,
-                makeNonNullNode(indexTarget.returnType()))));
     return null;
   }
 
