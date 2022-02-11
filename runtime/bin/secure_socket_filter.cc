@@ -728,6 +728,13 @@ int SSLFilter::ProcessReadPlaintextBuffer(int start, int end) {
       if (SSL_LOG_DATA) {
         Syslog::Print("SSL_read returned error %d\n", error);
       }
+      switch (error) {
+        case SSL_ERROR_SYSCALL:
+        case SSL_ERROR_SSL:
+          return -1;
+        default:
+          break;
+      }
       bytes_processed = 0;
     }
   }
