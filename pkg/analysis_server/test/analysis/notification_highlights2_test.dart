@@ -656,9 +656,164 @@ class A {
     assertHasRegion(HighlightRegionType.INSTANCE_SETTER_REFERENCE, 'f = 1');
   }
 
-  Future<void> test_ENUM() async {
+  Future<void> test_enum_constant() async {
+    addTestFile('''
+enum MyEnum {AAA, BBB}
+
+void f() {
+  MyEnum.AAA;
+  MyEnum.BBB;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'AAA, ');
+    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB}');
+    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'AAA;');
+    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB;');
+  }
+
+  Future<void> test_enum_constructor() async {
+    addTestFile('''
+const a = 0;
+
+enum E<T> {
+  v<int>.named(a); // 1
+  E.named(T a); // 2
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'v<');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'named(a)');
+    assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'a); // 1');
+    assertHasRegion(HighlightRegionType.ENUM, 'E.named');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'named(T');
+    assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T a');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a); // 2');
+  }
+
+  Future<void> test_enum_field_instance() async {
+    addTestFile('''
+enum E {
+  v;
+  final int a = 0;
+  E(this.a);
+}
+
+void f(E e) {
+  e.a;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'int ');
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_DECLARATION, 'a = 0');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a);');
+    assertHasRegion(HighlightRegionType.INSTANCE_GETTER_REFERENCE, 'a;');
+  }
+
+  Future<void> test_enum_field_static() async {
+    addTestFile('''
+enum E {
+  v;
+  static final int a = 0;
+}
+
+void f() {
+  E.a;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'int ');
+    assertHasRegion(HighlightRegionType.STATIC_FIELD_DECLARATION, 'a = 0');
+    assertHasRegion(HighlightRegionType.STATIC_GETTER_REFERENCE, 'a;');
+  }
+
+  Future<void> test_enum_getter_instance() async {
+    addTestFile('''
+enum E {
+  v;
+  int get foo => 0;
+}
+
+void f(E e) {
+  e.foo;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'int get');
+    assertHasRegion(HighlightRegionType.INSTANCE_GETTER_DECLARATION, 'foo =>');
+    assertHasRegion(HighlightRegionType.INSTANCE_GETTER_REFERENCE, 'foo;');
+  }
+
+  Future<void> test_enum_getter_static() async {
+    addTestFile('''
+enum E {
+  v;
+  static int get foo => 0;
+}
+
+void f() {
+  E.foo;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'int get');
+    assertHasRegion(HighlightRegionType.STATIC_GETTER_DECLARATION, 'foo =>');
+    assertHasRegion(HighlightRegionType.STATIC_GETTER_REFERENCE, 'foo;');
+  }
+
+  Future<void> test_enum_method_instance() async {
+    addTestFile('''
+enum E {
+  v;
+  int foo(int a) {
+    return a;
+  }
+}
+
+void f(E e) {
+  e.foo();
+  e.foo;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'int foo');
+    assertHasRegion(HighlightRegionType.INSTANCE_METHOD_DECLARATION, 'foo(int');
+    assertHasRegion(HighlightRegionType.CLASS, 'int a');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a)');
+    assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'a;');
+    assertHasRegion(HighlightRegionType.INSTANCE_METHOD_REFERENCE, 'foo();');
+    assertHasRegion(HighlightRegionType.INSTANCE_METHOD_TEAR_OFF, 'foo;');
+  }
+
+  Future<void> test_enum_method_static() async {
+    addTestFile('''
+enum E {
+  v;
+  static int foo(int a) {
+    return a;
+  }
+}
+
+void f() {
+  E.foo();
+  E.foo;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'int foo');
+    assertHasRegion(HighlightRegionType.STATIC_METHOD_DECLARATION, 'foo(int');
+    assertHasRegion(HighlightRegionType.CLASS, 'int a');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a)');
+    assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'a;');
+    assertHasRegion(HighlightRegionType.STATIC_METHOD_REFERENCE, 'foo();');
+    assertHasRegion(HighlightRegionType.STATIC_METHOD_TEAR_OFF, 'foo;');
+  }
+
+  Future<void> test_enum_name() async {
     addTestFile('''
 enum MyEnum {A, B, C}
+
 MyEnum value;
 ''');
     await prepareHighlights();
@@ -666,19 +821,50 @@ MyEnum value;
     assertHasRegion(HighlightRegionType.ENUM, 'MyEnum value;');
   }
 
-  Future<void> test_ENUM_CONSTANT() async {
+  Future<void> test_enum_setter_instance() async {
     addTestFile('''
-enum MyEnum {AAA, BBB}
-void f() {
-  print(MyEnum.AAA);
-  print(MyEnum.BBB);
+enum E {
+  v;
+  set foo(int _) {}
+}
+
+void f(E e) {
+  e.foo = 0;
 }
 ''');
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'AAA, ');
-    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB}');
-    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'AAA);');
-    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB);');
+    assertHasRegion(HighlightRegionType.CLASS, 'int _');
+    assertHasRegion(HighlightRegionType.INSTANCE_SETTER_DECLARATION, 'foo(int');
+    assertHasRegion(HighlightRegionType.INSTANCE_SETTER_REFERENCE, 'foo = 0;');
+  }
+
+  Future<void> test_enum_setter_static() async {
+    addTestFile('''
+enum E {
+  v;
+  static set foo(int _) {}
+}
+
+void f() {
+  E.foo = 0;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'int _');
+    assertHasRegion(HighlightRegionType.STATIC_SETTER_DECLARATION, 'foo(int');
+    assertHasRegion(HighlightRegionType.STATIC_SETTER_REFERENCE, 'foo = 0;');
+  }
+
+  Future<void> test_enum_typeParameter() async {
+    addTestFile('''
+enum E<T> {
+  v;
+  T? foo() => null;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T>');
+    assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T?');
   }
 
   Future<void> test_EXTENSION() async {

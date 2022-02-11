@@ -253,8 +253,7 @@ class DartUnitHighlightsComputer {
     // prepare type
     HighlightRegionType? type;
     if (element is FieldElement) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement is ClassElement && enclosingElement.isEnum) {
+      if (element.isEnumConstant) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (element.isStatic) {
         type = HighlightRegionType.STATIC_FIELD_DECLARATION;
@@ -268,12 +267,12 @@ class DartUnitHighlightsComputer {
     }
     if (element is PropertyAccessorElement) {
       var accessor = element;
-      var enclosingElement = element.enclosingElement;
-      if (accessor.variable is TopLevelVariableElement) {
+      var variable = accessor.variable;
+      if (variable is TopLevelVariableElement) {
         type = accessor.isGetter
             ? HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE
             : HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE;
-      } else if (enclosingElement is ClassElement && enclosingElement.isEnum) {
+      } else if (variable is FieldElement && variable.isEnumConstant) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (accessor.isStatic) {
         type = accessor.isGetter
@@ -698,6 +697,15 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    computer._addRegion_node(
+      node.name,
+      HighlightRegionType.CONSTRUCTOR,
+    );
+    node.visitChildren(this);
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     computer._addRegion_token(node.continueKeyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
@@ -724,6 +732,15 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitDoubleLiteral(DoubleLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_DOUBLE);
     super.visitDoubleLiteral(node);
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    computer._addRegion_node(
+      node.name,
+      HighlightRegionType.ENUM_CONSTANT,
+    );
+    node.visitChildren(this);
   }
 
   @override
