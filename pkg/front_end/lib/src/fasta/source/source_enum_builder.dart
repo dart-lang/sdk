@@ -614,7 +614,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             // be built via a body builder to detect potential errors.
             bodyBuilder = library.loader.createBodyBuilderForOutlineExpression(
                 library, this, this, scope, fileUri);
-            bodyBuilder.constantContext = ConstantContext.required;
+            bodyBuilder.constantContext = ConstantContext.inferred;
           }
 
           if (enumConstantInfo.argumentsBeginToken != null) {

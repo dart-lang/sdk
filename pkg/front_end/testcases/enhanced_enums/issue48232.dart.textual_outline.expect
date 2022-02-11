@@ -1,0 +1,2 @@
+enum E { v([]); const E(_); }
+main() {}
