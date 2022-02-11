@@ -58,7 +58,7 @@ elif [ "$LINTER_BOT" = "coverage" ]; then
 
   status=$?
 
-  pub global activate coverage
+  dart pub global activate coverage
 
   echo "Collecting coverage on port $OBS_PORT..."
 
