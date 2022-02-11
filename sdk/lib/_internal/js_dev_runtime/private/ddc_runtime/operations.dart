@@ -836,7 +836,7 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
     if (!savedLocals) {
       // Record the field on first execution so we can reset it later if
       // needed (hot restart).
-      $_resetFields.push(() => {
+      $resetFields.push(() => {
         init = initializer;
         value = null;
         savedLocals = false;
@@ -860,9 +860,17 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
   $desc.configurable = true;
   if ($desc.set != null) {
     $desc.set = function(x) {
+      if (!savedLocals) {
+        $resetFields.push(() => {
+          init = initializer;
+          value = null;
+          savedLocals = false;
+          initialized = false;
+        });
+        savedLocals = true;
+      }
       init = null;
       value = x;
-      // savedLocals and initialized are dead since init is set to null
     };
   }
   return ${defineProperty(to, name, desc)};
@@ -873,6 +881,9 @@ defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
   const initializer = $desc.get;
   let init = initializer;
   let value = null;
+  // Tracks if these local variables have been saved so they can be restored
+  // after a hot restart.
+  let savedLocals = false;
   $desc.get = function() {
     if (init == null) return value;
     let f = init;
@@ -881,10 +892,14 @@ defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
 
     // On the first (non-cyclic) execution, record the field so we can reset it
     // later if needed (hot restart).
-    $_resetFields.push(() => {
-      init = initializer;
-      value = null;
-    });
+    if (!savedLocals) {
+      $resetFields.push(() => {
+        init = initializer;
+        value = null;
+        savedLocals = false;
+      });
+      savedLocals = true;
+    }
 
     // Try to evaluate the field, using try+catch to ensure we implement the
     // correct Dart error semantics.
@@ -901,6 +916,14 @@ defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
   $desc.configurable = true;
   if ($desc.set != null) {
     $desc.set = function(x) {
+      if (!savedLocals) {
+        $resetFields.push(() => {
+          init = initializer;
+          value = null;
+          savedLocals = false;
+        });
+        savedLocals = true;
+      }
       init = null;
       value = x;
     };
