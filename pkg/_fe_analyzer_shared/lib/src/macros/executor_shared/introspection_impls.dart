@@ -19,9 +19,7 @@ class IdentifierImpl extends RemoteInstance implements Identifier {
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     serializer.addString(name);
   }
@@ -37,9 +35,7 @@ abstract class TypeAnnotationImpl extends RemoteInstance
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     serializer.addBool(isNullable);
   }
@@ -76,9 +72,7 @@ class NamedTypeAnnotationImpl extends TypeAnnotationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     identifier.serialize(serializer);
     serializer.startList();
@@ -138,9 +132,7 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     returnType.serialize(serializer);
 
@@ -173,9 +165,7 @@ abstract class DeclarationImpl extends RemoteInstance implements Declaration {
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     identifier.serialize(serializer);
   }
@@ -207,9 +197,7 @@ class ParameterDeclarationImpl extends DeclarationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     serializer.addBool(isNamed);
     serializer.addBool(isRequired);
@@ -241,9 +229,7 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     TypeAnnotationImpl? bound = this.bound;
     if (bound == null) {
@@ -308,9 +294,7 @@ class FunctionDeclarationImpl extends DeclarationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     serializer
       ..addBool(isAbstract)
@@ -380,9 +364,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     definingClass.serialize(serializer);
   }
@@ -433,9 +415,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     serializer.addBool(isFactory);
   }
@@ -471,9 +451,7 @@ class VariableDeclarationImpl extends DeclarationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     serializer
       ..addBool(isExternal)
@@ -513,9 +491,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     definingClass.serialize(serializer);
   }
@@ -535,9 +511,7 @@ abstract class TypeDeclarationImpl extends DeclarationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     serializer..startList();
     for (TypeParameterDeclarationImpl param in typeParameters) {
@@ -585,9 +559,7 @@ class ClassDeclarationImpl extends TypeDeclarationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     serializer.startList();
     for (TypeAnnotationImpl interface in interfaces) {
@@ -628,9 +600,7 @@ class TypeAliasDeclarationImpl extends TypeDeclarationImpl
   void serialize(Serializer serializer) {
     super.serialize(serializer);
     // Client side we don't encode anything but the ID.
-    if (serializationMode == SerializationMode.client) {
-      return;
-    }
+    if (serializationMode.isClient) return;
 
     aliasedType.serialize(serializer);
   }

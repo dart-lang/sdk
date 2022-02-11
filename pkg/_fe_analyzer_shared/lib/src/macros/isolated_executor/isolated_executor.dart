@@ -126,18 +126,18 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
       required this.messageStream,
       required this.sendPort}) {
     messageStream.listen((message) {
-      withSerializationMode(SerializationMode.server, () {
-        JsonDeserializer deserializer =
-            new JsonDeserializer(message as List<Object?>);
+      withSerializationMode(SerializationMode.jsonServer, () {
+        Deserializer deserializer =
+            deserializerFactory(message as List<Object?>);
         // Every object starts with a zone ID which dictates the zone in which
         // we should deserialize the message.
         deserializer.moveNext();
-        int zoneId = deserializer.expectNum();
+        int zoneId = deserializer.expectInt();
         Zone zone = serializationZones[zoneId]!;
         zone.run(() async {
           deserializer.moveNext();
           MessageType messageType =
-              MessageType.values[deserializer.expectNum()];
+              MessageType.values[deserializer.expectInt()];
           switch (messageType) {
             case MessageType.response:
               SerializableResponse response =
@@ -169,7 +169,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                       ? MessageType.namedStaticType
                       : MessageType.staticType,
                   serializationZoneId: zoneId);
-              JsonSerializer serializer = new JsonSerializer();
+              Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendPort.send(serializer.result);
               break;
@@ -184,7 +184,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   requestId: request.id,
                   responseType: MessageType.boolean,
                   serializationZoneId: zoneId);
-              JsonSerializer serializer = new JsonSerializer();
+              Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendPort.send(serializer.result);
               break;
@@ -199,7 +199,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   requestId: request.id,
                   responseType: MessageType.boolean,
                   serializationZoneId: zoneId);
-              JsonSerializer serializer = new JsonSerializer();
+              Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendPort.send(serializer.result);
               break;
@@ -215,7 +215,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                       // TODO: Consider refactoring to avoid the need for this.
                       as TypeDeclarationImpl),
                   serializationZoneId: zoneId);
-              JsonSerializer serializer = new JsonSerializer();
+              Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendPort.send(serializer.result);
               break;
@@ -233,7 +233,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                       // TODO: Consider refactoring to avoid the need for this.
                       .cast<ConstructorDeclarationImpl>()),
                   serializationZoneId: zoneId);
-              JsonSerializer serializer = new JsonSerializer();
+              Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendPort.send(serializer.result);
               break;
@@ -251,7 +251,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                       // TODO: Consider refactoring to avoid the need for this.
                       .cast<FieldDeclarationImpl>()),
                   serializationZoneId: zoneId);
-              JsonSerializer serializer = new JsonSerializer();
+              Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendPort.send(serializer.result);
               break;
@@ -269,7 +269,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                       // TODO: Consider refactoring to avoid the need for this.
                       .cast<ClassDeclarationImpl>()),
                   serializationZoneId: zoneId);
-              JsonSerializer serializer = new JsonSerializer();
+              Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendPort.send(serializer.result);
               break;
@@ -287,7 +287,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                       // TODO: Consider refactoring to avoid the need for this.
                       .cast<MethodDeclarationImpl>()),
                   serializationZoneId: zoneId);
-              JsonSerializer serializer = new JsonSerializer();
+              Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendPort.send(serializer.result);
               break;
@@ -305,7 +305,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                       // TODO: Consider refactoring to avoid the need for this.
                       .cast<ClassDeclarationImpl>()),
                   serializationZoneId: zoneId);
-              JsonSerializer serializer = new JsonSerializer();
+              Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendPort.send(serializer.result);
               break;
@@ -323,7 +323,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                       // TODO: Consider refactoring to avoid the need for this.
                       as ClassDeclarationImpl?,
                   serializationZoneId: zoneId);
-              JsonSerializer serializer = new JsonSerializer();
+              Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendPort.send(serializer.result);
               break;
@@ -436,13 +436,13 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
   /// Creates a [Request] with a given serialization zone ID, and handles the
   /// response, casting it to the expected type or throwing the error provided.
   Future<T> _sendRequest<T>(Request Function(int) requestFactory) =>
-      withSerializationMode(SerializationMode.server, () async {
+      withSerializationMode(SerializationMode.jsonServer, () async {
         int zoneId = _nextSerializationZoneId++;
         serializationZones[zoneId] = Zone.current;
         Request request = requestFactory(zoneId);
-        JsonSerializer serializer = new JsonSerializer();
+        Serializer serializer = serializerFactory();
         // It is our responsibility to add the zone ID header.
-        serializer.addNum(zoneId);
+        serializer.addInt(zoneId);
         request.serialize(serializer);
         sendPort.send(serializer.result);
         Completer<Response> completer = new Completer<Response>();
