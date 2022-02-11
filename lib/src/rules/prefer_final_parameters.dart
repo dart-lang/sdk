@@ -96,7 +96,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       FormalParameterList? parameters, FunctionBody body) {
     if (parameters != null) {
       for (var param in parameters.parameters) {
-        if (param.isFinal || param.isConst || param is FieldFormalParameter) {
+        if (param.isFinal ||
+            param.isConst ||
+            // A field formal parameter is final even without the `final`
+            // modifier.
+            param is FieldFormalParameter ||
+            // A super formal parameter is final even without the `final`
+            // modifier.
+            param is SuperFormalParameter) {
           continue;
         }
         var declaredElement = param.declaredElement;
