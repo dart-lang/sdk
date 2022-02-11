@@ -12,10 +12,10 @@ const _desc = r'Avoid async functions that return void.';
 
 const _details = r'''
 
-**DO** mark async functions to return Future<void>.
+**DO** mark async functions as returning Future<void>.
 
 When declaring an async method or function which does not return a value,
-declare that it returns Future<void> and not just void.
+declare that it returns `Future<void>` and not just `void`.
 
 **BAD:**
 ```dart
@@ -29,6 +29,19 @@ Future<void> f() async {}
 Future<void> f2() async => null;
 ```
 
+**EXCEPTION**
+
+An exception is made for top-level `main` functions, where the `Future`
+annotation *can* (and generally should) be dropped in favor of `void`.
+
+**GOOD:**
+```dart
+Future<void> f() async {}
+
+void main() async {
+  await f();
+}
+```
 ''';
 
 class AvoidVoidAsync extends LintRule {
@@ -55,7 +68,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (_isAsync(node.declaredElement) && _isVoid(node.returnType)) {
+    if (_isAsync(node.declaredElement) &&
+        _isVoid(node.returnType) &&
+        node.name.name != 'main') {
       rule.reportLint(node.name);
     }
   }
