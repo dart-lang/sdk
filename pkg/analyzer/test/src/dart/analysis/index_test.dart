@@ -1172,7 +1172,7 @@ main() {
     ClassElement enumElement = findElement.enum_('MyEnum');
     assertThat(enumElement.getGetter('values')!)
       ..isReferencedAt('values);', true);
-    assertThat(enumElement.getGetter('index')!)
+    assertThat(typeProvider.enumElement!.getGetter('index')!)
       ..isReferencedAt('index);', true);
     assertThat(enumElement.getGetter('A')!)..isReferencedAt('A);', true);
     assertThat(enumElement.getGetter('B')!)..isReferencedAt('B);', true);

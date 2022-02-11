@@ -5238,6 +5238,7 @@ abstract class PropertyInducingElementImpl
   Element get nonSynthetic {
     if (isSynthetic) {
       if (enclosingElement is EnumElementImpl) {
+        // TODO(scheglov) remove 'index'?
         if (name == 'index' || name == 'values') {
           return enclosingElement;
         }

@@ -92,6 +92,22 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
     assertHasFileTarget(testFile, offset, length);
   }
 
+  /// TODO(scheglov) Improve target matching.
+  void assertHasTargetInDartCore(String search) {
+    var dartCoreFile = getFile('/sdk/lib/core/core.dart');
+    var dartCoreContent = dartCoreFile.readAsStringSync();
+
+    var offset = dartCoreContent.indexOf(search);
+    expect(offset, isNot(-1));
+
+    if (dartCoreContent.contains(search, offset + search.length)) {
+      fail('Not unique');
+    }
+
+    var length = findIdentifierLength(search);
+    assertHasFileTarget(dartCoreFile.path, offset, length);
+  }
+
   /// Validates that there is a target in [testTargets]  with [testFile], at the
   /// offset of [str] in [testFile], and with the length of  [str].
   void assertHasTargetString(String str) {
@@ -651,7 +667,7 @@ void f() {
 ''');
     await prepareNavigation();
     assertHasRegion('index');
-    assertHasTarget('E {');
+    assertHasTargetInDartCore('index;');
   }
 
   Future<void> test_enum_typeParameter() async {

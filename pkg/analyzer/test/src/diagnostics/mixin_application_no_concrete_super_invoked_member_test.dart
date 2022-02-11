@@ -273,6 +273,38 @@ enum E with M1, M2 {
     ]);
   }
 
+  test_enum_getter_exists() async {
+    await assertNoErrorsInCode(r'''
+mixin M1 {
+  int get foo => 0;
+}
+
+mixin M2 on M1 {
+  void bar() {
+    super.foo;
+  }
+}
+
+enum E with M1, M2 {
+  v
+}
+''');
+  }
+
+  test_enum_getter_index() async {
+    await assertNoErrorsInCode(r'''
+mixin M on Enum {
+  void foo() {
+    super.index;
+  }
+}
+
+enum E with M {
+  v
+}
+''');
+  }
+
   test_enum_method() async {
     await assertErrorsInCode(r'''
 mixin M1 {
@@ -296,6 +328,24 @@ enum E with M1, M2 {
           100,
           2),
     ]);
+  }
+
+  test_enum_method_exists() async {
+    await assertNoErrorsInCode(r'''
+mixin M1 {
+  void foo() {}
+}
+
+mixin M2 on M1 {
+  void bar() {
+    super.foo();
+  }
+}
+
+enum E with M1, M2 {
+  v
+}
+''');
   }
 
   test_enum_OK_getter_inPreviousMixin() async {

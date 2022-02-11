@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
-import 'deferred_load.dart';
 import 'entity_data.dart';
 
 import '../common.dart';
@@ -19,8 +18,7 @@ import '../ir/util.dart';
 import '../kernel/kelements.dart' show KLocalFunction;
 import '../kernel/element_map.dart';
 import '../universe/use.dart';
-import '../universe/world_impact.dart'
-    show ImpactStrategy, WorldImpact, WorldImpactVisitorImpl;
+import '../universe/world_impact.dart' show WorldImpact, WorldImpactVisitorImpl;
 import '../world.dart' show KClosedWorld;
 
 /// [EntityDataInfo] is meta data about [EntityData] for a given compilation
@@ -63,7 +61,6 @@ class EntityDataInfoBuilder {
       this.closedWorld, this.elementMap, this.compiler, this.registry);
 
   Map<Entity, WorldImpact> get impactCache => compiler.impactCache;
-  ImpactStrategy get impactStrategy => compiler.impactStrategy;
   KElementEnvironment get elementEnvironment =>
       compiler.frontendStrategy.elementEnvironment;
   CommonElements get commonElements => compiler.frontendStrategy.commonElements;
@@ -242,20 +239,16 @@ class EntityDataInfoBuilder {
   /// Extract any dependencies that are known from the impact of [element].
   void _addDependenciesFromImpact(MemberEntity element) {
     WorldImpact worldImpact = impactCache[element];
-    impactStrategy.visitImpact(
-        element,
-        worldImpact,
-        WorldImpactVisitorImpl(
-            visitStaticUse: (MemberEntity member, StaticUse staticUse) {
-          _addFromStaticUse(element, staticUse);
-        }, visitTypeUse: (MemberEntity member, TypeUse typeUse) {
-          _addFromTypeUse(element, typeUse);
-        }, visitDynamicUse: (MemberEntity member, DynamicUse dynamicUse) {
-          // TODO(johnniwinther): Use rti need data to skip unneeded type
-          // arguments.
-          addTypeListDependencies(dynamicUse.typeArguments);
-        }),
-        DeferredLoadTask.IMPACT_USE);
+    worldImpact.apply(WorldImpactVisitorImpl(
+        visitStaticUse: (MemberEntity member, StaticUse staticUse) {
+      _addFromStaticUse(element, staticUse);
+    }, visitTypeUse: (MemberEntity member, TypeUse typeUse) {
+      _addFromTypeUse(element, typeUse);
+    }, visitDynamicUse: (MemberEntity member, DynamicUse dynamicUse) {
+      // TODO(johnniwinther): Use rti need data to skip unneeded type
+      // arguments.
+      addTypeListDependencies(dynamicUse.typeArguments);
+    }));
   }
 }
 

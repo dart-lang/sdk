@@ -38,28 +38,14 @@ enum E w^ {
 ''');
 
     check(response).suggestions.matchesInAnyOrder([
-      (suggestion) => suggestion.isKeyword(Keyword.WITH),
+      ...{
+        Keyword.WITH,
+      }.asKeywordChecks,
     ]);
   }
 }
 
 mixin EnumDeclarationTestCases on AbstractCompletionDriverTest {
-  static List<CompletionSuggestionChecker> get _bodyKeywords {
-    const keywords = [
-      Keyword.CONST,
-      Keyword.DYNAMIC,
-      Keyword.FINAL,
-      Keyword.GET,
-      Keyword.LATE,
-      Keyword.OPERATOR,
-      Keyword.SET,
-      Keyword.STATIC,
-      Keyword.VAR,
-      Keyword.VOID
-    ];
-    return keywords.asKeywordChecks;
-  }
-
   @override
   bool get supportsAvailableSuggestions => true;
 
@@ -81,13 +67,11 @@ enum E implements ^ {
 ''');
 
     check(response).suggestions
+      ..withKindKeyword.isEmpty
       ..includesAll([
         (suggestion) => suggestion
           ..completion.isEqualTo('Object')
           ..isClass,
-      ])
-      ..excludesAll([
-        (suggestion) => suggestion.isKeywordAny,
       ]);
   }
 
@@ -99,7 +83,9 @@ enum E implements A ^ {
 ''');
 
     check(response).suggestions.matchesInAnyOrder([
-      (suggestion) => suggestion.isKeyword(Keyword.WITH),
+      ...{
+        Keyword.WITH,
+      }.asKeywordChecks,
     ]);
   }
 
@@ -111,8 +97,10 @@ enum E ^ {
 ''');
 
     check(response).suggestions.matchesInAnyOrder([
-      (suggestion) => suggestion.isKeyword(Keyword.IMPLEMENTS),
-      (suggestion) => suggestion.isKeyword(Keyword.WITH),
+      ...{
+        Keyword.IMPLEMENTS,
+        Keyword.WITH,
+      }.asKeywordChecks,
     ]);
   }
 
@@ -134,8 +122,10 @@ enum E ^{
 ''');
 
     check(response).suggestions.matchesInAnyOrder([
-      (suggestion) => suggestion.isKeyword(Keyword.IMPLEMENTS),
-      (suggestion) => suggestion.isKeyword(Keyword.WITH),
+      ...{
+        Keyword.IMPLEMENTS,
+        Keyword.WITH,
+      }.asKeywordChecks,
     ]);
   }
 
@@ -147,7 +137,9 @@ enum E ^ implements A {
 ''');
 
     check(response).suggestions.matchesInAnyOrder([
-      (suggestion) => suggestion.isKeyword(Keyword.WITH),
+      ...{
+        Keyword.WITH,
+      }.asKeywordChecks,
     ]);
   }
 
@@ -172,37 +164,6 @@ enum E ^ {
     check(response).suggestions.isEmpty;
   }
 
-  Future<void> test_afterSemicolon() async {
-    var response = await getTestCodeSuggestions('''
-enum E {
-  v;^
-}
-''');
-
-    check(response).suggestions.includesAll([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('Object')
-        ..isClass,
-      ..._bodyKeywords,
-    ]);
-  }
-
-  Future<void> test_afterSemicolon_beforeVoid() async {
-    var response = await getTestCodeSuggestions('''
-enum E {
-  v;
-  ^void foo() {}
-}
-''');
-
-    check(response).suggestions.includesAll([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('Object')
-        ..isClass,
-      ..._bodyKeywords,
-    ]);
-  }
-
   Future<void> test_afterWith() async {
     var response = await getTestCodeSuggestions('''
 enum E with ^ {
@@ -211,13 +172,11 @@ enum E with ^ {
 ''');
 
     check(response).suggestions
+      ..withKindKeyword.isEmpty
       ..includesAll([
         (suggestion) => suggestion
           ..completion.isEqualTo('Object')
           ..isClass,
-      ])
-      ..excludesAll([
-        (suggestion) => suggestion.isKeywordAny,
       ]);
   }
 
@@ -229,7 +188,9 @@ enum E with M ^ {
 ''');
 
     check(response).suggestions.matchesInAnyOrder([
-      (suggestion) => suggestion.isKeyword(Keyword.IMPLEMENTS),
+      ...{
+        Keyword.IMPLEMENTS,
+      }.asKeywordChecks,
     ]);
   }
 

@@ -596,6 +596,29 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (entity == node.fields) {
       optype.completionLocation = 'FieldDeclaration_fields';
     }
+
+    // Incomplete code looks like a "field" declaration.
+    if (node.fields.type == null) {
+      var variables = node.fields.variables;
+      // class A { static late ^ }
+      if (node.staticKeyword != null &&
+          variables.length == 1 &&
+          variables[0].name.name == 'late') {
+        optype.completionLocation = 'FieldDeclaration_static_late';
+        optype.includeTypeNameSuggestions = true;
+        return;
+      }
+      // class A { static ^ }
+      if (node.staticKeyword == null &&
+          offset <= node.semicolon.offset &&
+          variables.length == 1 &&
+          variables[0].name.name == 'static') {
+        optype.completionLocation = 'FieldDeclaration_static';
+        optype.includeTypeNameSuggestions = true;
+        return;
+      }
+    }
+
     if (offset <= node.semicolon.offset) {
       optype.includeVarNameSuggestions = true;
     }

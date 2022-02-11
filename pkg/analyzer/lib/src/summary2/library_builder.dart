@@ -22,13 +22,11 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 
 class ImplicitEnumNodes {
   final EnumElementImpl element;
-  final FieldElementImpl indexField;
   final ast.NamedTypeImpl valuesTypeNode;
   final ConstFieldElementImpl valuesField;
 
   ImplicitEnumNodes({
     required this.element,
-    required this.indexField,
     required this.valuesTypeNode,
     required this.valuesField,
   });
@@ -134,7 +132,6 @@ class LibraryBuilder {
     for (var enum_ in implicitEnumNodes) {
       enum_.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
-      enum_.indexField.type = typeProvider.intType;
       var valuesType = typeProvider.listType(
         element.typeSystem.instantiateToBounds2(
           classElement: enum_.element,

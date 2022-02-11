@@ -315,6 +315,20 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (request.opType.completionLocation == 'FieldDeclaration_static') {
+      _addSuggestion(Keyword.CONST);
+      _addSuggestion(Keyword.DYNAMIC);
+      _addSuggestion(Keyword.FINAL);
+      _addSuggestion(Keyword.LATE);
+      return;
+    }
+
+    if (request.opType.completionLocation == 'FieldDeclaration_static_late') {
+      _addSuggestion(Keyword.DYNAMIC);
+      _addSuggestion(Keyword.FINAL);
+      return;
+    }
+
     var fields = node.fields;
     if (entity != fields) {
       return;
@@ -335,6 +349,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (node.fields.lateKeyword == null &&
         request.featureSet.isEnabled(Feature.non_nullable)) {
       _addSuggestion(Keyword.LATE);
+    }
+    if (node.fields.type == null) {
+      _addSuggestion(Keyword.DYNAMIC);
     }
     if (!node.isStatic) {
       _addSuggestion(Keyword.STATIC);

@@ -339,12 +339,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    // Build the 'index' field.
-    var indexField = ConstFieldElementImpl('index', -1)
-      ..isFinal = true
-      ..isSynthetic = true;
-    holder.addNonSyntheticField(indexField);
-
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _visitPropertyFirst<FieldDeclaration>(node.members);
@@ -365,7 +359,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _libraryBuilder.implicitEnumNodes.add(
       ImplicitEnumNodes(
         element: element,
-        indexField: indexField,
         valuesTypeNode: valuesTypeNode,
         valuesField: valuesField,
       ),
@@ -807,6 +800,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isAbstract = node.isAbstract;
       element.isGetter = true;
       element.isStatic = node.isStatic;
+
+      // `class Enum {}` in `dart:core` declares `int get index` as abstract.
+      // But the specification says that practically a different class
+      // implementing `Enum` is used as a superclass, so `index` should be
+      // considered to have non-abstract implementation.
+      if (_enclosingContext.isDartCoreEnum && name == 'index') {
+        element.isAbstract = false;
+      }
 
       reference = _enclosingContext.addGetter(name, element);
       executableElement = element;
@@ -1366,6 +1367,11 @@ class _EnclosingContext {
     this.element, {
     this.hasConstConstructor = false,
   });
+
+  bool get isDartCoreEnum {
+    final element = this.element;
+    return element is ClassElementImpl && element.isDartCoreEnum;
+  }
 
   Reference addClass(String name, ClassElementImpl element) {
     classes.add(element);

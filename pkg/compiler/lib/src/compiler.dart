@@ -40,7 +40,7 @@ import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'io/source_information.dart' show SourceInformation;
 import 'ir/modular.dart';
-import 'js_backend/backend.dart' show CodegenInputs, JavaScriptImpactStrategy;
+import 'js_backend/backend.dart' show CodegenInputs;
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart';
@@ -57,8 +57,7 @@ import 'ssa/nodes.dart' show HInstruction;
 import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
-import 'universe/world_impact.dart'
-    show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
+import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import 'world.dart' show JClosedWorld, KClosedWorld;
 
 typedef MakeReporterFunction = CompilerDiagnosticReporter Function(
@@ -73,8 +72,6 @@ abstract class Compiler {
   BackendStrategy backendStrategy;
   CompilerDiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
-
-  ImpactStrategy impactStrategy = const ImpactStrategy();
 
   /// Options provided from command-line arguments.
   final CompilerOptions options;
@@ -434,10 +431,6 @@ abstract class Compiler {
     // this until after the resolution queue is processed.
     deferredLoadTask.beforeResolution(rootLibraryUri, libraries);
 
-    impactStrategy = JavaScriptImpactStrategy(dumpInfoTask,
-        supportDeferredLoad: deferredLoadTask.isProgramSplit,
-        supportDumpInfo: options.dumpInfo);
-
     phase = PHASE_RESOLVING;
     resolutionEnqueuer.applyImpact(mainImpact);
     if (options.showInternalProgress) reporter.log('Computing closed world');
@@ -466,8 +459,6 @@ abstract class Compiler {
     _userCodeLocations
         .addAll(result.moduleLibraries.map((module) => CodeLocation(module)));
     selfTask.measureSubtask('runModularAnalysis', () {
-      impactStrategy = JavaScriptImpactStrategy(dumpInfoTask,
-          supportDeferredLoad: true, supportDumpInfo: true);
       var included = result.moduleLibraries.toSet();
       var elementMap = (frontendStrategy as KernelFrontendStrategy).elementMap;
       var moduleData = computeModuleData(result.component, included, options,
@@ -607,8 +598,7 @@ abstract class Compiler {
             work.element,
             () => selfTask.measureSubtask("applyImpact", () {
                   enqueuer.applyImpact(
-                      selfTask.measureSubtask("work.run", () => work.run()),
-                      impactSource: work.element);
+                      selfTask.measureSubtask("work.run", () => work.run()));
                 }));
       });
     });
@@ -619,7 +609,6 @@ abstract class Compiler {
       {void onProgress(Enqueuer enqueuer)}) {
     selfTask.measureSubtask("processQueue", () {
       enqueuer.open(
-          impactStrategy,
           mainMethod,
           elementEnvironment.libraries
               .map((LibraryEntity library) => library.canonicalUri));

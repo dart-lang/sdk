@@ -410,6 +410,18 @@ extension CompletionSuggestionsExtension
       (selected) => 'withElementClass ${valueStr(selected)}',
     );
   }
+
+  @useResult
+  CheckTarget<Iterable<CompletionSuggestionForTesting>> get withKindKeyword {
+    var result = value
+        .where((suggestion) =>
+            suggestion.suggestion.kind == CompletionSuggestionKind.KEYWORD)
+        .toList();
+    return nest(
+      result,
+      (selected) => 'withKindKeyword ${valueStr(selected)}',
+    );
+  }
 }
 
 extension ElementExtension on CheckTarget<Element> {

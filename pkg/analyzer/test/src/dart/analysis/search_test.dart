@@ -973,7 +973,7 @@ main() {
 ''');
     var enumElement = findElement.enum_('MyEnum');
     var main = findElement.function('main');
-    await _verifyReferences(enumElement.getField('index')!,
+    await _verifyReferences(typeProvider.enumElement!.getField('index')!,
         [_expectIdQ(main, SearchResultKind.READ, 'index);')]);
     await _verifyReferences(enumElement.getField('values')!,
         [_expectIdQ(main, SearchResultKind.READ, 'values);')]);
