@@ -1204,15 +1204,7 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
         "Invalid Dart_InitializeParams version.");
   }
 
-  return Dart::Init(params->vm_snapshot_data, params->vm_snapshot_instructions,
-                    params->create_group, params->initialize_isolate,
-                    params->shutdown_isolate, params->cleanup_isolate,
-                    params->cleanup_group, params->thread_start,
-                    params->thread_exit, params->file_open, params->file_read,
-                    params->file_write, params->file_close,
-                    params->entropy_source, params->get_service_assets,
-                    params->start_kernel_isolate, params->code_observer,
-                    params->post_task, params->post_task_data);
+  return Dart::Init(params);
 }
 
 DART_EXPORT char* Dart_Cleanup() {
