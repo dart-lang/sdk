@@ -536,6 +536,7 @@ dart.ci_builder(
     "debianpackage-linux",
     category = "misc|dp",
     channels = dart.release_channels,
+    main_channel = False,
     notifies = "infra",
     properties = {
         "clobber": False,
@@ -696,6 +697,46 @@ luci.console_view_entry(
 luci.list_view_entry(
     builder = "iso-stress-linux",
     list_view = "iso-stress",
+)
+
+# SDK builders on consoles
+def sdk_builder_category():
+    for channel, console in [
+        ["main", "be"],
+        ["main", "alt"],
+        ["beta", "beta"],
+        ["dev", "dev"],
+        ["stable", "stable"],
+    ]:
+        for builder_type, short_name in [
+            ["linux", "l"],
+            ["mac", "m"],
+            ["mac-arm64", "m1"],
+            ["win", "w"],
+        ]:
+            luci.console_view_entry(
+                builder = "dart-internal:ci/dart-sdk-%s-%s" %
+                          (builder_type, channel),
+                short_name = short_name,
+                category = "sdk",
+                console_view = console,
+            )
+
+sdk_builder_category()
+
+# Debian builder on main consoles
+luci.console_view_entry(
+    builder = "dart-internal:ci/debianpackage-linux-main",
+    short_name = "dp",
+    category = "misc",
+    console_view = "be",
+)
+
+luci.console_view_entry(
+    builder = "dart-internal:ci/debianpackage-linux-main",
+    short_name = "dp",
+    category = "misc",
+    console_view = "alt",
 )
 
 exec("//recipes.star")

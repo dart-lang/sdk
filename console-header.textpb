@@ -16,6 +16,11 @@ links: {
         alt: "SDK FYI Console"
     }
     links: {
+        text: "LKGR console"
+        url: "/p/dart-internal/g/lkgr/console"
+        alt: "SDK LKGR console"
+    }
+    links: {
         text: "SDK CQ Status"
         url: "/p/dart/g/cq/builders"
         alt: "SDK CQ Status"
