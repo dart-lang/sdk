@@ -738,6 +738,16 @@ void f() {}
 ''');
     await computeAndCheck();
 
+    // Enum constant.
+    addTestSource2('''
+$languageVersionLine
+enum E {
+  v$arguments;
+  const E$parameters;
+}
+''');
+    await computeAndCheck();
+
     // Function expression invocation.
     addTestSource2('''
 $languageVersionLine
