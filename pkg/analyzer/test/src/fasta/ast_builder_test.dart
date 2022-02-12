@@ -130,6 +130,36 @@ enum E {
       ..argumentList.isSynthetic;
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48380')
+  void test_enum_constant_name_typeArguments_dot_semicolon() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v<int>.;
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
+          12, 5),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 18, 1),
+    ]);
+
+    var E = parseResult.findNode.enumDeclaration('enum E');
+    var v = parseResult.findNode.enumConstantDeclaration('v<int>');
+    check(v).name.name.isEqualTo('v');
+
+    var arguments = check(v).arguments.isNotNull;
+    arguments.typeArguments.isNotNull;
+
+    var constructorSelector = arguments.constructorSelector.isNotNull;
+    var syntheticName = constructorSelector.value.name;
+    constructorSelector.name.isSynthetic;
+
+    arguments.argumentList
+      ..isSynthetic
+      ..leftParenthesis.isLinkedToPrevious(syntheticName.token)
+      ..rightParenthesis.isLinkedToNext(E.semicolon!);
+  }
+
   void test_enum_constant_withTypeArgumentsWithoutArguments() {
     var parseResult = parseStringWithErrors(r'''
 enum E<T> {

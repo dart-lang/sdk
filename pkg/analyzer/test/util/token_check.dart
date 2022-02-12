@@ -33,11 +33,37 @@ extension TokenExtension on CheckTarget<Token> {
     fail('Not synthetic');
   }
 
+  CheckTarget<Token?> get next {
+    return nest(
+      value.next,
+      (selected) => 'has next ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<Token?> get previous {
+    return nest(
+      value.previous,
+      (selected) => 'has previous ${valueStr(selected)}',
+    );
+  }
+
   CheckTarget<TokenType> get type {
     return nest(
       value.type,
       (selected) => 'has type ${valueStr(selected)}',
     );
+  }
+
+  void isLinkedToNext(Token next) {
+    this.next.isEqualTo(next);
+    nest(next, (value) => 'next ${valueStr(value)}').previous.isEqualTo(value);
+  }
+
+  void isLinkedToPrevious(Token previous) {
+    nest(previous, (value) => 'given previous ${valueStr(value)}')
+        .next
+        .isEqualTo(value);
+    this.previous.isEqualTo(previous);
   }
 }
 
