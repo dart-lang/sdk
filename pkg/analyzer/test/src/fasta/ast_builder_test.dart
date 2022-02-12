@@ -58,6 +58,78 @@ class A {
     expect(member.initializers, hasLength(1));
   }
 
+  void test_enum_constant_name_dot() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v.
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.MISSING_IDENTIFIER, 14, 1),
+    ]);
+
+    var v = parseResult.findNode.enumConstantDeclaration('v.');
+    check(v).name.name.isEqualTo('v');
+    check(v).arguments.isNotNull
+      ..typeArguments.isNull
+      ..constructorSelector.isNotNull.name.isSynthetic
+      ..argumentList.isSynthetic;
+  }
+
+  void test_enum_constant_name_dot_identifier_semicolon() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v.named;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var v = parseResult.findNode.enumConstantDeclaration('v.');
+    check(v).name.name.isEqualTo('v');
+    check(v).arguments.isNotNull
+      ..typeArguments.isNull
+      ..constructorSelector.isNotNull.name.name.isEqualTo('named')
+      ..argumentList.isSynthetic;
+  }
+
+  void test_enum_constant_name_dot_semicolon() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v.;
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
+    ]);
+
+    var v = parseResult.findNode.enumConstantDeclaration('v.');
+    check(v).name.name.isEqualTo('v');
+    check(v).arguments.isNotNull
+      ..typeArguments.isNull
+      ..constructorSelector.isNotNull.name.isSynthetic
+      ..argumentList.isSynthetic;
+  }
+
+  void test_enum_constant_name_typeArguments_dot() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v<int>.
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
+          12, 5),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
+    ]);
+
+    var v = parseResult.findNode.enumConstantDeclaration('v<int>.');
+    check(v).name.name.isEqualTo('v');
+    check(v).arguments.isNotNull
+      ..typeArguments.isNotNull
+      ..constructorSelector.isNotNull.name.isSynthetic
+      ..argumentList.isSynthetic;
+  }
+
   void test_enum_constant_withTypeArgumentsWithoutArguments() {
     var parseResult = parseStringWithErrors(r'''
 enum E<T> {

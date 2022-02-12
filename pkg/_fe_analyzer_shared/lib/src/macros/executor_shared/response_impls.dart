@@ -164,12 +164,12 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
   }
 
   MacroInstanceIdentifierImpl.deserialize(Deserializer deserializer)
-      : id = (deserializer..moveNext()).expectNum(),
-        _interfaces = (deserializer..moveNext()).expectNum();
+      : id = (deserializer..moveNext()).expectInt(),
+        _interfaces = (deserializer..moveNext()).expectInt();
 
   void serialize(Serializer serializer) => serializer
-    ..addNum(id)
-    ..addNum(_interfaces);
+    ..addInt(id)
+    ..addInt(_interfaces);
 
   operator ==(other) => other is MacroInstanceIdentifierImpl && id == other.id;
 

@@ -291,6 +291,12 @@ class CompletionTarget {
       Element? executable;
       if (invocation is Annotation) {
         executable = invocation.element;
+      } else if (invocation is EnumConstantArguments) {
+        var enumConstant = invocation.parent;
+        if (enumConstant is! EnumConstantDeclaration) {
+          return null;
+        }
+        executable = enumConstant.constructorElement;
       } else if (invocation is InstanceCreationExpression) {
         executable = invocation.constructorName.staticElement;
       } else if (invocation is MethodInvocation) {

@@ -41,11 +41,27 @@ extension ArgumentListExtension on CheckTarget<ArgumentList> {
   }
 }
 
+extension ConstructorSelectorExtension on CheckTarget<ConstructorSelector> {
+  CheckTarget<SimpleIdentifier> get name {
+    return nest(
+      value.name,
+      (selected) => 'has name ${valueStr(selected)}',
+    );
+  }
+}
+
 extension EnumConstantArgumentsExtension on CheckTarget<EnumConstantArguments> {
   CheckTarget<ArgumentList> get argumentList {
     return nest(
       value.argumentList,
       (selected) => 'has argumentList ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<ConstructorSelector?> get constructorSelector {
+    return nest(
+      value.constructorSelector,
+      (selected) => 'has constructorSelector ${valueStr(selected)}',
     );
   }
 
@@ -114,6 +130,12 @@ extension SimpleIdentifierExtension on CheckTarget<SimpleIdentifier> {
       value.inDeclarationContext(),
       (selected) => 'has inDeclarationContext() ${valueStr(selected)}',
     );
+  }
+
+  void get isSynthetic {
+    if (!value.token.isSynthetic) {
+      fail('Is not synthetic');
+    }
   }
 
   CheckTarget<String> get name {

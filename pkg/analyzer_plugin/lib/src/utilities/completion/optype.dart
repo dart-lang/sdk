@@ -450,6 +450,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    if (identical(entity, node.name)) {
+      optype.completionLocation = 'ConstructorSelector_name';
+    }
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     if (node.label == null || identical(entity, node.label)) {
       optype.includeStatementLabelSuggestions = true;
@@ -1369,6 +1376,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       var parent = node.parent;
       if (parent is Annotation) {
         return 'annotation';
+      } else if (parent is EnumConstantArguments) {
+        return 'enumConstantArguments';
       } else if (parent is ExtensionOverride) {
         return 'extensionOverride';
       } else if (parent is FunctionExpressionInvocation) {

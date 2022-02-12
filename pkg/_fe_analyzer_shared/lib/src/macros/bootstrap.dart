@@ -55,17 +55,18 @@ void main(_, SendPort sendPort) {
   /// Local function that sends requests and returns responses using [sendPort].
   Future<Response> sendRequest(Request request) => _sendRequest(request, sendPort);
 
-  withSerializationMode(SerializationMode.client, () {
+  /// TODO: More directly support customizable serialization types.
+  withSerializationMode(SerializationMode.jsonClient, () {
     ReceivePort receivePort = new ReceivePort();
     sendPort.send(receivePort.sendPort);
 
     receivePort.listen((message) async {
-      var deserializer = JsonDeserializer(message as Iterable<Object?>)
+      var deserializer = deserializerFactory(message)
           ..moveNext();
-      int zoneId = deserializer.expectNum();
+      int zoneId = deserializer.expectInt();
       deserializer..moveNext();
-      var type = MessageType.values[deserializer.expectNum()];
-      var serializer = JsonSerializer();
+      var type = MessageType.values[deserializer.expectInt()];
+      var serializer = serializerFactory();
       switch (type) {
         case MessageType.instantiateMacroRequest:
           var request = new InstantiateMacroRequest.deserialize(deserializer, zoneId);
@@ -248,8 +249,8 @@ final _responseCompleters = <int, Completer<Response>>{};
 Future<Response> _sendRequest(Request request, SendPort sendPort) {
   Completer<Response> completer = Completer();
   _responseCompleters[request.id] = completer;
-  JsonSerializer serializer = JsonSerializer();
-  serializer.addNum(request.serializationZoneId);
+  Serializer serializer = serializerFactory();
+  serializer.addInt(request.serializationZoneId);
   request.serialize(serializer);
   sendPort.send(serializer.result);
   return completer.future;

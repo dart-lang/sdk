@@ -213,4 +213,130 @@ enum E {
 
     check(response).suggestions.isEmpty;
   }
+
+  Future<void> test_constantName_dot_name_x_argumentList_named() async {
+    var response = await getTestCodeSuggestions('''
+enum E {
+  v.foo0^();
+  const E.foo01();
+  const E.foo02();
+  const E.bar01();
+}
+''');
+
+    if (isProtocolVersion2) {
+      check(response)
+        ..hasReplacement(left: 4)
+        ..suggestions.matchesInAnyOrder([
+          (suggestion) => suggestion
+            ..completion.isEqualTo('foo01')
+            ..isConstructorInvocation,
+          (suggestion) => suggestion
+            ..completion.isEqualTo('foo02')
+            ..isConstructorInvocation,
+        ]);
+    }
+  }
+
+  Future<void> test_constantName_dot_name_x_semicolon_named() async {
+    var response = await getTestCodeSuggestions('''
+enum E {
+  v.foo0^;
+  const E.foo01();
+  const E.foo02();
+  const E.bar01();
+}
+''');
+
+    if (isProtocolVersion2) {
+      check(response)
+        ..hasReplacement(left: 4)
+        ..suggestions.matchesInAnyOrder([
+          (suggestion) => suggestion
+            ..completion.isEqualTo('foo01')
+            ..isConstructorInvocation,
+          (suggestion) => suggestion
+            ..completion.isEqualTo('foo02')
+            ..isConstructorInvocation,
+        ]);
+    }
+  }
+
+  Future<void> test_constantName_dot_x_argumentList_named() async {
+    var response = await getTestCodeSuggestions('''
+enum E {
+  v.^();
+  const E.foo01();
+  const E.foo02();
+}
+''');
+
+    check(response).suggestions.matchesInAnyOrder([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isConstructorInvocation,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isConstructorInvocation,
+    ]);
+  }
+
+  Future<void> test_constantName_dot_x_semicolon_named() async {
+    var response = await getTestCodeSuggestions('''
+enum E {
+  v.^;
+  const E.foo01();
+  const E.foo02();
+}
+''');
+
+    check(response).suggestions.matchesInAnyOrder([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isConstructorInvocation,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isConstructorInvocation,
+    ]);
+  }
+
+  Future<void> test_constantName_dot_x_semicolon_unnamed_declared() async {
+    var response = await getTestCodeSuggestions('''
+enum E {
+  v.^;
+  const E();
+}
+''');
+
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('new')
+        ..isConstructorInvocation,
+    ]);
+  }
+
+  Future<void> test_constantName_dot_x_unnamed_implicit() async {
+    var response = await getTestCodeSuggestions('''
+enum E {
+  v.^
+}
+''');
+
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('new')
+        ..isConstructorInvocation,
+    ]);
+  }
+
+  Future<void> test_constantName_dot_x_unnamed_language216() async {
+    var response = await getTestCodeSuggestions('''
+// @dart = 2.16
+enum E {
+  v.^
+}
+''');
+
+    check(response).suggestions.isEmpty;
+  }
 }

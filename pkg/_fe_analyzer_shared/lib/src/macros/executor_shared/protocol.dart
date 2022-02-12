@@ -28,13 +28,13 @@ abstract class Request implements Serializable {
   /// The [serializationZoneId] is a part of the header and needs to be parsed
   /// before deserializing objects, and then passed in here.
   Request.deserialize(Deserializer deserializer, this.serializationZoneId)
-      : id = (deserializer..moveNext()).expectNum();
+      : id = (deserializer..moveNext()).expectInt();
 
   /// The [serializationZoneId] needs to be separately serialized before the
   /// rest of the object. This is not done by the instances themselves but by
   /// the macro implementations.
   @mustCallSuper
-  void serialize(Serializer serializer) => serializer.addNum(id);
+  void serialize(Serializer serializer) => serializer.addInt(id);
 
   static int _next = 0;
 }
@@ -81,7 +81,7 @@ class SerializableResponse implements Response, Serializable {
   factory SerializableResponse.deserialize(
       Deserializer deserializer, int serializationZoneId) {
     deserializer.moveNext();
-    MessageType responseType = MessageType.values[deserializer.expectNum()];
+    MessageType responseType = MessageType.values[deserializer.expectInt()];
     Serializable? response;
     String? error;
     String? stackTrace;
@@ -126,15 +126,15 @@ class SerializableResponse implements Response, Serializable {
         response: response,
         error: error,
         stackTrace: stackTrace,
-        requestId: (deserializer..moveNext()).expectNum(),
+        requestId: (deserializer..moveNext()).expectInt(),
         serializationZoneId: serializationZoneId);
   }
 
   void serialize(Serializer serializer) {
     serializer
-      ..addNum(serializationZoneId)
-      ..addNum(MessageType.response.index)
-      ..addNum(responseType.index);
+      ..addInt(serializationZoneId)
+      ..addInt(MessageType.response.index)
+      ..addInt(responseType.index);
     switch (responseType) {
       case MessageType.error:
         serializer.addString(error!.toString());
@@ -143,7 +143,7 @@ class SerializableResponse implements Response, Serializable {
       default:
         response.serializeNullable(serializer);
     }
-    serializer.addNum(requestId);
+    serializer.addInt(requestId);
   }
 }
 
@@ -203,7 +203,7 @@ class LoadMacroRequest extends Request {
   @override
   void serialize(Serializer serializer) {
     serializer
-      ..addNum(MessageType.loadMacroRequest.index)
+      ..addInt(MessageType.loadMacroRequest.index)
       ..addString(library.toString())
       ..addString(name);
     super.serialize(serializer);
@@ -230,16 +230,16 @@ class InstantiateMacroRequest extends Request {
       : macroClass = new MacroClassIdentifierImpl.deserialize(deserializer),
         constructorName = (deserializer..moveNext()).expectString(),
         arguments = new Arguments.deserialize(deserializer),
-        instanceId = (deserializer..moveNext()).expectNum(),
+        instanceId = (deserializer..moveNext()).expectInt(),
         super.deserialize(deserializer, serializationZoneId);
 
   @override
   void serialize(Serializer serializer) {
-    serializer.addNum(MessageType.instantiateMacroRequest.index);
+    serializer.addInt(MessageType.instantiateMacroRequest.index);
     macroClass.serialize(serializer);
     serializer.addString(constructorName);
     arguments.serialize(serializer);
-    serializer.addNum(instanceId);
+    serializer.addInt(instanceId);
     super.serialize(serializer);
   }
 }
@@ -262,7 +262,7 @@ class ExecuteTypesPhaseRequest extends Request {
         super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
-    serializer.addNum(MessageType.executeTypesPhaseRequest.index);
+    serializer.addInt(MessageType.executeTypesPhaseRequest.index);
     macro.serialize(serializer);
     declaration.serialize(serializer);
 
@@ -295,7 +295,7 @@ class ExecuteDeclarationsPhaseRequest extends Request {
         super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
-    serializer.addNum(MessageType.executeDeclarationsPhaseRequest.index);
+    serializer.addInt(MessageType.executeDeclarationsPhaseRequest.index);
     macro.serialize(serializer);
     declaration.serialize(serializer);
     typeResolver.serialize(serializer);
@@ -332,7 +332,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
         super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
-    serializer.addNum(MessageType.executeDefinitionsPhaseRequest.index);
+    serializer.addInt(MessageType.executeDefinitionsPhaseRequest.index);
     macro.serialize(serializer);
     declaration.serialize(serializer);
     typeResolver.serialize(serializer);
@@ -361,7 +361,7 @@ class ResolveTypeRequest extends Request {
         super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
-    serializer.addNum(MessageType.resolveTypeRequest.index);
+    serializer.addInt(MessageType.resolveTypeRequest.index);
     typeAnnotationCode.serialize(serializer);
     typeResolver.serialize(serializer);
     super.serialize(serializer);
@@ -386,7 +386,7 @@ class IsExactlyTypeRequest extends Request {
         super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
-    serializer.addNum(MessageType.isExactlyTypeRequest.index);
+    serializer.addInt(MessageType.isExactlyTypeRequest.index);
     leftType.serialize(serializer);
     rightType.serialize(serializer);
     super.serialize(serializer);
@@ -411,7 +411,7 @@ class IsSubtypeOfRequest extends Request {
         super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
-    serializer.addNum(MessageType.isSubtypeOfRequest.index);
+    serializer.addInt(MessageType.isSubtypeOfRequest.index);
     leftType.serialize(serializer);
     rightType.serialize(serializer);
     super.serialize(serializer);
@@ -440,7 +440,7 @@ class ClassIntrospectionRequest extends Request {
 
   @override
   void serialize(Serializer serializer) {
-    serializer.addNum(requestKind.index);
+    serializer.addInt(requestKind.index);
     classDeclaration.serialize(serializer);
     classIntrospector.serialize(serializer);
     super.serialize(serializer);
@@ -466,7 +466,7 @@ class DeclarationOfRequest extends Request {
 
   @override
   void serialize(Serializer serializer) {
-    serializer.addNum(MessageType.declarationOfRequest.index);
+    serializer.addInt(MessageType.declarationOfRequest.index);
     identifier.serialize(serializer);
     typeDeclarationResolver.serialize(serializer);
     super.serialize(serializer);

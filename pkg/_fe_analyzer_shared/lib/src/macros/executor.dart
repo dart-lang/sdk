@@ -132,7 +132,7 @@ class Arguments implements Serializable {
   static Object? _deserializeArg(Deserializer deserializer,
       {bool alreadyMoved = false}) {
     if (!alreadyMoved) deserializer.moveNext();
-    _ArgumentKind kind = _ArgumentKind.values[deserializer.expectNum()];
+    _ArgumentKind kind = _ArgumentKind.values[deserializer.expectInt()];
     switch (kind) {
       case _ArgumentKind.nil:
         return null;
@@ -142,9 +142,12 @@ class Arguments implements Serializable {
       case _ArgumentKind.bool:
         deserializer.moveNext();
         return deserializer.expectBool();
-      case _ArgumentKind.num:
+      case _ArgumentKind.int:
         deserializer.moveNext();
-        return deserializer.expectNum();
+        return deserializer.expectInt();
+      case _ArgumentKind.double:
+        deserializer.moveNext();
+        return deserializer.expectDouble();
       case _ArgumentKind.list:
         deserializer.moveNext();
         deserializer.expectList();
@@ -184,22 +187,26 @@ class Arguments implements Serializable {
 
   static void _serializeArg(Object? arg, Serializer serializer) {
     if (arg == null) {
-      serializer.addNum(_ArgumentKind.nil.index);
+      serializer.addInt(_ArgumentKind.nil.index);
     } else if (arg is String) {
       serializer
-        ..addNum(_ArgumentKind.string.index)
+        ..addInt(_ArgumentKind.string.index)
         ..addString(arg);
-    } else if (arg is num) {
+    } else if (arg is int) {
       serializer
-        ..addNum(_ArgumentKind.num.index)
-        ..addNum(arg);
+        ..addInt(_ArgumentKind.int.index)
+        ..addInt(arg);
+    } else if (arg is double) {
+      serializer
+        ..addInt(_ArgumentKind.double.index)
+        ..addDouble(arg);
     } else if (arg is bool) {
       serializer
-        ..addNum(_ArgumentKind.bool.index)
+        ..addInt(_ArgumentKind.bool.index)
         ..addBool(arg);
     } else if (arg is List) {
       serializer
-        ..addNum(_ArgumentKind.list.index)
+        ..addInt(_ArgumentKind.list.index)
         ..startList();
       for (Object? item in arg) {
         _serializeArg(item, serializer);
@@ -207,7 +214,7 @@ class Arguments implements Serializable {
       serializer.endList();
     } else if (arg is Map) {
       serializer
-        ..addNum(_ArgumentKind.map.index)
+        ..addInt(_ArgumentKind.map.index)
         ..startList();
       for (MapEntry<Object?, Object?> entry in arg.entries) {
         _serializeArg(entry.key, serializer);
@@ -311,4 +318,4 @@ enum Phase {
 }
 
 /// Used for serializing and deserializing arguments.
-enum _ArgumentKind { string, bool, num, list, map, nil }
+enum _ArgumentKind { string, bool, double, int, list, map, nil }

@@ -6,58 +6,59 @@ import '../api.dart';
 
 extension DeserializerExtensions on Deserializer {
   T expectRemoteInstance<T>() {
-    int id = expectNum();
-    switch (serializationMode) {
-      case SerializationMode.client:
+    int id = expectInt();
+
+    // Server side we just return the cached remote instance by ID.
+    if (!serializationMode.isClient) {
+      return RemoteInstance.cached(id) as T;
+    }
+
+    moveNext();
+    RemoteInstanceKind kind = RemoteInstanceKind.values[expectInt()];
+    switch (kind) {
+      case RemoteInstanceKind.classIntrospector:
+      case RemoteInstanceKind.namedStaticType:
+      case RemoteInstanceKind.staticType:
+      case RemoteInstanceKind.typeDeclarationResolver:
+      case RemoteInstanceKind.typeResolver:
+        // These are simple wrappers, just pass in the kind
+        return new RemoteInstanceImpl(id: id, kind: kind) as T;
+      case RemoteInstanceKind.classDeclaration:
         moveNext();
-        RemoteInstanceKind kind = RemoteInstanceKind.values[expectNum()];
-        switch (kind) {
-          case RemoteInstanceKind.classIntrospector:
-          case RemoteInstanceKind.namedStaticType:
-          case RemoteInstanceKind.staticType:
-          case RemoteInstanceKind.typeDeclarationResolver:
-          case RemoteInstanceKind.typeResolver:
-            // These are simple wrappers, just pass in the kind
-            return new RemoteInstanceImpl(id: id, kind: kind) as T;
-          case RemoteInstanceKind.classDeclaration:
-            moveNext();
-            return _expectClassDeclaration(id) as T;
-          case RemoteInstanceKind.constructorDeclaration:
-            moveNext();
-            return _expectConstructorDeclaration(id) as T;
-          case RemoteInstanceKind.fieldDeclaration:
-            moveNext();
-            return _expectFieldDeclaration(id) as T;
-          case RemoteInstanceKind.functionDeclaration:
-            moveNext();
-            return _expectFunctionDeclaration(id) as T;
-          case RemoteInstanceKind.functionTypeAnnotation:
-            moveNext();
-            return _expectFunctionTypeAnnotation(id) as T;
-          case RemoteInstanceKind.identifier:
-            moveNext();
-            return _expectIdentifier(id) as T;
-          case RemoteInstanceKind.methodDeclaration:
-            moveNext();
-            return _expectMethodDeclaration(id) as T;
-          case RemoteInstanceKind.namedTypeAnnotation:
-            moveNext();
-            return _expectNamedTypeAnnotation(id) as T;
-          case RemoteInstanceKind.parameterDeclaration:
-            moveNext();
-            return _expectParameterDeclaration(id) as T;
-          case RemoteInstanceKind.typeAliasDeclaration:
-            moveNext();
-            return _expectTypeAliasDeclaration(id) as T;
-          case RemoteInstanceKind.typeParameterDeclaration:
-            moveNext();
-            return _expectTypeParameterDeclaration(id) as T;
-          case RemoteInstanceKind.variableDeclaration:
-            moveNext();
-            return _expectVariableDeclaration(id) as T;
-        }
-      case SerializationMode.server:
-        return RemoteInstance.cached(id) as T;
+        return _expectClassDeclaration(id) as T;
+      case RemoteInstanceKind.constructorDeclaration:
+        moveNext();
+        return _expectConstructorDeclaration(id) as T;
+      case RemoteInstanceKind.fieldDeclaration:
+        moveNext();
+        return _expectFieldDeclaration(id) as T;
+      case RemoteInstanceKind.functionDeclaration:
+        moveNext();
+        return _expectFunctionDeclaration(id) as T;
+      case RemoteInstanceKind.functionTypeAnnotation:
+        moveNext();
+        return _expectFunctionTypeAnnotation(id) as T;
+      case RemoteInstanceKind.identifier:
+        moveNext();
+        return _expectIdentifier(id) as T;
+      case RemoteInstanceKind.methodDeclaration:
+        moveNext();
+        return _expectMethodDeclaration(id) as T;
+      case RemoteInstanceKind.namedTypeAnnotation:
+        moveNext();
+        return _expectNamedTypeAnnotation(id) as T;
+      case RemoteInstanceKind.parameterDeclaration:
+        moveNext();
+        return _expectParameterDeclaration(id) as T;
+      case RemoteInstanceKind.typeAliasDeclaration:
+        moveNext();
+        return _expectTypeAliasDeclaration(id) as T;
+      case RemoteInstanceKind.typeParameterDeclaration:
+        moveNext();
+        return _expectTypeParameterDeclaration(id) as T;
+      case RemoteInstanceKind.variableDeclaration:
+        moveNext();
+        return _expectVariableDeclaration(id) as T;
     }
   }
 
@@ -222,7 +223,7 @@ extension DeserializerExtensions on Deserializer {
     expectList();
     List<Object> parts = [];
     while (moveNext()) {
-      _CodePartKind partKind = _CodePartKind.values[expectNum()];
+      _CodePartKind partKind = _CodePartKind.values[expectInt()];
       moveNext();
       switch (partKind) {
         case _CodePartKind.code:
@@ -240,7 +241,7 @@ extension DeserializerExtensions on Deserializer {
   }
 
   T expectCode<T extends Code>() {
-    CodeKind kind = CodeKind.values[expectNum()];
+    CodeKind kind = CodeKind.values[expectInt()];
 
     switch (kind) {
       case CodeKind.raw:
@@ -309,7 +310,7 @@ extension SerializeNullableCode on Code? {
 
 extension SerializeCode on Code {
   void serialize(Serializer serializer) {
-    serializer.addNum(kind.index);
+    serializer.addInt(kind.index);
     switch (kind) {
       case CodeKind.namedTypeAnnotation:
         NamedTypeAnnotationCode self = this as NamedTypeAnnotationCode;
@@ -366,13 +367,13 @@ extension SerializeCode on Code {
         for (Object part in parts) {
           if (part is String) {
             serializer
-              ..addNum(_CodePartKind.string.index)
+              ..addInt(_CodePartKind.string.index)
               ..addString(part);
           } else if (part is Code) {
-            serializer.addNum(_CodePartKind.code.index);
+            serializer.addInt(_CodePartKind.code.index);
             part.serialize(serializer);
           } else if (part is IdentifierImpl) {
-            serializer.addNum(_CodePartKind.identifier.index);
+            serializer.addInt(_CodePartKind.identifier.index);
             part.serialize(serializer);
           } else {
             throw new StateError('Unrecognized code part $part');

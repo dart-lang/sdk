@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/dart/arglist_contributor
 import 'package:analysis_server/src/services/completion/dart/closure_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
+import 'package:analysis_server/src/services/completion/dart/enum_constant_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
@@ -142,6 +143,7 @@ class DartCompletionManager {
       ArgListContributor(request, builder),
       ClosureContributor(request, builder),
       CombinatorContributor(request, builder),
+      EnumConstantConstructorContributor(request, builder),
       ExtensionMemberContributor(request, builder),
       FieldFormalContributor(request, builder),
       KeywordContributor(request, builder),
