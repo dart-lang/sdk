@@ -16,9 +16,9 @@ const _desc = r"Don't rename parameters of overridden methods.";
 const _details = r'''**DON'T** rename parameters of overridden methods.
 
 Methods that override another method, but do not have their own documentation
-comment, will inherit the overridden method's comment when dartdoc produces
+comment, will inherit the overridden method's comment when `dart doc` produces
 documentation. If the inherited method contains the name of the parameter (in
-square brackets), then dartdoc cannot link it correctly.
+square brackets), then `dart doc` cannot link it correctly.
 
 **BAD:**
 ```dart
