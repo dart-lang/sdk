@@ -25,6 +25,8 @@ import 'conditional_uri_does_not_exist_test.dart'
 import 'deprecated_consistency_test.dart' as deprecated_consistency;
 import 'file_names_test.dart' as file_names;
 import 'hash_and_equals_test.dart' as hash_and_equals;
+import 'library_private_types_in_public_api_test.dart'
+    as library_private_types_in_public_api;
 import 'literal_only_boolean_expressions_test.dart'
     as literal_only_boolean_expressions;
 import 'missing_whitespace_between_adjacent_strings_test.dart'
@@ -77,6 +79,7 @@ void main() {
   deprecated_consistency.main();
   file_names.main();
   hash_and_equals.main();
+  library_private_types_in_public_api.main();
   literal_only_boolean_expressions.main();
   missing_whitespace_between_adjacent_strings.main();
   non_constant_identifier_names.main();
