@@ -1,0 +1,23 @@
+# Global approvers - only to be used as a last resort.
+asiva@google.com #{LAST_RESORT_SUGGESTION}
+athom@google.com #{LAST_RESORT_SUGGESTION}
+kustermann@google.com #{LAST_RESORT_SUGGESTION}
+leafp@google.com #{LAST_RESORT_SUGGESTION}
+sigmund@google.com #{LAST_RESORT_SUGGESTION}
+vegorov@google.com #{LAST_RESORT_SUGGESTION}
+vsm@google.com #{LAST_RESORT_SUGGESTION}
+
+# DEPS
+per-file DEPS=/tools/OWNERS_ENG
+
+# Changelog, AUTHORS, and .git* do not require approval.
+per-file CHANGELOG.md,AUTHORS,.gitattributes,.gitconfig,.gitignore=*
+
+# Product documentation
+CONTRIBUTING.md,LICENSE,PATENT_GRANT,README.*,SECURITY.md=file:/tools/OWNERS_PRODUCT
+
+# Top level build files
+per-file .clang-format,BUILD.gn,sdk_args.gni=file:/tools/OWNERS_VM,file:/tools/OWNERS_INFRA
+
+# Generated file
+per-file .packages=*

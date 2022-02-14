@@ -206,8 +206,10 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     newFile(mainFilePath, content: content);
     await initialize(allowEmptyRootUri: true);
 
-    await expectLater(getDocumentSymbols(mainFileUri.toString()),
-        throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)));
+    await expectLater(
+        getDocumentSymbols(mainFileUri.toString()),
+        throwsA(isResponseError(ServerErrorCodes.FileNotAnalyzed,
+            message: 'File is not being analyzed')));
   }
 
   Future<void> test_nonDartFile() async {

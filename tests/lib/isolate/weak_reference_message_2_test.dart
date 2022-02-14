@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
+import 'dart:io';
 import "dart:isolate";
+import 'dart:typed_data';
 
-import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 void main(List<String> arguments, Object? message) async {
@@ -19,8 +19,11 @@ void main(List<String> arguments, Object? message) async {
 
 Future<void> runTest() async {
   final port = ReceivePort();
+  // By spawning the isolate from an uri the newly isolate will run in it's own
+  // isolate group. This way we can test the message snapshot serialization
+  // code.
   await Isolate.spawnUri(
-    Uri.parse('weak_reference_message_2_test.dart'),
+    Platform.script,
     ['helper'],
     port.sendPort,
   );

@@ -502,7 +502,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   ASSERT(flags != nullptr);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  // AOT: All isolates start from the app snapshot.
+  // AOT: The service isolate is included in any AOT snapshot in non-PRODUCT
+  // mode - so we launch the vm-service from the main app AOT snapshot.
   const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
@@ -693,11 +694,31 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   AppSnapshot* app_snapshot = NULL;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  // AOT: All isolates start from the app snapshot.
+  const uint8_t* isolate_snapshot_data = nullptr;
+  const uint8_t* isolate_snapshot_instructions = nullptr;
+  if (is_main_isolate) {
+    isolate_snapshot_data = app_isolate_snapshot_data;
+    isolate_snapshot_instructions = app_isolate_snapshot_instructions;
+  } else {
+    // AOT: All isolates need to be run from AOT compiled snapshots.
+    const bool kForceLoadElfFromMemory = false;
+    app_snapshot =
+        Snapshot::TryReadAppSnapshot(script_uri, kForceLoadElfFromMemory);
+    if (app_snapshot == nullptr) {
+      *error = Utils::StrDup(
+          "The uri provided to `Isolate.spawnUri()` does not "
+          "contain a valid AOT snapshot.");
+      return nullptr;
+    }
+
+    const uint8_t* ignore_vm_snapshot_data;
+    const uint8_t* ignore_vm_snapshot_instructions;
+    app_snapshot->SetBuffers(
+        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+        &isolate_snapshot_data, &isolate_snapshot_instructions);
+  }
+
   bool isolate_run_app_snapshot = true;
-  const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
-  const uint8_t* isolate_snapshot_instructions =
-      app_isolate_snapshot_instructions;
   flags->null_safety =
       Dart_DetectNullSafety(nullptr, nullptr, nullptr, isolate_snapshot_data,
                             isolate_snapshot_instructions, nullptr, -1);

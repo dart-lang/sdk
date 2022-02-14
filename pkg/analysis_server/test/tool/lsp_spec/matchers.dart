@@ -15,8 +15,13 @@ Matcher isLiteralOf(Matcher typeMatcher, String value) =>
 Matcher isMapOf(Matcher indexMatcher, Matcher valueMatcher) =>
     MapTypeMatcher(wrapMatcher(indexMatcher), wrapMatcher(valueMatcher));
 
-Matcher isResponseError(ErrorCodes code) => const TypeMatcher<ResponseError>()
-    .having((e) => e.code, 'code', equals(code));
+Matcher isResponseError(ErrorCodes code, {String? message}) {
+  final matcher = const TypeMatcher<ResponseError>()
+      .having((e) => e.code, 'code', equals(code));
+  return message != null
+      ? matcher.having((e) => e.message, 'message', equals(message))
+      : matcher;
+}
 
 Matcher isSimpleType(String name) => SimpleTypeMatcher(name);
 
