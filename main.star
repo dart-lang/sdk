@@ -148,23 +148,14 @@ def sdk_builder_category():
                 category = "sdk",
                 console_view = console,
             )
+        luci.console_view_entry(
+            builder = "dart-internal:ci/debianpackage-linux-%s" % channel,
+            short_name = "dp",
+            category = "sdk",
+            console_view = console,
+        )
 
 sdk_builder_category()
-
-# Debian builder on main consoles
-luci.console_view_entry(
-    builder = "dart-internal:ci/debianpackage-linux-main",
-    short_name = "dp",
-    category = "sdk",
-    console_view = "be",
-)
-
-luci.console_view_entry(
-    builder = "dart-internal:ci/debianpackage-linux-main",
-    short_name = "dp",
-    category = "sdk",
-    console_view = "alt",
-)
 
 luci.gitiles_poller(
     name = "dart-gitiles-trigger-flutter",
@@ -501,40 +492,29 @@ cron.nightly_builder(
 )
 
 # sdk
-dart.ci_builder(
+dart.try_builder(
     "dart-sdk-linux",
-    category = "sdk|l",
-    channels = dart.channels,
-    main_channel = False,
     properties = {
         "$dart/build": {
             "timeout": 100 * 60,  # 100 minutes,
         },
     },
 )
-dart.ci_builder(
+dart.try_builder(
     "dart-sdk-mac",
-    category = "sdk|m",
-    channels = dart.channels,
     dimensions = mac,
-    main_channel = False,
     properties = pinned_xcode,
 )
-dart.ci_builder(
+
+dart.try_builder(
     "dart-sdk-mac-arm64",
-    category = "sdk|m1",
-    channels = dart.channels,
     dimensions = [mac, arm64],
-    main_channel = False,
     properties = [no_android, pinned_xcode],
 )
 
-dart.ci_builder(
+dart.try_builder(
     "dart-sdk-win",
-    category = "sdk|w",
-    channels = dart.channels,
     dimensions = windows,
-    main_channel = False,
     on_cq = True,
 )
 
@@ -572,16 +552,6 @@ dart.ci_sandbox_builder(
 
 # misc
 dart.ci_sandbox_builder("gclient", recipe = "dart/gclient", category = "misc|g")
-dart.ci_builder(
-    "debianpackage-linux",
-    category = "sdk|dp",
-    channels = dart.release_channels,
-    main_channel = False,
-    notifies = "infra",
-    properties = {
-        "clobber": False,
-    },
-)
 
 # external
 dart.ci_sandbox_builder(
