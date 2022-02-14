@@ -21,7 +21,9 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
 import '../identifiers.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_constructor_builder.dart';
@@ -76,13 +78,12 @@ class MacroApplication {
 
 class MacroApplicationDataForTesting {
   Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
-  Map<SourceClassBuilder, List<macro.MacroExecutionResult>> classTypesResults =
-      {};
+  Map<SourceClassBuilder, String> classTypesResults = {};
   Map<SourceClassBuilder, List<macro.MacroExecutionResult>>
       classDeclarationsResults = {};
   Map<SourceClassBuilder, List<macro.MacroExecutionResult>>
       classDefinitionsResults = {};
-  Map<MemberBuilder, List<macro.MacroExecutionResult>> memberTypesResults = {};
+  Map<MemberBuilder, String> memberTypesResults = {};
   Map<MemberBuilder, List<macro.MacroExecutionResult>>
       memberDeclarationsResults = {};
   Map<MemberBuilder, List<macro.MacroExecutionResult>>
@@ -198,7 +199,54 @@ class MacroApplications {
       // TODO(johnniwinther): Throw when all members are supported.
       throw new UnimplementedError(
           'Unsupported member ${memberBuilder} (${memberBuilder.runtimeType})');
-      //return null;
+    }
+  }
+
+  macro.ResolvedIdentifier _resolveIdentifier(macro.Identifier identifier) {
+    if (identifier is _IdentifierImpl) {
+      MemberBuilder? memberBuilder = identifier.memberBuilder;
+      if (memberBuilder != null) {
+        Uri? uri;
+        String? staticScope;
+        macro.IdentifierKind kind;
+        if (memberBuilder.isStatic || memberBuilder.isConstructor) {
+          ClassBuilder classBuilder = memberBuilder.classBuilder!;
+          staticScope = classBuilder.name;
+          uri = classBuilder.library.importUri;
+          kind = macro.IdentifierKind.staticInstanceMember;
+        } else if (memberBuilder.isTopLevel) {
+          uri = memberBuilder.library.importUri;
+          kind = macro.IdentifierKind.topLevelMember;
+        } else {
+          kind = macro.IdentifierKind.instanceMember;
+        }
+        return new macro.ResolvedIdentifier(
+            kind: kind,
+            name: identifier.name,
+            staticScope: staticScope,
+            uri: uri);
+      } else {
+        TypeDeclarationBuilder typeDeclarationBuilder =
+            identifier.typeBuilder!.declaration!;
+        Uri? uri;
+        if (typeDeclarationBuilder is ClassBuilder) {
+          uri = typeDeclarationBuilder.library.importUri;
+        } else if (typeDeclarationBuilder is TypeAliasBuilder) {
+          uri = typeDeclarationBuilder.library.importUri;
+        }
+        return new macro.ResolvedIdentifier(
+            kind: macro.IdentifierKind.topLevelMember,
+            name: identifier.name,
+            staticScope: null,
+            uri: uri);
+      }
+    } else {
+      // TODO(johnniwinther): Use [_IdentifierImpl] for all identifiers.
+      return new macro.ResolvedIdentifier(
+          kind: macro.IdentifierKind.topLevelMember,
+          name: identifier.name,
+          staticScope: null,
+          uri: null);
     }
   }
 
@@ -253,11 +301,13 @@ class MacroApplications {
         results.add(result);
       }
     }
+    String result =
+        _macroExecutor.buildAugmentationLibrary(results, _resolveIdentifier);
     if (retainDataForTesting) {
       if (builder is SourceClassBuilder) {
-        dataForTesting?.classTypesResults[builder] = results;
+        dataForTesting?.classTypesResults[builder] = result;
       } else {
-        dataForTesting?.memberTypesResults[builder as MemberBuilder] = results;
+        dataForTesting?.memberTypesResults[builder as MemberBuilder] = result;
       }
     }
     return results;
@@ -352,8 +402,11 @@ class MacroApplications {
   macro.ClassDeclaration _createClassDeclaration(SourceClassBuilder builder) {
     macro.ClassDeclaration declaration = new macro.ClassDeclarationImpl(
         id: macro.RemoteInstance.uniqueId,
-        identifier: new macro.IdentifierImpl(
-            id: macro.RemoteInstance.uniqueId, name: builder.name),
+        identifier: new _IdentifierImpl.forTypeDeclarationBuilder(
+            typeDeclarationBuilder: builder,
+            libraryBuilder: builder.library,
+            id: macro.RemoteInstance.uniqueId,
+            name: builder.name),
         // TODO(johnniwinther): Support typeParameters
         typeParameters: [],
         // TODO(johnniwinther): Support interfaces
@@ -417,8 +470,10 @@ class MacroApplications {
         _getClassDeclaration(builder.classBuilder as SourceClassBuilder);
     return new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
-      identifier: new macro.IdentifierImpl(
-          id: macro.RemoteInstance.uniqueId, name: builder.name),
+      identifier: new _IdentifierImpl.forMemberBuilder(
+          memberBuilder: builder,
+          id: macro.RemoteInstance.uniqueId,
+          name: builder.name),
       definingClass: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
@@ -444,8 +499,10 @@ class MacroApplications {
 
     return new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
-      identifier: new macro.IdentifierImpl(
-          id: macro.RemoteInstance.uniqueId, name: builder.name),
+      identifier: new _IdentifierImpl.forMemberBuilder(
+          memberBuilder: builder,
+          id: macro.RemoteInstance.uniqueId,
+          name: builder.name),
       definingClass: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
@@ -477,8 +534,10 @@ class MacroApplications {
       //  declarations?
       return new macro.MethodDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
-          identifier: new macro.IdentifierImpl(
-              id: macro.RemoteInstance.uniqueId, name: builder.name),
+          identifier: new _IdentifierImpl.forMemberBuilder(
+              memberBuilder: builder,
+              id: macro.RemoteInstance.uniqueId,
+              name: builder.name),
           definingClass: definingClass.identifier as macro.IdentifierImpl,
           isAbstract: builder.isAbstract,
           isExternal: builder.isExternal,
@@ -494,8 +553,10 @@ class MacroApplications {
     } else {
       return new macro.FunctionDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
-          identifier: new macro.IdentifierImpl(
-              id: macro.RemoteInstance.uniqueId, name: builder.name),
+          identifier: new _IdentifierImpl.forMemberBuilder(
+              memberBuilder: builder,
+              id: macro.RemoteInstance.uniqueId,
+              name: builder.name),
           isAbstract: builder.isAbstract,
           isExternal: builder.isExternal,
           isGetter: builder.isGetter,
@@ -561,7 +622,7 @@ class MacroApplications {
         if (name is String) {
           return new macro.NamedTypeAnnotationImpl(
               id: macro.RemoteInstance.uniqueId,
-              identifier: new _IdentifierImpl(
+              identifier: new _IdentifierImpl.forTypeBuilder(
                   typeBuilder: typeBuilder,
                   libraryBuilder: libraryBuilder,
                   id: macro.RemoteInstance.uniqueId,
@@ -572,7 +633,7 @@ class MacroApplications {
           assert(name.qualifier is String);
           return new macro.NamedTypeAnnotationImpl(
               id: macro.RemoteInstance.uniqueId,
-              identifier: new _IdentifierImpl(
+              identifier: new _IdentifierImpl.forTypeBuilder(
                   typeBuilder: typeBuilder,
                   libraryBuilder: libraryBuilder,
                   id: macro.RemoteInstance.uniqueId,
@@ -611,13 +672,23 @@ class MacroApplications {
 
     if (typeAnnotation is macro.NamedTypeAnnotationCode) {
       _IdentifierImpl typeIdentifier = typeAnnotation.name as _IdentifierImpl;
-      TypeBuilder? originalTypeBuilder = typeIdentifier.typeBuilder;
-      if (originalTypeBuilder == null) {
-        throw new StateError('No type builder for $typeIdentifier');
-      }
-      if (originalTypeBuilder is! NamedTypeBuilder) {
-        throw new StateError(
-            'Type $typeIdentifier was not a named type as expected!');
+      TypeDeclarationBuilder? typeDeclarationBuilder =
+          typeIdentifier.typeDeclarationBuilder;
+      InstanceTypeVariableAccessState instanceTypeVariableAccessState =
+          InstanceTypeVariableAccessState.Unexpected;
+      if (typeDeclarationBuilder == null) {
+        TypeBuilder? originalTypeBuilder = typeIdentifier.typeBuilder;
+
+        if (originalTypeBuilder == null) {
+          throw new StateError('No type builder for $typeIdentifier');
+        }
+        if (originalTypeBuilder is! NamedTypeBuilder) {
+          throw new StateError(
+              'Type $typeIdentifier was not a named type as expected!');
+        }
+        typeDeclarationBuilder = originalTypeBuilder.declaration!;
+        instanceTypeVariableAccessState =
+            originalTypeBuilder.instanceTypeVariableAccess;
       }
       List<TypeBuilder> arguments = [
         for (macro.TypeAnnotationCode argumentCode
@@ -626,9 +697,8 @@ class MacroApplications {
       ];
 
       return new NamedTypeBuilder.fromTypeDeclarationBuilder(
-          originalTypeBuilder.declaration!, nullabilityBuilder,
-          instanceTypeVariableAccess:
-              originalTypeBuilder.instanceTypeVariableAccess,
+          typeDeclarationBuilder, nullabilityBuilder,
+          instanceTypeVariableAccess: instanceTypeVariableAccessState,
           arguments: arguments);
     }
     // TODO: Implement support for function types.
@@ -654,15 +724,37 @@ class MacroApplications {
 }
 
 class _IdentifierImpl extends macro.IdentifierImpl {
+  final TypeDeclarationBuilder? typeDeclarationBuilder;
+  final MemberBuilder? memberBuilder;
   final TypeBuilder? typeBuilder;
   final LibraryBuilder libraryBuilder;
 
-  _IdentifierImpl({
-    required this.typeBuilder,
+  _IdentifierImpl.forTypeBuilder({
+    required TypeBuilder this.typeBuilder,
     required this.libraryBuilder,
     required int id,
     required String name,
-  }) : super(id: id, name: name);
+  })  : typeDeclarationBuilder = null,
+        memberBuilder = null,
+        super(id: id, name: name);
+
+  _IdentifierImpl.forTypeDeclarationBuilder({
+    required TypeDeclarationBuilder this.typeDeclarationBuilder,
+    required this.libraryBuilder,
+    required int id,
+    required String name,
+  })  : typeBuilder = null,
+        memberBuilder = null,
+        super(id: id, name: name);
+
+  _IdentifierImpl.forMemberBuilder(
+      {required MemberBuilder this.memberBuilder,
+      required int id,
+      required String name})
+      : typeBuilder = null,
+        typeDeclarationBuilder = null,
+        libraryBuilder = memberBuilder.library,
+        super(id: id, name: name);
 }
 
 class _StaticTypeImpl extends macro.StaticType {

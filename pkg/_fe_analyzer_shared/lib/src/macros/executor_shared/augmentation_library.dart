@@ -31,17 +31,20 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
           buildCode(part);
         } else if (part is Identifier) {
           ResolvedIdentifier resolved = resolveIdentifier(part);
-          String prefix = importPrefixes.putIfAbsent(resolved.uri, () {
-            String prefix = 'i${nextPrefix++}';
-            importsBuffer.writeln("import '${resolved.uri}' as $prefix;");
-            return prefix;
-          });
+          String? prefix;
+          if (resolved.uri != null) {
+            prefix = importPrefixes.putIfAbsent(resolved.uri!, () {
+              String prefix = 'i${nextPrefix++}';
+              importsBuffer.writeln("import '${resolved.uri}' as $prefix;");
+              return prefix;
+            });
+          }
           if (resolved.kind == IdentifierKind.instanceMember) {
             // Qualify with `this.` if we don't have a receiver.
             if (!lastDirectivePart.trimRight().endsWith('.')) {
               writeDirectivePart('this.');
             }
-          } else {
+          } else if (prefix != null) {
             writeDirectivePart('${prefix}.');
           }
           if (resolved.kind == IdentifierKind.staticInstanceMember) {

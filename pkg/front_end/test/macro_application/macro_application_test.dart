@@ -104,12 +104,10 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = new StringBuffer();
-    for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
+    for (MapEntry<SourceClassBuilder, String> entry
         in macroApplicationData.classTypesResults.entries) {
       if (entry.key.cls == cls) {
-        for (MacroExecutionResult result in entry.value) {
-          sb.write('\n${codeToString(result.augmentations.first)}');
-        }
+        sb.write('\n${entry.value.trim()}');
       }
     }
     for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
@@ -148,12 +146,10 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = new StringBuffer();
-    for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
+    for (MapEntry<MemberBuilder, String> entry
         in macroApplicationData.memberTypesResults.entries) {
       if (_isMember(entry.key, member)) {
-        for (MacroExecutionResult result in entry.value) {
-          sb.write('\n${codeToString(result.augmentations.first)}');
-        }
+        sb.write('\n${entry.value.trim()}');
       }
     }
     for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
