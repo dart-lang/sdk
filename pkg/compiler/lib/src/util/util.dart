@@ -160,8 +160,8 @@ String? stackTraceFilePrefix = null;
 /// anything which supports [:write:] and [:writeCharCode:], for example,
 /// [StringBuffer].  Note that JS supports \xnn and \unnnn whereas JSON only
 /// supports the \unnnn notation.  Therefore we use the \unnnn notation.
-void writeJsonEscapedCharsOn(String string, buffer) {
-  void addCodeUnitEscaped(var buffer, int code) {
+void writeJsonEscapedCharsOn(String string, StringBuffer buffer) {
+  void addCodeUnitEscaped(StringBuffer buffer, int code) {
     assert(code < 0x10000);
     buffer.write(r'\u');
     if (code < 0x1000) {
@@ -176,7 +176,7 @@ void writeJsonEscapedCharsOn(String string, buffer) {
     buffer.write(code.toRadixString(16));
   }
 
-  void writeEscapedOn(String string, var buffer) {
+  void writeEscapedOn(String string, StringBuffer buffer) {
     for (int i = 0; i < string.length; i++) {
       int code = string.codeUnitAt(i);
       if (code == $DQ) {

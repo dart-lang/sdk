@@ -6347,7 +6347,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     if (element == _commonElements.traceHelper) return;
     // TODO(sigmund): create a better uuid for elements.
     HConstant idConstant = graph.addConstantInt(element.hashCode, closedWorld);
-    n(e) => e == null ? '' : e.name;
+    String n(Entity e) => e == null ? '' : e.name;
     String name = "${n(element.library)}:${n(element.enclosingClass)}."
         "${n(element)}";
     HConstant nameConstant = graph.addConstantString(name, closedWorld);
@@ -6437,7 +6437,7 @@ class TryCatchFinallyBuilder {
     kernelBuilder.open(startTryBlock);
   }
 
-  void _addExitTrySuccessor(successor) {
+  void _addExitTrySuccessor(HBasicBlock successor) {
     if (successor == null) return;
     // Iterate over all blocks created inside this try/catch, and
     // attach successor information to blocks that end with
@@ -6451,7 +6451,7 @@ class TryCatchFinallyBuilder {
     }
   }
 
-  void _addOptionalSuccessor(block1, block2) {
+  void _addOptionalSuccessor(HBasicBlock block1, HBasicBlock block2) {
     if (block2 != null) block1.addSuccessor(block2);
   }
 

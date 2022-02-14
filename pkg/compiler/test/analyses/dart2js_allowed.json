@@ -4,13 +4,6 @@
     "Dynamic invocation of 'resume'.": 1,
     "Dynamic invocation of 'pause'.": 1
   },
-  "pkg/compiler/lib/src/source_file_provider.dart": {
-    "Dynamic invocation of 'call'.": 3
-  },
-  "pkg/compiler/lib/src/util/util.dart": {
-    "Dynamic invocation of 'write'.": 11,
-    "Dynamic invocation of 'writeCharCode'.": 1
-  },
   "pkg/compiler/lib/src/util/maplet.dart": {
     "Dynamic access of 'isEmpty'.": 1,
     "Dynamic access of 'length'.": 1,
@@ -84,14 +77,6 @@
   },
   "pkg/dart2js_info/lib/binary_serialization.dart": {
     "Dynamic invocation of 'cast'.": 1
-  },
-  "pkg/compiler/lib/src/universe/side_effects.dart": {
-    "Dynamic access of 'universe.side_effects::_flags'.": 1
-  },
-  "pkg/compiler/lib/src/ssa/builder_kernel.dart": {
-    "Dynamic access of 'name'.": 1,
-    "Dynamic access of 'id'.": 1,
-    "Dynamic invocation of 'addSuccessor'.": 1
   },
   "pkg/compiler/lib/src/ssa/types.dart": {
     "Dynamic access of 'element'.": 1
