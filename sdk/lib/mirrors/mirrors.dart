@@ -56,8 +56,12 @@
  */
 library dart.mirrors;
 
+import "dart:core";
 import 'dart:async' show Future;
 import "dart:_internal" show Since;
+
+// TODO: Move AbstractClassInstantiationError here when removed from dart:core.
+export "dart:core" show AbstractClassInstantiationError;
 
 /**
  * A [MirrorSystem] is the main interface used to reflect on a set of

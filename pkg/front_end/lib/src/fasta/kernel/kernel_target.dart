@@ -227,9 +227,11 @@ class KernelTarget extends TargetImplementation {
   Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
 
   /// Returns a reference to the constructor of
-  /// [AbstractClassInstantiationError] error.  The constructor is expected to
+  /// `AbstractClassInstantiationError` error.  The constructor is expected to
   /// accept a single argument of type String, which is the name of the
   /// abstract class.
+  // TODO: Use some other error before `AbstractClassInstantiationError`
+  // is removed.
   MemberBuilder getAbstractClassInstantiationError(Loader loader) {
     return _cachedAbstractClassInstantiationError ??=
         loader.coreLibrary.getConstructor("AbstractClassInstantiationError");

@@ -462,6 +462,7 @@ class FallThroughError extends Error {
 ///
 /// No longer used in Dart 2 where it has become a compile-time error
 /// to call the constructor of an abstract class.
+@Deprecated("No longer relevant in Dart 2.0")
 class AbstractClassInstantiationError extends Error {
   final String _className;
   AbstractClassInstantiationError(String className) : _className = className;
