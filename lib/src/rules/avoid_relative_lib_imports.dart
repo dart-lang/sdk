@@ -16,6 +16,9 @@ where the same member gets imported in two different ways.  An easy way to avoid
 that is to ensure you have no relative imports that include `lib/` in their
 paths.
 
+You can also use 'always_use_package_imports' to disallow relative imports
+between files within `lib/`.
+
 **GOOD:**
 
 ```dart
@@ -60,9 +63,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   bool isRelativeLibImport(ImportDirective node) {
-    // This check is too narrow.  Really we should be checking against the
-    // resolved URI and not it's literal string content.
-    // See: https://github.com/dart-lang/linter/issues/2419
+    // Relative paths from within the `lib` folder are covered by the
+    // `always_use_package_imports` lint.
     var uriContent = node.uriContent;
     if (uriContent != null) {
       var uri = Uri.tryParse(uriContent);

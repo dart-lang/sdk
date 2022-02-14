@@ -18,8 +18,9 @@ that is to ensure you consistently use absolute imports for files withing the
 `lib/` directory.
 
 This is the opposite of 'prefer_relative_imports'.
-Might be used with 'avoid_relative_lib_imports' to avoid relative imports of
-files within `lib/` directory outside of it. (for example `test/`)
+
+You can also use 'avoid_relative_lib_imports' to disallow relative imports of
+files within `lib/` directory outside of it (for example `test/`).
 
 **GOOD:**
 
@@ -57,6 +58,8 @@ class AlwaysUsePackageImports extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
+    // Relative paths from outside of the lib folder are handled by the
+    // `avoid_relative_lib_imports` lint.
     if (!isInLibDir(context.currentUnit.unit, context.package)) {
       return;
     }
