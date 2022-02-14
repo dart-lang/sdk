@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
@@ -798,7 +799,18 @@ ErrorOr<String> pathOfUri(Uri? uri) {
     ));
   }
   try {
-    return ErrorOr<String>.success(uri.toFilePath());
+    final filePath = uri.toFilePath();
+    // On Windows, paths that start with \ and not a drive letter are not
+    // supported but will return `true` from `path.isAbsolute` so check for them
+    // specifically.
+    if (Platform.isWindows && filePath.startsWith(r'\')) {
+      return ErrorOr<String>.error(ResponseError(
+        code: lsp.ServerErrorCodes.InvalidFilePath,
+        message: 'URI was not an absolute file path (missing drive letter)',
+        data: uri.toString(),
+      ));
+    }
+    return ErrorOr<String>.success(filePath);
   } catch (e) {
     // Even if tryParse() works and file == scheme, toFilePath() can throw on
     // Windows if there are invalid characters.

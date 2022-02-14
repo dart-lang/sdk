@@ -640,7 +640,8 @@ void f() {
     await expectLater(
       formatDocument(
           Uri.file(join(projectFolderPath, 'missing.dart')).toString()),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+          message: 'File does not exist')),
     );
   }
 
@@ -649,8 +650,9 @@ void f() {
 
     await expectLater(
       // Add some invalid path characters to the end of a valid file:// URI.
-      formatDocument(mainFileUri.toString() + '***.dart'),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
+      formatDocument(mainFileUri.toString() + r'***###\\\///:::.dart'),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+          message: 'File URI did not contain a valid file path')),
     );
   }
 
@@ -659,7 +661,8 @@ void f() {
 
     await expectLater(
       formatDocument('a:/a.dart'),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+          message: 'URI was not a valid file:// URI')),
     );
   }
 

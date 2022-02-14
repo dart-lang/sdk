@@ -56,7 +56,8 @@ mixin Handler<P, R> {
     final lineInfo = server.getLineInfo(path);
 
     if (lineInfo == null) {
-      return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
+      return error(ServerErrorCodes.InvalidFilePath,
+          'Unable to obtain line information for file', path);
     } else {
       return success(lineInfo);
     }
@@ -65,7 +66,19 @@ mixin Handler<P, R> {
   Future<ErrorOr<ResolvedUnitResult>> requireResolvedUnit(String path) async {
     final result = await server.getResolvedUnit(path);
     if (result == null) {
-      return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
+      if (server.isAnalyzed(path)) {
+        // If the file was being analyzed and we got a null result, that usually
+        // indicators a parser or analysis failure, so provide a more specific
+        // message.
+        return error(ServerErrorCodes.FileAnalysisFailed,
+            'Analysis failed for file', path);
+      } else {
+        return error(ServerErrorCodes.FileNotAnalyzed,
+            'File is not being analyzed', path);
+      }
+    } else if (!result.exists) {
+      return error(
+          ServerErrorCodes.InvalidFilePath, 'File does not exist', path);
     }
     return success(result);
   }
@@ -73,7 +86,16 @@ mixin Handler<P, R> {
   ErrorOr<ParsedUnitResult> requireUnresolvedUnit(String path) {
     final result = server.getParsedUnit(path);
     if (result == null) {
-      return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
+      if (server.isAnalyzed(path)) {
+        // If the file was being analyzed and we got a null result, that usually
+        // indicators a parser or analysis failure, so provide a more specific
+        // message.
+        return error(ServerErrorCodes.FileAnalysisFailed,
+            'Analysis failed for file', path);
+      } else {
+        return error(ServerErrorCodes.FileNotAnalyzed,
+            'File is not being analyzed', path);
+      }
     }
     return success(result);
   }
