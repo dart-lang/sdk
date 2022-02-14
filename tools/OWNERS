@@ -1,0 +1,10 @@
+file:/OWNERS_INFRA
+
+# Groups administrate themselves.
+per-file OWNERS_ANALYZER=file:OWNERS_ANALYZER
+per-file OWNERS_CFE=file:OWNERS_CFE
+per-file OWNERS_FOUNDATION=file:OWNERS_FOUNDATION
+per-file OWNERS_INFRA=file:OWNERS_INFRA
+per-file OWNERS_PRODUCT=file:OWNERS_PRODUCT
+per-file OWNERS_VM=file:OWNERS_VM
+per-file OWNERS_WEB=file:OWNERS_WEB
