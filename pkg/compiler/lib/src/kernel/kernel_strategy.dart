@@ -18,7 +18,6 @@ import '../deferred_load/deferred_load.dart' show DeferredLoadTask;
 import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../environment.dart' as env;
-import '../frontend_strategy.dart';
 import '../ir/annotations.dart';
 import '../ir/closure.dart' show ClosureScopeModel;
 import '../ir/impact.dart';
@@ -52,7 +51,7 @@ import 'native_basic_data.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
-class KernelFrontendStrategy extends FrontendStrategy {
+class KernelFrontendStrategy {
   final NativeBasicDataBuilderImpl nativeBasicDataBuilder =
       NativeBasicDataBuilderImpl();
   NativeBasicData _nativeBasicData;
@@ -81,7 +80,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
 
   KFieldAnalysis _fieldAnalysis;
 
-  @override
+  /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
   KernelFrontendStrategy(this._compilerTask, this._options,
@@ -99,7 +98,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
 
   KFieldAnalysis get fieldAnalysisForTesting => _fieldAnalysis;
 
-  @override
+  /// Called before processing of the resolution queue is started.
   void onResolutionStart() {
     // TODO(johnniwinther): Avoid the compiler.elementEnvironment.getThisType
     // calls. Currently needed to ensure resolution of the classes for various
@@ -134,7 +133,6 @@ class KernelFrontendStrategy extends FrontendStrategy {
     });
   }
 
-  @override
   ResolutionEnqueuer createResolutionEnqueuer(
       CompilerTask task, Compiler compiler) {
     RuntimeTypesNeedBuilder rtiNeedBuilder = _createRuntimeTypesNeedBuilder();
@@ -223,10 +221,6 @@ class KernelFrontendStrategy extends FrontendStrategy {
         annotationsData);
   }
 
-  @override
-  void onResolutionEnd() {}
-
-  @override
   NativeBasicData get nativeBasicData {
     if (_nativeBasicData == null) {
       _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
@@ -238,7 +232,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
     return _nativeBasicData;
   }
 
-  @override
+  /// Registers a set of loaded libraries with this strategy.
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
     _irAnnotationData = processAnnotations(
@@ -257,7 +251,6 @@ class KernelFrontendStrategy extends FrontendStrategy {
     }
   }
 
-  @override
   void registerModuleData(List<ModuleData> data) {
     if (data == null) {
       _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
@@ -271,19 +264,23 @@ class KernelFrontendStrategy extends FrontendStrategy {
 
   ModularStrategy get modularStrategyForTesting => _modularStrategy;
 
-  @override
-  ElementEnvironment get elementEnvironment => _elementMap.elementEnvironment;
+  /// Returns the [ElementEnvironment] for the element model used in this
+  /// strategy.
+  KernelElementEnvironment get elementEnvironment =>
+      _elementMap.elementEnvironment;
 
-  @override
-  CommonElements get commonElements => _elementMap.commonElements;
+  /// Returns the [CommonElements] for the element model used in this
+  /// strategy.
+  KCommonElements get commonElements => _elementMap.commonElements;
 
   KernelToElementMap get elementMap => _elementMap;
 
-  @override
+  /// Creates a [DeferredLoadTask] for the element model used in this strategy.
   DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
       DeferredLoadTask(compiler, _elementMap);
 
-  @override
+  /// Computes the main function from [mainLibrary] adding additional world
+  /// impact to [impactBuilder].
   FunctionEntity computeMain(WorldImpactBuilder impactBuilder) {
     return elementEnvironment.mainFunction;
   }
@@ -297,7 +294,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
   RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
       _runtimeTypesNeedBuilder;
 
-  @override
+  /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
     return _elementMap.getSourceSpan(spannable, currentElement);
   }

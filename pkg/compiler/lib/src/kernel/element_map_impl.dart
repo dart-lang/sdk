@@ -22,7 +22,6 @@ import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
-import '../frontend_strategy.dart';
 import '../ir/annotations.dart';
 import '../ir/constants.dart';
 import '../ir/element_map.dart';
@@ -39,6 +38,7 @@ import '../js_backend/annotations.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_model/locals.dart';
+import '../kernel/kernel_strategy.dart';
 import '../kernel/dart2js_target.dart';
 import '../native/behavior.dart';
 import '../native/resolver.dart';
@@ -103,7 +103,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   final Map<ir.TreeNode, Local> localFunctionMap = {};
 
   BehaviorBuilder _nativeBehaviorBuilder;
-  final FrontendStrategy _frontendStrategy;
+  final KernelFrontendStrategy _frontendStrategy;
 
   Map<KMember, Map<ir.Expression, TypeMap>> typeMapsForTesting;
 

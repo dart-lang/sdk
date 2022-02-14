@@ -6,8 +6,8 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../frontend_strategy.dart';
 import '../ir/runtime_type_analysis.dart';
+import '../kernel/kernel_strategy.dart';
 import '../serialization/serialization.dart';
 import '../universe/feature.dart';
 import '../util/util.dart' show Setlet;
@@ -104,7 +104,7 @@ abstract class BackendUsageBuilder {
 }
 
 class BackendUsageBuilderImpl implements BackendUsageBuilder {
-  final FrontendStrategy _frontendStrategy;
+  final KernelFrontendStrategy _frontendStrategy;
   // TODO(johnniwinther): Remove the need for these.
   Setlet<FunctionEntity> _globalFunctionDependencies;
   Setlet<ClassEntity> _globalClassDependencies;
