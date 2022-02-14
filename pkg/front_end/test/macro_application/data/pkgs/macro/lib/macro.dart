@@ -47,7 +47,9 @@ class FunctionTypesMacro1 implements FunctionTypesMacro {
   FutureOr<void> buildTypesForFunction(FunctionDeclaration function,
       TypeBuilder builder) {
     var name = '${function.identifier.name}GeneratedClass';
-    builder.declareType(name, new DeclarationCode.fromString('class $name {}'));
+    builder.declareType(
+        name, new DeclarationCode.fromParts(['class $name<T extends ',
+      function.returnType.code, '> {}']));
   }
 }
 

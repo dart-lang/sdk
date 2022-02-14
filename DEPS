@@ -44,7 +44,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "0d38c8081e4da585262ed08ddde3dd85dc779dba",
+  "co19_rev": "a38d7c5685e64499cfbdbfe6548fbd5b63b57f15",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "995745937abffe9fc3a6441f9f0db27b2d706e4c",
 

@@ -232,9 +232,12 @@ class Arguments implements Serializable {
 class ResolvedIdentifier extends Identifier {
   /// The import URI for the library that defines the member that is referenced
   /// by this identifier.
-  final Uri uri;
+  ///
+  /// If this identifier is an instance member or a built-in type, like
+  /// `void`, [uri] is `null`.
+  final Uri? uri;
 
-  /// Type type of identifier this is (instance, static, top level).
+  /// Type of identifier this is (instance, static, top level).
   final IdentifierKind kind;
 
   /// The unqualified name of this identifier.
