@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import 'src/apiimpl.dart';
+import 'src/compiler.dart';
 import 'src/options.dart' show CompilerOptions;
 
 // Unless explicitly allowed, passing [:null:] for any argument to the
@@ -242,7 +242,7 @@ Future<CompilationResult> compile(
     throw new ArgumentError("compilerOutput must be non-null");
   }
 
-  CompilerImpl compiler = new CompilerImpl(
+  var compiler = Compiler(
       compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
   return compiler.run().then((bool success) {
     return new CompilationResult(compiler,

@@ -811,7 +811,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
             (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
       reportLocatedMessage(reporter, message, context);
     },
-            environment: _environment.toMap(),
+            environment: _environment,
             evaluationMode: options.useLegacySubtyping
                 ? ir.EvaluationMode.weak
                 : ir.EvaluationMode.strong);

@@ -265,21 +265,7 @@ functionality is publicly exposed.
 
 * `lib/src/compiler.dart`: defines the core `Compiler` object, which contains
   all the logic about what the compiler pipeline does and how data is organized
-  and communicated between different phases. For a long time, `Compiler` was
-  also used throughout the system as a global dependency-injection object.
-  We've been slowly disentangling those dependencies, but there are still many
-  references to `compiler` still in use.
-
-* `lib/src/apiimpl.dart`: defines `CompilerImpl` a subclass of `Compiler` that
-  adds support for loading scripts, resolving package URIs and patch files. The
-  separation here is a bit historical and we should be able to remove it. It was
-  added to make it easier to create a `MockCompiler` implementation for unit
-  testing. The `MockCompiler` has been replaced in most unit tests by a regular
-  `CompilerImpl` that uses a mock of the file-system (see
-  `pkg/compiler/test/memory_compiler.dart`).
-
-  AI: Once all tests are migrated to this memory compiler, we should merge
-  `Compiler` and `CompilerImpl` and remove this file.
+  and communicated between different phases.
 
 * `lib/src/closure.dart`: closures are compiled as classes, this file has the
   logic to do this kind of conversion in the Dart element model. This includes

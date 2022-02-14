@@ -11,8 +11,6 @@ export 'dart:io' show Platform;
 
 import 'package:compiler/compiler.dart';
 
-export 'package:compiler/src/apiimpl.dart' show CompilerImpl;
-
 import 'package:compiler/src/io/source_file.dart'
     show Binary, StringSourceFile, Utf8BytesSourceFile;
 

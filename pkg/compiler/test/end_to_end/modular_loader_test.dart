@@ -6,7 +6,6 @@
 
 import '../helpers/memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, ClassEntity;
@@ -35,7 +34,7 @@ main() {
     DiagnosticCollector diagnostics = DiagnosticCollector();
     OutputCollector output = OutputCollector();
     Uri entryPoint = Uri.parse('org-dartlang-test:///c2.dart');
-    CompilerImpl compiler = compilerFor(
+    var compiler = compilerFor(
         entryPoint: entryPoint,
         options: [
           '--input-dill=memory:c.dill',
