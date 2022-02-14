@@ -16,6 +16,7 @@ import 'backend_strategy.dart';
 import 'common.dart';
 import 'common/codegen.dart';
 import 'common/elements.dart' show ElementEnvironment;
+import 'common/metrics.dart' show Metric;
 import 'common/names.dart' show Selectors;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
@@ -63,15 +64,19 @@ import 'world.dart' show JClosedWorld, KClosedWorld;
 typedef MakeReporterFunction = CompilerDiagnosticReporter Function(
     Compiler compiler, CompilerOptions options);
 
-abstract class Compiler {
-  Measurer get measurer;
-
-  api.CompilerInput get provider;
+/// Implementation of the compiler using  a [api.CompilerInput] for supplying
+/// the sources.
+class Compiler {
+  final Measurer measurer;
+  final api.CompilerInput provider;
+  final api.CompilerDiagnostics handler;
 
   FrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
   CompilerDiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
+  GenericTask userHandlerTask;
+  GenericTask userProviderTask;
 
   /// Options provided from command-line arguments.
   final CompilerOptions options;
@@ -133,12 +138,12 @@ abstract class Compiler {
   // Callback function used for testing codegen enqueuing.
   void Function() onCodegenQueueEmptyForTesting;
 
-  Compiler(
-      {CompilerOptions options,
-      api.CompilerOutput outputProvider,
-      this.environment = const _EmptyEnvironment(),
-      MakeReporterFunction makeReporter})
-      : this.options = options {
+  Compiler(this.provider, this._outputProvider, this.handler, this.options,
+      {MakeReporterFunction makeReporter})
+      // NOTE: allocating measurer is done upfront to ensure the wallclock is
+      // started before other computations.
+      : measurer = Measurer(enableTaskMeasurements: options.verbose),
+        this.environment = Environment(options.environment) {
     options.deriveOptions();
     options.validate();
 
@@ -184,9 +189,10 @@ abstract class Compiler {
       selfTask,
       serializationTask = SerializationTask(
           options, reporter, provider, outputProvider, measurer),
+      ...backendStrategy.tasks,
+      userHandlerTask = GenericTask('Diagnostic handler', measurer),
+      userProviderTask = GenericTask('Input provider', measurer)
     ];
-
-    tasks.addAll(backendStrategy.tasks);
   }
 
   /// Creates the backend strategy.
@@ -220,8 +226,8 @@ abstract class Compiler {
   // succeeded.
   Future<bool> run() => selfTask.measureSubtask("run", () {
         measurer.startWallClock();
-
-        return Future.sync(() => runInternal())
+        var setupDuration = measurer.elapsedWallClock;
+        var success = Future.sync(() => runInternal())
             .catchError((error, StackTrace stackTrace) =>
                 _reporter.onError(options.compilationTarget, error, stackTrace))
             .whenComplete(() {
@@ -229,6 +235,17 @@ abstract class Compiler {
         }).then((_) {
           return !compilationFailed;
         });
+        if (options.verbose) {
+          var timings = StringBuffer();
+          computeTimings(setupDuration, timings);
+          logVerbose('$timings');
+        }
+        if (options.reportPrimaryMetrics || options.reportSecondaryMetrics) {
+          var metrics = StringBuffer();
+          collectMetrics(metrics);
+          logInfo('$metrics');
+        }
+        return success;
       });
 
   bool get onlyPerformGlobalTypeInference {
@@ -640,7 +657,48 @@ abstract class Compiler {
   }
 
   void reportDiagnostic(DiagnosticMessage message,
-      List<DiagnosticMessage> infos, api.Diagnostic kind);
+      List<DiagnosticMessage> infos, api.Diagnostic kind) {
+    _reportDiagnosticMessage(message, kind);
+    for (DiagnosticMessage info in infos) {
+      _reportDiagnosticMessage(info, api.Diagnostic.INFO);
+    }
+  }
+
+  void _reportDiagnosticMessage(
+      DiagnosticMessage diagnosticMessage, api.Diagnostic kind) {
+    // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
+    // instance in the [Types] constructor in typechecker.dart.
+    var span = diagnosticMessage.sourceSpan;
+    var message = diagnosticMessage.message;
+    if (span == null || span.uri == null) {
+      callUserHandler(message, null, null, null, '$message', kind);
+    } else {
+      callUserHandler(
+          message, span.uri, span.begin, span.end, '$message', kind);
+    }
+  }
+
+  void callUserHandler(Message message, Uri uri, int begin, int end,
+      String text, api.Diagnostic kind) {
+    try {
+      userHandlerTask.measure(() {
+        handler.report(message, uri, begin, end, text, kind);
+      });
+    } catch (ex, s) {
+      reportCrashInUserCode('Uncaught exception in diagnostic handler', ex, s);
+      rethrow;
+    }
+  }
+
+  Future<api.Input> callUserProvider(Uri uri, api.InputKind inputKind) {
+    try {
+      return userProviderTask
+          .measureIo(() => provider.readFromUri(uri, inputKind: inputKind));
+    } catch (ex, s) {
+      reportCrashInUserCode('Uncaught exception in input provider', ex, s);
+      rethrow;
+    }
+  }
 
   void reportCrashInUserCode(String message, exception, stackTrace) {
     reporter.onCrashInUserCode(message, exception, stackTrace);
@@ -732,6 +790,89 @@ abstract class Compiler {
       return element.library.canonicalUri;
     }
     return null;
+  }
+
+  void logInfo(String message) {
+    callUserHandler(null, null, null, null, message, api.Diagnostic.INFO);
+  }
+
+  void logVerbose(String message) {
+    callUserHandler(
+        null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
+  }
+
+  String _formatMs(int ms) {
+    return (ms / 1000).toStringAsFixed(3) + 's';
+  }
+
+  void computeTimings(Duration setupDuration, StringBuffer timings) {
+    timings.writeln("Timings:");
+    var totalDuration = measurer.elapsedWallClock;
+    var asyncDuration = measurer.elapsedAsyncWallClock;
+    var cumulatedDuration = Duration.zero;
+    var timingData = <_TimingData>[];
+    for (final task in tasks) {
+      var running = task.isRunning ? "*" : " ";
+      var duration = task.duration;
+      if (duration != Duration.zero) {
+        cumulatedDuration += duration;
+        var milliseconds = duration.inMilliseconds;
+        timingData.add(_TimingData('   $running${task.name}:', milliseconds,
+            milliseconds * 100 / totalDuration.inMilliseconds));
+        for (String subtask in task.subtasks) {
+          var subtime = task.getSubtaskTime(subtask);
+          var running = task.getSubtaskIsRunning(subtask) ? "*" : " ";
+          timingData.add(_TimingData('   $running${task.name} > $subtask:',
+              subtime, subtime * 100 / totalDuration.inMilliseconds));
+        }
+      }
+    }
+    int longestDescription = timingData
+        .map((d) => d.description.length)
+        .fold(0, (a, b) => a < b ? b : a);
+    for (var data in timingData) {
+      var ms = _formatMs(data.milliseconds);
+      var padding =
+          " " * (longestDescription + 10 - data.description.length - ms.length);
+      var percentPadding = data.percent < 10 ? " " : "";
+      timings.writeln('${data.description}$padding $ms '
+          '$percentPadding(${data.percent.toStringAsFixed(1)}%)');
+    }
+    var unaccountedDuration =
+        totalDuration - cumulatedDuration - setupDuration - asyncDuration;
+    var percent =
+        unaccountedDuration.inMilliseconds * 100 / totalDuration.inMilliseconds;
+    timings.write(
+        '    Total compile-time ${_formatMs(totalDuration.inMilliseconds)};'
+        ' setup ${_formatMs(setupDuration.inMilliseconds)};'
+        ' async ${_formatMs(asyncDuration.inMilliseconds)};'
+        ' unaccounted ${_formatMs(unaccountedDuration.inMilliseconds)}'
+        ' (${percent.toStringAsFixed(2)}%)');
+  }
+
+  void collectMetrics(StringBuffer buffer) {
+    buffer.writeln('Metrics:');
+    for (final task in tasks) {
+      var metrics = task.metrics;
+      var namespace = metrics.namespace;
+      if (namespace == '') {
+        namespace =
+            task.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+      }
+      void report(Metric metric) {
+        buffer
+            .writeln('  ${namespace}.${metric.name}: ${metric.formatValue()}');
+      }
+
+      for (final metric in metrics.primary) {
+        report(metric);
+      }
+      if (options.reportSecondaryMetrics) {
+        for (final metric in metrics.secondary) {
+          report(metric);
+        }
+      }
+    }
   }
 }
 
@@ -1045,11 +1186,12 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   }
 }
 
-class _EmptyEnvironment implements Environment {
-  const _EmptyEnvironment();
+class _TimingData {
+  final String description;
+  final int milliseconds;
+  final double percent;
 
-  @override
-  Map<String, String> toMap() => const {};
+  _TimingData(this.description, this.milliseconds, this.percent);
 }
 
 /// Interface for showing progress during compilation.

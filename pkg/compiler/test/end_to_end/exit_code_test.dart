@@ -22,7 +22,6 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
-import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/null_compiler_output.dart';
@@ -33,7 +32,7 @@ import 'package:compiler/src/world.dart';
 import 'diagnostic_reporter_helper.dart';
 import '../helpers/memory_compiler.dart';
 
-class TestCompiler extends CompilerImpl {
+class TestCompiler extends Compiler {
   final String testMarker;
   final String testType;
   final Function onTest;

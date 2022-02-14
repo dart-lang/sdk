@@ -12,6 +12,7 @@ io/file_blocking_lock_test: Skip
 io/file_lock_test: Skip
 io/file_read_special_device_test: Skip
 io/http_client_stays_alive_test: Skip
+io/http_redirect_test: SkipByDesign # Requires dart:mirrors
 io/http_response_deadline_test: Skip
 io/http_server_close_response_after_error_test: Skip
 io/https_unauthorized_test: Skip

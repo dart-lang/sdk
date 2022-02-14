@@ -4910,17 +4910,10 @@ void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     UNIMPLEMENTED();
   }
-  // PP is a C volatile register.
-  // SP will be aligned to the C stack alignment.
-  __ mv(CALLEE_SAVED_TEMP, PP);
-  __ mv(CALLEE_SAVED_TEMP2, SP);
 
   // Call the function.
   ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
-
-  __ mv(PP, CALLEE_SAVED_TEMP);
-  __ mv(SP, CALLEE_SAVED_TEMP2);
 }
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
@@ -5242,16 +5235,8 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     UNIMPLEMENTED();
   }
 
-  // PP is a C volatile register.
-  // SP will be aligned to the C stack alignment.
-  __ mv(CALLEE_SAVED_TEMP, PP);
-  __ mv(CALLEE_SAVED_TEMP2, SP);
-
   ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(TargetFunction(), InputCount());
-
-  __ mv(PP, CALLEE_SAVED_TEMP);
-  __ mv(SP, CALLEE_SAVED_TEMP2);
 
   // TODO(riscv): Special case pow?
 }

@@ -240,7 +240,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
     if (kind != api.Diagnostic.INFO) {
       lastKind = kind;
     }
-    var color;
+    String Function(String) color;
     if (kind == api.Diagnostic.ERROR) {
       color = colors.red;
     } else if (kind == api.Diagnostic.WARNING) {

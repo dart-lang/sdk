@@ -10,6 +10,7 @@ import 'dart:async';
 
 import 'package:compiler/compiler.dart'
     show CompilationResult, CompilerDiagnostics, CompilerOutput, Diagnostic;
+import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
@@ -89,12 +90,12 @@ Future<CompilationResult> runCompiler(
     bool showDiagnostics: true,
     Uri librariesSpecificationUri,
     Uri packageConfig,
-    void beforeRun(CompilerImpl compiler),
+    void beforeRun(Compiler compiler),
     bool unsafeToTouchSourceFiles: false}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
   }
-  CompilerImpl compiler = compilerFor(
+  Compiler compiler = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: diagnosticHandler,
@@ -114,7 +115,7 @@ Future<CompilationResult> runCompiler(
       isSuccess: isSuccess, kernelInitializedCompilerState: compilerState);
 }
 
-CompilerImpl compilerFor(
+Compiler compilerFor(
     {Uri entryPoint,
     Map<String, dynamic> memorySourceFiles: const <String, dynamic>{},
     CompilerDiagnostics diagnosticHandler,
@@ -173,7 +174,7 @@ CompilerImpl compilerFor(
     ..packageConfig = packageConfig;
   compilerOptions.kernelInitializedCompilerState =
       kernelInitializedCompilerState;
-  CompilerImpl compiler = new CompilerImpl(
+  var compiler = new Compiler(
       provider, outputProvider, diagnosticHandler, compilerOptions);
 
   return compiler;

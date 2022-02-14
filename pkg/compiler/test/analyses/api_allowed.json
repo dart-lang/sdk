@@ -14,15 +14,11 @@
   "org-dartlang-sdk:///lib/_http/websocket_impl.dart": {
     "Dynamic invocation of 'dart._http::_toJSON'.": 1
   },
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_number.dart": {
-    "Dynamic invocation of '[]'.": 5
-  },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_helper.dart": {
     "Dynamic access of 'length'.": 1
   },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/async_patch.dart": {
-    "Dynamic access of 'iterator'.": 1,
-    "Dynamic invocation of 'then'.": 1
+    "Dynamic access of 'iterator'.": 1
   },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/convert_patch.dart": {
     "Dynamic invocation of 'clear'.": 1

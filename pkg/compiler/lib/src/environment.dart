@@ -7,7 +7,10 @@
 /// Environment variables can be used in the user code in two ways. From
 /// conditional imports, and from `const String.fromEnvironment` and
 /// other similar constructors.
-abstract class Environment {
-  /// Returns the full environment as map.
-  Map<String, String> toMap();
+class Environment {
+  /// An immutable map of environment variables.
+  final Map<String, String> definitions;
+
+  Environment(Map<String, String> definitions)
+      : this.definitions = Map.unmodifiable(definitions);
 }

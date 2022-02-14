@@ -16,6 +16,7 @@ import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/indexed.dart';
 import 'package:compiler/src/elements/types.dart';
+import 'package:compiler/src/environment.dart';
 import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/visitors.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
@@ -606,7 +607,7 @@ Future testData(TestData data) async {
             errors.add(context.first.code.name);
             reportLocatedMessage(elementMap.reporter, message, context);
           },
-              environment: environment,
+              environment: Environment(environment),
               supportReevaluationForTesting: true,
               evaluationMode: compiler.options.useLegacySubtyping
                   ? ir.EvaluationMode.weak

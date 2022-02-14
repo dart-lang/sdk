@@ -4166,6 +4166,10 @@ void Assembler::LoadObjectHelper(Register dst,
   LoadImmediate(dst, target::ToRawSmi(object));
 }
 
+static const RegisterSet kRuntimeCallSavedRegisters(
+    kAbiVolatileCpuRegs | (1 << CALLEE_SAVED_TEMP) | (1 << CALLEE_SAVED_TEMP2),
+    kAbiVolatileFpuRegs);
+
 // Note: leaf call sequence uses some abi callee save registers as scratch
 // so they should be manually preserved.
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
@@ -4186,9 +4190,7 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
     addi(FP, SP, 2 * target::kWordSize + frame_size);
   }
 
-  const RegisterSet kVolatileRegisterSet(kAbiVolatileCpuRegs,
-                                         kAbiVolatileFpuRegs);
-  PushRegisters(kVolatileRegisterSet);
+  PushRegisters(kRuntimeCallSavedRegisters);
 
   if (!is_leaf) {  // Leaf calling sequence aligns the stack itself.
     ReserveAlignedFrameSpace(0);
@@ -4196,18 +4198,15 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
 }
 
 void Assembler::LeaveCallRuntimeFrame(bool is_leaf) {
-  const RegisterSet kVolatileRegisterSet(kAbiVolatileCpuRegs,
-                                         kAbiVolatileFpuRegs);
-
   const intptr_t kPushedRegistersSize =
-      kVolatileRegisterSet.CpuRegisterCount() * target::kWordSize +
-      kVolatileRegisterSet.FpuRegisterCount() * kFpuRegisterSize +
+      kRuntimeCallSavedRegisters.CpuRegisterCount() * target::kWordSize +
+      kRuntimeCallSavedRegisters.FpuRegisterCount() * kFpuRegisterSize +
       (target::frame_layout.dart_fixed_frame_size - 2) *
           target::kWordSize;  // From EnterStubFrame (excluding PC / FP)
 
   subi(SP, FP, kPushedRegistersSize);
 
-  PopRegisters(kVolatileRegisterSet);
+  PopRegisters(kRuntimeCallSavedRegisters);
 
   LeaveStubFrame();
 }

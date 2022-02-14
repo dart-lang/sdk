@@ -242,7 +242,7 @@ class JSNumber extends Interceptor implements double {
   static String _handleIEtoString(String result) {
     // Result is probably IE's untraditional format for large numbers,
     // e.g., "8.0000000000008(e+15)" for 0x8000000000000800.toString(16).
-    var match = JS('JSArray|Null',
+    List? match = JS('JSArray|Null',
         r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)', result);
     if (match == null) {
       // Then we don't know how to handle it at all.

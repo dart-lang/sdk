@@ -50,10 +50,11 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
                                 intptr_t argument_count) {
   if (runtime_entry->is_leaf()) {
     ASSERT(argument_count == runtime_entry->argument_count());
-    // Caller is responsible for either using CallRuntimeScore or manually
-    // saving PP (C volatile register) and SP (altered by alignment).
     COMPILE_ASSERT(!IsAbiPreservedRegister(PP));
-
+    // PP is a C volatile register.
+    // SP will be aligned to the C stack alignment.
+    __ mv(CALLEE_SAVED_TEMP, PP);
+    __ mv(CALLEE_SAVED_TEMP2, SP);
     __ lx(TMP2,
           compiler::Address(THR, Thread::OffsetFromThread(runtime_entry)));
     __ sx(TMP2, compiler::Address(THR, Thread::vm_tag_offset()));
@@ -61,6 +62,8 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ jalr(TMP2);
     __ LoadImmediate(TMP2, VMTag::kDartTagId);
     __ sx(TMP2, compiler::Address(THR, Thread::vm_tag_offset()));
+    __ mv(PP, CALLEE_SAVED_TEMP);
+    __ mv(SP, CALLEE_SAVED_TEMP2);
     // These registers must be preserved by runtime functions, otherwise
     // we'd need to restore them here.
     COMPILE_ASSERT(IsCalleeSavedRegister(THR));
