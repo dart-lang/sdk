@@ -665,6 +665,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     optimizer.ranges = ranges;
   }
 
+  @override
+  bool validPostcondition(HGraph graph) => true;
+
   void removeRangeConversion() {
     conversions.forEach((HRangeConversion instruction) {
       instruction.block.rewrite(instruction, instruction.inputs[0]);

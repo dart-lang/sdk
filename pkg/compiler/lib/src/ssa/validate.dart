@@ -220,3 +220,28 @@ class HValidator extends HInstructionVisitor {
     }
   }
 }
+
+/// Validate that the graph contains no unused phi nodes.
+///
+///     assert(NoUnusedPhiValidator.containsNoUnusedPhis(graph));
+class NoUnusedPhiValidator extends HGraphVisitor {
+  bool isValid = true;
+
+  static bool containsNoUnusedPhis(HGraph graph) {
+    final validator = NoUnusedPhiValidator();
+    validator.visitDominatorTree(graph);
+    return validator.isValid;
+  }
+
+  @override
+  void visitBasicBlock(HBasicBlock block) {
+    block.forEachPhi(visitPhi);
+  }
+
+  void visitPhi(HPhi phi) {
+    if (phi.usedBy.isEmpty) {
+      print('Unused $phi in B${phi.block.id}');
+      isValid = false;
+    }
+  }
+}

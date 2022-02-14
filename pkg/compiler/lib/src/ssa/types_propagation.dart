@@ -71,6 +71,9 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   @override
+  bool validPostcondition(HGraph graph) => true;
+
+  @override
   visitBasicBlock(HBasicBlock block) {
     if (block.isLoopHeader()) {
       block.forEachPhi((HPhi phi) {
