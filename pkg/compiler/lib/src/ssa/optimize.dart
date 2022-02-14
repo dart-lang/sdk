@@ -2541,6 +2541,11 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void simplifyPhi(HPhi phi) {
+    // Remove an unused HPhi so that the inputs can become potentially dead.
+    if (phi.usedBy.isEmpty) {
+      phi.block.removePhi(phi);
+      return;
+    }
     // If the phi is of the form `phi(x, HTypeKnown(x))`, it does not strengthen
     // `x`.  We can replace the phi with `x` to potentially make the HTypeKnown
     // refinement node dead and potentially make a HIf control no HPhis.
