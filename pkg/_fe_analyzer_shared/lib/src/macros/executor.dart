@@ -6,15 +6,6 @@ import 'api.dart';
 import 'bootstrap.dart'; // For doc comments only.
 import 'executor_shared/serialization.dart';
 
-/// Exposes a platform specific [MacroExecutor], through a top level
-/// `Future<MacroExecutor> start()` function.
-///
-/// TODO: conditionally load isolate_mirrors_executor.dart once conditional
-/// imports of mirrors are supported in AOT (issue #48057).
-import 'fake_executor/fake_executor.dart'
-    if (dart.library.isolate) 'isolated_executor/isolated_executor.dart'
-    as executor_impl show start;
-
 /// The interface used by Dart language implementations, in order to load
 /// and execute macros, as well as produce library augmentations from those
 /// macro applications.
@@ -23,14 +14,6 @@ import 'fake_executor/fake_executor.dart'
 /// during macro discovery and expansion, and unifies how augmentation libraries
 /// are produced.
 abstract class MacroExecutor {
-  /// Returns a platform specific [MacroExecutor]. On unsupported platforms this
-  /// will be a fake executor object, which will throw an [UnsupportedError] if
-  /// used.
-  ///
-  /// Note that some implementations will also require calls to [loadMacro]
-  /// to pass a `precompiledKernelUri`.
-  static Future<MacroExecutor> start() => executor_impl.start();
-
   /// Invoked when an implementation discovers a new macro definition in a
   /// [library] with [name], and prepares this executor to run the macro.
   ///
@@ -261,6 +244,7 @@ class ResolvedIdentifier extends Identifier {
 /// The types of identifiers.
 enum IdentifierKind {
   instanceMember,
+  local, // Parameters, local variables, etc.
   staticInstanceMember,
   topLevelMember,
 }

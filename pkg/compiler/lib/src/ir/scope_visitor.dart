@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
@@ -115,7 +114,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       }
     } else {
       assert(node is ir.Procedure || node is ir.Constructor);
-      if (!(node is ir.Procedure && ir.isRedirectingFactory(node))) {
+      if (!(node is ir.Procedure && node.isRedirectingFactory)) {
         // Skip redirecting factories: they contain invalid expressions only
         // used to suppport internal CFE modular compilation.
         node.accept(this);

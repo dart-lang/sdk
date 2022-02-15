@@ -226,7 +226,8 @@ void main() {
               positionalParameters: [barPositionalParam],
               returnType: fooType,
               typeParameters: [zapTypeParam],
-              definingClass: fooType.identifier);
+              definingClass: fooType.identifier,
+              isStatic: false);
           expectSerializationEquality(method, mode);
         });
 
@@ -273,6 +274,7 @@ void main() {
             isLate: false,
             type: barType,
             definingClass: fooType.identifier,
+            isStatic: false,
           );
           expectSerializationEquality(bar, mode);
         });

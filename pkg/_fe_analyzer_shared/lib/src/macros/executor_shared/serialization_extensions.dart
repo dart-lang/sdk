@@ -139,6 +139,7 @@ extension DeserializerExtensions on Deserializer {
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         definingClass: RemoteInstance.deserialize(this),
+        isStatic: (this..moveNext()).expectBool(),
       );
 
   ConstructorDeclaration _expectConstructorDeclaration(int id) =>
@@ -155,7 +156,13 @@ extension DeserializerExtensions on Deserializer {
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         definingClass: RemoteInstance.deserialize(this),
-        isFactory: (this..moveNext()).expectBool(),
+        // There is an extra boolean here representing the `isStatic` field
+        // which we just skip past.
+        isFactory: (this
+              ..moveNext()
+              ..expectBool()
+              ..moveNext())
+            .expectBool(),
       );
 
   VariableDeclaration _expectVariableDeclaration(int id) =>
@@ -176,6 +183,7 @@ extension DeserializerExtensions on Deserializer {
         isLate: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
         definingClass: RemoteInstance.deserialize(this),
+        isStatic: (this..moveNext()).expectBool(),
       );
 
   ClassDeclaration _expectClassDeclaration(int id) => new ClassDeclarationImpl(

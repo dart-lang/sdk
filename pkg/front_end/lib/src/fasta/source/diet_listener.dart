@@ -722,8 +722,18 @@ class DietListener extends StackListenerImpl {
       builder =
           lookupConstructor(beginToken, name!) as SourceFunctionBuilderImpl;
     } else {
-      builder = lookupBuilder(beginToken, getOrSet, name as String)
-          as SourceFunctionBuilderImpl;
+      Builder? memberBuilder =
+          lookupBuilder(beginToken, getOrSet, name as String);
+      if (currentClass?.isEnum == true &&
+          memberBuilder is SourceFieldBuilder &&
+          memberBuilder.name == "values") {
+        // This is the case of a method with the name 'values' declared in an
+        // Enum. In that case the method is replaced with the synthesized field
+        // in the outline building phase, and the error is reported there. At
+        // this point we skip the member.
+        return;
+      }
+      builder = memberBuilder as SourceFunctionBuilderImpl;
     }
     buildFunctionBody(
         createFunctionListener(builder),

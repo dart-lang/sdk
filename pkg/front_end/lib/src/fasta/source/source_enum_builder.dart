@@ -27,6 +27,7 @@ import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show
         LocatedMessage,
+        messageEnumContainsValuesDeclaration,
         messageEnumEntryWithTypeArgumentsWithoutArguments,
         messageEnumNonConstConstructor,
         messageNoUnnamedConstructorInObject,
@@ -242,6 +243,20 @@ class SourceEnumBuilder extends SourceClassBuilder {
           referencesFromIndexed.lookupSetterReference(valuesName);
     }
 
+    Builder? customValuesDeclaration =
+        scope.lookupLocalMember("values", setter: false);
+    if (customValuesDeclaration != null) {
+      // Retrieve the earliest declaration for error reporting.
+      while (customValuesDeclaration?.next != null) {
+        customValuesDeclaration = customValuesDeclaration?.next;
+      }
+      parent.addProblem(
+          messageEnumContainsValuesDeclaration,
+          customValuesDeclaration!.charOffset,
+          customValuesDeclaration.fullNameForErrors.length,
+          fileUri);
+    }
+
     SourceFieldBuilder valuesBuilder = new SourceFieldBuilder(
         /* metadata = */ null,
         listType,
@@ -338,7 +353,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
     scope.forEachLocalMember((name, member) {
-      members[name] = member as MemberBuilder;
+      if (name != "values") {
+        members[name] = member as MemberBuilder;
+      }
     });
     scope.forEachLocalSetter((name, member) {
       setters[name] = member;

@@ -6,6 +6,7 @@ import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
 import 'package:_fe_analyzer_shared/src/macros/isolated_executor/isolated_executor.dart'
     as isolatedExecutor;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
@@ -59,7 +60,7 @@ class MacroTestConfig extends TestConfig {
   @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
     options.macroExecutorProvider = () async {
-      return await isolatedExecutor.start();
+      return await isolatedExecutor.start(SerializationMode.byteDataServer);
     };
     options.precompiledMacroUris = precompiledMacroUris;
     options.macroTarget = new VmTarget(new TargetFlags());

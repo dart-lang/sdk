@@ -6,6 +6,7 @@
 library front_end.kernel_generator_impl;
 
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -296,9 +297,8 @@ Future<void> _compileMacros(NeededPrecompilations neededPrecompilations,
 
   Uri uri = _defaultDir.resolve('main.dart');
   MemoryFileSystem fs = new MemoryFileSystem(_defaultDir);
-  fs
-      .entityForUri(uri)
-      .writeAsStringSync(bootstrapMacroIsolate(macroDeclarations));
+  fs.entityForUri(uri).writeAsStringSync(bootstrapMacroIsolate(
+      macroDeclarations, SerializationMode.byteDataClient));
 
   precompilationOptions..fileSystem = new HybridFileSystem(fs);
   CompilerResult? compilerResult =

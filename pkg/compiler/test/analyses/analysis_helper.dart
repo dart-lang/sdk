@@ -19,7 +19,7 @@ import 'package:compiler/src/kernel/loader.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart'
-    show isRedirectingFactory, isRedirectingFactoryField, relativizeUri;
+    show isRedirectingFactoryField, relativizeUri;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -98,7 +98,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
 
   @override
   Null visitProcedure(ir.Procedure node) {
-    if (node.kind == ir.ProcedureKind.Factory && isRedirectingFactory(node)) {
+    if (node.kind == ir.ProcedureKind.Factory && node.isRedirectingFactory) {
       // Don't visit redirecting factories.
       return;
     }

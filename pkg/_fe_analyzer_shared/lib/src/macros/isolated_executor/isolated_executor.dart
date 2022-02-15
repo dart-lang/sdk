@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
 
@@ -15,10 +16,13 @@ import '../executor_shared/response_impls.dart';
 import '../executor_shared/serialization.dart';
 import '../executor.dart';
 
-/// Returns an instance of [_IsolatedMacroExecutor].
+/// Returns an instance of [_IsolatedMacroExecutor] using [serializationMode].
+///
+/// The [serializationMode] must be a `server` variant;
 ///
 /// This is the only public api exposed by this library.
-Future<MacroExecutor> start() async => new _IsolatedMacroExecutor();
+Future<MacroExecutor> start(SerializationMode serializationMode) async =>
+    new _IsolatedMacroExecutor(serializationMode);
 
 /// A [MacroExecutor] implementation which spawns a separate isolate for each
 /// macro that is loaded. Each of these is wrapped in its own
@@ -34,6 +38,16 @@ class _IsolatedMacroExecutor extends MacroExecutor
   /// Individual executors indexed by [MacroClassIdentifier] or
   /// [MacroInstanceIdentifier].
   final _executors = <Object, _SingleIsolatedMacroExecutor>{};
+
+  /// The mode to use for serialization - must be a `server` variant.
+  final SerializationMode _serializationMode;
+
+  _IsolatedMacroExecutor(this._serializationMode) {
+    if (_serializationMode.isClient) {
+      throw new ArgumentError(
+          'Got $serializationMode but expected a server version.');
+    }
+  }
 
   @override
   void close() {
@@ -92,7 +106,7 @@ class _IsolatedMacroExecutor extends MacroExecutor
 
     _SingleIsolatedMacroExecutor executor =
         await _SingleIsolatedMacroExecutor.start(
-            library, name, precompiledKernelUri);
+            library, name, precompiledKernelUri, _serializationMode);
     _executors[identifier] = executor;
     return identifier;
   }
@@ -112,6 +126,9 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
   /// A map of response completers by request id.
   final responseCompleters = <int, Completer<Response>>{};
 
+  /// The mode to use for serialization - must be a `server` variant.
+  final SerializationMode serializationMode;
+
   /// We need to know which serialization zone to deserialize objects in, so
   /// that we read them from the correct cache. Each request creates its own
   /// zone which it stores here by ID and then responses are deserialized in
@@ -124,11 +141,15 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
   _SingleIsolatedMacroExecutor(
       {required this.onClose,
       required this.messageStream,
-      required this.sendPort}) {
+      required this.sendPort,
+      required this.serializationMode}) {
     messageStream.listen((message) {
-      withSerializationMode(SerializationMode.jsonServer, () {
-        Deserializer deserializer =
-            deserializerFactory(message as List<Object?>);
+      if (serializationMode == SerializationMode.byteDataServer &&
+          message is TransferableTypedData) {
+        message = message.materialize().asUint8List();
+      }
+      withSerializationMode(serializationMode, () {
+        Deserializer deserializer = deserializerFactory(message);
         // Every object starts with a zone ID which dictates the zone in which
         // we should deserialize the message.
         deserializer.moveNext();
@@ -171,7 +192,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              sendPort.send(serializer.result);
+              _sendResult(serializer);
               break;
             case MessageType.isExactlyTypeRequest:
               IsExactlyTypeRequest request =
@@ -186,7 +207,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              sendPort.send(serializer.result);
+              _sendResult(serializer);
               break;
             case MessageType.isSubtypeOfRequest:
               IsSubtypeOfRequest request =
@@ -201,7 +222,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              sendPort.send(serializer.result);
+              _sendResult(serializer);
               break;
             case MessageType.declarationOfRequest:
               DeclarationOfRequest request =
@@ -217,7 +238,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              sendPort.send(serializer.result);
+              _sendResult(serializer);
               break;
             case MessageType.constructorsOfRequest:
               ClassIntrospectionRequest request =
@@ -235,7 +256,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              sendPort.send(serializer.result);
+              _sendResult(serializer);
               break;
             case MessageType.fieldsOfRequest:
               ClassIntrospectionRequest request =
@@ -253,7 +274,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              sendPort.send(serializer.result);
+              _sendResult(serializer);
               break;
             case MessageType.interfacesOfRequest:
               ClassIntrospectionRequest request =
@@ -271,7 +292,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              sendPort.send(serializer.result);
+              _sendResult(serializer);
               break;
             case MessageType.methodsOfRequest:
               ClassIntrospectionRequest request =
@@ -289,7 +310,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              sendPort.send(serializer.result);
+              _sendResult(serializer);
               break;
             case MessageType.mixinsOfRequest:
               ClassIntrospectionRequest request =
@@ -307,7 +328,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              sendPort.send(serializer.result);
+              _sendResult(serializer);
               break;
             case MessageType.superclassOfRequest:
               ClassIntrospectionRequest request =
@@ -325,7 +346,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              sendPort.send(serializer.result);
+              _sendResult(serializer);
               break;
             default:
               throw new StateError('Unexpected message type $messageType');
@@ -335,8 +356,8 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
     });
   }
 
-  static Future<_SingleIsolatedMacroExecutor> start(
-      Uri library, String name, Uri precompiledKernelUri) async {
+  static Future<_SingleIsolatedMacroExecutor> start(Uri library, String name,
+      Uri precompiledKernelUri, SerializationMode serializationMode) async {
     ReceivePort receivePort = new ReceivePort();
     Isolate isolate =
         await Isolate.spawnUri(precompiledKernelUri, [], receivePort.sendPort);
@@ -357,7 +378,8 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
           isolate.kill();
         },
         messageStream: messageStreamController.stream,
-        sendPort: await sendPortCompleter.future);
+        sendPort: await sendPortCompleter.future,
+        serializationMode: serializationMode);
   }
 
   @override
@@ -436,7 +458,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
   /// Creates a [Request] with a given serialization zone ID, and handles the
   /// response, casting it to the expected type or throwing the error provided.
   Future<T> _sendRequest<T>(Request Function(int) requestFactory) =>
-      withSerializationMode(SerializationMode.jsonServer, () async {
+      withSerializationMode(serializationMode, () async {
         int zoneId = _nextSerializationZoneId++;
         serializationZones[zoneId] = Zone.current;
         Request request = requestFactory(zoneId);
@@ -444,7 +466,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
         // It is our responsibility to add the zone ID header.
         serializer.addInt(zoneId);
         request.serialize(serializer);
-        sendPort.send(serializer.result);
+        _sendResult(serializer);
         Completer<Response> completer = new Completer<Response>();
         responseCompleters[request.id] = completer;
         try {
@@ -458,4 +480,15 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
           serializationZones.remove(zoneId);
         }
       });
+
+  /// Sends [serializer.result] to [sendPort], possibly wrapping it in a
+  /// [TransferableTypedData] object.
+  void _sendResult(Serializer serializer) {
+    if (serializationMode == SerializationMode.byteDataServer) {
+      sendPort.send(
+          new TransferableTypedData.fromList([serializer.result as Uint8List]));
+    } else {
+      sendPort.send(serializer.result);
+    }
+  }
 }
