@@ -567,13 +567,6 @@ dart.ci_sandbox_builder(
 
 # infra
 dart.infra_builder(
-    "base",
-    execution_timeout = 15 * time.minute,
-    recipe = "dart/forward_branch",
-    schedule = "with 15m interval",
-    notifies = None,
-)
-dart.infra_builder(
     "cbuild",
     recipe = "dart/cbuild",
     schedule = "with 15m interval",
@@ -615,15 +608,6 @@ dart.infra_builder(
         "dart-flutter-flutter-trigger",
     ],
     triggering_policy = scheduler.greedy_batching(max_batch_size = 1),
-)
-dart.infra_builder(
-    "roll-to-dev",
-    bucket = "ci.roll",
-    execution_timeout = 15 * time.minute,
-    notifies = "infra",
-    properties = {"from_ref": "refs/heads/lkgr"},
-    recipe = "roller/roll_to_dev",
-    schedule = "with 4h interval",
 )
 
 # Builder that tests the dev Linux image. When the image autoroller detects
