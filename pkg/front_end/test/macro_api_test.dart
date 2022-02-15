@@ -4,6 +4,7 @@
 
 import 'dart:io' show Directory, Platform;
 
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
 import 'package:_fe_analyzer_shared/src/macros/isolated_executor/isolated_executor.dart'
     as isolatedExecutor;
 import 'package:expect/expect.dart';
@@ -32,7 +33,7 @@ Future<void> main(List<String> args) async {
     options.packagesFileUri = Platform.script.resolve(
         '../../_fe_analyzer_shared/test/macros/api/package_config.json');
     options.macroExecutorProvider = () async {
-      return await isolatedExecutor.start();
+      return await isolatedExecutor.start(SerializationMode.byteDataServer);
     };
     options.precompiledMacroUris = {};
     options.target = options.macroTarget = new VmTarget(new TargetFlags());

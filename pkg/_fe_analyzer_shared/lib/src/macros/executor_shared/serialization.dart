@@ -601,7 +601,7 @@ enum SerializationMode {
   jsonClient,
 }
 
-extension IsClient on SerializationMode {
+extension SerializationModeHelpers on SerializationMode {
   bool get isClient {
     switch (this) {
       case SerializationMode.byteDataClient:
@@ -610,6 +610,20 @@ extension IsClient on SerializationMode {
       case SerializationMode.byteDataServer:
       case SerializationMode.jsonServer:
         return false;
+    }
+  }
+
+  /// A stable string to write in code.
+  String get asCode {
+    switch (this) {
+      case SerializationMode.byteDataClient:
+        return 'SerializationMode.byteDataClient';
+      case SerializationMode.byteDataServer:
+        return 'SerializationMode.byteDataServer';
+      case SerializationMode.jsonClient:
+        return 'SerializationMode.jsonClient';
+      case SerializationMode.jsonServer:
+        return 'SerializationMode.jsonServer';
     }
   }
 }

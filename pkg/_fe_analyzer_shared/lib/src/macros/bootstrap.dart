@@ -2,14 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'executor_shared/serialization.dart'
+    show SerializationMode, SerializationModeHelpers;
+
 /// Generates a Dart program for a given set of macros, which can be compiled
 /// and then passed as a precompiled kernel file to `MacroExecutor.loadMacro`.
 ///
 /// The [macroDeclarations] is a map from library URIs to macro classes for the
 /// macros supported. The macro classes are provided as a map from macro class
 /// names to the names of the macro class constructors.
+///
+/// The [serializationMode] must be a client variant.
 String bootstrapMacroIsolate(
-    Map<String, Map<String, List<String>>> macroDeclarations) {
+    Map<String, Map<String, List<String>>> macroDeclarations,
+    SerializationMode serializationMode) {
+  if (!serializationMode.isClient) {
+    throw new ArgumentError(
+        'Got $serializationMode but expected a client version.');
+  }
   StringBuffer imports = new StringBuffer();
   StringBuffer constructorEntries = new StringBuffer();
   macroDeclarations
@@ -26,16 +36,21 @@ String bootstrapMacroIsolate(
       constructorEntries.writeln('},');
     });
   });
-  return template.replaceFirst(_importMarker, imports.toString()).replaceFirst(
-      _macroConstructorEntriesMarker, constructorEntries.toString());
+  return template
+      .replaceFirst(_importMarker, imports.toString())
+      .replaceFirst(
+          _macroConstructorEntriesMarker, constructorEntries.toString())
+      .replaceFirst(_modeMarker, serializationMode.asCode);
 }
 
 const String _importMarker = '{{IMPORT}}';
 const String _macroConstructorEntriesMarker = '{{MACRO_CONSTRUCTOR_ENTRIES}}';
+const String _modeMarker = '{{SERIALIZATION_MODE}}';
 
 const String template = '''
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/execute_macro.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
@@ -56,11 +71,15 @@ void main(_, SendPort sendPort) {
   Future<Response> sendRequest(Request request) => _sendRequest(request, sendPort);
 
   /// TODO: More directly support customizable serialization types.
-  withSerializationMode(SerializationMode.jsonClient, () {
+  withSerializationMode($_modeMarker, () {
     ReceivePort receivePort = new ReceivePort();
     sendPort.send(receivePort.sendPort);
 
     receivePort.listen((message) async {
+      if (serializationMode == SerializationMode.byteDataClient
+          && message is TransferableTypedData) {
+        message = message.materialize().asUint8List();
+      }
       var deserializer = deserializerFactory(message)
           ..moveNext();
       int zoneId = deserializer.expectInt();
@@ -91,7 +110,7 @@ void main(_, SendPort sendPort) {
         default:
           throw new StateError('Unhandled event type \$type');
       }
-      sendPort.send(serializer.result);
+      _sendResult(serializer, sendPort);
     });
   });
 }
@@ -252,7 +271,18 @@ Future<Response> _sendRequest(Request request, SendPort sendPort) {
   Serializer serializer = serializerFactory();
   serializer.addInt(request.serializationZoneId);
   request.serialize(serializer);
-  sendPort.send(serializer.result);
+  _sendResult(serializer, sendPort);
   return completer.future;
+}
+
+/// Sends [serializer.result] to [sendPort], possibly wrapping it in a
+/// [TransferableTypedData] object.
+void _sendResult(Serializer serializer, SendPort sendPort) {
+  if (serializationMode == SerializationMode.byteDataClient) {
+    sendPort.send(
+        TransferableTypedData.fromList([serializer.result as Uint8List]));
+  } else {
+    sendPort.send(serializer.result);
+  }
 }
 ''';
