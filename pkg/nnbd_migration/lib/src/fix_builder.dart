@@ -35,6 +35,7 @@ import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/utilities/built_value_transformer.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/where_or_null_transformer.dart';
@@ -1245,25 +1246,13 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.isGetter && node.isAbstract) {
-      for (var annotation in node.metadata) {
-        if (annotation.arguments == null) {
-          var element = annotation.element;
-          if (element is PropertyAccessorElement &&
-              element.name == 'nullable') {
-            if (element.enclosingElement is CompilationUnitElement) {
-              if (element.library.source.uri.toString() ==
-                  'package:built_value/built_value.dart') {
-                var info = AtomicEditInfo(
-                    NullabilityFixDescription.removeNullableAnnotation, {});
-                (_fixBuilder._getChange(node) as NodeChangeForMethodDeclaration)
-                  ..annotationToRemove = annotation
-                  ..removeAnnotationInfo = info;
-              }
-            }
-          }
-        }
-      }
+    var nullableAnnotation = BuiltValueTransformer.findNullableAnnotation(node);
+    if (nullableAnnotation != null) {
+      var info = AtomicEditInfo(
+          NullabilityFixDescription.removeNullableAnnotation, {});
+      (_fixBuilder._getChange(node) as NodeChangeForMethodDeclaration)
+        ..annotationToRemove = nullableAnnotation
+        ..removeAnnotationInfo = info;
     }
     super.visitMethodDeclaration(node);
   }

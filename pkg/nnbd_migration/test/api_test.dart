@@ -977,6 +977,26 @@ class FooBuilder implements Builder<Foo, FooBuilder> {
         {path1: file1, path2: file2}, {path1: expected1, path2: anything});
   }
 
+  Future<void> test_built_value_nullable_getter_interface_only() async {
+    addBuiltValuePackage();
+    var content = '''
+import 'package:built_value/built_value.dart';
+
+abstract class Foo {
+  @nullable
+  int get value;
+}
+''';
+    var expected = '''
+import 'package:built_value/built_value.dart';
+
+abstract class Foo {
+  int? get value;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_call_already_migrated_extension() async {
     var content = '''
 import 'already_migrated.dart';
