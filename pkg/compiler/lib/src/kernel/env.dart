@@ -5,7 +5,7 @@
 library dart2js.kernel.env;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
-    show isRedirectingFactory, isRedirectingFactoryField;
+    show isRedirectingFactoryField;
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
@@ -368,7 +368,7 @@ class KClassEnvImpl implements KClassEnv {
       }
       var name = member.name.text;
       if (member.kind == ir.ProcedureKind.Factory) {
-        if (isRedirectingFactory(member)) {
+        if (member.isRedirectingFactory) {
           // Don't include redirecting factories.
           return;
         }

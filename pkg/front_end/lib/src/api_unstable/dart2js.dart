@@ -10,11 +10,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show StringToken;
-
 import 'package:kernel/kernel.dart' show Component;
-
-import 'package:kernel/ast.dart' as ir;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -126,12 +122,6 @@ export '../fasta/operator.dart' show operatorFromString;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 
-void clearStringTokenCanonicalizer() {
-  // TODO(ahe): We should be able to remove this. Fasta should take care of
-  // clearing the cache when.
-  StringToken.canonicalizer.clear();
-}
-
 InitializedCompilerState initializeCompiler(
     InitializedCompilerState? oldState,
     Target target,
@@ -213,9 +203,3 @@ Future<Component?> compile(
   options.fileSystem = const NullFileSystem();
   return compilerResult?.component;
 }
-
-/// Desugar API to determine whether [member] is a redirecting factory
-/// constructor.
-// TODO(sigmund): Delete this API once `member.isRedirectingFactory`
-// is implemented correctly for patch files (Issue #33495).
-bool isRedirectingFactory(ir.Procedure member) => member.isRedirectingFactory;

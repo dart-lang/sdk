@@ -7,8 +7,6 @@ library dart2js.compiler_base;
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
 
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show clearStringTokenCanonicalizer;
 import 'package:kernel/ast.dart' as ir;
 
 import '../compiler.dart' as api;
@@ -412,7 +410,6 @@ class Compiler {
   // such caches in the compiler and get access to them through a
   // suitably maintained static reference to the current compiler.
   void clearState() {
-    clearStringTokenCanonicalizer();
     Selector.canonicalizedValues.clear();
 
     // The selector objects held in static fields must remain canonical.
