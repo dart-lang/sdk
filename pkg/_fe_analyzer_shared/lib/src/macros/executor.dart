@@ -261,6 +261,7 @@ class ResolvedIdentifier extends Identifier {
 /// The types of identifiers.
 enum IdentifierKind {
   instanceMember,
+  local, // Parameters, local variables, etc.
   staticInstanceMember,
   topLevelMember,
 }

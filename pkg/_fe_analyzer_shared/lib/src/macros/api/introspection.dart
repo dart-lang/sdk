@@ -82,6 +82,9 @@ abstract class Declaration {
 abstract class ClassMemberDeclaration implements Declaration {
   /// The class that defines this method.
   Identifier get definingClass;
+
+  /// Whether or not this is a static member.
+  bool get isStatic;
 }
 
 /// A declaration that defines a new type in the program.

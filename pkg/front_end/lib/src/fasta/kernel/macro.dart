@@ -205,6 +205,8 @@ class MacroApplications {
   macro.ResolvedIdentifier _resolveIdentifier(macro.Identifier identifier) {
     if (identifier is _IdentifierImpl) {
       MemberBuilder? memberBuilder = identifier.memberBuilder;
+      TypeBuilder? typeBuilder = identifier.typeBuilder;
+      FormalParameterBuilder? parameterBuilder = identifier.parameterBuilder;
       if (memberBuilder != null) {
         Uri? uri;
         String? staticScope;
@@ -225,9 +227,9 @@ class MacroApplications {
             name: identifier.name,
             staticScope: staticScope,
             uri: uri);
-      } else {
+      } else if (typeBuilder != null) {
         TypeDeclarationBuilder typeDeclarationBuilder =
-            identifier.typeBuilder!.declaration!;
+            typeBuilder.declaration!;
         Uri? uri;
         if (typeDeclarationBuilder is ClassBuilder) {
           uri = typeDeclarationBuilder.library.importUri;
@@ -239,6 +241,14 @@ class MacroApplications {
             name: identifier.name,
             staticScope: null,
             uri: uri);
+      } else if (parameterBuilder != null) {
+        return new macro.ResolvedIdentifier(
+            kind: macro.IdentifierKind.local,
+            name: identifier.name,
+            staticScope: null,
+            uri: null);
+      } else {
+        throw new StateError('Unable to resolve identifier $identifier');
       }
     } else {
       // TODO(johnniwinther): Use [_IdentifierImpl] for all identifiers.
@@ -433,11 +443,16 @@ class MacroApplications {
       for (FormalParameterBuilder formal in formals) {
         macro.TypeAnnotationImpl type =
             computeTypeAnnotation(builder.library, formal.type);
+        macro.IdentifierImpl identifier =
+            new _IdentifierImpl.forParameterBuilder(
+                id: macro.RemoteInstance.uniqueId,
+                name: formal.name,
+                parameterBuilder: formal,
+                libraryBuilder: builder.library);
         if (formal.isNamed) {
           namedParameters.add(new macro.ParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
-            identifier: new macro.IdentifierImpl(
-                id: macro.RemoteInstance.uniqueId, name: formal.name),
+            identifier: identifier,
             isRequired: formal.isNamedRequired,
             isNamed: true,
             type: type,
@@ -445,8 +460,7 @@ class MacroApplications {
         } else {
           positionalParameters.add(new macro.ParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
-            identifier: new macro.IdentifierImpl(
-                id: macro.RemoteInstance.uniqueId, name: formal.name),
+            identifier: identifier,
             isRequired: formal.isRequired,
             isNamed: false,
             type: type,
@@ -544,6 +558,7 @@ class MacroApplications {
           isGetter: builder.isGetter,
           isOperator: builder.isOperator,
           isSetter: builder.isSetter,
+          isStatic: builder.isStatic,
           positionalParameters: parameters[0],
           namedParameters: parameters[1],
           returnType:
@@ -589,6 +604,7 @@ class MacroApplications {
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
           isLate: builder.isLate,
+          isStatic: builder.isStatic,
           type: computeTypeAnnotation(builder.library, builder.type));
     } else {
       return new macro.VariableDeclarationImpl(
@@ -728,6 +744,7 @@ class _IdentifierImpl extends macro.IdentifierImpl {
   final MemberBuilder? memberBuilder;
   final TypeBuilder? typeBuilder;
   final LibraryBuilder libraryBuilder;
+  final FormalParameterBuilder? parameterBuilder;
 
   _IdentifierImpl.forTypeBuilder({
     required TypeBuilder this.typeBuilder,
@@ -736,6 +753,7 @@ class _IdentifierImpl extends macro.IdentifierImpl {
     required String name,
   })  : typeDeclarationBuilder = null,
         memberBuilder = null,
+        parameterBuilder = null,
         super(id: id, name: name);
 
   _IdentifierImpl.forTypeDeclarationBuilder({
@@ -745,6 +763,7 @@ class _IdentifierImpl extends macro.IdentifierImpl {
     required String name,
   })  : typeBuilder = null,
         memberBuilder = null,
+        parameterBuilder = null,
         super(id: id, name: name);
 
   _IdentifierImpl.forMemberBuilder(
@@ -753,7 +772,18 @@ class _IdentifierImpl extends macro.IdentifierImpl {
       required String name})
       : typeBuilder = null,
         typeDeclarationBuilder = null,
+        parameterBuilder = null,
         libraryBuilder = memberBuilder.library,
+        super(id: id, name: name);
+
+  _IdentifierImpl.forParameterBuilder({
+    required FormalParameterBuilder this.parameterBuilder,
+    required this.libraryBuilder,
+    required int id,
+    required String name,
+  })  : typeBuilder = null,
+        typeDeclarationBuilder = null,
+        memberBuilder = null,
         super(id: id, name: name);
 }
 

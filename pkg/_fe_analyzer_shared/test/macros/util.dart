@@ -359,7 +359,8 @@ class Fixtures {
       isFinal: false,
       isLate: false,
       type: stringType,
-      definingClass: myClassType.identifier);
+      definingClass: myClassType.identifier,
+      isStatic: false);
   static final myInterface = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myInterfaceType.identifier,
@@ -381,7 +382,8 @@ class Fixtures {
       positionalParameters: [],
       returnType: stringType,
       typeParameters: [],
-      definingClass: myClassType.identifier);
+      definingClass: myClassType.identifier,
+      isStatic: false);
   static final myMixin = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myMixinType.identifier,

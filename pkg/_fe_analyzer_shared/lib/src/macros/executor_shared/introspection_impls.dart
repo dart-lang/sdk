@@ -330,6 +330,9 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.methodDeclaration;
 
+  @override
+  final bool isStatic;
+
   MethodDeclarationImpl({
     // Declaration fields
     required int id,
@@ -346,6 +349,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required List<TypeParameterDeclarationImpl> typeParameters,
     // Method fields
     required this.definingClass,
+    required this.isStatic,
   }) : super(
           id: id,
           identifier: identifier,
@@ -367,6 +371,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     if (serializationMode.isClient) return;
 
     definingClass.serialize(serializer);
+    serializer.addBool(isStatic);
   }
 }
 
@@ -409,6 +414,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
           returnType: returnType,
           typeParameters: typeParameters,
           definingClass: definingClass,
+          isStatic: true,
         );
 
   @override
@@ -466,6 +472,9 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   @override
   final IdentifierImpl definingClass;
 
+  @override
+  final bool isStatic;
+
   FieldDeclarationImpl({
     // Declaration fields
     required int id,
@@ -477,6 +486,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     required TypeAnnotationImpl type,
     // Field fields
     required this.definingClass,
+    required this.isStatic,
   }) : super(
             id: id,
             identifier: identifier,
@@ -494,6 +504,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     if (serializationMode.isClient) return;
 
     definingClass.serialize(serializer);
+    serializer.addBool(isStatic);
   }
 }
 
