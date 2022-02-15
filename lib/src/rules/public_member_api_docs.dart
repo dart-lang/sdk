@@ -112,6 +112,48 @@ class _Visitor extends SimpleAstVisitor {
     return false;
   }
 
+  void checkMethods(NodeList<ClassMember> members) {
+    // Check methods
+
+    var getters = <String, MethodDeclaration>{};
+    var setters = <MethodDeclaration>[];
+
+    // Non-getters/setters.
+    var methods = <MethodDeclaration>[];
+
+    // Identify getter/setter pairs.
+    for (var member in members) {
+      if (member is MethodDeclaration && !isPrivate(member.name)) {
+        if (member.isGetter) {
+          getters[member.name.name] = member;
+        } else if (member.isSetter) {
+          setters.add(member);
+        } else {
+          methods.add(member);
+        }
+      }
+    }
+
+    // Check all getters, and collect offenders along the way.
+    var missingDocs = <MethodDeclaration>{};
+    for (var getter in getters.values) {
+      if (check(getter)) {
+        missingDocs.add(getter);
+      }
+    }
+
+    // But only setters whose getter is missing a doc.
+    for (var setter in setters) {
+      var getter = getters[setter.name.name];
+      if (getter != null && missingDocs.contains(getter)) {
+        check(setter);
+      }
+    }
+
+    // Check remaining methods.
+    methods.forEach(check);
+  }
+
   Element? getOverriddenMember(Element? member) {
     if (member == null) {
       return null;
@@ -212,9 +254,10 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    if (!isPrivate(node.name)) {
-      check(node);
-    }
+    if (isPrivate(node.name)) return;
+
+    check(node);
+    checkMethods(node.members);
   }
 
   @override
@@ -224,46 +267,7 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     check(node);
-
-    // Check methods
-
-    var getters = <String, MethodDeclaration>{};
-    var setters = <MethodDeclaration>[];
-
-    // Non-getters/setters.
-    var methods = <MethodDeclaration>[];
-
-    // Identify getter/setter pairs.
-    for (var member in node.members) {
-      if (member is MethodDeclaration && !isPrivate(member.name)) {
-        if (member.isGetter) {
-          getters[member.name.name] = member;
-        } else if (member.isSetter) {
-          setters.add(member);
-        } else {
-          methods.add(member);
-        }
-      }
-    }
-
-    // Check all getters, and collect offenders along the way.
-    var missingDocs = <MethodDeclaration>{};
-    for (var getter in getters.values) {
-      if (check(getter)) {
-        missingDocs.add(getter);
-      }
-    }
-
-    // But only setters whose getter is missing a doc.
-    for (var setter in setters) {
-      var getter = getters[setter.name.name];
-      if (getter != null && missingDocs.contains(getter)) {
-        check(setter);
-      }
-    }
-
-    // Check remaining methods.
-    methods.forEach(check);
+    checkMethods(node.members);
   }
 
   @override
@@ -309,63 +313,6 @@ class _Visitor extends SimpleAstVisitor {
     if (isPrivate(node.name)) return;
 
     check(node);
-
-    // Check methods
-
-    var getters = <String, MethodDeclaration>{};
-    var setters = <MethodDeclaration>[];
-
-    // Non-getters/setters.
-    var methods = <MethodDeclaration>[];
-
-    // Identify getter/setter pairs.
-    for (var member in node.members) {
-      if (member is MethodDeclaration && !isPrivate(member.name)) {
-        if (member.isGetter) {
-          getters[member.name.name] = member;
-        } else if (member.isSetter) {
-          setters.add(member);
-        } else {
-          methods.add(member);
-        }
-      }
-    }
-
-    // Check all getters, and collect offenders along the way.
-    var missingDocs = <MethodDeclaration>{};
-    for (var getter in getters.values) {
-      if (check(getter)) {
-        missingDocs.add(getter);
-      }
-    }
-
-    var declaredElement = node.declaredElement;
-    if (declaredElement == null) {
-      return;
-    }
-
-    // But only setters whose getter is missing a doc.
-    for (var setter in setters) {
-      var getter = getters[setter.name.name];
-      if (getter == null) {
-        var libraryUri = declaredElement.library.source.uri;
-        // Look for an inherited getter.
-        Element? getter = context.inheritanceManager.getMember(
-          declaredElement.thisType,
-          Name(libraryUri, setter.name.name),
-        );
-        if (getter is PropertyAccessorElement) {
-          if (getter.documentationComment != null) {
-            continue;
-          }
-        }
-        check(setter);
-      } else if (missingDocs.contains(getter)) {
-        check(setter);
-      }
-    }
-
-    // Check remaining methods.
-    methods.forEach(check);
+    checkMethods(node.members);
   }
 }
