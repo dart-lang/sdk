@@ -993,6 +993,11 @@ abstract class IntegrationTestMixin {
   ///   suggestions after filtering is greater than the maxResults, then
   ///   isIncomplete is set to true.
   ///
+  /// completionCaseMatchingMode: CompletionCaseMatchingMode (optional)
+  ///
+  ///   The mode of code completion being invoked. If no value is provided,
+  ///   MATCH_FIRST_CHAR will be assumed.
+  ///
   /// Returns
   ///
   /// replacementOffset: int
@@ -1029,10 +1034,12 @@ abstract class IntegrationTestMixin {
   ///   requested maxResults.
   Future<CompletionGetSuggestions2Result> sendCompletionGetSuggestions2(
       String file, int offset, int maxResults,
-      {CompletionMode? completionMode,
+      {CompletionCaseMatchingMode? completionCaseMatchingMode,
+      CompletionMode? completionMode,
       int? invocationCount,
       int? timeout}) async {
     var params = CompletionGetSuggestions2Params(file, offset, maxResults,
+            completionCaseMatchingMode: completionCaseMatchingMode,
             completionMode: completionMode,
             invocationCount: invocationCount,
             timeout: timeout)

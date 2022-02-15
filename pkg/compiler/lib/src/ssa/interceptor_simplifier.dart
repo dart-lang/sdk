@@ -47,6 +47,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   }
 
   @override
+  bool validPostcondition(HGraph graph) => true;
+
+  @override
   void visitBasicBlock(HBasicBlock node) {
     currentBlock = node;
 

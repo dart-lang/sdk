@@ -29,6 +29,7 @@ import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
+import 'package:nnbd_migration/src/utilities/built_value_transformer.dart';
 import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
 import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
@@ -1330,6 +1331,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitMethodDeclaration(MethodDeclaration node) {
+    if (BuiltValueTransformer.findNullableAnnotation(node) != null) {
+      _graph.makeNullable(
+          _variables!
+              .decoratedElementType(node.declaredElement!.declaration)
+              .returnType!
+              .node!,
+          BuiltValueNullableOrigin(source, node));
+    }
     _handleExecutableDeclaration(node, node.declaredElement!, node.metadata,
         node.returnType, node.parameters, null, node.body, null);
     _dispatch(node.typeParameters);

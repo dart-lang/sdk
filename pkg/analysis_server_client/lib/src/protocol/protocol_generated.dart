@@ -4215,6 +4215,68 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
       );
 }
 
+/// CompletionCaseMatchingMode
+///
+/// enum {
+///   FIRST_CHAR
+///   ALL_CHARS
+///   NONE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionCaseMatchingMode implements Enum {
+  /// Match the first character case only when filtering completions, the
+  /// default for this enumeration.
+  static const CompletionCaseMatchingMode FIRST_CHAR =
+      CompletionCaseMatchingMode._('FIRST_CHAR');
+
+  /// Match all character cases when filtering completion lists.
+  static const CompletionCaseMatchingMode ALL_CHARS =
+      CompletionCaseMatchingMode._('ALL_CHARS');
+
+  /// Do not match character cases when filtering completion lists.
+  static const CompletionCaseMatchingMode NONE =
+      CompletionCaseMatchingMode._('NONE');
+
+  /// A list containing all of the enum values that are defined.
+  static const List<CompletionCaseMatchingMode> VALUES =
+      <CompletionCaseMatchingMode>[FIRST_CHAR, ALL_CHARS, NONE];
+
+  @override
+  final String name;
+
+  const CompletionCaseMatchingMode._(this.name);
+
+  factory CompletionCaseMatchingMode(String name) {
+    switch (name) {
+      case 'FIRST_CHAR':
+        return FIRST_CHAR;
+      case 'ALL_CHARS':
+        return ALL_CHARS;
+      case 'NONE':
+        return NONE;
+    }
+    throw Exception('Illegal enum value: $name');
+  }
+
+  factory CompletionCaseMatchingMode.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    if (json is String) {
+      try {
+        return CompletionCaseMatchingMode(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, 'CompletionCaseMatchingMode', json);
+  }
+
+  @override
+  String toString() => 'CompletionCaseMatchingMode.$name';
+
+  String toJson() => name;
+}
+
 /// completion.existingImports params
 ///
 /// {
@@ -4683,6 +4745,7 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
 ///   "file": FilePath
 ///   "offset": int
 ///   "maxResults": int
+///   "completionCaseMatchingMode": optional CompletionCaseMatchingMode
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -4697,6 +4760,10 @@ class CompletionGetSuggestions2Params implements RequestParams {
   /// after filtering is greater than the maxResults, then isIncomplete is set
   /// to true.
   int maxResults;
+
+  /// The mode of code completion being invoked. If no value is provided,
+  /// MATCH_FIRST_CHAR will be assumed.
+  CompletionCaseMatchingMode? completionCaseMatchingMode;
 
   /// The mode of code completion being invoked. If no value is provided, BASIC
   /// will be assumed. BASIC is also the only currently supported.
@@ -4714,7 +4781,10 @@ class CompletionGetSuggestions2Params implements RequestParams {
   int? timeout;
 
   CompletionGetSuggestions2Params(this.file, this.offset, this.maxResults,
-      {this.completionMode, this.invocationCount, this.timeout});
+      {this.completionCaseMatchingMode,
+      this.completionMode,
+      this.invocationCount,
+      this.timeout});
 
   factory CompletionGetSuggestions2Params.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4739,6 +4809,13 @@ class CompletionGetSuggestions2Params implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'maxResults');
       }
+      CompletionCaseMatchingMode? completionCaseMatchingMode;
+      if (json.containsKey('completionCaseMatchingMode')) {
+        completionCaseMatchingMode = CompletionCaseMatchingMode.fromJson(
+            jsonDecoder,
+            jsonPath + '.completionCaseMatchingMode',
+            json['completionCaseMatchingMode']);
+      }
       CompletionMode? completionMode;
       if (json.containsKey('completionMode')) {
         completionMode = CompletionMode.fromJson(
@@ -4754,6 +4831,7 @@ class CompletionGetSuggestions2Params implements RequestParams {
         timeout = jsonDecoder.decodeInt(jsonPath + '.timeout', json['timeout']);
       }
       return CompletionGetSuggestions2Params(file, offset, maxResults,
+          completionCaseMatchingMode: completionCaseMatchingMode,
           completionMode: completionMode,
           invocationCount: invocationCount,
           timeout: timeout);
@@ -4774,6 +4852,11 @@ class CompletionGetSuggestions2Params implements RequestParams {
     result['file'] = file;
     result['offset'] = offset;
     result['maxResults'] = maxResults;
+    var completionCaseMatchingMode = this.completionCaseMatchingMode;
+    if (completionCaseMatchingMode != null) {
+      result['completionCaseMatchingMode'] =
+          completionCaseMatchingMode.toJson();
+    }
     var completionMode = this.completionMode;
     if (completionMode != null) {
       result['completionMode'] = completionMode.toJson();
@@ -4803,6 +4886,7 @@ class CompletionGetSuggestions2Params implements RequestParams {
       return file == other.file &&
           offset == other.offset &&
           maxResults == other.maxResults &&
+          completionCaseMatchingMode == other.completionCaseMatchingMode &&
           completionMode == other.completionMode &&
           invocationCount == other.invocationCount &&
           timeout == other.timeout;
@@ -4815,6 +4899,7 @@ class CompletionGetSuggestions2Params implements RequestParams {
         file,
         offset,
         maxResults,
+        completionCaseMatchingMode,
         completionMode,
         invocationCount,
         timeout,

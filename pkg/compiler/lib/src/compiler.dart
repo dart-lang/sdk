@@ -31,7 +31,6 @@ import 'dump_info.dart' show DumpInfoTask;
 import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
-import 'frontend_strategy.dart';
 import 'inferrer/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
 import 'inferrer/powersets/wrapped.dart' show WrappedAbstractValueStrategy;
@@ -71,7 +70,7 @@ class Compiler {
   final api.CompilerInput provider;
   final api.CompilerDiagnostics handler;
 
-  FrontendStrategy frontendStrategy;
+  KernelFrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
   CompilerDiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
@@ -455,7 +454,6 @@ class Compiler {
     processQueue(
         frontendStrategy.elementEnvironment, resolutionEnqueuer, mainFunction,
         onProgress: showResolutionProgress);
-    frontendStrategy.onResolutionEnd();
     resolutionEnqueuer.logSummary(reporter.log);
 
     _reporter.reportSuppressedMessagesSummary();
@@ -477,7 +475,7 @@ class Compiler {
         .addAll(result.moduleLibraries.map((module) => CodeLocation(module)));
     selfTask.measureSubtask('runModularAnalysis', () {
       var included = result.moduleLibraries.toSet();
-      var elementMap = (frontendStrategy as KernelFrontendStrategy).elementMap;
+      var elementMap = frontendStrategy.elementMap;
       var moduleData = computeModuleData(result.component, included, options,
           reporter, environment, elementMap);
       if (compilationFailed) return;

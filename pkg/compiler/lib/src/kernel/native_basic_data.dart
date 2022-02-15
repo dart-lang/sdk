@@ -8,14 +8,13 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../frontend_strategy.dart';
 import '../ir/annotations.dart';
 import '../js_backend/native_data.dart';
 import '../native/resolver.dart';
 
 import 'element_map_impl.dart';
 
-class KernelAnnotationProcessor implements AnnotationProcessor {
+class KernelAnnotationProcessor {
   final KernelToElementMapImpl elementMap;
   final NativeBasicDataBuilder _nativeBasicDataBuilder;
   final IrAnnotationData annotationData;
@@ -24,7 +23,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
       this.elementMap, this._nativeBasicDataBuilder, this.annotationData)
       : assert(annotationData != null);
 
-  @override
   void extractNativeAnnotations(LibraryEntity library) {
     KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
 
@@ -57,7 +55,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
     return annotationName;
   }
 
-  @override
   void extractJsInteropAnnotations(LibraryEntity library) {
     // Unused reporter, add back in if uncommenting report lines down below.
     // DiagnosticReporter reporter = elementMap.reporter;

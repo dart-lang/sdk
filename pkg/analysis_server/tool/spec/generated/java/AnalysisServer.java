@@ -440,6 +440,8 @@ public interface AnalysisServer {
    * @param offset The offset within the file at which suggestions are to be made.
    * @param maxResults The maximum number of suggestions to return. If the number of suggestions
    *         after filtering is greater than the maxResults, then isIncomplete is set to true.
+   * @param completionCaseMatchingMode The mode of code completion being invoked. If no value is
+   *         provided, MATCH_FIRST_CHAR will be assumed.
    * @param completionMode The mode of code completion being invoked. If no value is provided, BASIC
    *         will be assumed. BASIC is also the only currently supported.
    * @param invocationCount The number of times that the user has invoked code completion at the same
@@ -449,7 +451,7 @@ public interface AnalysisServer {
    *         field is intended to be used for benchmarking, and usually should not be provided, so
    *         that the default timeout is used.
    */
-  public void completion_getSuggestions2(String file, int offset, int maxResults, String completionMode, int invocationCount, int timeout, GetSuggestions2Consumer consumer);
+  public void completion_getSuggestions2(String file, int offset, int maxResults, String completionCaseMatchingMode, String completionMode, int invocationCount, int timeout, GetSuggestions2Consumer consumer);
 
   /**
    * {@code completion.registerLibraryPaths}

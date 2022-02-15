@@ -49,6 +49,9 @@ class SsaFinalizeInterceptors extends HBaseVisitor
   }
 
   @override
+  bool validPostcondition(HGraph graph) => true;
+
+  @override
   visitBasicBlock(HBasicBlock node) {
     HInstruction instruction = node.first;
     while (instruction != null) {

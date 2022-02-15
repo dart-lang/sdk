@@ -1507,6 +1507,13 @@
           then <tt>isIncomplete</tt> is set to <tt>true</tt>.
         </p>
       </field>
+      <field name="completionCaseMatchingMode" optional="true">
+        <ref>CompletionCaseMatchingMode</ref>
+        <p>
+          The mode of code completion being invoked. If no value is provided,
+          <tt>MATCH_FIRST_CHAR</tt> will be assumed.
+        </p>
+      </field>
       <field name="completionMode" experimental="true" optional="true">
         <ref>CompletionMode</ref>
         <p>
@@ -4142,6 +4149,32 @@
         <code>SMART</code>
         <p>
           Smart code completion, currently not implemented.
+        </p>
+      </value>
+    </enum>
+  </type>
+  <type name="CompletionCaseMatchingMode">
+    <p>
+      An enumeration of the character case matching modes that the user may set in the client.
+    </p>
+    <enum>
+      <value>
+        <code>FIRST_CHAR</code>
+        <p>
+          Match the first character case only when filtering completions, the default for this
+          enumeration.
+        </p>
+      </value>
+      <value>
+        <code>ALL_CHARS</code>
+        <p>
+          Match all character cases when filtering completion lists.
+        </p>
+      </value>
+      <value>
+        <code>NONE</code>
+        <p>
+          Do not match character cases when filtering completion lists.
         </p>
       </value>
     </enum>

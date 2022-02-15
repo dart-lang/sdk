@@ -98,6 +98,17 @@ class ArgumentErrorCheckNotNullOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.argumentErrorCheckNotNull;
 }
 
+/// Edge origin resulting from a use of built_value's `@nullable` annotation.
+class BuiltValueNullableOrigin extends EdgeOrigin {
+  BuiltValueNullableOrigin(Source? source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'method is marked with the `@nullable` annotation';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.builtValueNullableAnnotation;
+}
+
 /// An edge origin used for edges that originated because of a tear-off of
 /// `call` on a function type.
 class CallTearOffOrigin extends EdgeOrigin {

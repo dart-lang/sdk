@@ -242,6 +242,7 @@ enum EdgeOriginKind {
   alwaysNullableType,
   angularAnnotation,
   argumentErrorCheckNotNull,
+  builtValueNullableAnnotation,
   callTearOff,
   compoundAssignment,
   // See [DummyOrigin].
