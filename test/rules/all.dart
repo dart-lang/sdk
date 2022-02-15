@@ -5,6 +5,8 @@
 import 'annotate_overrides_test.dart' as annotate_overrides;
 import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
+import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
+    as avoid_equals_and_hash_code_on_mutable_classes;
 import 'avoid_function_literals_in_foreach_calls_test.dart'
     as avoid_function_literals_in_foreach_calls;
 import 'avoid_init_to_null_test.dart' as avoid_init_to_null;
@@ -68,6 +70,7 @@ import 'void_checks_test.dart' as void_checks;
 void main() {
   annotate_overrides.main();
   avoid_annotating_with_dynamic.main();
+  avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_function_literals_in_foreach_calls.main();
   avoid_setters_without_getters.main();
   avoid_init_to_null.main();
