@@ -13,6 +13,8 @@ import 'avoid_redundant_argument_values_test.dart'
 import 'avoid_renaming_method_parameters_test.dart'
     as avoid_renaming_method_parameters;
 import 'avoid_returning_this_test.dart' as avoid_returning_this;
+import 'avoid_setters_without_getters_test.dart'
+    as avoid_setters_without_getters;
 import 'avoid_shadowing_type_parameters_test.dart'
     as avoid_shadowing_type_parameters;
 import 'avoid_types_as_parameter_names_test.dart'
@@ -67,6 +69,7 @@ void main() {
   annotate_overrides.main();
   avoid_annotating_with_dynamic.main();
   avoid_function_literals_in_foreach_calls.main();
+  avoid_setters_without_getters.main();
   avoid_init_to_null.main();
   avoid_redundant_argument_values.main();
   avoid_renaming_method_parameters.main();
