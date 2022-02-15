@@ -2787,6 +2787,16 @@ const MessageCode messageEnumConstructorTearoff = const MessageCode(
     problemMessage: r"""Enum constructors can't be torn off.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumContainsValuesDeclaration =
+    messageEnumContainsValuesDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumContainsValuesDeclaration = const MessageCode(
+    "EnumContainsValuesDeclaration",
+    problemMessage:
+        r"""Enums can't contain declarations of members with the name 'values'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumDeclarationEmpty = messageEnumDeclarationEmpty;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -5,6 +5,8 @@
 # Note that test/spelling: Status will have no effect. Spelling errors can
 # always be fixed by either spelling correctly or updating the dictionary.
 
+EnumContainsValuesDeclaration/analyzerCode: Fail
+EnumContainsValuesDeclaration/example: Fail
 AbstractClassConstructorTearOff/analyzerCode: Fail
 AbstractClassInstantiation/example: Fail
 AbstractExtensionField/analyzerCode: Fail

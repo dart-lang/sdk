@@ -30,6 +30,7 @@ dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
 enhanced_enums/conflicting_elements: FormatterCrash
 enhanced_enums/constructor_calls: FormatterCrash
+enhanced_enums/declared_values: FormatterCrash
 enhanced_enums/entries_with_type_arguments: FormatterCrash
 enhanced_enums/enum_as_supertype: FormatterCrash
 enhanced_enums/inference_in_constructor_parameters: FormatterCrash

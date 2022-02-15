@@ -5473,3 +5473,6 @@ EnumConstructorTearoff:
 
 EnumFactoryRedirectsToConstructor:
   problemMessage: "Enum factory constructors can't redirect to generative constructors."
+
+EnumContainsValuesDeclaration:
+  problemMessage: "Enums can't contain declarations of members with the name 'values'."
