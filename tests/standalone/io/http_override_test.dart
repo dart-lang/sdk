@@ -41,6 +41,10 @@ class MyHttpClient1 implements HttpClient {
   set authenticate(Future<bool> f(Uri url, String scheme, String realm)?) {}
   void addCredentials(
       Uri url, String realm, HttpClientCredentials credentials) {}
+  set connectionFactory(
+      Future<ConnectionTask<Socket>> Function(
+              Uri url, String? proxyHost, int? proxyPort)?
+          f) {}
   set findProxy(String f(Uri url)?) {}
   set authenticateProxy(
       Future<bool> f(String host, int port, String scheme, String realm)?) {}
@@ -85,6 +89,10 @@ class MyHttpClient2 implements HttpClient {
   set authenticate(Future<bool> f(Uri url, String scheme, String realm)?) {}
   void addCredentials(
       Uri url, String realm, HttpClientCredentials credentials) {}
+  set connectionFactory(
+      Future<ConnectionTask<Socket>> Function(
+              Uri url, String? proxyHost, int? proxyPort)?
+          f) {}
   set findProxy(String f(Uri url)?) {}
   set authenticateProxy(
       Future<bool> f(String host, int port, String scheme, String realm)?) {}
