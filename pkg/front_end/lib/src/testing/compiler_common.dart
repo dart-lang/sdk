@@ -114,9 +114,13 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
   }
 }
 
+const String _testUriScheme = 'org-dartlang-test';
+
+bool isTestUri(Uri uri) => uri.isScheme(_testUriScheme);
+
 /// A fake absolute directory used as the root of a memory-file system in the
 /// helpers above.
-Uri _defaultDir = Uri.parse('org-dartlang-test:///a/b/c/');
+Uri _defaultDir = Uri.parse('${_testUriScheme}:///a/b/c/');
 
 /// Convert relative file paths into an absolute Uri as expected by the test
 /// helpers above.

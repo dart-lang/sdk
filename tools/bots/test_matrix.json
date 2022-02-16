@@ -185,6 +185,41 @@
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
       "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
     ],
+    "dart2wasm_hostasserts": [
+      ".packages",
+      ".dart_tool/package_config.json",
+      "out/ReleaseX64/dart",
+      "out/ReleaseX64/dart2wasm_platform.dill",
+      "pkg/",
+      "runtime/tests/",
+      "samples-dev/",
+      "samples/",
+      "sdk/",
+      "tests/.dart_tool/package_config.json",
+      "tests/angular/",
+      "tests/co19/co19-analyzer.status",
+      "tests/co19/co19-co19.status",
+      "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dartdevc.status",
+      "tests/co19/co19-kernel.status",
+      "tests/co19/co19-runtime.status",
+      "tests/corelib/",
+      "tests/web/",
+      "tests/dartdevc/",
+      "tests/language/",
+      "tests/language_2/",
+      "tests/lib/",
+      "tests/light_unittest.dart",
+      "tests/search/",
+      "tests/ffi/",
+      "third_party/d8/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "third_party/requirejs/",
+      "tools/",
+      "xcodebuild/ReleaseX64/dart",
+      "xcodebuild/ReleaseX64/dart2wasm_platform.dill"
+    ],
     "front-end": [
       ".packages",
       ".dart_tool/package_config.json",
@@ -703,6 +738,13 @@
         "host-checked": true,
         "timeout": 240,
         "builder-tag": "dart2js-strong"
+      }
+    },
+    "dart2wasm-hostasserts-linux-x64-d8": {
+      "options": {
+        "host-checked": true,
+        "timeout": 240,
+        "builder-tag": "dart2wasm"
       }
     },
     "dartkp-android-(debug|product|release)-arm_x64": {
@@ -2883,6 +2925,33 @@
           ],
           "shards": 6,
           "fileset": "web_platform_hostasserts_nnbd"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart2wasm-linux-x64-d8"
+      ],
+      "meta": {
+        "description": "dart2wasm tests."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "dart2wasm d8 tests",
+          "arguments": [
+            "-ndart2wasm-hostasserts-linux-x64-d8",
+            "language",
+            "corelib"
+          ],
+          "shards": 6,
+          "fileset": "dart2wasm_hostasserts"
         }
       ]
     },

@@ -1060,6 +1060,45 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   }
 }
 
+class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
+    with _StaticErrorOutput {
+  static void parseErrors(String stdout, List<StaticError> errors) {
+    _StaticErrorOutput._parseCfeErrors(
+        ErrorSource.web, _errorRegexp, stdout, errors);
+  }
+
+  /// Matches the location and message of a dart2wasm error message, which looks
+  /// like:
+  ///
+  ///     tests/language_2/some_test.dart:9:3: Error: Some message.
+  ///       BadThing();
+  ///       ^
+  ///
+  /// The test runner only validates the main error message, and not the
+  /// suggested fixes, so we only parse the first line.
+  // TODO(rnystrom): Support validating context messages.
+  static final _errorRegexp =
+      RegExp(r"^([^:]+):(\d+):(\d+): (Error): (.*)$", multiLine: true);
+
+  Dart2WasmCompilerCommandOutput(
+      Command command,
+      int exitCode,
+      bool timedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
+      : super(command, exitCode, timedOut, stdout, stderr, time,
+            compilationSkipped);
+
+  @override
+  void _parseErrors() {
+    var errors = <StaticError>[];
+    parseErrors(decodeUtf8(stdout), errors);
+    errors.forEach(addError);
+  }
+}
+
 class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
   /// Matches the first line of a DDC error message. DDC prints errors to
   /// stdout that look like:

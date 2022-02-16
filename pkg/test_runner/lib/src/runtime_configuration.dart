@@ -168,7 +168,7 @@ class CommandLineJavaScriptRuntime extends RuntimeConfiguration {
 
   void checkArtifact(CommandArtifact artifact) {
     var type = artifact.mimeType;
-    if (type != 'application/javascript') {
+    if (type != 'application/javascript' && type != 'application/wasm') {
       throw "Runtime '$moniker' cannot run files of type '$type'.";
     }
   }

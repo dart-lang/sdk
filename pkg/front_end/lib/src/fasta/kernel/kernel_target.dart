@@ -422,6 +422,17 @@ class KernelTarget extends TargetImplementation {
     }, () => loader.currentUriForCrashReporting);
   }
 
+  /// Builds [augmentationLibraries] to the state expected after applying phase
+  /// 1 macros.
+  Future<void> _buildForPhase1(
+      Iterable<SourceLibraryBuilder> augmentationLibraries) async {
+    await loader.buildOutlines();
+    loader.computeLibraryScopes(augmentationLibraries);
+    // TODO(johnniwinther): Support computation of macro applications in
+    // augmentation libraries?
+    loader.resolveTypes(augmentationLibraries);
+  }
+
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
     if (loader.first == null) return new BuildResult();
     return withCrashReporting<BuildResult>(() async {
@@ -441,7 +452,7 @@ class KernelTarget extends TargetImplementation {
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeLibraryScopes);
-      loader.computeLibraryScopes();
+      loader.computeLibraryScopes(loader.libraryBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroApplications);
       MacroApplications? macroApplications =
@@ -451,10 +462,10 @@ class KernelTarget extends TargetImplementation {
       setupTopAndBottomTypes();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_resolveTypes);
-      loader.resolveTypes();
+      loader.resolveTypes(loader.sourceLibraryBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeVariances);
-      loader.computeVariances();
+      loader.computeVariances(loader.sourceLibraryBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeDefaultTypes);
       loader.computeDefaultTypes(
@@ -462,7 +473,9 @@ class KernelTarget extends TargetImplementation {
 
       if (macroApplications != null) {
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyTypeMacros);
-        await macroApplications.applyTypeMacros();
+        List<SourceLibraryBuilder> augmentationLibraries =
+            await macroApplications.applyTypeMacros();
+        await _buildForPhase1(augmentationLibraries);
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSemantics);

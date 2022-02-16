@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Directory, Platform;
+import 'dart:io' show Directory, File, Platform;
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dar
 import 'package:_fe_analyzer_shared/src/macros/isolated_executor/isolated_executor.dart'
     as isolatedExecutor;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
-    show ActualData, ClassId, Id;
+    show ActualData, ClassId, Id, LibraryId;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
@@ -19,14 +19,20 @@ import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/kernel/macro.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
+import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart' hide Arguments;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/text/ast_to_text.dart';
 import 'package:vm/target/vm.dart';
 
+import '../utils/kernel_chain.dart';
+
 Future<void> main(List<String> args) async {
+  bool generateExpectations = args.contains('-g');
   enableMacros = true;
 
   Directory tempDirectory =
@@ -38,8 +44,10 @@ Future<void> main(List<String> args) async {
         args: args,
         createUriForFileName: createUriForFileName,
         onFailure: onFailure,
-        runTest: runTestFor(
-            const MacroDataComputer(), [new MacroTestConfig(tempDirectory)]),
+        runTest: runTestFor(const MacroDataComputer(), [
+          new MacroTestConfig(dataDir, tempDirectory,
+              generateExpectations: generateExpectations)
+        ]),
         preserveWhitespaceInAnnotations: true);
   } finally {
     await tempDirectory.delete(recursive: true);
@@ -47,11 +55,14 @@ Future<void> main(List<String> args) async {
 }
 
 class MacroTestConfig extends TestConfig {
+  final Directory dataDir;
   final Directory tempDirectory;
+  final bool generateExpectations;
   int precompiledCount = 0;
   final Map<MacroClass, Uri> precompiledMacroUris = {};
 
-  MacroTestConfig(this.tempDirectory)
+  MacroTestConfig(this.dataDir, this.tempDirectory,
+      {required this.generateExpectations})
       : super(cfeMarker, 'cfe',
             explicitExperimentalFlags: {ExperimentalFlag.macros: true},
             packageConfigUri:
@@ -70,6 +81,42 @@ class MacroTestConfig extends TestConfig {
       await writeComponentToFile(component, uri);
       return uri;
     };
+  }
+
+  @override
+  Future<void> onCompilationResult(
+      TestData testData, TestResultData testResultData) async {
+    Component component = testResultData.compilerResult.component!;
+    StringBuffer buffer = new StringBuffer();
+    Printer printer = new Printer(buffer)
+      ..writeProblemsAsJson("Problems in component", component.problemsAsJson);
+    component.libraries.forEach((Library library) {
+      if (isTestUri(library.importUri)) {
+        printer.writeLibraryFile(library);
+        printer.endLine();
+      }
+    });
+    printer.writeConstantTable(component);
+    String actual = buffer.toString();
+    String expectationFileName = '${testData.name}.expect';
+    Uri expectedUri = dataDir.uri.resolve(expectationFileName);
+    File file = new File.fromUri(expectedUri);
+    if (file.existsSync()) {
+      String expected = file.readAsStringSync();
+      if (expected != actual) {
+        if (generateExpectations) {
+          file.writeAsStringSync(actual);
+        } else {
+          String diff = await runDiff(expectedUri, actual);
+          throw "${testData.name} don't match ${expectedUri}\n$diff";
+        }
+      }
+    } else if (generateExpectations) {
+      file.writeAsStringSync(actual);
+    } else {
+      throw 'Please use -g option to create file ${expectedUri} with this '
+          'content:\n$actual';
+    }
   }
 }
 
@@ -93,6 +140,34 @@ class MacroDataComputer extends DataComputer<String> {
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 
   @override
+  void computeLibraryData(TestResultData testResultData, Library library,
+      Map<Id, ActualData<String>> actualMap,
+      {bool? verbose}) {
+    CfeDataRegistry<String> registry =
+        new CfeDataRegistry(testResultData.compilerResult, actualMap);
+    MacroApplicationDataForTesting macroApplicationData = testResultData
+        .compilerResult
+        .kernelTargetForTesting!
+        .loader
+        .dataForTesting!
+        .macroApplicationData;
+    StringBuffer sb = new StringBuffer();
+    for (SourceLibraryBuilder sourceLibraryBuilder
+        in macroApplicationData.libraryTypesResult.keys) {
+      if (sourceLibraryBuilder.library == library) {
+        String source =
+            macroApplicationData.libraryTypesResult[sourceLibraryBuilder]!;
+        sb.write('\n${source}');
+      }
+    }
+    if (sb.isNotEmpty) {
+      Id id = new LibraryId(library.fileUri);
+      registry.registerValue(
+          library.fileUri, library.fileOffset, id, sb.toString(), library);
+    }
+  }
+
+  @override
   void computeClassData(TestResultData testResultData, Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
@@ -105,10 +180,12 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = new StringBuffer();
-    for (MapEntry<SourceClassBuilder, String> entry
+    for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.classTypesResults.entries) {
       if (entry.key.cls == cls) {
-        sb.write('\n${entry.value.trim()}');
+        for (MacroExecutionResult result in entry.value) {
+          sb.write('\n${codeToString(result.augmentations.first)}');
+        }
       }
     }
     for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
@@ -147,10 +224,12 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = new StringBuffer();
-    for (MapEntry<MemberBuilder, String> entry
+    for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.memberTypesResults.entries) {
       if (_isMember(entry.key, member)) {
-        sb.write('\n${entry.value.trim()}');
+        for (MacroExecutionResult result in entry.value) {
+          sb.write('\n${codeToString(result.augmentations.first)}');
+        }
       }
     }
     for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry

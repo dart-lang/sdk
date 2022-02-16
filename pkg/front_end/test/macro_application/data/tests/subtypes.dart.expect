@@ -1,0 +1,59 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:macro/macro.dart" as mac;
+
+import "package:macro/macro.dart";
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B1 extends core::Object {
+  synthetic constructor •() → self::B1
+    : super core::Object::•()
+    ;
+}
+class B2 extends self::B1 {
+  synthetic constructor •() → self::B2
+    : super self::B1::•()
+    ;
+}
+class C1 extends self::C2 {
+  synthetic constructor •() → self::C1
+    : super self::C2::•()
+    ;
+}
+class C2 extends core::Object {
+  synthetic constructor •() → self::C2
+    : super core::Object::•()
+    ;
+}
+class D1 extends core::Object {
+  synthetic constructor •() → self::D1
+    : super core::Object::•()
+    ;
+}
+class D2 extends core::Object {
+  synthetic constructor •() → self::D2
+    : super core::Object::•()
+    ;
+}
+@#C1
+@#C2
+external static method topLevelFunction1(self::A a) → self::A;
+@#C1
+@#C2
+external static method topLevelFunction2(self::B1 a) → self::B2;
+@#C1
+@#C2
+external static method topLevelFunction3(self::C1 a) → self::C2;
+@#C1
+@#C2
+external static method topLevelFunction4(self::D1 a) → self::D2;
+
+constants  {
+  #C1 = mac::FunctionDeclarationsMacro2 {}
+  #C2 = mac::FunctionDefinitionMacro2 {}
+}

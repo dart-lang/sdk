@@ -1,0 +1,26 @@
+name: dart2wasm
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+environment:
+  sdk: '>=2.12.0'
+
+dependencies:
+  front_end:
+    path: ../front_end
+  kernel:
+    path: ../kernel
+  vm:
+    path: ../vm
+  wasm_builder:
+    path: ../wasm_builder
+
+dependency_overrides:
+  # Packages with source in the SDK
+  front_end:
+    path: ../front_end
+  kernel:
+    path: ../kernel
+  vm:
+    path: ../vm
+  wasm_builder:
+    path: ../wasm_builder

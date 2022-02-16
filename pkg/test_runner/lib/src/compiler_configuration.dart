@@ -86,6 +86,9 @@ abstract class CompilerConfiguration {
       case Compiler.dart2js:
         return Dart2jsCompilerConfiguration(configuration);
 
+      case Compiler.dart2wasm:
+        return Dart2WasmCompilerConfiguration(configuration);
+
       case Compiler.dartdevc:
         return DevCompilerConfiguration(configuration);
 
@@ -496,6 +499,83 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
         [babelTransform, "--", babelStandalone, options, input],
         {},
         alwaysCompile: true); // TODO(athom): ensure dependency tracking works.
+  }
+}
+
+/// Common configuration for dart2wasm-based tools, such as dart2wasm.
+class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
+  Dart2WasmCompilerConfiguration(TestConfiguration configuration)
+      : super._subclass(configuration);
+
+  String computeCompilerPath() {
+    var prefix = 'sdk/bin';
+    if (_isHostChecked) {
+      if (_useSdk) {
+        throw "--host-checked and --use-sdk cannot be used together";
+      }
+      // The script dart2wasm_developer is not included in the
+      // shipped SDK, that is the script is not installed in
+      // "$buildDir/dart-sdk/bin/"
+      return '$prefix/dart2wasm_developer$shellScriptExtension';
+    }
+    if (_useSdk) {
+      prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
+    }
+    return '$prefix/dart2wasm$shellScriptExtension';
+  }
+
+  List<String> computeCompilerArguments(
+      TestFile testFile, List<String> vmOptions, List<String> args) {
+    return [
+      // The file being compiled is the last argument.
+      args.last
+    ];
+  }
+
+  Command computeCompilationCommand(String outputFileName,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    arguments = arguments.toList();
+    arguments.add('$outputFileName');
+
+    return CompilationCommand(
+        'dart2wasm',
+        outputFileName,
+        bootstrapDependencies(),
+        computeCompilerPath(),
+        arguments,
+        environmentOverrides,
+        alwaysCompile: !_useSdk);
+  }
+
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    var compilerArguments = [
+      ...arguments,
+    ];
+
+    var inputFile = arguments.last;
+    var inputFilename = Uri.file(inputFile).pathSegments.last;
+    var out = "$tempDir/${inputFilename.replaceAll('.dart', '.wasm')}";
+    var commands = [
+      computeCompilationCommand(out, compilerArguments, environmentOverrides),
+    ];
+
+    return CommandArtifact(commands, out, 'application/wasm');
+  }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestFile testFile,
+      List<String> vmOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    return [
+      '--experimental-wasm-gc',
+      '--wasm-gc-js-interop',
+      'pkg/dart2wasm/bin/run_wasm.js',
+      '--',
+      artifact.filename,
+    ];
   }
 }
 

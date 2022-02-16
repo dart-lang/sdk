@@ -160,7 +160,8 @@ class SourceLoader extends Loader {
 
   List<SourceLibraryBuilder>? _sourceLibraryBuilders;
 
-  final Queue<LibraryBuilder> _unparsedLibraries = new Queue<LibraryBuilder>();
+  final Queue<SourceLibraryBuilder> _unparsedLibraries =
+      new Queue<SourceLibraryBuilder>();
 
   final List<Library> libraries = <Library>[];
 
@@ -964,12 +965,25 @@ severity: $severity
     _typeInferenceEngine!.typeDependencies[member] = typeDependency;
   }
 
+  /// Registers the [library] as unparsed with the given [source] code.
+  ///
+  /// This is used for creating synthesized augmentation libraries.
+  void registerUnparsedLibrarySource(
+      SourceLibraryBuilder library, String source) {
+    List<int> codeUnits = source.codeUnits;
+    Uint8List bytes = new Uint8List(codeUnits.length + 1);
+    bytes.setRange(0, codeUnits.length, codeUnits);
+    sourceBytes[library.fileUri] = bytes;
+    _unparsedLibraries.addLast(library);
+  }
+
+  /// Runs the [OutlineBuilder] on the source of all [_unparsedLibraries].
   Future<void> buildOutlines() async {
     _ensureCoreLibrary();
     while (_unparsedLibraries.isNotEmpty) {
-      LibraryBuilder library = _unparsedLibraries.removeFirst();
+      SourceLibraryBuilder library = _unparsedLibraries.removeFirst();
       currentUriForCrashReporting = library.importUri;
-      await buildOutline(library as SourceLibraryBuilder);
+      await buildOutline(library);
     }
     currentUriForCrashReporting = null;
     logSummary(outlineSummaryTemplate);
@@ -1256,7 +1270,8 @@ severity: $severity
     ticker.logMs("Applied patches");
   }
 
-  void computeLibraryScopes() {
+  /// Compute library scopes for [libraryBuilders].
+  void computeLibraryScopes(Iterable<LibraryBuilder> libraryBuilders) {
     Set<LibraryBuilder> exporters = new Set<LibraryBuilder>();
     Set<LibraryBuilder> exportees = new Set<LibraryBuilder>();
     for (LibraryBuilder library in libraryBuilders) {
@@ -1347,9 +1362,10 @@ severity: $severity
     });
   }
 
-  void resolveTypes() {
+  /// Resolve [NamedTypeBuilder]s in [libraryBuilders].
+  void resolveTypes(Iterable<SourceLibraryBuilder> libraryBuilders) {
     int typeCount = 0;
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+    for (SourceLibraryBuilder library in libraryBuilders) {
       typeCount += library.resolveTypes();
     }
     ticker.logMs("Resolved $typeCount types");
@@ -1697,9 +1713,10 @@ severity: $severity
     ticker.logMs("Resolved $count type-variable bounds");
   }
 
-  void computeVariances() {
+  /// Computes variances of type parameters on typedefs in [libraryBuilders].
+  void computeVariances(Iterable<SourceLibraryBuilder> libraryBuilders) {
     int count = 0;
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+    for (SourceLibraryBuilder library in libraryBuilders) {
       count += library.computeVariances();
     }
     ticker.logMs("Computed variances of $count type variables");

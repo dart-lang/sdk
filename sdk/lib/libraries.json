@@ -154,6 +154,81 @@
       }
     }
   },
+  "wasm": {
+    "libraries": {
+      "_internal": {
+        "uri": "internal/internal.dart",
+        "patches": [
+          "_internal/wasm/lib/internal_patch.dart",
+          "_internal/wasm/lib/class_id.dart",
+          "_internal/wasm/lib/patch.dart",
+          "_internal/wasm/lib/print_patch.dart",
+          "_internal/vm/lib/symbol_patch.dart"
+        ]
+      },
+      "async": {
+        "uri": "async/async.dart",
+        "patches": "_internal/wasm/lib/timer_patch.dart"
+      },
+      "collection": {
+        "uri": "collection/collection.dart",
+        "patches": [
+          "_internal/vm/lib/collection_patch.dart",
+          "_internal/vm/lib/compact_hash.dart",
+          "_internal/wasm/lib/hash_factories.dart"
+        ]
+      },
+      "convert": {
+        "uri": "convert/convert.dart",
+        "patches": "_internal/vm/lib/convert_patch.dart"
+      },
+      "core": {
+        "uri": "core/core.dart",
+        "patches": [
+          "_internal/wasm/lib/core_patch.dart",
+          "_internal/vm/lib/array_patch.dart",
+          "_internal/wasm/lib/bool.dart",
+          "_internal/vm/lib/bool_patch.dart",
+          "_internal/wasm/lib/date_patch.dart",
+          "_internal/wasm/lib/double.dart",
+          "_internal/wasm/lib/expando_patch.dart",
+          "_internal/wasm/lib/function.dart",
+          "_internal/wasm/lib/growable_list.dart",
+          "_internal/wasm/lib/identical_patch.dart",
+          "_internal/wasm/lib/immutable_map.dart",
+          "_internal/wasm/lib/int.dart",
+          "_internal/vm/lib/integers_patch.dart",
+          "_internal/wasm/lib/list.dart",
+          "_internal/vm/lib/null_patch.dart",
+          "_internal/vm/lib/map_patch.dart",
+          "_internal/wasm/lib/object_patch.dart",
+          "_internal/wasm/lib/string_buffer_patch.dart",
+          "_internal/wasm/lib/string_patch.dart",
+          "_internal/wasm/lib/type.dart"
+        ]
+      },
+      "developer": {
+        "uri": "developer/developer.dart",
+        "patches": [
+          "_internal/wasm/lib/developer.dart"
+        ]
+      },
+      "isolate": {
+        "uri": "isolate/isolate.dart"
+      },
+      "math": {
+        "uri": "math/math.dart",
+        "patches": "_internal/wasm/lib/math_patch.dart"
+      },
+      "typed_data": {
+        "uri": "typed_data/typed_data.dart",
+        "patches": "_internal/vm/lib/typed_data_patch.dart"
+      },
+      "wasm": {
+        "uri": "wasm/wasm_types.dart"
+      }
+    }
+  },
   "dart2js": {
     "include": [
       {
