@@ -26,10 +26,12 @@ bool typeAcceptsNull<T>() => (const <Null>[]) is List<int> || null is T;
 
 @patch
 @pragma("vm:external-name", "Internal_makeListFixedLength")
+@pragma("vm:exact-result-type", "dart:core#_List")
 external List<T> makeListFixedLength<T>(List<T> growableList);
 
 @patch
 @pragma("vm:external-name", "Internal_makeFixedListUnmodifiable")
+@pragma("vm:exact-result-type", "dart:core#_ImmutableList")
 external List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList);
 
 @patch
@@ -39,6 +41,7 @@ external Object? extractTypeArguments<T>(T instance, Function extract);
 /// The returned string is a [_OneByteString] with uninitialized content.
 @pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:external-name", "Internal_allocateOneByteString")
+@pragma("vm:exact-result-type", "dart:core#_OneByteString")
 external String allocateOneByteString(int length);
 
 /// The [string] must be a [_OneByteString]. The [index] must be valid.
@@ -61,6 +64,7 @@ void copyRangeFromUint8ListToOneByteString(
 /// The returned string is a [_TwoByteString] with uninitialized content.
 @pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:external-name", "Internal_allocateTwoByteString")
+@pragma("vm:exact-result-type", "dart:core#_TwoByteString")
 external String allocateTwoByteString(int length);
 
 /// The [string] must be a [_TwoByteString]. The [index] must be valid.
