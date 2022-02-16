@@ -229,6 +229,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "dart2wasm",
+      "rootUri": "../pkg/dart2wasm",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "dart_internal",
       "rootUri": "../pkg/dart_internal",
       "packageUri": "lib/",
@@ -777,6 +783,12 @@
     {
       "name": "vm_snapshot_analysis",
       "rootUri": "../pkg/vm_snapshot_analysis",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "wasm_builder",
+      "rootUri": "../pkg/wasm_builder",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },

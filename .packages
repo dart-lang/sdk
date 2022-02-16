@@ -33,6 +33,7 @@ dart2js_info:pkg/dart2js_info/lib
 dart2js_runtime_metrics:pkg/dart2js_runtime_metrics/lib
 dart2js_tools:pkg/dart2js_tools/lib
 dart2native:pkg/dart2native/lib
+dart2wasm:pkg/dart2wasm/lib
 dart_internal:pkg/dart_internal/lib
 dart_style:third_party/pkg_tested/dart_style/lib
 dartdev:pkg/dartdev/lib
@@ -117,6 +118,7 @@ vector_math:third_party/pkg/vector_math/lib
 vm:pkg/vm/lib
 vm_service:pkg/vm_service/lib
 vm_snapshot_analysis:pkg/vm_snapshot_analysis/lib
+wasm_builder:pkg/wasm_builder/lib
 watcher:third_party/pkg/watcher/lib
 webdriver:third_party/pkg/webdriver/lib
 webkit_inspection_protocol:third_party/pkg/webkit_inspection_protocol/lib
