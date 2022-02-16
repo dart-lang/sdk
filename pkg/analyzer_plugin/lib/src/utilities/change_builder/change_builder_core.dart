@@ -540,7 +540,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     _addEdit(edit);
   }
 
-  /// Add the edit from the given [edit] to the edits associates with the
+  /// Add the edit from the given [edit] to the edits associated with the
   /// current file.
   void _addEdit(SourceEdit edit) {
     fileEdit.add(edit);
@@ -549,7 +549,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     changeBuilder._lockedPositions.clear();
   }
 
-  /// Add the edit from the given [builder] to the edits associates with the
+  /// Add the edit from the given [builder] to the edits associated with the
   /// current file.
   void _addEditBuilder(EditBuilderImpl builder) {
     var edit = builder.sourceEdit;

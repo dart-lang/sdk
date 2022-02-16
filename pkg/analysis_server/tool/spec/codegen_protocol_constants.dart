@@ -71,7 +71,7 @@ class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln(';');
   }
 
-  /// Generate all of the constants associates with the [api].
+  /// Generate all of the constants associated with the [api].
   void generateConstants() {
     writeln("const String PROTOCOL_VERSION = '${api.version}';");
     writeln();

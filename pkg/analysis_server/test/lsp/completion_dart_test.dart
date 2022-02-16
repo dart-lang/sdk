@@ -354,7 +354,7 @@ class _MyWidgetState extends State<MyWidget> {
     // Ensure the snippet comes through in the expected format with the expected
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals('setState(() {\n      \${0:}\n    \\});'));
+    expect(item.insertText, equals('setState(() {\n      \$0\n    });'));
     final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
@@ -396,9 +396,9 @@ class _MyWidgetState extends State<MyWidget> {
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'myFunction(…)');
-    // With no required params, there should still be parens and a tabstop inside.
+    // With no required params, there should still be parens/tab stop inside.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${0:})'));
+    expect(item.insertText, equals(r'myFunction($0)'));
     final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
@@ -1143,9 +1143,9 @@ void f() { }
     // Ensure the snippet comes through in the expected format with the expected
     // placeholder.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'one: ${0:},'));
+    expect(item.insertText, equals(r'one: $0,'));
     final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, equals(r'one: ${0:},'));
+    expect(textEdit.newText, equals(r'one: $0,'));
     expect(
       textEdit.range,
       equals(Range(
