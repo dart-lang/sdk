@@ -3643,7 +3643,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
     weak.set_key(key);
     weak.set_value(value);
   }
-  GCTestHelper::CollectAllGarbage();
+  GCTestHelper::CollectNewSpace();
   EXPECT(weak.key() != Object::null());
   EXPECT(weak.value() != Object::null());
 }
@@ -3668,7 +3668,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
     weak2.set_key(key2);
     weak2.set_value(value2);
   }
-  GCTestHelper::CollectAllGarbage();
+  GCTestHelper::CollectNewSpace();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3693,7 +3693,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  GCTestHelper::CollectAllGarbage();
+  GCTestHelper::CollectNewSpace();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3783,7 +3783,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  GCTestHelper::CollectAllGarbage();
+  GCTestHelper::CollectNewSpace();
   EXPECT(weak.key() == Object::null());
   EXPECT(weak.value() == Object::null());
 }
@@ -3806,7 +3806,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  GCTestHelper::CollectAllGarbage();
+  GCTestHelper::CollectNewSpace();
   EXPECT(weak1.key() == Object::null());
   EXPECT(weak1.value() == Object::null());
   EXPECT(weak2.key() == Object::null());
@@ -3869,7 +3869,13 @@ static void WeakReference_PreserveOne(Thread* thread, Heap::Space space) {
     weak.set_target(target);
     weak.SetTypeArguments(type_arguments);
   }
-  GCTestHelper::CollectAllGarbage();
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
   EXPECT(weak.target() != Object::null());
   EXPECT(weak.GetTypeArguments() != Object::null());
 }
@@ -3894,7 +3900,13 @@ static void WeakReference_ClearOne(Thread* thread, Heap::Space space) {
     weak.set_target(target);
     weak.SetTypeArguments(type_arguments);
   }
-  GCTestHelper::CollectAllGarbage();
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
   EXPECT(weak.target() == Object::null());
   EXPECT(weak.GetTypeArguments() != Object::null());
 }
@@ -3927,7 +3939,13 @@ static void WeakReference_Clear_ReachableThroughWeakProperty(
     weak_property.set_key(key);
     weak_property.set_value(weak_reference);
   }
-  GCTestHelper::CollectAllGarbage();
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
   const auto& weak_reference =
       WeakReference::CheckedHandle(Z, weak_property.value());
   EXPECT(weak_reference.target() == Object::null());
@@ -3964,7 +3982,13 @@ static void WeakReference_Preserve_ReachableThroughWeakProperty(
     weak_property.set_key(key);
     weak_property.set_value(weak_reference);
   }
-  GCTestHelper::CollectAllGarbage();
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
   const auto& weak_reference =
       WeakReference::CheckedHandle(Z, weak_property.value());
   EXPECT(weak_reference.target() != Object::null());
