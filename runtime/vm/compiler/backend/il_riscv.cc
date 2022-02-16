@@ -132,8 +132,7 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kUnboxedDouble: {
       const auto out = locs()->out(0).fpu_reg();
-      const intptr_t kDoubleSizeLog2 = 3;
-      __ slli(TMP, index, kDoubleSizeLog2 - kSmiTagSize);
+      __ slli(TMP, index, kWordSizeLog2 - kSmiTagSize);
       __ add(TMP, TMP, base_reg());
       __ LoadDFromOffset(out, TMP, offset());
       break;
