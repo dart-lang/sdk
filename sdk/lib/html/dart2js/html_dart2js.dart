@@ -33717,7 +33717,7 @@ class Window extends EventTarget
    * See [EventStreamProvider] for usage information.
    */
   static const EventStreamProvider<BeforeUnloadEvent> beforeUnloadEvent =
-      const _BeforeUnloadEventStreamProvider('beforeunload');
+      const EventStreamProvider('beforeunload');
 
   /// Stream of `beforeunload` events handled by this [Window].
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
@@ -33772,65 +33772,6 @@ class Window extends EventTarget
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
       ? JS<num>('num', '#.scrollY', this).round()
       : document.documentElement!.scrollTop;
-}
-
-class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
-  String _returnValue;
-
-  _BeforeUnloadEvent(Event base)
-      : _returnValue = '',
-        super(base);
-
-  String get returnValue => _returnValue;
-
-  set returnValue(String? value) {
-    // Typed as nullable only to be compatible with the overriden method.
-    _returnValue = value!;
-    // FF and IE use the value as the return value, Chrome will return this from
-    // the event callback function.
-    if (JS<bool>('bool', '("returnValue" in #)', wrapped)) {
-      JS('void', '#.returnValue = #', wrapped, value);
-    }
-  }
-}
-
-class _BeforeUnloadEventStreamProvider
-    implements EventStreamProvider<BeforeUnloadEvent> {
-  final String _eventType;
-
-  const _BeforeUnloadEventStreamProvider(this._eventType);
-
-  Stream<BeforeUnloadEvent> forTarget(EventTarget? e,
-      {bool useCapture: false}) {
-    // Specify the generic type for EventStream only in dart2js.
-    var stream = new _EventStream<BeforeUnloadEvent>(e, _eventType, useCapture);
-    var controller = new StreamController<BeforeUnloadEvent>(sync: true);
-
-    stream.listen((event) {
-      var wrapped = new _BeforeUnloadEvent(event);
-      controller.add(wrapped);
-    });
-
-    return controller.stream;
-  }
-
-  String getEventType(EventTarget target) {
-    return _eventType;
-  }
-
-  ElementStream<BeforeUnloadEvent> forElement(Element e,
-      {bool useCapture: false}) {
-    // Specify the generic type for _ElementEventStreamImpl only in dart2js.
-    return new _ElementEventStreamImpl<BeforeUnloadEvent>(
-        e, _eventType, useCapture);
-  }
-
-  ElementStream<BeforeUnloadEvent> _forElementList(ElementList<Element> e,
-      {bool useCapture: false}) {
-    // Specify the generic type for _ElementEventStreamImpl only in dart2js.
-    return new _ElementListEventStreamImpl<BeforeUnloadEvent>(
-        e, _eventType, useCapture);
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
