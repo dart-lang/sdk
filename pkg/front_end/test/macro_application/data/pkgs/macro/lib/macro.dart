@@ -48,8 +48,10 @@ class FunctionTypesMacro1 implements FunctionTypesMacro {
       TypeBuilder builder) {
     var name = '${function.identifier.name}GeneratedClass';
     builder.declareType(
-        name, new DeclarationCode.fromParts(['class $name<T extends ',
-      function.returnType.code, '> {}']));
+        name, new DeclarationCode.fromParts(['''
+class $name {
+  external ''', function.returnType.code, ''' method();
+}''']));
   }
 }
 

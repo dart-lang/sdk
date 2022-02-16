@@ -1,0 +1,55 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:macro/macro.dart" as mac;
+
+import "dart:core" as i0;
+import "package:macro/macro.dart" as i1;
+import "package:macro/macro.dart";
+
+class topLevelFunction1GeneratedClass extends core::Object { // from org-dartlang-augmentation:/a/b/c/main.dart-0
+  synthetic constructor •() → self::topLevelFunction1GeneratedClass
+    : super core::Object::•()
+    ;
+  external method method() → void;
+}
+class topLevelFunction2GeneratedClass extends core::Object { // from org-dartlang-augmentation:/a/b/c/main.dart-0
+  synthetic constructor •() → self::topLevelFunction2GeneratedClass
+    : super core::Object::•()
+    ;
+  external method method() → dynamic;
+}
+class topLevelFunction3GeneratedClass extends core::Object { // from org-dartlang-augmentation:/a/b/c/main.dart-0
+  synthetic constructor •() → self::topLevelFunction3GeneratedClass
+    : super core::Object::•()
+    ;
+  external method method() → core::int;
+}
+class topLevelFunction4GeneratedClass extends core::Object { // from org-dartlang-augmentation:/a/b/c/main.dart-0
+  synthetic constructor •() → self::topLevelFunction4GeneratedClass
+    : super core::Object::•()
+    ;
+  external method method() → mac::FunctionTypesMacro1?;
+}
+class topLevelFunction5GeneratedClass extends core::Object { // from org-dartlang-augmentation:/a/b/c/main.dart-0
+  synthetic constructor •() → self::topLevelFunction5GeneratedClass
+    : super core::Object::•()
+    ;
+  external method method() → dynamic;
+}
+@#C1
+static method topLevelFunction1() → void {}
+@#C1
+static method topLevelFunction2() → dynamic {}
+@#C1
+static method topLevelFunction3() → core::int
+  return 0;
+@#C1
+static method topLevelFunction4() → mac::FunctionTypesMacro1?
+  return null;
+@#C1
+static method topLevelFunction5() → dynamic {}
+
+constants  {
+  #C1 = mac::FunctionTypesMacro1 {}
+}

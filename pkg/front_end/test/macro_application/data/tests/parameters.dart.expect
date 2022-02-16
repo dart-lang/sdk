@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "package:macro/macro.dart" as mac;
+import "dart:core" as core;
+
+import "package:macro/macro.dart";
+
+@#C1
+external static method topLevelFunction1(core::int a) → void;
+@#C1
+external static method topLevelFunction2(core::int a, core::int b) → void;
+@#C1
+external static method topLevelFunction3(core::int a, [core::int? b = #C2]) → void;
+@#C1
+external static method topLevelFunction4(core::int a, {core::int? b = #C2, core::int? c = #C2}) → void;
+
+constants  {
+  #C1 = mac::FunctionDefinitionMacro1 {}
+  #C2 = null
+}

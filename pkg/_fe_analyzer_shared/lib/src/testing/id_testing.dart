@@ -771,7 +771,9 @@ Future<void> runTests<T>(Directory dataDir,
   List<FileSystemEntity> entities = dataDir
       .listSync()
       .where((entity) =>
-          !entity.path.endsWith('~') && !entity.path.endsWith('marker.options'))
+          !entity.path.endsWith('~') &&
+          !entity.path.endsWith('marker.options') &&
+          !entity.path.endsWith('.expect'))
       .toList();
   if (shards > 1) {
     entities.sort((a, b) => getTestName(a).compareTo(getTestName(b)));

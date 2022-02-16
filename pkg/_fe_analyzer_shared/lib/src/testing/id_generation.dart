@@ -65,13 +65,13 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     Map<Id, Map<String, IdValue>> idValuePerId = idValuePerUri[uri] ?? {};
     Map<Id, Map<String, ActualData<T>>> actualDataPerId =
         actualDataPerUri[uri] ?? {};
-    AnnotatedCode code = annotatedCode[uri]!;
-    assert(
-        // ignore: unnecessary_null_comparison
-        code != null, "No annotated code for ${uri} in ${annotatedCode.keys}");
-    result[uri] = _computeAnnotations(code, expectedMaps.keys, actualMarkers,
+    AnnotatedCode? code = annotatedCode[uri];
+    if (code != null) {
+      // Annotations are not computed from synthesized code.
+      result[uri] = _computeAnnotations(code, expectedMaps.keys, actualMarkers,
         idValuePerId, actualDataPerId, dataInterpreter,
         sortMarkers: false, createDiff: createDiff, forceUpdate: forceUpdate);
+    }
   }
   return result;
 }

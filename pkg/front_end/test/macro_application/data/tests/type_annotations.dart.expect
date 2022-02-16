@@ -1,0 +1,29 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "package:macro/macro.dart" as mac;
+import "dart:core" as core;
+import "dart:math" as math;
+
+import "dart:math" as math;
+import "package:macro/macro.dart";
+
+@#C1
+external static method topLevelFunction1() → void;
+@#C1
+external static method topLevelFunction2() → dynamic;
+@#C1
+external static method topLevelFunction3() → core::int;
+@#C1
+external static method topLevelFunction4() → dynamic;
+@#C1
+external static method topLevelFunction5() → math::Random;
+@#C1
+external static method topLevelFunction6() → core::List<core::int>;
+@#C1
+external static method topLevelFunction7() → core::Map<math::Random, core::List<core::int>>;
+@#C1
+external static method topLevelFunction8() → core::Map<core::int?, core::String>?;
+
+constants  {
+  #C1 = mac::FunctionDefinitionMacro1 {}
+}

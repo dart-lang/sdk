@@ -504,6 +504,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     (_patchLibraries ??= []).add(patchLibrary);
   }
 
+  /// Creates a synthesized augmentation library for the [source] code and
+  /// attach it as a patch library of this library.
+  ///
+  /// To support the parser of the [source], the library is registered as an
+  /// unparsed library on the [loader].
+  SourceLibraryBuilder createAugmentationLibrary(String source) {
+    int index = _patchLibraries?.length ?? 0;
+    Uri uri = new Uri(
+        scheme: 'org-dartlang-augmentation', path: '${fileUri.path}-$index');
+    SourceLibraryBuilder augmentationLibrary = new SourceLibraryBuilder(
+        fileUri: uri,
+        importUri: uri,
+        packageLanguageVersion: packageLanguageVersion,
+        loader: loader,
+        isUnsupported: false,
+        target: library,
+        origin: this);
+    addPatchLibrary(augmentationLibrary);
+    loader.registerUnparsedLibrarySource(augmentationLibrary, source);
+    return augmentationLibrary;
+  }
+
   List<NamedTypeBuilder> get unresolvedNamedTypes =>
       _libraryTypeParameterScopeBuilder.unresolvedNamedTypes;
 

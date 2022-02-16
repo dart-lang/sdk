@@ -85,6 +85,10 @@ class TestConfig {
   dynamic customizeCompilerOptions(
           CompilerOptions options, TestData testData) =>
       null;
+
+  /// Called after running test on [testData] with the resulting
+  /// [testResultData].
+  void onCompilationResult(TestData testData, TestResultData testResultData) {}
 }
 
 abstract class DataComputer<T> {
@@ -369,6 +373,7 @@ Future<TestResult<T>> runTestForConfig<T>(
 
   TestResultData testResultData =
       new TestResultData(config, customData, compilerResult);
+  config.onCompilationResult(testData, testResultData);
 
   Component component = compilerResult.component!;
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};

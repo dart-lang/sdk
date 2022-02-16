@@ -72,7 +72,7 @@ ScannerResult scan(List<int> bytes,
     bool includeComments: false,
     LanguageVersionChanged? languageVersionChanged}) {
   if (bytes.last != 0) {
-    throw new ArgumentError("[bytes]: the last byte must be null.");
+    throw new ArgumentError("[bytes]: the last byte must be 0.");
   }
   Scanner scanner = new Utf8BytesScanner(bytes,
       configuration: configuration,

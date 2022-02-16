@@ -78,12 +78,14 @@ class MacroApplication {
 
 class MacroApplicationDataForTesting {
   Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
-  Map<SourceClassBuilder, String> classTypesResults = {};
+  Map<SourceLibraryBuilder, String> libraryTypesResult = {};
+  Map<SourceClassBuilder, List<macro.MacroExecutionResult>> classTypesResults =
+      {};
   Map<SourceClassBuilder, List<macro.MacroExecutionResult>>
       classDeclarationsResults = {};
   Map<SourceClassBuilder, List<macro.MacroExecutionResult>>
       classDefinitionsResults = {};
-  Map<MemberBuilder, String> memberTypesResults = {};
+  Map<MemberBuilder, List<macro.MacroExecutionResult>> memberTypesResults = {};
   Map<MemberBuilder, List<macro.MacroExecutionResult>>
       memberDeclarationsResults = {};
   Map<MemberBuilder, List<macro.MacroExecutionResult>>
@@ -235,6 +237,8 @@ class MacroApplications {
           uri = typeDeclarationBuilder.library.importUri;
         } else if (typeDeclarationBuilder is TypeAliasBuilder) {
           uri = typeDeclarationBuilder.library.importUri;
+        } else if (identifier.name == 'dynamic') {
+          uri = Uri.parse('dart:core');
         }
         return new macro.ResolvedIdentifier(
             kind: macro.IdentifierKind.topLevelMember,
@@ -252,19 +256,33 @@ class MacroApplications {
       }
     } else {
       // TODO(johnniwinther): Use [_IdentifierImpl] for all identifiers.
-      return new macro.ResolvedIdentifier(
-          kind: macro.IdentifierKind.topLevelMember,
-          name: identifier.name,
-          staticScope: null,
-          uri: null);
+      if (identical(identifier, dynamicIdentifier)) {
+        return new macro.ResolvedIdentifier(
+            kind: macro.IdentifierKind.topLevelMember,
+            name: identifier.name,
+            staticScope: null,
+            uri: Uri.parse('dart:core'));
+      } else {
+        return new macro.ResolvedIdentifier(
+            kind: macro.IdentifierKind.topLevelMember,
+            name: identifier.name,
+            staticScope: null,
+            uri: null);
+      }
     }
   }
 
-  Future<void> _applyMacros(
-      Future<void> Function(Builder, macro.Declaration, List<MacroApplication>)
-          applyMacros) async {
+  Future<Map<SourceLibraryBuilder, List<macro.MacroExecutionResult>>>
+      _applyMacros(
+          Future<List<macro.MacroExecutionResult>> Function(
+                  Builder, macro.Declaration, List<MacroApplication>)
+              applyMacros) async {
+    Map<SourceLibraryBuilder, List<macro.MacroExecutionResult>> libraryResults =
+        {};
     for (MapEntry<SourceLibraryBuilder,
         LibraryMacroApplicationData> libraryEntry in libraryData.entries) {
+      SourceLibraryBuilder libraryBuilder = libraryEntry.key;
+      List<macro.MacroExecutionResult> results = [];
       LibraryMacroApplicationData libraryMacroApplicationData =
           libraryEntry.value;
       for (MapEntry<MemberBuilder, List<MacroApplication>> memberEntry
@@ -272,7 +290,8 @@ class MacroApplications {
         MemberBuilder memberBuilder = memberEntry.key;
         macro.Declaration? declaration = _getMemberDeclaration(memberBuilder);
         if (declaration != null) {
-          await applyMacros(memberBuilder, declaration, memberEntry.value);
+          results.addAll(
+              await applyMacros(memberBuilder, declaration, memberEntry.value));
         }
       }
       for (MapEntry<SourceClassBuilder, ClassMacroApplicationData> classEntry
@@ -283,18 +302,22 @@ class MacroApplications {
         if (classApplications != null) {
           macro.ClassDeclaration classDeclaration =
               _getClassDeclaration(classBuilder);
-          await applyMacros(classBuilder, classDeclaration, classApplications);
+          results.addAll(await applyMacros(
+              classBuilder, classDeclaration, classApplications));
         }
         for (MapEntry<MemberBuilder, List<MacroApplication>> memberEntry
             in classData.memberApplications.entries) {
           MemberBuilder memberBuilder = memberEntry.key;
           macro.Declaration? declaration = _getMemberDeclaration(memberBuilder);
           if (declaration != null) {
-            await applyMacros(memberBuilder, declaration, memberEntry.value);
+            results.addAll(await applyMacros(
+                memberBuilder, declaration, memberEntry.value));
           }
         }
       }
+      libraryResults[libraryBuilder] = results;
     }
+    return libraryResults;
   }
 
   Future<List<macro.MacroExecutionResult>> _applyTypeMacros(
@@ -311,20 +334,33 @@ class MacroApplications {
         results.add(result);
       }
     }
-    String result =
-        _macroExecutor.buildAugmentationLibrary(results, _resolveIdentifier);
+
     if (retainDataForTesting) {
       if (builder is SourceClassBuilder) {
-        dataForTesting?.classTypesResults[builder] = result;
+        dataForTesting?.classTypesResults[builder] = results;
       } else {
-        dataForTesting?.memberTypesResults[builder as MemberBuilder] = result;
+        dataForTesting?.memberTypesResults[builder as MemberBuilder] = results;
       }
     }
     return results;
   }
 
-  Future<void> applyTypeMacros() async {
-    await _applyMacros(_applyTypeMacros);
+  Future<List<SourceLibraryBuilder>> applyTypeMacros() async {
+    List<SourceLibraryBuilder> augmentationLibraries = [];
+    Map<SourceLibraryBuilder, List<macro.MacroExecutionResult>> results =
+        await _applyMacros(_applyTypeMacros);
+    for (MapEntry<SourceLibraryBuilder, List<macro.MacroExecutionResult>> entry
+        in results.entries) {
+      SourceLibraryBuilder sourceLibraryBuilder = entry.key;
+      String result = _macroExecutor.buildAugmentationLibrary(
+          entry.value, _resolveIdentifier);
+      if (retainDataForTesting) {
+        dataForTesting?.libraryTypesResult[sourceLibraryBuilder] = result;
+      }
+      augmentationLibraries
+          .add(await sourceLibraryBuilder.createAugmentationLibrary(result));
+    }
+    return augmentationLibraries;
   }
 
   Future<List<macro.MacroExecutionResult>> _applyDeclarationsMacros(
