@@ -19,7 +19,6 @@ const libs = <String>[
 const snapshots = <String>[
   'analysis_server',
   'dart2js',
-  'dart2native',
   'dartanalyzer',
   'dartdev',
   'dartdevc',
@@ -28,7 +27,6 @@ const snapshots = <String>[
   'gen_kernel',
   'kernel-service',
   'kernel_worker',
-  'pub',
 ];
 
 void reportFileSize(String path, String name) {
