@@ -5,8 +5,6 @@
 # Note that test/spelling: Status will have no effect. Spelling errors can
 # always be fixed by either spelling correctly or updating the dictionary.
 
-EnumContainsValuesDeclaration/analyzerCode: Fail
-EnumContainsValuesDeclaration/example: Fail
 AbstractClassConstructorTearOff/analyzerCode: Fail
 AbstractClassInstantiation/example: Fail
 AbstractExtensionField/analyzerCode: Fail
@@ -219,6 +217,8 @@ EnumConstructorSuperInitializer/analyzerCode: Fail
 EnumConstructorSuperInitializer/example: Fail
 EnumConstructorTearoff/analyzerCode: Fail
 EnumConstructorTearoff/example: Fail
+EnumContainsValuesDeclaration/analyzerCode: Fail
+EnumContainsValuesDeclaration/example: Fail
 EnumDeclaresConstFactory/analyzerCode: Fail
 EnumDeclaresConstFactory/example: Fail
 EnumDeclaresFactory/analyzerCode: Fail
@@ -227,6 +227,8 @@ EnumEntryWithTypeArgumentsWithoutArguments/analyzerCode: Fail
 EnumEntryWithTypeArgumentsWithoutArguments/example: Fail
 EnumFactoryRedirectsToConstructor/analyzerCode: Fail
 EnumFactoryRedirectsToConstructor/example: Fail
+EnumImplementerContainsValuesDeclaration/analyzerCode: Fail
+EnumImplementerContainsValuesDeclaration/example: Fail
 EnumInstantiation/example: Fail
 EnumNonConstConstructor/analyzerCode: Fail
 EnumNonConstConstructor/example: Fail

@@ -35,7 +35,9 @@ abstract class AbstractCompletionDriverTest
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
-  bool get supportsAvailableSuggestions;
+  bool get _isProtocolVersion1 {
+    return protocol == TestingCompletionProtocol.version1;
+  }
 
   Future<void> addProjectFile(String relativePath, String content) async {
     newFile('$testPackageRootPath/$relativePath', content: content);
@@ -43,7 +45,10 @@ abstract class AbstractCompletionDriverTest
     expect(relativePath, startsWith('lib/'));
     var packageRelativePath = relativePath.substring(4);
     var uriStr = 'package:test/$packageRelativePath';
-    await driver.waitForSetWithUri(uriStr);
+
+    if (_isProtocolVersion1) {
+      await driver.waitForSetWithUri(uriStr);
+    }
   }
 
   Future<List<CompletionSuggestion>> addTestFile(String content,
@@ -105,7 +110,7 @@ abstract class AbstractCompletionDriverTest
   }
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
-    if (supportsAvailableSuggestions) {
+    if (_isProtocolVersion1) {
       await driver.waitForSetWithUri('dart:core');
       await driver.waitForSetWithUri('dart:async');
     }
@@ -154,7 +159,7 @@ name: test
 ''');
 
     driver = CompletionDriver(
-      supportsAvailableSuggestions: supportsAvailableSuggestions,
+      supportsAvailableSuggestions: _isProtocolVersion1,
       server: this,
     );
     await driver.createProject();
@@ -234,9 +239,6 @@ class BasicCompletionTest2 extends AbstractCompletionDriverTest
 }
 
 mixin BasicCompletionTestCases on AbstractCompletionDriverTest {
-  @override
-  bool get supportsAvailableSuggestions => false;
-
   /// Duplicates (and potentially replaces DeprecatedMemberRelevanceTest).
   Future<void> test_deprecated_member_relevance() async {
     await addTestFile('''
@@ -301,9 +303,6 @@ class CompletionWithSuggestionsTest2 extends AbstractCompletionDriverTest
 }
 
 mixin CompletionWithSuggestionsTestCases on AbstractCompletionDriverTest {
-  @override
-  bool get supportsAvailableSuggestions => true;
-
   Future<void> test_project_filterImports_defaultConstructor() async {
     await addProjectFile('lib/a.dart', r'''
 class A {}

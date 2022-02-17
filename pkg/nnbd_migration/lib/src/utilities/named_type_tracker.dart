@@ -31,7 +31,7 @@ class NamedTypeTracker extends RecursiveAstVisitor<void> {
     final parent = node.parent;
     if (parent is ConstructorName) {
       // We only need to visit C in `new C()`, just `int` in `new C<int>()`.
-      return parent.type2 != node;
+      return parent.type != node;
     }
 
     return true;

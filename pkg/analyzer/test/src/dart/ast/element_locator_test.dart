@@ -63,6 +63,18 @@ class A {
     expect(element, isConstructorElement);
   }
 
+  test_locate_ConstructorSelector_EnumConstantArguments_EnumConstantDeclaration() async {
+    await resolveTestCode(r'''
+enum E {
+  v.named(); // 0
+  const E.named();
+}
+''');
+    var node = findNode.constructorSelector('named(); // 0');
+    var element = ElementLocator.locate(node);
+    expect(element, findElement.constructor('named'));
+  }
+
   test_locate_ExportDirective() async {
     await resolveTestCode("export 'dart:code';");
     var node = findNode.export('export');

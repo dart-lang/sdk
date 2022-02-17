@@ -45,26 +45,19 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
     }).toList();
   }
 
-  @override
-  bool get supportsAvailableSuggestions => true;
-
   Future<void> test_nothing_x() async {
     await _checkContainers(
       line: '^',
-      validator: (
-        response, {
-        required bool isClass,
-        required bool isMixin,
-      }) {
+      validator: (context, response) {
         check(response).suggestions
           ..withKindKeyword.matchesInAnyOrder(
             {
               // TODO(scheglov) Not quite right, without static.
               Keyword.CONST,
-              if (isClass || isMixin) Keyword.COVARIANT,
+              if (context.isClass || context.isMixin) Keyword.COVARIANT,
               Keyword.DYNAMIC,
               // TODO(scheglov) This does not look right, mixin.
-              if (isClass || isMixin) Keyword.FACTORY,
+              if (context.isClass || context.isMixin) Keyword.FACTORY,
               Keyword.FINAL,
               Keyword.GET,
               Keyword.LATE,
@@ -83,11 +76,7 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
   Future<void> test_static_const_x() async {
     await _checkContainers(
       line: 'static const ^',
-      validator: (
-        response, {
-        required bool isClass,
-        required bool isMixin,
-      }) {
+      validator: (context, response) {
         check(response).suggestions
           ..withKindKeyword.matchesInAnyOrder(
             {
@@ -103,11 +92,7 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
   Future<void> test_static_final_Ox() async {
     await _checkContainers(
       line: 'static final O^',
-      validator: (
-        response, {
-        required bool isClass,
-        required bool isMixin,
-      }) {
+      validator: (context, response) {
         if (isProtocolVersion2) {
           check(response).suggestions
             ..withKindKeyword.isEmpty
@@ -129,11 +114,7 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
   Future<void> test_static_final_x() async {
     await _checkContainers(
       line: 'static final ^',
-      validator: (
-        response, {
-        required bool isClass,
-        required bool isMixin,
-      }) {
+      validator: (context, response) {
         check(response).suggestions
           ..withKindKeyword.matchesInAnyOrder(
             {
@@ -149,11 +130,7 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
   Future<void> test_static_fx() async {
     await _checkContainers(
       line: 'static f^',
-      validator: (
-        response, {
-        required bool isClass,
-        required bool isMixin,
-      }) {
+      validator: (context, response) {
         if (isProtocolVersion2) {
           check(response).suggestions
             ..withKindKeyword.matchesInAnyOrder(
@@ -188,11 +165,7 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
   Future<void> test_static_late_x() async {
     await _checkContainers(
       line: 'static late ^',
-      validator: (
-        response, {
-        required bool isClass,
-        required bool isMixin,
-      }) {
+      validator: (context, response) {
         check(response).suggestions
           ..withKindKeyword.matchesInAnyOrder(
             {
@@ -208,11 +181,7 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
   Future<void> test_static_x() async {
     await _checkContainers(
       line: 'static ^',
-      validator: (
-        response, {
-        required bool isClass,
-        required bool isMixin,
-      }) {
+      validator: (context, response) {
         check(response).suggestions
           ..withKindKeyword.matchesInAnyOrder(
             {
@@ -230,11 +199,7 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
   Future<void> test_static_x_name_eq() async {
     await _checkContainers(
       line: 'static ^ name = 0;',
-      validator: (
-        response, {
-        required bool isClass,
-        required bool isMixin,
-      }) {
+      validator: (context, response) {
         check(response).suggestions
           ..withKindKeyword.matchesInAnyOrder(
             {
@@ -258,11 +223,7 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
   Future<void> test_sx() async {
     await _checkContainers(
       line: 's^',
-      validator: (
-        response, {
-        required bool isClass,
-        required bool isMixin,
-      }) {
+      validator: (context, response) {
         if (isProtocolVersion2) {
           check(response).suggestions
             ..withKindKeyword.matchesInAnyOrder(
@@ -282,10 +243,10 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
               {
                 // TODO(scheglov) Not quite right, without static.
                 Keyword.CONST,
-                if (isClass || isMixin) Keyword.COVARIANT,
+                if (context.isClass || context.isMixin) Keyword.COVARIANT,
                 Keyword.DYNAMIC,
                 // TODO(scheglov) This does not look right, mixin.
-                if (isClass || isMixin) Keyword.FACTORY,
+                if (context.isClass || context.isMixin) Keyword.FACTORY,
                 Keyword.FINAL,
                 Keyword.GET,
                 Keyword.LATE,
@@ -305,10 +266,9 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
   Future<void> _checkContainers({
     required String line,
     required void Function(
-      CompletionResponseForTesting response, {
-      required bool isClass,
-      required bool isMixin,
-    })
+      _Context context,
+      CompletionResponseForTesting response,
+    )
         validator,
   }) async {
     // class
@@ -318,11 +278,7 @@ class A {
   $line
 }
 ''');
-      validator(
-        response,
-        isClass: true,
-        isMixin: false,
-      );
+      validator(_Context(isClass: true), response);
     }
     // enum
     {
@@ -332,11 +288,7 @@ enum E {
   $line
 }
 ''');
-      validator(
-        response,
-        isClass: false,
-        isMixin: false,
-      );
+      validator(_Context(), response);
     }
     // extension
     {
@@ -345,11 +297,7 @@ extension on Object {
   $line
 }
 ''');
-      validator(
-        response,
-        isClass: false,
-        isMixin: false,
-      );
+      validator(_Context(), response);
     }
     // mixin
     {
@@ -358,11 +306,17 @@ mixin M {
   $line
 }
 ''');
-      validator(
-        response,
-        isClass: false,
-        isMixin: true,
-      );
+      validator(_Context(isMixin: true), response);
     }
   }
+}
+
+class _Context {
+  final bool isClass;
+  final bool isMixin;
+
+  _Context({
+    this.isClass = false,
+    this.isMixin = false,
+  });
 }

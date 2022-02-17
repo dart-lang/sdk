@@ -38,7 +38,7 @@ class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
     // InstanceCreationExpression needs to be rewritten as a MethodInvocation
     // with a target of `a.m<int>` (a FunctionReference) and a name of `apply`.
     if (node.keyword == null) {
-      var typeNameTypeArguments = node.constructorName.type2.typeArguments;
+      var typeNameTypeArguments = node.constructorName.type.typeArguments;
       if (typeNameTypeArguments != null) {
         // This could be a method call on a function reference or a constructor
         // reference.
@@ -60,7 +60,7 @@ class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
       constructorName: constructorName,
       definingLibrary: _resolver.definingLibrary,
     );
-    var typeName = constructorName.type2;
+    var typeName = constructorName.type;
     var constructorElement = constructorName.staticElement;
     var inferenceResult = inferArgumentTypes(
         inferenceNode: node,
@@ -93,7 +93,7 @@ class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
     InstanceCreationExpressionImpl node,
     TypeArgumentListImpl typeNameTypeArguments,
   ) {
-    var typeNameName = node.constructorName.type2.name;
+    var typeNameName = node.constructorName.type.name;
     if (typeNameName is SimpleIdentifierImpl) {
       // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
       // [MethodInvocation].

@@ -1729,10 +1729,14 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   bool get isAbstract => abstractKeyword != null;
 
+  @override
+  NamedTypeImpl get superclass => _superclass;
+
   set superclass(NamedType superclass) {
     _superclass = _becomeParentOf(superclass as NamedTypeImpl);
   }
 
+  @Deprecated('Use superclass instead')
   @override
   NamedTypeImpl get superclass2 => _superclass;
 
@@ -2675,10 +2679,14 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     _name = _becomeParentOf(name as SimpleIdentifierImpl?);
   }
 
+  @override
+  NamedTypeImpl get type => _type;
+
   set type(NamedType type) {
     _type = _becomeParentOf(type as NamedTypeImpl);
   }
 
+  @Deprecated('Use type instead')
   @override
   NamedTypeImpl get type2 => _type;
 
@@ -3856,10 +3864,14 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   @override
   Token get endToken => _superclass.endToken;
 
+  @override
+  NamedTypeImpl get superclass => _superclass;
+
   set superclass(NamedType name) {
     _superclass = _becomeParentOf(name as NamedTypeImpl);
   }
 
+  @Deprecated('Use superclass instead')
   @override
   NamedTypeImpl get superclass2 => _superclass;
 
@@ -6002,11 +6014,15 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   // TODO(paulberry): add commas.
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
     ..add(implementsKeyword)
-    ..addAll(interfaces2);
+    ..addAll(interfaces);
 
   @override
   Token get endToken => _interfaces.endToken!;
 
+  @override
+  NodeListImpl<NamedType> get interfaces => _interfaces;
+
+  @Deprecated('Use interfaces instead')
   @override
   NodeListImpl<NamedType> get interfaces2 => _interfaces;
 
@@ -8217,11 +8233,15 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   // TODO(paulberry): add commas.
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
     ..add(onKeyword)
-    ..addAll(superclassConstraints2);
+    ..addAll(superclassConstraints);
 
   @override
   Token get endToken => _superclassConstraints.endToken!;
 
+  @override
+  NodeListImpl<NamedType> get superclassConstraints => _superclassConstraints;
+
+  @Deprecated('Use superclassConstraints instead')
   @override
   NodeListImpl<NamedType> get superclassConstraints2 => _superclassConstraints;
 
@@ -11314,6 +11334,10 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   @override
   Token get endToken => _mixinTypes.endToken!;
 
+  @override
+  NodeListImpl<NamedType> get mixinTypes => _mixinTypes;
+
+  @Deprecated('Use mixinTypes instead')
   @override
   NodeListImpl<NamedType> get mixinTypes2 => _mixinTypes;
 

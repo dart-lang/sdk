@@ -356,7 +356,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       properties.addNode('name', node.name);
       properties.addToken('period', node.period);
       properties.addElement('staticElement', node.staticElement);
-      properties.addNode('type', node.type2);
+      properties.addNode('type', node.type);
       _writeProperties(properties);
     });
   }
@@ -517,7 +517,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ExtendsClause');
     _withIndent(() {
       var properties = _Properties();
-      properties.addNode('superclass', node.superclass2);
+      properties.addNode('superclass', node.superclass);
       _addAstNode(properties, node);
       _writeProperties(properties);
     });
@@ -809,7 +809,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addToken('implementsKeyword', node.implementsKeyword);
-      properties.addNodeList('interfaces', node.interfaces2);
+      properties.addNodeList('interfaces', node.interfaces);
       _addAstNode(properties, node);
       _writeProperties(properties);
     });
@@ -1072,7 +1072,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       var properties = _Properties();
       properties.addToken('onKeyword', node.onKeyword);
       properties.addNodeList(
-          'superclassConstraints', node.superclassConstraints2);
+          'superclassConstraints', node.superclassConstraints);
       _addAstNode(properties, node);
       _writeProperties(properties);
     });
@@ -1545,7 +1545,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addToken('withKeyword', node.withKeyword);
-      properties.addNodeList('mixinTypes', node.mixinTypes2);
+      properties.addNodeList('mixinTypes', node.mixinTypes);
       _addAstNode(properties, node);
       _writeProperties(properties);
     });

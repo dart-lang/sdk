@@ -45,7 +45,7 @@ class AstRewriter {
       // Either `new` or `const` has been specified.
       return node;
     }
-    var typeName = node.constructorName.type2.name;
+    var typeName = node.constructorName.type.name;
     if (typeName is SimpleIdentifier) {
       var element = nameScope.lookup(typeName.name).getter;
       if (element is FunctionElement ||
@@ -525,8 +525,8 @@ class AstRewriter {
     required TypeAliasElement element,
   }) {
     var typeName = astFactory.namedType(
-      name: node.constructorName.type2.name,
-      typeArguments: node.constructorName.type2.typeArguments,
+      name: node.constructorName.type.name,
+      typeArguments: node.constructorName.type.typeArguments,
     );
     typeName.type = element.aliasedType;
     typeName.name.staticType = element.aliasedType;
@@ -549,7 +549,7 @@ class AstRewriter {
   }) {
     var functionReference = astFactory.functionReference(
       function: function,
-      typeArguments: node.constructorName.type2.typeArguments,
+      typeArguments: node.constructorName.type.typeArguments,
     );
     var methodInvocation = astFactory.methodInvocation(
       functionReference,

@@ -28,9 +28,6 @@ class EnumTest2 extends AbstractCompletionDriverTest with EnumTestCases {
 }
 
 mixin EnumTestCases on AbstractCompletionDriverTest {
-  @override
-  bool get supportsAvailableSuggestions => true;
-
   Future<void> test_enumConstantName() async {
     await _check_locations(
       declaration: 'enum MyEnum { foo01 }',

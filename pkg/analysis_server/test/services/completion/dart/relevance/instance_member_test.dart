@@ -29,9 +29,6 @@ class InstanceMemberTest2 extends CompletionRelevanceTest
 }
 
 mixin InstanceMemberTestCases on CompletionRelevanceTest {
-  @override
-  bool get supportsAvailableSuggestions => true;
-
   Future<void> test_contextType() async {
     await addTestFile(r'''
 class A {}

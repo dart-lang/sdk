@@ -45,7 +45,7 @@ class InheritanceOverrideVerifier {
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
-          superclass: declaration.extendsClause?.superclass2,
+          superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is ClassTypeAlias) {
@@ -58,7 +58,7 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
-          superclass: declaration.superclass2,
+          superclass: declaration.superclass,
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is EnumDeclaration) {
@@ -178,7 +178,7 @@ class _ClassVerifier {
     //   class C extends S&M2 { ...members of C... }
     // So, we need to check members of each mixin against superinterfaces
     // of `S`, and superinterfaces of all previous mixins.
-    var mixinNodes = withClause?.mixinTypes2;
+    var mixinNodes = withClause?.mixinTypes;
     var mixinTypes = classElement.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
       var mixinType = mixinTypes[i];
@@ -398,7 +398,7 @@ class _ClassVerifier {
   bool _checkDirectSuperTypes() {
     var hasError = false;
     if (implementsClause != null) {
-      for (var namedType in implementsClause!.interfaces2) {
+      for (var namedType in implementsClause!.interfaces) {
         if (_checkDirectSuperType(
           namedType,
           CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
@@ -408,7 +408,7 @@ class _ClassVerifier {
       }
     }
     if (onClause != null) {
-      for (var namedType in onClause!.superclassConstraints2) {
+      for (var namedType in onClause!.superclassConstraints) {
         if (_checkDirectSuperType(
           namedType,
           CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
@@ -426,7 +426,7 @@ class _ClassVerifier {
       }
     }
     if (withClause != null) {
-      for (var namedType in withClause!.mixinTypes2) {
+      for (var namedType in withClause!.mixinTypes) {
         if (_checkDirectSuperType(
           namedType,
           CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,

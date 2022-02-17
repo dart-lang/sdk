@@ -152,7 +152,7 @@ class StaticTypeAnalyzer {
       covariant InstanceCreationExpressionImpl node) {
     _inferInstanceCreationExpression(node);
     _inferenceHelper.recordStaticType(
-        node, node.constructorName.type2.typeOrThrow);
+        node, node.constructorName.type.typeOrThrow);
   }
 
   /// <blockquote>
@@ -322,7 +322,7 @@ class StaticTypeAnalyzer {
       return;
     }
 
-    var typeName = constructorName.type2;
+    var typeName = constructorName.type;
     var typeArguments = typeName.typeArguments;
 
     var constructorType = elementToInfer.asType;

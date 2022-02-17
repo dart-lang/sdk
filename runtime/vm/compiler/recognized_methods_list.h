@@ -287,8 +287,8 @@ namespace dart {
   V(_OneByteString, get:hashCode, OneByteString_getHashCode, 0x75e0d454)       \
   V(_OneByteString, _substringUncheckedNative,                                 \
     OneByteString_substringUnchecked,  0x9b18195e)                             \
-  V(_OneByteString, ==, OneByteString_equality, 0xb50039a8)                    \
-  V(_TwoByteString, ==, TwoByteString_equality, 0xb50039a8)                    \
+  V(_OneByteString, ==, OneByteString_equality, 0xb5003d69)                    \
+  V(_TwoByteString, ==, TwoByteString_equality, 0xb5003d69)                    \
   V(_Type, get:hashCode, Type_getHashCode, 0x75e0d454)                         \
   V(_Type, ==, Type_equality, 0x465868ae)                                      \
   V(_FunctionType, get:hashCode, FunctionType_getHashCode, 0x75e0d454)         \

@@ -122,7 +122,7 @@ class TypesBuilder {
 
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
-      var type = extendsClause.superclass2.type;
+      var type = extendsClause.superclass.type;
       if (type is InterfaceType && _isInterfaceTypeClass(type)) {
         element.supertype = type;
       } else {
@@ -135,18 +135,18 @@ class TypesBuilder {
     }
 
     element.mixins = _toInterfaceTypeList(
-      node.withClause?.mixinTypes2,
+      node.withClause?.mixinTypes,
     );
 
     element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces2,
+      node.implementsClause?.interfaces,
     );
   }
 
   void _classTypeAlias(ClassTypeAlias node) {
     var element = node.declaredElement as ClassElementImpl;
 
-    var superType = node.superclass2.type;
+    var superType = node.superclass.type;
     if (superType is InterfaceType && _isInterfaceTypeInterface(superType)) {
       element.supertype = superType;
     } else {
@@ -154,11 +154,11 @@ class TypesBuilder {
     }
 
     element.mixins = _toInterfaceTypeList(
-      node.withClause.mixinTypes2,
+      node.withClause.mixinTypes,
     );
 
     element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces2,
+      node.implementsClause?.interfaces,
     );
   }
 
@@ -226,11 +226,11 @@ class TypesBuilder {
     var element = node.declaredElement as EnumElementImpl;
 
     element.mixins = _toInterfaceTypeList(
-      node.withClause?.mixinTypes2,
+      node.withClause?.mixinTypes,
     );
 
     element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces2,
+      node.implementsClause?.interfaces,
     );
   }
 
@@ -302,7 +302,7 @@ class TypesBuilder {
     var element = node.declaredElement as MixinElementImpl;
 
     var constraints = _toInterfaceTypeList(
-      node.onClause?.superclassConstraints2,
+      node.onClause?.superclassConstraints,
     );
     if (constraints.isEmpty) {
       constraints = [_objectType(element)];
@@ -310,7 +310,7 @@ class TypesBuilder {
     element.superclassConstraints = constraints;
 
     element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces2,
+      node.implementsClause?.interfaces,
     );
   }
 
@@ -395,7 +395,7 @@ class _MixinInference {
   void perform(WithClause? withClause) {
     if (withClause == null) return;
 
-    for (var mixinNode in withClause.mixinTypes2) {
+    for (var mixinNode in withClause.mixinTypes) {
       var mixinType = _inferSingle(mixinNode as NamedTypeImpl);
       interfacesMerger.addWithSupertypes(mixinType);
     }
@@ -546,7 +546,7 @@ class _MixinsInference {
       } finally {
         element.mixinInferenceCallback = null;
         element.mixins = _toInterfaceTypeList(
-          withClause.mixinTypes2,
+          withClause.mixinTypes,
         );
       }
     }

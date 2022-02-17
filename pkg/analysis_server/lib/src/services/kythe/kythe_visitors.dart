@@ -295,15 +295,15 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       // ClassDeclarations) and super.visitClassTypeAlias is not sufficient.
       //
       _handleRefEdge(
-        node.superclass2.name.staticElement,
+        node.superclass.name.staticElement,
         const <String>[schema.REF_EDGE],
-        syntacticEntity: node.superclass2,
+        syntacticEntity: node.superclass,
       );
       // TODO(jwren) refactor the following lines into a method that can be used
       // by visitClassDeclaration()
       // extends
       var recordSupertypeVName = _vNameFromElement(
-          node.superclass2.name.staticElement, schema.RECORD_KIND);
+          node.superclass.name.staticElement, schema.RECORD_KIND);
       addEdge(_enclosingClassVName!, schema.EXTENDS_EDGE, recordSupertypeVName);
 
       // implements
@@ -659,7 +659,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       //   assert (element.enclosingElement != null);
     }
     // visit children
-    _safelyVisitList(constructorName.type2.typeArguments?.arguments);
+    _safelyVisitList(constructorName.type.typeArguments?.arguments);
     _safelyVisit(node.argumentList);
   }
 

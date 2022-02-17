@@ -223,7 +223,7 @@ class _MatcherBuilder {
     //  get a more exact matcher.
     // TODO(brianwilkerson) Use 'new' for the name of the unnamed constructor.
     var constructorName = node.name?.name ?? ''; // ?? 'new';
-    var className = node.type2.name.simpleName;
+    var className = node.type.name.simpleName;
     _addMatcher(
       components: [constructorName, className],
       kinds: const [ElementKind.constructorKind],

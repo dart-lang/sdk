@@ -622,24 +622,57 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Moreover, it checks that `FutureOr` and `void` are not among the
     // supertypes and that `Enum` is not implemented by non-abstract classes.
 
-    if (!cls.isAbstract && !cls.isEnum) {
-      bool isEnumFound = false;
+    if (library.enableEnhancedEnumsInLibrary) {
+      bool hasEnumSuperinterface = false;
       List<Supertype> interfaces =
           hierarchyBuilder.getNodeFromClass(cls).superclasses;
-      for (int i = 0; !isEnumFound && i < interfaces.length; i++) {
+      for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
         if (interfaces[i].classNode == enumClass) {
-          isEnumFound = true;
+          hasEnumSuperinterface = true;
         }
       }
       interfaces = hierarchyBuilder.getNodeFromClass(cls).interfaces;
-      for (int i = 0; !isEnumFound && i < interfaces.length; i++) {
+      for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
         if (interfaces[i].classNode == enumClass) {
-          isEnumFound = true;
+          hasEnumSuperinterface = true;
         }
       }
-      if (isEnumFound) {
+      if (!cls.isAbstract && !cls.isEnum && hasEnumSuperinterface) {
         addProblem(templateEnumSupertypeOfNonAbstractClass.withArguments(name),
             charOffset, noLength);
+      }
+
+      if (hasEnumSuperinterface) {
+        Builder? customValuesDeclaration =
+            scope.lookupLocalMember("values", setter: false);
+        if (customValuesDeclaration != null &&
+            !customValuesDeclaration.isStatic) {
+          // Retrieve the earliest declaration for error reporting.
+          while (customValuesDeclaration?.next != null) {
+            customValuesDeclaration = customValuesDeclaration?.next;
+          }
+          library.addProblem(
+              templateEnumImplementerContainsValuesDeclaration
+                  .withArguments(this.name),
+              customValuesDeclaration!.charOffset,
+              customValuesDeclaration.fullNameForErrors.length,
+              fileUri);
+        }
+        customValuesDeclaration =
+            scope.lookupLocalMember("values", setter: true);
+        if (customValuesDeclaration != null &&
+            !customValuesDeclaration.isStatic) {
+          // Retrieve the earliest declaration for error reporting.
+          while (customValuesDeclaration?.next != null) {
+            customValuesDeclaration = customValuesDeclaration?.next;
+          }
+          library.addProblem(
+              templateEnumImplementerContainsValuesDeclaration
+                  .withArguments(this.name),
+              customValuesDeclaration!.charOffset,
+              customValuesDeclaration.fullNameForErrors.length,
+              fileUri);
+        }
       }
     }
 
@@ -1387,6 +1420,22 @@ class SourceClassBuilder extends ClassBuilderImpl
     return noSuchMethod != null && noSuchMethod.enclosingClass != objectClass;
   }
 
+  List<Member> _getStaticMembers() {
+    List<Member> staticMembers = <Member>[];
+    for (Field field in cls.fields) {
+      if (field.isStatic) {
+        staticMembers.add(field);
+      }
+    }
+    for (Procedure procedure in cls.procedures) {
+      if (procedure.isStatic) {
+        staticMembers.add(procedure);
+      }
+    }
+    staticMembers.sort(ClassHierarchy.compareMembers);
+    return staticMembers;
+  }
+
   bool _addMissingNoSuchMethodForwarders(
       KernelTarget target, Set<Member> existingForwarders,
       {required bool forSetters}) {
@@ -1401,6 +1450,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         hierarchy.getDispatchTargets(cls, setters: forSetters);
     List<Member> declaredMembers =
         hierarchy.getDeclaredMembers(cls, setters: forSetters);
+    List<Member> staticMembers = _getStaticMembers();
 
     Procedure noSuchMethod = ClassHierarchy.findMemberByName(
         hierarchy.getInterfaceMembers(cls), noSuchMethodName) as Procedure;
@@ -1426,8 +1476,8 @@ class SourceClassBuilder extends ClassBuilderImpl
               forSetter: forSetters);
       Member? member = combinedMemberSignature.canonicalMember;
       if (member != null) {
-        if (_isForwarderRequired(
-                clsHasUserDefinedNoSuchMethod, member, cls, concreteMembers,
+        if (_isForwarderRequired(clsHasUserDefinedNoSuchMethod, member, cls,
+                concreteMembers, staticMembers,
                 isPatch: member.fileUri != member.enclosingClass!.fileUri) &&
             !existingForwarders.contains(member)) {
           assert(!combinedMemberSignature.needsCovarianceMerging,
@@ -1478,12 +1528,13 @@ class SourceClassBuilder extends ClassBuilderImpl
         bool superHasUserDefinedNoSuchMethod = _hasUserDefinedNoSuchMethod(
             nearestConcreteSuperclass, hierarchy, target.objectClass);
         {
-          List<Member> concrete =
+          List<Member> concreteMembers =
               hierarchy.getDispatchTargets(nearestConcreteSuperclass);
+          List<Member> staticMembers = _getStaticMembers();
           for (Member member
               in hierarchy.getInterfaceMembers(nearestConcreteSuperclass)) {
             if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
-                nearestConcreteSuperclass, concrete,
+                nearestConcreteSuperclass, concreteMembers, staticMembers,
                 isPatch: member.fileUri != member.enclosingClass!.fileUri)) {
               existingForwarders.add(member);
             }
@@ -1493,10 +1544,11 @@ class SourceClassBuilder extends ClassBuilderImpl
         {
           List<Member> concreteSetters = hierarchy
               .getDispatchTargets(nearestConcreteSuperclass, setters: true);
+          List<Member> staticSetters = _getStaticMembers();
           for (Member member in hierarchy
               .getInterfaceMembers(nearestConcreteSuperclass, setters: true)) {
             if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
-                nearestConcreteSuperclass, concreteSetters)) {
+                nearestConcreteSuperclass, concreteSetters, staticSetters)) {
               existingSetterForwarders.add(member);
             }
           }
@@ -1522,7 +1574,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   /// Tells if a noSuchMethod forwarder is required for [member] in [cls].
   bool _isForwarderRequired(bool hasUserDefinedNoSuchMethod, Member member,
-      Class cls, List<Member> concreteMembers,
+      Class cls, List<Member> concreteMembers, List<Member> staticMembers,
       {bool isPatch = false}) {
     // A noSuchMethod forwarder is allowed for an abstract member if the class
     // has a user-defined noSuchMethod or if the member is private and is
@@ -1536,7 +1588,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     // A noSuchMethod forwarder is required if it's allowed and if there's no
     // concrete implementation or a forwarder already.
     bool isForwarderRequired = isForwarderAllowed &&
-        ClassHierarchy.findMemberByName(concreteMembers, member.name) == null;
+        ClassHierarchy.findMemberByName(concreteMembers, member.name) == null &&
+        ClassHierarchy.findMemberByName(staticMembers, member.name) == null;
     return isForwarderRequired;
   }
 

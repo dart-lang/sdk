@@ -2821,7 +2821,7 @@ class AstBuilder extends StackListener {
     if (!enableEnhancedEnums &&
         (tmpArguments != null ||
             tmpConstructor != null &&
-                (tmpConstructor.type2.typeArguments != null ||
+                (tmpConstructor.type.typeArguments != null ||
                     tmpConstructor.name != null))) {
       Token token = tmpArguments != null
           ? tmpArguments.argumentList.beginToken
@@ -2842,7 +2842,7 @@ class AstBuilder extends StackListener {
     TypeArgumentListImpl? typeArguments;
     ConstructorSelectorImpl? constructorSelector;
     if (tmpConstructor != null) {
-      typeArguments = tmpConstructor.type2.typeArguments;
+      typeArguments = tmpConstructor.type.typeArguments;
       var constructorNamePeriod = tmpConstructor.period;
       var constructorNameId = tmpConstructor.name;
       if (constructorNamePeriod != null && constructorNameId != null) {
@@ -3744,7 +3744,7 @@ class AstBuilder extends StackListener {
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
     var declaration = declarations.last as ClassDeclarationImpl;
     if (extendsClause != null) {
-      if (declaration.extendsClause?.superclass2 == null) {
+      if (declaration.extendsClause?.superclass == null) {
         declaration.extendsClause = extendsClause;
       }
     }
@@ -3752,15 +3752,15 @@ class AstBuilder extends StackListener {
       if (declaration.withClause == null) {
         declaration.withClause = withClause;
       } else {
-        declaration.withClause!.mixinTypes2.addAll(withClause.mixinTypes2);
+        declaration.withClause!.mixinTypes.addAll(withClause.mixinTypes);
       }
     }
     if (implementsClause != null) {
       if (declaration.implementsClause == null) {
         declaration.implementsClause = implementsClause;
       } else {
-        declaration.implementsClause!.interfaces2
-            .addAll(implementsClause.interfaces2);
+        declaration.implementsClause!.interfaces
+            .addAll(implementsClause.interfaces);
       }
     }
   }
@@ -3802,16 +3802,16 @@ class AstBuilder extends StackListener {
       if (mixinDeclaration!.onClause == null) {
         mixinDeclaration!.onClause = onClause;
       } else {
-        mixinDeclaration!.onClause!.superclassConstraints2
-            .addAll(onClause.superclassConstraints2);
+        mixinDeclaration!.onClause!.superclassConstraints
+            .addAll(onClause.superclassConstraints);
       }
     }
     if (implementsClause != null) {
       if (mixinDeclaration!.implementsClause == null) {
         mixinDeclaration!.implementsClause = implementsClause;
       } else {
-        mixinDeclaration!.implementsClause!.interfaces2
-            .addAll(implementsClause.interfaces2);
+        mixinDeclaration!.implementsClause!.interfaces
+            .addAll(implementsClause.interfaces);
       }
     }
   }

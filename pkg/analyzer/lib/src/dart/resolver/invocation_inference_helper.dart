@@ -97,7 +97,7 @@ class InvocationInferenceHelper {
     List<TypeParameterElement>? typeParameters;
     ConstructorElement? rawElement;
 
-    var typeName = constructorName.type2;
+    var typeName = constructorName.type;
     var typeArguments = typeName.typeArguments;
     var typeElement = typeName.name.staticElement;
     if (typeElement is ClassElement) {

@@ -1197,7 +1197,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // TODO(jwren) We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic
       // here.
-      String fullConstructorName = constructorName.type2.name.name;
+      String fullConstructorName = constructorName.type.name.name;
       if (constructorName.name != null) {
         fullConstructorName = '$fullConstructorName.${constructorName.name}';
       }

@@ -27,7 +27,7 @@ class MoveTypeArgumentsToClass extends CorrectionProducer {
       return;
     }
 
-    var namedType = creation.constructorName.type2;
+    var namedType = creation.constructorName.type;
     if (namedType.typeArguments != null) {
       return;
     }

@@ -30,9 +30,6 @@ class FieldFormalParameterTest2 extends AbstractCompletionDriverTest
 }
 
 mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
-  @override
-  bool get supportsAvailableSuggestions => true;
-
   /// https://github.com/dart-lang/sdk/issues/39028
   Future<void> test_mixin_constructor() async {
     var response = await getTestCodeSuggestions('''

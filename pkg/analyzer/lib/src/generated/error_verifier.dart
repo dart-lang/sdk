@@ -432,7 +432,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForConflictingClassTypeVariableErrorCodes();
-      var superclass = node.extendsClause?.superclass2;
+      var superclass = node.extendsClause?.superclass;
       var implementsClause = node.implementsClause;
       var withClause = node.withClause;
 
@@ -471,7 +471,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     try {
       _enclosingClass = node.declaredElement as ClassElementImpl;
       _checkClassInheritance(
-          node, node.superclass2, node.withClause, node.implementsClause);
+          node, node.superclass, node.withClause, node.implementsClause);
       _checkForMainFunction(node.name);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
     } finally {
@@ -844,7 +844,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    node.interfaces2.forEach(_checkForImplicitDynamicType);
+    node.interfaces.forEach(_checkForImplicitDynamicType);
     super.visitImplementsClause(node);
   }
 
@@ -879,7 +879,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorName constructorName = node.constructorName;
-    NamedType namedType = constructorName.type2;
+    NamedType namedType = constructorName.type;
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
       _checkForConstOrNewWithAbstractClass(node, namedType, type);
@@ -1333,7 +1333,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitWithClause(WithClause node) {
-    node.mixinTypes2.forEach(_checkForImplicitDynamicType);
+    node.mixinTypes.forEach(_checkForImplicitDynamicType);
     super.visitWithClause(node);
   }
 
@@ -1353,7 +1353,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         !_checkForNoGenerativeConstructorsInSuperclass(superclass)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
-      _checkForRepeatedType(implementsClause?.interfaces2,
+      _checkForRepeatedType(implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkImplementsSuperClass(implementsClause);
       _checkMixinsSuperClass(withClause);
@@ -1427,9 +1427,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     bool problemReported = false;
     int mixinTypeIndex = -1;
     for (int mixinNameIndex = 0;
-        mixinNameIndex < withClause.mixinTypes2.length;
+        mixinNameIndex < withClause.mixinTypes.length;
         mixinNameIndex++) {
-      NamedType mixinName = withClause.mixinTypes2[mixinNameIndex];
+      NamedType mixinName = withClause.mixinTypes[mixinNameIndex];
       DartType mixinType = mixinName.typeOrThrow;
       if (mixinType is InterfaceType) {
         mixinTypeIndex++;
@@ -1479,7 +1479,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (redirectedElement == null) {
       // If the element is null, we check for the
       // REDIRECT_TO_MISSING_CONSTRUCTOR case
-      NamedType constructorNamedType = redirectedConstructor.type2;
+      NamedType constructorNamedType = redirectedConstructor.type;
       DartType redirectedType = constructorNamedType.typeOrThrow;
       if (redirectedType.element != null && !redirectedType.isDynamic) {
         // Prepare the constructor name
@@ -1659,15 +1659,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (extendsClause != null) {
-      var superElement = extendsClause.superclass2.name.staticElement;
+      var superElement = extendsClause.superclass.name.staticElement;
       if (superElement != null && superElement.name == "Function") {
         errorReporter.reportErrorForNode(
-            HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass2);
+            HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
       }
     }
 
     if (implementsClause != null) {
-      for (var interface in implementsClause.interfaces2) {
+      for (var interface in implementsClause.interfaces) {
         var type = interface.type;
         if (type != null && type.isDartCoreFunction) {
           errorReporter.reportErrorForNode(
@@ -1680,7 +1680,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (withClause != null) {
-      for (NamedType type in withClause.mixinTypes2) {
+      for (NamedType type in withClause.mixinTypes) {
         var mixinElement = type.name.staticElement;
         if (mixinElement != null && mixinElement.name == "Function") {
           errorReporter.reportErrorForNode(
@@ -2802,7 +2802,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
     bool foundError = false;
-    for (NamedType type in clause.interfaces2) {
+    for (NamedType type in clause.interfaces) {
       if (_checkForExtendsOrImplementsDisallowedClass(
           type, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS)) {
         foundError = true;
@@ -3007,7 +3007,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       } else {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INSTANTIATE_ENUM,
-          node.type2,
+          node.type,
         );
       }
     }
@@ -3506,7 +3506,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
 
-    for (NamedType mixinType in withClause.mixinTypes2) {
+    for (NamedType mixinType in withClause.mixinTypes) {
       DartType type = mixinType.typeOrThrow;
       if (type is InterfaceType) {
         LibraryElement library = type.element.library;
@@ -3830,7 +3830,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
     bool problemReported = false;
-    for (NamedType namedType in onClause.superclassConstraints2) {
+    for (NamedType namedType in onClause.superclassConstraints) {
       DartType type = namedType.typeOrThrow;
       if (type is InterfaceType) {
         if (_checkForExtendsOrImplementsDisallowedClass(
@@ -4867,7 +4867,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    for (var interfaceNode in implementsClause.interfaces2) {
+    for (var interfaceNode in implementsClause.interfaces) {
       var type = interfaceNode.type;
       if (type is InterfaceType && type.element == superElement) {
         errorReporter.reportErrorForNode(
@@ -4889,11 +4889,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
       _checkForRepeatedType(
-        onClause?.superclassConstraints2,
+        onClause?.superclassConstraints,
         CompileTimeErrorCode.ON_REPEATED,
       );
       _checkForRepeatedType(
-        implementsClause?.interfaces2,
+        implementsClause?.interfaces,
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
       _checkForConflictingGenerics(node);
@@ -4914,7 +4914,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    for (var mixinNode in withClause.mixinTypes2) {
+    for (var mixinNode in withClause.mixinTypes) {
       var type = mixinNode.type;
       if (type is InterfaceType && type.element == superElement) {
         errorReporter.reportErrorForNode(

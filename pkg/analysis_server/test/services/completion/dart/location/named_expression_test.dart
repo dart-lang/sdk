@@ -30,9 +30,6 @@ class NamedExpressionExpressionTest2 extends AbstractCompletionDriverTest
 }
 
 mixin NamedExpressionExpressionTestCases on AbstractCompletionDriverTest {
-  @override
-  bool get supportsAvailableSuggestions => true;
-
   Future<void> test_beforePositional() async {
     var response = await getTestCodeSuggestions('''
 void f(int x) {

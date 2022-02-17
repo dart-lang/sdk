@@ -255,7 +255,7 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.typeParameters, other.typeParameters) &&
         isEqualTokens(node.equals, other.equals) &&
         isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
-        isEqualNodes(node.superclass2, other.superclass2) &&
+        isEqualNodes(node.superclass, other.superclass) &&
         isEqualNodes(node.withClause, other.withClause) &&
         isEqualNodes(node.implementsClause, other.implementsClause) &&
         isEqualTokens(node.semicolon, other.semicolon);
@@ -338,7 +338,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitConstructorName(ConstructorName node) {
     ConstructorName other = _other as ConstructorName;
-    return isEqualNodes(node.type2, other.type2) &&
+    return isEqualNodes(node.type, other.type) &&
         isEqualTokens(node.period, other.period) &&
         isEqualNodes(node.name, other.name);
   }
@@ -482,7 +482,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitExtendsClause(ExtendsClause node) {
     ExtendsClause other = _other as ExtendsClause;
     return isEqualTokens(node.extendsKeyword, other.extendsKeyword) &&
-        isEqualNodes(node.superclass2, other.superclass2);
+        isEqualNodes(node.superclass, other.superclass);
   }
 
   @override
@@ -733,7 +733,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitImplementsClause(ImplementsClause node) {
     ImplementsClause other = _other as ImplementsClause;
     return isEqualTokens(node.implementsKeyword, other.implementsKeyword) &&
-        _isEqualNodeLists(node.interfaces2, other.interfaces2);
+        _isEqualNodeLists(node.interfaces, other.interfaces);
   }
 
   @override
@@ -938,7 +938,7 @@ class AstComparator implements AstVisitor<bool> {
     OnClause other = _other as OnClause;
     return isEqualTokens(node.onKeyword, other.onKeyword) &&
         _isEqualNodeLists(
-            node.superclassConstraints2, other.superclassConstraints2);
+            node.superclassConstraints, other.superclassConstraints);
   }
 
   @override
@@ -1281,7 +1281,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitWithClause(WithClause node) {
     WithClause other = _other as WithClause;
     return isEqualTokens(node.withKeyword, other.withKeyword) &&
-        _isEqualNodeLists(node.mixinTypes2, other.mixinTypes2);
+        _isEqualNodeLists(node.mixinTypes, other.mixinTypes);
   }
 
   @override
@@ -1797,7 +1797,7 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (identical(node.typeParameters, _oldNode)) {
       node.typeParameters = _newNode as TypeParameterList;
       return true;
-    } else if (identical(node.superclass2, _oldNode)) {
+    } else if (identical(node.superclass, _oldNode)) {
       node.superclass = _newNode as NamedType;
       return true;
     } else if (identical(node.withClause, _oldNode)) {
@@ -1908,7 +1908,7 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitConstructorName(covariant ConstructorNameImpl node) {
-    if (identical(node.type2, _oldNode)) {
+    if (identical(node.type, _oldNode)) {
       node.type = _newNode as NamedType;
       return true;
     } else if (identical(node.name, _oldNode)) {
@@ -2061,7 +2061,7 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitExtendsClause(covariant ExtendsClauseImpl node) {
-    if (identical(node.superclass2, _oldNode)) {
+    if (identical(node.superclass, _oldNode)) {
       node.superclass = _newNode as NamedType;
       return true;
     }
@@ -2402,7 +2402,7 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitImplementsClause(covariant ImplementsClauseImpl node) {
-    if (_replaceInList(node.interfaces2)) {
+    if (_replaceInList(node.interfaces)) {
       return true;
     }
     return visitNode(node);
@@ -2674,7 +2674,7 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitOnClause(covariant OnClauseImpl node) {
-    if (_replaceInList(node.superclassConstraints2)) {
+    if (_replaceInList(node.superclassConstraints)) {
       return true;
     }
     return visitNode(node);
@@ -3046,7 +3046,7 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitWithClause(covariant WithClauseImpl node) {
-    if (_replaceInList(node.mixinTypes2)) {
+    if (_replaceInList(node.mixinTypes)) {
       return true;
     }
     return visitNode(node);

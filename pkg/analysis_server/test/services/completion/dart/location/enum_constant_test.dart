@@ -30,9 +30,6 @@ class EnumConstantDeclarationTest2 extends AbstractCompletionDriverTest
 }
 
 mixin EnumConstantDeclarationTestCases on AbstractCompletionDriverTest {
-  @override
-  bool get supportsAvailableSuggestions => true;
-
   Future<void> test_afterName_atEnd() async {
     var response = await getTestCodeSuggestions('''
 enum E {

@@ -113,7 +113,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
         parseExpression('f<a, b>.toString()', featureSet: constructorTearoffs)
             as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type2;
+    var type = constructorName.type;
     expect((type.name as SimpleIdentifier).name, 'f');
     var typeArgs = type.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));

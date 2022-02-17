@@ -1860,6 +1860,58 @@ void f() {
     );
   }
 
+  Future<void> test_enum_constructor_add_toSynthetic() {
+    addTestFile('''
+enum E {
+  v1, v2.new()
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('new()', 'newName');
+      },
+      '''
+enum E {
+  v1.newName(), v2.newName();
+
+  const E.newName();
+}
+''',
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, 17);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  Future<void> test_enum_constructor_change() {
+    addTestFile('''
+enum E {
+  v1.test(), v2.test();
+
+  const E.test();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test();', 'newName');
+      },
+      '''
+enum E {
+  v1.newName(), v2.newName();
+
+  const E.newName();
+}
+''',
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, 24);
+        expect(renameFeedback.length, 5);
+      },
+    );
+  }
+
   Future<void> test_feedback() {
     addTestFile('''
 class Test {}
