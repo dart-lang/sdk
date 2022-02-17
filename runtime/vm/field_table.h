@@ -60,14 +60,15 @@ class FieldTable {
 
   ObjectPtr At(intptr_t index, bool concurrent_use = false) const {
     ASSERT(IsValidIndex(index));
-    ObjectPtr* slot = &table_[index];
     if (concurrent_use) {
-      return reinterpret_cast<AcqRelAtomic<ObjectPtr>*>(slot)->load();
+      ObjectPtr* table =
+          reinterpret_cast<const AcqRelAtomic<ObjectPtr*>*>(&table_)->load();
+      return reinterpret_cast<AcqRelAtomic<ObjectPtr>*>(&table[index])->load();
     } else {
       // There is no concurrent access expected for this field, so we avoid
       // using atomics. This will allow us to detect via TSAN if there are
       // racy uses.
-      return *slot;
+      return table_[index];
     }
   }
 
