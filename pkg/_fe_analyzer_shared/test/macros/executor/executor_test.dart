@@ -96,7 +96,12 @@ void main() {
           });
 
           tearDownAll(() {
-            if (tmpDir.existsSync()) tmpDir.deleteSync(recursive: true);
+            if (tmpDir.existsSync()) {
+              try {
+                // Fails flakily on windows if a process still has the file open
+                tmpDir.deleteSync(recursive: true);
+              } catch (_) {}
+            }
             executor.close();
           });
 
