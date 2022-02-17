@@ -46,9 +46,6 @@ enum E w^ {
 }
 
 mixin EnumDeclarationTestCases on AbstractCompletionDriverTest {
-  @override
-  bool get supportsAvailableSuggestions => true;
-
   Future<void> test_afterConstants_noSemicolon() async {
     var response = await getTestCodeSuggestions('''
 enum E {

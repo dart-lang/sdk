@@ -45,9 +45,6 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
     }).toList();
   }
 
-  @override
-  bool get supportsAvailableSuggestions => true;
-
   Future<void> test_nothing_x() async {
     await _checkContainers(
       line: '^',

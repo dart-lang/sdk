@@ -30,9 +30,6 @@ class SuperFormalParameterTest2 extends AbstractCompletionDriverTest
 }
 
 mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
-  @override
-  bool get supportsAvailableSuggestions => true;
-
   Future<void> test_explicit_optionalNamed_hasArgument_named() async {
     var response = await getTestCodeSuggestions('''
 class A {
