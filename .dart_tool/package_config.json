@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2022-02-16T14:11:48.394602",
+  "generated": "2022-02-16T17:23:35.575981",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -287,12 +287,6 @@
       "rootUri": "../third_party/devtools/devtools_shared",
       "packageUri": "lib/",
       "languageVersion": "2.12"
-    },
-    {
-      "name": "diagnostic",
-      "rootUri": "../pkg/diagnostic",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
     },
     {
       "name": "expect",

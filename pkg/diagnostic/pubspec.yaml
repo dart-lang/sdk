@@ -1,8 +1,0 @@
-name: diagnostic
-# This package is not intended for consumption on pub.dev. DO NOT publish.
-publish_to: none
-author: Dart Team <misc@dartlang.org>
-description: Diagnostics for Dart
-homepage: https://github.com/dart-lang/sdk/tree/master/pkg/diagnostic
-environment:
-  sdk: '>=2.0.0-dev.48.0 <3.0.0'
