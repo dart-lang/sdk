@@ -41,6 +41,7 @@ import 'selection_range_test.dart' as selection_range;
 import 'semantic_tokens_test.dart' as semantic_tokens;
 import 'server_test.dart' as server;
 import 'signature_help_test.dart' as signature_help;
+import 'snippets_test.dart' as snippets;
 import 'super_test.dart' as get_super;
 import 'will_rename_files_test.dart' as will_rename_files;
 import 'workspace_symbols_test.dart' as workspace_symbols;
@@ -85,6 +86,7 @@ void main() {
     semantic_tokens.main();
     server.main();
     signature_help.main();
+    snippets.main();
     will_rename_files.main();
     workspace_symbols.main();
   }, name: 'lsp');

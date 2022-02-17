@@ -398,8 +398,8 @@ namespace dart {
   V(::, _isDartStreamEnabled, Timeline_isDartStreamEnabled, 0xc97aafb3)        \
 
 #define INTERNAL_LIB_INTRINSIC_LIST(V)                                         \
-  V(::, allocateOneByteString, AllocateOneByteString, 0x9e774214)              \
-  V(::, allocateTwoByteString, AllocateTwoByteString, 0xa63c7db1)              \
+  V(::, allocateOneByteString, AllocateOneByteString, 0x9e7745d5)              \
+  V(::, allocateTwoByteString, AllocateTwoByteString, 0xa63c8172)              \
   V(::, writeIntoOneByteString, WriteIntoOneByteString, 0xd8729161)            \
   V(::, writeIntoTwoByteString, WriteIntoTwoByteString, 0xcfc7982a)            \
 

@@ -101,10 +101,10 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     return null;
   }
 
-  /// Replaces the LSP snippet placeholder '${0:}' with '^' for easier verifying
+  /// Replaces the LSP snippet placeholder '$0' with '^' for easier verifying
   /// of the cursor position in completions.
   String withCaret(String contents, InsertTextFormat? format) =>
       format == InsertTextFormat.Snippet
-          ? contents.replaceFirst(r'${0:}', '^')
+          ? contents.replaceFirst(r'$0', '^')
           : contents;
 }

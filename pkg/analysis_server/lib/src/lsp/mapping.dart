@@ -18,6 +18,7 @@ import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
+import 'package:analysis_server/src/lsp/snippets.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
@@ -66,50 +67,6 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
       ? lsp.Either2<String, lsp.MarkupContent>.t1(content)
       : lsp.Either2<String, lsp.MarkupContent>.t2(
           _asMarkup(preferredFormats, content));
-}
-
-/// Builds an LSP snippet string with supplied ranges as tabstops.
-String buildSnippetStringWithTabStops(
-  String? text,
-  List<int>? offsetLengthPairs,
-) {
-  text ??= '';
-  offsetLengthPairs ??= const [];
-
-  // Snippets syntax is documented in the LSP spec:
-  // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
-  //
-  // $1, $2, etc. are used for tab stops and ${1:foo} inserts a placeholder of foo.
-
-  final output = [];
-  var offset = 0;
-
-  // When there's only a single tabstop, it should be ${0} as this is treated
-  // specially as the final cursor position (if we use 1, the editor will insert
-  // a 0 at the end of the string which is not what we expect).
-  // When there are multiple, start with ${1} since these are placeholders the
-  // user can tab through and the editor-inserted ${0} at the end is expected.
-  var tabStopNumber = offsetLengthPairs.length <= 2 ? 0 : 1;
-
-  for (var i = 0; i < offsetLengthPairs.length; i += 2) {
-    final pairOffset = offsetLengthPairs[i];
-    final pairLength = offsetLengthPairs[i + 1];
-
-    // Add any text that came before this tabstop to the result.
-    output.add(escapeSnippetString(text.substring(offset, pairOffset)));
-
-    // Add this tabstop
-    final tabStopText = escapeSnippetString(
-        text.substring(pairOffset, pairOffset + pairLength));
-    output.add('\${${tabStopNumber++}:$tabStopText}');
-
-    offset = pairOffset + pairLength;
-  }
-
-  // Add any remaining text that was after the last tabstop.
-  output.add(escapeSnippetString(text.substring(offset)));
-
-  return output.join('');
 }
 
 /// Creates a [lsp.WorkspaceEdit] from simple [server.SourceFileEdit]s.
@@ -573,15 +530,6 @@ lsp.SymbolKind elementKindToSymbolKind(
       .firstWhere(isSupported, orElse: () => lsp.SymbolKind.Obj);
 }
 
-/// Escapes a string to be used in an LSP edit that uses Snippet mode.
-///
-/// Snippets can contain special markup like `${a:b}` so some characters need
-/// escaping (according to the LSP spec, those are `$`, `}` and `\`).
-String escapeSnippetString(String input) => input.replaceAllMapped(
-      RegExp(r'[$}\\]'), // Replace any of $ } \
-      (c) => '\\${c[0]}', // Prefix with a backslash
-    );
-
 String? getCompletionDetail(
   server.CompletionSuggestion suggestion,
   lsp.CompletionItemKind? completionKind,
@@ -939,6 +887,25 @@ lsp.Location? searchResultToLocation(
   return lsp.Location(
     uri: Uri.file(result.location.file).toString(),
     range: toRange(lineInfo, location.offset, location.length),
+  );
+}
+
+/// Creates a SnippetTextEdit for an edit with a selection placeholder.
+///
+/// [selectionOffset] is relative to (and therefore must be within) the edit.
+lsp.SnippetTextEdit snippetTextEditWithSelection(
+  server.LineInfo lineInfo,
+  server.SourceEdit edit, {
+  required int selectionOffsetRelative,
+  int? selectionLength,
+}) {
+  return lsp.SnippetTextEdit(
+    insertTextFormat: lsp.InsertTextFormat.Snippet,
+    range: toRange(lineInfo, edit.offset, edit.length),
+    newText: buildSnippetStringWithTabStops(
+      edit.replacement,
+      [selectionOffsetRelative, selectionLength ?? 0],
+    ),
   );
 }
 
@@ -1405,20 +1372,6 @@ lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind>? preferredFormats,
   );
 }
 
-lsp.SnippetTextEdit toSnippetTextEdit(
-    LspClientCapabilities capabilities,
-    server.LineInfo lineInfo,
-    server.SourceEdit edit,
-    int selectionOffsetRelative,
-    int? selectionLength) {
-  return lsp.SnippetTextEdit(
-    insertTextFormat: lsp.InsertTextFormat.Snippet,
-    range: toRange(lineInfo, edit.offset, edit.length),
-    newText: buildSnippetStringWithTabStops(
-        edit.replacement, [selectionOffsetRelative, selectionLength ?? 0]),
-  );
-}
-
 ErrorOr<server.SourceRange> toSourceRange(
     server.LineInfo lineInfo, Range range) {
   // If there is a range, convert to offsets because that's what
@@ -1467,8 +1420,9 @@ Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>
         toTextEdit(lineInfo, edit));
   }
   return Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>.t1(
-      toSnippetTextEdit(capabilities, lineInfo, edit, selectionOffsetRelative,
-          selectionLength));
+      snippetTextEditWithSelection(lineInfo, edit,
+          selectionOffsetRelative: selectionOffsetRelative,
+          selectionLength: selectionLength));
 }
 
 lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
@@ -1580,21 +1534,20 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
       insertTextFormat = lsp.InsertTextFormat.Snippet;
       final hasRequiredParameters =
           (defaultArgumentListTextRanges?.length ?? 0) > 0;
-      final functionCallSuffix = hasRequiredParameters
-          ? buildSnippetStringWithTabStops(
-              defaultArgumentListString,
-              defaultArgumentListTextRanges,
-            )
-          : '\${0:}'; // No required params still gets a tabstop in the parens.
-      insertText = '${escapeSnippetString(insertText)}($functionCallSuffix)';
+      final functionCallSuffix =
+          hasRequiredParameters && defaultArgumentListString != null
+              ? buildSnippetStringWithTabStops(
+                  defaultArgumentListString, defaultArgumentListTextRanges)
+              // No required params still gets a final tab stop in the parens.
+              : SnippetBuilder.finalTabStop;
+      insertText =
+          '${SnippetBuilder.escapeSnippetPlainText(insertText)}($functionCallSuffix)';
     } else if (selectionOffset != 0 &&
-        // We don't need a tabstop if the selection is the end of the string.
+        // We don't need a tab stop if the selection is the end of the string.
         selectionOffset != completion.length) {
       insertTextFormat = lsp.InsertTextFormat.Snippet;
       insertText = buildSnippetStringWithTabStops(
-        completion,
-        [selectionOffset, selectionLength],
-      );
+          completion, [selectionOffset, selectionLength]);
     }
   }
 

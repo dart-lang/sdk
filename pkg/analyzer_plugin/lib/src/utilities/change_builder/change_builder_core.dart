@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
-import 'dart:math' as math;
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -541,17 +540,16 @@ class FileEditBuilderImpl implements FileEditBuilder {
     _addEdit(edit);
   }
 
-  /// Add the edit from the given [edit] to the edits associates with the
+  /// Add the edit from the given [edit] to the edits associated with the
   /// current file.
   void _addEdit(SourceEdit edit) {
     fileEdit.add(edit);
     var delta = _editDelta(edit);
-    changeBuilder._updatePositions(
-        edit.offset + math.max<int>(0, delta), delta);
+    changeBuilder._updatePositions(edit.offset, delta);
     changeBuilder._lockedPositions.clear();
   }
 
-  /// Add the edit from the given [builder] to the edits associates with the
+  /// Add the edit from the given [builder] to the edits associated with the
   /// current file.
   void _addEditBuilder(EditBuilderImpl builder) {
     var edit = builder.sourceEdit;
