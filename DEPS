@@ -65,9 +65,9 @@ vars = {
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
   # The list of revisions for these tools comes from Fuchsia, here:
-  # https://fuchsia.googlesource.com/integration/+/HEAD/prebuilts
+  # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "e3a7f0e2f9ab566bd9b71fb54fe77e947b061a12",
+  "clang_revision": "1aa59ff2f789776ebfa2d4b315fd3ea589652b4a",
   "gn_revision": "b79031308cc878488202beb99883ec1f2efd9a6d",
 
   # Scripts that make 'git cl format' work.
