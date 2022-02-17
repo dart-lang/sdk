@@ -74,9 +74,9 @@ class ChangeTo extends CorrectionProducer {
       node = node.identifier;
     }
     // Process if looks like a type.
-    if (mightBeTypeIdentifier(node)) {
+    var name = nameOfType(node);
+    if (name != null) {
       // Prepare for selecting the closest element.
-      var name = (node as SimpleIdentifier).name;
       var finder = _ClosestElementFinder(
           name, (Element element) => element is ClassElement);
       // Check elements of this library.

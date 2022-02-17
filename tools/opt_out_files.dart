@@ -10,7 +10,7 @@ final scriptLine = RegExp(r'^#\!');
 final languageMarker = RegExp(r"^\s*//\s*@dart\s*=");
 
 void main(List<String> args) {
-  if (args.length < 1) {
+  if (args.isEmpty) {
     print('Mark files passed on the command line or under a directory');
     print(' passed on the command line as opted out of null safety.  Does');
     print(' not mark files under directories containing a pubspec.yaml file');

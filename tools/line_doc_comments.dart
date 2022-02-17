@@ -9,10 +9,10 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-final oneLineBlock = new RegExp(r'^(\s*)/\*\*\s?(.*)\*/\s*$');
-final startBlock = new RegExp(r'^(\s*)/\*\*(.*)$');
-final blockLine = new RegExp(r'^\s*\*\s?(.*)$');
-final endBlock = new RegExp(r'^\s*\*/\s*$');
+final oneLineBlock = RegExp(r'^(\s*)/\*\*\s?(.*)\*/\s*$');
+final startBlock = RegExp(r'^(\s*)/\*\*(.*)$');
+final blockLine = RegExp(r'^\s*\*\s?(.*)$');
+final endBlock = RegExp(r'^\s*\*/\s*$');
 
 main(List<String> args) {
   if (args.length != 1) {
@@ -23,7 +23,7 @@ main(List<String> args) {
     return;
   }
 
-  var dir = new Directory(args[0]);
+  var dir = Directory(args[0]);
   dir.list(recursive: true, followLinks: false).listen((entity) {
     if (entity is File) {
       var file = entity.path;
@@ -34,19 +34,19 @@ main(List<String> args) {
 }
 
 void fixFile(String path) {
-  var file = new File(path);
+  var file = File(path);
   file.readAsLines().then((lines) => fixContents(lines, path)).then((fixed) {
-    return new File(path).writeAsString(fixed);
+    return File(path).writeAsString(fixed);
   }).then((file) {
     print(file.path);
   });
 }
 
 String fixContents(List<String> lines, String path) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
   var linesOut = 0;
   var inBlock = false;
-  var indent;
+  String indent;
 
   for (var line in lines) {
     var oldLine = line;
@@ -104,11 +104,11 @@ String fixContents(List<String> lines, String path) {
 
       // Warn about lines that crossed 80 columns as a result of the change.
       if (line.length > 80 && oldLine.length <= 80) {
-        const _PURPLE = '\u001b[35m';
-        const _RED = '\u001b[31m';
-        const _NO_COLOR = '\u001b[0m';
+        const purple = '\u001b[35m';
+        const red = '\u001b[31m';
+        const reset = '\u001b[0m';
 
-        print('$_PURPLE$path$_NO_COLOR:$_RED$linesOut$_NO_COLOR: '
+        print('$purple$path$reset:$red$linesOut$reset: '
             'line exceeds 80 cols:\n    $line');
       }
 

@@ -297,7 +297,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
         ..writeAllLines(lines)
         ..writeln('}');
     } else if (template == 'expression') {
-      assert(lines.length >= 1);
+      assert(lines.isNotEmpty);
       buffer
         ..writeln('void main() async =>')
         ..writeAllLines(lines.take(lines.length - 1))
@@ -375,7 +375,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
         print('');
       }
     } else {
-      throw 'unexpected result type: ${result}';
+      throw 'unexpected result type: $result';
     }
 
     return;
@@ -520,7 +520,7 @@ extension on StringBuffer {
   /// Write every line, right-trimmed, of [lines] with a newline after.
   void writeAllLines(Iterable<String> lines) {
     for (var line in lines) {
-      this.writeln(line.trimRight());
+      writeln(line.trimRight());
     }
   }
 }

@@ -11,9 +11,9 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:test_runner/bot_results.dart';
 
 import 'lib/src/firestore.dart';
-import 'package:test_runner/bot_results.dart';
 
 const newTest = 'new test';
 const skippedTest = 'skipped';
@@ -23,7 +23,7 @@ const maxAttempts = 20;
 FirestoreDatabase database;
 
 class ResultRecord {
-  final data;
+  final Map data;
 
   ResultRecord(this.data);
 
@@ -33,7 +33,7 @@ class ResultRecord {
     return int.parse(field('blamelist_start_index')['integerValue']);
   }
 
-  void set blamelistStartIndex(int index) {
+  set blamelistStartIndex(int index) {
     field('blamelist_start_index')['integerValue'] = '$index';
   }
 
@@ -109,7 +109,7 @@ void updateBlameLists(
         .where((result) => result['document'] != null)
         .map((result) => result['document']['name']);
     for (var documentPath in documents) {
-      await database.beginTransaction();
+      database.beginTransaction();
       var documentName = documentPath.split('/').last;
       var result =
           ResultRecord(await database.getDocument('results', documentName));
@@ -181,6 +181,6 @@ main(List<String> arguments) async {
   var project = options['staging'] ? 'dart-ci-staging' : 'dart-ci';
   database = FirestoreDatabase(
       project, await readGcloudAuthToken(options['auth-token']));
-  await updateBlameLists(configuration, commit, results);
+  updateBlameLists(configuration, commit, results);
   database.closeClient();
 }

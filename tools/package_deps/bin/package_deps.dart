@@ -101,6 +101,7 @@ class Package implements Comparable<Package> {
   late final String _packageName;
   late final Set<String> _declaredDependencies;
   late final Set<String> _declaredDevDependencies;
+  // ignore: unused_field
   late final Set<String> _declaredOverrideDependencies;
   late final bool _publishToNone;
 
@@ -208,9 +209,9 @@ class Package implements Comparable<Package> {
     //   print('  dev deps: ${devdeps}');
     // }
 
-    var out = (String message) {
+    void out(String message) {
       logger.stdout(logger.ansi.emphasized(message));
-    };
+    }
 
     var undeclaredRegularUses = Set<String>.from(deps)
       ..removeAll(_declaredDependencies);
@@ -439,6 +440,7 @@ abstract class PubDep {
 
   PubDep(this.name);
 
+  @override
   String toString() => name;
 
   static PubDep parse(String name, Object dep) {
@@ -461,6 +463,7 @@ class SemverPubDep extends PubDep {
 
   SemverPubDep(String name, this.value) : super(name);
 
+  @override
   String toString() => '$name: $value';
 }
 
@@ -469,6 +472,7 @@ class PathPubDep extends PubDep {
 
   PathPubDep(String name, this.path) : super(name);
 
+  @override
   String toString() => '$name: $path';
 }
 
