@@ -6,8 +6,8 @@ import 'dart:mirrors';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
 
 import 'package:test/fake.dart';
 import 'package:test/test.dart';

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization_extensions.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization_extensions.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';

@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 
 import '../executor.dart';
 import '../api.dart';
-import '../executor_shared/response_impls.dart';
+import '../executor/response_impls.dart';
 import 'introspection_impls.dart';
 import 'remote_instance.dart';
 import 'serialization.dart';

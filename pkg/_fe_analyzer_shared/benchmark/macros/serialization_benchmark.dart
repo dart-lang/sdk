@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 
 void main() async {
   for (var serializationMode in [
@@ -188,7 +188,7 @@ String childProgram(SerializationMode mode) => '''
       import 'dart:isolate';
       import 'dart:typed_data';
 
-      import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
+      import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 
       void main(_, [SendPort? sendPort]) {
         var mode = $mode;

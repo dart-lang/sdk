@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'executor_shared/serialization.dart'
+import 'executor/serialization.dart'
     show SerializationMode, SerializationModeHelpers;
 
 /// Generates a Dart program for a given set of macros, which can be compiled
@@ -49,70 +49,104 @@ const String _modeMarker = '{{SERIALIZATION_MODE}}';
 
 const String template = '''
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/execute_macro.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/response_impls.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/protocol.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/execute_macro.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/message_grouper.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/response_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 $_importMarker
 
-/// Entrypoint to be spawned with [Isolate.spawnUri].
+/// Entrypoint to be spawned with [Isolate.spawnUri] or [Process.start].
 ///
 /// Supports the client side of the macro expansion protocol.
-void main(_, SendPort sendPort) {
-  /// Local function that sends requests and returns responses using [sendPort].
-  Future<Response> sendRequest(Request request) => _sendRequest(request, sendPort);
+void main(_, [SendPort? sendPort]) {
+  // Function that sends the result of a [Serializer] using either [sendPort]
+  // or [stdout].
+  void Function(Serializer) sendResult;
 
-  /// TODO: More directly support customizable serialization types.
+  // The stream for incoming messages, could be either a ReceivePort or stdin.
+  Stream<Object?> messageStream;
+
   withSerializationMode($_modeMarker, () {
-    ReceivePort receivePort = new ReceivePort();
-    sendPort.send(receivePort.sendPort);
+    if (sendPort != null) {
+      ReceivePort receivePort = new ReceivePort();
+      messageStream = receivePort;
+      sendResult = (Serializer serializer) =>
+          _sendIsolateResult(serializer, sendPort);
+      // If using isolate communication, first send a sendPort to the parent
+      // isolate.
+      sendPort.send(receivePort.sendPort);
+    } else {
+      sendResult = _sendStdoutResult;
+      if (serializationMode == SerializationMode.byteDataClient) {
+        messageStream = MessageGrouper(stdin).messageStream;
+      } else if (serializationMode == SerializationMode.jsonClient) {
+        messageStream = stdin
+          .transform(const Utf8Decoder())
+          .transform(const LineSplitter())
+          .map((line) => jsonDecode(line)!);
+      } else {
+        throw new UnsupportedError(
+            'Unsupported serialization mode \$serializationMode for '
+            'ProcessExecutor');
+      }
+    }
 
-    receivePort.listen((message) async {
-      if (serializationMode == SerializationMode.byteDataClient
-          && message is TransferableTypedData) {
-        message = message.materialize().asUint8List();
-      }
-      var deserializer = deserializerFactory(message)
-          ..moveNext();
-      int zoneId = deserializer.expectInt();
-      deserializer..moveNext();
-      var type = MessageType.values[deserializer.expectInt()];
-      var serializer = serializerFactory();
-      switch (type) {
-        case MessageType.instantiateMacroRequest:
-          var request = new InstantiateMacroRequest.deserialize(deserializer, zoneId);
-          (await _instantiateMacro(request)).serialize(serializer);
-          break;
-        case MessageType.executeDeclarationsPhaseRequest:
-          var request = new ExecuteDeclarationsPhaseRequest.deserialize(deserializer, zoneId);
-          (await _executeDeclarationsPhase(request, sendRequest)).serialize(serializer);
-          break;
-        case MessageType.executeDefinitionsPhaseRequest:
-          var request = new ExecuteDefinitionsPhaseRequest.deserialize(deserializer, zoneId);
-          (await _executeDefinitionsPhase(request, sendRequest)).serialize(serializer);
-          break;
-        case MessageType.executeTypesPhaseRequest:
-          var request = new ExecuteTypesPhaseRequest.deserialize(deserializer, zoneId);
-          (await _executeTypesPhase(request, sendRequest)).serialize(serializer);
-          break;
-        case MessageType.response:
-          var response = new SerializableResponse.deserialize(deserializer, zoneId);
-          _responseCompleters.remove(response.requestId)!.complete(response);
-          return;
-        default:
-          throw new StateError('Unhandled event type \$type');
-      }
-      _sendResult(serializer, sendPort);
-    });
+    messageStream.listen((message) => _handleMessage(message, sendResult));
   });
+}
+
+void _handleMessage(
+    Object? message, void Function(Serializer) sendResult) async {
+  // Serializes `request` and send it using `sendResult`.
+  Future<Response> sendRequest(Request request) =>
+      _sendRequest(request, sendResult);
+
+  if (serializationMode == SerializationMode.byteDataClient
+      && message is TransferableTypedData) {
+    message = message.materialize().asUint8List();
+  }
+  var deserializer = deserializerFactory(message)
+      ..moveNext();
+  int zoneId = deserializer.expectInt();
+  deserializer..moveNext();
+  var type = MessageType.values[deserializer.expectInt()];
+  var serializer = serializerFactory();
+  switch (type) {
+    case MessageType.instantiateMacroRequest:
+      var request = new InstantiateMacroRequest.deserialize(deserializer, zoneId);
+      (await _instantiateMacro(request)).serialize(serializer);
+      break;
+    case MessageType.executeDeclarationsPhaseRequest:
+      var request = new ExecuteDeclarationsPhaseRequest.deserialize(deserializer, zoneId);
+      (await _executeDeclarationsPhase(request, sendRequest)).serialize(serializer);
+      break;
+    case MessageType.executeDefinitionsPhaseRequest:
+      var request = new ExecuteDefinitionsPhaseRequest.deserialize(deserializer, zoneId);
+      (await _executeDefinitionsPhase(request, sendRequest)).serialize(serializer);
+      break;
+    case MessageType.executeTypesPhaseRequest:
+      var request = new ExecuteTypesPhaseRequest.deserialize(deserializer, zoneId);
+      (await _executeTypesPhase(request, sendRequest)).serialize(serializer);
+      break;
+    case MessageType.response:
+      var response = new SerializableResponse.deserialize(deserializer, zoneId);
+      _responseCompleters.remove(response.requestId)!.complete(response);
+      return;
+    default:
+      throw new StateError('Unhandled event type \$type');
+  }
+  sendResult(serializer);
 }
 
 /// Maps macro identifiers to constructors.
@@ -263,26 +297,50 @@ Future<SerializableResponse> _executeDefinitionsPhase(
 /// Holds on to response completers by request id.
 final _responseCompleters = <int, Completer<Response>>{};
 
-/// Serializes [request], sends it to [sendPort], and sets up a [Completer] in
-/// [_responseCompleters] to handle the response.
-Future<Response> _sendRequest(Request request, SendPort sendPort) {
+/// Serializes [request], passes it to [sendResult], and sets up a [Completer]
+/// in [_responseCompleters] to handle the response.
+Future<Response> _sendRequest(
+    Request request, void Function(Serializer serializer) sendResult) {
   Completer<Response> completer = Completer();
   _responseCompleters[request.id] = completer;
   Serializer serializer = serializerFactory();
   serializer.addInt(request.serializationZoneId);
   request.serialize(serializer);
-  _sendResult(serializer, sendPort);
+  sendResult(serializer);
   return completer.future;
 }
 
 /// Sends [serializer.result] to [sendPort], possibly wrapping it in a
 /// [TransferableTypedData] object.
-void _sendResult(Serializer serializer, SendPort sendPort) {
+void _sendIsolateResult(Serializer serializer, SendPort sendPort) {
   if (serializationMode == SerializationMode.byteDataClient) {
     sendPort.send(
         TransferableTypedData.fromList([serializer.result as Uint8List]));
   } else {
     sendPort.send(serializer.result);
+  }
+}
+
+/// Sends [serializer.result] to [stdout].
+///
+/// Serializes the result to a string if using JSON.
+void _sendStdoutResult(Serializer serializer) {
+  if (serializationMode == SerializationMode.jsonClient) {
+    stdout.writeln(jsonEncode(serializer.result));
+  } else if (serializationMode == SerializationMode.byteDataClient) {
+    Uint8List result = (serializer as ByteDataSerializer).result;
+    int length = result.lengthInBytes;
+    stdout.add([
+      length >> 24 & 0xff,
+      length >> 16 & 0xff,
+      length >> 8 & 0xff,
+      length & 0xff,
+    ]);
+    stdout.add(result);
+  } else {
+    throw new UnsupportedError(
+        'Unsupported serialization mode \$serializationMode for '
+        'ProcessExecutor');
   }
 }
 ''';

@@ -4,7 +4,7 @@
 
 import 'api.dart';
 import 'bootstrap.dart'; // For doc comments only.
-import 'executor_shared/serialization.dart';
+import 'executor/serialization.dart';
 
 /// The interface used by Dart language implementations, in order to load
 /// and execute macros, as well as produce library augmentations from those
