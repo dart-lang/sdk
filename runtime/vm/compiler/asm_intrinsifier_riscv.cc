@@ -670,8 +670,34 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
                                                    bool sticky) {
   if (FLAG_interpret_irregexp) return;
 
-  // TODO(riscv)
-  __ Bind(normal_ir_body);
+  static const intptr_t kRegExpParamOffset = 2 * target::kWordSize;
+  static const intptr_t kStringParamOffset = 1 * target::kWordSize;
+  // start_index smi is located at offset 0.
+
+  // Incoming registers:
+  // T0: Function. (Will be reloaded with the specialized matcher function.)
+  // S4: Arguments descriptor. (Will be preserved.)
+  // S5: Unknown. (Must be GC safe on tail call.)
+
+  // Load the specialized function pointer into R0. Leverage the fact the
+  // string CIDs as well as stored function pointers are in sequence.
+  __ lx(T2, Address(SP, kRegExpParamOffset));
+  __ lx(T1, Address(SP, kStringParamOffset));
+  __ LoadClassId(T1, T1);
+  __ AddImmediate(T1, -kOneByteStringCid);
+  __ slli(T1, T1, target::kWordSizeLog2);
+  __ add(T1, T1, T2);
+  __ lx(T0, FieldAddress(T1, target::RegExp::function_offset(kOneByteStringCid,
+                                                             sticky)));
+
+  // Registers are now set up for the lazy compile stub. It expects the function
+  // in R0, the argument descriptor in R4, and IC-Data in R5.
+  __ li(S5, 0);
+
+  // Tail-call the function.
+  __ lx(CODE_REG, FieldAddress(T0, target::Function::code_offset()));
+  __ lx(T1, FieldAddress(T0, target::Function::entry_point_offset()));
+  __ jr(T1);
 }
 
 void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,
