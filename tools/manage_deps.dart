@@ -19,8 +19,8 @@
 library bump;
 
 import 'dart:io';
-import 'package:args/command_runner.dart';
 
+import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 
 class BumpCommand extends Command<int> {
@@ -36,6 +36,7 @@ This will:
 4. Prompt to create a CL
 ''';
 
+  @override
   String get invocation =>
       './tools/manage_deps.dart bump <path/to/dependency> <options>';
 

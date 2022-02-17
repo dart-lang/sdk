@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show File, exit, stderr;
-
-import 'dart:isolate' show RawReceivePort;
-
 import 'dart:convert' show JsonEncoder;
+import 'dart:io' show File, exit, stderr;
+import 'dart:isolate' show RawReceivePort;
 
 import 'package:yaml/yaml.dart' show loadYaml;
 
 main(List<String> rawArguments) {
-  var port = new RawReceivePort();
+  var port = RawReceivePort();
   bool check = false;
   String? relative;
   List<String> arguments = [];
@@ -28,12 +26,12 @@ main(List<String> rawArguments) {
     stderr.writeln("Usage: yaml2json.dart input.yaml output.json [--check]");
     exit(1);
   }
-  Uri input = new File(arguments[0]).absolute.uri;
-  Uri output = new File(arguments[1]).absolute.uri;
+  Uri input = File(arguments[0]).absolute.uri;
+  Uri output = File(arguments[1]).absolute.uri;
   String inputString = arguments[0];
   String outputString = arguments[1];
   if (relative != null) {
-    String relativeTo = new File(relative).absolute.uri.toString();
+    String relativeTo = File(relative).absolute.uri.toString();
     if (input.toString().startsWith(relativeTo)) {
       inputString = input.toString().substring(relativeTo.length);
     }
@@ -41,15 +39,15 @@ main(List<String> rawArguments) {
       outputString = output.toString().substring(relativeTo.length);
     }
   }
-  Map yaml = loadYaml(new File.fromUri(input).readAsStringSync());
-  Map<String, dynamic> result = new Map<String, dynamic>();
+  Map yaml = loadYaml(File.fromUri(input).readAsStringSync());
+  Map<String, dynamic> result = <String, dynamic>{};
   result["comment:0"] = "NOTE: THIS FILE IS GENERATED. DO NOT EDIT.";
   result["comment:1"] =
       "Instead modify '$inputString' and follow the instructions therein.";
   for (String key in yaml.keys) {
     result[key] = yaml[key];
   }
-  File file = new File.fromUri(output);
+  File file = File.fromUri(output);
   String text = const JsonEncoder.withIndent("  ").convert(result);
   if (check) {
     bool needsUpdate = true;
