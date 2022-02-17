@@ -104,10 +104,8 @@ class ImportLibrary extends MultiCorrectionProducer {
           targetNode = name;
         }
       }
-      if (mightBeTypeIdentifier(targetNode)) {
-        var typeName = (targetNode is SimpleIdentifier)
-            ? targetNode.name
-            : (targetNode as PrefixedIdentifier).prefix.name;
+      var typeName = nameOfType(targetNode);
+      if (typeName != null) {
         yield* _importLibraryForElement(typeName, const [
           ElementKind.CLASS,
           ElementKind.ENUM,
@@ -124,17 +122,13 @@ class ImportLibrary extends MultiCorrectionProducer {
   }
 
   @override
-  bool mightBeTypeIdentifier(AstNode node) {
-    if (super.mightBeTypeIdentifier(node)) {
-      return true;
-    }
+  String? nameOfType(AstNode node) {
     if (node is PrefixedIdentifier) {
-      var parent = node.parent;
-      if (parent is NamedType) {
-        return true;
+      if (node.parent is NamedType) {
+        return node.prefix.name;
       }
     }
-    return false;
+    return super.nameOfType(node);
   }
 
   Stream<CorrectionProducer> _importExtensionInLibrary(

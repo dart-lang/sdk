@@ -541,16 +541,15 @@ abstract class _AbstractCorrectionProducer {
     return false;
   }
 
-  /// Return `true` if the [node] might be a type name.
-  bool mightBeTypeIdentifier(AstNode node) {
+  /// If the [node] might be a type name, return its name.
+  String? nameOfType(AstNode node) {
     if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is NamedType) {
-        return true;
+      var name = node.name;
+      if (node.parent is NamedType || _isNameOfType(name)) {
+        return name;
       }
-      return _isNameOfType(node.name);
     }
-    return false;
+    return null;
   }
 
   /// Replace all occurrences of the [oldIndent] with the [newIndent] within the
