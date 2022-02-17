@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../util/ast_check.dart';
-import '../../util/token_check.dart';
 import 'parser_diagnostics.dart';
 
 main() {
@@ -27,12 +24,24 @@ class A {
     parseResult.assertErrors([
       error(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, 14, 3),
     ]);
-    check(parseResult.findNode.superFormalParameter('super.a'))
-      ..keyword.isNull
-      ..superKeyword.isKeywordSuper
-      ..type.isNull
-      ..identifier.isNotNull
-      ..typeParameters.isNotNull.typeParameters.hasLength(1)
-      ..parameters.isNotNull;
+
+    var node = parseResult.findNode.superFormalParameter('super.a');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  identifier: SimpleIdentifier
+    token: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  period: .
+  superKeyword: super
+  typeParameters: TypeParameterList
+    leftBracket: <
+    rightBracket: >
+    typeParameters
+      TypeParameter
+        name: SimpleIdentifier
+          token: T
+''');
   }
 }

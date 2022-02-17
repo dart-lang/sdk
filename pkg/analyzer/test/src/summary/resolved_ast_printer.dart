@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:test/test.dart';
 
 /// Used in [ResolvedAstPrinter] to print lines of code that corresponding
 /// to a subtree of AST. This help to make the bulky presentation of AST a
@@ -33,8 +35,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// The optional provider for code lines, might be `null`.
   final CodeLinesProvider? _codeLinesProvider;
 
+  /// If `true`, linking of [EnumConstantDeclaration] will be checked
+  /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/48380
+  final bool withCheckingLinking;
+
   /// If `true`, selected tokens and nodes should be printed with offsets.
   final bool _withOffsets;
+
+  /// If `true`, resolution should be printed.
+  final bool _withResolution;
 
   String _indent = '';
 
@@ -43,11 +52,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     required StringSink sink,
     required String indent,
     CodeLinesProvider? codeLinesProvider,
+    this.withCheckingLinking = false,
     bool withOffsets = false,
+    bool withResolution = true,
   })  : _selfUriStr = selfUriStr,
         _sink = sink,
         _codeLinesProvider = codeLinesProvider,
         _withOffsets = withOffsets,
+        _withResolution = withResolution,
         _indent = indent;
 
   @override
@@ -373,6 +385,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    _checkChildrenEntitiesLinking(node);
+    _writeln('ConstructorSelector');
+    _withIndent(() {
+      var properties = _Properties();
+      properties.addNode('name', node.name);
+      properties.addToken('period', node.period);
+      _writeProperties(properties);
+    });
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     _writeNextCodeLine(node);
     _writeln('ContinueStatement');
@@ -450,11 +474,28 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEnumConstantArguments(EnumConstantArguments node) {
+    if (withCheckingLinking) {
+      _checkChildrenEntitiesLinking(node);
+    }
+    _writeln('EnumConstantArguments');
+    _withIndent(() {
+      var properties = _Properties();
+      properties.addNode('argumentList', node.argumentList);
+      properties.addNode('constructorSelector', node.constructorSelector);
+      properties.addNode('typeArguments', node.typeArguments);
+      _writeProperties(properties);
+    });
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    _checkChildrenEntitiesLinking(node);
     _writeNextCodeLine(node);
     _writeln('EnumConstantDeclaration');
     _withIndent(() {
       var properties = _Properties();
+      properties.addNode('arguments', node.arguments);
       properties.addNode('name', node.name);
       _addDeclaration(properties, node);
       _writeProperties(properties);
@@ -468,6 +509,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addNodeList('constants', node.constants);
+      properties.addToken('semicolon', node.semicolon);
       _addNamedCompilationUnitMember(properties, node);
       _writeProperties(properties);
     });
@@ -548,6 +590,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       var properties = _Properties();
       properties.addToken('keyword', node.keyword);
       properties.addNode('parameters', node.parameters);
+      properties.addToken('period', node.period);
       properties.addToken('thisKeyword', node.thisKeyword);
       properties.addNode('type', node.type);
       properties.addNode('typeParameters', node.typeParameters);
@@ -990,7 +1033,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addNode('body', node.body);
-      properties.addType('declaredElementType', node.declaredElement!.type);
+      if (_withResolution) {
+        properties.addType('declaredElementType', node.declaredElement!.type);
+      }
       properties.addToken('externalKeyword', node.externalKeyword);
       properties.addToken('modifierKeyword', node.modifierKeyword);
       properties.addNode('name', node.name);
@@ -1328,6 +1373,26 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    if (withCheckingLinking) {
+      _checkChildrenEntitiesLinking(node);
+    }
+    _writeNextCodeLine(node);
+    _writeln('SuperFormalParameter');
+    _withIndent(() {
+      var properties = _Properties();
+      properties.addToken('keyword', node.keyword);
+      properties.addNode('parameters', node.parameters);
+      properties.addToken('period', node.period);
+      properties.addToken('superKeyword', node.superKeyword);
+      properties.addNode('type', node.type);
+      properties.addNode('typeParameters', node.typeParameters);
+      _addNormalFormalParameter(properties, node);
+      _writeProperties(properties);
+    });
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _writeNextCodeLine(node);
     _writeln('SwitchCase');
@@ -1624,7 +1689,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   void _addDeclaration(_Properties properties, Declaration node) {
-    properties.addElement('declaredElement', node.declaredElement);
+    if (_withResolution) {
+      properties.addElement('declaredElement', node.declaredElement);
+    }
     _addAnnotatedNode(properties, node);
   }
 
@@ -1653,8 +1720,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   void _addFormalParameter(_Properties properties, FormalParameter node) {
     properties.addToken('covariantKeyword', node.covariantKeyword);
-    properties.addElement('declaredElement', node.declaredElement);
-    properties.addType('declaredElementType', node.declaredElement!.type);
+    if (_withResolution) {
+      properties.addElement('declaredElement', node.declaredElement);
+      properties.addType('declaredElementType', node.declaredElement!.type);
+    }
     properties.addNode('identifier', node.identifier);
     properties.addNodeList('metadata', node.metadata);
     properties.addToken('requiredKeyword', node.requiredKeyword);
@@ -1788,6 +1857,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _addDirective(properties, node);
   }
 
+  /// Check that children entities of the [node] link to each other.
+  void _checkChildrenEntitiesLinking(AstNode node) {
+    Token? lastEnd;
+    for (var entity in node.childEntities) {
+      if (lastEnd != null) {
+        var begin = _entityBeginToken(entity);
+        expect(lastEnd.next, begin);
+        expect(begin.previous, lastEnd);
+      }
+      lastEnd = _entityEndToken(entity);
+    }
+  }
+
   String _referenceToString(Reference reference) {
     var parent = reference.parent!;
     if (parent.parent == null) {
@@ -1836,9 +1918,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   void _writeElement(String name, Element? element) {
-    _sink.write(_indent);
-    _sink.write('$name: ');
-    _writeElement0(element);
+    if (_withResolution) {
+      _sink.write(_indent);
+      _sink.write('$name: ');
+      _writeElement0(element);
+    }
   }
 
   void _writeElement0(Element? element) {
@@ -1971,11 +2055,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   void _writeToken(String name, Token? token) {
     if (token != null) {
+      _sink.write(_indent);
+      _sink.write('$name: ');
+      _sink.write(token.lexeme.isNotEmpty ? token : '<empty>');
       if (_withOffsets) {
-        _writelnWithIndent('$name: $token @${token.offset}');
-      } else {
-        _writelnWithIndent('$name: $token');
+        _sink.write(' @${token.offset}');
       }
+      if (token.isSynthetic) {
+        _sink.write(' <synthetic>');
+      }
+      _sink.writeln();
     }
   }
 
@@ -1995,8 +2084,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   void _writeType(String name, DartType? type) {
-    var typeStr = _typeStr(type);
-    _writelnWithIndent('$name: $typeStr');
+    if (_withResolution) {
+      var typeStr = _typeStr(type);
+      _writelnWithIndent('$name: $typeStr');
+    }
   }
 
   void _writeTypeList(String name, List<DartType>? types) {
@@ -2008,6 +2099,26 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
           _writelnWithIndent('$typeStr');
         }
       });
+    }
+  }
+
+  static Token _entityBeginToken(SyntacticEntity entity) {
+    if (entity is Token) {
+      return entity;
+    } else if (entity is AstNode) {
+      return entity.beginToken;
+    } else {
+      throw UnimplementedError('(${entity.runtimeType}) $entity');
+    }
+  }
+
+  static Token _entityEndToken(SyntacticEntity entity) {
+    if (entity is Token) {
+      return entity;
+    } else if (entity is AstNode) {
+      return entity.endToken;
+    } else {
+      throw UnimplementedError('(${entity.runtimeType}) $entity');
     }
   }
 

@@ -2,14 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer_utilities/check/check.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../util/ast_check.dart';
-import '../../util/token_check.dart';
 import '../diagnostics/parser_diagnostics.dart';
 
 main() {
@@ -23,20 +18,26 @@ class AstBuilderTest extends ParserDiagnosticsTest {
   void test_constructor_factory_misnamed() {
     var parseResult = parseStringWithErrors(r'''
 class A {
-  factory B() => throw 0;
+  factory B() => null;
 }
 ''');
     parseResult.assertNoErrors();
-    var unit = parseResult.unit;
-    expect(unit.declarations, hasLength(1));
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration, isNotNull);
-    expect(declaration.members, hasLength(1));
-    var member = declaration.members[0] as ConstructorDeclaration;
-    expect(member, isNotNull);
-    expect(member.factoryKeyword, isNotNull);
-    expect(member.name, isNull);
-    expect(member.returnType.name, 'B');
+
+    var node = parseResult.findNode.constructor('B()');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  body: ExpressionFunctionBody
+    expression: NullLiteral
+      literal: null
+    functionDefinition: =>
+    semicolon: ;
+  factoryKeyword: factory
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  returnType: SimpleIdentifier
+    token: B
+''');
   }
 
   void test_constructor_wrongName() {
@@ -48,14 +49,24 @@ class A {
     parseResult.assertErrors([
       error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
     ]);
-    var unit = parseResult.unit;
-    expect(unit.declarations, hasLength(1));
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration, isNotNull);
-    expect(declaration.members, hasLength(1));
-    var member = declaration.members[0] as ConstructorDeclaration;
-    expect(member, isNotNull);
-    expect(member.initializers, hasLength(1));
+
+    var node = parseResult.findNode.constructor('B()');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  body: EmptyFunctionBody
+    semicolon: ;
+  initializers
+    SuperConstructorInvocation
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      superKeyword: super
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  returnType: SimpleIdentifier
+    token: B
+''');
   }
 
   void test_enum_constant_name_dot() {
@@ -68,12 +79,20 @@ enum E {
       error(ParserErrorCode.MISSING_IDENTIFIER, 14, 1),
     ]);
 
-    var v = parseResult.findNode.enumConstantDeclaration('v.');
-    check(v).name.name.isEqualTo('v');
-    check(v).arguments.isNotNull
-      ..typeArguments.isNull
-      ..constructorSelector.isNotNull.name.isSynthetic
-      ..argumentList.isSynthetic;
+    var node = parseResult.findNode.enumConstantDeclaration('v.');
+    assertParsedNodeText(node, r'''
+EnumConstantDeclaration
+  arguments: EnumConstantArguments
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+    constructorSelector: ConstructorSelector
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
+      period: .
+  name: SimpleIdentifier
+    token: v
+''');
   }
 
   void test_enum_constant_name_dot_identifier_semicolon() {
@@ -84,12 +103,20 @@ enum E {
 ''');
     parseResult.assertNoErrors();
 
-    var v = parseResult.findNode.enumConstantDeclaration('v.');
-    check(v).name.name.isEqualTo('v');
-    check(v).arguments.isNotNull
-      ..typeArguments.isNull
-      ..constructorSelector.isNotNull.name.name.isEqualTo('named')
-      ..argumentList.isSynthetic;
+    var node = parseResult.findNode.enumConstantDeclaration('v.');
+    assertParsedNodeText(node, r'''
+EnumConstantDeclaration
+  arguments: EnumConstantArguments
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+    constructorSelector: ConstructorSelector
+      name: SimpleIdentifier
+        token: named
+      period: .
+  name: SimpleIdentifier
+    token: v
+''');
   }
 
   void test_enum_constant_name_dot_semicolon() {
@@ -102,12 +129,20 @@ enum E {
       error(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
     ]);
 
-    var v = parseResult.findNode.enumConstantDeclaration('v.');
-    check(v).name.name.isEqualTo('v');
-    check(v).arguments.isNotNull
-      ..typeArguments.isNull
-      ..constructorSelector.isNotNull.name.isSynthetic
-      ..argumentList.isSynthetic;
+    var node = parseResult.findNode.enumConstantDeclaration('v.');
+    assertParsedNodeText(node, r'''
+EnumConstantDeclaration
+  arguments: EnumConstantArguments
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+    constructorSelector: ConstructorSelector
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
+      period: .
+  name: SimpleIdentifier
+    token: v
+''');
   }
 
   void test_enum_constant_name_typeArguments_dot() {
@@ -122,12 +157,27 @@ enum E {
       error(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
     ]);
 
-    var v = parseResult.findNode.enumConstantDeclaration('v<int>.');
-    check(v).name.name.isEqualTo('v');
-    check(v).arguments.isNotNull
-      ..typeArguments.isNotNull
-      ..constructorSelector.isNotNull.name.isSynthetic
-      ..argumentList.isSynthetic;
+    var node = parseResult.findNode.enumConstantDeclaration('v<int>.');
+    assertParsedNodeText(node, r'''
+EnumConstantDeclaration
+  arguments: EnumConstantArguments
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+    constructorSelector: ConstructorSelector
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
+      period: .
+    typeArguments: TypeArgumentList
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      leftBracket: <
+      rightBracket: >
+  name: SimpleIdentifier
+    token: v
+''');
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48380')
@@ -143,21 +193,30 @@ enum E {
       error(ParserErrorCode.MISSING_IDENTIFIER, 18, 1),
     ]);
 
-    var E = parseResult.findNode.enumDeclaration('enum E');
-    var v = parseResult.findNode.enumConstantDeclaration('v<int>');
-    check(v).name.name.isEqualTo('v');
-
-    var arguments = check(v).arguments.isNotNull;
-    arguments.typeArguments.isNotNull;
-
-    var constructorSelector = arguments.constructorSelector.isNotNull;
-    var syntheticName = constructorSelector.value.name;
-    constructorSelector.name.isSynthetic;
-
-    arguments.argumentList
-      ..isSynthetic
-      ..leftParenthesis.isLinkedToPrevious(syntheticName.token)
-      ..rightParenthesis.isLinkedToNext(E.semicolon!);
+    var node = parseResult.findNode.enumConstantDeclaration('v<int>');
+    assertParsedNodeText(
+        node,
+        r'''
+EnumConstantDeclaration
+  arguments: EnumConstantArguments
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+    constructorSelector: ConstructorSelector
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
+      period: .
+    typeArguments: TypeArgumentList
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      leftBracket: <
+      rightBracket: >
+  name: SimpleIdentifier
+    token: v
+''',
+        withCheckingLinking: true);
   }
 
   void test_enum_constant_withTypeArgumentsWithoutArguments() {
@@ -171,11 +230,23 @@ enum E<T> {
           15, 5),
     ]);
 
-    var v = parseResult.findNode.enumConstantDeclaration('v<int>');
-    check(v).name.name.isEqualTo('v');
-    check(v).arguments.isNotNull
-      ..typeArguments.isNotNull
-      ..argumentList.isSynthetic;
+    var node = parseResult.findNode.enumConstantDeclaration('v<int>');
+    assertParsedNodeText(node, r'''
+EnumConstantDeclaration
+  arguments: EnumConstantArguments
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+    typeArguments: TypeArgumentList
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+      leftBracket: <
+      rightBracket: >
+  name: SimpleIdentifier
+    token: v
+''');
   }
 
   void test_enum_semicolon_null() {
@@ -186,8 +257,16 @@ enum E {
 ''');
     parseResult.assertNoErrors();
 
-    var v = parseResult.findNode.enumDeclaration('enum E');
-    check(v).semicolon.isNull;
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  constants
+    EnumConstantDeclaration
+      name: SimpleIdentifier
+        token: v
+  name: SimpleIdentifier
+    token: E
+''');
   }
 
   void test_enum_semicolon_optional() {
@@ -198,8 +277,17 @@ enum E {
 ''');
     parseResult.assertNoErrors();
 
-    var v = parseResult.findNode.enumDeclaration('enum E');
-    check(v).semicolon.isNotNull.isSemicolon;
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  constants
+    EnumConstantDeclaration
+      name: SimpleIdentifier
+        token: v
+  name: SimpleIdentifier
+    token: E
+  semicolon: ;
+''');
   }
 
   void test_getter_sameNameAsClass() {
@@ -211,15 +299,19 @@ class A {
     parseResult.assertErrors([
       error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
     ]);
-    var unit = parseResult.unit;
-    expect(unit.declarations, hasLength(1));
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration, isNotNull);
-    expect(declaration.members, hasLength(1));
-    var member = declaration.members[0] as MethodDeclaration;
-    expect(member, isNotNull);
-    expect(member.isGetter, isTrue);
-    expect(member.name.name, 'A');
+
+    var node = parseResult.findNode.methodDeclaration('get A');
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  body: ExpressionFunctionBody
+    expression: IntegerLiteral
+      literal: 0
+    functionDefinition: =>
+    semicolon: ;
+  name: SimpleIdentifier
+    token: A
+  propertyKeyword: get
+''');
   }
 
   void test_superFormalParameter() {
@@ -229,13 +321,14 @@ class A {
 }
 ''');
     parseResult.assertNoErrors();
-    check(parseResult.findNode.superFormalParameter('super.a'))
-      ..type.isNull
-      ..superKeyword.isKeywordSuper
-      ..identifier.which((it) => it
-        ..name.isEqualTo('a')
-        ..inDeclarationContext.isTrue)
-      ..typeParameters.isNull
-      ..parameters.isNull;
+
+    var node = parseResult.findNode.superFormalParameter('super.a');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  identifier: SimpleIdentifier
+    token: a
+  period: .
+  superKeyword: super
+''');
   }
 }
