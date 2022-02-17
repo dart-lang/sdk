@@ -662,7 +662,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     // The result is already instantiated during resolution;
     // [_dartObjectComputer.typeInstantiate] is unnecessary.
     var typeElement =
-        node.constructorName.type2.name.staticElement as TypeDefiningElement;
+        node.constructorName.type.name.staticElement as TypeDefiningElement;
 
     TypeAliasElement? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl) {

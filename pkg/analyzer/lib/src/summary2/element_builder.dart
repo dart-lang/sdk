@@ -150,7 +150,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    node.superclass2.accept(this);
+    node.superclass.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
   }
@@ -387,7 +387,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    node.superclass2.accept(this);
+    node.superclass.accept(this);
   }
 
   @override
@@ -741,7 +741,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    node.interfaces2.accept(this);
+    node.interfaces.accept(this);
   }
 
   @override
@@ -897,7 +897,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitOnClause(OnClause node) {
-    node.superclassConstraints2.accept(this);
+    node.superclassConstraints.accept(this);
   }
 
   @override
@@ -1094,7 +1094,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    node.mixinTypes2.accept(this);
+    node.mixinTypes.accept(this);
   }
 
   List<ElementAnnotation> _buildAnnotations(List<Annotation> nodeList) {

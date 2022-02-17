@@ -372,7 +372,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     var exp = stmt.expression as InstanceCreationExpression;
     ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement!;
     ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement!;
-    expect(exp.constructorName.type2.typeOrThrow.element, elementB);
+    expect(exp.constructorName.type.typeOrThrow.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
       _isType(elementA.typeParameters[0]
           .instantiate(nullabilitySuffix: NullabilitySuffix.star))
@@ -2372,7 +2372,7 @@ class B<T2, U2> {
     var bConstructor = b.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.redirectedConstructor as ConstructorName;
 
-    var typeName = redirected.type2;
+    var typeName = redirected.type;
     assertType(typeName.type, 'A<T2, U2>');
     assertType(typeName.type, 'A<T2, U2>');
 
@@ -2408,7 +2408,7 @@ class B<T2, U2> {
     var bConstructor = b.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.redirectedConstructor as ConstructorName;
 
-    var typeName = redirected.type2;
+    var typeName = redirected.type;
     assertType(typeName.type, 'A<T2, U2>');
     assertType(typeName.type, 'A<T2, U2>');
 

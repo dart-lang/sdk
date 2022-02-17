@@ -48,7 +48,7 @@ main() {
 
     var creation = findNode.instanceCreation('M.named();');
     var m = findElement.mixin('M');
-    assertElement(creation.constructorName.type2.name, m);
+    assertElement(creation.constructorName.type.name, m);
   }
 
   test_unnamedConstructor() async {

@@ -1455,7 +1455,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitConstructorName(ConstructorName node) {
-    node.type2.accept(this);
+    node.type.accept(this);
     elementResolver.visitConstructorName(node as ConstructorNameImpl);
   }
 
@@ -1572,7 +1572,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           );
         }
       } else {
-        var typeName = constructorName.type2.name;
+        var typeName = constructorName.type.name;
         if (typeName.staticElement is EnumElementImpl) {
           var nameNode = node.arguments?.constructorSelector?.name;
           if (nameNode != null) {
@@ -3047,7 +3047,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.documentationComment?.accept(this);
     node.name.accept(this);
     node.typeParameters?.accept(this);
-    node.superclass2.accept(this);
+    node.superclass.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
   }

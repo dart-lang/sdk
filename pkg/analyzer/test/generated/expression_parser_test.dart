@@ -671,7 +671,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(instanceCreation.keyword, isNotNull);
     ConstructorName name = instanceCreation.constructorName;
     expect(name, isNotNull);
-    expect(name.type2, isNotNull);
+    expect(name.type, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(instanceCreation.argumentList, isNotNull);
@@ -1044,7 +1044,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    NamedType type = name.type2;
+    NamedType type = name.type;
     expect(type.name.name, 'A.B');
     expect(type.typeArguments, isNull);
     expect(name.period, isNull);
@@ -1061,7 +1061,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    NamedType type = name.type2;
+    NamedType type = name.type;
     expect(type, isNotNull);
     expect(type.typeArguments, isNull);
     expect(name.period, isNotNull);
@@ -1079,7 +1079,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    NamedType type = name.type2;
+    NamedType type = name.type;
     expect(type, isNotNull);
     expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNotNull);
@@ -1096,7 +1096,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    NamedType type = name.type2;
+    NamedType type = name.type;
     expect(type, isNotNull);
     expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNull);
@@ -1113,7 +1113,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    NamedType type = name.type2;
+    NamedType type = name.type;
     expect(type, isNotNull);
     expect(type.typeArguments, isNull);
     expect(name.period, isNull);
@@ -1130,7 +1130,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    NamedType type = name.type2;
+    NamedType type = name.type;
     expect(type, isNotNull);
     expect(type.typeArguments, isNull);
     expect(name.period, isNull);
@@ -1147,7 +1147,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    NamedType type = name.type2;
+    NamedType type = name.type;
     expect(type, isNotNull);
     expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNotNull);
@@ -1164,7 +1164,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    NamedType type = name.type2;
+    NamedType type = name.type;
     expect(type, isNotNull);
     expect(type.typeArguments, isNull);
     expect(name.period, isNotNull);
@@ -1182,7 +1182,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    NamedType type = name.type2;
+    NamedType type = name.type;
     expect(type, isNotNull);
     expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNull);
@@ -1427,7 +1427,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword, isNotNull);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type2, isNotNull);
+    expect(name.type, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);

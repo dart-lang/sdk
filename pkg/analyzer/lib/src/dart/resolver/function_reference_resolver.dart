@@ -65,7 +65,7 @@ class FunctionReferenceResolver {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           typeArguments,
           [
-            function.constructorName.type2.name.toSource(),
+            function.constructorName.type.name.toSource(),
             function.constructorName.name!.name
           ],
         );

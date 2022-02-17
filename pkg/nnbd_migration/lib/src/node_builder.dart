@@ -135,7 +135,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.nativeClause?.accept(this);
     node.members.accept(this);
     var classElement = node.declaredElement!;
-    _handleSupertypeClauses(node, classElement, node.extendsClause?.superclass2,
+    _handleSupertypeClauses(node, classElement, node.extendsClause?.superclass,
         node.withClause, node.implementsClause, null);
     var constructors = classElement.constructors;
     if (constructors.length == 1) {
@@ -161,7 +161,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.name.accept(this);
     node.typeParameters?.accept(this);
     var classElement = node.declaredElement!;
-    _handleSupertypeClauses(node, classElement, node.superclass2,
+    _handleSupertypeClauses(node, classElement, node.superclass,
         node.withClause, node.implementsClause, null);
     for (var constructorElement in classElement.constructors) {
       assert(constructorElement.isSynthetic);
@@ -208,7 +208,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitConstructorName(ConstructorName node) {
     _pushNullabilityNodeTarget(NullabilityNodeTarget.text('constructed type'),
-        () => node.type2.accept(this));
+        () => node.type.accept(this));
     node.name?.accept(this);
     return null;
   }
@@ -921,13 +921,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var supertypes = <NamedType?>[];
     supertypes.add(superclass);
     if (withClause != null) {
-      supertypes.addAll(withClause.mixinTypes2);
+      supertypes.addAll(withClause.mixinTypes);
     }
     if (implementsClause != null) {
-      supertypes.addAll(implementsClause.interfaces2);
+      supertypes.addAll(implementsClause.interfaces);
     }
     if (onClause != null) {
-      supertypes.addAll(onClause.superclassConstraints2);
+      supertypes.addAll(onClause.superclassConstraints);
     }
     var decoratedSupertypes = <ClassElement, DecoratedType?>{};
     _pushNullabilityNodeTarget(

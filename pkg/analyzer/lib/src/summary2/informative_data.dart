@@ -1740,7 +1740,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   void _applyToEnumConstantInitializer(ConstFieldElementImpl element) {
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpression) {
-      initializer.constructorName.type2.typeArguments?.accept(this);
+      initializer.constructorName.type.typeArguments?.accept(this);
       for (var argument in initializer.argumentList.arguments) {
         argument.accept(this);
       }
@@ -1811,7 +1811,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    node.type2.accept(this);
+    node.type.accept(this);
     _tokenOrNull(node.period);
     node.name?.accept(this);
   }

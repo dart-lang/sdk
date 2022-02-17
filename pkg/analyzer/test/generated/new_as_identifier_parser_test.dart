@@ -51,10 +51,10 @@ class C {
     // type.  Resolution will change the type to `D` and the name to `new` if
     // appropriate.
     var constructorName = instanceCreationExpression.constructorName;
-    var typeName = constructorName.type2.name as PrefixedIdentifier;
+    var typeName = constructorName.type.name as PrefixedIdentifier;
     expect(typeName.prefix.name, 'C');
     expect(typeName.identifier.name, 'new');
-    expect(constructorName.type2.typeArguments, isNull);
+    expect(constructorName.type.typeArguments, isNull);
     expect(constructorName.name, isNull);
     expect(instanceCreationExpression.argumentList, isNotNull);
   }
@@ -64,9 +64,9 @@ class C {
         parseExpression('const C<int>.new()', featureSet: constructorTearoffs)
             as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
-    var typeName = constructorName.type2.name as SimpleIdentifier;
+    var typeName = constructorName.type.name as SimpleIdentifier;
     expect(typeName.name, 'C');
-    expect(constructorName.type2.typeArguments!.arguments, hasLength(1));
+    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
   }
@@ -76,10 +76,10 @@ class C {
         parseExpression('const prefix.C.new()', featureSet: constructorTearoffs)
             as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
-    var typeName = constructorName.type2.name as PrefixedIdentifier;
+    var typeName = constructorName.type.name as PrefixedIdentifier;
     expect(typeName.prefix.name, 'prefix');
     expect(typeName.identifier.name, 'C');
-    expect(constructorName.type2.typeArguments, isNull);
+    expect(constructorName.type.typeArguments, isNull);
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
   }
@@ -89,10 +89,10 @@ class C {
         'const prefix.C<int>.new()',
         featureSet: constructorTearoffs) as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
-    var typeName = constructorName.type2.name as PrefixedIdentifier;
+    var typeName = constructorName.type.name as PrefixedIdentifier;
     expect(typeName.prefix.name, 'prefix');
     expect(typeName.identifier.name, 'C');
-    expect(constructorName.type2.typeArguments!.arguments, hasLength(1));
+    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
   }
@@ -105,10 +105,10 @@ class C {
     // type.  Resolution will change the type to `D` and the name to `new` if
     // appropriate.
     var constructorName = instanceCreationExpression.constructorName;
-    var typeName = constructorName.type2.name as PrefixedIdentifier;
+    var typeName = constructorName.type.name as PrefixedIdentifier;
     expect(typeName.prefix.name, 'C');
     expect(typeName.identifier.name, 'new');
-    expect(constructorName.type2.typeArguments, isNull);
+    expect(constructorName.type.typeArguments, isNull);
     expect(constructorName.name, isNull);
     expect(instanceCreationExpression.argumentList, isNotNull);
   }
@@ -118,9 +118,9 @@ class C {
         parseExpression('new C<int>.new()', featureSet: constructorTearoffs)
             as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
-    var typeName = constructorName.type2.name as SimpleIdentifier;
+    var typeName = constructorName.type.name as SimpleIdentifier;
     expect(typeName.name, 'C');
-    expect(constructorName.type2.typeArguments!.arguments, hasLength(1));
+    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
   }
@@ -130,10 +130,10 @@ class C {
         parseExpression('new prefix.C.new()', featureSet: constructorTearoffs)
             as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
-    var typeName = constructorName.type2.name as PrefixedIdentifier;
+    var typeName = constructorName.type.name as PrefixedIdentifier;
     expect(typeName.prefix.name, 'prefix');
     expect(typeName.identifier.name, 'C');
-    expect(constructorName.type2.typeArguments, isNull);
+    expect(constructorName.type.typeArguments, isNull);
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
   }
@@ -142,10 +142,10 @@ class C {
     var instanceCreationExpression = parseExpression('new prefix.C<int>.new()',
         featureSet: constructorTearoffs) as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
-    var typeName = constructorName.type2.name as PrefixedIdentifier;
+    var typeName = constructorName.type.name as PrefixedIdentifier;
     expect(typeName.prefix.name, 'prefix');
     expect(typeName.identifier.name, 'C');
-    expect(constructorName.type2.typeArguments!.arguments, hasLength(1));
+    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
   }
@@ -166,9 +166,9 @@ class C {
         parseExpression('C<int>.new()', featureSet: constructorTearoffs)
             as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
-    var typeName = constructorName.type2.name as SimpleIdentifier;
+    var typeName = constructorName.type.name as SimpleIdentifier;
     expect(typeName.name, 'C');
-    expect(constructorName.type2.typeArguments!.arguments, hasLength(1));
+    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
   }
@@ -190,10 +190,10 @@ class C {
         parseExpression('prefix.C<int>.new()', featureSet: constructorTearoffs)
             as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
-    var typeName = constructorName.type2.name as PrefixedIdentifier;
+    var typeName = constructorName.type.name as PrefixedIdentifier;
     expect(typeName.prefix.name, 'prefix');
     expect(typeName.identifier.name, 'C');
-    expect(constructorName.type2.typeArguments!.arguments, hasLength(1));
+    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
   }
@@ -357,10 +357,10 @@ class C {
     // type.  Resolution will change the type to `D` and the name to `new` if
     // appropriate.
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
-    var typeName = redirectedConstructor.type2.name as PrefixedIdentifier;
+    var typeName = redirectedConstructor.type.name as PrefixedIdentifier;
     expect(typeName.prefix.name, 'D');
     expect(typeName.identifier.name, 'new');
-    expect(redirectedConstructor.type2.typeArguments, isNull);
+    expect(redirectedConstructor.type.typeArguments, isNull);
     expect(redirectedConstructor.name, isNull);
   }
 
@@ -375,9 +375,9 @@ class C {
         classDeclaration.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.initializers, isEmpty);
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
-    var typeName = redirectedConstructor.type2.name as SimpleIdentifier;
+    var typeName = redirectedConstructor.type.name as SimpleIdentifier;
     expect(typeName.name, 'D');
-    expect(redirectedConstructor.type2.typeArguments!.arguments, hasLength(1));
+    expect(redirectedConstructor.type.typeArguments!.arguments, hasLength(1));
     expect(redirectedConstructor.name!.name, 'new');
   }
 
@@ -392,10 +392,10 @@ class C {
         classDeclaration.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.initializers, isEmpty);
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
-    var typeName = redirectedConstructor.type2.name as PrefixedIdentifier;
+    var typeName = redirectedConstructor.type.name as PrefixedIdentifier;
     expect(typeName.prefix.name, 'prefix');
     expect(typeName.identifier.name, 'D');
-    expect(redirectedConstructor.type2.typeArguments, isNull);
+    expect(redirectedConstructor.type.typeArguments, isNull);
     expect(redirectedConstructor.name!.name, 'new');
   }
 
@@ -410,10 +410,10 @@ class C {
         classDeclaration.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.initializers, isEmpty);
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
-    var typeName = redirectedConstructor.type2.name as PrefixedIdentifier;
+    var typeName = redirectedConstructor.type.name as PrefixedIdentifier;
     expect(typeName.prefix.name, 'prefix');
     expect(typeName.identifier.name, 'D');
-    expect(redirectedConstructor.type2.typeArguments!.arguments, hasLength(1));
+    expect(redirectedConstructor.type.typeArguments!.arguments, hasLength(1));
     expect(redirectedConstructor.name!.name, 'new');
   }
 

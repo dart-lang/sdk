@@ -33,7 +33,7 @@ class TypeArgumentsVerifier {
       _libraryElement.typeSystem as TypeSystemImpl;
 
   void checkConstructorReference(ConstructorReference node) {
-    var classElement = node.constructorName.type2.name.staticElement;
+    var classElement = node.constructorName.type.name.staticElement;
     List<TypeParameterElement> typeParameters;
     if (classElement is TypeAliasElement) {
       typeParameters = classElement.typeParameters;
@@ -46,7 +46,7 @@ class TypeArgumentsVerifier {
     if (typeParameters.isEmpty) {
       return;
     }
-    var typeArgumentList = node.constructorName.type2.typeArguments;
+    var typeArgumentList = node.constructorName.type.typeArguments;
     if (typeArgumentList == null) {
       return;
     }

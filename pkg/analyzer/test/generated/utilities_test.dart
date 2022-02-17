@@ -457,7 +457,7 @@ class B<U> = B0 with N implements J;
       source: findNode.classTypeAlias('B<U>'),
       childAccessors: [
         (node) => node.documentationComment!,
-        (node) => node.superclass2,
+        (node) => node.superclass,
         (node) => node.implementsClause!,
         (node) => node.name,
         (node) => node.typeParameters!,
@@ -604,7 +604,7 @@ void f() {
       destination: findNode.constructorName('A.foo'),
       source: findNode.constructorName('B.bar'),
       childAccessors: [
-        (node) => node.type2,
+        (node) => node.type,
         (node) => node.name!,
       ],
     );
@@ -797,7 +797,7 @@ class B extends B0 {}
       destination: findNode.extendsClause('A0'),
       source: findNode.extendsClause('B0'),
       childAccessors: [
-        (node) => node.superclass2,
+        (node) => node.superclass,
       ],
     );
   }
@@ -1122,8 +1122,8 @@ class A implements I, J {}
     var node = findNode.implementsClause('implements');
     _assertReplaceInList(
       destination: node,
-      child: node.interfaces2[0],
-      replacement: node.interfaces2[1],
+      child: node.interfaces[0],
+      replacement: node.interfaces[1],
     );
   }
 
@@ -1950,8 +1950,8 @@ class A with M, N {}
     var node = findNode.withClause('with');
     _assertReplaceInList(
       destination: node,
-      child: node.mixinTypes2[0],
-      replacement: node.mixinTypes2[1],
+      child: node.mixinTypes[0],
+      replacement: node.mixinTypes[1],
     );
   }
 

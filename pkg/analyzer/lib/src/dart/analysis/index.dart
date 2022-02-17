@@ -634,13 +634,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
       offset = node.period!.offset;
       length = node.name!.end - offset;
     } else {
-      offset = node.type2.end;
+      offset = node.type.end;
       length = 0;
     }
 
     recordRelationOffset(element, kind, offset, length, true);
 
-    node.type2.accept(this);
+    node.type.accept(this);
   }
 
   @override
@@ -690,7 +690,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    recordSuperType(node.superclass2, IndexRelationKind.IS_EXTENDED_BY);
+    recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
   }
 
   @override
@@ -709,7 +709,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    for (NamedType namedType in node.interfaces2) {
+    for (NamedType namedType in node.interfaces) {
       recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
@@ -763,7 +763,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitNamedType(NamedType node) {
     AstNode parent = node.parent!;
-    if (parent is ClassTypeAlias && parent.superclass2 == node) {
+    if (parent is ClassTypeAlias && parent.superclass == node) {
       recordSuperType(node, IndexRelationKind.IS_EXTENDED_BY);
     } else {
       super.visitNamedType(node);
@@ -772,7 +772,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitOnClause(OnClause node) {
-    for (NamedType namedType in node.superclassConstraints2) {
+    for (NamedType namedType in node.superclassConstraints) {
       recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
@@ -893,7 +893,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitWithClause(WithClause node) {
-    for (NamedType namedType in node.mixinTypes2) {
+    for (NamedType namedType in node.mixinTypes) {
       recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);
     }
   }
@@ -925,9 +925,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     addSupertype(superclass);
-    withClause?.mixinTypes2.forEach(addSupertype);
-    onClause?.superclassConstraints2.forEach(addSupertype);
-    implementsClause?.interfaces2.forEach(addSupertype);
+    withClause?.mixinTypes.forEach(addSupertype);
+    onClause?.superclassConstraints.forEach(addSupertype);
+    implementsClause?.interfaces.forEach(addSupertype);
 
     void addMemberName(SimpleIdentifier identifier) {
       String name = identifier.name;
@@ -955,7 +955,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassDeclaration(ClassDeclaration node) {
     _addSubtype(node.name.name,
-        superclass: node.extendsClause?.superclass2,
+        superclass: node.extendsClause?.superclass,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
         memberNodes: node.members);
@@ -964,7 +964,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
     _addSubtype(node.name.name,
-        superclass: node.superclass2,
+        superclass: node.superclass,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
         memberNodes: const []);
