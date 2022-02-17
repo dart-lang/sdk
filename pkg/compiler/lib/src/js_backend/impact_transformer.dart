@@ -8,7 +8,6 @@ import '../universe/class_hierarchy.dart' show ClassHierarchyBuilder;
 
 import '../common.dart';
 import '../common/elements.dart';
-import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/values.dart';
@@ -34,7 +33,13 @@ import 'native_data.dart';
 import 'runtime_types.dart';
 import 'runtime_types_resolution.dart';
 
-class JavaScriptImpactTransformer extends ImpactTransformer {
+/// JavaScript specific transformation for resolution world impacts.
+///
+/// This processes target-agnostic [ResolutionImpact]s and creates [WorldImpact]
+/// in which JavaScript specific impact data is added, for example: if
+/// a certain feature is used that requires some helper code from the backend
+/// libraries, this will be included by the impact transformer.
+class JavaScriptImpactTransformer {
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendImpacts _impacts;
@@ -60,7 +65,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
   DartTypes get _dartTypes => _commonElements.dartTypes;
 
-  @override
+  /// Transform the [ResolutionImpact] into a [WorldImpact] adding the
+  /// backend dependencies for features used in [worldImpact].
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed = TransformedWorldImpact(worldImpact);
 
