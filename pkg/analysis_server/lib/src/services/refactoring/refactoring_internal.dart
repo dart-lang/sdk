@@ -72,6 +72,9 @@ class SourceReference {
   bool get isConstructorTearOff =>
       _match.kind == MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
 
+  bool get isInvocationByEnumConstantWithoutArguments =>
+      _match.kind == MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS;
+
   bool get isResolved => _match.isResolved;
 
   SourceRange get range => _match.sourceRange;

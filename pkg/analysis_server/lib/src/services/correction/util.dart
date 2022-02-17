@@ -29,6 +29,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 /// Adds edits to the given [change] that ensure that all the [libraries] are
@@ -980,6 +981,39 @@ class CorrectionUtils {
       suffix = getLinePrefix(statement.offset);
     }
     return ClassMemberLocation(prefix, offset, suffix);
+  }
+
+  ClassMemberLocation? prepareEnumNewConstructorLocation(
+    EnumDeclaration enumDeclaration,
+  ) {
+    var indent = getIndent(1);
+
+    var targetMember = enumDeclaration.members
+        .where((e) => e is FieldDeclaration || e is ConstructorDeclaration)
+        .lastOrNull;
+    if (targetMember != null) {
+      return ClassMemberLocation(
+        endOfLine + endOfLine + indent,
+        targetMember.end,
+        '',
+      );
+    }
+
+    var semicolon = enumDeclaration.semicolon;
+    if (semicolon != null) {
+      return ClassMemberLocation(
+        endOfLine + endOfLine + indent,
+        semicolon.end,
+        '',
+      );
+    }
+
+    var lastConstant = enumDeclaration.constants.last;
+    return ClassMemberLocation(
+      ';' + endOfLine + endOfLine + indent,
+      lastConstant.end,
+      '',
+    );
   }
 
   ClassMemberLocation? prepareNewClassMemberLocation(

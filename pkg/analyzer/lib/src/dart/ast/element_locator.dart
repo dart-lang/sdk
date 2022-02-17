@@ -52,6 +52,18 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitConstructorSelector(ConstructorSelector node) {
+    var parent = node.parent;
+    if (parent is EnumConstantArguments) {
+      var parent2 = parent.parent;
+      if (parent2 is EnumConstantDeclaration) {
+        return parent2.constructorElement;
+      }
+    }
+    return null;
+  }
+
+  @override
   Element? visitExportDirective(ExportDirective node) {
     return node.element;
   }
