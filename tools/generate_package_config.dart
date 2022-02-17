@@ -58,7 +58,6 @@ void main(List<String> args) {
         'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
     packageDirectory('pkg/vm_service/test/test_package'),
     packageDirectory('sdk/lib/_internal/sdk_library_metadata'),
-    packageDirectory('third_party/devtools/devtools_server'),
     packageDirectory('third_party/devtools/devtools_shared'),
     packageDirectory('third_party/pkg/protobuf/protobuf'),
     packageDirectory('third_party/pkg/webdev/frontend_server_client'),

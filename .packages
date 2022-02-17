@@ -41,7 +41,6 @@ dartdoc:third_party/pkg/dartdoc/lib
 dds:pkg/dds/lib
 dds_service_extensions:pkg/dds_service_extensions/lib
 dev_compiler:pkg/dev_compiler/lib
-devtools_server:third_party/devtools/devtools_server/lib
 devtools_shared:third_party/devtools/devtools_shared/lib
 diagnostic:pkg/diagnostic/lib
 expect:pkg/expect/lib
