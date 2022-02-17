@@ -1,0 +1,81 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue48402.dart:19:17: Error: Can't declare a member that conflicts with an inherited one.
+//   static String member1 = "member1"; // Error.
+//                 ^^^^^^^
+// pkg/front_end/testcases/general/issue48402.dart:6:14: Context: This is the inherited member.
+//   String get member1;
+//              ^^^^^^^
+//
+// pkg/front_end/testcases/general/issue48402.dart:22:15: Error: Can't declare a member that conflicts with an inherited one.
+//   static void procedure() {} // Error.
+//               ^^^^^^^^^
+// pkg/front_end/testcases/general/issue48402.dart:7:14: Context: This is the inherited member.
+//   String get procedure;
+//              ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/issue48402.dart:26:17: Error: Can't declare a member that conflicts with an inherited one.
+//   static String fieldSetter = "fieldSetter"; // Error.
+//                 ^^^^^^^^^^^
+// pkg/front_end/testcases/general/issue48402.dart:9:12: Context: This is the inherited member.
+//   void set fieldSetter(String value);
+//            ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/issue48402.dart:28:18: Error: Can't declare a member that conflicts with an inherited one.
+//   static num get setterVsGetter => 0; // Error.
+//                  ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/issue48402.dart:10:12: Context: This is the inherited member.
+//   void set setterVsGetter(num value);
+//            ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/issue48402.dart:24:19: Error: Can't declare a member that conflicts with an inherited one.
+//   static void set setter(String value) {} // Error.
+//                   ^^^^^^
+// pkg/front_end/testcases/general/issue48402.dart:8:12: Context: This is the inherited member.
+//   void set setter(String value);
+//            ^^^^^^
+//
+// pkg/front_end/testcases/general/issue48402.dart:30:19: Error: Can't declare a member that conflicts with an inherited one.
+//   static void set getterVsSetter(double value) {} // Error.
+//                   ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/issue48402.dart:11:14: Context: This is the inherited member.
+//   double get getterVsSetter;
+//              ^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class I extends core::Object {
+  synthetic constructor •() → self::I
+    ;
+  abstract get member1() → core::String;
+  abstract get procedure() → core::String;
+  abstract set setter(core::String value) → void;
+  abstract set fieldSetter(core::String value) → void;
+  abstract set setterVsGetter(core::num value) → void;
+  abstract get getterVsSetter() → core::double;
+}
+class A extends core::Object implements self::I {
+  static field core::String member5;
+  static field core::String member4;
+  static field core::String member3;
+  static field core::String member1;
+  static field core::String member2;
+  static field core::String fieldSetter;
+  synthetic constructor •() → self::A
+    ;
+  static method procedure() → void
+    ;
+  static set setter(core::String value) → void
+    ;
+  static get setterVsGetter() → core::num
+    ;
+  static set getterVsSetter(core::double value) → void
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    ;
+}
+static method main() → dynamic
+  ;
