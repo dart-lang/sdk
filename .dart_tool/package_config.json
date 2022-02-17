@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2022-02-02T12:23:40.780016",
+  "generated": "2022-02-16T14:11:48.394602",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -136,7 +136,7 @@
       "name": "boolean_selector",
       "rootUri": "../third_party/pkg/boolean_selector",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "browser_launcher",
@@ -172,7 +172,7 @@
       "name": "clock",
       "rootUri": "../third_party/pkg/clock",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "collection",
@@ -316,7 +316,7 @@
       "name": "file_testing",
       "rootUri": "../third_party/pkg/file/packages/file_testing",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.12"
     },
     {
       "name": "fixnum",
@@ -629,7 +629,7 @@
       "name": "source_map_stack_trace",
       "rootUri": "../third_party/pkg/source_map_stack_trace",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "source_maps",
@@ -677,7 +677,7 @@
       "name": "string_scanner",
       "rootUri": "../third_party/pkg/string_scanner",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "sync_http",
@@ -695,7 +695,7 @@
       "name": "term_glyph",
       "rootUri": "../third_party/pkg/term_glyph",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "test",
@@ -766,7 +766,7 @@
       "name": "vector_math",
       "rootUri": "../third_party/pkg/vector_math",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.14"
     },
     {
       "name": "vm",
