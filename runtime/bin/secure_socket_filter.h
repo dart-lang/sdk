@@ -90,6 +90,8 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
                    bool require_client_certificate);
   void RegisterHandshakeCompleteCallback(Dart_Handle handshake_complete);
   void RegisterBadCertificateCallback(Dart_Handle callback);
+  void RegisterKeyLogPort(Dart_Port key_log_port);
+  Dart_Port key_log_port() { return key_log_port_; }
   Dart_Handle bad_certificate_callback() {
     return Dart_HandleFromPersistent(bad_certificate_callback_);
   }
@@ -145,6 +147,7 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
 
   Dart_Port reply_port_ = ILLEGAL_PORT;
   Dart_Port trust_evaluate_reply_port_ = ILLEGAL_PORT;
+  Dart_Port key_log_port_ = ILLEGAL_PORT;
 
   static bool IsBufferEncrypted(int i) {
     return static_cast<BufferIndex>(i) >= kFirstEncrypted;

@@ -50,6 +50,8 @@ class MyHttpClient1 implements HttpClient {
       String host, int port, String realm, HttpClientCredentials credentials) {}
   set badCertificateCallback(
       bool callback(X509Certificate cert, String host, int port)) {}
+  void set keyLog(Function(String line) callback) =>
+      throw UnsupportedError("keyLog not implemented");
   void close({bool force: false}) {}
 }
 
@@ -94,6 +96,8 @@ class MyHttpClient2 implements HttpClient {
       String host, int port, String realm, HttpClientCredentials credentials) {}
   set badCertificateCallback(
       bool callback(X509Certificate cert, String host, int port)) {}
+  void set keyLog(Function(String line) callback) =>
+      throw UnsupportedError("keyLog not implemented");
   void close({bool force: false}) {}
 }
 

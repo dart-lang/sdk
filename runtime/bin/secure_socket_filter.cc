@@ -207,6 +207,15 @@ void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
   GetFilter(args)->RegisterBadCertificateCallback(callback);
 }
 
+void FUNCTION_NAME(SecureSocket_RegisterKeyLogPort)(Dart_NativeArguments args) {
+  Dart_Handle port = ThrowIfError(Dart_GetNativeArgument(args, 1));
+  ASSERT(!Dart_IsNull(port));
+
+  Dart_Port port_id;
+  ThrowIfError(Dart_SendPortGetId(port, &port_id));
+  GetFilter(args)->RegisterKeyLogPort(port_id);
+}
+
 void FUNCTION_NAME(SecureSocket_PeerCertificate)(Dart_NativeArguments args) {
   Dart_Handle cert = ThrowIfError(GetFilter(args)->PeerCertificate());
   Dart_SetReturnValue(args, cert);
@@ -465,6 +474,10 @@ Dart_Handle SSLFilter::PeerCertificate() {
   return X509Helper::WrappedX509Certificate(ca);
 }
 
+void SSLFilter::RegisterKeyLogPort(Dart_Port key_log_port) {
+  key_log_port_ = key_log_port;
+}
+
 void SSLFilter::InitializeLibrary() {
   MutexLocker locker(mutex_);
   if (!library_initialized_) {
@@ -595,10 +608,14 @@ int SSLFilter::Handshake(Dart_Port reply_port) {
     return SSL_ERROR_WANT_CERTIFICATE_VERIFY;
   }
   if (callback_error != NULL) {
-    // The SSL_do_handshake will try performing a handshake and might call
-    // a CertificateCallback. If the certificate validation
-    // failed the 'callback_error" will be set by the certificateCallback
-    // logic and we propagate the error"
+    // The SSL_do_handshake will try performing a handshake and might call one
+    // or both of:
+    //   SSLCertContext::KeyLogCallback
+    //   SSLCertContext::CertificateCallback
+    //
+    // If either of those functions fail, and this.callback_error has not
+    // already been set, then they will set this.callback_error to an error
+    // handle i.e. only the first error will be captured and propogated.
     Dart_PropagateError(callback_error);
   }
   if (SSL_want_write(ssl_) || SSL_want_read(ssl_)) {

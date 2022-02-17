@@ -40,6 +40,19 @@
       throw UnsupportedError("connectionFactory not implemented");
   ```
 
+- **Breaking Change** [#48093](https://github.com/dart-lang/sdk/issues/48093):
+  `HttpClient` has a new `keyLog` property, which allows TLS keys to be logged
+  for debugging purposes. Classes that `implement HttpClient` may be broken by
+  this change. Add the following method to your classes to fix them:
+
+  ```dart
+  void set keyLog(Function(String line)? callback) =>
+      throw UnsupportedError("keyLog not implemented");
+  ```
+
+- Add a optional `keyLog` parameter to `SecureSocket.connect` and
+  `SecureSocket.startConnect`.
+
 ### Tools
 
 #### Dart command line

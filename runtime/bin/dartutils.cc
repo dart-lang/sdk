@@ -658,6 +658,11 @@ bool DartUtils::PostInt64(Dart_Port port_id, int64_t value) {
   return Dart_PostCObject(port_id, &object);
 }
 
+bool DartUtils::PostString(Dart_Port port_id, const char* value) {
+  Dart_CObject* object = CObject::NewString(value);
+  return Dart_PostCObject(port_id, object);
+}
+
 Dart_Handle DartUtils::GetDartType(const char* library_url,
                                    const char* class_name) {
   return Dart_GetNonNullableType(Dart_LookupLibrary(NewString(library_url)),

@@ -27,6 +27,20 @@ abstract class SecureSocket implements Socket {
   /// the connection or not.  The handler should return true
   /// to continue the [SecureSocket] connection.
   ///
+  /// [keyLog] is an optional callback that will be called when new TLS keys
+  /// are exchanged with the server. [keyLog] will receive one line of text in
+  /// [NSS Key Log Format](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format)
+  /// for each call. Writing these lines to a file will allow tools (such as
+  /// [Wireshark](https://gitlab.com/wireshark/wireshark/-/wikis/TLS#tls-decryption))
+  /// to decrypt content sent through this socket. This is meant to allow
+  /// network-level debugging of secure sockets and should not be used in
+  /// production code. For example:
+  /// ```dart
+  /// final log = File('keylog.txt');
+  /// final socket = await SecureSocket.connect('www.example.com', 443,
+  ///     keyLog: (line) => log.writeAsStringSync(line, mode: FileMode.append));
+  /// ```
+  ///
   /// [supportedProtocols] is an optional list of protocols (in decreasing
   /// order of preference) to use during the ALPN protocol negotiation with the
   /// server.  Example values are "http/1.1" or "h2".  The selected protocol
@@ -40,11 +54,13 @@ abstract class SecureSocket implements Socket {
   static Future<SecureSocket> connect(host, int port,
       {SecurityContext? context,
       bool onBadCertificate(X509Certificate certificate)?,
+      void keyLog(String line)?,
       List<String>? supportedProtocols,
       Duration? timeout}) {
     return RawSecureSocket.connect(host, port,
             context: context,
             onBadCertificate: onBadCertificate,
+            keyLog: keyLog,
             supportedProtocols: supportedProtocols,
             timeout: timeout)
         .then((rawSocket) => new SecureSocket._(rawSocket));
@@ -56,10 +72,12 @@ abstract class SecureSocket implements Socket {
   static Future<ConnectionTask<SecureSocket>> startConnect(host, int port,
       {SecurityContext? context,
       bool onBadCertificate(X509Certificate certificate)?,
+      void keyLog(String line)?,
       List<String>? supportedProtocols}) {
     return RawSecureSocket.startConnect(host, port,
             context: context,
             onBadCertificate: onBadCertificate,
+            keyLog: keyLog,
             supportedProtocols: supportedProtocols)
         .then((rawState) {
       Future<SecureSocket> socket =
@@ -88,6 +106,26 @@ abstract class SecureSocket implements Socket {
   /// the [socket] will be used. The [host] can be either a [String] or
   /// an [InternetAddress].
   ///
+  /// [onBadCertificate] is an optional handler for unverifiable certificates.
+  /// The handler receives the [X509Certificate], and can inspect it and
+  /// decide (or let the user decide) whether to accept
+  /// the connection or not.  The handler should return true
+  /// to continue the [SecureSocket] connection.
+  ///
+  /// [keyLog] is an optional callback that will be called when new TLS keys
+  /// are exchanged with the server. [keyLog] will receive one line of text in
+  /// [NSS Key Log Format](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format)
+  /// for each call. Writing these lines to a file will allow tools (such as
+  /// [Wireshark](https://gitlab.com/wireshark/wireshark/-/wikis/TLS#tls-decryption))
+  /// to decrypt content sent through this socket. This is meant to allow
+  /// network-level debugging of secure sockets and should not be used in
+  /// production code. For example:
+  /// ```dart
+  /// final log = File('keylog.txt');
+  /// final socket = await SecureSocket.connect('www.example.com', 443,
+  ///     keyLog: (line) => log.writeAsStringSync(line, mode: FileMode.append));
+  /// ```
+  ///
   /// [supportedProtocols] is an optional list of protocols (in decreasing
   /// order of preference) to use during the ALPN protocol negotiation with the
   /// server.  Example values are "http/1.1" or "h2".  The selected protocol
@@ -104,6 +142,7 @@ abstract class SecureSocket implements Socket {
       {host,
       SecurityContext? context,
       bool onBadCertificate(X509Certificate certificate)?,
+      void keyLog(String line)?,
       @Since("2.6") List<String>? supportedProtocols}) {
     return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
         .then<RawSecureSocket>((detachedRaw) {
@@ -112,6 +151,7 @@ abstract class SecureSocket implements Socket {
           host: host,
           context: context,
           onBadCertificate: onBadCertificate,
+          keyLog: keyLog,
           supportedProtocols: supportedProtocols);
     }).then<SecureSocket>((raw) => new SecureSocket._(raw));
   }
@@ -209,6 +249,26 @@ abstract class RawSecureSocket implements RawSocket {
   /// the connection or not.  The handler should return true
   /// to continue the [RawSecureSocket] connection.
   ///
+  /// [onBadCertificate] is an optional handler for unverifiable certificates.
+  /// The handler receives the [X509Certificate], and can inspect it and
+  /// decide (or let the user decide) whether to accept
+  /// the connection or not.  The handler should return true
+  /// to continue the [SecureSocket] connection.
+  ///
+  /// [keyLog] is an optional callback that will be called when new TLS keys
+  /// are exchanged with the server. [keyLog] will receive one line of text in
+  /// [NSS Key Log Format](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format)
+  /// for each call. Writing these lines to a file will allow tools (such as
+  /// [Wireshark](https://gitlab.com/wireshark/wireshark/-/wikis/TLS#tls-decryption))
+  /// to decrypt content sent through this socket. This is meant to allow
+  /// network-level debugging of secure sockets and should not be used in
+  /// production code. For example:
+  /// ```dart
+  /// final log = File('keylog.txt');
+  /// final socket = await SecureSocket.connect('www.example.com', 443,
+  ///     keyLog: (line) => log.writeAsStringSync(line, mode: FileMode.append));
+  /// ```
+  ///
   /// [supportedProtocols] is an optional list of protocols (in decreasing
   /// order of preference) to use during the ALPN protocol negotiation with the
   /// server.  Example values are "http/1.1" or "h2".  The selected protocol
@@ -216,6 +276,7 @@ abstract class RawSecureSocket implements RawSocket {
   static Future<RawSecureSocket> connect(host, int port,
       {SecurityContext? context,
       bool onBadCertificate(X509Certificate certificate)?,
+      void keyLog(String line)?,
       List<String>? supportedProtocols,
       Duration? timeout}) {
     _RawSecureSocket._verifyFields(host, port, false, false);
@@ -223,6 +284,7 @@ abstract class RawSecureSocket implements RawSocket {
       return secure(socket,
           context: context,
           onBadCertificate: onBadCertificate,
+          keyLog: keyLog,
           supportedProtocols: supportedProtocols);
     });
   }
@@ -233,6 +295,7 @@ abstract class RawSecureSocket implements RawSocket {
   static Future<ConnectionTask<RawSecureSocket>> startConnect(host, int port,
       {SecurityContext? context,
       bool onBadCertificate(X509Certificate certificate)?,
+      void keyLog(String line)?,
       List<String>? supportedProtocols}) {
     return RawSocket.startConnect(host, port)
         .then((ConnectionTask<RawSocket> rawState) {
@@ -240,6 +303,7 @@ abstract class RawSecureSocket implements RawSocket {
         return secure(rawSocket,
             context: context,
             onBadCertificate: onBadCertificate,
+            keyLog: keyLog,
             supportedProtocols: supportedProtocols);
       });
       return new ConnectionTask<RawSecureSocket>._(socket, rawState._onCancel);
@@ -266,6 +330,26 @@ abstract class RawSecureSocket implements RawSocket {
   /// the [socket] will be used. The [host] can be either a [String] or
   /// an [InternetAddress].
   ///
+  /// [onBadCertificate] is an optional handler for unverifiable certificates.
+  /// The handler receives the [X509Certificate], and can inspect it and
+  /// decide (or let the user decide) whether to accept
+  /// the connection or not.  The handler should return true
+  /// to continue the [SecureSocket] connection.
+  ///
+  /// [keyLog] is an optional callback that will be called when new TLS keys
+  /// are exchanged with the server. [keyLog] will receive one line of text in
+  /// [NSS Key Log Format](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format)
+  /// for each call. Writing these lines to a file will allow tools (such as
+  /// [Wireshark](https://gitlab.com/wireshark/wireshark/-/wikis/TLS#tls-decryption))
+  /// to decrypt content sent through this socket. This is meant to allow
+  /// network-level debugging of secure sockets and should not be used in
+  /// production code. For example:
+  /// ```dart
+  /// final log = File('keylog.txt');
+  /// final socket = await SecureSocket.connect('www.example.com', 443,
+  ///     keyLog: (line) => log.writeAsStringSync(line, mode: FileMode.append));
+  /// ```
+  ///
   /// [supportedProtocols] is an optional list of protocols (in decreasing
   /// order of preference) to use during the ALPN protocol negotiation with the
   /// server.  Example values are "http/1.1" or "h2".  The selected protocol
@@ -283,6 +367,7 @@ abstract class RawSecureSocket implements RawSocket {
       host,
       SecurityContext? context,
       bool onBadCertificate(X509Certificate certificate)?,
+      void keyLog(String line)?,
       List<String>? supportedProtocols}) {
     socket.readEventsEnabled = false;
     socket.writeEventsEnabled = false;
@@ -291,6 +376,7 @@ abstract class RawSecureSocket implements RawSocket {
         subscription: subscription,
         context: context,
         onBadCertificate: onBadCertificate,
+        keyLog: keyLog,
         supportedProtocols: supportedProtocols);
   }
 
@@ -427,6 +513,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   final bool requestClientCertificate;
   final bool requireClientCertificate;
   final bool Function(X509Certificate certificate)? onBadCertificate;
+  final void Function(String line)? keyLog;
+  ReceivePort? keyLogPort;
 
   var _status = handshakeStatus;
   bool _writeEventsEnabled = true;
@@ -458,6 +546,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       bool requestClientCertificate = false,
       bool requireClientCertificate = false,
       bool onBadCertificate(X509Certificate certificate)?,
+      void keyLog(String line)?,
       List<String>? supportedProtocols}) {
     _verifyFields(host, requestedPort, requestClientCertificate,
         requireClientCertificate);
@@ -477,6 +566,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
             requestClientCertificate,
             requireClientCertificate,
             onBadCertificate,
+            keyLog,
             supportedProtocols)
         ._handshakeComplete
         .future;
@@ -493,6 +583,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       this.requestClientCertificate,
       this.requireClientCertificate,
       this.onBadCertificate,
+      this.keyLog,
       List<String>? supportedProtocols) {
     _controller
       ..onListen = _onSubscriptionStateChange
@@ -505,6 +596,23 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     secureFilter.init();
     secureFilter
         .registerHandshakeCompleteCallback(_secureHandshakeCompleteHandler);
+
+    if (keyLog != null) {
+      final port = ReceivePort();
+      port.listen((line) {
+        try {
+          keyLog!((line as String) + '\n');
+        } catch (e, s) {
+          // There is no obvious place to surface exceptions from the keyLog
+          // callback so write the details to stderr.
+          stderr.writeln("Failure in keyLog callback:");
+          stderr.writeln(s);
+        }
+      });
+      secureFilter.registerKeyLogPort(port.sendPort);
+      keyLogPort = port;
+    }
+
     if (onBadCertificate != null) {
       secureFilter.registerBadCertificateCallback(_onBadCertificateWrapper);
     }
@@ -607,6 +715,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _secureFilter!.destroy();
       _secureFilter = null;
     }
+    keyLogPort?.close();
     if (_socketSubscription != null) {
       _socketSubscription.cancel();
     }
@@ -1240,6 +1349,7 @@ abstract class _SecureFilter {
   int processBuffer(int bufferIndex);
   void registerBadCertificateCallback(Function callback);
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler);
+  void registerKeyLogPort(SendPort port);
 
   // This call may cause a reference counted pointer in the native
   // implementation to be retained. It should only be called when the resulting
