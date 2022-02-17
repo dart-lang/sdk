@@ -5476,3 +5476,6 @@ EnumFactoryRedirectsToConstructor:
 
 EnumContainsValuesDeclaration:
   problemMessage: "Enums can't contain declarations of members with the name 'values'."
+
+EnumImplementerContainsValuesDeclaration:
+  problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'."

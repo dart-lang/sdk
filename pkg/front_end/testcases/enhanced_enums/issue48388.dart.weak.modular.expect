@@ -1,0 +1,91 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:6:13: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+//   final int values = 42; // Error.
+//             ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:14:12: Error: 'M3' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+//   void set values(String x) {} // Error.
+//            ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:22:11: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+//   num get values => 0; // Error.
+//           ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:23:12: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+//   void set values(num x) {} // Error.
+//            ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:27:7: Error: 'E1' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+//   int values() => 42; // Error.
+//       ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:35:12: Error: 'E3' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+//   void set values(num x) {} // Error.
+//            ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:43:11: Error: 'E5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+//   num get values => 0; // Error.
+//           ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/issue48388.dart:44:12: Error: 'E5' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
+//   void set values(num x) {} // Error.
+//            ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class M1 extends core::Enum /*isMixinDeclaration*/  {
+  final field core::int values = 42;
+}
+abstract class M2 extends core::Enum /*isMixinDeclaration*/  {
+  static final field core::int values = 42;
+}
+abstract class M3 extends core::Enum /*isMixinDeclaration*/  {
+  set values(core::String x) → void {}
+}
+abstract class M4 extends core::Enum /*isMixinDeclaration*/  {
+  static set values(core::String x) → void {}
+}
+abstract class M5 extends core::Enum /*isMixinDeclaration*/  {
+  get values() → core::num
+    return 0;
+  set values(core::num x) → void {}
+}
+abstract class E1 extends core::Enum {
+  synthetic constructor •() → self::E1
+    : super core::Enum::•()
+    ;
+  method values() → core::int
+    return 42;
+}
+abstract class E2 extends core::Enum {
+  synthetic constructor •() → self::E2
+    : super core::Enum::•()
+    ;
+  static method values() → core::int
+    return 42;
+}
+abstract class E3 extends core::Enum {
+  synthetic constructor •() → self::E3
+    : super core::Enum::•()
+    ;
+  set values(core::num x) → void {}
+}
+abstract class E4 extends core::Enum {
+  synthetic constructor •() → self::E4
+    : super core::Enum::•()
+    ;
+  static set values(core::num x) → void {}
+}
+abstract class E5 extends core::Enum {
+  synthetic constructor •() → self::E5
+    : super core::Enum::•()
+    ;
+  get values() → core::num
+    return 0;
+  set values(core::num x) → void {}
+}
+static method main() → dynamic {}

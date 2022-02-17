@@ -2836,6 +2836,31 @@ const MessageCode messageEnumFactoryRedirectsToConstructor = const MessageCode(
         r"""Enum factory constructors can't redirect to generative constructors.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateEnumImplementerContainsValuesDeclaration =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
+        withArguments: _withArgumentsEnumImplementerContainsValuesDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeEnumImplementerContainsValuesDeclaration =
+    const Code<Message Function(String name)>(
+  "EnumImplementerContainsValuesDeclaration",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumImplementerContainsValuesDeclaration(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeEnumImplementerContainsValuesDeclaration,
+      problemMessage:
+          """'${name}' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumInClass = messageEnumInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

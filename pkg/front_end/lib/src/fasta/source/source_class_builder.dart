@@ -622,24 +622,57 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Moreover, it checks that `FutureOr` and `void` are not among the
     // supertypes and that `Enum` is not implemented by non-abstract classes.
 
-    if (!cls.isAbstract && !cls.isEnum) {
-      bool isEnumFound = false;
+    if (library.enableEnhancedEnumsInLibrary) {
+      bool hasEnumSuperinterface = false;
       List<Supertype> interfaces =
           hierarchyBuilder.getNodeFromClass(cls).superclasses;
-      for (int i = 0; !isEnumFound && i < interfaces.length; i++) {
+      for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
         if (interfaces[i].classNode == enumClass) {
-          isEnumFound = true;
+          hasEnumSuperinterface = true;
         }
       }
       interfaces = hierarchyBuilder.getNodeFromClass(cls).interfaces;
-      for (int i = 0; !isEnumFound && i < interfaces.length; i++) {
+      for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
         if (interfaces[i].classNode == enumClass) {
-          isEnumFound = true;
+          hasEnumSuperinterface = true;
         }
       }
-      if (isEnumFound) {
+      if (!cls.isAbstract && !cls.isEnum && hasEnumSuperinterface) {
         addProblem(templateEnumSupertypeOfNonAbstractClass.withArguments(name),
             charOffset, noLength);
+      }
+
+      if (hasEnumSuperinterface) {
+        Builder? customValuesDeclaration =
+            scope.lookupLocalMember("values", setter: false);
+        if (customValuesDeclaration != null &&
+            !customValuesDeclaration.isStatic) {
+          // Retrieve the earliest declaration for error reporting.
+          while (customValuesDeclaration?.next != null) {
+            customValuesDeclaration = customValuesDeclaration?.next;
+          }
+          library.addProblem(
+              templateEnumImplementerContainsValuesDeclaration
+                  .withArguments(this.name),
+              customValuesDeclaration!.charOffset,
+              customValuesDeclaration.fullNameForErrors.length,
+              fileUri);
+        }
+        customValuesDeclaration =
+            scope.lookupLocalMember("values", setter: true);
+        if (customValuesDeclaration != null &&
+            !customValuesDeclaration.isStatic) {
+          // Retrieve the earliest declaration for error reporting.
+          while (customValuesDeclaration?.next != null) {
+            customValuesDeclaration = customValuesDeclaration?.next;
+          }
+          library.addProblem(
+              templateEnumImplementerContainsValuesDeclaration
+                  .withArguments(this.name),
+              customValuesDeclaration!.charOffset,
+              customValuesDeclaration.fullNameForErrors.length,
+              fileUri);
+        }
       }
     }
 
