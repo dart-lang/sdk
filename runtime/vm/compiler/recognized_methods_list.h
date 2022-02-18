@@ -18,6 +18,7 @@ namespace dart {
   V(List, ., ListFactory, 0xbc820cf9)                                          \
   V(_List, ., ObjectArrayAllocate, 0xd693eee6)                                 \
   V(_List, []=, ObjectArraySetIndexed, 0xd7b48abc)                             \
+  V(_GrowableList, ._withData, GrowableArrayAllocateWithData, 0xa32d060b)      \
   V(_GrowableList, []=, GrowableArraySetIndexed, 0xd7b48abc)                   \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 0x1623dc34)                    \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 0x177ffe2a)                  \
@@ -274,7 +275,6 @@ namespace dart {
   V(_Double, get:isNegative, Double_getIsNegative, 0xd4715091)                 \
   V(_Double, _mulFromInteger, Double_mulFromInteger, 0x0a50d2cf)               \
   V(_Double, .fromInteger, DoubleFromInteger, 0x7d0fd999)                      \
-  V(_GrowableList, ._withData, GrowableArray_Allocate, 0xa32d060b)             \
   V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, 0x9911d549)                   \
   V(_RegExp, _ExecuteMatchSticky, RegExp_ExecuteMatchSticky, 0x91dd880f)       \
   V(Object, ==, ObjectEquals, 0x46587030)                                      \

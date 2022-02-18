@@ -26,42 +26,6 @@ namespace compiler {
 
 #define __ assembler->
 
-// Allocate a GrowableObjectArray using the backing array specified.
-// On stack: type argument (+2), data (+1), return-address (+0).
-void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  // This snippet of inlined code uses the following registers:
-  // RAX, RCX, R13
-  // and the newly allocated object is returned in RAX.
-  const intptr_t kTypeArgumentsOffset = 2 * target::kWordSize;
-  const intptr_t kArrayOffset = 1 * target::kWordSize;
-
-  // Try allocating in new space.
-  const Class& cls = GrowableObjectArrayClass();
-  __ TryAllocate(cls, normal_ir_body, Assembler::kFarJump, RAX, R13);
-
-  // Store backing array object in growable array object.
-  __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
-  // RAX is new, no barrier needed.
-  __ StoreCompressedIntoObjectNoBarrier(
-      RAX, FieldAddress(RAX, target::GrowableObjectArray::data_offset()), RCX);
-
-  // RAX: new growable array object start as a tagged pointer.
-  // Store the type argument field in the growable array object.
-  __ movq(RCX, Address(RSP, kTypeArgumentsOffset));  // type argument.
-  __ StoreCompressedIntoObjectNoBarrier(
-      RAX,
-      FieldAddress(RAX, target::GrowableObjectArray::type_arguments_offset()),
-      RCX);
-
-  // Set the length field in the growable array object to 0.
-  __ ZeroInitCompressedSmiField(
-      FieldAddress(RAX, target::GrowableObjectArray::length_offset()));
-  __ ret();  // returns the newly allocated object in RAX.
-
-  __ Bind(normal_ir_body);
-}
-
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in RAX.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {

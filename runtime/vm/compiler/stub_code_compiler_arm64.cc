@@ -1904,7 +1904,7 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 
 static void GenerateAllocateObjectHelper(Assembler* assembler,
                                          bool is_cls_parameterized) {
-  const Register kTagsReg = R2;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
 
   {
     Label slow_case;
@@ -2014,20 +2014,19 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 }
 
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
-  const Register kTagsToClsIdReg = R2;
-
   if (!FLAG_precompiled_mode) {
     __ ldr(CODE_REG,
            Address(THR, target::Thread::call_to_runtime_stub_offset()));
   }
 
-  __ ExtractClassIdFromTags(kTagsToClsIdReg, kTagsToClsIdReg);
+  __ ExtractClassIdFromTags(AllocateObjectABI::kTagsReg,
+                            AllocateObjectABI::kTagsReg);
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
 
-  __ LoadClassById(R0, kTagsToClsIdReg);
+  __ LoadClassById(R0, AllocateObjectABI::kTagsReg);
   __ PushPair(R0, NULL_REG);  // Pushes result slot, then class object.
 
   // Should be Object::null() if class is non-parameterized.
@@ -2072,7 +2071,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
   // Note: Keep in sync with helper function.
-  const Register kTagsReg = R2;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
 
   __ LoadImmediate(kTagsReg, tags);
 

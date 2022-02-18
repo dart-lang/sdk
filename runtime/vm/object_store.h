@@ -208,6 +208,7 @@ class ObjectPointerVisitor;
   RW(Code, allocate_float64x2_array_stub)                                      \
   RW(Code, allocate_closure_stub)                                              \
   RW(Code, allocate_context_stub)                                              \
+  RW(Code, allocate_growable_array_stub)                                       \
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
   RW(Code, allocate_unhandled_exception_stub)                                  \
@@ -284,6 +285,7 @@ class ObjectPointerVisitor;
   DO(allocate_float64x2_array_stub, AllocateFloat64x2Array)                    \
   DO(allocate_closure_stub, AllocateClosure)                                   \
   DO(allocate_context_stub, AllocateContext)                                   \
+  DO(allocate_growable_array_stub, AllocateGrowableArray)                      \
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
   DO(allocate_unhandled_exception_stub, AllocateUnhandledException)            \

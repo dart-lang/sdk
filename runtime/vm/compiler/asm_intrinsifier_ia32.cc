@@ -31,42 +31,6 @@ namespace compiler {
 
 #define __ assembler->
 
-// Allocate a GrowableObjectArray:: using the backing array specified.
-// On stack: type argument (+2), data (+1), return-address (+0).
-void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  // This snippet of inlined code uses the following registers:
-  // EAX, EBX
-  // and the newly allocated object is returned in EAX.
-  const intptr_t kTypeArgumentsOffset = 2 * target::kWordSize;
-
-  const intptr_t kArrayOffset = 1 * target::kWordSize;
-
-  // Try allocating in new space.
-  const Class& cls = GrowableObjectArrayClass();
-  __ TryAllocate(cls, normal_ir_body, Assembler::kNearJump, EAX, EBX);
-
-  // Store backing array object in growable array object.
-  __ movl(EBX, Address(ESP, kArrayOffset));  // data argument.
-  // EAX is new, no barrier needed.
-  __ StoreIntoObjectNoBarrier(
-      EAX, FieldAddress(EAX, target::GrowableObjectArray::data_offset()), EBX);
-
-  // EAX: new growable array object start as a tagged pointer.
-  // Store the type argument field in the growable array object.
-  __ movl(EBX, Address(ESP, kTypeArgumentsOffset));  // type argument.
-  __ StoreIntoObjectNoBarrier(
-      EAX,
-      FieldAddress(EAX, target::GrowableObjectArray::type_arguments_offset()),
-      EBX);
-
-  __ ZeroInitSmiField(
-      FieldAddress(EAX, target::GrowableObjectArray::length_offset()));
-  __ ret();  // returns the newly allocated object in EAX.
-
-  __ Bind(normal_ir_body);
-}
-
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in EAX.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {

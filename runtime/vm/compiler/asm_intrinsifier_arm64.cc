@@ -26,40 +26,6 @@ namespace compiler {
 
 #define __ assembler->
 
-// Allocate a GrowableObjectArray:: using the backing array specified.
-// On stack: type argument (+1), data (+0).
-void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  // The newly allocated object is returned in R0.
-  const intptr_t kTypeArgumentsOffset = 1 * target::kWordSize;
-  const intptr_t kArrayOffset = 0 * target::kWordSize;
-
-  // Try allocating in new space.
-  const Class& cls = GrowableObjectArrayClass();
-  __ TryAllocate(cls, normal_ir_body, Assembler::kFarJump, R0, R1);
-
-  // Store backing array object in growable array object.
-  __ ldr(R1, Address(SP, kArrayOffset));  // Data argument.
-  // R0 is new, no barrier needed.
-  __ StoreCompressedIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::GrowableObjectArray::data_offset()), R1);
-
-  // R0: new growable array object start as a tagged pointer.
-  // Store the type argument field in the growable array object.
-  __ ldr(R1, Address(SP, kTypeArgumentsOffset));  // Type argument.
-  __ StoreCompressedIntoObjectNoBarrier(
-      R0,
-      FieldAddress(R0, target::GrowableObjectArray::type_arguments_offset()),
-      R1);
-
-  // Set the length field in the growable array object to 0.
-  __ StoreCompressedIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::GrowableObjectArray::length_offset()), ZR);
-  __ ret();  // Returns the newly allocated object in R0.
-
-  __ Bind(normal_ir_body);
-}
-
 // Loads args from stack into R0 and R1
 // Tests if they are smis, jumps to label not_smi if not.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {

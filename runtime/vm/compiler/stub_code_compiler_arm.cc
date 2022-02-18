@@ -1728,7 +1728,7 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 
 static void GenerateAllocateObjectHelper(Assembler* assembler,
                                          bool is_cls_parameterized) {
-  const Register kTagsReg = R2;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
 
   {
     Label slow_case;
@@ -1845,7 +1845,6 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   const Register kClsReg = R1;
-  const Register kTagsReg = R2;
 
   if (!FLAG_precompiled_mode) {
     __ ldr(CODE_REG,
@@ -1856,7 +1855,8 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
 
-  __ ExtractClassIdFromTags(AllocateObjectABI::kResultReg, kTagsReg);
+  __ ExtractClassIdFromTags(AllocateObjectABI::kResultReg,
+                            AllocateObjectABI::kTagsReg);
   __ LoadClassById(kClsReg, AllocateObjectABI::kResultReg);
 
   __ LoadObject(AllocateObjectABI::kResultReg, NullObject());
@@ -1903,7 +1903,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
-  const Register kTagsReg = R2;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
 
   __ LoadImmediate(kTagsReg, tags);
 
