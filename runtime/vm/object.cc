@@ -25675,9 +25675,11 @@ const char* StackTrace::ToCString() const {
         for (intptr_t j = inlined_functions.length() - 1; j >= 0; j--) {
           const auto& inlined = *inlined_functions[j];
           auto const pos = inlined_token_positions[j];
-          PrintSymbolicStackFrame(zone, &buffer, inlined, pos, frame_index,
-                                  /*is_line=*/FLAG_precompiled_mode);
-          frame_index++;
+          if (FLAG_show_invisible_frames || inlined.is_visible()) {
+            PrintSymbolicStackFrame(zone, &buffer, inlined, pos, frame_index,
+                                    /*is_line=*/FLAG_precompiled_mode);
+            frame_index++;
+          }
         }
         continue;
       }
