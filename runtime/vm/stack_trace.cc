@@ -75,7 +75,6 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       controller_subscription_class(Class::Handle(zone)),
       buffering_stream_subscription_class(Class::Handle(zone)),
       stream_iterator_class(Class::Handle(zone)),
-      async_then_wrapper_(Function::Handle(zone)),
       future_result_or_listeners_field(Field::Handle(zone)),
       callback_field(Field::Handle(zone)),
       future_listener_state_field(Field::Handle(zone)),
@@ -112,9 +111,6 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
   stream_iterator_class =
       async_lib.LookupClassAllowPrivate(Symbols::_StreamIterator());
   ASSERT(!stream_iterator_class.IsNull());
-  async_then_wrapper_ =
-      async_lib.LookupFunctionAllowPrivate(Symbols::AsyncThenWrapperHelper());
-  ASSERT(!async_then_wrapper_.IsNull());
 
   // Look up fields:
   // - async:

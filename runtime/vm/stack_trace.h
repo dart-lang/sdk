@@ -82,7 +82,6 @@ class CallerClosureFinder {
   Class& controller_subscription_class;
   Class& buffering_stream_subscription_class;
   Class& stream_iterator_class;
-  Function& async_then_wrapper_;
 
   Field& future_result_or_listeners_field;
   Field& callback_field;
