@@ -56,6 +56,11 @@ class DartAssistKind {
     30,
     'Assign value to new local variable',
   );
+  static const CONVERT_CLASS_TO_ENUM = AssistKind(
+    'dart.assist.convert.classToEnum',
+    30,
+    'Convert class to an enum',
+  );
   static const CONVERT_CLASS_TO_MIXIN = AssistKind(
     'dart.assist.convert.classToMixin',
     30,

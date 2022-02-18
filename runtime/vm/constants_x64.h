@@ -281,6 +281,7 @@ struct RangeErrorABI {
 struct AllocateObjectABI {
   static const Register kResultReg = RAX;
   static const Register kTypeArgumentsReg = RDX;
+  static const Register kTagsReg = R8;
 };
 
 // ABI for AllocateClosureStub.

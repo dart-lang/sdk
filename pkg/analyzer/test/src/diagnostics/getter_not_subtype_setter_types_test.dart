@@ -235,19 +235,51 @@ class C {
     ]);
   }
 
-  test_enum_instance() async {
+  test_enum_instance_mixinGetter_mixinSetter() async {
     await assertErrorsInCode('''
-enum E {
-  v;
+mixin M1 {
   num get foo => 0;
+}
+
+mixin M2 {
   set foo(int v) {}
 }
+
+enum E with M1, M2 {
+  v
+}
 ''', [
-      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 24, 3),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 73, 1),
     ]);
   }
 
-  test_enum_instance_field() async {
+  test_enum_instance_mixinGetter_thisSetter() async {
+    await assertErrorsInCode('''
+mixin M {
+  num get foo => 0;
+}
+
+enum E with M {
+  v;
+  set foo(int v) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 60, 3),
+    ]);
+  }
+
+  test_enum_instance_superGetter_thisSetter_index() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  set index(String _) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 20, 5),
+    ]);
+  }
+
+  test_enum_instance_thisField_thisSetter() async {
     await assertErrorsInCode('''
 enum E {
   v;
@@ -256,6 +288,18 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 26, 3),
+    ]);
+  }
+
+  test_enum_instance_thisGetter_thisSetter() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  num get foo => 0;
+  set foo(int v) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 24, 3),
     ]);
   }
 

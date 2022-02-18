@@ -31,7 +31,6 @@ class ObjectPointerVisitor;
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
-  V(AsyncThenWrapperHelper, "_asyncThenWrapperHelper")                         \
   V(Bool, "bool")                                                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \

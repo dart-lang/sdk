@@ -877,6 +877,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kByteDataViewTypedData:
     case MethodRecognizer::kTypedDataViewTypedData:
     case MethodRecognizer::kClassIDgetID:
+    case MethodRecognizer::kGrowableArrayAllocateWithData:
     case MethodRecognizer::kGrowableArrayCapacity:
     case MethodRecognizer::kListFactory:
     case MethodRecognizer::kObjectArrayAllocate:
@@ -1124,6 +1125,26 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadClassId();
       break;
+    case MethodRecognizer::kGrowableArrayAllocateWithData: {
+      ASSERT(function.IsFactory());
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      const Class& cls =
+          Class::ZoneHandle(Z, compiler::GrowableObjectArrayClass().ptr());
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += AllocateObject(TokenPosition::kNoSource, cls, 1);
+      LocalVariable* object = MakeTemporary();
+      body += LoadLocal(object);
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += StoreNativeField(Slot::GrowableObjectArray_data(),
+                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               kNoStoreBarrier);
+      body += LoadLocal(object);
+      body += IntConstant(0);
+      body += StoreNativeField(Slot::GrowableObjectArray_length(),
+                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               kNoStoreBarrier);
+      break;
+    }
     case MethodRecognizer::kGrowableArrayCapacity:
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));

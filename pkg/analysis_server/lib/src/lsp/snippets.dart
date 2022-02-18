@@ -4,7 +4,32 @@
 
 import 'dart:math' as math;
 
+import 'package:analysis_server/src/protocol_server.dart' as server
+    hide AnalysisError;
 import 'package:collection/collection.dart';
+
+/// Builds an LSP snippet string using the supplied edit groups.
+///
+/// [editGroups] are provided as absolute positions, where the edit will be
+/// made starting at [editOffset].
+///
+/// [selectionOffset] is also absolute and assumes [text] will be
+/// inserted at [editOffset].
+String buildSnippetStringForEditGroups(
+  String text, {
+  required String filePath,
+  required List<server.LinkedEditGroup> editGroups,
+  required int editOffset,
+  int? selectionOffset,
+}) =>
+    _buildSnippetString(
+      text,
+      filePath: filePath,
+      editGroups: editGroups,
+      editGroupsOffset: editOffset,
+      selectionOffset:
+          selectionOffset != null ? selectionOffset - editOffset : null,
+    );
 
 /// Builds an LSP snippet string with supplied ranges as tab stops.
 ///
@@ -12,24 +37,80 @@ import 'package:collection/collection.dart';
 String buildSnippetStringWithTabStops(
   String text,
   List<int>? tabStopOffsetLengthPairs,
-) {
+) =>
+    _buildSnippetString(
+      text,
+      filePath: null,
+      tabStopOffsetLengthPairs: tabStopOffsetLengthPairs,
+    );
+
+/// Builds an LSP snippet string with supplied ranges as tab stops.
+///
+/// [tabStopOffsetLengthPairs] are relative to the supplied text.
+///
+/// [selectionOffset]/[selectionLength] form a tab stop that is always "number 0"
+/// which is the final tab stop.
+///
+/// [editGroups] are provided as absolute positions, where [text] is known to
+/// start at [editGroupsOffset] in the final document.
+String _buildSnippetString(
+  String text, {
+  required String? filePath,
+  List<int>? tabStopOffsetLengthPairs,
+  int? selectionOffset,
+  int? selectionLength,
+  List<server.LinkedEditGroup>? editGroups,
+  int editGroupsOffset = 0,
+}) {
   tabStopOffsetLengthPairs ??= const [];
+  editGroups ??= const [];
   assert(tabStopOffsetLengthPairs.length % 2 == 0);
 
-  // Convert selection/tab stops/edit groups all into a common format
-  // (`SnippetPlaceholder`) so they can be handled in a single pass through
+  /// Helper to create a [SnippetPlaceholder] for each position in a linked
+  /// edit group.
+  Iterable<SnippetPlaceholder> convertEditGroup(
+    int index,
+    server.LinkedEditGroup editGroup,
+  ) {
+    final validPositions = editGroup.positions.where((p) => p.file == filePath);
+    // Create a placeholder for each position in the group.
+    return validPositions.map(
+      (position) => SnippetPlaceholder(
+        // Make the position relative to the supplied text.
+        position.offset - editGroupsOffset,
+        editGroup.length,
+        suggestions: editGroup.suggestions
+            .map((suggestion) => suggestion.value)
+            .toList(),
+        // Use the index as an ID to keep all related positions together (so
+        // the remain "linked").
+        linkedGroupId: index,
+      ),
+    );
+  }
+
+  // Convert selection/tab stops/edit groups all into the same format
+  // (`_SnippetPlaceholder`) so they can be handled in a single pass through
   // the text.
   final placeholders = [
+    // Selection.
+    if (selectionOffset != null)
+      SnippetPlaceholder(selectionOffset, selectionLength ?? 0, isFinal: true),
+
     // Tab stops.
     for (var i = 0; i < tabStopOffsetLengthPairs.length - 1; i += 2)
       SnippetPlaceholder(
         tabStopOffsetLengthPairs[i],
         tabStopOffsetLengthPairs[i + 1],
-        // If there's only a single tab stop, mark
+        // If there's only a single tab stop (and no selection/editGroups), mark
         // it as the final stop so it exit "snippet mode" when tabbed to.
-        isFinal: tabStopOffsetLengthPairs.length == 2,
+        isFinal: selectionOffset == null &&
+            editGroups.isEmpty &&
+            tabStopOffsetLengthPairs.length == 2,
       ),
-    // TODO(dantup): Add edit group/selection support.
+
+    // Linked edit groups.
+    ...editGroups.expandIndexed(convertEditGroup),
   ];
 
   // Remove any groups outside of the range (it's possible the edit groups apply

@@ -206,6 +206,7 @@ struct RangeErrorABI {
 struct AllocateObjectABI {
   static const Register kResultReg = EAX;
   static const Register kTypeArgumentsReg = EDX;
+  static const Register kTagsReg = kNoRegister;  // Not used.
 };
 
 // ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.

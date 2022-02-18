@@ -172,6 +172,10 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   switch (cls.id()) {
     case kArrayCid:
       return object_store->allocate_array_stub();
+#if !defined(TARGET_ARCH_IA32)
+    case kGrowableObjectArrayCid:
+      return object_store->allocate_growable_array_stub();
+#endif  // !defined(TARGET_ARCH_IA32)
     case kContextCid:
       return object_store->allocate_context_stub();
     case kUnhandledExceptionCid:

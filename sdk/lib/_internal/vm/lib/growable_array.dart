@@ -222,7 +222,7 @@ class _GrowableList<T> extends ListBase<T> {
     return list;
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type",
       <dynamic>[_GrowableList, "result-type-uses-passed-type-arguments"])
   @pragma("vm:external-name", "GrowableList_allocate")

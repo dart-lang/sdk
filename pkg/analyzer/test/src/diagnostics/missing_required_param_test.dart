@@ -101,6 +101,18 @@ class D extends C {
     ]);
   }
 
+  test_constructor_superFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A({required int a});
+}
+
+class B extends A {
+  B({required super.a}) : super();
+}
+''');
+  }
+
   test_enumConstant_withArguments() async {
     await assertErrorsInCode(r'''
 enum E {
