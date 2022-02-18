@@ -12,6 +12,8 @@ main() {
   noContinueInWhile();
   breakInIf();
   noBreakInIf();
+  breakInBlock();
+  noBreakInBlock();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +109,7 @@ noContinueInWhile() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// A break statement in a labeled statement.
+// A conditional break statement in a labeled statement.
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _breakInIf:Union([exact=JSString], [exact=JSUInt31])*/
@@ -149,4 +151,35 @@ _noBreakInIf(/*[exact=JSBool]*/ b) {
 noBreakInIf() {
   _noBreakInIf(true);
   _noBreakInIf(false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// An unconditional break statement in a labeled statement.
+////////////////////////////////////////////////////////////////////////////////
+
+/*member: breakInBlock:Value([exact=JSString], value: "")*/
+breakInBlock() {
+  dynamic local = 42;
+  label:
+  {
+    local = '';
+    break label;
+    local = false;
+  }
+  return local;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// The "labeled statement" above _without_ the break statement.
+////////////////////////////////////////////////////////////////////////////////
+
+/*member: noBreakInBlock:Value([exact=JSBool], value: false)*/
+noBreakInBlock() {
+  dynamic local = 42;
+  label:
+  {
+    local = '';
+    local = false;
+  }
+  return local;
 }
