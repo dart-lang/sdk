@@ -112,7 +112,7 @@ void Class1_instanceSetter1GeneratedMethod_s() {}
   void set instanceSetter1(int? value) {}
 
   /*member: Class1.[]:
-void Class1_[]GeneratedMethod_o() {}
+void Class1_operatorGeneratedMethod_o() {}
 */
   @MethodDeclarationsMacro1()
   int operator [](int i) => i;

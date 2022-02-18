@@ -45,6 +45,7 @@ js_util
 libraries.json
 list.filled
 loadlibrary
+macro
 migrate
 name.#name
 name.stack

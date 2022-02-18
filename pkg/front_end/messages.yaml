@@ -5479,3 +5479,7 @@ EnumContainsValuesDeclaration:
 
 EnumImplementerContainsValuesDeclaration:
   problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'."
+
+MacroClassNotDeclaredMacro:
+  problemMessage: "Non-abstract class '#name' implements 'Macro' but isn't declared as a macro class."
+  correctionMessage: "Try adding the 'macro' class modifier."

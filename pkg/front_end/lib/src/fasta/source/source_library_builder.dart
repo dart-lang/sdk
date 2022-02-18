@@ -243,6 +243,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   List<SourceLibraryBuilder>? _patchLibraries;
 
+  /// `true` if this is an augmentation library.
+  final bool isAugmentation;
+
   SourceLibraryBuilder.internal(
       SourceLoader loader,
       Uri fileUri,
@@ -253,8 +256,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Library library,
       LibraryBuilder? nameOrigin,
       Library? referencesFrom,
-      bool? referenceIsPartOwner,
-      bool isUnsupported)
+      {bool? referenceIsPartOwner,
+      required bool isUnsupported,
+      required bool isAugmentation})
       : this.fromScopes(
             loader,
             fileUri,
@@ -266,7 +270,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             library,
             nameOrigin,
             referencesFrom,
-            isUnsupported);
+            isUnsupported: isUnsupported,
+            isAugmentation: isAugmentation);
 
   SourceLibraryBuilder.fromScopes(
       this.loader,
@@ -279,7 +284,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this.library,
       this._nameOrigin,
       this.referencesFrom,
-      this.isUnsupported)
+      {required this.isUnsupported,
+      required this.isAugmentation})
       : _languageVersion = packageLanguageVersion,
         currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
         referencesFromIndexed =
@@ -469,7 +475,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       LibraryBuilder? nameOrigin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      required bool isUnsupported})
+      required bool isUnsupported,
+      required bool isAugmentation})
       : this.internal(
             loader,
             fileUri,
@@ -487,8 +494,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   ..setLanguageVersion(packageLanguageVersion.version)),
             nameOrigin,
             referencesFrom,
-            referenceIsPartOwner,
-            isUnsupported);
+            referenceIsPartOwner: referenceIsPartOwner,
+            isUnsupported: isUnsupported,
+            isAugmentation: isAugmentation);
 
   @override
   bool get isPart => partOfName != null || partOfUri != null;
@@ -520,7 +528,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         loader: loader,
         isUnsupported: false,
         target: library,
-        origin: this);
+        origin: this,
+        isAugmentation: true);
     addPatchLibrary(augmentationLibrary);
     loader.registerUnparsedLibrarySource(augmentationLibrary, source);
     return augmentationLibrary;
@@ -1758,7 +1767,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int nameOffset,
       int endOffset,
       int supertypeOffset,
-      {required bool isMacro}) {
+      {required bool isMacro,
+      required bool isAugmentation}) {
     _addClass(
         TypeParameterScopeKind.classDeclaration,
         metadata,
@@ -1771,7 +1781,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         nameOffset,
         endOffset,
         supertypeOffset,
-        isMacro: isMacro);
+        isMacro: isMacro,
+        isAugmentation: isAugmentation);
   }
 
   void addMixinDeclaration(
@@ -1797,7 +1808,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         nameOffset,
         endOffset,
         supertypeOffset,
-        isMacro: false);
+        isMacro: false,
+        isAugmentation: false);
   }
 
   void _addClass(
@@ -1812,7 +1824,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int nameOffset,
       int endOffset,
       int supertypeOffset,
-      {required bool isMacro}) {
+      {required bool isMacro,
+      required bool isAugmentation}) {
     _checkBadFunctionDeclUse(className, kind, nameOffset);
     _checkBadFunctionParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
@@ -1850,7 +1863,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeVariables,
         applyMixins(supertype, startOffset, nameOffset, endOffset, className,
             isMixinDeclaration,
-            typeVariables: typeVariables, isMacro: false),
+            typeVariables: typeVariables,
+            isMacro: false,
+            isAugmentation: false),
         interfaces,
         // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
         // here.
@@ -1864,7 +1879,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         endOffset,
         _currentClassReferencesFromIndexed,
         isMixinDeclaration: isMixinDeclaration,
-        isMacro: isMacro);
+        isMacro: isMacro,
+        isAugmentation: isAugmentation);
 
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
@@ -2125,7 +2141,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<TypeVariableBuilder>? typeVariables,
       int modifiers: 0,
       List<TypeBuilder>? interfaces,
-      required bool isMacro}) {
+      required bool isMacro,
+      required bool isAugmentation}) {
     if (name == null) {
       // The following parameters should only be used when building a named
       // mixin application.
@@ -2344,7 +2361,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             charEndOffset,
             referencesFromIndexedClass,
             mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
-            isMacro: isNamedMixinApplication && isMacro);
+            isMacro: isNamedMixinApplication && isMacro,
+            isAugmentation: isNamedMixinApplication && isAugmentation);
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
@@ -2372,7 +2390,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int startCharOffset,
       int charOffset,
       int charEndOffset,
-      {required bool isMacro}) {
+      {required bool isMacro,
+      required bool isAugmentation}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
         .resolveNamedTypes(typeVariables, this);
@@ -2383,7 +2402,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeVariables: typeVariables,
         modifiers: modifiers,
         interfaces: interfaces,
-        isMacro: isMacro)!;
+        isMacro: isMacro,
+        isAugmentation: isAugmentation)!;
     checkTypeVariables(typeVariables, supertype.declaration);
   }
 
@@ -2838,7 +2858,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeVariables,
         applyMixins(supertypeBuilder, startCharOffset, charOffset,
             charEndOffset, name, /* isMixinDeclaration = */ false,
-            typeVariables: typeVariables, isMacro: false),
+            typeVariables: typeVariables,
+            isMacro: false,
+            isAugmentation: false),
         interfaceBuilders,
         enumConstantInfos,
         this,
@@ -3883,9 +3905,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Builder member = patchDeclarations.current;
       // We need to inject all non-patch members into the origin library. This
       // should only apply to private members.
+      // For augmentation libraries, all members are injected into the origin
+      // library, regardless of privacy.
       if (member.isPatch) {
         // Ignore patches.
-      } else if (name.startsWith("_")) {
+      } else if (name.startsWith("_") || isAugmentation) {
         origin.injectMemberFromPatch(name, member);
       } else {
         origin.exportMemberFromPatch(name, member);
@@ -4560,9 +4584,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is SourceFieldBuilder) {
-        checkTypesInField(declaration, typeEnvironment);
+        declaration.checkTypes(this, typeEnvironment);
       } else if (declaration is SourceProcedureBuilder) {
-        checkTypesInFunctionBuilder(declaration, typeEnvironment);
+        declaration.checkTypes(this, typeEnvironment);
         if (declaration.isGetter) {
           Builder? setterDeclaration =
               scope.lookupLocalMember(declaration.name, setter: true);

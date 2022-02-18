@@ -22,8 +22,6 @@
 // NB: This utility assumes UN*X style line endings, \n, in the LaTeX
 // source file received as input; it will not work with other styles.
 
-// @dart = 2.9
-
 // ignore_for_file: constant_identifier_names
 
 import 'dart:convert';
@@ -269,7 +267,7 @@ abstract class HashEvent {
   /// the preceding \LMHash{} block should stop before the line of
   /// this \LMHash{} command.  Note that hash blocks may stop earlier,
   /// because they cannot contain sectioning commands.
-  int getStartLineNumber() => null;
+  int? getStartLineNumber() => null;
 }
 
 class HashMarkerEvent extends HashEvent {
@@ -282,7 +280,7 @@ class HashMarkerEvent extends HashEvent {
   // reached), so [endLineNumber] will be initialized in a separate
   // scan.  Also note that the block may end earlier, because a block
   // ends if it would otherwise include a sectioning command.
-  int endLineNumber;
+  int? endLineNumber;
 
   HashMarkerEvent(this.startLineNumber);
 

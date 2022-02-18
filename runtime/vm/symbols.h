@@ -31,6 +31,7 @@ class ObjectPointerVisitor;
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
+  V(AsyncThenWrapperHelper, "_asyncThenWrapperHelper")                         \
   V(Bool, "bool")                                                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
@@ -102,7 +103,6 @@ class ObjectPointerVisitor;
   V(EvalSourceUri, "evaluate:source")                                          \
   V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
-  V(ExceptionParameter, ":exception")                                          \
   V(ExceptionVar, ":exception_var")                                            \
   V(Expando, "Expando")                                                        \
   V(ExprTemp, ":expr_temp")                                                    \
@@ -477,6 +477,7 @@ class ObjectPointerVisitor;
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
   V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")                        \
   V(vm_external_name, "vm:external-name")                                      \
+  V(vm_invisible, "vm:invisible")                                              \
   V(vm_testing_print_flow_graph, "vm:testing:print-flow-graph")
 
 // Contains a list of frequently used strings in a canonicalized form. This

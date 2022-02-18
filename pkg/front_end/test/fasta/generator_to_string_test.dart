@@ -95,7 +95,8 @@ Future<void> main() async {
                     new NoneTarget(new TargetFlags())),
                 uriTranslator)
             .loader,
-        isUnsupported: false);
+        isUnsupported: false,
+        isAugmentation: false);
     libraryBuilder.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder =
         new LoadLibraryBuilder(libraryBuilder, dummyLibraryDependency, -1);

@@ -156,15 +156,15 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
 
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
-  const bool use_far_branches = false;
+  const intptr_t far_branch_level = 0;
 #else
-  const bool use_far_branches = true;
+  const intptr_t far_branch_level = 1;
 #endif
 
   ASSERT(pass_state_->inline_id_to_function.length() ==
          pass_state_->caller_inline_id.length());
   compiler::ObjectPoolBuilder object_pool_builder;
-  compiler::Assembler assembler(&object_pool_builder, use_far_branches);
+  compiler::Assembler assembler(&object_pool_builder, far_branch_level);
   FlowGraphCompiler graph_compiler(
       &assembler, flow_graph_, *parsed_function_, optimized,
       &speculative_policy, pass_state_->inline_id_to_function,

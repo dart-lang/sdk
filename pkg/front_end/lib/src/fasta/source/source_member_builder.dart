@@ -6,6 +6,7 @@ library fasta.member_builder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../../base/common.dart';
 import '../builder/builder.dart';
@@ -18,6 +19,7 @@ import '../source/source_library_builder.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
 import '../util/helpers.dart' show DelayedActionPerformer;
+import 'source_class_builder.dart';
 
 abstract class SourceMemberBuilder implements MemberBuilder {
   MemberDataForTesting? get dataForTesting;
@@ -31,6 +33,15 @@ abstract class SourceMemberBuilder implements MemberBuilder {
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes);
+
+  /// Checks the variance of type parameters [sourceClassBuilder] used in the
+  /// signature of this member.
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
+
+  /// Checks the signature types of this member.
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment);
 }
 
 mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
@@ -114,8 +125,6 @@ enum BuiltMemberKind {
 
 class MemberDataForTesting {
   final InferenceDataForTesting inferenceData = new InferenceDataForTesting();
-
-  MemberBuilder? patchForTesting;
 }
 
 /// If the name of [member] is private, update it to use the library reference

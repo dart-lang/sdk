@@ -536,7 +536,7 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
 }
 
 abstract class AsyncRewriterBase extends ContinuationRewriterBase {
-  // :async_op has type ([dynamic result, dynamic e, StackTrace? s]) -> dynamic
+  // :async_op has type (dynamic result_or_exception, StackTrace? s) -> dynamic
   final VariableDeclaration nestedClosureVariable;
 
   // :async_op_then has type (dynamic result) -> dynamic
@@ -551,14 +551,13 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
   AsyncRewriterBase(HelperNodes helper, FunctionNode enclosingFunction,
       StatefulStaticTypeContext staticTypeContext)
-      : nestedClosureVariable = VariableDeclaration(
-            ContinuationVariables.asyncOp,
-            type: FunctionType([
-              const DynamicType(),
-              const DynamicType(),
-              helper.coreTypes.stackTraceRawType(staticTypeContext.nullable),
-            ], const DynamicType(), staticTypeContext.nonNullable,
-                requiredParameterCount: 0)),
+      : nestedClosureVariable =
+            VariableDeclaration(ContinuationVariables.asyncOp,
+                type: FunctionType([
+                  const DynamicType(),
+                  helper.coreTypes
+                      .stackTraceRawType(staticTypeContext.nullable),
+                ], const DynamicType(), staticTypeContext.nonNullable)),
         thenContinuationVariable = VariableDeclaration(
             ContinuationVariables.asyncOpThen,
             type: FunctionType(const [const DynamicType()], const DynamicType(),
@@ -581,12 +580,11 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     // var :async_op_error;
     statements.add(catchErrorContinuationVariable);
 
-    // :async_op([:result, :exception, :stack_trace]) {
+    // :async_op(:result_or_exception, :stack_trace) {
     //     modified <node.body>;
     // }
     final parameters = <VariableDeclaration>[
       expressionRewriter!.asyncResult,
-      new VariableDeclaration(ContinuationVariables.exceptionParam),
       new VariableDeclaration(ContinuationVariables.stackTraceParam),
     ];
 
@@ -595,7 +593,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     // Dart async marker to decide if functions are debuggable.)
     final function = new FunctionNode(buildWrappedBody(),
         positionalParameters: parameters,
-        requiredParameterCount: 0,
         asyncMarker: AsyncMarker.SyncYielding,
         dartAsyncMarker: AsyncMarker.Sync)
       ..fileOffset = enclosingFunction.fileOffset
@@ -1413,9 +1410,9 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
           valueType.withDeclaredNullability(Nullability.nullable);
     }
 
-    // :async_op();
+    // :async_op(null, null);
     final startStatement = ExpressionStatement(LocalFunctionInvocation(
-        nestedClosureVariable, Arguments([]),
+        nestedClosureVariable, Arguments([NullLiteral(), NullLiteral()]),
         functionType: FunctionType(
             [], const DynamicType(), staticTypeContext.nonNullable))
       ..fileOffset = enclosingFunction.fileOffset);

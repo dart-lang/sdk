@@ -51,7 +51,8 @@ class FunctionTypesMacro1 implements FunctionTypesMacro {
         name, new DeclarationCode.fromParts(['''
 class $name {
   external ''', function.returnType.code, ''' method();
-}''']));
+}'''
+    ]));
   }
 }
 
@@ -129,8 +130,14 @@ class MethodDeclarationsMacro1 implements MethodDeclarationsMacro {
     if (method.isSetter) {
       sb.write('s');
     }
+    String name;
+    if (method.isOperator) {
+      name = 'operator';
+    } else {
+      name = method.identifier.name;
+    }
     builder.declareInLibrary(new DeclarationCode.fromString('''
-void ${method.definingClass.name}_${method.identifier.name}GeneratedMethod_${sb}() {}
+void ${method.definingClass.name}_${name}GeneratedMethod_${sb}() {}
 '''));
   }
 }
@@ -286,5 +293,51 @@ class ConstructorDeclarationsMacro1
 void ${constructor.definingClass.name}_${constructor.identifier
         .name}GeneratedMethod_${sb}() {}
 '''));
+  }
+}
+
+macro
+
+class ToStringMacro implements ClassDeclarationsMacro {
+  const ToStringMacro();
+
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+      ClassMemberDeclarationBuilder builder) async {
+    Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
+    if (!methods.any((m) => m.identifier.name == 'toString')) {
+      Iterable<FieldDeclaration> fields = await builder.fieldsOf(clazz);
+      List<Object> parts = ['''
+  toString() {
+    return "${clazz.identifier.name}('''];
+      String comma = '';
+      for (FieldDeclaration field in fields) {
+        parts.add(comma);
+        parts.add('${field.identifier.name}=\${');
+        parts.add(field.identifier.name);
+        parts.add('}');
+        comma = ',';
+    }
+    parts.add(''')";
+  }''');
+      builder.declareInClass(new DeclarationCode.fromParts(parts));
+    }
+  }
+}
+
+macro
+class SequenceMacro implements ClassDeclarationsMacro {
+  const SequenceMacro();
+
+  FutureOr<void> buildDeclarationsForClass(
+      ClassDeclaration clazz, ClassMemberDeclarationBuilder builder) async {
+    Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
+    int index = 0;
+    String suffix = '';
+    while (methods.any((m) => m.identifier.name == 'method$suffix')) {
+      index++;
+      suffix = '$index';
+    }
+    builder.declareInClass(new DeclarationCode.fromString('''
+  method$suffix() {}'''));
   }
 }

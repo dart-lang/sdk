@@ -20,8 +20,12 @@ external _fatal(msg);
 
 // We need to pass the value as first argument and leave the second and third
 // arguments empty (used for error handling).
+@pragma("vm:recognized", "other")
 dynamic Function(dynamic) _asyncThenWrapperHelper(
-    dynamic Function(dynamic) continuation) {
+    dynamic Function(dynamic, dynamic) continuation) {
+  @pragma("vm:invisible")
+  dynamic thenWrapper(dynamic arg) => continuation(arg, /*stack_trace=*/ null);
+
   // Any function that is used as an asynchronous callback must be registered
   // in the current Zone. Normally, this is done by the future when a
   // callback is registered (for example with `.then` or `.catchError`). In our
@@ -41,17 +45,15 @@ dynamic Function(dynamic) _asyncThenWrapperHelper(
   if (identical(currentZone, _rootZone) ||
       identical(currentZone._registerUnaryCallback,
           _rootZone._registerUnaryCallback)) {
-    return continuation;
+    return thenWrapper;
   }
-  return currentZone.registerUnaryCallback<dynamic, dynamic>(continuation);
+  return currentZone.registerUnaryCallback<dynamic, dynamic>(thenWrapper);
 }
 
 // We need to pass the exception and stack trace objects as second and third
 // parameter to the continuation.
 dynamic Function(Object, StackTrace) _asyncErrorWrapperHelper(
-    dynamic Function(dynamic, dynamic, StackTrace) continuation) {
-  // See comments of `_asyncThenWrapperHelper`.
-  dynamic errorCallback(Object e, StackTrace s) => continuation(null, e, s);
+    dynamic Function(dynamic, StackTrace) errorCallback) {
   final currentZone = Zone._current;
   if (identical(currentZone, _rootZone) ||
       identical(currentZone._registerBinaryCallback,
@@ -68,7 +70,7 @@ dynamic Function(Object, StackTrace) _asyncErrorWrapperHelper(
 ///
 /// Returns the result of registering with `.then`.
 Future _awaitHelper(var object, dynamic Function(dynamic) thenCallback,
-    dynamic Function(dynamic, StackTrace) errorCallback, Function awaiter) {
+    dynamic Function(dynamic, StackTrace) errorCallback) {
   late _Future future;
   if (object is _Future) {
     future = object;
@@ -126,7 +128,7 @@ class _AsyncStarStreamController<T> {
   void runBody() {
     isScheduled = false;
     isSuspendedAtYield = false;
-    asyncStarBody();
+    asyncStarBody(null, null);
   }
 
   void scheduleGenerator() {

@@ -1955,7 +1955,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   dynamic :saved_try_context_var1;
   dynamic :exception0;
   dynamic :stack_trace0;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L1:
       {
@@ -2284,8 +2284,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             #L2:
             while (true) {
               dynamic #t265 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t266 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
-              if(_in::unsafeCast<core::bool>(:result)) {
+              [yield] let dynamic #t266 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
+              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
                 dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
                 #t264.{core::List::add}{Invariant}(i){(dynamic) →* void};
               }
@@ -2294,8 +2294,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             }
           finally
             if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<dynamic>?} == null)) {
-              [yield] let dynamic #t267 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
-              :result;
+              [yield] let dynamic #t267 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
+              :result_or_exception;
             }
         }
         core::List<dynamic>* list30 = block {} =>#t264;
@@ -2310,8 +2310,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             #L3:
             while (true) {
               dynamic #t269 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t270 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
-              if(_in::unsafeCast<core::bool>(:result)) {
+              [yield] let dynamic #t270 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
+              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
                 dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
                 #t268.{core::Set::add}{Invariant}(i){(dynamic) →* core::bool*};
               }
@@ -2320,8 +2320,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             }
           finally
             if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<dynamic>?} == null)) {
-              [yield] let dynamic #t271 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
-              :result;
+              [yield] let dynamic #t271 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
+              :result_or_exception;
             }
         }
         core::Set<dynamic>* set30 = block {
@@ -2338,8 +2338,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             #L4:
             while (true) {
               dynamic #t273 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t274 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
-              if(_in::unsafeCast<core::bool>(:result)) {
+              [yield] let dynamic #t274 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
+              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
                 dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
                 #t272.{core::Map::[]=}{Invariant}("bar", i){(core::String*, dynamic) →* void};
               }
@@ -2348,8 +2348,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             }
           finally
             if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<dynamic>?} == null)) {
-              [yield] let dynamic #t275 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
-              :result;
+              [yield] let dynamic #t275 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
+              :result_or_exception;
             }
         }
         core::Map<core::String*, dynamic>* map30 = block {
@@ -2367,8 +2367,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             #L5:
             while (true) {
               dynamic #t277 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t278 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
-              if(_in::unsafeCast<core::bool>(:result)) {
+              [yield] let dynamic #t278 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
+              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
                 core::int* i = :for-iterator.{asy::_StreamIterator::current}{core::int*};
                 #t276.{core::List::add}{Invariant}(i){(core::int*) →* void};
               }
@@ -2377,8 +2377,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             }
           finally
             if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<core::int*>?} == null)) {
-              [yield] let dynamic #t279 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
-              :result;
+              [yield] let dynamic #t279 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
+              :result_or_exception;
             }
         }
         core::List<core::int*>* list40 = block {} =>#t276;
@@ -2394,8 +2394,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             #L6:
             while (true) {
               dynamic #t281 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t282 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
-              if(_in::unsafeCast<core::bool>(:result)) {
+              [yield] let dynamic #t282 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
+              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
                 core::int* i = :for-iterator.{asy::_StreamIterator::current}{core::int*};
                 #t280.{core::Set::add}{Invariant}(i){(core::int*) →* core::bool*};
               }
@@ -2404,8 +2404,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             }
           finally
             if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<core::int*>?} == null)) {
-              [yield] let dynamic #t283 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
-              :result;
+              [yield] let dynamic #t283 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
+              :result_or_exception;
             }
         }
         core::Set<core::int*>* set40 = block {
@@ -2423,8 +2423,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             #L7:
             while (true) {
               dynamic #t285 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t286 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
-              if(_in::unsafeCast<core::bool>(:result)) {
+              [yield] let dynamic #t286 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
+              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
                 core::int* i = :for-iterator.{asy::_StreamIterator::current}{core::int*};
                 #t284.{core::Map::[]=}{Invariant}("bar", i){(core::String*, core::int*) →* void};
               }
@@ -2433,8 +2433,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
             }
           finally
             if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<core::int*>?} == null)) {
-              [yield] let dynamic #t287 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
-              :result;
+              [yield] let dynamic #t287 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
+              :result_or_exception;
             }
         }
         core::Map<core::String*, core::int*>* map40 = block {
@@ -2489,7 +2489,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() →* dynamic};
+  :async_op(null, null){() →* dynamic};
   :is_sync = true;
   return :async_future;
 }

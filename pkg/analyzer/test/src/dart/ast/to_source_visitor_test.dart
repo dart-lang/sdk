@@ -211,11 +211,25 @@ class ToSourceVisitorTest {
             Keyword.ABSTRACT, "C", null, null, null, null));
   }
 
+  void test_visitClassDeclaration_abstractAugment() {
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        Keyword.ABSTRACT, "C", null, null, null, null,
+        isAugmentation: true);
+    _assertSource("abstract augment class C {}", declaration);
+  }
+
   void test_visitClassDeclaration_abstractMacro() {
     ClassDeclaration declaration = AstTestFactory.classDeclaration(
         Keyword.ABSTRACT, "C", null, null, null, null,
         isMacro: true);
     _assertSource("abstract macro class C {}", declaration);
+  }
+
+  void test_visitClassDeclaration_augment() {
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        null, "C", null, null, null, null,
+        isAugmentation: true);
+    _assertSource("augment class C {}", declaration);
   }
 
   void test_visitClassDeclaration_empty() {
@@ -406,6 +420,19 @@ class ToSourceVisitorTest {
             AstTestFactory.implementsClause([AstTestFactory.namedType4("I")])));
   }
 
+  void test_visitClassTypeAlias_abstractAugment() {
+    _assertSource(
+        "abstract augment class C = S with M1;",
+        AstTestFactory.classTypeAlias(
+            "C",
+            null,
+            Keyword.ABSTRACT,
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            null,
+            isAugmentation: true));
+  }
+
   void test_visitClassTypeAlias_abstractMacro() {
     _assertSource(
         "abstract macro class C = S with M1;",
@@ -417,6 +444,19 @@ class ToSourceVisitorTest {
             AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
             null,
             isMacro: true));
+  }
+
+  void test_visitClassTypeAlias_augment() {
+    _assertSource(
+        "augment class C = S with M1;",
+        AstTestFactory.classTypeAlias(
+            "C",
+            null,
+            null,
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            null,
+            isAugmentation: true));
   }
 
   void test_visitClassTypeAlias_generic() {

@@ -328,7 +328,8 @@ class SourceLoader extends Loader {
         referenceIsPartOwner: referenceIsPartOwner,
         isUnsupported: origin?.library.isUnsupported ??
             importUri.isScheme('dart') &&
-                !target.uriTranslator.isLibrarySupported(importUri.path));
+                !target.uriTranslator.isLibrarySupported(importUri.path),
+        isAugmentation: false);
   }
 
   /// Return `"true"` if the [dottedName] is a 'dart.library.*' qualifier for a
@@ -1689,9 +1690,9 @@ severity: $severity
     ticker.logMs("Finished forwarders for $count procedures");
   }
 
-  void resolveConstructors() {
+  void resolveConstructors(List<SourceLibraryBuilder> libraryBuilders) {
     int count = 0;
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+    for (SourceLibraryBuilder library in libraryBuilders) {
       count += library.resolveConstructors();
     }
     ticker.logMs("Resolved $count constructors");
@@ -1705,9 +1706,10 @@ severity: $severity
     }
   }
 
-  void finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
+  void finishTypeVariables(Iterable<SourceLibraryBuilder> libraryBuilders,
+      ClassBuilder object, TypeBuilder dynamicType) {
     int count = 0;
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+    for (SourceLibraryBuilder library in libraryBuilders) {
       count += library.finishTypeVariables(object, dynamicType);
     }
     ticker.logMs("Resolved $count type-variable bounds");
@@ -2065,7 +2067,8 @@ severity: $severity
       List<SourceClassBuilder> sourceClasses, Class enumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
-        builder.checkSupertypes(coreTypes, hierarchyBuilder, enumClass);
+        builder.checkSupertypes(
+            coreTypes, hierarchyBuilder, enumClass, _macroClassBuilder?.cls);
       }
     }
     ticker.logMs("Checked supertypes");
@@ -2585,7 +2588,7 @@ void _asyncStarMoveNextHelper(var stream) {}
 
 _asyncThenWrapperHelper(continuation) {}
 
-_awaitHelper(object, thenCallback, errorCallback, awaiter) {}
+_awaitHelper(object, thenCallback, errorCallback) {}
 
 _completeOnAsyncReturn(_future, value, async_jump_var) {}
 

@@ -1749,6 +1749,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         loader: lastGoodKernelTarget.loader,
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
+        isAugmentation: false,
       );
       libraryBuilder.scope.forEachLocalMember((name, member) {
         debugLibrary.scope.addLocalMember(name, member, setter: false);
@@ -1803,6 +1804,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         scope: debugLibrary.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
+        isAugmentation: false,
       );
 
       HybridFileSystem hfs =

@@ -6,6 +6,7 @@ library fasta.scope;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/type_environment.dart';
 
 import 'builder/builder.dart';
 import 'builder/class_builder.dart';
@@ -26,6 +27,7 @@ import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/hierarchy/class_member.dart' show ClassMember;
 import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
+import 'source/source_class_builder.dart';
 import 'source/source_library_builder.dart';
 import 'source/source_member_builder.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
@@ -847,6 +849,18 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   List<ClassMember> get localSetters => const <ClassMember>[];
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    assert(false, "Unexpected call to $runtimeType.checkVariance.");
+  }
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+    assert(false, "Unexpected call to $runtimeType.checkVariance.");
+  }
 }
 
 class AmbiguousMemberBuilder extends AmbiguousBuilder

@@ -62,6 +62,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   bool get isMacro;
 
+  bool get isAugmentation;
+
   bool get declaresConstConstructor;
 
   bool get isMixin;
@@ -124,11 +126,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
       {bool isSetter: false, bool isSuper: false});
 
   /// Calls [f] for each constructor declared in this class.
-  ///
-  /// If [includeInjectedConstructors] is `true`, constructors only declared in
-  /// the patch class, if any, are included.
-  void forEachConstructor(void Function(String, MemberBuilder) f,
-      {bool includeInjectedConstructors: false});
+  void forEachConstructor(void Function(String, MemberBuilder) f);
 }
 
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl

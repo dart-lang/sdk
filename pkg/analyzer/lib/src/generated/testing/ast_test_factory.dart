@@ -241,7 +241,8 @@ class AstTestFactory {
           WithClause? withClause,
           ImplementsClause? implementsClause,
           {List<ClassMember> members = const [],
-          bool isMacro = false}) =>
+          bool isMacro = false,
+          bool isAugmentation = false}) =>
       astFactory.classDeclaration(
           null,
           null,
@@ -249,6 +250,7 @@ class AstTestFactory {
               ? null
               : TokenFactory.tokenFromKeyword(abstractKeyword),
           isMacro ? TokenFactory.tokenFromString('macro') : null,
+          isAugmentation ? TokenFactory.tokenFromString('augment') : null,
           TokenFactory.tokenFromKeyword(Keyword.CLASS),
           identifier3(name),
           typeParameters,
@@ -266,7 +268,8 @@ class AstTestFactory {
           NamedType superclass,
           WithClause withClause,
           ImplementsClause? implementsClause,
-          {bool isMacro = false}) =>
+          {bool isMacro = false,
+          bool isAugmentation = false}) =>
       astFactory.classTypeAlias(
           null,
           null,
@@ -278,6 +281,7 @@ class AstTestFactory {
               ? null
               : TokenFactory.tokenFromKeyword(abstractKeyword),
           isMacro ? TokenFactory.tokenFromString('macro') : null,
+          isAugmentation ? TokenFactory.tokenFromString('augment') : null,
           superclass,
           withClause,
           implementsClause,

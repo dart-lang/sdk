@@ -10,6 +10,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../builder/class_builder.dart';
 import '../builder/field_builder.dart';
@@ -35,6 +36,7 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import '../util/helpers.dart' show DelayedActionPerformer;
+import 'source_class_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceFieldBuilder extends SourceMemberBuilderImpl
@@ -496,6 +498,19 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   List<ClassMember> get localSetters =>
       _localSetters ??= _fieldEncoding.getLocalSetters(this);
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    sourceClassBuilder.checkVarianceInField(
+        this, typeEnvironment, sourceClassBuilder.cls.typeParameters);
+  }
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+    library.checkTypesInField(this, typeEnvironment);
+  }
 }
 
 /// Strategy pattern for creating different encodings of a declared field.

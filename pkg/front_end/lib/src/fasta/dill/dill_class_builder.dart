@@ -59,6 +59,9 @@ class DillClassBuilder extends ClassBuilderImpl {
   bool get isMacro => cls.isMacro;
 
   @override
+  bool get isAugmentation => false;
+
+  @override
   List<TypeVariableBuilder>? get typeVariables {
     List<TypeVariableBuilder>? typeVariables = super.typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {

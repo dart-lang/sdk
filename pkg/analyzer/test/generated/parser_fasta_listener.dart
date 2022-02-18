@@ -86,9 +86,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassDeclaration(
-      Token beginToken, Token? abstractToken, Token? macroToken, Token name) {
-    super.beginClassDeclaration(beginToken, abstractToken, macroToken, name);
+  void beginClassDeclaration(Token beginToken, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
+    super.beginClassDeclaration(
+        beginToken, abstractToken, macroToken, augmentToken, name);
     begin('ClassDeclaration');
   }
 
@@ -391,10 +392,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginNamedMixinApplication(
-      Token beginToken, Token? abstractToken, Token? macroToken, Token name) {
+  void beginNamedMixinApplication(Token beginToken, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     super.beginNamedMixinApplication(
-        beginToken, abstractToken, macroToken, name);
+        beginToken, abstractToken, macroToken, augmentToken, name);
     begin('NamedMixinApplication');
   }
 

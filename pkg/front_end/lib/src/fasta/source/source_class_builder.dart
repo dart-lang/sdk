@@ -57,7 +57,6 @@ import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_member_builder.dart';
-import 'source_procedure_builder.dart';
 
 Class initializeClass(
     Class? cls,
@@ -103,7 +102,10 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   final bool isMacro;
 
-  SourceClassBuilder? _patchBuilder;
+  @override
+  final bool isAugmentation;
+
+  List<SourceClassBuilder>? _patches;
 
   SourceClassBuilder(
       List<MetadataBuilder>? metadata,
@@ -124,7 +126,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       {Class? cls,
       this.mixedInTypeBuilder,
       this.isMixinDeclaration = false,
-      this.isMacro: false})
+      this.isMacro = false,
+      this.isAugmentation = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
@@ -132,7 +135,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
-  SourceClassBuilder? get patchForTesting => _patchBuilder;
+  List<SourceClassBuilder>? get patchesForTesting => _patches;
 
   SourceClassBuilder? actualOrigin;
 
@@ -349,20 +352,39 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  void forEachConstructor(void Function(String, MemberBuilder) f,
-      {bool includeInjectedConstructors: false}) {
+  void forEach(void f(String name, Builder builder)) {
     if (isPatch) {
-      actualOrigin!.forEachConstructor(f,
-          includeInjectedConstructors: includeInjectedConstructors);
+      actualOrigin!.forEach(f);
+    } else {
+      scope.forEach(f);
+      List<SourceClassBuilder>? patchClasses = _patches;
+      if (patchClasses != null) {
+        for (SourceClassBuilder patchClass in patchClasses) {
+          patchClass.scope.forEach((String name, Builder builder) {
+            if (!builder.isPatch) {
+              f(name, builder);
+            }
+          });
+        }
+      }
+    }
+  }
+
+  @override
+  void forEachConstructor(void Function(String, MemberBuilder) f) {
+    if (isPatch) {
+      actualOrigin!.forEachConstructor(f);
     } else {
       constructors.forEach(f);
-      if (includeInjectedConstructors) {
-        _patchBuilder?.constructors
-            .forEach((String name, MemberBuilder builder) {
-          if (!builder.isPatch) {
-            f(name, builder);
-          }
-        });
+      List<SourceClassBuilder>? patchClasses = _patches;
+      if (patchClasses != null) {
+        for (SourceClassBuilder patchClass in patchClasses) {
+          patchClass.constructors.forEach((String name, MemberBuilder builder) {
+            if (!builder.isPatch) {
+              f(name, builder);
+            }
+          });
+        }
       }
     }
   }
@@ -382,8 +404,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     // assert checks that the names of the fields from the original declaration
     // and from the patch don't intersect.
     assert(
-        _patchBuilder == null ||
-            _patchBuilder!.scope.localMembers
+        _patches == null ||
+            _patches!.every((patchClass) => patchClass.scope.localMembers
                 .where((b) => b is SourceFieldBuilder)
                 .map((b) => (b as SourceFieldBuilder).name)
                 .toSet()
@@ -391,9 +413,14 @@ class SourceClassBuilder extends ClassBuilderImpl
                     .where((b) => b is SourceFieldBuilder)
                     .map((b) => (b as SourceFieldBuilder).name)
                     .toSet())
-                .isEmpty,
+                .isEmpty),
         "Detected an attempt to patch a field.");
-    _patchBuilder?.scope.forEach(callbackFilteringFieldBuilders);
+    List<SourceClassBuilder>? patchClasses = _patches;
+    if (patchClasses != null) {
+      for (SourceClassBuilder patchClass in patchClasses) {
+        patchClass.scope.forEach(callbackFilteringFieldBuilders);
+      }
+    }
     scope.forEach(callbackFilteringFieldBuilders);
   }
 
@@ -412,7 +439,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Constructors can be patched, so iterate first over constructors in the
     // patch, and then over constructors in the original declaration skipping
     // those with the names that are in the patch.
-    _patchBuilder?.constructors.forEach(callbackFilteringFieldBuilders);
+    List<SourceClassBuilder>? patchClasses = _patches;
+    if (patchClasses != null) {
+      for (SourceClassBuilder patchClass in patchClasses) {
+        patchClass.constructors.forEach(callbackFilteringFieldBuilders);
+      }
+    }
     constructors.forEach(callbackFilteringFieldBuilders);
   }
 
@@ -569,7 +601,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   void applyPatch(Builder patch) {
     if (patch is SourceClassBuilder) {
       patch.actualOrigin = this;
-      _patchBuilder = patch;
+      (_patches ??= []).add(patch);
       // TODO(ahe): Complain if `patch.supertype` isn't null.
       scope.forEachLocalMember((String name, Builder member) {
         Builder? memberPatch =
@@ -614,8 +646,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  void checkSupertypes(CoreTypes coreTypes,
-      ClassHierarchyBuilder hierarchyBuilder, Class enumClass) {
+  void checkSupertypes(
+      CoreTypes coreTypes,
+      ClassHierarchyBuilder hierarchyBuilder,
+      Class enumClass,
+      Class? macroClass) {
     // This method determines whether the class (that's being built) its super
     // class appears both in 'extends' and 'implements' clauses and whether any
     // interface appears multiple times in the 'implements' clause.
@@ -673,6 +708,27 @@ class SourceClassBuilder extends ClassBuilderImpl
               customValuesDeclaration.fullNameForErrors.length,
               fileUri);
         }
+      }
+    }
+    if (macroClass != null && !cls.isMacro && !cls.isAbstract) {
+      // TODO(johnniwinther): Merge this check with the loop above.
+      bool isMacroFound = false;
+      List<Supertype> interfaces =
+          hierarchyBuilder.getNodeFromClass(cls).superclasses;
+      for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
+        if (interfaces[i].classNode == macroClass) {
+          isMacroFound = true;
+        }
+      }
+      interfaces = hierarchyBuilder.getNodeFromClass(cls).interfaces;
+      for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
+        if (interfaces[i].classNode == macroClass) {
+          isMacroFound = true;
+        }
+      }
+      if (isMacroFound) {
+        addProblem(templateMacroClassNotDeclaredMacro.withArguments(name),
+            charOffset, noLength);
       }
     }
 
@@ -1274,38 +1330,25 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     forEach((String name, Builder builder) {
-      if (builder is SourceFieldBuilder) {
-        // Check fields.
-        checkVarianceInField(builder, typeEnvironment, cls.typeParameters);
-        library.checkTypesInField(builder, typeEnvironment);
-      } else if (builder is SourceProcedureBuilder) {
-        // Check procedures
-        checkVarianceInFunction(
-            builder.procedure, typeEnvironment, cls.typeParameters);
-        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
+      if (builder is SourceMemberBuilder) {
+        builder.checkVariance(this, typeEnvironment);
+        builder.checkTypes(library, typeEnvironment);
       } else {
         assert(
-            builder is _RedirectingConstructorsFieldBuilder &&
-                builder.name == redirectingName,
-            "Unexpected member: $builder.");
+            false,
+            "Unexpected class member builder $builder "
+            "(${builder.runtimeType})");
       }
     });
 
     forEachConstructor((String name, MemberBuilder builder) {
-      if (builder is DeclaredSourceConstructorBuilder) {
-        library.checkTypesInConstructorBuilder(builder, typeEnvironment);
-      } else if (builder is RedirectingFactoryBuilder) {
-        library.checkTypesInRedirectingFactoryBuilder(builder, typeEnvironment);
-      } else if (builder is SourceFactoryBuilder) {
-        assert(builder.isFactory, "Unexpected constructor $builder.");
-        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
+      if (builder is SourceMemberBuilder) {
+        builder.checkTypes(library, typeEnvironment);
       } else {
-        assert(
-            // This is a synthesized constructor.
-            builder is SyntheticSourceConstructorBuilder,
-            "Unexpected constructor: $builder.");
+        assert(false,
+            "Unexpected constructor builder $builder (${builder.runtimeType})");
       }
-    }, includeInjectedConstructors: true);
+    });
   }
 
   void addSyntheticConstructor(
@@ -2710,4 +2753,12 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     // Do nothing.
   }
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
 }
