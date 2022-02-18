@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/correction/dart/add_return_type.dar
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_class_to_enum.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_class_to_mixin.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_block.dart';
@@ -91,6 +92,7 @@ class AssistProcessor extends BaseProcessor {
     AddTypeAnnotation.newInstanceBulkFixable,
     AssignToLocalVariable.newInstance,
     ConvertAddAllToSpread.newInstance,
+    ConvertClassToEnum.newInstance,
     ConvertClassToMixin.newInstance,
     ConvertConditionalExpressionToIfElement.newInstance,
     ConvertDocumentationIntoBlock.newInstance,

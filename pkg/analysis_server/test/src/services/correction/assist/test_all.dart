@@ -9,6 +9,7 @@ import 'add_not_null_assert_test.dart' as add_not_null_assert;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;
+import 'convert_class_to_enum_test.dart' as convert_class_to_enum;
 import 'convert_class_to_mixin_test.dart' as convert_class_to_mixin;
 import 'convert_documentation_into_block_test.dart'
     as convert_documentation_into_block;
@@ -97,6 +98,7 @@ void main() {
     add_return_type.main();
     add_type_annotation.main();
     assign_to_local_variable.main();
+    convert_class_to_enum.main();
     convert_class_to_mixin.main();
     convert_documentation_into_block.main();
     convert_documentation_into_line.main();
