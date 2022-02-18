@@ -1159,7 +1159,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    _requiredParametersVerifier.visitSuperConstructorInvocation(node);
+    _requiredParametersVerifier.visitSuperConstructorInvocation(
+      node,
+      enclosingConstructor: _enclosingExecutable.element.ifTypeOrNull(),
+    );
     _isInConstructorInitializer = true;
     try {
       super.visitSuperConstructorInvocation(node);
@@ -5278,5 +5281,13 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, node, []);
     }
+  }
+}
+
+extension on Object? {
+  /// If the target is [T], return it, otherwise `null`.
+  T? ifTypeOrNull<T>() {
+    final self = this;
+    return self is T ? self : null;
   }
 }
