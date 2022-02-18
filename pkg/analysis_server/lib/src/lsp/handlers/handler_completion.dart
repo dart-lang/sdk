@@ -21,7 +21,9 @@ import 'package:analysis_server/src/services/completion/yaml/analysis_options_ge
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
+import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
@@ -177,6 +179,31 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
 
   String _createImportedSymbolKey(String name, Uri declaringUri) =>
       '$name/$declaringUri';
+
+  Future<List<CompletionItem>> _getDartSnippetItems({
+    required LspClientCapabilities clientCapabilities,
+    required ResolvedUnitResult unit,
+    required int offset,
+    required LineInfo lineInfo,
+  }) async {
+    final request = DartSnippetRequest(
+      unit: unit,
+      offset: offset,
+    );
+    final snippetManager = DartSnippetManager();
+    final snippets = await snippetManager.computeSnippets(request);
+
+    return snippets
+        .map((snippet) => snippetToCompletionItem(
+              server,
+              clientCapabilities,
+              unit.path,
+              lineInfo,
+              toPosition(lineInfo.getLocation(offset)),
+              snippet,
+            ))
+        .toList();
+  }
 
   Future<ErrorOr<CompletionList>> _getPluginResults(
     LspClientCapabilities capabilities,
@@ -420,6 +447,18 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
             });
           }
 
+          // Add in any snippets.
+          final snippetsEnabled =
+              server.clientConfiguration.forResource(unit.path).enableSnippets;
+          if (capabilities.completionSnippets && snippetsEnabled) {
+            results.addAll(await _getDartSnippetItems(
+              clientCapabilities: capabilities,
+              unit: unit,
+              offset: offset,
+              lineInfo: unit.lineInfo,
+            ));
+          }
+
           // Perform fuzzy matching based on the identifier in front of the caret to
           // reduce the size of the payload.
           final fuzzyPattern = completionRequest.targetPrefix;
@@ -434,6 +473,8 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           return success(
               CompletionList(isIncomplete: false, items: matchingResults));
         } on AbortCompletion {
+          return success(CompletionList(isIncomplete: false, items: []));
+        } on InconsistentAnalysisException {
           return success(CompletionList(isIncomplete: false, items: []));
         }
       },

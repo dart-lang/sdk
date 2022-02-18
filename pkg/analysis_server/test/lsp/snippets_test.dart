@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/lsp/snippets.dart' as lsp;
 import 'package:analysis_server/src/lsp/snippets.dart';
+import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -129,6 +130,146 @@ class SnippetBuilderTest {
 
 @reflectiveTest
 class SnippetsTest {
+  /// Paths aren't used for anything except filtering edit groups positions
+  /// so the specific values are not important.
+  final mainPath = '/home/test.dart';
+  final otherPath = '/home/other.dart';
+
+  Future<void> test_editGroups_choices() async {
+    var result = lsp.buildSnippetStringForEditGroups(
+      r'''
+var a = 1;
+''',
+      filePath: mainPath,
+      editOffset: 0,
+      editGroups: [
+        server.LinkedEditGroup(
+          [_pos(4)],
+          1,
+          [
+            _suggestion('aaa'),
+            _suggestion(r'bbb${},|'), // test for escaping
+            _suggestion('ccc'),
+          ],
+        ),
+      ],
+    );
+    expect(result, equals(r'''
+var ${1|a,aaa,bbb\${\}\,\|,ccc|} = 1;
+'''));
+  }
+
+  Future<void> test_editGroups_emptyGroup() async {
+    var result = lsp.buildSnippetStringForEditGroups(
+      r'''
+class  {
+  ();
+}
+''',
+      filePath: mainPath,
+      editOffset: 0,
+      editGroups: [
+        server.LinkedEditGroup(
+          [
+            _pos(6),
+            _pos(11),
+          ],
+          0,
+          [],
+        ),
+      ],
+    );
+    expect(result, equals(r'''
+class $1 {
+  $1();
+}
+'''));
+  }
+
+  Future<void> test_editGroups_positionsInOtherFiles() async {
+    var result = lsp.buildSnippetStringForEditGroups(
+      r'''
+class A {
+  A();
+}
+''',
+      filePath: mainPath,
+      editOffset: 0,
+      editGroups: [
+        server.LinkedEditGroup(
+          [
+            _pos(6),
+            _pos(10, otherPath), // Should not be included.
+            _pos(12),
+          ],
+          1,
+          [],
+        ),
+      ],
+    );
+    expect(result, equals(r'''
+class ${1:A} {
+  ${1:A}();
+}
+'''));
+  }
+
+  Future<void> test_editGroups_simpleGroup() async {
+    var result = lsp.buildSnippetStringForEditGroups(
+      r'''
+class A {
+  A();
+}
+''',
+      filePath: mainPath,
+      editOffset: 0,
+      editGroups: [
+        server.LinkedEditGroup(
+          [
+            _pos(6),
+            _pos(12),
+          ],
+          1,
+          [],
+        ),
+      ],
+    );
+    expect(result, equals(r'''
+class ${1:A} {
+  ${1:A}();
+}
+'''));
+  }
+
+  Future<void> test_editGroups_withOffset() async {
+    var result = lsp.buildSnippetStringForEditGroups(
+      r'''
+class A {
+  A();
+}
+''',
+      filePath: mainPath,
+      // This means the edit will be inserted at offset 100, so all linked edit
+      // offsets will be 100 more than in the supplied text.
+      editOffset: 100,
+      editGroups: [
+        server.LinkedEditGroup(
+          [
+            _pos(100 + 6),
+            _pos(100 + 12),
+          ],
+          1,
+          [],
+        ),
+      ],
+    );
+    expect(result, equals(r'''
+class ${1:A} {
+  ${1:A}();
+}
+'''));
+  }
+
   Future<void> test_tabStops_contains() async {
     var result = lsp.buildSnippetStringWithTabStops('a, b, c', [3, 1]);
     expect(result, equals(r'a, ${0:b}, c'));
@@ -165,4 +306,13 @@ class SnippetsTest {
     var result = lsp.buildSnippetStringWithTabStops('a, b', [0, 1]);
     expect(result, equals(r'${0:a}, b'));
   }
+
+  server.Position _pos(int offset, [String? path]) =>
+      server.Position(path ?? mainPath, offset);
+
+  server.LinkedEditSuggestion _suggestion(String text) =>
+      server.LinkedEditSuggestion(
+        text,
+        server.LinkedEditSuggestionKind.TYPE, // We don't use type.
+      );
 }

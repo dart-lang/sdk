@@ -22,6 +22,7 @@ import 'package:analysis_server/src/lsp/snippets.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
+import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
@@ -890,6 +891,35 @@ lsp.Location? searchResultToLocation(
   );
 }
 
+/// Creates a SnippetTextEdit for a set of edits using Linked Edit Groups.
+///
+/// Edit groups offsets are based on the entire content being modified after all
+/// edits, so [editOffset] must to take into account both the offset of the edit
+/// _and_ any delta from edits prior to this one in the file.
+///
+/// [selectionOffset] is also absolute and assumes [edit.replacement] will be
+/// inserted at [editOffset].
+lsp.SnippetTextEdit snippetTextEditFromEditGroups(
+  String filePath,
+  server.LineInfo lineInfo,
+  server.SourceEdit edit, {
+  required List<server.LinkedEditGroup> editGroups,
+  required int editOffset,
+  required int? selectionOffset,
+}) {
+  return lsp.SnippetTextEdit(
+    insertTextFormat: lsp.InsertTextFormat.Snippet,
+    range: toRange(lineInfo, edit.offset, edit.length),
+    newText: buildSnippetStringForEditGroups(
+      edit.replacement,
+      filePath: filePath,
+      editGroups: editGroups,
+      editOffset: editOffset,
+      selectionOffset: selectionOffset,
+    ),
+  );
+}
+
 /// Creates a SnippetTextEdit for an edit with a selection placeholder.
 ///
 /// [selectionOffset] is relative to (and therefore must be within) the edit.
@@ -906,6 +936,76 @@ lsp.SnippetTextEdit snippetTextEditWithSelection(
       edit.replacement,
       [selectionOffsetRelative, selectionLength ?? 0],
     ),
+  );
+}
+
+lsp.CompletionItem snippetToCompletionItem(
+  lsp.LspAnalysisServer server,
+  LspClientCapabilities capabilities,
+  String file,
+  LineInfo lineInfo,
+  Position position,
+  Snippet snippet,
+) {
+  assert(capabilities.completionSnippets);
+
+  final formats = capabilities.completionDocumentationFormats;
+  final documentation = snippet.documentation;
+  final supportsAsIsInsertMode =
+      capabilities.completionInsertTextModes.contains(InsertTextMode.asIs);
+  final changes = snippet.change;
+
+  // We must only get one change for this file to be able to apply snippets.
+  final thisFilesChange = changes.edits.singleWhere((e) => e.file == file);
+  final otherFilesChanges = changes.edits.where((e) => e.file != file).toList();
+
+  // If this completion involves editing other files, we'll need to build
+  // a command that the client will call to apply those edits later, because
+  // LSP Completions can only provide simple edits for the current file.
+  Command? command;
+  if (otherFilesChanges.isNotEmpty) {
+    final workspaceEdit = createPlainWorkspaceEdit(server, otherFilesChanges);
+    command = Command(
+        title: 'Add import',
+        command: Commands.sendWorkspaceEdit,
+        arguments: [workspaceEdit]);
+  }
+
+  /// Convert the changes to TextEdits using snippet tokens for linked edit
+  /// groups.
+  final mainFileEdits = toSnippetTextEdits(
+    file,
+    thisFilesChange,
+    changes.linkedEditGroups,
+    lineInfo,
+    selectionOffset:
+        changes.selection?.file == file ? changes.selection?.offset : null,
+  );
+
+  // For LSP, we need to provide the main edit and other edits separately. The
+  // main edit must include the location that completion was invoked. If we
+  // fail to find exactly one, this is an error.
+  final mainEdit = mainFileEdits
+      .singleWhere((edit) => edit.range.start.line == position.line);
+  final nonMainEdits = mainFileEdits.where((edit) => edit != mainEdit).toList();
+
+  return lsp.CompletionItem(
+    label: snippet.label,
+    filterText: snippet.prefix,
+    kind: lsp.CompletionItemKind.Snippet,
+    command: command,
+    documentation: documentation != null
+        ? asStringOrMarkupContent(formats, documentation)
+        : null,
+    // Force snippets to be sorted at the bottom of the list.
+    // TODO(dantup): Consider if we can rank these better. Client-side
+    //   snippets have always been forced to the bottom partly because they
+    //   show up in more places than wanted.
+    sortText: 'zzz${snippet.prefix}',
+    insertTextFormat: lsp.InsertTextFormat.Snippet,
+    insertTextMode: supportsAsIsInsertMode ? InsertTextMode.asIs : null,
+    textEdit: Either2<TextEdit, InsertReplaceEdit>.t1(mainEdit),
+    additionalTextEdits: nonMainEdits,
   );
 }
 
@@ -1370,6 +1470,36 @@ lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind>? preferredFormats,
     // https://github.com/Microsoft/language-server-protocol/issues/456#issuecomment-452318297
     activeParameter: -1, // activeParameter
   );
+}
+
+List<lsp.SnippetTextEdit> toSnippetTextEdits(
+  String filePath,
+  server.SourceFileEdit change,
+  List<server.LinkedEditGroup> editGroups,
+  LineInfo lineInfo, {
+  required int? selectionOffset,
+}) {
+  final snippetEdits = <lsp.SnippetTextEdit>[];
+
+  // Edit groups offsets are based on after the edits are applied, so we
+  // must track the offset delta to ensure we track the offset within the
+  // edits. This also requires the edits are sorted earliest-to-latest.
+  var offsetDelta = 0;
+  change.edits.sortBy<num>((edit) => edit.offset);
+  for (final edit in change.edits) {
+    snippetEdits.add(snippetTextEditFromEditGroups(
+      filePath,
+      lineInfo,
+      edit,
+      editGroups: editGroups,
+      editOffset: edit.offset + offsetDelta,
+      selectionOffset: selectionOffset,
+    ));
+
+    offsetDelta += edit.replacement.length - edit.length;
+  }
+
+  return snippetEdits;
 }
 
 ErrorOr<server.SourceRange> toSourceRange(
