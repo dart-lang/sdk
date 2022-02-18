@@ -1771,16 +1771,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
 
-      Map<Initializer, InitializerInferenceResult> inferenceResults =
-          <Initializer, InitializerInferenceResult>{};
-      for (Initializer initializer in initializers) {
-        inferenceResults[initializer] =
-            typeInferrer.inferInitializer(this, initializer);
-      }
+      List<InitializerInferenceResult> inferenceResults =
+          new List<InitializerInferenceResult>.generate(
+              initializers.length,
+              (index) =>
+                  typeInferrer.inferInitializer(this, initializers[index]),
+              growable: false);
       if (!builder.isExternal) {
-        for (Initializer initializer in initializers) {
-          builder.addInitializer(initializer, this,
-              inferenceResult: inferenceResults[initializer]!);
+        for (int i = 0; i < initializers.length; i++) {
+          builder.addInitializer(initializers[i], this,
+              inferenceResult: inferenceResults[i]);
         }
       }
     }
