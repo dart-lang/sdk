@@ -945,6 +945,22 @@ class B {
         reference, findElement.method('foo'), 'void Function(int)');
   }
 
+  test_instanceMethod_explicitReceiver_getter_wrongNumberOfTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(A a) {
+  // Extra `()` to force reading the type.
+  ((a).foo<double>);
+}
+''');
+
+    var reference = findNode.functionReference('foo<double>');
+    assertFunctionReference(reference, null, 'dynamic');
+  }
+
   test_instanceMethod_explicitReceiver_otherExpression() async {
     await assertNoErrorsInCode('''
 class A {

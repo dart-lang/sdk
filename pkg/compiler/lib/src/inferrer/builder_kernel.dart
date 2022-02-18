@@ -543,10 +543,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       // Loops and switches handle their own labels.
       visit(body);
     } else {
+      LocalState stateBefore = _state;
       JumpTarget jumpTarget = _localsMap.getJumpTargetForLabel(node);
       _setupBreaksAndContinues(jumpTarget);
+      _state = LocalState.childPath(stateBefore);
       visit(body);
-      _state.mergeAfterBreaks(_inferrer, _getBreaks(jumpTarget));
+      _state = stateBefore.mergeAfterBreaks(_inferrer, _getBreaks(jumpTarget),
+          keepOwnLocals: false);
       _clearBreaksAndContinues(jumpTarget);
     }
     return null;

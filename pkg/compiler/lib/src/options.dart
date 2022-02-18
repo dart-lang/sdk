@@ -82,11 +82,11 @@ class FeatureOptions {
   /// [FeatureOption]s which are shipped and cannot be toggled.
   late final List<FeatureOption> shipped = [
     newHolders,
+    legacyJavaScript,
   ];
 
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
-    legacyJavaScript,
     useContentSecurityPolicy,
   ];
 
@@ -948,7 +948,7 @@ void _verifyShippedFeatures(
     }
     if (enableFeature && feature.isNegativeFlag) {
       throw ArgumentError(
-          "$disableFeatureFlag has already shipped and cannot be enabled.");
+          "$enableFeatureFlag has been removed and cannot be enabled.");
     }
     if (disableFeature && !feature.isNegativeFlag) {
       throw ArgumentError(
