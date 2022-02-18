@@ -7,7 +7,6 @@ library dart2js.kernel.frontend_strategy;
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../common/backend_api.dart';
 import '../common/elements.dart';
 import '../common/names.dart' show Uris;
 import '../common/resolution.dart';
@@ -159,7 +158,7 @@ class KernelFrontendStrategy {
     // before creating the resolution enqueuer.
     AnnotationsData annotationsData = AnnotationsDataImpl(
         compiler.options, annotationsDataBuilder.pragmaAnnotations);
-    ImpactTransformer impactTransformer = JavaScriptImpactTransformer(
+    final impactTransformer = JavaScriptImpactTransformer(
         elementEnvironment,
         commonElements,
         impacts,
@@ -303,7 +302,7 @@ class KernelFrontendStrategy {
 class KernelWorkItemBuilder implements WorkItemBuilder {
   final CompilerTask _compilerTask;
   final KernelToElementMapImpl _elementMap;
-  final ImpactTransformer _impactTransformer;
+  final JavaScriptImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
   final Map<MemberEntity, ClosureScopeModel> _closureModels;
@@ -347,7 +346,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
 class KernelWorkItem implements WorkItem {
   final CompilerTask _compilerTask;
   final KernelToElementMapImpl _elementMap;
-  final ImpactTransformer _impactTransformer;
+  final JavaScriptImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
   @override

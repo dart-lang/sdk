@@ -68,7 +68,7 @@ abstract class Serializer {
   void endList();
 
   /// Returns the resulting serialized object.
-  Object? get result;
+  Object get result;
 }
 
 /// A pull based object deserialization interface.

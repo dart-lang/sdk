@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 
 import '../executor.dart';
 import '../api.dart';

@@ -30,17 +30,16 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   explicit SSLCertContext(SSL_CTX* context)
       : ReferenceCounted(),
         context_(context),
-        alpn_protocol_string_(NULL),
+        alpn_protocol_string_(nullptr),
         trust_builtin_(false) {}
 
   ~SSLCertContext() {
     SSL_CTX_free(context_);
-    if (alpn_protocol_string_ != NULL) {
-      free(alpn_protocol_string_);
-    }
+    free(alpn_protocol_string_);
   }
 
   static int CertificateCallback(int preverify_ok, X509_STORE_CTX* store_ctx);
+  static void KeyLogCallback(const SSL* ssl, const char* line);
 
   static SSLCertContext* GetSecurityContext(Dart_NativeArguments args);
   static const char* GetPasswordArgument(Dart_NativeArguments args,

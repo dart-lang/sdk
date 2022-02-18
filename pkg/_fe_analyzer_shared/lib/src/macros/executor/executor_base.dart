@@ -4,157 +4,49 @@
 
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
 
 import '../api.dart';
-import '../executor_shared/augmentation_library.dart';
-import '../executor_shared/introspection_impls.dart';
-import '../executor_shared/protocol.dart';
-import '../executor_shared/response_impls.dart';
-import '../executor_shared/serialization.dart';
+import '../executor/introspection_impls.dart';
+import '../executor/protocol.dart';
+import '../executor/serialization.dart';
 import '../executor.dart';
 
-/// Returns an instance of [_IsolatedMacroExecutor] using [serializationMode].
+/// Base implementation for macro executors which communicate with some external
+/// process to run macros.
 ///
-/// The [serializationMode] must be a `server` variant;
-///
-/// This is the only public api exposed by this library.
-Future<MacroExecutor> start(SerializationMode serializationMode) async =>
-    new _IsolatedMacroExecutor(serializationMode);
-
-/// A [MacroExecutor] implementation which spawns a separate isolate for each
-/// macro that is loaded. Each of these is wrapped in its own
-/// [_SingleIsolatedMacroExecutor] which requests are delegated to.
-///
-/// This implementation requires precompiled kernel files when loading macros,
-/// (you must pass a `precompiledKernelUri` to [loadMacro]).
-///
-/// Spawned isolates are not ran in the same isolate group, so objects are
-/// serialized between isolates.
-class _IsolatedMacroExecutor extends MacroExecutor
-    with AugmentationLibraryBuilder {
-  /// Individual executors indexed by [MacroClassIdentifier] or
-  /// [MacroInstanceIdentifier].
-  final _executors = <Object, _SingleIsolatedMacroExecutor>{};
-
-  /// The mode to use for serialization - must be a `server` variant.
-  final SerializationMode _serializationMode;
-
-  _IsolatedMacroExecutor(this._serializationMode) {
-    if (_serializationMode.isClient) {
-      throw new ArgumentError(
-          'Got $serializationMode but expected a server version.');
-    }
-  }
-
-  @override
-  void close() {
-    for (_SingleIsolatedMacroExecutor executor in _executors.values) {
-      executor.close();
-    }
-  }
-
-  @override
-  Future<MacroExecutionResult> executeDeclarationsPhase(
-          MacroInstanceIdentifier macro,
-          DeclarationImpl declaration,
-          TypeResolver typeResolver,
-          ClassIntrospector classIntrospector) =>
-      _executors[macro]!.executeDeclarationsPhase(
-          macro, declaration, typeResolver, classIntrospector);
-
-  @override
-  Future<MacroExecutionResult> executeDefinitionsPhase(
-          MacroInstanceIdentifier macro,
-          DeclarationImpl declaration,
-          TypeResolver typeResolver,
-          ClassIntrospector classIntrospector,
-          TypeDeclarationResolver typeDeclarationResolver) =>
-      _executors[macro]!.executeDefinitionsPhase(macro, declaration,
-          typeResolver, classIntrospector, typeDeclarationResolver);
-
-  @override
-  Future<MacroExecutionResult> executeTypesPhase(
-          MacroInstanceIdentifier macro, DeclarationImpl declaration) =>
-      _executors[macro]!.executeTypesPhase(macro, declaration);
-
-  @override
-  Future<MacroInstanceIdentifier> instantiateMacro(
-      MacroClassIdentifier macroClass,
-      String constructor,
-      Arguments arguments) async {
-    _SingleIsolatedMacroExecutor executor = _executors[macroClass]!;
-    MacroInstanceIdentifier instance =
-        await executor.instantiateMacro(macroClass, constructor, arguments);
-    _executors[instance] = executor;
-    return instance;
-  }
-
-  @override
-  Future<MacroClassIdentifier> loadMacro(Uri library, String name,
-      {Uri? precompiledKernelUri}) async {
-    if (precompiledKernelUri == null) {
-      throw new UnsupportedError(
-          'This environment requires a non-null `precompiledKernelUri` to be '
-          'passed when loading macros.');
-    }
-    MacroClassIdentifier identifier =
-        new MacroClassIdentifierImpl(library, name);
-    _executors.remove(identifier)?.close();
-
-    _SingleIsolatedMacroExecutor executor =
-        await _SingleIsolatedMacroExecutor.start(
-            library, name, precompiledKernelUri, _serializationMode);
-    _executors[identifier] = executor;
-    return identifier;
-  }
-}
-
-class _SingleIsolatedMacroExecutor extends MacroExecutor {
-  /// The stream on which we receive responses.
+/// Subtypes must extend this class and implement the [close] and [sendResult]
+/// apis to handle communication with the external macro program.
+abstract class ExternalMacroExecutorBase extends MacroExecutor {
+  /// The stream on which we receive messages from the external macro executor.
   final Stream<Object> messageStream;
-
-  /// The send port where we should send requests.
-  final SendPort sendPort;
-
-  /// A function that should be invoked when shutting down this executor
-  /// to perform any necessary cleanup.
-  final void Function() onClose;
-
-  /// A map of response completers by request id.
-  final responseCompleters = <int, Completer<Response>>{};
 
   /// The mode to use for serialization - must be a `server` variant.
   final SerializationMode serializationMode;
 
+  /// A map of response completers by request id.
+  final _responseCompleters = <int, Completer<Response>>{};
+
   /// We need to know which serialization zone to deserialize objects in, so
-  /// that we read them from the correct cache. Each request creates its own
-  /// zone which it stores here by ID and then responses are deserialized in
-  /// the same zone.
-  static final serializationZones = <int, Zone>{};
+  /// that we read them from the correct cache. Each macro execution creates its
+  /// own zone which it stores here by ID and then responses are deserialized in
+  /// that same zone.
+  static final _serializationZones = <int, Zone>{};
 
   /// Incrementing identifier for the serialization zone ids.
   static int _nextSerializationZoneId = 0;
 
-  _SingleIsolatedMacroExecutor(
-      {required this.onClose,
-      required this.messageStream,
-      required this.sendPort,
-      required this.serializationMode}) {
+  ExternalMacroExecutorBase(
+      {required this.messageStream, required this.serializationMode}) {
     messageStream.listen((message) {
-      if (serializationMode == SerializationMode.byteDataServer &&
-          message is TransferableTypedData) {
-        message = message.materialize().asUint8List();
-      }
       withSerializationMode(serializationMode, () {
         Deserializer deserializer = deserializerFactory(message);
         // Every object starts with a zone ID which dictates the zone in which
         // we should deserialize the message.
         deserializer.moveNext();
         int zoneId = deserializer.expectInt();
-        Zone zone = serializationZones[zoneId]!;
+        Zone zone = _serializationZones[zoneId]!;
         zone.run(() async {
           deserializer.moveNext();
           MessageType messageType =
@@ -164,7 +56,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
               SerializableResponse response =
                   new SerializableResponse.deserialize(deserializer, zoneId);
               Completer<Response>? completer =
-                  responseCompleters.remove(response.requestId);
+                  _responseCompleters.remove(response.requestId);
               if (completer == null) {
                 throw new StateError(
                     'Got a response for an unrecognized request id '
@@ -192,7 +84,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              _sendResult(serializer);
+              sendResult(serializer);
               break;
             case MessageType.isExactlyTypeRequest:
               IsExactlyTypeRequest request =
@@ -207,7 +99,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              _sendResult(serializer);
+              sendResult(serializer);
               break;
             case MessageType.isSubtypeOfRequest:
               IsSubtypeOfRequest request =
@@ -222,7 +114,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              _sendResult(serializer);
+              sendResult(serializer);
               break;
             case MessageType.declarationOfRequest:
               DeclarationOfRequest request =
@@ -238,7 +130,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              _sendResult(serializer);
+              sendResult(serializer);
               break;
             case MessageType.constructorsOfRequest:
               ClassIntrospectionRequest request =
@@ -256,7 +148,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              _sendResult(serializer);
+              sendResult(serializer);
               break;
             case MessageType.fieldsOfRequest:
               ClassIntrospectionRequest request =
@@ -274,7 +166,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              _sendResult(serializer);
+              sendResult(serializer);
               break;
             case MessageType.interfacesOfRequest:
               ClassIntrospectionRequest request =
@@ -292,7 +184,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              _sendResult(serializer);
+              sendResult(serializer);
               break;
             case MessageType.methodsOfRequest:
               ClassIntrospectionRequest request =
@@ -310,7 +202,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              _sendResult(serializer);
+              sendResult(serializer);
               break;
             case MessageType.mixinsOfRequest:
               ClassIntrospectionRequest request =
@@ -328,7 +220,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              _sendResult(serializer);
+              sendResult(serializer);
               break;
             case MessageType.superclassOfRequest:
               ClassIntrospectionRequest request =
@@ -346,7 +238,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                   serializationZoneId: zoneId);
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
-              _sendResult(serializer);
+              sendResult(serializer);
               break;
             default:
               throw new StateError('Unexpected message type $messageType');
@@ -355,35 +247,6 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
       });
     });
   }
-
-  static Future<_SingleIsolatedMacroExecutor> start(Uri library, String name,
-      Uri precompiledKernelUri, SerializationMode serializationMode) async {
-    ReceivePort receivePort = new ReceivePort();
-    Isolate isolate =
-        await Isolate.spawnUri(precompiledKernelUri, [], receivePort.sendPort);
-    Completer<SendPort> sendPortCompleter = new Completer();
-    StreamController<Object> messageStreamController =
-        new StreamController(sync: true);
-    receivePort.listen((message) {
-      if (!sendPortCompleter.isCompleted) {
-        sendPortCompleter.complete(message as SendPort);
-      } else {
-        messageStreamController.add(message);
-      }
-    }).onDone(messageStreamController.close);
-
-    return new _SingleIsolatedMacroExecutor(
-        onClose: () {
-          receivePort.close();
-          isolate.kill();
-        },
-        messageStream: messageStreamController.stream,
-        sendPort: await sendPortCompleter.future,
-        serializationMode: serializationMode);
-  }
-
-  @override
-  void close() => onClose();
 
   /// These calls are handled by the higher level executor.
   @override
@@ -453,22 +316,28 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
   @override
   Future<MacroClassIdentifier> loadMacro(Uri library, String name,
           {Uri? precompiledKernelUri}) =>
-      throw new StateError('Unreachable');
+      throw new StateError(
+          'This executor should be wrapped in a MultiMacroExecutor which will '
+          'handle load requests.');
+
+  /// Sends [serializer.result] to [sendPort], possibly wrapping it in a
+  /// [TransferableTypedData] object.
+  void sendResult(Serializer serializer);
 
   /// Creates a [Request] with a given serialization zone ID, and handles the
   /// response, casting it to the expected type or throwing the error provided.
   Future<T> _sendRequest<T>(Request Function(int) requestFactory) =>
       withSerializationMode(serializationMode, () async {
         int zoneId = _nextSerializationZoneId++;
-        serializationZones[zoneId] = Zone.current;
+        _serializationZones[zoneId] = Zone.current;
         Request request = requestFactory(zoneId);
         Serializer serializer = serializerFactory();
         // It is our responsibility to add the zone ID header.
         serializer.addInt(zoneId);
         request.serialize(serializer);
-        _sendResult(serializer);
+        sendResult(serializer);
         Completer<Response> completer = new Completer<Response>();
-        responseCompleters[request.id] = completer;
+        _responseCompleters[request.id] = completer;
         try {
           Response response = await completer.future;
           T? result = response.response as T?;
@@ -477,18 +346,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
               response.error!.toString(), response.stackTrace);
         } finally {
           // Clean up the zone after the request is done.
-          serializationZones.remove(zoneId);
+          _serializationZones.remove(zoneId);
         }
       });
-
-  /// Sends [serializer.result] to [sendPort], possibly wrapping it in a
-  /// [TransferableTypedData] object.
-  void _sendResult(Serializer serializer) {
-    if (serializationMode == SerializationMode.byteDataServer) {
-      sendPort.send(
-          new TransferableTypedData.fromList([serializer.result as Uint8List]));
-    } else {
-      sendPort.send(serializer.result);
-    }
-  }
 }

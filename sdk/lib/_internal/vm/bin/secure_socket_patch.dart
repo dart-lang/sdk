@@ -189,6 +189,9 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   external void registerHandshakeCompleteCallback(
       Function handshakeCompleteHandler);
 
+  @pragma("vm:external-name", "SecureSocket_RegisterKeyLogPort")
+  external void registerKeyLogPort(SendPort port);
+
   // This is a security issue, as it exposes a raw pointer to Dart code.
   @pragma("vm:external-name", "SecureSocket_FilterPointer")
   external int _pointer();

@@ -4,8 +4,8 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
-import 'package:_fe_analyzer_shared/src/macros/isolated_executor/isolated_executor.dart'
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
     as isolatedExecutor;
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';

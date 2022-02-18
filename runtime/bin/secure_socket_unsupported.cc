@@ -65,6 +65,11 @@ void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
       "Secure Sockets unsupported on this platform"));
 }
 
+void FUNCTION_NAME(SecureSocket_RegisterKeyLogPort)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
 void FUNCTION_NAME(SecureSocket_ProcessBuffer)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));

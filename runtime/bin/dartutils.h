@@ -173,6 +173,7 @@ class DartUtils {
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
   static bool PostInt64(Dart_Port port_id, int64_t value);
+  static bool PostString(Dart_Port port_id, const char* value);
 
   static Dart_Handle GetDartType(const char* library_url,
                                  const char* class_name);

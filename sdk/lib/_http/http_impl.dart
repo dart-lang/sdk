@@ -2447,7 +2447,9 @@ class _ConnectionTarget {
     } else {
       connectionTask = (isSecure && proxy.isDirect
           ? SecureSocket.startConnect(host, port,
-              context: context, onBadCertificate: callback)
+              context: context,
+              onBadCertificate: callback,
+              keyLog: client._keyLog)
           : Socket.startConnect(host, port));
     }
     _connecting++;
@@ -2526,6 +2528,7 @@ class _HttpClient implements HttpClient {
   String Function(Uri)? _findProxy = HttpClient.findProxyFromEnvironment;
   Duration _idleTimeout = const Duration(seconds: 15);
   BadCertificateCallback? _badCertificateCallback;
+  Function(String line)? _keyLog;
 
   Duration get idleTimeout => _idleTimeout;
 
@@ -2553,6 +2556,10 @@ class _HttpClient implements HttpClient {
   set badCertificateCallback(
       bool Function(X509Certificate cert, String host, int port)? callback) {
     _badCertificateCallback = callback;
+  }
+
+  void set keyLog(Function(String line)? callback) {
+    _keyLog = callback;
   }
 
   Future<HttpClientRequest> open(

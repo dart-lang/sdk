@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/builder_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/builder_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 /// Runs [macro] in the types phase and returns a  [MacroExecutionResult].

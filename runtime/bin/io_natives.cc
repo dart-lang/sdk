@@ -129,6 +129,7 @@ namespace bin {
   V(SecureSocket_Init, 1)                                                      \
   V(SecureSocket_PeerCertificate, 1)                                           \
   V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
+  V(SecureSocket_RegisterKeyLogPort, 2)                                        \
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_Renegotiate, 4)                                               \
   V(SecurityContext_Allocate, 1)                                               \

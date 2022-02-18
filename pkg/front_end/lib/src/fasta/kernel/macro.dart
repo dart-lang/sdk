@@ -4,9 +4,9 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart'
+import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
     as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart'
+import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
 import 'package:front_end/src/base/common.dart';
 import 'package:kernel/ast.dart' show DartType;

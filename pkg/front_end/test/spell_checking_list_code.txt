@@ -211,6 +211,8 @@ com
 combinations
 combinator
 combiner
+communicate
+communicates
 communication
 compared
 compares
@@ -522,6 +524,7 @@ gotos
 gradually
 granted
 graphs
+grouper
 growability
 gt
 guarantee
@@ -676,6 +679,7 @@ lags
 lang
 largest
 lattice
+launch
 launched
 launcher
 layer
@@ -705,6 +709,7 @@ linearized
 linebreak
 linter
 linux
+listening
 lives
 ll
 llub
@@ -839,6 +844,7 @@ orphancy
 orphans
 ors
 os
+ourselves
 outlined
 outputs
 outputting
@@ -924,6 +930,7 @@ printf
 println
 prioritization
 proc
+processes
 processor
 producers
 product
