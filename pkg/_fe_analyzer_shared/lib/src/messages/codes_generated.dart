@@ -7011,6 +7011,34 @@ const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
     problemMessage: r"""'loadLibrary' takes no arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateMacroClassNotDeclaredMacro = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Non-abstract class '#name' implements 'Macro' but isn't declared as a macro class.""",
+    correctionMessageTemplate: r"""Try adding the 'macro' class modifier.""",
+    withArguments: _withArgumentsMacroClassNotDeclaredMacro);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMacroClassNotDeclaredMacro =
+    const Code<Message Function(String name)>(
+  "MacroClassNotDeclaredMacro",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMacroClassNotDeclaredMacro(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMacroClassNotDeclaredMacro,
+      problemMessage:
+          """Non-abstract class '${name}' implements 'Macro' but isn't declared as a macro class.""",
+      correctionMessage: """Try adding the 'macro' class modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMainNotFunctionDeclaration =
     messageMainNotFunctionDeclaration;
 

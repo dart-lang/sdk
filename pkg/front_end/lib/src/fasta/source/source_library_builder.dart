@@ -243,6 +243,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   List<SourceLibraryBuilder>? _patchLibraries;
 
+  /// `true` if this is an augmentation library.
+  final bool isAugmentation;
+
   SourceLibraryBuilder.internal(
       SourceLoader loader,
       Uri fileUri,
@@ -253,8 +256,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Library library,
       LibraryBuilder? nameOrigin,
       Library? referencesFrom,
-      bool? referenceIsPartOwner,
-      bool isUnsupported)
+      {bool? referenceIsPartOwner,
+      required bool isUnsupported,
+      required bool isAugmentation})
       : this.fromScopes(
             loader,
             fileUri,
@@ -266,7 +270,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             library,
             nameOrigin,
             referencesFrom,
-            isUnsupported);
+            isUnsupported: isUnsupported,
+            isAugmentation: isAugmentation);
 
   SourceLibraryBuilder.fromScopes(
       this.loader,
@@ -279,7 +284,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this.library,
       this._nameOrigin,
       this.referencesFrom,
-      this.isUnsupported)
+      {required this.isUnsupported,
+      required this.isAugmentation})
       : _languageVersion = packageLanguageVersion,
         currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
         referencesFromIndexed =
@@ -469,7 +475,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       LibraryBuilder? nameOrigin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      required bool isUnsupported})
+      required bool isUnsupported,
+      required bool isAugmentation})
       : this.internal(
             loader,
             fileUri,
@@ -487,8 +494,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   ..setLanguageVersion(packageLanguageVersion.version)),
             nameOrigin,
             referencesFrom,
-            referenceIsPartOwner,
-            isUnsupported);
+            referenceIsPartOwner: referenceIsPartOwner,
+            isUnsupported: isUnsupported,
+            isAugmentation: isAugmentation);
 
   @override
   bool get isPart => partOfName != null || partOfUri != null;
@@ -520,7 +528,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         loader: loader,
         isUnsupported: false,
         target: library,
-        origin: this);
+        origin: this,
+        isAugmentation: true);
     addPatchLibrary(augmentationLibrary);
     loader.registerUnparsedLibrarySource(augmentationLibrary, source);
     return augmentationLibrary;
@@ -3896,9 +3905,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Builder member = patchDeclarations.current;
       // We need to inject all non-patch members into the origin library. This
       // should only apply to private members.
+      // For augmentation libraries, all members are injected into the origin
+      // library, regardless of privacy.
       if (member.isPatch) {
         // Ignore patches.
-      } else if (name.startsWith("_")) {
+      } else if (name.startsWith("_") || isAugmentation) {
         origin.injectMemberFromPatch(name, member);
       } else {
         origin.exportMemberFromPatch(name, member);

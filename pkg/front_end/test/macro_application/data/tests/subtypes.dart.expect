@@ -52,6 +52,10 @@ external static method topLevelFunction3(self::C1 a) → self::C2;
 @#C1
 @#C2
 external static method topLevelFunction4(self::D1 a) → self::D2;
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ topLevelFunction1GeneratedMethod_es() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ topLevelFunction2GeneratedMethod_s() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ topLevelFunction3GeneratedMethod_() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ topLevelFunction4GeneratedMethod_() → void {}
 
 constants  {
   #C1 = mac::FunctionDeclarationsMacro2 {}

@@ -17,6 +17,7 @@ import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/kernel/macro.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
+import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Arguments;
 
 Future<void> main(List<String> args) async {
@@ -78,6 +79,17 @@ class MacroDataComputer extends DataComputer<Features> {
   }
 
   @override
+  bool get supportsErrors => true;
+
+  @override
+  Features? computeErrorData(
+      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+    Features features = new Features();
+    features[Tags.error] = errorsToText(errors, useCodes: true);
+    return features;
+  }
+
+  @override
   DataInterpreter<Features> get dataValidator =>
       const FeaturesDataInterpreter();
 }
@@ -91,6 +103,7 @@ class Tags {
   static const String appliedMacros = 'appliedMacros';
   static const String macroClassIds = 'macroClassIds';
   static const String macroInstanceIds = 'macroInstanceIds';
+  static const String error = 'error';
 }
 
 String constructorNameToString(String constructorName) {

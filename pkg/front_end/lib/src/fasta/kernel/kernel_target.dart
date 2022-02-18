@@ -427,10 +427,23 @@ class KernelTarget extends TargetImplementation {
   Future<void> _buildForPhase1(
       Iterable<SourceLibraryBuilder> augmentationLibraries) async {
     await loader.buildOutlines();
+    // Normally patch libraries are applied in [SourceLoader.resolveParts].
+    // For augmentation libraries we instead apply them directly here.
+    for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+      augmentationLibrary.applyPatches();
+    }
     loader.computeLibraryScopes(augmentationLibraries);
     // TODO(johnniwinther): Support computation of macro applications in
     // augmentation libraries?
     loader.resolveTypes(augmentationLibraries);
+  }
+
+  /// Builds [augmentationLibrary] to the state expected after applying phase
+  /// 2 macros.
+  void _buildForPhase2(SourceLibraryBuilder augmentationLibrary) {
+    augmentationLibrary.finishTypeVariables(objectClassBuilder, dynamicType);
+    augmentationLibrary.build(loader.coreLibrary, modifyTarget: false);
+    augmentationLibrary.resolveConstructors();
   }
 
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
@@ -483,7 +496,8 @@ class KernelTarget extends TargetImplementation {
           loader.checkSemantics(objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_finishTypeVariables);
-      loader.finishTypeVariables(objectClassBuilder, dynamicType);
+      loader.finishTypeVariables(
+          loader.sourceLibraryBuilders, objectClassBuilder, dynamicType);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_createTypeInferenceEngine);
@@ -500,7 +514,7 @@ class KernelTarget extends TargetImplementation {
       installSyntheticConstructors(sourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_resolveConstructors);
-      loader.resolveConstructors();
+      loader.resolveConstructors(loader.sourceLibraryBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_link);
       component =
@@ -517,8 +531,11 @@ class KernelTarget extends TargetImplementation {
 
       if (macroApplications != null) {
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
-        await macroApplications
-            .applyDeclarationsMacros(loader.hierarchyBuilder);
+        await macroApplications.applyDeclarationsMacros(loader.hierarchyBuilder,
+            (SourceLibraryBuilder augmentationLibrary) async {
+          await _buildForPhase1([augmentationLibrary]);
+          _buildForPhase2(augmentationLibrary);
+        });
       }
 
       benchmarker

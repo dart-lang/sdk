@@ -618,8 +618,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  void checkSupertypes(CoreTypes coreTypes,
-      ClassHierarchyBuilder hierarchyBuilder, Class enumClass) {
+  void checkSupertypes(
+      CoreTypes coreTypes,
+      ClassHierarchyBuilder hierarchyBuilder,
+      Class enumClass,
+      Class? macroClass) {
     // This method determines whether the class (that's being built) its super
     // class appears both in 'extends' and 'implements' clauses and whether any
     // interface appears multiple times in the 'implements' clause.
@@ -677,6 +680,27 @@ class SourceClassBuilder extends ClassBuilderImpl
               customValuesDeclaration.fullNameForErrors.length,
               fileUri);
         }
+      }
+    }
+    if (macroClass != null && !cls.isMacro && !cls.isAbstract) {
+      // TODO(johnniwinther): Merge this check with the loop above.
+      bool isMacroFound = false;
+      List<Supertype> interfaces =
+          hierarchyBuilder.getNodeFromClass(cls).superclasses;
+      for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
+        if (interfaces[i].classNode == macroClass) {
+          isMacroFound = true;
+        }
+      }
+      interfaces = hierarchyBuilder.getNodeFromClass(cls).interfaces;
+      for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
+        if (interfaces[i].classNode == macroClass) {
+          isMacroFound = true;
+        }
+      }
+      if (isMacroFound) {
+        addProblem(templateMacroClassNotDeclaredMacro.withArguments(name),
+            charOffset, noLength);
       }
     }
 

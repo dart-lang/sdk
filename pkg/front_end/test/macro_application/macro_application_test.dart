@@ -184,7 +184,9 @@ class MacroDataComputer extends DataComputer<String> {
         in macroApplicationData.classTypesResults.entries) {
       if (entry.key.cls == cls) {
         for (MacroExecutionResult result in entry.value) {
-          sb.write('\n${codeToString(result.augmentations.first)}');
+          if (result.augmentations.isNotEmpty) {
+            sb.write('\n${codeToString(result.augmentations.first)}');
+          }
         }
       }
     }
@@ -192,7 +194,9 @@ class MacroDataComputer extends DataComputer<String> {
         in macroApplicationData.classDeclarationsResults.entries) {
       if (entry.key.cls == cls) {
         for (MacroExecutionResult result in entry.value) {
-          sb.write('\n${codeToString(result.augmentations.first)}');
+          if (result.augmentations.isNotEmpty) {
+            sb.write('\n${codeToString(result.augmentations.first)}');
+          }
         }
       }
     }
@@ -200,7 +204,9 @@ class MacroDataComputer extends DataComputer<String> {
         in macroApplicationData.classDefinitionsResults.entries) {
       if (entry.key.cls == cls) {
         for (MacroExecutionResult result in entry.value) {
-          sb.write('\n${codeToString(result.augmentations.first)}');
+          if (result.augmentations.isNotEmpty) {
+            sb.write('\n${codeToString(result.augmentations.first)}');
+          }
         }
       }
     }
