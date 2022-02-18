@@ -5471,6 +5471,13 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         signature ^= ClassFinalizer::FinalizeType(signature);
         function.SetSignature(signature);
 
+        if (has_pragma) {
+          if (Library::FindPragma(thread(), /*only_core=*/false, function,
+                                  Symbols::vm_invisible())) {
+            function.set_is_visible(false);
+          }
+        }
+
         ClosureFunctionsCache::AddClosureFunctionLocked(function);
         break;
       }
