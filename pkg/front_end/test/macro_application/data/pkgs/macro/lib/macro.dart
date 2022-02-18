@@ -323,3 +323,21 @@ class ToStringMacro implements ClassDeclarationsMacro {
     }
   }
 }
+
+macro
+class SequenceMacro implements ClassDeclarationsMacro {
+  const SequenceMacro();
+
+  FutureOr<void> buildDeclarationsForClass(
+      ClassDeclaration clazz, ClassMemberDeclarationBuilder builder) async {
+    Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
+    int index = 0;
+    String suffix = '';
+    while (methods.any((m) => m.identifier.name == 'method$suffix')) {
+      index++;
+      suffix = '$index';
+    }
+    builder.declareInClass(new DeclarationCode.fromString('''
+  method$suffix() {}'''));
+  }
+}

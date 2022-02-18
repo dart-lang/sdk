@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/extension_builder.dart';
@@ -19,6 +20,7 @@ import '../kernel/member_covariance.dart';
 import '../source/name_scheme.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
+import 'source_class_builder.dart';
 import 'source_function_builder.dart';
 import 'source_member_builder.dart';
 
@@ -51,6 +53,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   final ProcedureKind kind;
 
   SourceProcedureBuilder? actualOrigin;
+
+  List<SourceProcedureBuilder>? _patches;
 
   SourceProcedureBuilder(
       List<MetadataBuilder>? metadata,
@@ -104,8 +108,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     }
   }
 
-  ProcedureBuilder? get patchForTesting =>
-      dataForTesting?.patchForTesting as ProcedureBuilder?;
+  List<SourceProcedureBuilder>? get patchesForTesting => _patches;
 
   @override
   AsyncMarker get asyncModifier => actualAsyncModifier;
@@ -456,7 +459,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     if (patch is SourceProcedureBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
-        dataForTesting?.patchForTesting = patch;
+        (_patches ??= []).add(patch);
       }
     } else {
       reportPatchMismatch(patch);
@@ -482,6 +485,31 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     origin.procedure.function.parent = origin.procedure;
     origin.procedure.isRedirectingFactory = _procedure.isRedirectingFactory;
     return 1;
+  }
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    sourceClassBuilder.checkVarianceInFunction(
+        procedure, typeEnvironment, sourceClassBuilder.cls.typeParameters);
+    List<SourceProcedureBuilder>? patches = _patches;
+    if (patches != null) {
+      for (SourceProcedureBuilder patch in patches) {
+        patch.checkVariance(sourceClassBuilder, typeEnvironment);
+      }
+    }
+  }
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+    library.checkTypesInFunctionBuilder(this, typeEnvironment);
+    List<SourceProcedureBuilder>? patches = _patches;
+    if (patches != null) {
+      for (SourceProcedureBuilder patch in patches) {
+        patch.checkTypes(library, typeEnvironment);
+      }
+    }
   }
 }
 

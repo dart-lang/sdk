@@ -976,8 +976,7 @@ class KernelTarget extends TargetImplementation {
         }
       }
 
-      superclassBuilder.forEachConstructor(addSyntheticConstructor,
-          includeInjectedConstructors: true);
+      superclassBuilder.forEachConstructor(addSyntheticConstructor);
 
       if (!isConstructorAdded) {
         builder.addSyntheticConstructor(_makeDefaultConstructor(

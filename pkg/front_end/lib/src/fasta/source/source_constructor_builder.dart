@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -73,6 +74,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   DeclaredSourceConstructorBuilder? actualOrigin;
 
   Constructor get actualConstructor => _constructor;
+
+  List<DeclaredSourceConstructorBuilder>? _patches;
 
   bool _hasFormalsInferred = false;
 
@@ -151,8 +154,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   @override
   DeclaredSourceConstructorBuilder get origin => actualOrigin ?? this;
 
-  ConstructorBuilder? get patchForTesting =>
-      dataForTesting?.patchForTesting as ConstructorBuilder?;
+  List<SourceConstructorBuilder>? get patchForTesting => _patches;
 
   @override
   bool get isDeclarationInstanceMember => false;
@@ -671,6 +673,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     return 1;
   }
 
+  List<DeclaredSourceConstructorBuilder>? get patchesForTesting => _patches;
+
   @override
   void becomeNative(SourceLoader loader) {
     _constructor.isExternal = true;
@@ -682,7 +686,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     if (patch is DeclaredSourceConstructorBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
-        dataForTesting?.patchForTesting = patch;
+        (_patches ??= []).add(patch);
       }
     } else {
       reportPatchMismatch(patch);
@@ -737,6 +741,22 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       formals = new List<FormalParameterBuilder>.of(formals!, growable: true);
     } else {
       formals = <FormalParameterBuilder>[];
+    }
+  }
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+    library.checkTypesInConstructorBuilder(this, typeEnvironment);
+    List<DeclaredSourceConstructorBuilder>? patches = _patches;
+    if (patches != null) {
+      for (DeclaredSourceConstructorBuilder patch in patches) {
+        patch.checkTypes(library, typeEnvironment);
+      }
     }
   }
 }
@@ -813,4 +833,12 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       _synthesizedFunctionNode = null;
     }
   }
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
 }

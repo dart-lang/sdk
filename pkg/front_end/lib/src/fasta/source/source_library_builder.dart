@@ -4584,9 +4584,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is SourceFieldBuilder) {
-        checkTypesInField(declaration, typeEnvironment);
+        declaration.checkTypes(this, typeEnvironment);
       } else if (declaration is SourceProcedureBuilder) {
-        checkTypesInFunctionBuilder(declaration, typeEnvironment);
+        declaration.checkTypes(this, typeEnvironment);
         if (declaration.isGetter) {
           Builder? setterDeclaration =
               scope.lookupLocalMember(declaration.name, setter: true);
