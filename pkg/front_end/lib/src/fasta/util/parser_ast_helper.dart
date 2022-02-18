@@ -165,12 +165,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginClassDeclaration(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     ClassDeclarationBegin data = new ClassDeclarationBegin(ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
+        augmentToken: augmentToken,
         name: name);
     seen(data);
   }
@@ -920,13 +921,14 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginNamedMixinApplication(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     NamedMixinApplicationBegin data = new NamedMixinApplicationBegin(
         ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
+        augmentToken: augmentToken,
         name: name);
     seen(data);
   }
@@ -2831,12 +2833,14 @@ class ClassDeclarationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token? macroToken;
+  final Token? augmentToken;
   final Token name;
 
   ClassDeclarationBegin(ParserAstType type,
       {required this.begin,
       this.abstractToken,
       this.macroToken,
+      this.augmentToken,
       required this.name})
       : super("ClassDeclaration", type);
 
@@ -2845,6 +2849,7 @@ class ClassDeclarationBegin extends ParserAstNode {
         "begin": begin,
         "abstractToken": abstractToken,
         "macroToken": macroToken,
+        "augmentToken": augmentToken,
         "name": name,
       };
 }
@@ -4199,12 +4204,14 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token? macroToken;
+  final Token? augmentToken;
   final Token name;
 
   NamedMixinApplicationBegin(ParserAstType type,
       {required this.begin,
       this.abstractToken,
       this.macroToken,
+      this.augmentToken,
       required this.name})
       : super("NamedMixinApplication", type);
 
@@ -4213,6 +4220,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
         "begin": begin,
         "abstractToken": abstractToken,
         "macroToken": macroToken,
+        "augmentToken": augmentToken,
         "name": name,
       };
 }

@@ -250,25 +250,40 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginClassDeclaration(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginClassDeclaration(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     assert(classDeclaration == null &&
         mixinDeclaration == null &&
         extensionDeclaration == null);
     push(_Modifiers()..abstractKeyword = abstractToken);
-    if (macroToken != null && !enableMacros) {
-      var feature = ExperimentalFeatures.macros;
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          macroToken,
-          macroToken);
-      // Pretend that 'macro' didn't occur while this feature is incomplete.
-      macroToken = null;
+    if (!enableMacros) {
+      if (macroToken != null) {
+        var feature = ExperimentalFeatures.macros;
+        handleRecoverableError(
+            templateExperimentNotEnabled.withArguments(
+              feature.enableString,
+              _versionAsString(ExperimentStatus.currentVersion),
+            ),
+            macroToken,
+            macroToken);
+        // Pretend that 'macro' didn't occur while this feature is incomplete.
+        macroToken = null;
+      }
+      if (augmentToken != null) {
+        var feature = ExperimentalFeatures.macros;
+        handleRecoverableError(
+            templateExperimentNotEnabled.withArguments(
+              feature.enableString,
+              _versionAsString(ExperimentStatus.currentVersion),
+            ),
+            augmentToken,
+            augmentToken);
+        // Pretend that 'augment' didn't occur while this feature is incomplete.
+        augmentToken = null;
+      }
     }
     push(macroToken ?? NullValue.Token);
+    push(augmentToken ?? NullValue.Token);
   }
 
   @override
@@ -398,22 +413,37 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginNamedMixinApplication(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     push(_Modifiers()..abstractKeyword = abstractToken);
-    if (macroToken != null && !enableMacros) {
-      var feature = ExperimentalFeatures.macros;
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          macroToken,
-          macroToken);
-      // Pretend that 'macro' didn't occur while this feature is incomplete.
-      macroToken = null;
+    if (!enableMacros) {
+      if (macroToken != null) {
+        var feature = ExperimentalFeatures.macros;
+        handleRecoverableError(
+            templateExperimentNotEnabled.withArguments(
+              feature.enableString,
+              _versionAsString(ExperimentStatus.currentVersion),
+            ),
+            macroToken,
+            macroToken);
+        // Pretend that 'macro' didn't occur while this feature is incomplete.
+        macroToken = null;
+      }
+      if (augmentToken != null) {
+        var feature = ExperimentalFeatures.macros;
+        handleRecoverableError(
+            templateExperimentNotEnabled.withArguments(
+              feature.enableString,
+              _versionAsString(ExperimentStatus.currentVersion),
+            ),
+            augmentToken,
+            augmentToken);
+        // Pretend that 'augment' didn't occur while this feature is incomplete.
+        augmentToken = null;
+      }
     }
     push(macroToken ?? NullValue.Token);
+    push(augmentToken ?? NullValue.Token);
   }
 
   @override
@@ -2090,6 +2120,7 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValue.WithClause) as WithClause;
     var superclass = pop() as NamedType;
     var macroKeyword = pop(NullValue.Token) as Token?;
+    var augmentKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
@@ -2105,6 +2136,7 @@ class AstBuilder extends StackListener {
         equalsToken,
         abstractKeyword,
         macroKeyword,
+        augmentKeyword,
         superclass,
         withClause,
         implementsClause,
@@ -2690,6 +2722,7 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValue.WithClause) as WithClause?;
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
     var macroKeyword = pop(NullValue.Token) as Token?;
+    var augmentKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
@@ -2703,6 +2736,7 @@ class AstBuilder extends StackListener {
       metadata,
       abstractKeyword,
       macroKeyword,
+      augmentKeyword,
       classKeyword,
       name,
       typeParameters,

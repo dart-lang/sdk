@@ -103,6 +103,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   final bool isMacro;
 
+  @override
+  final bool isAugmentation;
+
   SourceClassBuilder? _patchBuilder;
 
   SourceClassBuilder(
@@ -124,7 +127,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       {Class? cls,
       this.mixedInTypeBuilder,
       this.isMixinDeclaration = false,
-      this.isMacro: false})
+      this.isMacro = false,
+      this.isAugmentation = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,

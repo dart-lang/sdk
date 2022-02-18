@@ -494,8 +494,12 @@ class Parser {
     token = parseMetadataStar(token);
     Token next = token.next!;
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(/* start = */ token,
-          /* keyword = */ next, /* macroToken = */ null, directiveState);
+      return parseTopLevelKeywordDeclaration(
+          /* start = */ token,
+          /* keyword = */ next,
+          /* macroToken = */ null,
+          /* augmentToken = */ null,
+          directiveState);
     }
     Token start = token;
     // Skip modifiers to find a top level keyword or identifier
@@ -515,15 +519,27 @@ class Parser {
     }
     next = token.next!;
     Token? macroToken;
+    Token? augmentToken;
+    // TODO(johnniwinther): Should we support/recognize the combination
+    // of 'macro' and 'augment'.
     if (next.isIdentifier &&
         next.lexeme == 'macro' &&
         optional('class', next.next!)) {
       macroToken = next;
       next = next.next!;
+    } else if (next.isIdentifier &&
+        next.lexeme == 'augment' &&
+        optional('class', next.next!)) {
+      augmentToken = next;
+      next = next.next!;
     }
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(/* start = */ start,
-          /* keyword = */ next, /* macroToken = */ macroToken, directiveState);
+      return parseTopLevelKeywordDeclaration(
+          /* start = */ start,
+          /* keyword = */ next,
+          /* macroToken = */ macroToken,
+          /* augmentToken =*/ augmentToken,
+          directiveState);
     } else if (next.isKeywordOrIdentifier) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
@@ -600,16 +616,20 @@ class Parser {
 
   /// Parse any top-level declaration that begins with a keyword.
   /// [start] is the token before any modifiers preceding [keyword].
-  Token parseTopLevelKeywordDeclaration(Token start, Token keyword,
-      Token? macroToken, DirectiveContext? directiveState) {
+  Token parseTopLevelKeywordDeclaration(
+      Token start,
+      Token keyword,
+      Token? macroToken,
+      Token? augmentToken,
+      DirectiveContext? directiveState) {
     assert(keyword.isTopLevelKeyword);
     final String? value = keyword.stringValue;
     if (identical(value, 'class')) {
       directiveState?.checkDeclaration();
-      Token? abstractToken =
-          parseClassDeclarationModifiers(start, macroToken ?? keyword);
+      Token? abstractToken = parseClassDeclarationModifiers(
+          start, macroToken ?? augmentToken ?? keyword);
       return parseClassOrNamedMixinApplication(
-          abstractToken, macroToken, keyword);
+          abstractToken, macroToken, augmentToken, keyword);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
       parseTopLevelKeywordModifiers(start, keyword);
@@ -2065,8 +2085,8 @@ class Parser {
     return token;
   }
 
-  Token parseClassOrNamedMixinApplication(
-      Token? abstractToken, Token? macroToken, Token classKeyword) {
+  Token parseClassOrNamedMixinApplication(Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token classKeyword) {
     assert(optional('class', classKeyword));
     Token begin = abstractToken ?? classKeyword;
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(begin);
@@ -2077,10 +2097,11 @@ class Parser {
         .parseVariables(name, this);
     if (optional('=', token.next!)) {
       listener.beginNamedMixinApplication(
-          begin, abstractToken, macroToken, name);
+          begin, abstractToken, macroToken, augmentToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
     } else {
-      listener.beginClassDeclaration(begin, abstractToken, macroToken, name);
+      listener.beginClassDeclaration(
+          begin, abstractToken, macroToken, augmentToken, name);
       return parseClass(token, begin, classKeyword, name.lexeme);
     }
   }

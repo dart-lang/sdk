@@ -1405,6 +1405,10 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   @override
   Token? macroKeyword;
 
+  /// The 'augment' keyword, or `null` if the keyword was absent.
+  @override
+  Token? augmentKeyword;
+
   /// The token representing the 'class' keyword.
   @override
   Token classKeyword;
@@ -1434,6 +1438,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
       List<Annotation>? metadata,
       this.abstractKeyword,
       this.macroKeyword,
+      this.augmentKeyword,
       this.classKeyword,
       SimpleIdentifierImpl name,
       TypeParameterListImpl? typeParameters,
@@ -1453,6 +1458,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   Iterable<SyntacticEntity> get childEntities => super._childEntities
     ..add(abstractKeyword)
     ..add(macroKeyword)
+    ..add(augmentKeyword)
     ..add(classKeyword)
     ..add(_name)
     ..add(_typeParameters)
@@ -1476,7 +1482,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return abstractKeyword ?? macroKeyword ?? classKeyword;
+    return abstractKeyword ?? macroKeyword ?? augmentKeyword ?? classKeyword;
   }
 
   @override
@@ -1661,6 +1667,11 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   Token? macroKeyword;
 
+  /// The token for the 'augment' keyword, or `null` if this is not defining an
+  /// augmentation class.
+  @override
+  Token? augmentKeyword;
+
   /// The name of the superclass of the class being declared.
   NamedTypeImpl _superclass;
 
@@ -1686,6 +1697,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
       this.equals,
       this.abstractKeyword,
       this.macroKeyword,
+      this.augmentKeyword,
       this._superclass,
       this._withClause,
       this._implementsClause,
@@ -1705,6 +1717,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..add(equals)
     ..add(abstractKeyword)
     ..add(macroKeyword)
+    ..add(augmentKeyword)
     ..add(_superclass)
     ..add(_withClause)
     ..add(_implementsClause)
@@ -1715,7 +1728,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return abstractKeyword ?? macroKeyword ?? typedefKeyword;
+    return abstractKeyword ?? macroKeyword ?? augmentKeyword ?? typedefKeyword;
   }
 
   @override

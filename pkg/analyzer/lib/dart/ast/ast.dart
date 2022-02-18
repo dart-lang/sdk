@@ -808,6 +808,9 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   /// Return the 'abstract' keyword, or `null` if the keyword was absent.
   Token? get abstractKeyword;
 
+  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
   /// Return the token representing the 'class' keyword.
   Token get classKeyword;
 
@@ -894,6 +897,10 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// Return the token for the 'abstract' keyword, or `null` if this is not
   /// defining an abstract class.
   Token? get abstractKeyword;
+
+  /// The token for the 'augment' keyword, or `null` if this is not defining an
+  /// augmentation class.
+  Token? get augmentKeyword;
 
   @override
   ClassElement? get declaredElement;

@@ -1,0 +1,9 @@
+class Super {}
+mixin Mixin {}
+augment
+class Class1 {}
+abstract augment class Class2 {}
+augment
+class Class3 = Super with Mixin;
+abstract augment class Class4 = Super with Mixin;
+main() {}

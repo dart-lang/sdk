@@ -62,6 +62,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   bool get isMacro;
 
+  bool get isAugmentation;
+
   bool get declaresConstConstructor;
 
   bool get isMixin;

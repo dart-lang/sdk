@@ -119,16 +119,18 @@ abstract class AstFactory {
   /// [comment] and [metadata] can be `null` if the class does not have the
   /// corresponding attribute. The [abstractKeyword] can be `null` if the class
   /// is not abstract. The [macroKeyword] can be `null` if the class is not a
-  /// macro class. The [typeParameters] can be `null` if the class does not
-  /// have any type parameters. Any or all of the [extendsClause], [withClause],
-  /// and [implementsClause] can be `null` if the class does not have the
-  /// corresponding clause. The list of [members] can be `null` if the class
-  /// does not have any members.
+  /// macro class. The [augmentKeyword] can be `null` if the class is not an
+  /// augmentation class. The [typeParameters] can be `null` if the class does
+  /// not have any type parameters. Any or all of the [extendsClause],
+  /// [withClause], and [implementsClause] can be `null` if the class does not
+  /// have the corresponding clause. The list of [members] can be `null` if the
+  /// class does not have any members.
   ClassDeclaration classDeclaration(
       Comment? comment,
       List<Annotation>? metadata,
       Token? abstractKeyword,
       Token? macroKeyword,
+      Token? augmentKeyword,
       Token classKeyword,
       SimpleIdentifier name,
       TypeParameterList? typeParameters,
@@ -144,7 +146,8 @@ abstract class AstFactory {
   /// corresponding attribute. The [typeParameters] can be `null` if the class
   /// does not have any type parameters. The [abstractKeyword] can be `null` if
   /// the class is not abstract. The [macroKeyword] can be `null` if the class
-  /// is not a macro class. The [implementsClause] can be `null` if the
+  /// is not a macro class. The [augmentKeyword] can be `null` if the class is
+  /// not an augmentation class.  The [implementsClause] can be `null` if the
   /// class does not implement any interfaces.
   ClassTypeAlias classTypeAlias(
       Comment? comment,
@@ -155,6 +158,7 @@ abstract class AstFactory {
       Token equals,
       Token? abstractKeyword,
       Token? macroKeyword,
+      Token? augmentKeyword,
       NamedType superclass,
       WithClause withClause,
       ImplementsClause? implementsClause,
