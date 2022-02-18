@@ -1096,6 +1096,8 @@ abstract class HInstruction implements Spannable {
   static const int TYPE_BIND_TYPECODE = 57;
 
   static const int IS_LATE_SENTINEL_TYPECODE = 58;
+  static const int STRING_CONCAT_TYPECODE = 59;
+  static const int STRINGIFY_TYPECODE = 60;
 
   HInstruction(this.inputs, this.instructionType) {
     assert(inputs.every((e) => e != null), "inputs: $inputs");
@@ -3742,10 +3744,7 @@ class HRangeConversion extends HCheck {
 class HStringConcat extends HInstruction {
   HStringConcat(HInstruction left, HInstruction right, AbstractValue type)
       : super([left, right], type) {
-    // TODO(sra): Until Issue 9293 is fixed, this false dependency keeps the
-    // concats bunched with stringified inputs for much better looking code with
-    // fewer temps.
-    sideEffects.setDependsOnSomething();
+    setUseGvn();
   }
 
   HInstruction get left => inputs[0];
@@ -3755,6 +3754,13 @@ class HStringConcat extends HInstruction {
   accept(HVisitor visitor) => visitor.visitStringConcat(this);
   @override
   toString() => "string concat";
+
+  @override
+  int typeCode() => HInstruction.STRING_CONCAT_TYPECODE;
+  @override
+  bool typeEquals(HInstruction other) => other is HStringConcat;
+  @override
+  bool dataEquals(HStringConcat other) => true;
 }
 
 /// The part of string interpolation which converts and interpolated expression
@@ -3771,6 +3777,7 @@ class HStringify extends HInstruction {
     sideEffects.clearAllDependencies();
     sideEffects.clearAllSideEffects();
     _isPure = true;
+    setUseGvn();
   }
 
   @override
@@ -3780,6 +3787,13 @@ class HStringify extends HInstruction {
   accept(HVisitor visitor) => visitor.visitStringify(this);
   @override
   toString() => "stringify";
+
+  @override
+  int typeCode() => HInstruction.STRINGIFY_TYPECODE;
+  @override
+  bool typeEquals(HInstruction other) => other is HStringify;
+  @override
+  bool dataEquals(HStringify other) => this._isPure == other._isPure;
 }
 
 /// Non-block-based (aka. traditional) loop information.
