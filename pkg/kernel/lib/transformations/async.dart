@@ -76,7 +76,8 @@ class ExpressionLifter extends Transformer {
   /// [nameIndex] may still account for names of subexpressions.
   int nameIndex = 0;
 
-  final VariableDeclaration asyncResult = new VariableDeclaration(':result');
+  final VariableDeclaration asyncResult =
+      new VariableDeclaration(':result_or_exception');
   final List<VariableDeclaration> variables = <VariableDeclaration>[];
 
   ExpressionLifter(this.continuationRewriter);
@@ -538,7 +539,6 @@ class ExpressionLifter extends Transformer {
       expr.operand,
       new VariableGet(R.thenContinuationVariable),
       new VariableGet(R.catchErrorContinuationVariable),
-      new VariableGet(R.nestedClosureVariable),
     ]);
 
     // We are building

@@ -1956,11 +1956,15 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncLazy() {
 
   const intptr_t length = code_array.Length();
   bool async_frames = false;
+  bool skip_next_gap_marker = false;
   for (intptr_t i = 0; i < length; ++i) {
     code ^= code_array.At(i);
-
     if (code.ptr() == StubCode::AsynchronousGapMarker().ptr()) {
-      stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
+      if (!skip_next_gap_marker) {
+        stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
+      }
+      skip_next_gap_marker = false;
+
       // Once we reach a gap, the rest is async.
       async_frames = true;
       continue;
@@ -1978,6 +1982,7 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncLazy() {
     // Skip invisible function frames.
     function ^= code.function();
     if (!function.is_visible()) {
+      skip_next_gap_marker = true;
       continue;
     }
 

@@ -15,7 +15,7 @@ static method test() → dynamic {
     dynamic :await_ctx_var;
     dynamic :saved_try_context_var0;
     dynamic :saved_try_context_var1;
-    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
       try
         try {
           #L1:

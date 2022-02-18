@@ -2588,7 +2588,7 @@ void _asyncStarMoveNextHelper(var stream) {}
 
 _asyncThenWrapperHelper(continuation) {}
 
-_awaitHelper(object, thenCallback, errorCallback, awaiter) {}
+_awaitHelper(object, thenCallback, errorCallback) {}
 
 _completeOnAsyncReturn(_future, value, async_jump_var) {}
 

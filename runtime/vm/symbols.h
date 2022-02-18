@@ -31,6 +31,7 @@ class ObjectPointerVisitor;
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
+  V(AsyncThenWrapperHelper, "_asyncThenWrapperHelper")                         \
   V(Bool, "bool")                                                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
@@ -102,7 +103,6 @@ class ObjectPointerVisitor;
   V(EvalSourceUri, "evaluate:source")                                          \
   V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
-  V(ExceptionParameter, ":exception")                                          \
   V(ExceptionVar, ":exception_var")                                            \
   V(Expando, "Expando")                                                        \
   V(ExprTemp, ":expr_temp")                                                    \

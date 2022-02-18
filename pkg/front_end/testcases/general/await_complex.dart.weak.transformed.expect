@@ -71,33 +71,33 @@ static method staticMembers() → dynamic /* originally async */ {
   core::int* :async_temporary_3;
   core::int* :async_temporary_4;
   core::int* :async_temporary_5;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L1:
       {
         :async_temporary_0 = self::C::staticField;
-        [yield] let dynamic #t1 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* a = _in::unsafeCast<core::int*>(:async_temporary_0).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t1 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* a = _in::unsafeCast<core::int*>(:async_temporary_0).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, a);
         :async_temporary_1 = self::C::staticField = 1;
-        [yield] let dynamic #t2 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* f = _in::unsafeCast<core::int*>(:async_temporary_1).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t2 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* f = _in::unsafeCast<core::int*>(:async_temporary_1).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, f);
         :async_temporary_2 = self::C::staticGetter;
-        [yield] let dynamic #t3 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* b = _in::unsafeCast<core::int*>(:async_temporary_2).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t3 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* b = _in::unsafeCast<core::int*>(:async_temporary_2).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, b);
         :async_temporary_3 = self::C::staticSetter = 1;
-        [yield] let dynamic #t4 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* c = _in::unsafeCast<core::int*>(:async_temporary_3).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t4 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* c = _in::unsafeCast<core::int*>(:async_temporary_3).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, c);
         :async_temporary_4 = self::C::staticFoo(2);
-        [yield] let dynamic #t5 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* d = _in::unsafeCast<core::int*>(:async_temporary_4).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t5 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* d = _in::unsafeCast<core::int*>(:async_temporary_4).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(3, d);
         :async_temporary_5 = self::C::staticField.{core::num::+}(self::C::staticGetter){(core::num*) →* core::int*}.{core::num::+}(self::C::staticSetter = 1){(core::num*) →* core::int*}.{core::num::+}(self::C::staticFoo(1)){(core::num*) →* core::int*};
-        [yield] let dynamic #t6 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* e = _in::unsafeCast<core::int*>(:async_temporary_5).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t6 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* e = _in::unsafeCast<core::int*>(:async_temporary_5).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(5, e);
       }
       asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -108,7 +108,7 @@ static method staticMembers() → dynamic /* originally async */ {
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() →* dynamic};
+  :async_op(null, null){() →* dynamic};
   :is_sync = true;
   return :async_future;
 }
@@ -126,29 +126,29 @@ static method topLevelMembers() → dynamic /* originally async */ {
   core::int* :async_temporary_2;
   core::int* :async_temporary_3;
   core::int* :async_temporary_4;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L2:
       {
         :async_temporary_0 = self::globalVariable;
-        [yield] let dynamic #t7 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* a = _in::unsafeCast<core::int*>(:async_temporary_0).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t7 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* a = _in::unsafeCast<core::int*>(:async_temporary_0).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, a);
         :async_temporary_1 = self::topLevelGetter;
-        [yield] let dynamic #t8 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* b = _in::unsafeCast<core::int*>(:async_temporary_1).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t8 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* b = _in::unsafeCast<core::int*>(:async_temporary_1).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, b);
         :async_temporary_2 = self::topLevelSetter = 1;
-        [yield] let dynamic #t9 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* c = _in::unsafeCast<core::int*>(:async_temporary_2).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t9 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* c = _in::unsafeCast<core::int*>(:async_temporary_2).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, c);
         :async_temporary_3 = self::topLevelFoo(1);
-        [yield] let dynamic #t10 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* d = _in::unsafeCast<core::int*>(:async_temporary_3).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t10 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* d = _in::unsafeCast<core::int*>(:async_temporary_3).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, d);
         :async_temporary_4 = self::globalVariable.{core::num::+}(self::topLevelGetter){(core::num*) →* core::int*}.{core::num::+}(self::topLevelSetter = 1){(core::num*) →* core::int*}.{core::num::+}(self::topLevelFoo(1)){(core::num*) →* core::int*};
-        [yield] let dynamic #t11 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* e = _in::unsafeCast<core::int*>(:async_temporary_4).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t11 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* e = _in::unsafeCast<core::int*>(:async_temporary_4).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(5, e);
       }
       asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -159,7 +159,7 @@ static method topLevelMembers() → dynamic /* originally async */ {
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() →* dynamic};
+  :async_op(null, null){() →* dynamic};
   :is_sync = true;
   return :async_future;
 }
@@ -177,30 +177,30 @@ static method instanceMembers() → dynamic /* originally async */ {
   core::int* :async_temporary_2;
   core::int* :async_temporary_3;
   core::int* :async_temporary_4;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L3:
       {
         self::C* inst = new self::C::•();
         :async_temporary_0 = inst.{self::C::field}{core::int*};
-        [yield] let dynamic #t12 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* a = _in::unsafeCast<core::int*>(:async_temporary_0).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t12 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* a = _in::unsafeCast<core::int*>(:async_temporary_0).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, a);
         :async_temporary_1 = inst.{self::C::getter}{core::int*};
-        [yield] let dynamic #t13 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* b = _in::unsafeCast<core::int*>(:async_temporary_1).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t13 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* b = _in::unsafeCast<core::int*>(:async_temporary_1).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, b);
         :async_temporary_2 = inst.{self::C::setter} = 1;
-        [yield] let dynamic #t14 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* c = _in::unsafeCast<core::int*>(:async_temporary_2).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t14 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* c = _in::unsafeCast<core::int*>(:async_temporary_2).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, c);
         :async_temporary_3 = inst.{self::C::foo}(1){(core::int*) →* core::int*};
-        [yield] let dynamic #t15 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* d = _in::unsafeCast<core::int*>(:async_temporary_3).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t15 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* d = _in::unsafeCast<core::int*>(:async_temporary_3).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, d);
         :async_temporary_4 = inst.{self::C::field}{core::int*}.{core::num::+}(inst.{self::C::getter}{core::int*}){(core::num*) →* core::int*}.{core::num::+}(inst.{self::C::setter} = 1){(core::num*) →* core::int*}.{core::num::+}(inst.{self::C::foo}(1){(core::int*) →* core::int*}){(core::num*) →* core::int*};
-        [yield] let dynamic #t16 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* e = _in::unsafeCast<core::int*>(:async_temporary_4).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t16 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* e = _in::unsafeCast<core::int*>(:async_temporary_4).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(5, e);
       }
       asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -211,7 +211,7 @@ static method instanceMembers() → dynamic /* originally async */ {
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() →* dynamic};
+  :async_op(null, null){() →* dynamic};
   :is_sync = true;
   return :async_future;
 }
@@ -229,30 +229,30 @@ static method others() → dynamic /* originally async */ {
   core::int* :async_temporary_2;
   core::List<core::int*>* :async_temporary_3;
   core::int* :async_temporary_4;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L4:
       {
         :async_temporary_0 = self::globalVariable;
-        [yield] let dynamic #t17 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        :async_temporary_0 = "${_in::unsafeCast<core::int*>(:async_temporary_0)} ${:result} ";
-        [yield] let dynamic #t18 = asy::_awaitHelper("someString", :async_op_then, :async_op_error, :async_op) in null;
-        core::String* a = _in::unsafeCast<core::String*>(:async_temporary_0).{core::String::+}(_in::unsafeCast<core::String*>(:result)){(core::String*) →* core::String*};
+        [yield] let dynamic #t17 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        :async_temporary_0 = "${_in::unsafeCast<core::int*>(:async_temporary_0)} ${:result_or_exception} ";
+        [yield] let dynamic #t18 = asy::_awaitHelper("someString", :async_op_then, :async_op_error) in null;
+        core::String* a = _in::unsafeCast<core::String*>(:async_temporary_0).{core::String::+}(_in::unsafeCast<core::String*>(:result_or_exception)){(core::String*) →* core::String*};
         self::expect("1 1 someString", a);
         self::C* c = new self::C::•();
         :async_temporary_1 = c.{self::C::field}{core::int*};
-        [yield] let dynamic #t19 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* d = _in::unsafeCast<core::int*>(:async_temporary_1).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t19 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* d = _in::unsafeCast<core::int*>(:async_temporary_1).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         core::int* cnt = 2;
         core::List<core::int*>* b = core::_GrowableList::_literal3<core::int*>(1, 2, 3);
         :async_temporary_3 = b;
         :async_temporary_2 = cnt;
-        [yield] let dynamic #t20 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        _in::unsafeCast<core::List<core::int*>*>(:async_temporary_3).{core::List::[]=}(_in::unsafeCast<core::int*>(:async_temporary_2), :result as{TypeError,ForDynamic} core::int*){(core::int*, core::int*) →* void};
+        [yield] let dynamic #t20 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        _in::unsafeCast<core::List<core::int*>*>(:async_temporary_3).{core::List::[]=}(_in::unsafeCast<core::int*>(:async_temporary_2), :result_or_exception as{TypeError,ForDynamic} core::int*){(core::int*, core::int*) →* void};
         self::expect(1, b.{core::List::[]}(cnt){(core::int*) →* core::int*});
         :async_temporary_4 = b.{core::List::[]}(0){(core::int*) →* core::int*};
-        [yield] let dynamic #t21 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-        core::num* e = _in::unsafeCast<core::int*>(:async_temporary_4).{core::num::+}(:result as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+        [yield] let dynamic #t21 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+        core::num* e = _in::unsafeCast<core::int*>(:async_temporary_4).{core::num::+}(:result_or_exception as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
         self::expect(2, e);
       }
       asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -263,7 +263,7 @@ static method others() → dynamic /* originally async */ {
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() →* dynamic};
+  :async_op(null, null){() →* dynamic};
   :is_sync = true;
   return :async_future;
 }
@@ -281,7 +281,7 @@ static method conditionals() → dynamic /* originally async */ {
   dynamic :async_temporary_1;
   dynamic :async_temporary_2;
   dynamic :async_temporary_3;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L5:
       {
@@ -291,8 +291,8 @@ static method conditionals() → dynamic /* originally async */ {
         if(_in::unsafeCast<core::bool*>(:async_temporary_0))
           ;
         else {
-          [yield] let dynamic #t22 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-          :async_temporary_0 = :result as{TypeError,ForDynamic} core::bool* =={core::Object::==}{(core::Object) → core::bool} true;
+          [yield] let dynamic #t22 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+          :async_temporary_0 = :result_or_exception as{TypeError,ForDynamic} core::bool* =={core::Object::==}{(core::Object) → core::bool} true;
         }
         core::bool* c = _in::unsafeCast<core::bool*>(:async_temporary_0);
         self::expect(true, c);
@@ -300,14 +300,14 @@ static method conditionals() → dynamic /* originally async */ {
           :async_temporary_1 = a;
         }
         else {
-          [yield] let dynamic #t23 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-          :async_temporary_1 = :result;
+          [yield] let dynamic #t23 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+          :async_temporary_1 = :result_or_exception;
         }
         dynamic d = :async_temporary_1;
         self::expect(false, d);
         if(a is core::int*) {
-          [yield] let dynamic #t24 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-          :async_temporary_2 = :result;
+          [yield] let dynamic #t24 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+          :async_temporary_2 = :result_or_exception;
         }
         else {
           :async_temporary_2 = 2;
@@ -316,8 +316,8 @@ static method conditionals() → dynamic /* originally async */ {
         self::expect(2, e);
         try {
           if(a is core::int*) {
-            [yield] let dynamic #t25 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
-            :async_temporary_3 = :result;
+            [yield] let dynamic #t25 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error) in null;
+            :async_temporary_3 = :result_or_exception;
           }
           else {
             :async_temporary_3 = 2;
@@ -335,7 +335,7 @@ static method conditionals() → dynamic /* originally async */ {
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() →* dynamic};
+  :async_op(null, null){() →* dynamic};
   :is_sync = true;
   return :async_future;
 }
@@ -349,7 +349,7 @@ static method asserts() → dynamic /* originally async */ {
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
   dynamic :saved_try_context_var1;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L6:
       {
@@ -360,34 +360,34 @@ static method asserts() → dynamic /* originally async */ {
             {
               final <T extends core::Object* = dynamic>(T*) →* FutureOr<T*>* func = #t26 as{TypeError} <T extends core::Object* = dynamic>(T*) →* FutureOr<T*>*;
               assert {
-                [yield] let dynamic #t27 = asy::_awaitHelper(func<core::bool*>(true){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                assert(_in::unsafeCast<core::bool*>(:result));
+                [yield] let dynamic #t27 = asy::_awaitHelper(func<core::bool*>(true){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error) in null;
+                assert(_in::unsafeCast<core::bool*>(:result_or_exception));
               }
               assert {
                 if(self::id<core::bool*>(true) as{TypeError} core::bool*)
                   ;
                 else {
-                  [yield] let dynamic #t28 = asy::_awaitHelper(func<core::String*>("message"){(core::String*) →* FutureOr<core::String*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                  assert(false, _in::unsafeCast<core::String*>(:result));
+                  [yield] let dynamic #t28 = asy::_awaitHelper(func<core::String*>("message"){(core::String*) →* FutureOr<core::String*>*}, :async_op_then, :async_op_error) in null;
+                  assert(false, _in::unsafeCast<core::String*>(:result_or_exception));
                 }
               }
               assert {
-                [yield] let dynamic #t29 = asy::_awaitHelper(func<core::bool*>(true){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                if(_in::unsafeCast<core::bool*>(:result))
+                [yield] let dynamic #t29 = asy::_awaitHelper(func<core::bool*>(true){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error) in null;
+                if(_in::unsafeCast<core::bool*>(:result_or_exception))
                   ;
                 else {
-                  [yield] let dynamic #t30 = asy::_awaitHelper(func<core::String*>("message"){(core::String*) →* FutureOr<core::String*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                  assert(false, _in::unsafeCast<core::String*>(:result));
+                  [yield] let dynamic #t30 = asy::_awaitHelper(func<core::String*>("message"){(core::String*) →* FutureOr<core::String*>*}, :async_op_then, :async_op_error) in null;
+                  assert(false, _in::unsafeCast<core::String*>(:result_or_exception));
                 }
               }
               try {
                 assert {
-                  [yield] let dynamic #t31 = asy::_awaitHelper(func<core::bool*>(false){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                  if(_in::unsafeCast<core::bool*>(:result))
+                  [yield] let dynamic #t31 = asy::_awaitHelper(func<core::bool*>(false){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error) in null;
+                  if(_in::unsafeCast<core::bool*>(:result_or_exception))
                     ;
                   else {
-                    [yield] let dynamic #t32 = asy::_awaitHelper(func<core::String*>("message"){(core::String*) →* FutureOr<core::String*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                    assert(false, _in::unsafeCast<core::String*>(:result));
+                    [yield] let dynamic #t32 = asy::_awaitHelper(func<core::String*>("message"){(core::String*) →* FutureOr<core::String*>*}, :async_op_then, :async_op_error) in null;
+                    assert(false, _in::unsafeCast<core::String*>(:result_or_exception));
                   }
                 }
                 if(self::assertStatementsEnabled)
@@ -408,7 +408,7 @@ static method asserts() → dynamic /* originally async */ {
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() →* dynamic};
+  :async_op(null, null){() →* dynamic};
   :is_sync = true;
   return :async_future;
 }
@@ -428,7 +428,7 @@ static method controlFlow() → dynamic /* originally async */ {
   dynamic :stack_trace0;
   core::List<dynamic>* :async_temporary_0;
   core::List<dynamic>* :async_temporary_1;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L7:
       {
@@ -447,16 +447,16 @@ static method controlFlow() → dynamic /* originally async */ {
                   core::int* i;
                   if(#t34) {
                     #t34 = false;
-                    [yield] let dynamic #t36 = asy::_awaitHelper(func<core::int*>(0){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                    i = _in::unsafeCast<core::int*>(:result);
+                    [yield] let dynamic #t36 = asy::_awaitHelper(func<core::int*>(0){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error) in null;
+                    i = _in::unsafeCast<core::int*>(:result_or_exception);
                   }
                   else {
                     i = #t35;
-                    [yield] let dynamic #t37 = asy::_awaitHelper(func<core::int*>(let final core::int* #t38 = i in let final core::int* #t39 = i = #t38.{core::num::+}(1){(core::num*) →* core::int*} in #t38){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                    _in::unsafeCast<core::int*>(:result);
+                    [yield] let dynamic #t37 = asy::_awaitHelper(func<core::int*>(let final core::int* #t38 = i in let final core::int* #t39 = i = #t38.{core::num::+}(1){(core::num*) →* core::int*} in #t38){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error) in null;
+                    _in::unsafeCast<core::int*>(:result_or_exception);
                   }
-                  [yield] let dynamic #t40 = asy::_awaitHelper(func<core::bool*>(i.{core::num::<}(5){(core::num*) →* core::bool*}){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                  if(_in::unsafeCast<core::bool*>(:result)) {
+                  [yield] let dynamic #t40 = asy::_awaitHelper(func<core::bool*>(i.{core::num::<}(5){(core::num*) →* core::bool*}){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error) in null;
+                  if(_in::unsafeCast<core::bool*>(:result_or_exception)) {
                     {
                       c = c.{core::num::+}(1){(core::num*) →* core::int*};
                     }
@@ -470,8 +470,8 @@ static method controlFlow() → dynamic /* originally async */ {
               c = 0;
               #L9:
               while (true) {
-                [yield] let dynamic #t41 = asy::_awaitHelper(func<core::bool*>(c.{core::num::<}(5){(core::num*) →* core::bool*}){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                if(_in::unsafeCast<core::bool*>(:result))
+                [yield] let dynamic #t41 = asy::_awaitHelper(func<core::bool*>(c.{core::num::<}(5){(core::num*) →* core::bool*}){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error) in null;
+                if(_in::unsafeCast<core::bool*>(:result_or_exception))
                   c = c.{core::num::+}(1){(core::num*) →* core::int*};
                 else
                   break #L9;
@@ -480,26 +480,26 @@ static method controlFlow() → dynamic /* originally async */ {
               c = 0;
               do {
                 c = c.{core::num::+}(1){(core::num*) →* core::int*};
-                [yield] let dynamic #t42 = asy::_awaitHelper(func<core::bool*>(c.{core::num::<}(5){(core::num*) →* core::bool*}){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error, :async_op) in null;
+                [yield] let dynamic #t42 = asy::_awaitHelper(func<core::bool*>(c.{core::num::<}(5){(core::num*) →* core::bool*}){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error) in null;
               }
-              while (_in::unsafeCast<core::bool*>(:result))
+              while (_in::unsafeCast<core::bool*>(:result_or_exception))
               self::expect(5, c);
-              [yield] let dynamic #t43 = asy::_awaitHelper(func<core::bool*>(c =={core::num::==}{(core::Object*) →* core::bool*} 5){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error, :async_op) in null;
-              if(_in::unsafeCast<core::bool*>(:result)) {
+              [yield] let dynamic #t43 = asy::_awaitHelper(func<core::bool*>(c =={core::num::==}{(core::Object*) →* core::bool*} 5){(core::bool*) →* FutureOr<core::bool*>*}, :async_op_then, :async_op_error) in null;
+              if(_in::unsafeCast<core::bool*>(:result_or_exception)) {
                 self::expect(5, c);
               }
               else {
                 throw "unreachable";
               }
               try {
-                [yield] let dynamic #t44 = asy::_awaitHelper(func<core::String*>("string"){(core::String*) →* FutureOr<core::String*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                throw _in::unsafeCast<core::String*>(:result);
+                [yield] let dynamic #t44 = asy::_awaitHelper(func<core::String*>("string"){(core::String*) →* FutureOr<core::String*>*}, :async_op_then, :async_op_error) in null;
+                throw _in::unsafeCast<core::String*>(:result_or_exception);
               }
               on core::String* catch(no-exception-var) {
               }
               try {
-                [yield] let dynamic #t45 = asy::_awaitHelper(throw "string", :async_op_then, :async_op_error, :async_op) in null;
-                _in::unsafeCast<Never*>(:result);
+                [yield] let dynamic #t45 = asy::_awaitHelper(throw "string", :async_op_then, :async_op_error) in null;
+                _in::unsafeCast<Never*>(:result_or_exception);
               }
               on core::String* catch(no-exception-var) {
               }
@@ -511,28 +511,28 @@ static method controlFlow() → dynamic /* originally async */ {
                     }
                     on dynamic catch(final dynamic e) {
                       self::expect("string", e);
-                      [yield] let dynamic #t46 = asy::_awaitHelper(func<core::int*>(0){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                      self::expect(0, _in::unsafeCast<core::int*>(:result));
+                      [yield] let dynamic #t46 = asy::_awaitHelper(func<core::int*>(0){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error) in null;
+                      self::expect(0, _in::unsafeCast<core::int*>(:result_or_exception));
                       rethrow;
                     }
                   finally {
-                    [yield] let dynamic #t47 = asy::_awaitHelper(func<core::int*>(0){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                    self::expect(0, _in::unsafeCast<core::int*>(:result));
+                    [yield] let dynamic #t47 = asy::_awaitHelper(func<core::int*>(0){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error) in null;
+                    self::expect(0, _in::unsafeCast<core::int*>(:result_or_exception));
                   }
                 }
                 on dynamic catch(final dynamic e) {
-                  [yield] let dynamic #t48 = asy::_awaitHelper(func<core::int*>(0){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                  self::expect(0, _in::unsafeCast<core::int*>(:result));
+                  [yield] let dynamic #t48 = asy::_awaitHelper(func<core::int*>(0){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error) in null;
+                  self::expect(0, _in::unsafeCast<core::int*>(:result_or_exception));
                   self::expect("string", e);
                 }
               finally {
-                [yield] let dynamic #t49 = asy::_awaitHelper(func<core::int*>(0){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                self::expect(0, _in::unsafeCast<core::int*>(:result));
+                [yield] let dynamic #t49 = asy::_awaitHelper(func<core::int*>(0){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error) in null;
+                self::expect(0, _in::unsafeCast<core::int*>(:result_or_exception));
               }
               #L10:
               {
-                [yield] let dynamic #t50 = asy::_awaitHelper(func<core::int*>(2){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                switch(_in::unsafeCast<core::int*>(:result)) {
+                [yield] let dynamic #t50 = asy::_awaitHelper(func<core::int*>(2){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error) in null;
+                switch(_in::unsafeCast<core::int*>(:result_or_exception)) {
                   #L11:
                   case #C3:
                     {
@@ -554,12 +554,12 @@ static method controlFlow() → dynamic /* originally async */ {
                 core::int* :await_jump_var = 0;
                 dynamic :await_ctx_var;
                 dynamic :saved_try_context_var0;
-                function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+                function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
                   try {
                     #L13:
                     {
-                      [yield] let dynamic #t52 = asy::_awaitHelper(func<dynamic>(42){(dynamic) →* FutureOr<dynamic>*}, :async_op_then, :async_op_error, :async_op) in null;
-                      :return_value = :result;
+                      [yield] let dynamic #t52 = asy::_awaitHelper(func<dynamic>(42){(dynamic) →* FutureOr<dynamic>*}, :async_op_then, :async_op_error) in null;
+                      :return_value = :result_or_exception;
                       break #L13;
                     }
                     asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -570,11 +570,11 @@ static method controlFlow() → dynamic /* originally async */ {
                   }
                 :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
                 :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-                :async_op(){() →* dynamic};
+                :async_op(null, null){() →* dynamic};
                 :is_sync = true;
                 return :async_future;
-              })(){() →* asy::Future<dynamic>*}, :async_op_then, :async_op_error, :async_op) in null;
-              self::expect(42, :result);
+              })(){() →* asy::Future<dynamic>*}, :async_op_then, :async_op_error) in null;
+              self::expect(42, :result_or_exception);
               [yield] let dynamic #t53 = asy::_awaitHelper((() → asy::Future<dynamic>* /* originally async */ {
                 final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
                 core::bool* :is_sync = false;
@@ -583,7 +583,7 @@ static method controlFlow() → dynamic /* originally async */ {
                 (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
                 core::int* :await_jump_var = 0;
                 dynamic :await_ctx_var;
-                function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+                function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
                   try {
                     #L14:
                     {
@@ -598,11 +598,11 @@ static method controlFlow() → dynamic /* originally async */ {
                   }
                 :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
                 :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-                :async_op(){() →* dynamic};
+                :async_op(null, null){() →* dynamic};
                 :is_sync = true;
                 return :async_future;
-              })(){() →* asy::Future<dynamic>*}, :async_op_then, :async_op_error, :async_op) in null;
-              self::expect(42, :result);
+              })(){() →* asy::Future<dynamic>*}, :async_op_then, :async_op_error) in null;
+              self::expect(42, :result_or_exception);
               function testStream1() → asy::Stream<core::int*>* /* originally async* */ {
                 asy::_AsyncStarStreamController<core::int*>* :controller;
                 dynamic :controller_stream;
@@ -612,13 +612,13 @@ static method controlFlow() → dynamic /* originally async */ {
                 dynamic :await_ctx_var;
                 dynamic :saved_try_context_var0;
                 dynamic :saved_try_context_var1;
-                function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+                function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
                   try
                     try {
                       #L15:
                       {
-                        [yield] let dynamic #t54 = asy::_awaitHelper(func<core::int*>(42){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                        if(:controller.{asy::_AsyncStarStreamController::add}(_in::unsafeCast<core::int*>(:result)){(core::int*) → core::bool})
+                        [yield] let dynamic #t54 = asy::_awaitHelper(func<core::int*>(42){(core::int*) →* FutureOr<core::int*>*}, :async_op_then, :async_op_error) in null;
+                        if(:controller.{asy::_AsyncStarStreamController::add}(_in::unsafeCast<core::int*>(:result_or_exception)){(core::int*) → core::bool})
                           return null;
                         else
                           [yield] null;
@@ -638,8 +638,8 @@ static method controlFlow() → dynamic /* originally async */ {
                 return :controller_stream;
               }
               :async_temporary_0 = core::_GrowableList::_literal1<dynamic>(42);
-              [yield] let dynamic #t55 = asy::_awaitHelper(testStream1(){() →* asy::Stream<core::int*>*}.{asy::Stream::toList}(){() →* asy::Future<core::List<core::int*>*>*}, :async_op_then, :async_op_error, :async_op) in null;
-              self::expectList(_in::unsafeCast<core::List<dynamic>*>(:async_temporary_0), _in::unsafeCast<core::List<core::int*>*>(:result));
+              [yield] let dynamic #t55 = asy::_awaitHelper(testStream1(){() →* asy::Stream<core::int*>*}.{asy::Stream::toList}(){() →* asy::Future<core::List<core::int*>*>*}, :async_op_then, :async_op_error) in null;
+              self::expectList(_in::unsafeCast<core::List<dynamic>*>(:async_temporary_0), _in::unsafeCast<core::List<core::int*>*>(:result_or_exception));
               function testStream2() → asy::Stream<core::int*>* /* originally async* */ {
                 asy::_AsyncStarStreamController<core::int*>* :controller;
                 dynamic :controller_stream;
@@ -649,13 +649,13 @@ static method controlFlow() → dynamic /* originally async */ {
                 dynamic :await_ctx_var;
                 dynamic :saved_try_context_var0;
                 dynamic :saved_try_context_var1;
-                function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+                function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
                   try
                     try {
                       #L16:
                       {
-                        [yield] let dynamic #t56 = asy::_awaitHelper(func<asy::Stream<core::int*>*>(self::intStream()){(asy::Stream<core::int*>*) →* FutureOr<asy::Stream<core::int*>*>*}, :async_op_then, :async_op_error, :async_op) in null;
-                        if(:controller.{asy::_AsyncStarStreamController::addStream}(_in::unsafeCast<asy::Stream<core::int*>*>(:result)){(asy::Stream<core::int*>) → core::bool})
+                        [yield] let dynamic #t56 = asy::_awaitHelper(func<asy::Stream<core::int*>*>(self::intStream()){(asy::Stream<core::int*>*) →* FutureOr<asy::Stream<core::int*>*>*}, :async_op_then, :async_op_error) in null;
+                        if(:controller.{asy::_AsyncStarStreamController::addStream}(_in::unsafeCast<asy::Stream<core::int*>*>(:result_or_exception)){(asy::Stream<core::int*>) → core::bool})
                           return null;
                         else
                           [yield] null;
@@ -675,8 +675,8 @@ static method controlFlow() → dynamic /* originally async */ {
                 return :controller_stream;
               }
               :async_temporary_1 = core::_GrowableList::_literal1<dynamic>(42);
-              [yield] let dynamic #t57 = asy::_awaitHelper(testStream2(){() →* asy::Stream<core::int*>*}.{asy::Stream::toList}(){() →* asy::Future<core::List<core::int*>*>*}, :async_op_then, :async_op_error, :async_op) in null;
-              self::expectList(_in::unsafeCast<core::List<dynamic>*>(:async_temporary_1), _in::unsafeCast<core::List<core::int*>*>(:result));
+              [yield] let dynamic #t57 = asy::_awaitHelper(testStream2(){() →* asy::Stream<core::int*>*}.{asy::Stream::toList}(){() →* asy::Future<core::List<core::int*>*>*}, :async_op_then, :async_op_error) in null;
+              self::expectList(_in::unsafeCast<core::List<dynamic>*>(:async_temporary_1), _in::unsafeCast<core::List<core::int*>*>(:result_or_exception));
             }
           }
         }
@@ -689,7 +689,7 @@ static method controlFlow() → dynamic /* originally async */ {
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() →* dynamic};
+  :async_op(null, null){() →* dynamic};
   :is_sync = true;
   return :async_future;
 }
@@ -701,7 +701,7 @@ static method future<T extends core::Object* = dynamic>(self::future::T* value) 
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L17:
       {
@@ -716,7 +716,7 @@ static method future<T extends core::Object* = dynamic>(self::future::T* value) 
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() →* dynamic};
+  :async_op(null, null){() →* dynamic};
   :is_sync = true;
   return :async_future;
 }
@@ -731,7 +731,7 @@ static method intStream() → asy::Stream<core::int*>* /* originally async* */ {
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
   dynamic :saved_try_context_var1;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try
       try {
         #L18:
@@ -764,25 +764,25 @@ static method main() → dynamic /* originally async */ {
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L19:
       {
         for (core::int* i = 0; i.{core::num::<}(11){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
-          [yield] let dynamic #t58 = asy::_awaitHelper(self::staticMembers(), :async_op_then, :async_op_error, :async_op) in null;
-          :result;
-          [yield] let dynamic #t59 = asy::_awaitHelper(self::topLevelMembers(), :async_op_then, :async_op_error, :async_op) in null;
-          :result;
-          [yield] let dynamic #t60 = asy::_awaitHelper(self::instanceMembers(), :async_op_then, :async_op_error, :async_op) in null;
-          :result;
-          [yield] let dynamic #t61 = asy::_awaitHelper(self::conditionals(), :async_op_then, :async_op_error, :async_op) in null;
-          :result;
-          [yield] let dynamic #t62 = asy::_awaitHelper(self::others(), :async_op_then, :async_op_error, :async_op) in null;
-          :result;
-          [yield] let dynamic #t63 = asy::_awaitHelper(self::asserts(), :async_op_then, :async_op_error, :async_op) in null;
-          :result;
-          [yield] let dynamic #t64 = asy::_awaitHelper(self::controlFlow(), :async_op_then, :async_op_error, :async_op) in null;
-          :result;
+          [yield] let dynamic #t58 = asy::_awaitHelper(self::staticMembers(), :async_op_then, :async_op_error) in null;
+          :result_or_exception;
+          [yield] let dynamic #t59 = asy::_awaitHelper(self::topLevelMembers(), :async_op_then, :async_op_error) in null;
+          :result_or_exception;
+          [yield] let dynamic #t60 = asy::_awaitHelper(self::instanceMembers(), :async_op_then, :async_op_error) in null;
+          :result_or_exception;
+          [yield] let dynamic #t61 = asy::_awaitHelper(self::conditionals(), :async_op_then, :async_op_error) in null;
+          :result_or_exception;
+          [yield] let dynamic #t62 = asy::_awaitHelper(self::others(), :async_op_then, :async_op_error) in null;
+          :result_or_exception;
+          [yield] let dynamic #t63 = asy::_awaitHelper(self::asserts(), :async_op_then, :async_op_error) in null;
+          :result_or_exception;
+          [yield] let dynamic #t64 = asy::_awaitHelper(self::controlFlow(), :async_op_then, :async_op_error) in null;
+          :result_or_exception;
         }
       }
       asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -793,7 +793,7 @@ static method main() → dynamic /* originally async */ {
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() →* dynamic};
+  :async_op(null, null){() →* dynamic};
   :is_sync = true;
   return :async_future;
 }
