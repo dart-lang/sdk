@@ -499,9 +499,9 @@ main() {
         list.path
       ]);
 
-      const kObservatoryListening = 'Observatory listening on ';
-      final RegExp observatoryPortRegExp =
-          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)");
+      const kDartVMServiceListening = 'The Dart VM service is listening on ';
+      final RegExp dartVMServicePortRegExp = new RegExp(
+          "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)");
       int port;
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
@@ -509,9 +509,9 @@ main() {
           .transform(utf8.decoder)
           .transform(splitter)
           .listen((String s) async {
-        if (s.startsWith(kObservatoryListening)) {
-          expect(observatoryPortRegExp.hasMatch(s), isTrue);
-          final match = observatoryPortRegExp.firstMatch(s)!;
+        if (s.startsWith(kDartVMServiceListening)) {
+          expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
+          final match = dartVMServicePortRegExp.firstMatch(s)!;
           port = int.parse(match.group(1)!);
           await collectAndCheckCoverageData(port, true);
           if (!portLineCompleter.isCompleted) {
@@ -603,9 +603,9 @@ main() {
         list.path
       ]);
 
-      const kObservatoryListening = 'Observatory listening on ';
-      final RegExp observatoryPortRegExp =
-          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)");
+      const kDartVMServiceListening = 'The Dart VM service is listening on ';
+      final RegExp dartVMServicePortRegExp = new RegExp(
+          "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)");
       int port;
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
@@ -618,9 +618,9 @@ main() {
         if (s == expectStdoutContains) {
           foundExpectedString = true;
         }
-        if (s.startsWith(kObservatoryListening)) {
-          expect(observatoryPortRegExp.hasMatch(s), isTrue);
-          final match = observatoryPortRegExp.firstMatch(s)!;
+        if (s.startsWith(kDartVMServiceListening)) {
+          expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
+          final match = dartVMServicePortRegExp.firstMatch(s)!;
           port = int.parse(match.group(1)!);
           await collectAndCheckCoverageData(port, true,
               onGetAllVerifyCount: false, coverageForLines: coverageLines);
@@ -869,9 +869,9 @@ main() {
         list.path
       ]);
 
-      const kObservatoryListening = 'Observatory listening on ';
-      final RegExp observatoryPortRegExp =
-          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)");
+      const kDartVMServiceListening = 'The Dart VM service is listening on ';
+      final RegExp dartVMServicePortRegExp = new RegExp(
+          "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)");
       int port;
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
@@ -879,9 +879,9 @@ main() {
           .transform(utf8.decoder)
           .transform(splitter)
           .listen((String s) async {
-        if (s.startsWith(kObservatoryListening)) {
-          expect(observatoryPortRegExp.hasMatch(s), isTrue);
-          final match = observatoryPortRegExp.firstMatch(s)!;
+        if (s.startsWith(kDartVMServiceListening)) {
+          expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
+          final match = dartVMServicePortRegExp.firstMatch(s)!;
           port = int.parse(match.group(1)!);
           Set<int> hits1 =
               await collectAndCheckCoverageData(port, true, resume: false);
@@ -972,10 +972,10 @@ main() {
 
       String portLine = await portLineCompleter.future;
 
-      final RegExp observatoryPortRegExp =
-          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)");
-      expect(observatoryPortRegExp.hasMatch(portLine), isTrue);
-      final match = observatoryPortRegExp.firstMatch(portLine)!;
+      final RegExp dartVMServicePortRegExp = new RegExp(
+          "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)");
+      expect(dartVMServicePortRegExp.hasMatch(portLine), isTrue);
+      final match = dartVMServicePortRegExp.firstMatch(portLine)!;
       final port = int.parse(match.group(1)!);
 
       var remoteVm = new RemoteVm(port);
@@ -1256,9 +1256,9 @@ main() {
         scriptOrDill.path
       ]);
 
-      const kObservatoryListening = 'Observatory listening on ';
-      final RegExp observatoryPortRegExp =
-          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)");
+      const kDartVMServiceListening = 'The Dart VM service is listening on ';
+      final RegExp dartVMServicePortRegExp = new RegExp(
+          "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)");
       int port;
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
@@ -1267,9 +1267,9 @@ main() {
           .transform(splitter)
           .listen((String s) async {
         print("vm stdout: $s");
-        if (s.startsWith(kObservatoryListening)) {
-          expect(observatoryPortRegExp.hasMatch(s), isTrue);
-          final match = observatoryPortRegExp.firstMatch(s)!;
+        if (s.startsWith(kDartVMServiceListening)) {
+          expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
+          final match = dartVMServicePortRegExp.firstMatch(s)!;
           port = int.parse(match.group(1)!);
           RemoteVm remoteVm = new RemoteVm(port);
 
