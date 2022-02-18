@@ -521,23 +521,20 @@ class FunctionReferenceResolver {
         nameErrorEntity: function,
       );
 
-      if (functionType == null) {
+      if (functionType is FunctionType) {
+        function.staticType = functionType;
+        _resolve(
+          node: node,
+          rawType: functionType,
+          name: function.propertyName.name,
+        );
+      } else {
         // The target is known, but the method is not; [UNDEFINED_GETTER] is
         // reported elsewhere.
         node.staticType = DynamicTypeImpl.instance;
-        return;
-      } else {
-        if (functionType is FunctionType) {
-          function.staticType = functionType;
-          _resolve(
-            node: node,
-            rawType: functionType,
-            name: function.propertyName.name,
-          );
-        }
-
-        return;
       }
+
+      return;
     }
 
     var propertyElement = _resolver.typePropertyResolver
