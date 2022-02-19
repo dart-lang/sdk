@@ -404,8 +404,7 @@ class Driver {
   void _runPub(String filePath) {
     var directoryPath = path.dirname(filePath);
     if (Directory(directoryPath).existsSync()) {
-      Process.runSync(
-          '/Users/brianwilkerson/Dev/dart/dart-sdk/bin/pub', ['get'],
+      Process.runSync(Platform.resolvedExecutable, ['pub', 'get'],
           workingDirectory: directoryPath);
     }
   }
