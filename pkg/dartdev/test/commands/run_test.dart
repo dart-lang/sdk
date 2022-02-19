@@ -14,7 +14,8 @@ import '../utils.dart';
 const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
 const devToolsMessagePrefix =
     'The Dart DevTools debugger and profiler is available at: http://127.0.0.1:';
-const observatoryMessagePrefix = 'Observatory listening on http://127.0.0.1:';
+const dartVMServiceMessagePrefix =
+    'The Dart VM service is listening on http://127.0.0.1:';
 
 void main() {
   group('run', run, timeout: longTimeout);
@@ -214,7 +215,7 @@ void main(List<String> args) => print("$b $args");
     expect(
       result.stdout,
       matches(
-          r'Observatory listening on http:\/\/127.0.0.1:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
+          r'The Dart VM service is listening on http:\/\/127.0.0.1:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -236,7 +237,7 @@ void main(List<String> args) => print("$b $args");
 
     expect(
       result.stdout,
-      contains('Observatory listening on http://127.0.0.1:8181/\n'),
+      contains('The Dart VM service is listening on http://127.0.0.1:8181/\n'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -258,7 +259,7 @@ void main(List<String> args) => print("$b $args");
     expect(
       result.stdout,
       matches(
-          r'Observatory listening on http:\/\/\[::1\]:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
+          r'The Dart VM service is listening on http:\/\/\[::1\]:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -361,7 +362,7 @@ void main(List<String> args) => print("$b $args");
           p.relativeFilePath,
         ]);
         expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
-        expect(result.stdout, contains(observatoryMessagePrefix));
+        expect(result.stdout, contains(dartVMServiceMessagePrefix));
       });
 
       test('dart simple', () async {
@@ -372,7 +373,7 @@ void main(List<String> args) => print("$b $args");
           p.relativeFilePath,
         ]);
         expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
-        expect(result.stdout, contains(observatoryMessagePrefix));
+        expect(result.stdout, contains(dartVMServiceMessagePrefix));
       });
     });
 
@@ -386,7 +387,7 @@ void main(List<String> args) => print("$b $args");
           p.relativeFilePath,
         ]);
         expect(result.stdout, contains(devToolsMessagePrefix));
-        expect(result.stdout, contains(observatoryMessagePrefix));
+        expect(result.stdout, contains(dartVMServiceMessagePrefix));
       });
 
       test('dart simple', () async {
@@ -397,7 +398,7 @@ void main(List<String> args) => print("$b $args");
           p.relativeFilePath,
         ]);
         expect(result.stdout, contains(devToolsMessagePrefix));
-        expect(result.stdout, contains(observatoryMessagePrefix));
+        expect(result.stdout, contains(dartVMServiceMessagePrefix));
       });
     });
   });

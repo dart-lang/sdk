@@ -90,7 +90,7 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
       if (verbose) ...['--verbose-warnings', '--show-stats'],
     ]);
 
-    final config = await parseOptions(pubPackageMetaProvider, options);
+    final config = parseOptions(pubPackageMetaProvider, options);
     if (config == null) {
       // There was an error while parsing options.
       return 2;
@@ -105,7 +105,7 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
         config, pubPackageMetaProvider, packageConfigProvider);
     final dartdoc = config.generateDocs
         ? await Dartdoc.fromContext(config, packageBuilder)
-        : await Dartdoc.withEmptyGenerator(config, packageBuilder);
+        : Dartdoc.withEmptyGenerator(config, packageBuilder);
     dartdoc.executeGuarded();
     return 0;
   }

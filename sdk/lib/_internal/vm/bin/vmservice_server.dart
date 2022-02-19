@@ -4,10 +4,12 @@
 
 part of vmservice_io;
 
+// TODO(bkonyi): deprecate SILENT_OBSERVATORY in favor of SILENT_VM_SERVICE
 bool silentObservatory = bool.fromEnvironment('SILENT_OBSERVATORY');
+bool silentVMService = bool.fromEnvironment('SILENT_VM_SERVICE');
 
 void serverPrint(String s) {
-  if (silentObservatory) {
+  if (silentObservatory || silentVMService) {
     // We've been requested to be silent.
     return;
   }
@@ -436,9 +438,10 @@ class Server {
     final maxAttempts = 10;
     while (!await poll()) {
       attempts++;
-      serverPrint('Observatory server failed to start after $attempts tries');
+      serverPrint(
+          'Dart VM service server failed to start after $attempts tries');
       if (attempts > maxAttempts) {
-        serverPrint('Could not start Observatory HTTP server:\n'
+        serverPrint('Could not start Dart VM service HTTP server:\n'
             '$pollError\n$pollStack\n');
         _notifyServerState('');
         onServerAddressChange(null);
@@ -451,7 +454,7 @@ class Server {
       await Future<void>.delayed(const Duration(seconds: 1));
     }
     if (_service.isExiting) {
-      serverPrint('Observatory HTTP server exiting before listening as '
+      serverPrint('Dart VM service HTTP server exiting before listening as '
           'vm service has received exit request\n');
       await shutdown(true);
       return this;
@@ -468,7 +471,7 @@ class Server {
   }
 
   Future<void> outputConnectionInformation() async {
-    serverPrint('Observatory listening on $serverAddress');
+    serverPrint('The Dart VM service is listening on $serverAddress');
     if (Platform.isFuchsia) {
       // Create a file with the port number.
       final tmp = Directory.systemTemp.path;
@@ -507,14 +510,14 @@ class Server {
     // Shutdown HTTP server and subscription.
     Uri oldServerAddress = serverAddress!;
     return cleanup(forced).then((_) {
-      serverPrint('Observatory no longer listening on $oldServerAddress');
+      serverPrint('Dart VM service no longer listening on $oldServerAddress');
       _server = null;
       _notifyServerState('');
       onServerAddressChange(null);
       return this;
     }).catchError((e, st) {
       _server = null;
-      serverPrint('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
+      serverPrint('Could not shutdown Dart VM service HTTP server:\n$e\n$st\n');
       _notifyServerState('');
       onServerAddressChange(null);
       return this;

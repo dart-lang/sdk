@@ -169,7 +169,7 @@ Future<WrappedProcess> run(List<String> args, String id) async {
       .transform(new LineSplitter())
       .listen((line) {
     print("$id stderr> $line");
-    if (line.contains("Observatory listening on")) {
+    if (line.contains("The Dart VM service is listening on")) {
       observatoryLines.add(line);
     }
   });
@@ -178,7 +178,7 @@ Future<WrappedProcess> run(List<String> args, String id) async {
       .transform(new LineSplitter())
       .listen((line) {
     print("$id stdout> $line");
-    if (line.contains("Observatory listening on")) {
+    if (line.contains("The Dart VM service is listening on")) {
       observatoryLines.add(line);
     }
   });
