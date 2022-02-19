@@ -28,9 +28,9 @@ class A {
     var node = parseResult.findNode.simpleFormalParameter('a);');
     assertParsedNodeText(node, r'''
 SimpleFormalParameter
+  keyword: const
   identifier: SimpleIdentifier
     token: a
-  keyword: const
 ''');
   }
 
@@ -45,9 +45,9 @@ class A {
     var node = parseResult.findNode.simpleFormalParameter('a);');
     assertParsedNodeText(node, r'''
 SimpleFormalParameter
+  keyword: var
   identifier: SimpleIdentifier
     token: a
-  keyword: var
 ''');
   }
 
@@ -64,11 +64,11 @@ class A {
     var node = parseResult.findNode.superFormalParameter('super.a');
     assertParsedNodeText(node, r'''
 SuperFormalParameter
+  keyword: var
+  superKeyword: super
+  period: .
   identifier: SimpleIdentifier
     token: a
-  keyword: var
-  period: .
-  superKeyword: super
 ''');
   }
 }

@@ -207,7 +207,7 @@ class AstBinaryReader {
       atSign: Tokens.at(),
       name: name,
       typeArguments: typeArguments,
-      period: Tokens.period(),
+      period: constructorName != null ? Tokens.period() : null,
       constructorName: constructorName,
       arguments: arguments,
     );
@@ -240,7 +240,7 @@ class AstBinaryReader {
       Tokens.assert_(),
       Tokens.openParenthesis(),
       condition,
-      Tokens.comma(),
+      message != null ? Tokens.comma() : null,
       message,
       Tokens.closeParenthesis(),
     );

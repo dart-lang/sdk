@@ -26,17 +26,17 @@ class A {
     var node = parseResult.findNode.constructor('B()');
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  body: ExpressionFunctionBody
-    expression: NullLiteral
-      literal: null
-    functionDefinition: =>
-    semicolon: ;
   factoryKeyword: factory
+  returnType: SimpleIdentifier
+    token: B
   parameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
-  returnType: SimpleIdentifier
-    token: B
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: NullLiteral
+      literal: null
+    semicolon: ;
 ''');
   }
 
@@ -53,19 +53,20 @@ class A {
     var node = parseResult.findNode.constructor('B()');
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  body: EmptyFunctionBody
-    semicolon: ;
-  initializers
-    SuperConstructorInvocation
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      superKeyword: super
+  returnType: SimpleIdentifier
+    token: B
   parameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
-  returnType: SimpleIdentifier
-    token: B
+  separator: :
+  initializers
+    SuperConstructorInvocation
+      superKeyword: super
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -82,16 +83,16 @@ enum E {
     var node = parseResult.findNode.enumConstantDeclaration('v.');
     assertParsedNodeText(node, r'''
 EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
   arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
       rightParenthesis: ) <synthetic>
-    constructorSelector: ConstructorSelector
-      name: SimpleIdentifier
-        token: <empty> <synthetic>
-      period: .
-  name: SimpleIdentifier
-    token: v
 ''');
   }
 
@@ -106,16 +107,16 @@ enum E {
     var node = parseResult.findNode.enumConstantDeclaration('v.');
     assertParsedNodeText(node, r'''
 EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
   arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: named
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
       rightParenthesis: ) <synthetic>
-    constructorSelector: ConstructorSelector
-      name: SimpleIdentifier
-        token: named
-      period: .
-  name: SimpleIdentifier
-    token: v
 ''');
   }
 
@@ -132,16 +133,16 @@ enum E {
     var node = parseResult.findNode.enumConstantDeclaration('v.');
     assertParsedNodeText(node, r'''
 EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
   arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
       rightParenthesis: ) <synthetic>
-    constructorSelector: ConstructorSelector
-      name: SimpleIdentifier
-        token: <empty> <synthetic>
-      period: .
-  name: SimpleIdentifier
-    token: v
 ''');
   }
 
@@ -160,23 +161,23 @@ enum E {
     var node = parseResult.findNode.enumConstantDeclaration('v<int>.');
     assertParsedNodeText(node, r'''
 EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
   arguments: EnumConstantArguments
-    argumentList: ArgumentList
-      leftParenthesis: ( <synthetic>
-      rightParenthesis: ) <synthetic>
-    constructorSelector: ConstructorSelector
-      name: SimpleIdentifier
-        token: <empty> <synthetic>
-      period: .
     typeArguments: TypeArgumentList
+      leftBracket: <
       arguments
         NamedType
           name: SimpleIdentifier
             token: int
-      leftBracket: <
       rightBracket: >
-  name: SimpleIdentifier
-    token: v
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
 ''');
   }
 
@@ -233,19 +234,19 @@ enum E<T> {
     var node = parseResult.findNode.enumConstantDeclaration('v<int>');
     assertParsedNodeText(node, r'''
 EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
   arguments: EnumConstantArguments
-    argumentList: ArgumentList
-      leftParenthesis: ( <synthetic>
-      rightParenthesis: ) <synthetic>
     typeArguments: TypeArgumentList
+      leftBracket: <
       arguments
         NamedType
           name: SimpleIdentifier
             token: int
-      leftBracket: <
       rightBracket: >
-  name: SimpleIdentifier
-    token: v
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
 ''');
   }
 
@@ -260,12 +261,15 @@ enum E {
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
 EnumDeclaration
+  enumKeyword: enum
+  name: SimpleIdentifier
+    token: E
+  leftBracket: {
   constants
     EnumConstantDeclaration
       name: SimpleIdentifier
         token: v
-  name: SimpleIdentifier
-    token: E
+  rightBracket: }
 ''');
   }
 
@@ -280,13 +284,16 @@ enum E {
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
 EnumDeclaration
+  enumKeyword: enum
+  name: SimpleIdentifier
+    token: E
+  leftBracket: {
   constants
     EnumConstantDeclaration
       name: SimpleIdentifier
         token: v
-  name: SimpleIdentifier
-    token: E
   semicolon: ;
+  rightBracket: }
 ''');
   }
 
@@ -303,14 +310,14 @@ class A {
     var node = parseResult.findNode.methodDeclaration('get A');
     assertParsedNodeText(node, r'''
 MethodDeclaration
-  body: ExpressionFunctionBody
-    expression: IntegerLiteral
-      literal: 0
-    functionDefinition: =>
-    semicolon: ;
+  propertyKeyword: get
   name: SimpleIdentifier
     token: A
-  propertyKeyword: get
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
+      literal: 0
+    semicolon: ;
 ''');
   }
 
@@ -325,10 +332,10 @@ class A {
     var node = parseResult.findNode.superFormalParameter('super.a');
     assertParsedNodeText(node, r'''
 SuperFormalParameter
+  superKeyword: super
+  period: .
   identifier: SimpleIdentifier
     token: a
-  period: .
-  superKeyword: super
 ''');
   }
 }

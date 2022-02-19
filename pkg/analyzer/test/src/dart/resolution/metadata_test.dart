@@ -33,11 +33,11 @@ List<void Function(@a int b)> f() => [];
     _assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
-  element: self::@getter::a
   name: SimpleIdentifier
+    token: a
     staticElement: self::@getter::a
     staticType: null
-    token: a
+  element: self::@getter::a
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -112,33 +112,33 @@ class B {
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       InstanceCreationExpression
+        constructorName: ConstructorName
+          type: NamedType
+            name: SimpleIdentifier
+              token: A
+              staticElement: self::@class::A
+              staticType: null
+            type: A
+          staticElement: self::@class::A::@constructor::•
         argumentList: ArgumentList
+          leftParenthesis: (
           arguments
             IntegerLiteral
               literal: 0
               staticType: int
-          leftParenthesis: (
           rightParenthesis: )
-        constructorName: ConstructorName
-          staticElement: self::@class::A::@constructor::•
-          type: NamedType
-            name: SimpleIdentifier
-              staticElement: self::@class::A
-              staticType: null
-              token: A
-            type: A
         staticType: A
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: self::@class::A::@constructor::•
-  name: SimpleIdentifier
-    staticElement: self::@class::A
-    staticType: null
-    token: A
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
@@ -164,19 +164,19 @@ void f() {
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, '''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 3
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: self::@class::A::@constructor::•
-  name: SimpleIdentifier
-    staticElement: self::@class::A
-    staticType: null
-    token: A
 ''');
 
     final localVariable = findElement.localVar('x');
@@ -454,27 +454,27 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: self::@class::A::@constructor::named
+      staticType: null
+    staticElement: self::@class::A::@constructor::named
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: self::@class::A::@constructor::named
-  name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: self::@class::A::@constructor::named
-      staticType: null
-      token: named
-    period: .
-    prefix: SimpleIdentifier
-      staticElement: self::@class::A
-      staticType: null
-      token: A
-    staticElement: self::@class::A::@constructor::named
-    staticType: null
 ''');
     _assertAnnotationValueText(annotation, '''
 A
@@ -501,19 +501,19 @@ void f() {}
     _assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
-  element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: self::@class::A::@getter::foo
-      staticType: null
-      token: foo
-    period: .
     prefix: SimpleIdentifier
+      token: A
       staticElement: self::@class::A
       staticType: null
-      token: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
     staticElement: self::@class::A::@getter::foo
     staticType: null
+  element: self::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -534,19 +534,19 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: self::@class::A::@constructor::•
-  name: SimpleIdentifier
-    staticElement: self::@class::A
-    staticType: null
-    token: A
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
@@ -573,34 +573,34 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: Object?}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: Object?}
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       ListLiteral
         leftBracket: [
         rightBracket: ]
         staticType: List<List<Object?>>
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: Object?}
-  name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: ConstructorMember
-        base: self::@class::A::@constructor::named
-        substitution: {T: Object?}
-      staticType: null
-      token: named
-    period: .
-    prefix: SimpleIdentifier
-      staticElement: self::@class::A
-      staticType: null
-      token: A
-    staticElement: ConstructorMember
-      base: self::@class::A::@constructor::named
-      substitution: {T: Object?}
-    staticType: null
 ''');
     _assertAnnotationValueText(annotation, '''
 A<Object?>
@@ -628,22 +628,22 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       ListLiteral
         leftBracket: [
         rightBracket: ]
         staticType: List<List<Object?>>
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: Object?}
-  name: SimpleIdentifier
-    staticElement: self::@class::A
-    staticType: null
-    token: A
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<Object?>
@@ -671,33 +671,33 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
-  arguments: ArgumentList
-    arguments
-      IntegerLiteral
-        literal: 42
-        staticType: int
-    leftParenthesis: (
-    rightParenthesis: )
   atSign: @
-  element: ConstructorMember
-    base: self::@class::A::@constructor::named
-    substitution: {T: int}
   name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
     identifier: SimpleIdentifier
+      token: named
       staticElement: ConstructorMember
         base: self::@class::A::@constructor::named
         substitution: {T: int}
       staticType: null
-      token: named
-    period: .
-    prefix: SimpleIdentifier
-      staticElement: self::@class::A
-      staticType: null
-      token: A
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    rightParenthesis: )
+  element: ConstructorMember
+    base: self::@class::A::@constructor::named
+    substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, '''
 A<int>
@@ -724,21 +724,21 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@class::A
-    staticType: null
-    token: A
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -764,19 +764,19 @@ void f() {}
     _assertResolvedNodeText(findNode.annotation('@A'), r'''
 Annotation
   atSign: @
-  element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: self::@class::A::@getter::foo
-      staticType: null
-      token: foo
-    period: .
     prefix: SimpleIdentifier
+      token: A
       staticElement: self::@class::A
       staticType: null
-      token: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
     staticElement: self::@class::A::@getter::foo
     staticType: null
+  element: self::@class::A::@getter::foo
 ''');
   }
 
@@ -794,33 +794,33 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
-  arguments: ArgumentList
-    arguments
-      IntegerLiteral
-        literal: 42
-        staticType: int
-    leftParenthesis: (
-    rightParenthesis: )
   atSign: @
-  element: ConstructorMember
-    base: self::@class::A::@constructor::named
-    substitution: {T: dynamic}
   name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
     identifier: SimpleIdentifier
+      token: named
       staticElement: ConstructorMember
         base: self::@class::A::@constructor::named
         substitution: {T: dynamic}
       staticType: null
-      token: named
-    period: .
-    prefix: SimpleIdentifier
-      staticElement: self::@class::A
-      staticType: null
-      token: A
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
       substitution: {T: dynamic}
     staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    rightParenthesis: )
+  element: ConstructorMember
+    base: self::@class::A::@constructor::named
+    substitution: {T: dynamic}
 ''');
     _assertAnnotationValueText(annotation, '''
 A<dynamic>
@@ -842,19 +842,19 @@ void f() {}
     _assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
-  element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: self::@class::A::@getter::foo
-      staticType: null
-      token: foo
-    period: .
     prefix: SimpleIdentifier
+      token: A
       staticElement: self::@class::A
       staticType: null
-      token: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
     staticElement: self::@class::A::@getter::foo
     staticType: null
+  element: self::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 <null>
@@ -875,37 +875,38 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
-  arguments: ArgumentList
-    arguments
-      IntegerLiteral
-        literal: 42
-        staticType: int
-    leftParenthesis: (
-    rightParenthesis: )
   atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  period: .
   constructorName: SimpleIdentifier
+    token: named
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
-    token: named
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    rightParenthesis: )
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@class::A
-    staticType: null
-    token: A
-  typeArguments: TypeArgumentList
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          staticElement: dart:core::@class::int
-          staticType: null
-          token: int
-        type: int
-    leftBracket: <
-    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, '''
 A<int>
@@ -932,31 +933,31 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@class::A
-    staticType: null
-    token: A
-  typeArguments: TypeArgumentList
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          staticElement: dart:core::@class::int
-          staticType: null
-          token: int
-        type: int
-    leftBracket: <
-    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -984,21 +985,21 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: dynamic}
-  name: SimpleIdentifier
-    staticElement: self::@class::A
-    staticType: null
-    token: A
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<dynamic>
@@ -1029,21 +1030,21 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@class::B
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::B::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@class::B
-    staticType: null
-    token: B
 ''');
     _assertAnnotationValueText(annotation, r'''
 B<int>
@@ -1073,21 +1074,21 @@ class E {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@class::B
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::B::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@class::B
-    staticType: null
-    token: B
 ''');
     _assertAnnotationValueText(annotation, r'''
 B<int>
@@ -1114,21 +1115,21 @@ typedef T F<T>();
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@class::B
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::B::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@class::B
-    staticType: null
-    token: B
 ''');
     _assertAnnotationValueText(annotation, r'''
 B<int>
@@ -1154,21 +1155,21 @@ f(@B(42) g()) {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@class::B
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::B::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@class::B
-    staticType: null
-    token: B
 ''');
     _assertAnnotationValueText(annotation, r'''
 B<int>
@@ -1195,21 +1196,21 @@ typedef F = void Function();
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@class::B
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::B::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@class::B
-    staticType: null
-    token: B
 ''');
     _assertAnnotationValueText(annotation, r'''
 B<int>
@@ -1238,21 +1239,21 @@ class C {
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@class::B
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::B::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@class::B
-    staticType: null
-    token: B
 ''');
     _assertAnnotationValueText(annotation, r'''
 B<int>
@@ -1279,31 +1280,31 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@class::B
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::B::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@class::B
-    staticType: null
-    token: B
-  typeArguments: TypeArgumentList
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          staticElement: dart:core::@class::int
-          staticType: null
-          token: int
-        type: int
-    leftBracket: <
-    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 B<int>
@@ -1420,23 +1421,24 @@ void f() {}
     _assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
-  constructorName: SimpleIdentifier
-    staticElement: package:test/a.dart::@class::A::@getter::foo
-    staticType: null
-    token: foo
-  element: package:test/a.dart::@class::A::@getter::foo
   name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: package:test/a.dart::@typeAlias::B
-      staticType: null
-      token: B
-    period: .
     prefix: SimpleIdentifier
+      token: prefix
       staticElement: self::@prefix::prefix
       staticType: null
-      token: prefix
+    period: .
+    identifier: SimpleIdentifier
+      token: B
+      staticElement: package:test/a.dart::@typeAlias::B
+      staticType: null
     staticElement: package:test/a.dart::@typeAlias::B
     staticType: null
+  period: .
+  constructorName: SimpleIdentifier
+    token: foo
+    staticElement: package:test/a.dart::@class::A::@getter::foo
+    staticType: null
+  element: package:test/a.dart::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -1462,35 +1464,36 @@ void f() {}
     var annotation = findNode.annotation('@prefix.B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
-  arguments: ArgumentList
-    arguments
-      IntegerLiteral
-        literal: 42
-        staticType: int
-    leftParenthesis: (
-    rightParenthesis: )
   atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: B
+      staticElement: package:test/a.dart::@typeAlias::B
+      staticType: null
+    staticElement: package:test/a.dart::@typeAlias::B
+    staticType: null
+  period: .
   constructorName: SimpleIdentifier
+    token: named
     staticElement: ConstructorMember
       base: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
-    token: named
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    rightParenthesis: )
   element: ConstructorMember
     base: package:test/a.dart::@class::A::@constructor::named
     substitution: {T: int}
-  name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: package:test/a.dart::@typeAlias::B
-      staticType: null
-      token: B
-    period: .
-    prefix: SimpleIdentifier
-      staticElement: self::@prefix::prefix
-      staticType: null
-      token: prefix
-    staticElement: package:test/a.dart::@typeAlias::B
-    staticType: null
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1523,29 +1526,29 @@ void f() {}
     var annotation = findNode.annotation('@prefix.B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: B
+      staticElement: package:test/a.dart::@typeAlias::B
+      staticType: null
+    staticElement: package:test/a.dart::@typeAlias::B
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: package:test/a.dart::@class::A::@constructor::•
     substitution: {T: int}
-  name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: package:test/a.dart::@typeAlias::B
-      staticType: null
-      token: B
-    period: .
-    prefix: SimpleIdentifier
-      staticElement: self::@prefix::prefix
-      staticType: null
-      token: prefix
-    staticElement: package:test/a.dart::@typeAlias::B
-    staticType: null
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1578,45 +1581,46 @@ void f() {}
     var annotation = findNode.annotation('@prefix.B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
-  arguments: ArgumentList
-    arguments
-      IntegerLiteral
-        literal: 42
-        staticType: int
-    leftParenthesis: (
-    rightParenthesis: )
   atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: B
+      staticElement: package:test/a.dart::@typeAlias::B
+      staticType: null
+    staticElement: package:test/a.dart::@typeAlias::B
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  period: .
   constructorName: SimpleIdentifier
+    token: named
     staticElement: ConstructorMember
       base: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
-    token: named
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    rightParenthesis: )
   element: ConstructorMember
     base: package:test/a.dart::@class::A::@constructor::named
     substitution: {T: int}
-  name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: package:test/a.dart::@typeAlias::B
-      staticType: null
-      token: B
-    period: .
-    prefix: SimpleIdentifier
-      staticElement: self::@prefix::prefix
-      staticType: null
-      token: prefix
-    staticElement: package:test/a.dart::@typeAlias::B
-    staticType: null
-  typeArguments: TypeArgumentList
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          staticElement: dart:core::@class::int
-          staticType: null
-          token: int
-        type: int
-    leftBracket: <
-    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1649,39 +1653,39 @@ void f() {}
     var annotation = findNode.annotation('@prefix.B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: B
+      staticElement: package:test/a.dart::@typeAlias::B
+      staticType: null
+    staticElement: package:test/a.dart::@typeAlias::B
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: package:test/a.dart::@class::A::@constructor::•
     substitution: {T: int}
-  name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: package:test/a.dart::@typeAlias::B
-      staticType: null
-      token: B
-    period: .
-    prefix: SimpleIdentifier
-      staticElement: self::@prefix::prefix
-      staticType: null
-      token: prefix
-    staticElement: package:test/a.dart::@typeAlias::B
-    staticType: null
-  typeArguments: TypeArgumentList
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          staticElement: dart:core::@class::int
-          staticType: null
-          token: int
-        type: int
-    leftBracket: <
-    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1711,19 +1715,19 @@ void f() {}
     _assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
-  element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: self::@class::A::@getter::foo
-      staticType: null
-      token: foo
-    period: .
     prefix: SimpleIdentifier
+      token: B
       staticElement: self::@typeAlias::B
       staticType: null
-      token: B
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
     staticElement: self::@class::A::@getter::foo
     staticType: null
+  element: self::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -1747,7 +1751,30 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@typeAlias::B
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: int, U: double}
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
@@ -1755,32 +1782,10 @@ Annotation
       DoubleLiteral
         literal: 1.2
         staticType: double
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
-  constructorName: SimpleIdentifier
-    staticElement: ConstructorMember
-      base: self::@class::A::@constructor::named
-      substitution: {T: int, U: double}
-    staticType: null
-    token: named
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: int, U: double}
-  name: SimpleIdentifier
-    staticElement: self::@typeAlias::B
-    staticType: null
-    token: B
-  typeArguments: TypeArgumentList
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          staticElement: dart:core::@class::int
-          staticType: null
-          token: int
-        type: int
-    leftBracket: <
-    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int, double>
@@ -1818,7 +1823,23 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@typeAlias::B
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
@@ -1826,26 +1847,10 @@ Annotation
       DoubleLiteral
         literal: 1.2
         staticType: double
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int, U: double}
-  name: SimpleIdentifier
-    staticElement: self::@typeAlias::B
-    staticType: null
-    token: B
-  typeArguments: TypeArgumentList
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          staticElement: dart:core::@class::int
-          staticType: null
-          token: int
-        type: int
-    leftBracket: <
-    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int, double>
@@ -1882,33 +1887,33 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
-  arguments: ArgumentList
-    arguments
-      IntegerLiteral
-        literal: 42
-        staticType: int
-    leftParenthesis: (
-    rightParenthesis: )
   atSign: @
-  element: ConstructorMember
-    base: self::@class::A::@constructor::named
-    substitution: {T: int}
   name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: B
+      staticElement: self::@typeAlias::B
+      staticType: null
+    period: .
     identifier: SimpleIdentifier
+      token: named
       staticElement: ConstructorMember
         base: self::@class::A::@constructor::named
         substitution: {T: int}
       staticType: null
-      token: named
-    period: .
-    prefix: SimpleIdentifier
-      staticElement: self::@typeAlias::B
-      staticType: null
-      token: B
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    rightParenthesis: )
+  element: ConstructorMember
+    base: self::@class::A::@constructor::named
+    substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1938,21 +1943,21 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@typeAlias::B
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@typeAlias::B
-    staticType: null
-    token: B
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1982,37 +1987,38 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
-  arguments: ArgumentList
-    arguments
-      IntegerLiteral
-        literal: 42
-        staticType: int
-    leftParenthesis: (
-    rightParenthesis: )
   atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@typeAlias::B
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  period: .
   constructorName: SimpleIdentifier
+    token: named
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
-    token: named
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    rightParenthesis: )
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@typeAlias::B
-    staticType: null
-    token: B
-  typeArguments: TypeArgumentList
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          staticElement: dart:core::@class::int
-          staticType: null
-          token: int
-        type: int
-    leftBracket: <
-    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -2042,31 +2048,31 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@typeAlias::B
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@typeAlias::B
-    staticType: null
-    token: B
-  typeArguments: TypeArgumentList
-    arguments
-      NamedType
-        name: SimpleIdentifier
-          staticElement: dart:core::@class::int
-          staticType: null
-          token: int
-        type: int
-    leftBracket: <
-    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -2096,33 +2102,33 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
-  arguments: ArgumentList
-    arguments
-      IntegerLiteral
-        literal: 42
-        staticType: int
-    leftParenthesis: (
-    rightParenthesis: )
   atSign: @
-  element: ConstructorMember
-    base: self::@class::A::@constructor::named
-    substitution: {T: int}
   name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: B
+      staticElement: self::@typeAlias::B
+      staticType: null
+    period: .
     identifier: SimpleIdentifier
+      token: named
       staticElement: ConstructorMember
         base: self::@class::A::@constructor::named
         substitution: {T: int}
       staticType: null
-      token: named
-    period: .
-    prefix: SimpleIdentifier
-      staticElement: self::@typeAlias::B
-      staticType: null
-      token: B
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    rightParenthesis: )
+  element: ConstructorMember
+    base: self::@class::A::@constructor::named
+    substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -2152,21 +2158,21 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@typeAlias::B
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
-  name: SimpleIdentifier
-    staticElement: self::@typeAlias::B
-    staticType: null
-    token: B
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -2196,27 +2202,27 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: B
+      staticElement: self::@typeAlias::B
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: self::@class::A::@constructor::named
+      staticType: null
+    staticElement: self::@class::A::@constructor::named
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: self::@class::A::@constructor::named
-  name: PrefixedIdentifier
-    identifier: SimpleIdentifier
-      staticElement: self::@class::A::@constructor::named
-      staticType: null
-      token: named
-    period: .
-    prefix: SimpleIdentifier
-      staticElement: self::@typeAlias::B
-      staticType: null
-      token: B
-    staticElement: self::@class::A::@constructor::named
-    staticType: null
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
@@ -2245,19 +2251,19 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: B
+    staticElement: self::@typeAlias::B
+    staticType: null
   arguments: ArgumentList
+    leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
         staticType: int
-    leftParenthesis: (
     rightParenthesis: )
-  atSign: @
   element: self::@class::A::@constructor::•
-  name: SimpleIdentifier
-    staticElement: self::@typeAlias::B
-    staticType: null
-    token: B
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
