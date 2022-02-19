@@ -972,6 +972,23 @@ void f() {
     assertHasResult(SearchResultKind.REFERENCE, 'ppp.Stream');
   }
 
+  Future<void> test_topFunction_parameter_optionalNamed_anywhere() async {
+    addTestFile('''
+void foo(int a, int b, {int? test}) {
+  test;
+}
+
+void g() {
+  foo(0, test: 2, 1);
+}
+''');
+    await findElementReferences('test})', false);
+    expect(searchElement!.kind, ElementKind.PARAMETER);
+    expect(results, hasLength(2));
+    assertHasResult(SearchResultKind.READ, 'test;');
+    assertHasResult(SearchResultKind.REFERENCE, 'test: 2');
+  }
+
   Future<void> test_topLevelVariable_explicit() async {
     addTestFile('''
 var vvv = 1;
