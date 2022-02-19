@@ -189,7 +189,6 @@
       ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
-      "out/ReleaseX64/dart2wasm_platform.dill",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -217,8 +216,7 @@
       "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
-      "xcodebuild/ReleaseX64/dart",
-      "xcodebuild/ReleaseX64/dart2wasm_platform.dill"
+      "xcodebuild/ReleaseX64/dart"
     ],
     "front-end": [
       ".packages",
@@ -2940,7 +2938,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk"
+            "runtime"
           ]
         },
         {
