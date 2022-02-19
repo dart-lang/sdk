@@ -10242,10 +10242,10 @@ library
               staticElement: self::@getter::b
               staticType: int
             rightBracket: ] @41
-            staticType: int
             staticElement: MethodMember
               base: dart:core::@class::List::@method::[]
               substitution: {E: int}
+            staticType: int
     accessors
       synthetic static get a @-1
         returnType: List<int>

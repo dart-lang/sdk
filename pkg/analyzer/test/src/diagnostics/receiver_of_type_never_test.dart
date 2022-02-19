@@ -138,12 +138,20 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 22, 3),
     ]);
 
-    assertIndexExpression(
-      findNode.index('x[0]'),
-      readElement: null,
-      writeElement: null,
-      type: 'Never',
-    );
+    assertResolvedNodeText(findNode.index('x[0]'), r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: Never
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightBracket: ]
+  staticElement: <null>
+  staticType: Never
+''');
   }
 
   test_indexExpression_never_readWrite() async {
@@ -179,14 +187,39 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 22, 11),
     ]);
 
-    assertIndexExpression(
-      findNode.index('x[0]'),
-      readElement: null,
-      writeElement: null,
-      type: 'Never',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.assignment('x[0]'), r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: x
+      staticElement: x@13
+      staticType: Never
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      staticType: int
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_indexExpression_neverQ_read() async {
@@ -199,12 +232,20 @@ void f(Never? x) {
           22, 1),
     ]);
 
-    assertIndexExpression(
-      findNode.index('x[0]'),
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
-    );
+    assertResolvedNodeText(findNode.index('x[0]'), r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: Never?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightBracket: ]
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_indexExpression_neverQ_readWrite() async {
@@ -240,14 +281,39 @@ void f(Never? x) {
           22, 1),
     ]);
 
-    assertIndexExpression(
-      findNode.index('x[0]'),
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.assignment('x[0]'), r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: x
+      staticElement: x@14
+      staticType: Never?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      staticType: int
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_invocationArgument() async {

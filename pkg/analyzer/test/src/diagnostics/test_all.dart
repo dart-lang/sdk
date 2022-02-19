@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/node_text_expectations.dart';
 import 'abi_specific_integer_mapping_test.dart' as abi_specific_integer_mapping;
 import 'abstract_class_member_test.dart' as abstract_class_member;
 import 'abstract_field_constructor_initializer_test.dart'
@@ -1320,5 +1321,6 @@ main() {
     yield_each_in_non_generator.main();
     yield_in_non_generator.main();
     yield_of_invalid_type.main();
+    defineReflectiveTests(UpdateNodeTextExpectations);
   }, name: 'diagnostics');
 }

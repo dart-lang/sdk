@@ -5,10 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../summary/resolved_ast_printer.dart';
 import 'context_collection_resolution.dart';
 
 main() {
@@ -30,7 +28,7 @@ List<void Function(@a int b)> f() => [];
 ''');
 
     var annotation = findNode.annotation('@a');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -110,7 +108,7 @@ class B {
 }
 ''');
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -162,7 +160,7 @@ void f() {
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, '''
+    assertResolvedNodeText(annotation, '''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -452,7 +450,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -498,7 +496,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -532,7 +530,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -571,7 +569,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -626,7 +624,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -669,7 +667,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -722,7 +720,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -761,7 +759,7 @@ class A<T> {
 void f() {}
 ''');
 
-    _assertResolvedNodeText(findNode.annotation('@A'), r'''
+    assertResolvedNodeText(findNode.annotation('@A'), r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -792,7 +790,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -839,7 +837,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -873,7 +871,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -931,7 +929,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -983,7 +981,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@A');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1028,7 +1026,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1072,7 +1070,7 @@ class E {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1113,7 +1111,7 @@ typedef T F<T>();
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1153,7 +1151,7 @@ f(@B(42) g()) {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1194,7 +1192,7 @@ typedef F = void Function();
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1237,7 +1235,7 @@ class C {
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1278,7 +1276,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1418,7 +1416,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@prefix.B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -1462,7 +1460,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@prefix.B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -1524,7 +1522,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@prefix.B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -1579,7 +1577,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@prefix.B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -1651,7 +1649,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@prefix.B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -1712,7 +1710,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -1749,7 +1747,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1821,7 +1819,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1885,7 +1883,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -1941,7 +1939,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1985,7 +1983,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -2046,7 +2044,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -2100,7 +2098,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -2156,7 +2154,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -2200,7 +2198,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -2249,7 +2247,7 @@ void f() {}
 ''');
 
     var annotation = findNode.annotation('@B');
-    _assertResolvedNodeText(annotation, r'''
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -2287,25 +2285,5 @@ A
   ) {
     var value = annotation.computeConstantValue();
     assertDartObjectText(value, expected);
-  }
-
-  void _assertResolvedNodeText(AstNode node, String expected) {
-    var actual = _resolvedNodeText(node);
-    if (actual != expected) {
-      print(actual);
-    }
-    expect(actual, expected);
-  }
-
-  String _resolvedNodeText(AstNode node) {
-    var buffer = StringBuffer();
-    node.accept(
-      ResolvedAstPrinter(
-        selfUriStr: result.uri.toString(),
-        sink: buffer,
-        indent: '',
-      ),
-    );
-    return buffer.toString();
   }
 }
