@@ -1336,6 +1336,19 @@ void f() {
     assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'bbb: 2');
   }
 
+  Future<void> test_PARAMETER_named_anywhere() async {
+    addTestFile('''
+void f(int aaa, int bbb, {int? ccc, int? ddd}) {}
+
+void g() {
+  f(0, ccc: 2, 1, ddd: 3);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'ccc: 2');
+    assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'ddd: 3');
+  }
+
   Future<void> test_PARAMETER_super_children() async {
     addTestFile('''
 class A {
