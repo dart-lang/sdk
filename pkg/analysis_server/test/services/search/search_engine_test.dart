@@ -436,6 +436,32 @@ class B extends A {
     );
   }
 
+  Future<void>
+      test_searchReferences_topFunction_parameter_optionalNamed_anywhere() async {
+    var code = '''
+void foo(int a, int b, {int? test}) {}
+
+void g() {
+  foo(1, test: 0, 2);
+}
+''';
+    await resolveTestCode(code);
+
+    var element = findElement.parameter('test');
+    var matches = await searchEngine.searchReferences(element);
+    expect(
+      matches,
+      unorderedEquals([
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.REFERENCE &&
+              identical(m.element, findElement.topFunction('g')) &&
+              m.sourceRange.offset == code.indexOf('test: 0') &&
+              m.sourceRange.length == 'test'.length;
+        }),
+      ]),
+    );
+  }
+
   Future<void> test_searchTopLevelDeclarations() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class A {}

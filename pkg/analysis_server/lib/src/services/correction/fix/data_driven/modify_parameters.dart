@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
+import 'package:analysis_server/src/utilities/index_range.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -109,14 +110,14 @@ class ModifyParameters extends Change<_Data> {
       }
     }
 
-    var insertionRanges = argumentsToInsert.contiguousSubRanges.toList();
-    var deletionRanges = argumentsToDelete.contiguousSubRanges.toList();
+    var insertionRanges = IndexRange.contiguousSubRanges(argumentsToInsert);
+    var deletionRanges = IndexRange.contiguousSubRanges(argumentsToDelete);
     if (insertionRanges.isNotEmpty) {
       /// Write to the [builder] the new arguments in the [insertionRange]. If
       /// [needsInitialComma] is `true` then we need to write a comma before the
       /// first of the new arguments.
       void writeInsertionRange(DartEditBuilder builder,
-          _IndexRange insertionRange, bool needsInitialComma) {
+          IndexRange insertionRange, bool needsInitialComma) {
         var needsComma = needsInitialComma;
         for (var argumentIndex = insertionRange.lower;
             argumentIndex <= insertionRange.upper;
@@ -199,7 +200,7 @@ class ModifyParameters extends Change<_Data> {
         }
         if (upper >= lower) {
           builder.addInsertion(offset, (builder) {
-            writeInsertionRange(builder, _IndexRange(lower, upper),
+            writeInsertionRange(builder, IndexRange(lower, upper),
                 nextRemaining > 0 || insertionCount > 0);
           });
         }
@@ -255,7 +256,7 @@ class ModifyParameters extends Change<_Data> {
 
   /// Return the range from the list of [ranges] that contains the given
   /// [index], or `null` if there is no such range.
-  _IndexRange? _rangeContaining(List<_IndexRange> ranges, int index) {
+  IndexRange? _rangeContaining(List<IndexRange> ranges, int index) {
     for (var range in ranges) {
       if (index >= range.lower && index <= range.upper) {
         return range;
@@ -294,45 +295,4 @@ class _Data {
   /// Initialize a newly created data object with the data needed to update an
   /// invocation site.
   _Data(this.argumentList);
-}
-
-/// A range of indexes within a list.
-class _IndexRange {
-  /// The index of the first element in the range.
-  final int lower;
-
-  /// The index of the last element in the range. This will be the same as the
-  /// [lower] if there is a single element in the range.
-  final int upper;
-
-  /// Initialize a newly created range.
-  _IndexRange(this.lower, this.upper);
-
-  /// Return the number of indices in this range.
-  int get count => upper - lower + 1;
-
-  @override
-  String toString() => '[$lower..$upper]';
-}
-
-extension on List<int> {
-  Iterable<_IndexRange> get contiguousSubRanges sync* {
-    if (isEmpty) {
-      return;
-    }
-    var lower = this[0];
-    var previous = lower;
-    var index = 1;
-    while (index < length) {
-      var current = this[index];
-      if (current == previous + 1) {
-        previous = current;
-      } else {
-        yield _IndexRange(lower, previous);
-        lower = previous = current;
-      }
-      index++;
-    }
-    yield _IndexRange(lower, previous);
-  }
 }

@@ -1754,6 +1754,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     _tokenOrNull(node.atSign);
+    _tokenOrNull(node.period);
     super.visitAnnotation(node);
   }
 
@@ -1774,6 +1775,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   void visitAssertInitializer(AssertInitializer node) {
     _tokenOrNull(node.assertKeyword);
     _tokenOrNull(node.leftParenthesis);
+    _tokenOrNull(node.comma);
     _tokenOrNull(node.rightParenthesis);
     super.visitAssertInitializer(node);
   }
@@ -1824,6 +1826,8 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     _tokenOrNull(node.leftParenthesis);
+    _tokenOrNull(node.leftDelimiter);
+    _tokenOrNull(node.rightDelimiter);
     _tokenOrNull(node.rightParenthesis);
     super.visitFormalParameterList(node);
   }
@@ -1832,6 +1836,15 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   void visitGenericFunctionType(GenericFunctionType node) {
     _tokenOrNull(node.functionKeyword);
     super.visitGenericFunctionType(node);
+  }
+
+  @override
+  void visitIfElement(IfElement node) {
+    _tokenOrNull(node.ifKeyword);
+    _tokenOrNull(node.leftParenthesis);
+    _tokenOrNull(node.rightParenthesis);
+    _tokenOrNull(node.elseKeyword);
+    super.visitIfElement(node);
   }
 
   @override
@@ -1872,11 +1885,23 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitLabel(Label node) {
+    _tokenOrNull(node.colon);
+    super.visitLabel(node);
+  }
+
+  @override
   void visitListLiteral(ListLiteral node) {
     _tokenOrNull(node.constKeyword);
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
     super.visitListLiteral(node);
+  }
+
+  @override
+  void visitMapLiteralEntry(MapLiteralEntry node) {
+    _tokenOrNull(node.separator);
+    super.visitMapLiteralEntry(node);
   }
 
   @override
@@ -1886,6 +1911,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
     node.methodName.accept(this);
     node.typeArguments?.accept(this);
     node.argumentList.accept(this);
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    _tokenOrNull(node.question);
+    super.visitNamedType(node);
   }
 
   @override

@@ -17,9 +17,9 @@ import '../elements/entities.dart';
 import '../ir/util.dart';
 import '../kernel/kelements.dart' show KLocalFunction;
 import '../kernel/element_map.dart';
+import '../kernel/kernel_world.dart';
 import '../universe/use.dart';
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactVisitorImpl;
-import '../world.dart' show KClosedWorld;
 
 /// [EntityDataInfo] is meta data about [EntityData] for a given compilation
 /// [Entity].

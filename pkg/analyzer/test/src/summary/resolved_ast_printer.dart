@@ -67,10 +67,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('AdjacentStrings');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNodeList('strings', node.strings);
-      _addStringLiteral(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
+      _writeRaw('stringValue', node.stringValue);
     });
   }
 
@@ -79,12 +78,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('Annotation');
     _withIndent(() {
-      _writeNode('arguments', node.arguments);
-      _writeToken('atSign', node.atSign);
-      _writeNode('constructorName', node.constructorName);
+      _writeNamedChildEntities(node);
       _writeElement('element', node.element);
-      _writeNode('name', node.name);
-      _writeNode('typeArguments', node.typeArguments);
     });
   }
 
@@ -93,11 +88,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ArgumentList');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('leftParenthesis', node.leftParenthesis);
-      properties.addNodeList('arguments', node.arguments);
-      properties.addToken('rightParenthesis', node.rightParenthesis);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -106,12 +97,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('AsExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('expression', node.expression);
-      properties.addToken('asOperator', node.asOperator);
-      properties.addNode('type', node.type);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -120,10 +107,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('AssertInitializer');
     _withIndent(() {
-      var properties = _Properties();
-      _addAssertion(properties, node);
-      _addConstructorInitializer(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -132,11 +116,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('AssertStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('semicolon', node.semicolon);
-      _addAssertion(properties, node);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -145,17 +125,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('AssignmentExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('leftHandSide', node.leftHandSide);
-      properties.addToken('operator', node.operator);
-      properties.addNode('rightHandSide', node.rightHandSide);
-      properties.addElement('readElement', node.readElement);
-      properties.addType('readType', node.readType);
-      properties.addElement('writeElement', node.writeElement);
-      properties.addType('writeType', node.writeType);
-      _addExpression(properties, node);
-      _addMethodReferenceExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeElement('readElement', node.readElement);
+      _writeType('readType', node.readType);
+      _writeElement('writeElement', node.writeElement);
+      _writeType('writeType', node.writeType);
+      _writeElement('staticElement', node.staticElement);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -164,11 +140,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('AwaitExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('awaitKeyword', node.awaitKeyword);
-      properties.addNode('expression', node.expression);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -177,14 +150,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('BinaryExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('leftOperand', node.leftOperand);
-      properties.addToken('operator', node.operator);
-      properties.addNode('rightOperand', node.rightOperand);
-      properties.addType('staticInvokeType', node.staticInvokeType);
-      _addExpression(properties, node);
-      _addMethodReferenceExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeElement('staticElement', node.staticElement);
+      _writeType('staticInvokeType', node.staticInvokeType);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -193,12 +162,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('Block');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('leftBracket', node.leftBracket);
-      properties.addToken('rightBracket', node.rightBracket);
-      properties.addNodeList('statements', node.statements);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -207,10 +171,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('BlockFunctionBody');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('block', node.block);
-      _addFunctionBody(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -219,10 +180,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('BooleanLiteral');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('literal', node.literal);
-      _addLiteral(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -231,11 +190,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('BreakStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('breakKeyword', node.breakKeyword);
-      properties.addNode('label', node.label);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -244,11 +199,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('CascadeExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNodeList('cascadeSections', node.cascadeSections);
-      properties.addNode('target', node.target);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -257,15 +209,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('CatchClause');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('body', node.body);
-      properties.addToken('catchKeyword', node.catchKeyword);
-      properties.addNode('exceptionParameter', node.exceptionParameter);
-      properties.addNode('exceptionType', node.exceptionType);
-      properties.addToken('onKeyword', node.onKeyword);
-      properties.addNode('stackTraceParameter', node.stackTraceParameter);
-      _addAstNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -274,14 +218,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ClassDeclaration');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('abstractKeyword', node.abstractKeyword);
-      properties.addToken('classKeyword', node.classKeyword);
-      properties.addNode('extendsClause', node.extendsClause);
-      properties.addNode('nativeClause', node.nativeClause);
-      properties.addNode('withClause', node.withClause);
-      _addClassOrMixinDeclaration(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
     });
   }
 
@@ -290,9 +230,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('Comment');
     _withIndent(() {
-      var properties = _Properties();
-      _addAstNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -301,9 +239,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('CompilationUnit');
     _withIndent(() {
-      _writeNode('scriptTag', node.scriptTag);
-      _writeNodeList('directives', node.directives);
-      _writeNodeList('declarations', node.declarations);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -312,14 +248,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ConditionalExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('colon', node.colon);
-      properties.addNode('condition', node.condition);
-      properties.addNode('elseExpression', node.elseExpression);
-      properties.addToken('question', node.question);
-      properties.addNode('thenExpression', node.thenExpression);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -328,18 +258,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ConstructorDeclaration');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('body', node.body);
-      properties.addToken('constKeyword', node.constKeyword);
-      properties.addToken('externalKeyword', node.externalKeyword);
-      properties.addToken('factoryKeyword', node.factoryKeyword);
-      properties.addNodeList('initializers', node.initializers);
-      properties.addNode('name', node.name);
-      properties.addNode('parameters', node.parameters);
-      properties.addNode('redirectedConstructor', node.redirectedConstructor);
-      properties.addNode('returnType', node.returnType);
-      _addClassMember(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
     });
   }
 
@@ -348,14 +270,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ConstructorFieldInitializer');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('equals', node.equals);
-      properties.addNode('expression', node.expression);
-      properties.addNode('fieldName', node.fieldName);
-      properties.addToken('period', node.period);
-      properties.addToken('thisKeyword', node.thisKeyword);
-      _addConstructorInitializer(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -364,12 +279,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ConstructorName');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('name', node.name);
-      properties.addToken('period', node.period);
-      properties.addElement('staticElement', node.staticElement);
-      properties.addNode('type', node.type);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeElement('staticElement', node.staticElement);
     });
   }
 
@@ -377,10 +288,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void visitConstructorReference(ConstructorReference node) {
     _writeln('ConstructorReference');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('constructorName', node.constructorName);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -389,10 +298,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _checkChildrenEntitiesLinking(node);
     _writeln('ConstructorSelector');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('name', node.name);
-      properties.addToken('period', node.period);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -401,11 +307,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ContinueStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('continueKeyword', node.continueKeyword);
-      properties.addNode('label', node.label);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -414,12 +316,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('DeclaredIdentifier');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('identifier', node.identifier);
-      properties.addToken('keyword', node.keyword);
-      properties.addNode('type', node.type);
-      _addDeclaration(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
     });
   }
 
@@ -428,11 +328,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('DefaultFormalParameter');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('defaultValue', node.defaultValue);
-      properties.addNode('parameter', node.parameter);
-      _addFormalParameter(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+        _writeType('declaredElementType', node.declaredElement!.type);
+      }
     });
   }
 
@@ -441,11 +341,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('DoStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('body', node.body);
-      properties.addNode('condition', node.condition);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -454,10 +350,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('DoubleLiteral');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('literal', node.literal);
-      _addLiteral(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -466,10 +360,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('EmptyFunctionBody');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('semicolon', node.semicolon);
-      _addFunctionBody(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -480,11 +371,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
     _writeln('EnumConstantArguments');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('argumentList', node.argumentList);
-      properties.addNode('constructorSelector', node.constructorSelector);
-      properties.addNode('typeArguments', node.typeArguments);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -494,11 +381,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('EnumConstantDeclaration');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('arguments', node.arguments);
-      properties.addNode('name', node.name);
-      _addDeclaration(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
     });
   }
 
@@ -507,11 +393,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('EnumDeclaration');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNodeList('constants', node.constants);
-      properties.addToken('semicolon', node.semicolon);
-      _addNamedCompilationUnitMember(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
     });
   }
 
@@ -520,9 +405,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ExportDirective');
     _withIndent(() {
-      var properties = _Properties();
-      _addNamespaceDirective(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+      _writeSource('selectedSource', node.selectedSource);
+      _writeRaw('selectedUriContent', node.selectedUriContent);
+      _writeRaw('uriContent', node.uriContent);
+      _writeElement('uriElement', node.uriElement);
+      _writeSource('uriSource', node.uriSource);
     });
   }
 
@@ -531,12 +420,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ExpressionFunctionBody');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('expression', node.expression);
-      properties.addToken('functionDefinition', node.functionDefinition);
-      properties.addToken('semicolon', node.semicolon);
-      _addFunctionBody(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -545,11 +429,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ExpressionStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('expression', node.expression);
-      properties.addToken('semicolon', node.semicolon);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -558,10 +438,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ExtendsClause');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('superclass', node.superclass);
-      _addAstNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -570,15 +447,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('FieldDeclaration');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('abstractKeyword', node.abstractKeyword);
-      properties.addToken('externalKeyword', node.externalKeyword);
-      properties.addToken('covariantKeyword', node.covariantKeyword);
-      properties.addNode('fields', node.fields);
-      properties.addToken('semicolon', node.semicolon);
-      properties.addToken('staticKeyword', node.staticKeyword);
-      _addClassMember(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
     });
   }
 
@@ -587,15 +459,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('FieldFormalParameter');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('keyword', node.keyword);
-      properties.addNode('parameters', node.parameters);
-      properties.addToken('period', node.period);
-      properties.addToken('thisKeyword', node.thisKeyword);
-      properties.addNode('type', node.type);
-      properties.addNode('typeParameters', node.typeParameters);
-      _addNormalFormalParameter(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+        _writeType('declaredElementType', node.declaredElement!.type);
+      }
     });
   }
 
@@ -604,10 +472,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ForEachPartsWithDeclaration');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('loopVariable', node.loopVariable);
-      _addForEachParts(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -616,10 +481,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ForEachPartsWithIdentifier');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('identifier', node.identifier);
-      _addForEachParts(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -628,12 +490,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('FormalParameterList');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('leftParenthesis', node.leftParenthesis);
-      properties.addToken('rightParenthesis', node.rightParenthesis);
-      properties.addNodeList('parameters', node.parameters);
-      _addAstNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -642,10 +499,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ForPartsWithDeclarations');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('variables', node.variables);
-      _addForParts(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -654,10 +508,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ForPartsWithExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('initialization', node.initialization);
-      _addForParts(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -666,11 +517,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ForStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('body', node.body);
-      properties.addNode('forLoopParts', node.forLoopParts);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -679,14 +526,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('FunctionDeclaration');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addType('declaredElementType', node.declaredElement!.type);
-      properties.addToken('externalKeyword', node.externalKeyword);
-      properties.addNode('functionExpression', node.functionExpression);
-      properties.addToken('propertyKeyword', node.propertyKeyword);
-      properties.addNode('returnType', node.returnType);
-      _addNamedCompilationUnitMember(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+        _writeType('declaredElementType', node.declaredElement!.type);
+      }
     });
   }
 
@@ -695,10 +539,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('FunctionDeclarationStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('functionDeclaration', node.functionDeclaration);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -707,13 +548,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('FunctionExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('body', node.body);
-      properties.addElement('declaredElement', node.declaredElement);
-      properties.addNode('parameters', node.parameters);
-      properties.addNode('typeParameters', node.typeParameters);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -722,11 +561,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('FunctionExpressionInvocation');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('function', node.function);
-      properties.addElement('staticElement', node.staticElement);
-      _addInvocationExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeElement('staticElement', node.staticElement);
+      _writeType('staticInvokeType', node.staticInvokeType);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
     });
   }
 
@@ -734,12 +573,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void visitFunctionReference(FunctionReference node) {
     _writeln('FunctionReference');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('function', node.function);
-      properties.addNode('typeArguments', node.typeArguments);
-      properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
     });
   }
 
@@ -748,13 +584,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('FunctionTypeAlias');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addElement('declaredElement', node.declaredElement);
-      properties.addNode('parameters', node.parameters);
-      properties.addNode('returnType', node.returnType);
-      properties.addNode('typeParameters', node.typeParameters);
-      _addTypeAlias(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
     });
   }
 
@@ -763,13 +596,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('FunctionTypedFormalParameter');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('parameters', node.parameters);
-      properties.addToken('question', node.question);
-      properties.addNode('returnType', node.returnType);
-      properties.addNode('typeParameters', node.typeParameters);
-      _addNormalFormalParameter(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+        _writeType('declaredElementType', node.declaredElement!.type);
+      }
     });
   }
 
@@ -778,17 +609,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('GenericFunctionType');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addGenericFunctionTypeElement(
-        'declaredElement',
-        node.declaredElement,
-      );
-      properties.addToken('functionKeyword', node.functionKeyword);
-      properties.addNode('parameters', node.parameters);
-      properties.addNode('returnType', node.returnType);
-      properties.addNode('typeParameters', node.typeParameters);
-      _addTypeAnnotation(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeGenericFunctionTypeElement(
+          'declaredElement',
+          node.declaredElement,
+        );
+      }
+      _writeType('type', node.type);
     });
   }
 
@@ -797,12 +625,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('GenericTypeAlias');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('equals', node.equals);
-      properties.addNode('functionType', node.functionType);
-      properties.addNode('typeParameters', node.typeParameters);
-      _addTypeAlias(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
     });
   }
 
@@ -811,10 +637,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('HideCombinator');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNodeList('hiddenNames', node.hiddenNames);
-      _addCombinator(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -822,12 +645,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void visitIfElement(IfElement node) {
     _writeln('IfElement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('condition', node.condition);
-      properties.addNode('elseStatement', node.elseElement);
-      properties.addNode('thenStatement', node.thenElement);
-      _addAstNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -836,12 +654,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('IfStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('condition', node.condition);
-      properties.addNode('elseStatement', node.elseStatement);
-      properties.addNode('thenStatement', node.thenStatement);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -850,11 +663,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ImplementsClause');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('implementsKeyword', node.implementsKeyword);
-      properties.addNodeList('interfaces', node.interfaces);
-      _addAstNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -862,12 +671,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void visitImplicitCallReference(ImplicitCallReference node) {
     _writeln('ImplicitCallReference');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('expression', node.expression);
-      properties.addNode('typeArguments', node.typeArguments);
-      properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
     });
   }
 
@@ -876,10 +682,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ImportDirective');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('prefix', node.prefix);
-      _addNamespaceDirective(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+      _writeSource('selectedSource', node.selectedSource);
+      _writeRaw('selectedUriContent', node.selectedUriContent);
+      _writeRaw('uriContent', node.uriContent);
+      _writeElement('uriElement', node.uriElement);
+      _writeSource('uriSource', node.uriSource);
     });
   }
 
@@ -888,15 +697,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('IndexExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('leftBracket', node.leftBracket);
-      properties.addNode('index', node.index);
-      properties.addToken('period', node.period);
-      properties.addToken('rightBracket', node.rightBracket);
-      properties.addNode('target', node.target);
-      _addExpression(properties, node);
-      _addMethodReferenceExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
+      _writeElement('staticElement', node.staticElement);
     });
   }
 
@@ -905,12 +708,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('InstanceCreationExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('argumentList', node.argumentList);
-      properties.addNode('constructorName', node.constructorName);
-      properties.addToken('keyword', node.keyword);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -919,10 +718,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('IntegerLiteral');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('literal', node.literal);
-      _addLiteral(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -931,12 +728,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('InterpolationExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('expression', node.expression);
-      properties.addToken('leftBracket', node.leftBracket);
-      properties.addToken('rightBracket', node.rightBracket);
-      _addInterpolationElement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -945,10 +737,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('InterpolationString');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('contents', node.contents);
-      _addInterpolationElement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -957,12 +746,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('IsExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('expression', node.expression);
-      properties.addToken('isOperator', node.isOperator);
-      properties.addNode('type', node.type);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -971,7 +756,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('Label');
     _withIndent(() {
-      _writeNode('label', node.label);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -980,10 +765,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('LibraryDirective');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('name', node.name);
-      _addDirective(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
     });
   }
 
@@ -992,10 +775,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('LibraryIdentifier');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNodeList('components', node.components);
-      _addIdentifier(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeElement('staticElement', node.staticElement);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1004,12 +786,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ListLiteral');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('leftBracket', node.leftBracket);
-      properties.addNodeList('elements', node.elements);
-      properties.addToken('rightBracket', node.rightBracket);
-      _addTypedLiteral(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1018,11 +796,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SetOrMapLiteral');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('key', node.key);
-      properties.addNode('value', node.value);
-      _addCollectionElement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1031,21 +805,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('MethodDeclaration');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('body', node.body);
+      _writeNamedChildEntities(node);
       if (_withResolution) {
-        properties.addType('declaredElementType', node.declaredElement!.type);
+        _writeElement('declaredElement', node.declaredElement);
+        _writeType('declaredElementType', node.declaredElement!.type);
       }
-      properties.addToken('externalKeyword', node.externalKeyword);
-      properties.addToken('modifierKeyword', node.modifierKeyword);
-      properties.addNode('name', node.name);
-      properties.addToken('operatorKeyword', node.operatorKeyword);
-      properties.addNode('parameters', node.parameters);
-      properties.addToken('propertyKeyword', node.propertyKeyword);
-      properties.addNode('returnType', node.returnType);
-      properties.addNode('typeParameters', node.typeParameters);
-      _addClassMember(properties, node);
-      _writeProperties(properties);
     });
   }
 
@@ -1054,12 +818,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('MethodInvocation');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('methodName', node.methodName);
-      properties.addToken('operator', node.operator);
-      properties.addNode('target', node.target);
-      _addInvocationExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticInvokeType', node.staticInvokeType);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
     });
   }
 
@@ -1068,11 +830,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('MixinDeclaration');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('mixinKeyword', node.mixinKeyword);
-      properties.addNode('onClause', node.onClause);
-      _addClassOrMixinDeclaration(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
     });
   }
 
@@ -1081,8 +842,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('NamedExpression');
     _withIndent(() {
-      _writeNode('name', node.name);
-      _writeNode('expression', node.expression);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1091,9 +851,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('NamedType');
     _withIndent(() {
-      _writeNode('name', node.name);
+      _writeNamedChildEntities(node);
       _writeType('type', node.type);
-      _writeNode('typeArguments', node.typeArguments);
     });
   }
 
@@ -1102,10 +861,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('NullLiteral');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('literal', node.literal);
-      _addLiteral(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1114,12 +871,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('OnClause');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('onKeyword', node.onKeyword);
-      properties.addNodeList(
-          'superclassConstraints', node.superclassConstraints);
-      _addAstNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1128,12 +880,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ParenthesizedExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('leftParenthesis', node.leftParenthesis);
-      properties.addNode('expression', node.expression);
-      properties.addToken('rightParenthesis', node.rightParenthesis);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1142,9 +890,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('PartDirective');
     _withIndent(() {
-      var properties = _Properties();
-      _addUriBasedDirective(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+      _writeRaw('uriContent', node.uriContent);
+      _writeElement('uriElement', node.uriElement);
+      _writeSource('uriSource', node.uriSource);
     });
   }
 
@@ -1153,13 +903,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('PartOfDirective');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('libraryName', node.libraryName);
-      properties.addToken('ofKeyword', node.ofKeyword);
-      properties.addToken('partKeyword', node.partKeyword);
-      properties.addToken('semicolon', node.semicolon);
-      _addDirective(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
     });
   }
 
@@ -1168,18 +913,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('PostfixExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('operand', node.operand);
-      properties.addToken('operator', node.operator);
+      _writeNamedChildEntities(node);
       if (node.operator.type.isIncrementOperator) {
-        properties.addElement('readElement', node.readElement);
-        properties.addType('readType', node.readType);
-        properties.addElement('writeElement', node.writeElement);
-        properties.addType('writeType', node.writeType);
+        _writeElement('readElement', node.readElement);
+        _writeType('readType', node.readType);
+        _writeElement('writeElement', node.writeElement);
+        _writeType('writeType', node.writeType);
       }
-      _addExpression(properties, node);
-      _addMethodReferenceExpression(properties, node);
-      _writeProperties(properties);
+      _writeElement('staticElement', node.staticElement);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1188,12 +930,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('PrefixedIdentifier');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('identifier', node.identifier);
-      properties.addToken('period', node.period);
-      properties.addNode('prefix', node.prefix);
-      _addIdentifier(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeElement('staticElement', node.staticElement);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1202,18 +941,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('PrefixExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('operand', node.operand);
-      properties.addToken('operator', node.operator);
+      _writeNamedChildEntities(node);
       if (node.operator.type.isIncrementOperator) {
-        properties.addElement('readElement', node.readElement);
-        properties.addType('readType', node.readType);
-        properties.addElement('writeElement', node.writeElement);
-        properties.addType('writeType', node.writeType);
+        _writeElement('readElement', node.readElement);
+        _writeType('readType', node.readType);
+        _writeElement('writeElement', node.writeElement);
+        _writeType('writeType', node.writeType);
       }
-      _addExpression(properties, node);
-      _addMethodReferenceExpression(properties, node);
-      _writeProperties(properties);
+      _writeElement('staticElement', node.staticElement);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1222,12 +958,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('PropertyAccess');
     _withIndent(() {
-      var properties = _Properties();
-      _writeToken('operator', node.operator);
-      properties.addNode('propertyName', node.propertyName);
-      properties.addNode('target', node.target);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1238,11 +970,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('RedirectingConstructorInvocation');
     _withIndent(() {
-      _writeNode('argumentList', node.argumentList);
-      _writeNode('constructorName', node.constructorName);
-      _writeToken('period', node.period);
+      _writeNamedChildEntities(node);
       _writeElement('staticElement', node.staticElement);
-      _writeToken('thisKeyword', node.thisKeyword);
     });
   }
 
@@ -1251,12 +980,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ReturnStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('expression', node.expression);
-      properties.addToken('returnKeyword', node.returnKeyword);
-      properties.addToken('semicolon', node.semicolon);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1265,13 +989,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SetOrMapLiteral');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNodeList('elements', node.elements);
-      properties.addRaw('isMap', node.isMap);
-      properties.addToken('leftBracket', node.leftBracket);
-      properties.addToken('rightBracket', node.rightBracket);
-      _addTypedLiteral(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeRaw('isMap', node.isMap);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1280,10 +1000,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ShowCombinator');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNodeList('shownNames', node.shownNames);
-      _addCombinator(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1292,11 +1009,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SimpleFormalParameter');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('keyword', node.keyword);
-      properties.addNode('type', node.type);
-      _addNormalFormalParameter(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+        _writeType('declaredElementType', node.declaredElement!.type);
+      }
     });
   }
 
@@ -1305,15 +1022,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SimpleIdentifier');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addElement('staticElement', node.staticElement);
-      properties.addType('staticType', node.staticType);
-      properties.addTypeList(
+      _writeNamedChildEntities(node);
+      _writeElement('staticElement', node.staticElement);
+      _writeType('staticType', node.staticType);
+      _writeTypeList(
         'tearOffTypeArgumentTypes',
         node.tearOffTypeArgumentTypes,
       );
-      properties.addToken('token', node.token);
-      _writeProperties(properties);
     });
   }
 
@@ -1322,7 +1037,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SimpleStringLiteral');
     _withIndent(() {
-      _writeToken('literal', node.literal);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1330,8 +1045,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void visitSpreadElement(SpreadElement node) {
     _writeln('SpreadElement');
     _withIndent(() {
-      _writeNode('expression', node.expression);
-      _writeToken('spreadOperator', node.spreadOperator);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1340,10 +1054,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('StringInterpolation');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNodeList('elements', node.elements);
-      _addSingleStringLiteral(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
+      _writeRaw('stringValue', node.stringValue);
     });
   }
 
@@ -1352,11 +1065,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SuperConstructorInvocation');
     _withIndent(() {
-      _writeNode('argumentList', node.argumentList);
-      _writeNode('constructorName', node.constructorName);
-      _writeToken('period', node.period);
+      _writeNamedChildEntities(node);
       _writeElement('staticElement', node.staticElement);
-      _writeToken('superKeyword', node.superKeyword);
     });
   }
 
@@ -1365,10 +1075,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SuperExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('superKeyword', node.superKeyword);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1380,15 +1088,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SuperFormalParameter');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('keyword', node.keyword);
-      properties.addNode('parameters', node.parameters);
-      properties.addToken('period', node.period);
-      properties.addToken('superKeyword', node.superKeyword);
-      properties.addNode('type', node.type);
-      properties.addNode('typeParameters', node.typeParameters);
-      _addNormalFormalParameter(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+        _writeType('declaredElementType', node.declaredElement!.type);
+      }
     });
   }
 
@@ -1397,10 +1101,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SwitchCase');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('expression', node.expression);
-      _addSwitchMember(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1409,9 +1110,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SwitchDefault');
     _withIndent(() {
-      var properties = _Properties();
-      _addSwitchMember(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1420,11 +1119,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SwitchStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('expression', node.expression);
-      properties.addNodeList('members', node.members);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1432,11 +1127,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void visitSymbolLiteral(SymbolLiteral node) {
     _writeln('SymbolLiteral');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('poundSign', node.poundSign);
-      properties.addTokenList('components', node.components);
-      _addAstNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1445,10 +1136,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ThisExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('thisKeyword', node.thisKeyword);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1457,10 +1146,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ThrowExpression');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('expression', node.expression);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1469,12 +1156,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('TopLevelVariableDeclaration');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('externalKeyword', node.externalKeyword);
-      properties.addToken('semicolon', node.semicolon);
-      properties.addNode('variables', node.variables);
-      _addCompilationUnitMember(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
     });
   }
 
@@ -1483,12 +1168,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('TryStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('body', node.body);
-      properties.addNodeList('catchClauses', node.catchClauses);
-      properties.addNode('finallyBlock', node.finallyBlock);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1497,12 +1177,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('TypeArgumentList');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('leftBracket', node.leftBracket);
-      properties.addNodeList('arguments', node.arguments);
-      properties.addToken('rightBracket', node.rightBracket);
-      _addAstNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1510,10 +1185,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void visitTypeLiteral(TypeLiteral node) {
     _writeln('TypeLiteral');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('type', node.type);
-      _addExpression(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1522,16 +1195,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('TypeParameter');
     _withIndent(() {
-      var properties = _Properties();
-      // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
-      // added to the interface.
-      if ((node as TypeParameterImpl).varianceKeyword != null) {
-        properties.addToken('variance', node.varianceKeyword);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
       }
-      properties.addNode('bound', node.bound);
-      properties.addNode('name', node.name);
-      _addDeclaration(properties, node);
-      _writeProperties(properties);
     });
   }
 
@@ -1540,12 +1207,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('TypeParameterList');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('leftBracket', node.leftBracket);
-      properties.addNodeList('typeParameters', node.typeParameters);
-      properties.addToken('rightBracket', node.rightBracket);
-      _addAstNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1554,11 +1216,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('VariableDeclaration');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('initializer', node.initializer);
-      properties.addNode('name', node.name);
-      _addDeclaration(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
     });
   }
 
@@ -1567,13 +1228,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('VariableDeclarationList');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('keyword', node.keyword);
-      properties.addToken('lateKeyword', node.lateKeyword);
-      properties.addNode('type', node.type);
-      properties.addNodeList('variables', node.variables);
-      _addAnnotatedNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1582,11 +1237,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('VariableDeclarationStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('semicolon', node.semicolon);
-      properties.addNode('variables', node.variables);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1595,11 +1246,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('WhileStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('body', node.body);
-      properties.addNode('condition', node.condition);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1608,11 +1255,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('WithClause');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addToken('withKeyword', node.withKeyword);
-      properties.addNodeList('mixinTypes', node.mixinTypes);
-      _addAstNode(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1621,240 +1264,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('YieldStatement');
     _withIndent(() {
-      var properties = _Properties();
-      properties.addNode('expression', node.expression);
-      properties.addToken('star', node.star);
-      properties.addToken('yieldKeyword', node.yieldKeyword);
-      _addStatement(properties, node);
-      _writeProperties(properties);
+      _writeNamedChildEntities(node);
     });
   }
 
   void writeElement(String name, Element? element) {
     _writeElement(name, element);
-  }
-
-  void _addAnnotatedNode(_Properties properties, AnnotatedNode node) {
-    properties.addNode('documentationComment', node.documentationComment);
-    properties.addNodeList('metadata', node.metadata);
-    _addAstNode(properties, node);
-  }
-
-  void _addAssertion(_Properties properties, Assertion node) {
-    properties.addToken('assertKeyword', node.assertKeyword);
-    properties.addNode('condition', node.condition);
-    properties.addToken('leftParenthesis', node.leftParenthesis);
-    properties.addNode('message', node.message);
-    properties.addToken('rightParenthesis', node.rightParenthesis);
-    _addAstNode(properties, node);
-  }
-
-  void _addAstNode(_Properties properties, AstNode node) {}
-
-  void _addClassMember(_Properties properties, ClassMember node) {
-    _addDeclaration(properties, node);
-  }
-
-  void _addClassOrMixinDeclaration(
-    _Properties properties,
-    ClassOrMixinDeclaration node,
-  ) {
-    properties.addNode('implementsClause', node.implementsClause);
-    properties.addNodeList('members', node.members);
-    properties.addNode('typeParameters', node.typeParameters);
-    _addNamedCompilationUnitMember(properties, node);
-  }
-
-  void _addCollectionElement(_Properties properties, CollectionElement node) {
-    _addAstNode(properties, node);
-  }
-
-  void _addCombinator(_Properties properties, Combinator node) {
-    properties.addToken('keyword', node.keyword);
-    _addAstNode(properties, node);
-  }
-
-  void _addCompilationUnitMember(
-    _Properties properties,
-    CompilationUnitMember node,
-  ) {
-    _addDeclaration(properties, node);
-  }
-
-  void _addConstructorInitializer(
-    _Properties properties,
-    ConstructorInitializer node,
-  ) {
-    _addAstNode(properties, node);
-  }
-
-  void _addDeclaration(_Properties properties, Declaration node) {
-    if (_withResolution) {
-      properties.addElement('declaredElement', node.declaredElement);
-    }
-    _addAnnotatedNode(properties, node);
-  }
-
-  void _addDirective(
-    _Properties properties,
-    Directive node,
-  ) {
-    properties.addElement('element', node.element);
-    _addAnnotatedNode(properties, node);
-  }
-
-  void _addExpression(_Properties properties, Expression node) {
-    properties.addType('staticType', node.staticType);
-    _addAstNode(properties, node);
-  }
-
-  void _addForEachParts(_Properties properties, ForEachParts node) {
-    properties.addToken('inKeyword', node.inKeyword);
-    properties.addNode('iterable', node.iterable);
-    _addForLoopParts(properties, node);
-  }
-
-  void _addForLoopParts(_Properties properties, ForLoopParts node) {
-    _addAstNode(properties, node);
-  }
-
-  void _addFormalParameter(_Properties properties, FormalParameter node) {
-    properties.addToken('covariantKeyword', node.covariantKeyword);
-    if (_withResolution) {
-      properties.addElement('declaredElement', node.declaredElement);
-      properties.addType('declaredElementType', node.declaredElement!.type);
-    }
-    properties.addNode('identifier', node.identifier);
-    properties.addNodeList('metadata', node.metadata);
-    properties.addToken('requiredKeyword', node.requiredKeyword);
-    _addAstNode(properties, node);
-  }
-
-  void _addForParts(_Properties properties, ForParts node) {
-    properties.addNode('condition', node.condition);
-    properties.addNodeList('updaters', node.updaters);
-    _addForLoopParts(properties, node);
-  }
-
-  void _addFunctionBody(_Properties properties, FunctionBody node) {
-    properties.addToken('keyword', node.keyword);
-    properties.addToken('star', node.star);
-    _addAstNode(properties, node);
-  }
-
-  void _addIdentifier(
-    _Properties properties,
-    Identifier node,
-  ) {
-    properties.addElement('staticElement', node.staticElement);
-    _addExpression(properties, node);
-  }
-
-  void _addInterpolationElement(
-    _Properties properties,
-    InterpolationElement node,
-  ) {
-    _addAstNode(properties, node);
-  }
-
-  void _addInvocationExpression(
-    _Properties properties,
-    InvocationExpression node,
-  ) {
-    properties.addNode('argumentList', node.argumentList);
-    properties.addType('staticInvokeType', node.staticInvokeType);
-    properties.addNode('typeArguments', node.typeArguments);
-    properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes);
-    _addExpression(properties, node);
-  }
-
-  void _addLiteral(_Properties properties, Literal node) {
-    _addExpression(properties, node);
-  }
-
-  void _addMethodReferenceExpression(
-    _Properties properties,
-    MethodReferenceExpression node,
-  ) {
-    properties.addElement('staticElement', node.staticElement);
-    _addAstNode(properties, node);
-  }
-
-  void _addNamedCompilationUnitMember(
-    _Properties properties,
-    NamedCompilationUnitMember node,
-  ) {
-    properties.addNode('name', node.name);
-    _addCompilationUnitMember(properties, node);
-  }
-
-  void _addNamespaceDirective(
-    _Properties properties,
-    NamespaceDirective node,
-  ) {
-    properties.addNodeList('combinators', node.combinators);
-    properties.addNodeList('configurations', node.configurations);
-    properties.addSource('selectedSource', node.selectedSource);
-    properties.addRaw('selectedUriContent', node.selectedUriContent);
-    _addUriBasedDirective(properties, node);
-  }
-
-  void _addNormalFormalParameter(
-    _Properties properties,
-    NormalFormalParameter node,
-  ) {
-    properties.addNode('documentationComment', node.documentationComment);
-    _addFormalParameter(properties, node);
-  }
-
-  void _addSingleStringLiteral(
-      _Properties properties, SingleStringLiteral node) {
-    _addStringLiteral(properties, node);
-  }
-
-  void _addStatement(_Properties properties, Statement node) {
-    _addAstNode(properties, node);
-  }
-
-  void _addStringLiteral(_Properties properties, StringLiteral node) {
-    properties.addRaw('stringValue', node.stringValue);
-    _addLiteral(properties, node);
-  }
-
-  void _addSwitchMember(_Properties properties, SwitchMember node) {
-    properties.addToken('keyword', node.keyword);
-    properties.addNodeList('labels', node.labels);
-    properties.addNodeList('statements', node.statements);
-    _addAstNode(properties, node);
-  }
-
-  void _addTypeAlias(_Properties properties, TypeAlias node) {
-    properties.addToken('semicolon', node.semicolon);
-    properties.addToken('typedefKeyword', node.typedefKeyword);
-    _addNamedCompilationUnitMember(properties, node);
-  }
-
-  void _addTypeAnnotation(_Properties properties, TypeAnnotation node) {
-    properties.addToken('question', node.question);
-    properties.addType('type', node.type);
-    _addAstNode(properties, node);
-  }
-
-  void _addTypedLiteral(_Properties properties, TypedLiteral node) {
-    properties.addToken('constKeyword', node.constKeyword);
-    properties.addNode('typeArguments', node.typeArguments);
-    _addLiteral(properties, node);
-  }
-
-  void _addUriBasedDirective(
-    _Properties properties,
-    UriBasedDirective node,
-  ) {
-    properties.addNode('uri', node.uri);
-    properties.addRaw('uriContent', node.uriContent);
-    properties.addElement('uriElement', node.uriElement);
-    properties.addSource('uriSource', node.uriSource);
-    _addDirective(properties, node);
   }
 
   /// Check that children entities of the [node] link to each other.
@@ -1977,6 +1392,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln(line);
   }
 
+  void _writeNamedChildEntities(AstNode node) {
+    node as AstNodeImpl;
+    for (var entity in node.namedChildEntities) {
+      var value = entity.value;
+      if (value is Token) {
+        _writeToken(entity.name, value);
+      } else if (value is AstNode) {
+        _writeNode(entity.name, value);
+      } else if (value is List<Token>) {
+        _writeTokenList(entity.name, value);
+      } else if (value is List<AstNode>) {
+        _writeNodeList(entity.name, value);
+      } else {
+        throw UnimplementedError('(${value.runtimeType}) $value');
+      }
+    }
+  }
+
   void _writeNextCodeLine(AstNode node) {
     var nextCodeLine = _codeLinesProvider?.nextLine(node.offset);
     if (nextCodeLine != null) {
@@ -1994,7 +1427,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
-  void _writeNodeList(String name, NodeList nodeList) {
+  void _writeNodeList(String name, List<AstNode> nodeList) {
     if (nodeList.isNotEmpty) {
       _writelnWithIndent(name);
       _withIndent(() {
@@ -2037,12 +1470,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
-  void _writeProperties(_Properties container) {
-    var properties = container.properties;
-    properties.sort((a, b) => a.name.compareTo(b.name));
-    for (var property in properties) {
-      property.write(this);
-    }
+  void _writeRaw(String name, Object? value) {
+    _writelnWithIndent('$name: $value');
   }
 
   void _writeSource(String name, Source? source) {
@@ -2124,190 +1553,5 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   static String _nameOfMemberClass(Member member) {
     return '${member.runtimeType}';
-  }
-}
-
-class _ElementProperty extends _Property {
-  final Element? element;
-
-  _ElementProperty(String name, this.element) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeElement(name, element);
-  }
-}
-
-class _GenericFunctionTypeElementProperty extends _Property {
-  final GenericFunctionTypeElement? element;
-
-  _GenericFunctionTypeElementProperty(String name, this.element) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeGenericFunctionTypeElement(name, element);
-  }
-}
-
-class _NodeListProperty extends _Property {
-  final NodeList nodeList;
-
-  _NodeListProperty(String name, this.nodeList) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeNodeList(name, nodeList);
-  }
-}
-
-class _NodeProperty extends _Property {
-  final AstNode? node;
-
-  _NodeProperty(String name, this.node) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeNode(name, node);
-  }
-}
-
-class _Properties {
-  final properties = <_Property>[];
-
-  void addElement(String name, Element? element) {
-    properties.add(
-      _ElementProperty(name, element),
-    );
-  }
-
-  void addGenericFunctionTypeElement(
-    String name,
-    GenericFunctionTypeElement? element,
-  ) {
-    properties.add(
-      _GenericFunctionTypeElementProperty(name, element),
-    );
-  }
-
-  void addNode(String name, AstNode? node) {
-    properties.add(
-      _NodeProperty(name, node),
-    );
-  }
-
-  void addNodeList(String name, NodeList nodeList) {
-    properties.add(
-      _NodeListProperty(name, nodeList),
-    );
-  }
-
-  void addRaw(String name, Object? value) {
-    properties.add(
-      _RawProperty(name, value),
-    );
-  }
-
-  void addSource(String name, Source? source) {
-    properties.add(
-      _SourceProperty(name, source),
-    );
-  }
-
-  void addToken(String name, Token? token) {
-    properties.add(
-      _TokenProperty(name, token),
-    );
-  }
-
-  void addTokenList(String name, List<Token> tokens) {
-    properties.add(
-      _TokenListProperty(name, tokens),
-    );
-  }
-
-  void addType(String name, DartType? type) {
-    properties.add(
-      _TypeProperty(name, type),
-    );
-  }
-
-  void addTypeList(String name, List<DartType>? types) {
-    properties.add(
-      _TypeListProperty(name, types),
-    );
-  }
-}
-
-abstract class _Property {
-  final String name;
-
-  _Property(this.name);
-
-  void write(ResolvedAstPrinter printer);
-}
-
-class _RawProperty extends _Property {
-  final Object? value;
-
-  _RawProperty(String name, this.value) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writelnWithIndent('$name: $value');
-  }
-}
-
-class _SourceProperty extends _Property {
-  final Source? source;
-
-  _SourceProperty(String name, this.source) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeSource(name, source);
-  }
-}
-
-class _TokenListProperty extends _Property {
-  final List<Token> tokens;
-
-  _TokenListProperty(String name, this.tokens) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeTokenList(name, tokens);
-  }
-}
-
-class _TokenProperty extends _Property {
-  final Token? token;
-
-  _TokenProperty(String name, this.token) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeToken(name, token);
-  }
-}
-
-class _TypeListProperty extends _Property {
-  final List<DartType>? types;
-
-  _TypeListProperty(String name, this.types) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeTypeList(name, types);
-  }
-}
-
-class _TypeProperty extends _Property {
-  final DartType? type;
-
-  _TypeProperty(String name, this.type) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeType(name, type);
   }
 }

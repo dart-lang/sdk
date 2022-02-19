@@ -187,7 +187,7 @@ class KernelFrontendStrategy {
             _nativeResolutionEnqueuer,
             _fieldAnalysis,
             compiler.deferredLoadTask),
-        ResolutionWorldBuilderImpl(
+        ResolutionWorldBuilder(
             _options,
             elementMap,
             elementEnvironment,

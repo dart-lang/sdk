@@ -28,20 +28,20 @@ class A {
     var node = parseResult.findNode.superFormalParameter('super.a');
     assertParsedNodeText(node, r'''
 SuperFormalParameter
+  superKeyword: super
+  period: .
   identifier: SimpleIdentifier
     token: a
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  period: .
-  superKeyword: super
   typeParameters: TypeParameterList
     leftBracket: <
-    rightBracket: >
     typeParameters
       TypeParameter
         name: SimpleIdentifier
           token: T
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
 ''');
   }
 }

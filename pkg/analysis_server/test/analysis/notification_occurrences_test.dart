@@ -193,6 +193,32 @@ main() {
     assertHasOffset('mmm(); // b');
   }
 
+  Future<void> test_parameter_named() async {
+    addTestFile('''
+void f(int aaa, int bbb, {int? ccc, int? ddd}) {
+  ccc;
+  ddd;
+}
+
+void g() {
+  f(0, ccc: 2, 1, ddd: 3);
+}
+''');
+    await prepareOccurrences();
+
+    assertHasRegion('ccc: 2');
+    expect(testOccurrences.element.kind, ElementKind.PARAMETER);
+    assertHasOffset('ccc,');
+    assertHasOffset('ccc;');
+    assertHasOffset('ccc: 2');
+
+    assertHasRegion('ddd: 3');
+    expect(testOccurrences.element.kind, ElementKind.PARAMETER);
+    assertHasOffset('ddd})');
+    assertHasOffset('ddd;');
+    assertHasOffset('ddd: 3');
+  }
+
   Future<void> test_topLevelVariable() async {
     addTestFile('''
 var VVV = 1;

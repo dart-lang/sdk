@@ -39,12 +39,14 @@ import 'inferrer/types.dart'
 import 'io/source_information.dart' show SourceInformation;
 import 'ir/modular.dart';
 import 'js_backend/backend.dart' show CodegenInputs;
+import 'js_backend/enqueuer.dart';
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart';
 import 'js_model/locals.dart';
 import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
+import 'kernel/kernel_world.dart';
 import 'kernel/loader.dart' show KernelLoaderTask, KernelResult;
 import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions;
@@ -56,7 +58,7 @@ import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
-import 'world.dart' show JClosedWorld, KClosedWorld;
+import 'world.dart' show JClosedWorld;
 
 typedef MakeReporterFunction = CompilerDiagnosticReporter Function(
     Compiler compiler, CompilerOptions options);
@@ -499,7 +501,7 @@ class Compiler {
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
     CodegenInputs codegenInputs = codegenResults.codegenInputs;
-    Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(
+    CodegenEnqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(
         closedWorld, globalInferenceResults, codegenInputs, codegenResults);
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
 

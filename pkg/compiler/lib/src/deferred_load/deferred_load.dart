@@ -286,8 +286,8 @@ import '../constants/values.dart' show ConstantValue;
 import '../elements/types.dart';
 import '../elements/entities.dart';
 import '../kernel/element_map.dart';
+import '../kernel/kernel_world.dart';
 import '../util/util.dart' show makeUnique;
-import '../world.dart' show KClosedWorld;
 
 class _DeferredLoadTaskMetrics implements Metrics {
   @override

@@ -179,6 +179,7 @@ class _EnumDescription {
     // being converted.
     var members = classDeclaration.members;
     var indent = utils.getIndent(1);
+    var eol = utils.endOfLine;
     var constantsBuffer = StringBuffer();
     var fieldsToConvert = fields.fieldsToConvert;
     fieldsToConvert
@@ -186,7 +187,7 @@ class _EnumDescription {
     for (var field in fieldsToConvert) {
       // Compute the declaration of the corresponding enum constant.
       if (constantsBuffer.isNotEmpty) {
-        constantsBuffer.write(',\n$indent');
+        constantsBuffer.write(',$eol$indent');
       }
       constantsBuffer.write(field.name);
       var invocation = field.instanceCreation;
@@ -264,8 +265,8 @@ class _EnumDescription {
 
     // Insert the declarations of the enum constants.
     var semicolon = ';';
-    var prefix = '${utils.endOfLine}$indent';
-    var suffix = '$semicolon${utils.endOfLine}';
+    var prefix = '$eol$indent';
+    var suffix = '$semicolon$eol';
     builder.addSimpleInsertion(bodyOffset, '$prefix$constantsBuffer$suffix');
 
     // Delete any members that are no longer needed.

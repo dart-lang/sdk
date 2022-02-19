@@ -3590,6 +3590,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addNode('implementsClause', implementsClause)
     ..addToken('leftBracket', leftBracket)
     ..addNodeList('constants', constants)
+    ..addToken('semicolon', semicolon)
     ..addNodeList('members', members)
     ..addToken('rightBracket', rightBracket);
 
@@ -10167,6 +10168,7 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
     ..addToken('superKeyword', superKeyword)
     ..addToken('period', period)
     ..addNode('identifier', identifier)
+    ..addNode('typeParameters', typeParameters)
     ..addNode('parameters', parameters);
 
   @override

@@ -442,6 +442,46 @@ class WidgetFactory {
     }
   }
 
+  Future<void> test_namedArgument_anywhere() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+import 'package:flutter/widgets.dart';
+
+class WidgetA extends StatelessWidget {
+  final Widget top;
+  final Widget bottom;
+  final Widget left;
+  final Widget right;
+
+  WidgetA(this.top, this.bottom, {this.left, this.right});
+}
+''');
+    var unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+import 'a.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new WidgetA(
+      const Container(),
+      left: const Text('left'),
+      const Flex(),
+      right: const Text('right'),
+    );
+  }
+}
+''');
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) build
+    WidgetA
+      Container
+      left: Text
+      Flex
+      right: Text
+''');
+  }
+
   Future<void> test_parentAssociationLabel() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 import 'package:flutter/widgets.dart';
