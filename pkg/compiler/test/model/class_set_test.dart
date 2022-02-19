@@ -11,6 +11,7 @@ library class_set_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
+import 'package:compiler/src/kernel/kernel_world.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/enumset.dart';
 import 'package:compiler/src/world.dart';

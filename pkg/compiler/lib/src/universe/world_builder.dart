@@ -10,7 +10,8 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/static_type.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
-import '../world.dart' show World, JClosedWorld, OpenWorld;
+import '../universe/resolution_world_builder.dart' show ResolutionWorldBuilder;
+import '../world.dart' show World;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, StaticUse;
 
@@ -99,8 +100,8 @@ class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
   }
 
   @override
-  bool appliedUnnamed(
-      DynamicUse dynamicUse, MemberEntity member, covariant OpenWorld world) {
+  bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member,
+      covariant ResolutionWorldBuilder world) {
     Selector selector = dynamicUse.selector;
     StrongModeConstraint constraint = dynamicUse.receiverConstraint;
     return selector.appliesUnnamed(member) &&
@@ -184,7 +185,7 @@ class StrongModeConstraint {
 
   bool needsNoSuchMethodHandling(Selector selector, World world) => true;
 
-  bool canHit(MemberEntity element, Name name, OpenWorld world) {
+  bool canHit(MemberEntity element, Name name, ResolutionWorldBuilder world) {
     return world.isInheritedIn(element, cls, relation);
   }
 
@@ -207,19 +208,7 @@ class StrongModeConstraint {
   String toString() => 'StrongModeConstraint($cls,$relation)';
 }
 
-/// The [WorldBuilder] is an auxiliary class used in the process of computing
-/// the [JClosedWorld].
-// TODO(johnniwinther): Move common implementation to a [WorldBuilderBase] when
-// universes and worlds have been unified.
 abstract class WorldBuilder {
-  /// All directly instantiated classes, that is, classes with a generative
-  /// constructor that has been called directly and not only through a
-  /// super-call.
-  // TODO(johnniwinther): Improve semantic precision.
-  Iterable<ClassEntity> get directlyInstantiatedClasses;
-}
-
-abstract class WorldBuilderBase {
   final Map<Entity, Set<DartType>> staticTypeArgumentDependencies = {};
 
   final Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies = {};

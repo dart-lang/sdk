@@ -5,21 +5,14 @@
 library dart2js.world;
 
 import 'closure.dart';
-import 'common.dart';
-import 'common/elements.dart'
-    show
-        JCommonElements,
-        JElementEnvironment,
-        KCommonElements,
-        KElementEnvironment;
+import 'common/elements.dart' show JCommonElements, JElementEnvironment;
 import 'deferred_load/output_unit.dart';
 import 'elements/entities.dart';
 import 'elements/names.dart';
 import 'elements/types.dart';
 import 'inferrer/abstract_value_domain.dart';
-import 'ir/static_type.dart';
 import 'js_backend/annotations.dart';
-import 'js_backend/field_analysis.dart' show JFieldAnalysis, KFieldAnalysis;
+import 'js_backend/field_analysis.dart' show JFieldAnalysis;
 import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
@@ -224,28 +217,6 @@ abstract class JClosedWorld implements World {
   void registerExtractTypeArguments(ClassEntity interface);
 }
 
-abstract class OpenWorld implements World {
-  void registerUsedElement(MemberEntity element);
-
-  KClosedWorld closeWorld(DiagnosticReporter reporter);
-
-  /// Returns `true` if [member] is inherited into a subtype of [type].
-  ///
-  /// For instance:
-  ///
-  ///     class A { m() {} }
-  ///     class B extends A implements I {}
-  ///     class C extends Object with A implements I {}
-  ///     abstract class I { m(); }
-  ///     abstract class J implements A { }
-  ///
-  /// Here `A.m` is inherited into `A`, `B`, and `C`. Because `B` and
-  /// `C` implement `I`, `isInheritedInSubtypeOf(A.m, I)` is true, but
-  /// `isInheritedInSubtypeOf(A.m, J)` is false.
-  bool isInheritedIn(
-      MemberEntity member, ClassEntity type, ClassRelation relation);
-}
-
 /// A [BuiltWorld] is an immutable result of a [WorldBuilder].
 abstract class BuiltWorld {
   ClassHierarchy get classHierarchy;
@@ -297,53 +268,4 @@ abstract class BuiltWorld {
   /// through dynamic calls to [selector].
   void forEachDynamicTypeArgument(
       void f(Selector selector, Set<DartType> typeArguments));
-}
-
-// TODO(johnniwinther): Rename this to `ResolutionWorld` or `KWorld`?
-// The immutable result of the [ResolutionWorldBuilder].
-abstract class KClosedWorld implements BuiltWorld {
-  DartTypes get dartTypes;
-  KFieldAnalysis get fieldAnalysis;
-  BackendUsage get backendUsage;
-  NativeData get nativeData;
-  InterceptorData get interceptorData;
-  KElementEnvironment get elementEnvironment;
-  KCommonElements get commonElements;
-
-  @override
-  ClassHierarchy get classHierarchy;
-
-  /// Returns `true` if [cls] is implemented by an instantiated class.
-  bool isImplemented(ClassEntity cls);
-
-  Iterable<MemberEntity> get liveInstanceMembers;
-  Map<ClassEntity, Set<ClassEntity>> get mixinUses;
-  Map<ClassEntity, Set<ClassEntity>> get typesImplementedBySubclasses;
-
-  /// Members that are written either directly or through a setter selector.
-  Iterable<MemberEntity> get assignedInstanceMembers;
-
-  Iterable<ClassEntity> get liveNativeClasses;
-  Map<MemberEntity, MemberUsage> get liveMemberUsage;
-  RuntimeTypesNeed get rtiNeed;
-  NoSuchMethodData get noSuchMethodData;
-
-  @override
-  AnnotationsData get annotationsData;
-
-  /// Set of live closurized members whose signatures reference type variables.
-  ///
-  /// A closurized method is considered live if the enclosing class has been
-  /// instantiated.
-  Iterable<FunctionEntity> get closurizedMembersWithFreeTypeVariables;
-
-  /// Set of (live) local functions (closures).
-  ///
-  /// A live function is one whose enclosing member function has been enqueued.
-  Iterable<Local> get localFunctions;
-
-  /// Returns `true` if [member] has been marked as used (called, read, etc.) in
-  /// this world builder.
-  // TODO(johnniwinther): Maybe this should be part of [ClosedWorld] (instead).
-  bool isMemberUsed(MemberEntity member);
 }

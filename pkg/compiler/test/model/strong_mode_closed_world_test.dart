@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/kernel/kernel_world.dart';
 import '../helpers/memory_compiler.dart';
 
 main() {

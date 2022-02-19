@@ -52,7 +52,7 @@ class D1 extends D {}
 
   CommonElements commonElements;
   NativeBasicData nativeBasicData;
-  ResolutionWorldBuilderImpl world;
+  ResolutionWorldBuilder world;
 
   List<ClassEntity> allClasses;
 

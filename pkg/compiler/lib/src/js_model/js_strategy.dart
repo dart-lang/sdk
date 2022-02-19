@@ -41,6 +41,7 @@ import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js/js.dart' as js;
 import '../kernel/kernel_strategy.dart';
+import '../kernel/kernel_world.dart';
 import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';

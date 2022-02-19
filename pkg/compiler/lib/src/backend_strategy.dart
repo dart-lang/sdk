@@ -17,6 +17,7 @@ import 'js_backend/enqueuer.dart';
 import 'js_backend/inferred_data.dart';
 import 'js_emitter/code_emitter_task.dart';
 import 'js_model/locals.dart';
+import 'kernel/kernel_world.dart';
 import 'serialization/serialization.dart';
 import 'ssa/ssa.dart';
 import 'universe/codegen_world_builder.dart';

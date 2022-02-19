@@ -23,7 +23,7 @@ import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../options.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';
-import '../world.dart' show KClosedWorld, OpenWorld;
+import '../world.dart' show World;
 import 'call_structure.dart';
 import 'class_hierarchy.dart' show ClassHierarchyBuilder, ClassQueries;
 import 'class_set.dart';
@@ -32,65 +32,6 @@ import 'selector.dart' show Selector;
 import 'use.dart'
     show ConstantUse, DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 import 'world_builder.dart';
-
-abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
-  /// The closed world computed by this world builder.
-  ///
-  /// This is only available after the world builder has been closed.
-  KClosedWorld get closedWorldForTesting;
-
-  void registerClass(ClassEntity cls);
-}
-
-/// Extended [ResolutionWorldBuilder] interface used by the
-/// [ResolutionEnqueuer].
-abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
-  /// Returns the classes registered as directly or indirectly instantiated.
-  Iterable<ClassEntity> get processedClasses;
-
-  /// Registers that [element] has been closurized.
-  void registerClosurizedMember(MemberEntity element);
-
-  /// Register [type] as (directly) instantiated.
-  // TODO(johnniwinther): Fully enforce the separation between exact, through
-  // subclass and through subtype instantiated types/classes.
-  // TODO(johnniwinther): Support unknown type arguments for generic types.
-  void registerTypeInstantiation(
-      InterfaceType type, ClassUsedCallback classUsed,
-      {ConstructorEntity constructor});
-
-  /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
-  /// the usage changes for each member.
-  ///
-  /// If [checkEnqueuerConsistency] is `true` we check that no new member
-  /// usage can be found. This check is performed without changing the already
-  /// collected member usage.
-  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
-      {bool checkEnqueuerConsistency = false});
-
-  /// Applies the [dynamicUse] to applicable instance members. Calls
-  /// [membersUsed] with the usage changes for each member.
-  void registerDynamicUse(DynamicUse dynamicUse, MemberUsedCallback memberUsed);
-
-  /// Applies the [staticUse] to applicable members. Calls [membersUsed] with
-  /// the usage changes for each member.
-  void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed);
-
-  /// Register the constant [use] with this world builder. Returns `true` if
-  /// the constant use was new to the world.
-  bool registerConstantUse(ConstantUse use);
-
-  bool isMemberProcessed(MemberEntity member);
-  void registerProcessedMember(MemberEntity member);
-  Iterable<MemberEntity> get processedMembers;
-
-  /// Registers that [type] is checked in this world builder.
-  void registerIsCheck(DartType type);
-
-  void registerNamedTypeVariableNewRti(TypeVariableType typeVariable);
-
-  void registerTypeVariableTypeLiteral(TypeVariableType typeVariable);
-}
 
 /// The type and kind of an instantiation registered through
 /// `ResolutionWorldBuilder.registerTypeInstantiation`.
@@ -248,9 +189,7 @@ class InstantiationInfo {
   }
 }
 
-/// Implementation of [ResolutionEnqueuerWorldBuilder].
-class ResolutionWorldBuilderImpl extends WorldBuilderBase
-    implements ResolutionEnqueuerWorldBuilder {
+class ResolutionWorldBuilder extends WorldBuilder implements World {
   /// Instantiation information for all classes with instantiated types.
   ///
   /// Invariant: Elements are declaration elements.
@@ -340,7 +279,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
   final KernelToElementMapImpl _elementMap;
 
-  ResolutionWorldBuilderImpl(
+  ResolutionWorldBuilder(
       this._options,
       this._elementMap,
       this._elementEnvironment,
@@ -359,23 +298,22 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       this._classHierarchyBuilder,
       this._classQueries);
 
-  @override
+  /// Returns the classes registered as directly or indirectly instantiated.
   Iterable<ClassEntity> get processedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
 
-  @override
   bool isMemberProcessed(MemberEntity member) =>
       _processedMembers.contains(member);
 
-  @override
   void registerProcessedMember(MemberEntity member) {
     _processedMembers.add(member);
   }
 
-  @override
   Iterable<MemberEntity> get processedMembers => _processedMembers;
 
-  @override
+  /// The closed world computed by this world builder.
+  ///
+  /// This is only available after the world builder has been closed.
   KClosedWorld get closedWorldForTesting {
     if (!_closed) {
       failedAt(
@@ -385,7 +323,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   }
 
   // TODO(johnniwinther): Improve semantic precision.
-  @override
   Iterable<ClassEntity> get directlyInstantiatedClasses {
     Set<ClassEntity> classes = {};
     getInstantiationMap().forEach((ClassEntity cls, InstantiationInfo info) {
@@ -396,7 +333,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     return classes;
   }
 
-  @override
+  /// Registers that [element] has been closurized.
   void registerClosurizedMember(MemberEntity element) {
     FunctionType type = _elementEnvironment.getFunctionType(element);
     if (type.containsTypeVariables) {
@@ -404,10 +341,10 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     }
   }
 
+  /// Register [type] as (directly) instantiated.
   // TODO(johnniwinther): Fully enforce the separation between exact, through
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
-  @override
   void registerTypeInstantiation(
       InterfaceType type, ClassUsedCallback classUsed,
       {ConstructorEntity constructor}) {
@@ -495,7 +432,8 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     return _hasMatchingSelector(_invokedSetters[member.name], member);
   }
 
-  @override
+  /// Applies the [dynamicUse] to applicable instance members. Calls
+  /// [membersUsed] with the usage changes for each member.
   void registerDynamicUse(
       DynamicUse dynamicUse, MemberUsedCallback memberUsed) {
     Selector selector = dynamicUse.selector;
@@ -573,22 +511,23 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     return constraints.addReceiverConstraint(constraint);
   }
 
-  @override
+  /// Registers that [type] is checked in this world builder.
   void registerIsCheck(covariant DartType type) {
     _isChecks.add(type);
   }
 
-  @override
   void registerNamedTypeVariableNewRti(TypeVariableType type) {
     _namedTypeVariablesNewRti.add(type);
   }
 
-  @override
+  /// Register the constant [use] with this world builder. Returns `true` if
+  /// the constant use was new to the world.
   bool registerConstantUse(ConstantUse use) {
     return _constantValues.add(use.value);
   }
 
-  @override
+  /// Applies the [staticUse] to applicable members. Calls [membersUsed] with
+  /// the usage changes for each member.
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     if (staticUse.kind == StaticUseKind.CLOSURE) {
       Local localFunction = staticUse.element;
@@ -718,7 +657,12 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     }
   }
 
-  @override
+  /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
+  /// the usage changes for each member.
+  ///
+  /// If [checkEnqueuerConsistency] is `true` we check that no new member
+  /// usage can be found. This check is performed without changing the already
+  /// collected member usage.
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
       {bool checkEnqueuerConsistency = false}) {
     _elementEnvironment.forEachClassMember(cls,
@@ -891,7 +835,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     }
   }
 
-  @override
   void registerUsedElement(MemberEntity element) {
     if (element.isInstanceMember && !element.isAbstract) {
       _liveInstanceMembers.add(element);
@@ -945,12 +888,23 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     return assignedInstanceMembers;
   }
 
-  @override
   void registerClass(ClassEntity cls) {
     _classHierarchyBuilder.registerClass(cls);
   }
 
-  @override
+  /// Returns `true` if [member] is inherited into a subtype of [type].
+  ///
+  /// For instance:
+  ///
+  ///     class A { m() {} }
+  ///     class B extends A implements I {}
+  ///     class C extends Object with A implements I {}
+  ///     abstract class I { m(); }
+  ///     abstract class J implements A { }
+  ///
+  /// Here `A.m` is inherited into `A`, `B`, and `C`. Because `B` and
+  /// `C` implement `I`, `isInheritedInSubtypeOf(A.m, I)` is true, but
+  /// `isInheritedInSubtypeOf(A.m, J)` is false.
   bool isInheritedIn(
       MemberEntity member, ClassEntity type, ClassRelation relation) {
     // TODO(johnniwinther): Use the [member] itself to avoid enqueueing members
@@ -979,7 +933,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     throw UnsupportedError("Unexpected ClassRelation $relation.");
   }
 
-  @override
   KClosedWorld closeWorld(DiagnosticReporter reporter) {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
@@ -1014,7 +967,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       }
     });
 
-    KClosedWorld closedWorld = KClosedWorldImpl(_elementMap,
+    KClosedWorld closedWorld = KClosedWorld(_elementMap,
         options: _options,
         elementEnvironment: _elementEnvironment,
         dartTypes: _dartTypes,
