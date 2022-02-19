@@ -1635,6 +1635,9 @@ CompileTimeErrorCode:
     correctionMessage: "Try removing the keyword 'const' from the map literal or removing the keyword 'deferred' from the import."
     hasPublishedDocs: true
     comment: No parameters.
+  CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
+    problemMessage: "Concrete classes can't have 'Enum' as a superinterface."
+    correctionMessage: Try specifying a different interface, or remove it from the list.
   CONCRETE_CLASS_WITH_ABSTRACT_MEMBER:
     problemMessage: "'{0}' must have a method body because '{1}' isn't abstract."
     correctionMessage: "Try making '{1}' abstract, or adding a body to '{0}'."
@@ -8085,9 +8088,6 @@ CompileTimeErrorCode:
 
       A f() => A();
       ```
-  NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE:
-    problemMessage: "Non-abstract classes can't have 'Enum' as a superinterface."
-    correctionMessage: Try specifying a different interface, or remove it from the list.
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
     sharedName: NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
     problemMessage: "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and {4} more."
