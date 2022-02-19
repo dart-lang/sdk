@@ -995,6 +995,19 @@ main() {
     assertNoRegionAt('TEST');
   }
 
+  Future<void> test_namedExpression_name() async {
+    addTestFile('''
+void f(int a, int b, {int? c, int? d}) {}
+
+void g() {
+  f(0, c: 2, 1, d: 3);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('c: 2', 'c,');
+    assertHasRegionTarget('d: 3', 'd}) {}');
+  }
+
   Future<void> test_operator_arithmetic() async {
     addTestFile('''
 class A {
