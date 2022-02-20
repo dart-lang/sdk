@@ -5753,10 +5753,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   static const CompileTimeErrorCode ILLEGAL_ENUM_VALUES_DECLARATION =
       CompileTimeErrorCode(
-    'ILLEGAL_ENUM_VALUES_DECLARATION',
+    'ILLEGAL_ENUM_VALUES',
     "An instance member named 'values' can't be declared in a class that "
         "implements 'Enum'.",
     correctionMessage: "Try using a different name.",
+    uniqueName: 'ILLEGAL_ENUM_VALUES_DECLARATION',
   );
 
   /**
@@ -5765,10 +5766,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode ILLEGAL_ENUM_VALUES_INHERITANCE =
       CompileTimeErrorCode(
-    'ILLEGAL_ENUM_VALUES_INHERITANCE',
+    'ILLEGAL_ENUM_VALUES',
     "An instance member named 'values' can't be inherited from '{0}' in a "
         "class that implements 'Enum'.",
     correctionMessage: "Try using a different name.",
+    uniqueName: 'ILLEGAL_ENUM_VALUES_INHERITANCE',
   );
 
   static const CompileTimeErrorCode ILLEGAL_LANGUAGE_VERSION_OVERRIDE =

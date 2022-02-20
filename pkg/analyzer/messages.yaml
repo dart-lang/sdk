@@ -5025,9 +5025,11 @@ CompileTimeErrorCode:
       int f() => 0;
       ```
   ILLEGAL_ENUM_VALUES_DECLARATION:
+    sharedName: ILLEGAL_ENUM_VALUES
     problemMessage: An instance member named 'values' can't be declared in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
   ILLEGAL_ENUM_VALUES_INHERITANCE:
+    sharedName: ILLEGAL_ENUM_VALUES
     problemMessage: An instance member named 'values' can't be inherited from '{0}' in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
     comment: |-
