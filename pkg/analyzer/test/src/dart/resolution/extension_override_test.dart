@@ -32,12 +32,31 @@ void f(int? a) {
 }
 ''');
 
-    assertIndexExpression(
-      findNode.index('[0]'),
-      readElement: findElement.method('[]', of: 'E'),
-      writeElement: null,
-      type: 'int?',
-    );
+    assertResolvedNodeText(findNode.index('[0]'), r'''
+IndexExpression
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@71
+          staticType: int?
+      rightParenthesis: )
+    extendedType: int
+    staticType: null
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightBracket: ]
+  staticElement: self::@extension::E::@method::[]
+  staticType: int?
+''');
   }
 
   test_indexExpression_write_nullAware() async {

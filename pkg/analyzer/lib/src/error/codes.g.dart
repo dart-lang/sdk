@@ -1605,6 +1605,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER',
   );
 
+  static const CompileTimeErrorCode CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE =
+      CompileTimeErrorCode(
+    'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
+    "Concrete classes can't have 'Enum' as a superinterface.",
+    correctionMessage:
+        "Try specifying a different interface, or remove it from the list.",
+  );
+
   /**
    * Parameters:
    * 0: the name of the abstract method
@@ -9484,14 +9492,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try using one of the named constructors defined in '{0}'.",
     hasPublishedDocs: true,
-  );
-
-  static const CompileTimeErrorCode NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE =
-      CompileTimeErrorCode(
-    'NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE',
-    "Non-abstract classes can't have 'Enum' as a superinterface.",
-    correctionMessage:
-        "Try specifying a different interface, or remove it from the list.",
   );
 
   /**

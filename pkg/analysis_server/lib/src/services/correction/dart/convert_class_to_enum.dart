@@ -63,11 +63,13 @@ class _BaseVisitor extends RecursiveAstVisitor<void> {
 
   _BaseVisitor(this.classElement);
 
-  /// Return `true` if the given [node] is an invocation of a constructor from
-  /// the class being converted.
-  bool invokesEnumConstructor(InstanceCreationExpression node) {
+  /// Return `true` if the given [node] is an invocation of a generative
+  /// constructor from the class being converted.
+  bool invokesGenerativeConstructor(InstanceCreationExpression node) {
     var constructorElement = node.constructorName.staticElement;
-    return constructorElement?.enclosingElement == classElement;
+    return constructorElement != null &&
+        !constructorElement.isFactory &&
+        constructorElement.enclosingElement == classElement;
   }
 }
 
@@ -513,10 +515,7 @@ class _EnumDescription {
           if (!classElement.isPrivate && !constructor.isPrivate) {
             // Public constructor in public enum.
             return null;
-          } else if (constructor.isFactory) {
-            // Factory constructor.
-            return null;
-          } else if (!constructor.isConst) {
+          } else if (!constructor.isFactory && !constructor.isConst) {
             // Non-const constructor.
             return null;
           }
@@ -561,6 +560,7 @@ class _EnumDescription {
                   var constructorElement =
                       initializer.constructorName.staticElement;
                   if (constructorElement != null &&
+                      !constructorElement.isFactory &&
                       constructorElement.enclosingElement == classElement) {
                     var fieldValue = fieldElement.computeConstantValue();
                     if (fieldValue != null) {
@@ -654,7 +654,7 @@ class _EnumVisitor extends _BaseVisitor {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!inConstantDeclaration) {
-      if (invokesEnumConstructor(node)) {
+      if (invokesGenerativeConstructor(node)) {
         throw _CannotConvertException(
             'Constructor used outside constant initializer');
       }
@@ -740,7 +740,7 @@ class _NonEnumVisitor extends _BaseVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (invokesEnumConstructor(node)) {
+    if (invokesGenerativeConstructor(node)) {
       throw _CannotConvertException(
           'Constructor used outside class being converted');
     }

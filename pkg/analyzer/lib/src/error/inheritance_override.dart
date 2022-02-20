@@ -148,7 +148,7 @@ class _ClassVerifier {
         !classElement.isAbstract &&
         implementsDartCoreEnum) {
       reporter.reportErrorForNode(
-        CompileTimeErrorCode.NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE,
+        CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
         classNameNode,
       );
       return;
@@ -379,9 +379,15 @@ class _ClassVerifier {
     var interfaceElement = type.element;
 
     if (interfaceElement.isDartCoreEnum &&
-        library.featureSet.isEnabled(Feature.enhanced_enums) &&
-        classElement.isAbstract) {
-      return false;
+        library.featureSet.isEnabled(Feature.enhanced_enums)) {
+      if (classElement.isAbstract) {
+        return false;
+      }
+      reporter.reportErrorForNode(
+        CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
+        namedType,
+      );
+      return true;
     }
 
     if (typeProvider.isNonSubtypableClass(interfaceElement)) {

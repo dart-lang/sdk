@@ -25,7 +25,9 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
+import '../../summary/resolved_ast_printer.dart';
 import 'dart_object_printer.dart';
+import 'node_text_expectations.dart';
 
 final isDynamicType = TypeMatcher<DynamicTypeImpl>();
 
@@ -431,32 +433,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertTypeNull(identifier);
   }
 
-  void assertIndexExpression(
-    IndexExpression node, {
-    required Object? readElement,
-    required Object? writeElement,
-    required String? type,
-  }) {
-    var isRead = node.inGetterContext();
-    var isWrite = node.inSetterContext();
-    if (isRead && isWrite) {
-      assertElement(node.staticElement, writeElement);
-    } else if (isRead) {
-      assertElement(node.staticElement, readElement);
-    } else {
-      expect(isWrite, isTrue);
-      assertElement(node.staticElement, writeElement);
-    }
-
-    if (isRead) {
-      assertType(node, type);
-    } else {
-      // TODO(scheglov) enforce this
-//      expect(type, isNull);
-//      assertTypeNull(node);
-    }
-  }
-
   /// TODO(srawlins): Refactor to accept an `Object? expectedConstructor` which
   /// can accept `elementMatcher` for generics, and simplify, similar to
   /// [assertConstructorReference].
@@ -738,6 +714,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }) {
     assertElement(node.propertyName.staticElement, element);
     assertType(node.staticType, type);
+  }
+
+  void assertResolvedNodeText(AstNode node, String expected) {
+    var actual = _resolvedNodeText(node);
+    if (actual != expected) {
+      print(actual);
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
   }
 
   void assertSimpleFormalParameter(
@@ -1108,6 +1093,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return constructorElement ??
         fail("No constructor '${constructorName ?? '<unnamed>'}' in class "
             "'${classElement.name}'.");
+  }
+
+  String _resolvedNodeText(AstNode node) {
+    var buffer = StringBuffer();
+    node.accept(
+      ResolvedAstPrinter(
+        selfUriStr: result.uri.toString(),
+        sink: buffer,
+        indent: '',
+      ),
+    );
+    return buffer.toString();
   }
 
   static String _extractReturnType(String invokeType) {

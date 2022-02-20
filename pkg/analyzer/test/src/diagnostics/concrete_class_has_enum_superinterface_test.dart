@@ -22,13 +22,29 @@ abstract class A implements Enum {}
 ''');
   }
 
+  test_class_concrete() async {
+    await assertErrorsInCode('''
+class A implements Enum {}
+''', [
+      error(CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE, 19, 4),
+    ]);
+  }
+
   test_class_concrete_indirect() async {
     await assertErrorsInCode('''
 abstract class A implements Enum {}
 class B implements A {}
 ''', [
-      error(CompileTimeErrorCode.NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE, 42,
-          1),
+      error(CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE, 42, 1),
+    ]);
+  }
+
+  test_classTypeAlias_concrete() async {
+    await assertErrorsInCode('''
+class M {}
+class A = Object with M implements Enum;
+''', [
+      error(CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE, 46, 4),
     ]);
   }
 
@@ -38,8 +54,17 @@ mixin M {}
 abstract class A implements Enum {}
 class B = Object with M implements A;
 ''', [
-      error(CompileTimeErrorCode.NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE, 53,
-          1),
+      error(CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE, 53, 1),
+    ]);
+  }
+
+  test_enum() async {
+    await assertErrorsInCode('''
+enum E implements Enum {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE, 18, 4),
     ]);
   }
 }

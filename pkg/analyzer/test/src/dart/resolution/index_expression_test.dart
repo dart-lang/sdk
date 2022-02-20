@@ -20,12 +20,20 @@ class IndexExpressionTest extends PubPackageResolutionTest {
 void f({a = b?[0]}) {}
 ''');
 
-    assertIndexExpression(
-      findNode.index('[0]'),
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
-    );
+    assertResolvedNodeText(findNode.index('[0]'), r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: b
+    staticElement: <null>
+    staticType: dynamic
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightBracket: ]
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_invalid_inDefaultValue_nullAware2() async {
@@ -33,12 +41,20 @@ void f({a = b?[0]}) {}
 typedef void F({a = b?[0]});
 ''');
 
-    assertIndexExpression(
-      findNode.index('[0]'),
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
-    );
+    assertResolvedNodeText(findNode.index('[0]'), r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: b
+    staticElement: <null>
+    staticType: dynamic
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightBracket: ]
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_read() async {
@@ -55,12 +71,20 @@ void f(A a) {
     var indexElement = findElement.method('[]');
 
     var indexExpression = findNode.index('a[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: indexElement,
-      writeElement: null,
-      type: 'bool',
-    );
+    assertResolvedNodeText(indexExpression, r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@61
+    staticType: A
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightBracket: ]
+  staticElement: self::@class::A::@method::[]
+  staticType: bool
+''');
     assertParameterElement(
       indexExpression.index,
       indexElement.parameters[0],
@@ -78,21 +102,29 @@ void f(A? a) {
 }
 ''');
 
-    var indexElement = findElement.method('[]');
+    assertResolvedNodeText(findNode.index('..[0]'), r'''
+IndexExpression
+  period: ?..
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightBracket: ]
+  staticElement: self::@class::A::@method::[]
+  staticType: bool
+''');
 
-    assertIndexExpression(
-      findNode.index('..[0]'),
-      readElement: indexElement,
-      writeElement: null,
-      type: 'bool',
-    );
-
-    assertIndexExpression(
-      findNode.index('..[1]'),
-      readElement: indexElement,
-      writeElement: null,
-      type: 'bool',
-    );
+    assertResolvedNodeText(findNode.index('..[1]'), r'''
+IndexExpression
+  period: ..
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 1
+    staticType: int
+  rightBracket: ]
+  staticElement: self::@class::A::@method::[]
+  staticType: bool
+''');
 
     assertType(findNode.cascade('a?'), 'A?');
   }
@@ -111,15 +143,22 @@ void f(A<double> a) {
     var indexElement = findElement.method('[]');
 
     var indexExpression = findNode.index('a[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: elementMatcher(
-        indexElement,
-        substitution: {'T': 'double'},
-      ),
-      writeElement: null,
-      type: 'double',
-    );
+    assertResolvedNodeText(indexExpression, r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@72
+    staticType: A<double>
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightBracket: ]
+  staticElement: MethodMember
+    base: self::@class::A::@method::[]
+    substitution: {T: double}
+  staticType: double
+''');
     assertParameterElement(
       indexExpression.index,
       elementMatcher(
@@ -140,15 +179,21 @@ void f(A? a) {
 }
 ''');
 
-    var indexElement = findElement.method('[]');
-
     var indexExpression = findNode.index('a?[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: indexElement,
-      writeElement: null,
-      type: 'bool?',
-    );
+    assertResolvedNodeText(indexExpression, r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@62
+    staticType: A?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightBracket: ]
+  staticElement: self::@class::A::@method::[]
+  staticType: bool?
+''');
   }
 
   test_readWrite_assignment() async {

@@ -443,6 +443,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    _writeNextCodeLine(node);
+    _writeln('ExtensionOverride');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeType('extendedType', node.extendedType);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _writeNextCodeLine(node);
     _writeln('FieldDeclaration');
@@ -698,8 +710,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('IndexExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeType('staticType', node.staticType);
       _writeElement('staticElement', node.staticElement);
+      _writeType('staticType', node.staticType);
     });
   }
 

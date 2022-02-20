@@ -29,14 +29,6 @@ abstract class A implements Enum {}
 ''');
   }
 
-  test_class_dartCoreEnum_concrete_direct() async {
-    await assertErrorsInCode('''
-class A implements Enum {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 4),
-    ]);
-  }
-
   test_class_dartCoreEnum_language216_abstract() async {
     await assertErrorsInCode('''
 // @dart = 2.16
@@ -158,15 +150,6 @@ abstract class A = Object with M implements Enum;
 ''');
   }
 
-  test_classTypeAlias_dartCoreEnum_concrete_direct() async {
-    await assertErrorsInCode('''
-class M {}
-class A = Object with M implements Enum;
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 46, 4),
-    ]);
-  }
-
   test_classTypeAlias_dartCoreEnum_language216_abstract() async {
     await assertErrorsInCode('''
 // @dart = 2.16
@@ -256,16 +239,6 @@ class C = A with M implements String, num;
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 6),
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 60, 3),
-    ]);
-  }
-
-  test_enum_dartCoreEnum() async {
-    await assertErrorsInCode('''
-enum E implements Enum {
-  v
-}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 18, 4),
     ]);
   }
 
