@@ -292,6 +292,32 @@ class C {
     await assertNoAssistAt('E extends');
   }
 
+  Future<void> test_invalid_factoryConstructor_all() async {
+    await resolveTestCode('''
+class _E {
+  static _E c = _E();
+
+  factory _E() => c;
+}
+''');
+    await assertNoAssistAt('E {');
+  }
+
+  Future<void> test_invalid_factoryConstructor_some() async {
+    // We could arguably support this case by only converting the static fields
+    // that are initialized by a generative constructor.
+    await resolveTestCode('''
+class _E {
+  static _E c0 = _E._();
+  static _E c1 = _E();
+
+  factory _E() => c0;
+  const _E._();
+}
+''');
+    await assertNoAssistAt('E {');
+  }
+
   Future<void> test_invalid_hasPart() async {
     // Change this test if the assist becomes able to look for references to the
     // class and its constructors in part files.
@@ -511,6 +537,31 @@ enum E {
 
   const E._(this.name);
 }
+''');
+  }
+
+  Future<void> test_withReferencedFactoryConstructor() async {
+    await resolveTestCode('''
+class _E {
+  static const _E c = _E();
+
+  const _E();
+
+  factory _E.withValue(int x) => c;
+}
+
+_E e = _E.withValue(0);
+''');
+    await assertHasAssistAt('E {', '''
+enum _E {
+  c;
+
+  const _E();
+
+  factory _E.withValue(int x) => c;
+}
+
+_E e = _E.withValue(0);
 ''');
   }
 }
