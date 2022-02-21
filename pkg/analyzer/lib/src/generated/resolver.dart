@@ -78,6 +78,24 @@ import 'package:meta/meta.dart';
 /// promoted.
 typedef WhyNotPromotedGetter = Map<DartType, NonPromotionReason> Function();
 
+/// Data structure describing the result of inserting an implicit call reference
+/// into the AST.
+class ImplicitCallInsertionResult {
+  /// The expression that was inserted, or `null`, if no expression was
+  /// inserted.
+  ///
+  /// The only reason this might be `null` is that, at the moment, we only
+  /// insert implicit call reference expressions if the 'constructor-tearoffs'
+  /// feature is enabled (to avoid breaking clients).
+  /// TODO(paulberry): make this non-nullable when we change this behavior.
+  final ImplicitCallReferenceImpl? expression;
+
+  /// The type of the implicit call tear-off.
+  final FunctionType staticType;
+
+  ImplicitCallInsertionResult(this.expression, this.staticType);
+}
+
 /// Maintains and manages contextual type information used for
 /// inferring types.
 class InferenceContext {
@@ -798,32 +816,27 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   /// If `expression` should be treated as `expression.call`, inserts an
-  /// [ImplicitCallReferece] node which wraps [expression].
+  /// [ImplicitCallReference] node which wraps [expression].
   ///
-  /// If an [ImplicitCallReferece] is inserted, returns it; otherwise, returns
-  /// [expression].
-  ExpressionImpl insertImplicitCallReference(Expression expression) {
+  /// If an [ImplicitCallReference] is inserted, returns an
+  /// [ImplicitCallInsertionResult] describing what was changed; otherwise,
+  /// returns `null`.
+  ImplicitCallInsertionResult? insertImplicitCallReference(
+      Expression expression,
+      {DartType? context}) {
     expression as ExpressionImpl;
-    if (!isConstructorTearoffsEnabled) {
-      // Temporarily, only create [ImplicitCallReference] nodes under the
-      // 'constructor-tearoffs' feature.
-      // TODO(srawlins): When we are ready to make a breaking change release to
-      // the analyzer package, remove this exception.
-      return expression;
-    }
-
     var parent = expression.parent;
     if (parent is CascadeExpression && parent.target == expression) {
       // Do not perform an "implicit tear-off conversion" here. It should only
       // be performed on [parent]. See
       // https://github.com/dart-lang/language/issues/1873.
-      return expression;
+      return null;
     }
-    var context = InferenceContext.getContext(expression);
+    context ??= InferenceContext.getContext(expression);
     var callMethod =
         getImplicitCallMethod(expression.typeOrThrow, context, expression);
     if (callMethod == null || context == null) {
-      return expression;
+      return null;
     }
 
     // `expression` is to be treated as `expression.call`.
@@ -848,6 +861,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } else {
       typeArgumentTypes = [];
     }
+
+    if (!isConstructorTearoffsEnabled) {
+      // Temporarily, only create [ImplicitCallReference] nodes under the
+      // 'constructor-tearoffs' feature.
+      // TODO(srawlins, paulberry): When we are ready to make a breaking change
+      // release to the analyzer package, remove this exception.
+      return ImplicitCallInsertionResult(null, callMethodType);
+    }
+
     var callReference = astFactory.implicitCallReference(
       expression: expression,
       staticElement: callMethod,
@@ -858,7 +880,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     callReference.staticType = callMethodType;
 
-    return callReference;
+    return ImplicitCallInsertionResult(callReference, callMethodType);
   }
 
   /// If we reached a null-shorting termination, and the [node] has null
@@ -1440,8 +1462,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node as ConstructorFieldInitializerImpl);
     if (fieldElement != null) {
       if (fieldType != null && expression.staticType != null) {
-        var callReference = insertImplicitCallReference(expression);
-        if (expression != callReference) {
+        var callReference = insertImplicitCallReference(expression)?.expression;
+        if (callReference != null) {
           checkForInvalidAssignment(node.fieldName, callReference,
               whyNotPromoted: whyNotPromoted);
         }
