@@ -791,6 +791,39 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   return body;
 }
 
+#define LOAD_NATIVE_FIELD(V)                                                   \
+  V(ByteDataViewLength, TypedDataBase_length)                                  \
+  V(ByteDataViewOffsetInBytes, TypedDataView_offset_in_bytes)                  \
+  V(ByteDataViewTypedData, TypedDataView_typed_data)                           \
+  V(GrowableArrayLength, GrowableObjectArray_length)                           \
+  V(ImmutableArrayLength, Array_length)                                        \
+  V(ImmutableLinkedHashBase_getData, ImmutableLinkedHashBase_data)             \
+  V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)           \
+  V(LinkedHashBase_getData, LinkedHashBase_data)                               \
+  V(LinkedHashBase_getDeletedKeys, LinkedHashBase_deleted_keys)                \
+  V(LinkedHashBase_getHashMask, LinkedHashBase_hash_mask)                      \
+  V(LinkedHashBase_getIndex, LinkedHashBase_index)                             \
+  V(LinkedHashBase_getUsedData, LinkedHashBase_used_data)                      \
+  V(ObjectArrayLength, Array_length)                                           \
+  V(TypedDataViewOffsetInBytes, TypedDataView_offset_in_bytes)                 \
+  V(TypedDataViewTypedData, TypedDataView_typed_data)                          \
+  V(TypedListBaseLength, TypedDataBase_length)                                 \
+  V(WeakProperty_getKey, WeakProperty_key)                                     \
+  V(WeakProperty_getValue, WeakProperty_value)                                 \
+  V(WeakReference_getTarget, WeakReference_target)
+
+#define STORE_NATIVE_FIELD(V)                                                  \
+  V(LinkedHashBase_setData, LinkedHashBase_data)                               \
+  V(LinkedHashBase_setIndex, LinkedHashBase_index)                             \
+  V(WeakProperty_setKey, WeakProperty_key)                                     \
+  V(WeakProperty_setValue, WeakProperty_value)                                 \
+  V(WeakReference_setTarget, WeakReference_target)
+
+#define STORE_NATIVE_FIELD_NO_BARRIER(V)                                       \
+  V(LinkedHashBase_setDeletedKeys, LinkedHashBase_deleted_keys)                \
+  V(LinkedHashBase_setHashMask, LinkedHashBase_hash_mask)                      \
+  V(LinkedHashBase_setUsedData, LinkedHashBase_used_data)
+
 bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     const Function& function) {
   const MethodRecognizer::Kind kind = function.recognized_kind();
@@ -867,44 +900,22 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
-    case MethodRecognizer::kGrowableArrayLength:
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-    case MethodRecognizer::kTypedListBaseLength:
-    case MethodRecognizer::kByteDataViewLength:
-    case MethodRecognizer::kByteDataViewOffsetInBytes:
-    case MethodRecognizer::kTypedDataViewOffsetInBytes:
-    case MethodRecognizer::kByteDataViewTypedData:
-    case MethodRecognizer::kTypedDataViewTypedData:
     case MethodRecognizer::kClassIDgetID:
     case MethodRecognizer::kGrowableArrayAllocateWithData:
     case MethodRecognizer::kGrowableArrayCapacity:
     case MethodRecognizer::kListFactory:
     case MethodRecognizer::kObjectArrayAllocate:
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
-    case MethodRecognizer::kLinkedHashBase_getIndex:
-    case MethodRecognizer::kLinkedHashBase_setIndex:
-    case MethodRecognizer::kLinkedHashBase_getData:
-    case MethodRecognizer::kLinkedHashBase_setData:
-    case MethodRecognizer::kLinkedHashBase_getHashMask:
-    case MethodRecognizer::kLinkedHashBase_setHashMask:
-    case MethodRecognizer::kLinkedHashBase_getUsedData:
-    case MethodRecognizer::kLinkedHashBase_setUsedData:
-    case MethodRecognizer::kLinkedHashBase_getDeletedKeys:
-    case MethodRecognizer::kLinkedHashBase_setDeletedKeys:
-    case MethodRecognizer::kImmutableLinkedHashBase_getData:
-    case MethodRecognizer::kImmutableLinkedHashBase_getIndex:
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
-    case MethodRecognizer::kWeakProperty_getKey:
-    case MethodRecognizer::kWeakProperty_setKey:
-    case MethodRecognizer::kWeakProperty_getValue:
-    case MethodRecognizer::kWeakProperty_setValue:
-    case MethodRecognizer::kWeakReference_getTarget:
-    case MethodRecognizer::kWeakReference_setTarget:
     case MethodRecognizer::kFfiAbi:
     case MethodRecognizer::kReachabilityFence:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
+#define CASE(method, slot) case MethodRecognizer::k##method:
+      LOAD_NATIVE_FIELD(CASE)
+      STORE_NATIVE_FIELD(CASE)
+      STORE_NATIVE_FIELD_NO_BARRIER(CASE)
+#undef CASE
       return true;
     case MethodRecognizer::kDoubleToInteger:
     case MethodRecognizer::kDoubleMod:
@@ -1534,13 +1545,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += MathUnary(MathUnaryInstr::kSqrt);
     } break;
-#define LOAD_NATIVE_FIELD(method, slot)                                        \
+#define IL_BODY(method, slot)                                                  \
   case MethodRecognizer::k##method:                                            \
     ASSERT_EQUAL(function.NumParameters(), 1);                                 \
     body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
     body += LoadNativeField(Slot::slot());                                     \
     break;
-#define STORE_NATIVE_FIELD(method, slot)                                       \
+      LOAD_NATIVE_FIELD(IL_BODY)
+#undef IL_BODY
+#define IL_BODY(method, slot)                                                  \
   case MethodRecognizer::k##method:                                            \
     ASSERT_EQUAL(function.NumParameters(), 2);                                 \
     body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
@@ -1548,7 +1561,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     body += StoreNativeField(Slot::slot());                                    \
     body += NullConstant();                                                    \
     break;
-#define STORE_NATIVE_FIELD_NO_BARRIER(method, slot)                            \
+      STORE_NATIVE_FIELD(IL_BODY)
+#undef IL_BODY
+#define IL_BODY(method, slot)                                                  \
   case MethodRecognizer::k##method:                                            \
     ASSERT_EQUAL(function.NumParameters(), 2);                                 \
     body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
@@ -1557,44 +1572,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         Slot::slot(), StoreInstanceFieldInstr::Kind::kOther, kNoStoreBarrier); \
     body += NullConstant();                                                    \
     break;
-      LOAD_NATIVE_FIELD(ByteDataViewLength, TypedDataBase_length)
-      LOAD_NATIVE_FIELD(ByteDataViewOffsetInBytes,
-                        TypedDataView_offset_in_bytes)
-      LOAD_NATIVE_FIELD(ByteDataViewTypedData, TypedDataView_typed_data)
-      LOAD_NATIVE_FIELD(GrowableArrayLength, GrowableObjectArray_length)
-      LOAD_NATIVE_FIELD(ImmutableLinkedHashBase_getData,
-                        ImmutableLinkedHashBase_data)
-      LOAD_NATIVE_FIELD(ImmutableArrayLength, Array_length)
-      LOAD_NATIVE_FIELD(ImmutableLinkedHashBase_getIndex,
-                        ImmutableLinkedHashBase_index)
-      LOAD_NATIVE_FIELD(LinkedHashBase_getData, LinkedHashBase_data)
-      LOAD_NATIVE_FIELD(LinkedHashBase_getDeletedKeys,
-                        LinkedHashBase_deleted_keys)
-      LOAD_NATIVE_FIELD(LinkedHashBase_getHashMask, LinkedHashBase_hash_mask)
-      LOAD_NATIVE_FIELD(LinkedHashBase_getIndex, LinkedHashBase_index)
-      LOAD_NATIVE_FIELD(LinkedHashBase_getUsedData, LinkedHashBase_used_data)
-      LOAD_NATIVE_FIELD(ObjectArrayLength, Array_length)
-      LOAD_NATIVE_FIELD(TypedDataViewOffsetInBytes,
-                        TypedDataView_offset_in_bytes)
-      LOAD_NATIVE_FIELD(TypedDataViewTypedData, TypedDataView_typed_data)
-      LOAD_NATIVE_FIELD(TypedListBaseLength, TypedDataBase_length)
-      LOAD_NATIVE_FIELD(WeakProperty_getKey, WeakProperty_key)
-      LOAD_NATIVE_FIELD(WeakProperty_getValue, WeakProperty_value)
-      LOAD_NATIVE_FIELD(WeakReference_getTarget, WeakReference_target)
-      STORE_NATIVE_FIELD_NO_BARRIER(LinkedHashBase_setDeletedKeys,
-                                    LinkedHashBase_deleted_keys)
-      STORE_NATIVE_FIELD_NO_BARRIER(LinkedHashBase_setHashMask,
-                                    LinkedHashBase_hash_mask)
-      STORE_NATIVE_FIELD_NO_BARRIER(LinkedHashBase_setUsedData,
-                                    LinkedHashBase_used_data)
-      STORE_NATIVE_FIELD(LinkedHashBase_setData, LinkedHashBase_data)
-      STORE_NATIVE_FIELD(LinkedHashBase_setIndex, LinkedHashBase_index)
-      STORE_NATIVE_FIELD(WeakProperty_setKey, WeakProperty_key)
-      STORE_NATIVE_FIELD(WeakProperty_setValue, WeakProperty_value)
-      STORE_NATIVE_FIELD(WeakReference_setTarget, WeakReference_target)
-#undef LOAD_NATIVE_FIELD
-#undef STORE_NATIVE_FIELD
-#undef STORE_NATIVE_FIELD_NO_BARRIER
+      STORE_NATIVE_FIELD_NO_BARRIER(IL_BODY)
+#undef IL_BODY
     default: {
       UNREACHABLE();
       break;
