@@ -1,0 +1,43 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/recovery_in_elements.dart:8:3: Error: Expected an identifier, but got 'final'.
+// Try inserting an identifier before 'final'.
+//   final String foo = "foo"; // Error: attempt to parse the field as an element.
+//   ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/recovery_in_elements.dart:8:3: Error: Expected '}' before this.
+//   final String foo = "foo"; // Error: attempt to parse the field as an element.
+//   ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = #C4;
+  static const field self::E element = #C3;
+  const constructor •(core::int index, core::String name) → self::E
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+static method test() → dynamic {
+  return #C3;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = "element"
+  #C3 = self::E {index:#C1, _name:#C2}
+  #C4 = <self::E*>[#C3]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///recovery_in_elements.dart:
+- E. (from org-dartlang-testcase:///recovery_in_elements.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
