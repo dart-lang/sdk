@@ -1,0 +1,43 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "package:macro/macro.dart" as mac;
+import "dart:core" as core;
+
+import "package:macro/macro.dart";
+
+@#C1
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  external method getSuperClass() → core::String;
+}
+@#C1
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  external method getSuperClass() → core::String;
+}
+@#C1
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  external method getSuperClass() → core::String;
+}
+abstract class _C&A&M = self::A with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C&A&M
+    : super self::A::•()
+    ;
+  mixin-super-stub method getSuperClass() → core::String
+    return super.{self::M::getSuperClass}();
+}
+@#C1
+class C extends self::_C&A&M {
+  synthetic constructor •() → self::C
+    : super self::_C&A&M::•()
+    ;
+  external method getSuperClass() → core::String;
+}
+
+constants  {
+  #C1 = mac::SupertypesMacro {}
+}

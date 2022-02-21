@@ -308,7 +308,8 @@ class ToStringMacro implements ClassDeclarationsMacro {
       Iterable<FieldDeclaration> fields = await builder.fieldsOf(clazz);
       List<Object> parts = ['''
   toString() {
-    return "${clazz.identifier.name}('''];
+    return "${clazz.identifier.name}('''
+      ];
       String comma = '';
       for (FieldDeclaration field in fields) {
         parts.add(comma);
@@ -316,8 +317,8 @@ class ToStringMacro implements ClassDeclarationsMacro {
         parts.add(field.identifier.name);
         parts.add('}');
         comma = ',';
-    }
-    parts.add(''')";
+      }
+      parts.add(''')";
   }''');
       builder.declareInClass(new DeclarationCode.fromParts(parts));
     }
@@ -325,11 +326,12 @@ class ToStringMacro implements ClassDeclarationsMacro {
 }
 
 macro
+
 class SequenceMacro implements ClassDeclarationsMacro {
   const SequenceMacro();
 
-  FutureOr<void> buildDeclarationsForClass(
-      ClassDeclaration clazz, ClassMemberDeclarationBuilder builder) async {
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+      ClassMemberDeclarationBuilder builder) async {
     Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
     int index = 0;
     String suffix = '';
@@ -339,5 +341,23 @@ class SequenceMacro implements ClassDeclarationsMacro {
     }
     builder.declareInClass(new DeclarationCode.fromString('''
   method$suffix() {}'''));
+  }
+}
+
+macro
+
+class SupertypesMacro implements ClassDefinitionMacro {
+  const SupertypesMacro();
+
+  FutureOr<void> buildDefinitionForClass(ClassDeclaration clazz,
+      ClassDefinitionBuilder builder) async {
+    ClassDeclaration? superClass = await builder.superclassOf(clazz);
+    FunctionDefinitionBuilder getSuperClassBuilder = await builder.buildMethod(
+        (await builder.methodsOf(clazz))
+            .firstWhere((m) => m.identifier.name == 'getSuperClass')
+            .identifier);
+    getSuperClassBuilder.augment(new FunctionBodyCode.fromString('''{
+    return "${superClass?.identifier.name}";
+  }'''));
   }
 }
