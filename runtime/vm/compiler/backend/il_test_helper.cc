@@ -92,6 +92,25 @@ ObjectPtr Invoke(const Library& lib, const char* name) {
   return Api::UnwrapHandle(result);
 }
 
+InstructionsPtr BuildInstructions(
+    std::function<void(compiler::Assembler* assembler)> fun) {
+  auto thread = Thread::Current();
+  compiler::Assembler assembler(nullptr);
+
+  fun(&assembler);
+
+  auto& code = Code::Handle();
+  auto install_code_fun = [&] {
+    code = Code::FinalizeCode(nullptr, &assembler,
+                              Code::PoolAttachment::kNotAttachPool,
+                              /*optimized=*/false, /*stats=*/nullptr);
+  };
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  thread->isolate_group()->RunWithStoppedMutators(install_code_fun,
+                                                  /*use_force_growth=*/true);
+  return code.instructions();
+}
+
 FlowGraph* TestPipeline::RunPasses(
     std::initializer_list<CompilerPass::Id> passes) {
   auto thread = Thread::Current();
@@ -144,9 +163,27 @@ FlowGraph* TestPipeline::RunPasses(
     } else {
       flow_graph_ = CompilerPass::RunPipeline(mode_, pass_state_);
     }
+    pass_state_->call_specializer = nullptr;
   }
 
   return flow_graph_;
+}
+
+void TestPipeline::RunAdditionalPasses(
+    std::initializer_list<CompilerPass::Id> passes) {
+  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
+
+  JitCallSpecializer jit_call_specializer(flow_graph_, &speculative_policy);
+  AotCallSpecializer aot_call_specializer(/*precompiler=*/nullptr, flow_graph_,
+                                          &speculative_policy);
+  if (mode_ == CompilerPass::kAOT) {
+    pass_state_->call_specializer = &aot_call_specializer;
+  } else {
+    pass_state_->call_specializer = &jit_call_specializer;
+  }
+
+  flow_graph_ = CompilerPass::RunPipelineWithPasses(pass_state_, passes);
+  pass_state_->call_specializer = nullptr;
 }
 
 void TestPipeline::CompileGraphAndAttachFunction() {
