@@ -111,6 +111,7 @@ general/issue45700.crash: FormatterCrash
 general/issue47495: FormatterCrash
 general/issue47728_2: FormatterCrash
 general/issue47728_3: FormatterCrash
+general/issue47922: FormatterCrash
 general/issue_46886: FormatterCrash
 general/macro_class: FormatterCrash
 general/many_errors: FormatterCrash
@@ -223,6 +224,7 @@ regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
 super_parameters/circular_dependency_inference: FormatterCrash
 super_parameters/default_values: FormatterCrash
+super_parameters/issue47922: FormatterCrash
 super_parameters/issue48142: FormatterCrash
 super_parameters/issue48286: FormatterCrash
 super_parameters/simple: FormatterCrash

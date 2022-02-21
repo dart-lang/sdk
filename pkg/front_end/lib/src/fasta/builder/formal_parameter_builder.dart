@@ -134,7 +134,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           name == noNameSentinel ? null : name, functionNestingLevel,
           type: builtType,
           isFinal: isFinal,
-          isConst: isConst,
+          isConst: false,
           isInitializingFormal: isInitializingFormal,
           isCovariantByDeclaration: isCovariantByDeclaration,
           isRequired: isNamedRequired,
