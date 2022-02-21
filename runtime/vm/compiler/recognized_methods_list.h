@@ -189,11 +189,11 @@ namespace dart {
   V(_WeakProperty, set:value, WeakProperty_setValue, 0x8b2bafab)               \
   V(_WeakReferenceImpl, get:target, WeakReference_getTarget, 0x632d6ca8)       \
   V(_WeakReferenceImpl, set:_target, WeakReference_setTarget, 0x6edc7518)      \
-  V(::, _classRangeCheck, ClassRangeCheck, 0x00269620)                         \
+  V(::, _classRangeCheck, ClassRangeCheck, 0x09f5fc7a)                         \
   V(::, _abi, FfiAbi, 0x7c4ab3b4)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x92ae104f)                \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x3ff5ae9c)        \
-  V(::, _nativeEffect, NativeEffect, 0x61e00b59)                               \
+  V(::, _nativeEffect, NativeEffect, 0x537dce91)                               \
   V(::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x7807e872)                \
   V(::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex, 0x6aa4cab4)  \
   V(::, _loadInt8, FfiLoadInt8, 0x0f04e397)                                    \
@@ -239,7 +239,7 @@ namespace dart {
   V(::, _getNativeField, GetNativeField, 0xa0139b85)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x730f2b7f)                      \
   V(::, _asyncThenWrapperHelper, AsyncThenWrapperHelper, 0xd9974c34)           \
-  V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x1dcaf73d)                          \
+  V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x037e7601)                          \
   V(_Future, timeout, FutureTimeout, 0x73041520)                               \
   V(Future, wait, FutureWait, 0x495c83cd)                                      \
   V(_RootZone, runUnary, RootZoneRunUnary, 0xb607f8bf)                         \
