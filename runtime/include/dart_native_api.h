@@ -32,6 +32,13 @@
  * the caller. The ownership of data for kExternalTyped is passed to the VM on
  * message send and returned when the VM invokes the
  * Dart_HandleFinalizer callback; a non-NULL callback must be provided.
+ *
+ * Note that Dart_CObject_kNativePointer is intended for internal use by
+ * dart:io implementation and has no connection to dart:ffi Pointer class.
+ * It represents a pointer to a native resource of a known type.
+ * The receiving side will only see this pointer as an integer and will not
+ * see the specified finalizer.
+ * The specified finalizer will only be invoked if the message is not delivered.
  */
 typedef enum {
   Dart_CObject_kNull = 0,

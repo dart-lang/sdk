@@ -581,6 +581,17 @@ class CObjectExternalUint8Array : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectExternalUint8Array);
 };
 
+/***
+ * This class is intended for internal use by dart:io implementation and
+ * has no connection to dart:ffi Pointer class.
+ *
+ * It represents a pointer to a native resource of a known type.
+ *
+ * The receiving side will only see this pointer as an integer and will not
+ * see the specified finalizer.
+ *
+ * The specified finalizer will only be invoked if the message is not delivered.
+ **/
 class CObjectNativePointer : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(NativePointer)
