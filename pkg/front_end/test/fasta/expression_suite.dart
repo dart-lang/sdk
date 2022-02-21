@@ -37,6 +37,9 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
+import 'package:front_end/src/fasta/kernel/utils.dart'
+    show serializeComponent, serializeProcedure;
+
 import "package:kernel/ast.dart"
     show
         Class,
@@ -62,9 +65,6 @@ import "package:testing/testing.dart"
 import 'package:vm/target/vm.dart' show VmTarget;
 
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
-
-import '../../lib/src/fasta/kernel/utils.dart'
-    show serializeComponent, serializeProcedure;
 
 import '../utils/kernel_chain.dart' show runDiff, openWrite;
 

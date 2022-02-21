@@ -27,6 +27,7 @@ import '../../testing/id_testing_utils.dart';
 import '../builder/extension_builder.dart';
 import '../builder/member_builder.dart';
 import '../fasta_codes.dart';
+import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/inference_visitor.dart';
@@ -115,6 +116,8 @@ abstract class TypeInferrer {
 
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
 
+  InferenceHelper? helper;
+
   /// Performs full type inference on the given field initializer.
   ExpressionInferenceResult inferFieldInitializer(
       InferenceHelper helper, DartType declaredType, Expression initializer);
@@ -158,6 +161,19 @@ abstract class TypeInferrer {
   // TODO(johnniwinther): We are still parameters on synthesized mixin
   //  application constructors.
   void inferConstructorParameterTypes(Constructor constructor);
+
+  InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
+      FunctionType calleeType, ArgumentsImpl arguments,
+      {List<VariableDeclaration>? hoistedExpressions,
+      bool isSpecialCasedBinaryOperator: false,
+      bool isSpecialCasedTernaryOperator: false,
+      DartType? receiverType,
+      bool skipTypeArgumentInference: false,
+      bool isConst: false,
+      bool isImplicitExtensionMember: false,
+      bool isImplicitCall: false,
+      Member? staticTarget,
+      bool isExtensionMemberInvocation = false});
 }
 
 /// Concrete implementation of [TypeInferrer] specialized to work with kernel
@@ -207,6 +223,7 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   final SourceLibraryBuilder library;
 
+  @override
   InferenceHelper? helper;
 
   /// Context information for the current closure, or `null` if we are not
@@ -2033,16 +2050,16 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   ExpressionInferenceResult inferFieldInitializer(
     InferenceHelper helper,
-    DartType context,
+    DartType declaredType,
     Expression initializer,
   ) {
     assert(closureContext == null);
     assert(!isTopLevel);
     this.helper = helper;
     ExpressionInferenceResult initializerResult =
-        inferExpression(initializer, context, true, isVoidAllowed: true);
-    initializer = ensureAssignableResult(context, initializerResult,
-        isVoidAllowed: context is VoidType);
+        inferExpression(initializer, declaredType, true, isVoidAllowed: true);
+    initializer = ensureAssignableResult(declaredType, initializerResult,
+        isVoidAllowed: declaredType is VoidType);
     this.helper = null;
     return new ExpressionInferenceResult(
         initializerResult.inferredType, initializer);
@@ -2079,6 +2096,7 @@ class TypeInferrerImpl implements TypeInferrer {
         result.hasChanged ? result.statement : body, futureValueType);
   }
 
+  @override
   InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
       FunctionType calleeType, ArgumentsImpl arguments,
       {List<VariableDeclaration>? hoistedExpressions,
@@ -4639,6 +4657,167 @@ class TypeInferrerImpl implements TypeInferrer {
   Expression createEqualsNull(int fileOffset, Expression left) {
     return new EqualsNull(left)..fileOffset = fileOffset;
   }
+}
+
+class TypeInferrerImplBenchmarked implements TypeInferrer {
+  final TypeInferrerImpl impl;
+  final Benchmarker benchmarker;
+
+  TypeInferrerImplBenchmarked(
+      TypeInferenceEngine engine,
+      Uri uriForInstrumentation,
+      bool topLevel,
+      InterfaceType? thisType,
+      SourceLibraryBuilder library,
+      AssignedVariables<TreeNode, VariableDeclaration> assignedVariables,
+      InferenceDataForTesting? dataForTesting,
+      this.benchmarker)
+      : impl = new TypeInferrerImpl(engine, uriForInstrumentation, topLevel,
+            thisType, library, assignedVariables, dataForTesting);
+
+  @override
+  AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
+      impl.assignedVariables;
+
+  @override
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration, DartType>
+      get flowAnalysis => impl.flowAnalysis;
+
+  @override
+  SourceLibraryBuilder get library => impl.library;
+
+  @override
+  TypeSchemaEnvironment get typeSchemaEnvironment => impl.typeSchemaEnvironment;
+
+  @override
+  Uri get uriForInstrumentation => impl.uriForInstrumentation;
+
+  @override
+  void inferConstructorParameterTypes(Constructor constructor) {
+    benchmarker
+        .beginSubdivide(BenchmarkSubdivides.inferConstructorParameterTypes);
+    impl.inferConstructorParameterTypes(constructor);
+    benchmarker.endSubdivide();
+  }
+
+  @override
+  DartType inferDeclarationType(DartType initializerType) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferDeclarationType);
+    DartType result = impl.inferDeclarationType(initializerType);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  ExpressionInferenceResult inferExpression(
+      Expression expression, DartType typeContext, bool typeNeeded,
+      {bool isVoidAllowed = false, bool forEffect = false}) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferExpression);
+    ExpressionInferenceResult result = impl.inferExpression(
+        expression, typeContext, typeNeeded,
+        isVoidAllowed: isVoidAllowed, forEffect: forEffect);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  ExpressionInferenceResult inferFieldInitializer(
+      InferenceHelper helper, DartType declaredType, Expression initializer) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferFieldInitializer);
+    ExpressionInferenceResult result =
+        impl.inferFieldInitializer(helper, declaredType, initializer);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
+      DartType returnType, AsyncMarker asyncMarker, Statement body) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
+    InferredFunctionBody result = impl.inferFunctionBody(
+        helper, fileOffset, returnType, asyncMarker, body);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  InitializerInferenceResult inferInitializer(
+      InferenceHelper helper, Initializer initializer) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferInitializer);
+    InitializerInferenceResult result =
+        impl.inferInitializer(helper, initializer);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  void inferMetadata(
+      InferenceHelper helper, TreeNode? parent, List<Expression>? annotations) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferMetadata);
+    impl.inferMetadata(helper, parent, annotations);
+    benchmarker.endSubdivide();
+  }
+
+  @override
+  void inferMetadataKeepingHelper(
+      TreeNode parent, List<Expression> annotations) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferMetadataKeepingHelper);
+    impl.inferMetadataKeepingHelper(parent, annotations);
+    benchmarker.endSubdivide();
+  }
+
+  @override
+  Expression inferParameterInitializer(
+      InferenceHelper helper,
+      Expression initializer,
+      DartType declaredType,
+      bool hasDeclaredInitializer) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferParameterInitializer);
+    Expression result = impl.inferParameterInitializer(
+        helper, initializer, declaredType, hasDeclaredInitializer);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
+      FunctionType calleeType, ArgumentsImpl arguments,
+      {List<VariableDeclaration>? hoistedExpressions,
+      bool isSpecialCasedBinaryOperator = false,
+      bool isSpecialCasedTernaryOperator = false,
+      DartType? receiverType,
+      bool skipTypeArgumentInference = false,
+      bool isConst = false,
+      bool isImplicitExtensionMember = false,
+      bool isImplicitCall = false,
+      Member? staticTarget,
+      bool isExtensionMemberInvocation = false}) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferInvocation);
+    InvocationInferenceResult result = impl.inferInvocation(
+      typeContext,
+      offset,
+      calleeType,
+      arguments,
+      hoistedExpressions: hoistedExpressions,
+      isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
+      isSpecialCasedTernaryOperator: isSpecialCasedTernaryOperator,
+      receiverType: receiverType,
+      skipTypeArgumentInference: skipTypeArgumentInference,
+      isConst: isConst,
+      isImplicitExtensionMember: isImplicitExtensionMember,
+      isImplicitCall: isImplicitCall,
+      staticTarget: staticTarget,
+      isExtensionMemberInvocation: isExtensionMemberInvocation,
+    );
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  InferenceHelper? get helper => impl.helper;
+
+  @override
+  void set helper(InferenceHelper? helper) => impl.helper = helper;
 }
 
 abstract class MixinInferrer {

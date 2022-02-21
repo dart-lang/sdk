@@ -22,7 +22,13 @@ import 'package:front_end/src/fasta/kernel/benchmarker.dart'
     show BenchmarkPhases, Benchmarker;
 
 import 'package:kernel/kernel.dart'
-    show CanonicalName, Library, Component, Source, loadComponentFromBytes;
+    show
+        CanonicalName,
+        Component,
+        Library,
+        RecursiveVisitor,
+        Source,
+        loadComponentFromBytes;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
@@ -476,10 +482,20 @@ class CompileTask {
       await writeComponentToFile(component, uri);
       ticker.logMs("Wrote component to ${uri.toFilePath()}");
     }
+    if (benchmarker != null) {
+      // When benchmarking also do a recursive visit of the produced component
+      // that does nothing other than visiting everything. Do this to produce
+      // a reference point for comparing inference time and serialization time.
+      benchmarker.enterPhase(BenchmarkPhases.benchmarkAstVisit);
+      Component component = buildResult.component!;
+      component.accept(new EmptyRecursiveVisitorForBenchmarking());
+    }
     benchmarker?.enterPhase(BenchmarkPhases.unknown);
     return uri;
   }
 }
+
+class EmptyRecursiveVisitorForBenchmarking extends RecursiveVisitor {}
 
 /// Load the [Component] from the given [uri] and append its libraries
 /// to the [dillTarget].

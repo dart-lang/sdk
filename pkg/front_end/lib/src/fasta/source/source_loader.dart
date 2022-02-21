@@ -8,6 +8,9 @@ import 'dart:collection' show Queue;
 import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
+    show ForwardingListener;
+
 import 'package:_fe_analyzer_shared/src/macros/executor.dart'
     show MacroExecutor;
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
@@ -23,6 +26,8 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
+import 'package:front_end/src/fasta/kernel/benchmarker.dart'
+    show BenchmarkSubdivides;
 import 'package:front_end/src/fasta/source/source_type_alias_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
@@ -805,6 +810,7 @@ severity: $severity
 
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
+    target.benchmarker?.beginSubdivide(BenchmarkSubdivides.tokenize);
     Uri fileUri = library.fileUri;
 
     // Lookup the file URI in the cache.
@@ -818,6 +824,7 @@ severity: $severity
         library.addProblemAtAccessors(message);
         bytes = synthesizeSourceForMissingFile(library.importUri, null);
       } else if (!fileUri.hasScheme) {
+        target.benchmarker?.endSubdivide();
         return internalProblem(
             templateInternalProblemUriMissingScheme.withArguments(fileUri),
             -1,
@@ -912,6 +919,7 @@ severity: $severity
       }
       token = token.next!;
     }
+    target.benchmarker?.endSubdivide();
     return token;
   }
 
@@ -1114,7 +1122,30 @@ severity: $severity
     // time we suppress lexical errors.
     Token tokens = await tokenize(library, suppressLexicalErrors: true);
     // ignore: unnecessary_null_comparison
-    if (tokens == null) return;
+    if (tokens == null) {
+      return;
+    }
+
+    if (target.benchmarker != null) {
+      // When benchmarking we do extra parsing on it's own to get a timing of
+      // how much time is spent on the actual parsing (as opposed to the
+      // building of what's parsed).
+      {
+        target.benchmarker?.beginSubdivide(
+            BenchmarkSubdivides.body_buildBody_benchmark_specific_diet_parser);
+        DietParser parser = new DietParser(new ForwardingListener());
+        parser.parseUnit(tokens);
+        target.benchmarker?.endSubdivide();
+      }
+      {
+        target.benchmarker?.beginSubdivide(
+            BenchmarkSubdivides.body_buildBody_benchmark_specific_parser);
+        Parser parser = new Parser(new ForwardingListener());
+        parser.parseUnit(tokens);
+        target.benchmarker?.endSubdivide();
+      }
+    }
+
     DietListener listener = createDietListener(library);
     DietParser parser = new DietParser(listener);
     parser.parseUnit(tokens);
@@ -2155,10 +2186,14 @@ severity: $severity
       library.buildOutlineExpressions(
           classHierarchy, synthesizedFunctionNodes, delayedActionPerformers);
     }
+
+    target.benchmarker
+        ?.beginSubdivide(BenchmarkSubdivides.delayedActionPerformer);
     for (DelayedActionPerformer delayedActionPerformer
         in delayedActionPerformers) {
       delayedActionPerformer.performDelayedActions();
     }
+    target.benchmarker?.endSubdivide();
     ticker.logMs("Build outline expressions");
   }
 
@@ -2179,7 +2214,8 @@ severity: $severity
   }
 
   void createTypeInferenceEngine() {
-    _typeInferenceEngine = new TypeInferenceEngineImpl(instrumentation);
+    _typeInferenceEngine =
+        new TypeInferenceEngineImpl(instrumentation, target.benchmarker);
   }
 
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
