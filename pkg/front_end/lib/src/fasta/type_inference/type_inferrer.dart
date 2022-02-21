@@ -464,29 +464,6 @@ class TypeInferrerImpl implements TypeInferrer {
         .isSubtypeWhenIgnoringNullabilities();
   }
 
-  Expression ensureAssignableResult(
-      DartType expectedType, ExpressionInferenceResult result,
-      {int? fileOffset,
-      bool isVoidAllowed: false,
-      Template<Message Function(DartType, DartType, bool)>? errorTemplate,
-      Template<Message Function(DartType, DartType, bool)>?
-          nullabilityErrorTemplate,
-      Template<Message Function(DartType, bool)>? nullabilityNullErrorTemplate,
-      Template<Message Function(DartType, DartType, bool)>?
-          nullabilityNullTypeErrorTemplate,
-      Template<Message Function(DartType, DartType, DartType, DartType, bool)>?
-          nullabilityPartErrorTemplate}) {
-    return ensureAssignable(
-        expectedType, result.inferredType, result.expression,
-        fileOffset: fileOffset,
-        isVoidAllowed: isVoidAllowed,
-        errorTemplate: errorTemplate,
-        nullabilityErrorTemplate: nullabilityErrorTemplate,
-        nullabilityNullErrorTemplate: nullabilityNullErrorTemplate,
-        nullabilityNullTypeErrorTemplate: nullabilityNullTypeErrorTemplate,
-        nullabilityPartErrorTemplate: nullabilityPartErrorTemplate);
-  }
-
   /// Ensures that [expressionType] is assignable to [contextType].
   ///
   /// Checks whether [expressionType] can be assigned to the greatest closure of
@@ -506,7 +483,40 @@ class TypeInferrerImpl implements TypeInferrer {
   /// before returned and therefore shouldn't be checked to be a `Future`
   /// directly.
   Expression ensureAssignable(
-      DartType contextType, DartType expressionType, Expression expression,
+      DartType expectedType, DartType expressionType, Expression expression,
+      {int? fileOffset,
+      DartType? declaredContextType,
+      DartType? runtimeCheckedType,
+      bool isVoidAllowed: false,
+      Template<Message Function(DartType, DartType, bool)>? errorTemplate,
+      Template<Message Function(DartType, DartType, bool)>?
+          nullabilityErrorTemplate,
+      Template<Message Function(DartType, bool)>? nullabilityNullErrorTemplate,
+      Template<Message Function(DartType, DartType, bool)>?
+          nullabilityNullTypeErrorTemplate,
+      Template<Message Function(DartType, DartType, DartType, DartType, bool)>?
+          nullabilityPartErrorTemplate,
+      Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+    return ensureAssignableResult(expectedType,
+            new ExpressionInferenceResult(expressionType, expression),
+            fileOffset: fileOffset,
+            declaredContextType: declaredContextType,
+            runtimeCheckedType: runtimeCheckedType,
+            isVoidAllowed: isVoidAllowed,
+            errorTemplate: errorTemplate,
+            nullabilityErrorTemplate: nullabilityErrorTemplate,
+            nullabilityNullErrorTemplate: nullabilityNullErrorTemplate,
+            nullabilityNullTypeErrorTemplate: nullabilityNullTypeErrorTemplate,
+            nullabilityPartErrorTemplate: nullabilityPartErrorTemplate,
+            whyNotPromoted: whyNotPromoted)
+        .expression;
+  }
+
+  /// Same as [ensureAssignable], but accepts an [ExpressionInferenceResult]
+  /// rather than an expression and a type separately.  If no change is made,
+  /// [inferenceResult] is returned unchanged.
+  ExpressionInferenceResult ensureAssignableResult(
+      DartType contextType, ExpressionInferenceResult inferenceResult,
       {int? fileOffset,
       DartType? declaredContextType,
       DartType? runtimeCheckedType,
@@ -548,35 +558,37 @@ class TypeInferrerImpl implements TypeInferrer {
     // We don't need to insert assignability checks when doing top level type
     // inference since top level type inference only cares about the type that
     // is inferred (the kernel code is discarded).
-    if (isTopLevel) return expression;
+    if (isTopLevel) return inferenceResult;
 
-    fileOffset ??= expression.fileOffset;
+    fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
 
     DartType initialContextType = runtimeCheckedType ?? contextType;
 
     Template<Message Function(DartType, DartType, bool)>?
-        preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(expression);
+        preciseTypeErrorTemplate =
+        _getPreciseTypeErrorTemplate(inferenceResult.expression);
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
-        contextType, expressionType,
+        contextType, inferenceResult.inferredType,
         isNonNullableByDefault: isNonNullableByDefault,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null);
 
     if (assignabilityResult.needsTearOff) {
-      TypedTearoff typedTearoff =
-          _tearOffCall(expression, expressionType as InterfaceType, fileOffset);
-      expression = typedTearoff.tearoff;
-      expressionType = typedTearoff.tearoffType;
+      TypedTearoff typedTearoff = _tearOffCall(inferenceResult.expression,
+          inferenceResult.inferredType as InterfaceType, fileOffset);
+      inferenceResult = new ExpressionInferenceResult(
+          typedTearoff.tearoffType, typedTearoff.tearoff);
     }
     if (assignabilityResult.implicitInstantiation != null) {
-      ExpressionInferenceResult instantiationResult =
-          _applyImplicitInstantiation(assignabilityResult.implicitInstantiation,
-              expressionType, expression);
-      expression = instantiationResult.expression;
-      expressionType = instantiationResult.inferredType;
+      inferenceResult = _applyImplicitInstantiation(
+          assignabilityResult.implicitInstantiation,
+          inferenceResult.inferredType,
+          inferenceResult.expression);
     }
 
+    DartType expressionType = inferenceResult.inferredType;
+    Expression expression = inferenceResult.expression;
     Expression result;
     switch (assignabilityResult.kind) {
       case AssignabilityKind.assignable:
@@ -673,8 +685,10 @@ class TypeInferrerImpl implements TypeInferrer {
 
     if (!identical(result, expression)) {
       flowAnalysis.forwardExpression(result, expression);
+      return new ExpressionInferenceResult(expressionType, result);
+    } else {
+      return inferenceResult;
     }
-    return result;
   }
 
   Expression _wrapTearoffErrorExpression(Expression expression,
@@ -2058,11 +2072,10 @@ class TypeInferrerImpl implements TypeInferrer {
     this.helper = helper;
     ExpressionInferenceResult initializerResult =
         inferExpression(initializer, declaredType, true, isVoidAllowed: true);
-    initializer = ensureAssignableResult(declaredType, initializerResult,
+    initializerResult = ensureAssignableResult(declaredType, initializerResult,
         isVoidAllowed: declaredType is VoidType);
     this.helper = null;
-    return new ExpressionInferenceResult(
-        initializerResult.inferredType, initializer);
+    return initializerResult;
   }
 
   @override
@@ -4003,7 +4016,7 @@ class TypeInferrerImpl implements TypeInferrer {
     ExpressionInferenceResult result =
         inferExpression(initializer, declaredType, true);
     if (hasDeclaredInitializer) {
-      initializer = ensureAssignableResult(declaredType, result);
+      initializer = ensureAssignableResult(declaredType, result).expression;
     }
     this.helper = null;
     return initializer;

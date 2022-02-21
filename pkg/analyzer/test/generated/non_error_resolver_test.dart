@@ -105,6 +105,23 @@ class A<E> extends B<E> implements D<E> {
 ''');
   }
 
+  test_no_call_tearoff_on_promoted_var() async {
+    await assertNoErrorsInCode('''
+class B {
+  Object call() => '';
+}
+void test(Object x) {
+  x as Object Function();
+  x; // promoted
+  x = B(); // No implicit tearoff of `.call`, demotes x
+  x; // demoted
+}
+''');
+    assertType(findNode.simple('x; // promoted'), 'Object Function()');
+    assertType(findNode.assignment('x = B()'), 'B');
+    assertType(findNode.simple('x; // demoted'), 'Object');
+  }
+
   test_typedef_not_function() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 typedef F = int;
@@ -1480,6 +1497,20 @@ class Bar {
 
 var map = <String, Func>{'bar': new Bar()};
 ''');
+  }
+
+  test_implicit_call_tearoff_assignment_rhs() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call() {}
+}
+test() {
+  void Function() f;
+  f = C();
+  return f;
+}
+''');
+    assertType(findNode.assignment('f = C()'), 'void Function()');
   }
 
   test_importDuplicatedLibraryName() async {

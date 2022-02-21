@@ -225,27 +225,19 @@ class AssignmentExpressionResolver {
   void _resolveTypes(AssignmentExpressionImpl node,
       {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     DartType assignedType;
-    DartType nodeType;
+    DartType? implicitCallContext;
 
     var rightHandSide = node.rightHandSide;
     var operator = node.operator.type;
     if (operator == TokenType.EQ) {
       assignedType = rightHandSide.typeOrThrow;
-      nodeType = assignedType;
+      implicitCallContext = node.writeType;
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
-      var leftType = node.readType!;
-
-      // The LHS value will be used only if it is non-null.
-      if (_isNonNullableByDefault) {
-        leftType = _typeSystem.promoteToNonNull(leftType);
-      }
-
       assignedType = rightHandSide.typeOrThrow;
-      nodeType = _typeSystem.getLeastUpperBound(leftType, assignedType);
+      implicitCallContext = node.writeType;
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
       assignedType = _typeProvider.boolType;
-      nodeType = assignedType;
     } else {
       var operatorElement = node.staticElement;
       if (operatorElement != null) {
@@ -261,14 +253,27 @@ class AssignmentExpressionResolver {
       } else {
         assignedType = DynamicTypeImpl.instance;
       }
-      nodeType = assignedType;
     }
 
-    _inferenceHelper.recordStaticType(node, nodeType);
-    var callReference = _resolver.insertImplicitCallReference(rightHandSide);
-    if (callReference != rightHandSide) {
-      assignedType = callReference.typeOrThrow;
+    var callInsertion = _resolver.insertImplicitCallReference(rightHandSide,
+        context: implicitCallContext);
+    if (callInsertion != null) {
+      assignedType = callInsertion.staticType;
     }
+    DartType nodeType;
+    if (operator == TokenType.QUESTION_QUESTION_EQ) {
+      var leftType = node.readType!;
+
+      // The LHS value will be used only if it is non-null.
+      if (_isNonNullableByDefault) {
+        leftType = _typeSystem.promoteToNonNull(leftType);
+      }
+
+      nodeType = _typeSystem.getLeastUpperBound(leftType, assignedType);
+    } else {
+      nodeType = assignedType;
+    }
+    _inferenceHelper.recordStaticType(node, nodeType);
 
     // TODO(scheglov) Remove from ErrorVerifier?
     _checkForInvalidAssignment(
