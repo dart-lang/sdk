@@ -1091,35 +1091,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         body += StrictCompare(Token::kEQ_STRICT);
       }
       break;
-    case MethodRecognizer::kGrowableArrayLength:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::GrowableObjectArray_length());
-      break;
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::Array_length());
-      break;
-    case MethodRecognizer::kTypedListBaseLength:
-    case MethodRecognizer::kByteDataViewLength:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::TypedDataBase_length());
-      break;
-    case MethodRecognizer::kByteDataViewOffsetInBytes:
-    case MethodRecognizer::kTypedDataViewOffsetInBytes:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::TypedDataView_offset_in_bytes());
-      break;
-    case MethodRecognizer::kByteDataViewTypedData:
-    case MethodRecognizer::kTypedDataViewTypedData:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::TypedDataView_typed_data());
-      break;
     case MethodRecognizer::kClassIDgetID:
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1230,23 +1201,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += MemoryCopy(kTypedDataUint8ArrayCid, kOneByteStringCid);
       body += NullConstant();
       break;
-    case MethodRecognizer::kLinkedHashBase_getIndex:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashBase_index());
-      break;
-    case MethodRecognizer::kImmutableLinkedHashBase_getIndex:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::ImmutableLinkedHashBase_index());
-      break;
-    case MethodRecognizer::kLinkedHashBase_setIndex:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashBase_index());
-      body += NullConstant();
-      break;
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
       ASSERT_EQUAL(function.NumParameters(), 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1257,101 +1211,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           StoreNativeField(Slot::ImmutableLinkedHashBase_index(),
                            StoreInstanceFieldInstr::Kind::kOther,
                            kEmitStoreBarrier, compiler::Assembler::kRelease);
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashBase_getData:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashBase_data());
-      break;
-    case MethodRecognizer::kImmutableLinkedHashBase_getData:
-      ASSERT(function.NumParameters() == 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::ImmutableLinkedHashBase_data());
-      break;
-    case MethodRecognizer::kLinkedHashBase_setData:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashBase_data());
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashBase_getHashMask:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashBase_hash_mask());
-      break;
-    case MethodRecognizer::kLinkedHashBase_setHashMask:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashBase_hash_mask(),
-                               StoreInstanceFieldInstr::Kind::kOther,
-                               kNoStoreBarrier);
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashBase_getUsedData:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashBase_used_data());
-      break;
-    case MethodRecognizer::kLinkedHashBase_setUsedData:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashBase_used_data(),
-                               StoreInstanceFieldInstr::Kind::kOther,
-                               kNoStoreBarrier);
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashBase_getDeletedKeys:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashBase_deleted_keys());
-      break;
-    case MethodRecognizer::kLinkedHashBase_setDeletedKeys:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashBase_deleted_keys(),
-                               StoreInstanceFieldInstr::Kind::kOther,
-                               kNoStoreBarrier);
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kWeakProperty_getKey:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::WeakProperty_key());
-      break;
-    case MethodRecognizer::kWeakProperty_setKey:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::WeakProperty_key());
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kWeakProperty_getValue:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::WeakProperty_value());
-      break;
-    case MethodRecognizer::kWeakProperty_setValue:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::WeakProperty_value());
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kWeakReference_getTarget:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::WeakReference_target());
-      break;
-    case MethodRecognizer::kWeakReference_setTarget:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::WeakReference_target());
       body += NullConstant();
       break;
     case MethodRecognizer::kUtf8DecoderScan:
@@ -1675,6 +1534,67 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += MathUnary(MathUnaryInstr::kSqrt);
     } break;
+#define LOAD_NATIVE_FIELD(method, slot)                                        \
+  case MethodRecognizer::k##method:                                            \
+    ASSERT_EQUAL(function.NumParameters(), 1);                                 \
+    body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
+    body += LoadNativeField(Slot::slot());                                     \
+    break;
+#define STORE_NATIVE_FIELD(method, slot)                                       \
+  case MethodRecognizer::k##method:                                            \
+    ASSERT_EQUAL(function.NumParameters(), 2);                                 \
+    body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
+    body += LoadLocal(parsed_function_->RawParameterVariable(1));              \
+    body += StoreNativeField(Slot::slot());                                    \
+    body += NullConstant();                                                    \
+    break;
+#define STORE_NATIVE_FIELD_NO_BARRIER(method, slot)                            \
+  case MethodRecognizer::k##method:                                            \
+    ASSERT_EQUAL(function.NumParameters(), 2);                                 \
+    body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
+    body += LoadLocal(parsed_function_->RawParameterVariable(1));              \
+    body += StoreNativeField(                                                  \
+        Slot::slot(), StoreInstanceFieldInstr::Kind::kOther, kNoStoreBarrier); \
+    body += NullConstant();                                                    \
+    break;
+      LOAD_NATIVE_FIELD(ByteDataViewLength, TypedDataBase_length)
+      LOAD_NATIVE_FIELD(ByteDataViewOffsetInBytes,
+                        TypedDataView_offset_in_bytes)
+      LOAD_NATIVE_FIELD(ByteDataViewTypedData, TypedDataView_typed_data)
+      LOAD_NATIVE_FIELD(GrowableArrayLength, GrowableObjectArray_length)
+      LOAD_NATIVE_FIELD(ImmutableLinkedHashBase_getData,
+                        ImmutableLinkedHashBase_data)
+      LOAD_NATIVE_FIELD(ImmutableArrayLength, Array_length)
+      LOAD_NATIVE_FIELD(ImmutableLinkedHashBase_getIndex,
+                        ImmutableLinkedHashBase_index)
+      LOAD_NATIVE_FIELD(LinkedHashBase_getData, LinkedHashBase_data)
+      LOAD_NATIVE_FIELD(LinkedHashBase_getDeletedKeys,
+                        LinkedHashBase_deleted_keys)
+      LOAD_NATIVE_FIELD(LinkedHashBase_getHashMask, LinkedHashBase_hash_mask)
+      LOAD_NATIVE_FIELD(LinkedHashBase_getIndex, LinkedHashBase_index)
+      LOAD_NATIVE_FIELD(LinkedHashBase_getUsedData, LinkedHashBase_used_data)
+      LOAD_NATIVE_FIELD(ObjectArrayLength, Array_length)
+      LOAD_NATIVE_FIELD(TypedDataViewOffsetInBytes,
+                        TypedDataView_offset_in_bytes)
+      LOAD_NATIVE_FIELD(TypedDataViewTypedData, TypedDataView_typed_data)
+      LOAD_NATIVE_FIELD(TypedListBaseLength, TypedDataBase_length)
+      LOAD_NATIVE_FIELD(WeakProperty_getKey, WeakProperty_key)
+      LOAD_NATIVE_FIELD(WeakProperty_getValue, WeakProperty_value)
+      LOAD_NATIVE_FIELD(WeakReference_getTarget, WeakReference_target)
+      STORE_NATIVE_FIELD_NO_BARRIER(LinkedHashBase_setDeletedKeys,
+                                    LinkedHashBase_deleted_keys)
+      STORE_NATIVE_FIELD_NO_BARRIER(LinkedHashBase_setHashMask,
+                                    LinkedHashBase_hash_mask)
+      STORE_NATIVE_FIELD_NO_BARRIER(LinkedHashBase_setUsedData,
+                                    LinkedHashBase_used_data)
+      STORE_NATIVE_FIELD(LinkedHashBase_setData, LinkedHashBase_data)
+      STORE_NATIVE_FIELD(LinkedHashBase_setIndex, LinkedHashBase_index)
+      STORE_NATIVE_FIELD(WeakProperty_setKey, WeakProperty_key)
+      STORE_NATIVE_FIELD(WeakProperty_setValue, WeakProperty_value)
+      STORE_NATIVE_FIELD(WeakReference_setTarget, WeakReference_target)
+#undef LOAD_NATIVE_FIELD
+#undef STORE_NATIVE_FIELD
+#undef STORE_NATIVE_FIELD_NO_BARRIER
     default: {
       UNREACHABLE();
       break;
