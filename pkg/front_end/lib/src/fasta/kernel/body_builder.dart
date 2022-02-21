@@ -33,6 +33,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
+import 'package:front_end/src/fasta/kernel/benchmarker.dart' show Benchmarker;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -177,6 +178,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   final Uri uri;
 
   final TypeInferrer typeInferrer;
+
+  final Benchmarker? benchmarker;
 
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.
@@ -361,6 +364,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         needsImplicitSuperInitializer =
             declarationBuilder is SourceClassBuilder &&
                 coreTypes.objectClass != declarationBuilder.cls,
+        benchmarker = libraryBuilder.loader.target.benchmarker,
         super(enclosingScope) {
     formalParameterScope?.forEach((String name, Builder builder) {
       if (builder is VariableBuilder) {
@@ -1777,6 +1781,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               (index) =>
                   typeInferrer.inferInitializer(this, initializers[index]),
               growable: false);
+
       if (!builder.isExternal) {
         for (int i = 0; i < initializers.length; i++) {
           builder.addInitializer(initializers[i], this,

@@ -401,10 +401,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     List<DartType>? typeArguments = redirectingFactoryBody.typeArguments;
     Member? target = redirectingFactoryBody.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
-      TypeInferrerImpl inferrer = library.loader.typeInferenceEngine
-              .createLocalTypeInferrer(
-                  fileUri, classBuilder!.thisType, library, null)
-          as TypeInferrerImpl;
+      TypeInferrer inferrer = library.loader.typeInferenceEngine
+          .createLocalTypeInferrer(
+              fileUri, classBuilder!.thisType, library, null);
       inferrer.helper = library.loader.createBodyBuilderForOutlineExpression(
           library, classBuilder, this, classBuilder!.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;

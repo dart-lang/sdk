@@ -107,7 +107,9 @@ bellow
 belonging
 beloning
 benchmark
+benchmarked
 benchmarker
+benchmarking
 benchmarks
 bf
 bi
@@ -799,6 +801,7 @@ nk
 nnbd
 node's
 nominality
+nonexistent
 nonimplementation
 norm
 normalization
@@ -1184,6 +1187,7 @@ specifications
 specifics
 speeding
 spend
+spent
 spuriously
 sq
 sra
@@ -1224,6 +1228,9 @@ stub
 stubs
 stx
 sub
+subdivide
+subdivided
+subdivides
 subexpression
 subexpression's
 subexpressions

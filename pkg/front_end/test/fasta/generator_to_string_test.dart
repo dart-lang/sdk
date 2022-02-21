@@ -119,7 +119,7 @@ Future<void> main() async {
         new TypeParameter("T"), libraryBuilder);
     VariableDeclaration variable = new VariableDeclaration(null);
 
-    TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null);
+    TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null, null);
     engine.prepareTopLevel(coreTypes, hierarchy);
 
     BodyBuilder helper = new BodyBuilder(

@@ -95,7 +95,7 @@ import '../names.dart' show indexSetName;
 import '../operator.dart';
 import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
-import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
+import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import '../util/helpers.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
@@ -4427,7 +4427,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DartType receiverType,
       TypeEnvironment typeEnvironment,
       ClassHierarchy hierarchy,
-      TypeInferrerImpl typeInferrer,
+      TypeInferrer typeInferrer,
       Name name,
       Member? interfaceTarget,
       Arguments arguments,
@@ -4504,7 +4504,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkBoundsInFunctionInvocation(
       TypeEnvironment typeEnvironment,
       ClassHierarchy hierarchy,
-      TypeInferrerImpl typeInferrer,
+      TypeInferrer typeInferrer,
       FunctionType functionType,
       String? localName,
       Arguments arguments,
@@ -4539,7 +4539,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkBoundsInInstantiation(
       TypeEnvironment typeEnvironment,
       ClassHierarchy hierarchy,
-      TypeInferrerImpl typeInferrer,
+      TypeInferrer typeInferrer,
       FunctionType functionType,
       List<DartType> typeArguments,
       Uri fileUri,

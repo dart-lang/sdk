@@ -8,12 +8,11 @@ import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart
     as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
-import 'package:front_end/src/base/common.dart';
 import 'package:kernel/ast.dart' show DartType;
-import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/types.dart';
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
+import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -31,6 +30,8 @@ import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_procedure_builder.dart';
+import 'hierarchy/hierarchy_builder.dart';
+import 'hierarchy/hierarchy_node.dart';
 
 bool enableMacros = false;
 
@@ -171,8 +172,8 @@ class MacroApplications {
     return new MacroApplications(macroExecutor, libraryData, dataForTesting);
   }
 
-  Map<SourceClassBuilder, macro.ClassDeclaration> _classDeclarations = {};
-  Map<macro.ClassDeclaration, SourceClassBuilder> _classBuilders = {};
+  Map<ClassBuilder, macro.ClassDeclaration> _classDeclarations = {};
+  Map<macro.ClassDeclaration, ClassBuilder> _classBuilders = {};
   Map<MemberBuilder, macro.Declaration?> _memberDeclarations = {};
 
   // TODO(johnniwinther): Support all members.
@@ -181,11 +182,11 @@ class MacroApplications {
         _createMemberDeclaration(memberBuilder);
   }
 
-  macro.ClassDeclaration _getClassDeclaration(SourceClassBuilder builder) {
+  macro.ClassDeclaration _getClassDeclaration(ClassBuilder builder) {
     return _classDeclarations[builder] ??= _createClassDeclaration(builder);
   }
 
-  SourceClassBuilder _getClassBuilder(macro.ClassDeclaration declaration) {
+  ClassBuilder _getClassBuilder(macro.ClassDeclaration declaration) {
     return _classBuilders[declaration]!;
   }
 
@@ -407,11 +408,11 @@ class MacroApplications {
   late macro.TypeResolver typeResolver;
   late macro.ClassIntrospector classIntrospector;
 
-  Future<void> applyDeclarationsMacros(ClassHierarchyBase classHierarchy,
+  Future<void> applyDeclarationsMacros(ClassHierarchyBuilder classHierarchy,
       Future<void> Function(SourceLibraryBuilder) onAugmentationLibrary) async {
     types = new Types(classHierarchy);
     typeResolver = new _TypeResolver(this);
-    classIntrospector = new _ClassIntrospector(this);
+    classIntrospector = new _ClassIntrospector(this, classHierarchy);
     for (_ApplicationData macroApplication in _applicationData) {
       await _applyDeclarationsMacros(macroApplication, onAugmentationLibrary);
     }
@@ -463,7 +464,7 @@ class MacroApplications {
     _applicationDataCache?.clear();
   }
 
-  macro.ClassDeclaration _createClassDeclaration(SourceClassBuilder builder) {
+  macro.ClassDeclaration _createClassDeclaration(ClassBuilder builder) {
     macro.ClassDeclaration declaration = new macro.ClassDeclarationImpl(
         id: macro.RemoteInstance.uniqueId,
         identifier: new _IdentifierImpl.forTypeDeclarationBuilder(
@@ -873,8 +874,9 @@ class _TypeResolver implements macro.TypeResolver {
 
 class _ClassIntrospector implements macro.ClassIntrospector {
   final MacroApplications macroApplications;
+  final ClassHierarchyBuilder classHierarchy;
 
-  _ClassIntrospector(this.macroApplications);
+  _ClassIntrospector(this.macroApplications, this.classHierarchy);
 
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
@@ -939,8 +941,19 @@ class _ClassIntrospector implements macro.ClassIntrospector {
 
   @override
   Future<macro.ClassDeclaration?> superclassOf(macro.ClassDeclaration clazz) {
-    // TODO: implement superclassOf
-    throw new UnimplementedError('_ClassIntrospector.superclassOf');
+    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
+    ClassHierarchyNode node =
+        classHierarchy.getNodeFromClassBuilder(classBuilder);
+    ClassHierarchyNode? superNode = node.supernode;
+    while (superNode != null &&
+        superNode.classBuilder.isAnonymousMixinApplication) {
+      superNode = superNode.supernode;
+    }
+    if (superNode != null) {
+      return new Future.value(
+          macroApplications._getClassDeclaration(superNode.classBuilder));
+    }
+    return new Future.value();
   }
 }
 

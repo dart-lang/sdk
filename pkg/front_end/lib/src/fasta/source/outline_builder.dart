@@ -2358,7 +2358,7 @@ class OutlineBuilder extends StackListenerImpl {
         ..argumentsBeginToken = argumentsBeginToken);
     } else {
       assert(enumConstantInfo is ParserRecovery);
-      push(enumConstantInfo);
+      push(NullValue.EnumConstantInfo);
     }
   }
 
@@ -2400,6 +2400,26 @@ class OutlineBuilder extends StackListenerImpl {
     int elementsCount = pop() as int;
     List<EnumConstantInfo?>? enumConstantInfos =
         const FixedNullableList<EnumConstantInfo>().pop(stack, elementsCount);
+
+    if (enumConstantInfos != null) {
+      List<EnumConstantInfo?>? parsedEnumConstantInfos;
+      for (int index = 0; index < enumConstantInfos.length; index++) {
+        EnumConstantInfo? info = enumConstantInfos[index];
+        if (info == null) {
+          parsedEnumConstantInfos = enumConstantInfos.take(index).toList();
+        } else if (parsedEnumConstantInfos != null) {
+          parsedEnumConstantInfos.add(info);
+        }
+      }
+      if (parsedEnumConstantInfos != null) {
+        if (parsedEnumConstantInfos.isEmpty) {
+          enumConstantInfos = null;
+        } else {
+          enumConstantInfos = parsedEnumConstantInfos;
+        }
+      }
+    }
+
     int endCharOffset = popCharOffset();
     int startCharOffset = popCharOffset();
     List<TypeBuilder>? interfaces = pop() as List<TypeBuilder>?;

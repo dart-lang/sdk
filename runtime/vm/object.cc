@@ -2341,6 +2341,18 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiDynamicLibrary(), lib);
 
+    // Pre-register the internal library so we can place the vm class
+    // FinalizerEntry there rather than the core library.
+    lib = Library::LookupLibrary(thread, Symbols::DartInternal());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartInternal(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kInternal, lib);
+    ASSERT(!lib.IsNull());
+    ASSERT(lib.ptr() == Library::InternalLibrary());
+
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
     const Error& error = Error::Handle(
@@ -14388,6 +14400,8 @@ void Library::CheckFunctionFingerprints() {
 #undef CHECK_FACTORY_FINGERPRINTS
 
   if (!fingerprints_match) {
+    // Private names are mangled. Mangling depends on Library::private_key_.
+    // If registering a new bootstrap library, add at the end.
     FATAL(
         "FP mismatch while recognizing methods. If the behavior of "
         "these functions has changed, then changes are also needed in "

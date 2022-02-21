@@ -44,6 +44,7 @@ enhanced_enums/members: FormatterCrash
 enhanced_enums/named_arguments: FormatterCrash
 enhanced_enums/named_arguments_anywhere/redirecting_constructor: FormatterCrash
 enhanced_enums/qualified_names_with_no_type_arguments: FormatterCrash
+enhanced_enums/recovery_in_elements: FormatterCrash
 enhanced_enums/redirecting_initializers: FormatterCrash
 enhanced_enums/simple_fields: FormatterCrash
 enhanced_enums/simple_interfaces: FormatterCrash

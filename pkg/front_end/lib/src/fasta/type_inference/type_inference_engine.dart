@@ -9,6 +9,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
+import '../kernel/benchmarker.dart' show Benchmarker;
 import '../kernel/forest.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
@@ -176,7 +177,9 @@ abstract class TypeInferenceEngine {
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
 /// kernel objects.
 class TypeInferenceEngineImpl extends TypeInferenceEngine {
-  TypeInferenceEngineImpl(Instrumentation? instrumentation)
+  final Benchmarker? benchmarker;
+
+  TypeInferenceEngineImpl(Instrumentation? instrumentation, this.benchmarker)
       : super(instrumentation);
 
   @override
@@ -190,8 +193,12 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       assignedVariables =
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
-    return new TypeInferrerImpl(
-        this, uri, false, thisType, library, assignedVariables, dataForTesting);
+    if (benchmarker == null) {
+      return new TypeInferrerImpl(this, uri, false, thisType, library,
+          assignedVariables, dataForTesting);
+    }
+    return new TypeInferrerImplBenchmarked(this, uri, false, thisType, library,
+        assignedVariables, dataForTesting, benchmarker!);
   }
 
   @override
@@ -205,8 +212,12 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       assignedVariables =
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
-    return new TypeInferrerImpl(
-        this, uri, true, thisType, library, assignedVariables, dataForTesting);
+    if (benchmarker == null) {
+      return new TypeInferrerImpl(this, uri, true, thisType, library,
+          assignedVariables, dataForTesting);
+    }
+    return new TypeInferrerImplBenchmarked(this, uri, true, thisType, library,
+        assignedVariables, dataForTesting, benchmarker!);
   }
 }
 
