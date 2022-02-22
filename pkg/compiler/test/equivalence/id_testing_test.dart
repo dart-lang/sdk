@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -31,7 +31,7 @@ class IdTestingDataComputer extends DataComputer<String> {
       Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
-    KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+    KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Member node = elementMap.getMemberNode(member);
     new IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
         .run(node);
@@ -42,7 +42,7 @@ class IdTestingDataComputer extends DataComputer<String> {
       Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
-    KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+    KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Class node = elementMap.getClassNode(cls);
     new IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
         .computeForClass(node);
@@ -53,7 +53,7 @@ class IdTestingDataComputer extends DataComputer<String> {
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
-    KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+    KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Library node = elementMap.getLibraryNode(library);
     new IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
         .computeForLibrary(node);
@@ -77,7 +77,7 @@ class IdTestingDataComputer extends DataComputer<String> {
 
 /// IR visitor for computing inference data for a member.
 class IdTestingDataExtractor extends IrDataExtractor<String> {
-  final KernelToElementMapImpl elementMap;
+  final KernelToElementMap elementMap;
 
   IdTestingDataExtractor(DiagnosticReporter reporter,
       Map<Id, ActualData<String>> actualMap, this.elementMap)

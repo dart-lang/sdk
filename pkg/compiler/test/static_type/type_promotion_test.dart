@@ -10,7 +10,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/static_type.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -31,7 +31,7 @@ main(List<String> args) {
 class TypePromotionDataComputer extends DataComputer<String> {
   ir.TypeEnvironment _typeEnvironment;
 
-  ir.TypeEnvironment getTypeEnvironment(KernelToElementMapImpl elementMap) {
+  ir.TypeEnvironment getTypeEnvironment(KernelToElementMap elementMap) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
       ir.CoreTypes coreTypes = new ir.CoreTypes(component);
@@ -49,7 +49,7 @@ class TypePromotionDataComputer extends DataComputer<String> {
       Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
-    KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+    KernelToElementMap elementMap = frontendStrategy.elementMap;
     Map<ir.Expression, TypeMap> typeMaps =
         elementMap.getTypeMapsForTesting(member);
     ir.Member node = elementMap.getMemberNode(member);

@@ -44,7 +44,6 @@ import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../util/enumset.dart';
 import 'element_map.dart';
-import 'element_map_impl.dart';
 import 'loader.dart';
 import 'native_basic_data.dart';
 
@@ -56,7 +55,7 @@ class KernelFrontendStrategy {
   NativeBasicData _nativeBasicData;
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
-  KernelToElementMapImpl _elementMap;
+  KernelToElementMap _elementMap;
   RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 
   KernelAnnotationProcessor _annotationProcessor;
@@ -85,7 +84,7 @@ class KernelFrontendStrategy {
   KernelFrontendStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
     assert(_compilerTask != null);
-    _elementMap = KernelToElementMapImpl(reporter, environment, this, _options);
+    _elementMap = KernelToElementMap(reporter, environment, this, _options);
     _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
     _backendUsageBuilder = BackendUsageBuilderImpl(this);
     noSuchMethodRegistry =
@@ -141,7 +140,7 @@ class KernelFrontendStrategy {
         elementEnvironment,
         commonElements,
         _elementMap.types,
-        BaseNativeClassFinder(elementEnvironment, nativeBasicData));
+        NativeClassFinder(elementEnvironment, nativeBasicData));
     _nativeDataBuilder = NativeDataBuilderImpl(nativeBasicData);
     _customElementsResolutionAnalysis = CustomElementsResolutionAnalysis(
         elementEnvironment,
@@ -149,9 +148,8 @@ class KernelFrontendStrategy {
         nativeBasicData,
         _backendUsageBuilder);
     _fieldAnalysis = KFieldAnalysis(this);
-    ClassQueries classQueries = KernelClassQueries(elementMap);
     ClassHierarchyBuilder classHierarchyBuilder =
-        ClassHierarchyBuilder(commonElements, classQueries);
+        ClassHierarchyBuilder(commonElements, elementMap);
     AnnotationsDataBuilder annotationsDataBuilder = AnnotationsDataBuilder();
     // TODO(johnniwinther): This is a hack. The annotation data is built while
     // using it. With CFE constants the annotations data can be built fully
@@ -203,8 +201,7 @@ class KernelFrontendStrategy {
             noSuchMethodRegistry,
             annotationsDataBuilder,
             const StrongModeWorldStrategy(),
-            classHierarchyBuilder,
-            classQueries),
+            classHierarchyBuilder),
         KernelWorkItemBuilder(
             _compilerTask,
             elementMap,
@@ -301,9 +298,9 @@ class KernelFrontendStrategy {
 
 class KernelWorkItemBuilder implements WorkItemBuilder {
   final CompilerTask _compilerTask;
-  final KernelToElementMapImpl _elementMap;
+  final KernelToElementMap _elementMap;
   final JavaScriptImpactTransformer _impactTransformer;
-  final NativeMemberResolver _nativeMemberResolver;
+  final KernelNativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
   final Map<MemberEntity, ClosureScopeModel> _closureModels;
   final Map<Entity, WorldImpact> _impactCache;
@@ -345,9 +342,9 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
 
 class KernelWorkItem implements WorkItem {
   final CompilerTask _compilerTask;
-  final KernelToElementMapImpl _elementMap;
+  final KernelToElementMap _elementMap;
   final JavaScriptImpactTransformer _impactTransformer;
-  final NativeMemberResolver _nativeMemberResolver;
+  final KernelNativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
   @override
   final MemberEntity element;
@@ -425,7 +422,7 @@ bool useImpactDataForTesting = false;
 
 class KernelModularStrategy extends ModularStrategy {
   final CompilerTask _compilerTask;
-  final KernelToElementMapImpl _elementMap;
+  final KernelToElementMap _elementMap;
 
   KernelModularStrategy(this._compilerTask, this._elementMap);
 
@@ -457,7 +454,7 @@ class KernelModularStrategy extends ModularStrategy {
 
 class DeserializedModularStrategy extends ModularStrategy {
   final CompilerTask _compilerTask;
-  final KernelToElementMapImpl _elementMap;
+  final KernelToElementMap _elementMap;
   final Map<ir.Member, ImpactBuilderData> _cache = {};
 
   DeserializedModularStrategy(

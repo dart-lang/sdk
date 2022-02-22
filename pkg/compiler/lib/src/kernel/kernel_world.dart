@@ -20,11 +20,11 @@ import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 import '../world.dart';
 
-import 'element_map_impl.dart';
+import 'element_map.dart';
 
 /// The immutable result of the [ResolutionWorldBuilder].
 class KClosedWorld implements BuiltWorld {
-  final KernelToElementMapImpl elementMap;
+  final KernelToElementMap elementMap;
   final KElementEnvironment elementEnvironment;
   final DartTypes dartTypes;
   final KCommonElements commonElements;

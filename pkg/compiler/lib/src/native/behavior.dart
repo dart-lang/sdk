@@ -731,15 +731,18 @@ class NativeBehavior {
   }
 }
 
-abstract class BehaviorBuilder {
-  CommonElements get commonElements;
-  DiagnosticReporter get reporter;
-  NativeBasicData get nativeBasicData;
-  ElementEnvironment get elementEnvironment;
-  CompilerOptions get options;
+class BehaviorBuilder {
+  final ElementEnvironment elementEnvironment;
+  final CommonElements commonElements;
+  final DiagnosticReporter reporter;
+  final NativeBasicData nativeBasicData;
+  final CompilerOptions options;
   DartTypes get dartTypes => commonElements.dartTypes;
 
   NativeBehavior _behavior;
+
+  BehaviorBuilder(this.elementEnvironment, this.commonElements,
+      this.nativeBasicData, this.reporter, this.options);
 
   void _overrideWithAnnotations(Iterable<String> createsAnnotations,
       Iterable<String> returnsAnnotations, TypeLookup lookupType) {

@@ -8,12 +8,12 @@ import '../common/elements.dart';
 import '../common/names.dart';
 import '../elements/entities.dart';
 
-import 'element_map_impl.dart';
+import 'element_map.dart';
 import 'kelements.dart';
 
 /// Interface for determining the form of a `noSuchMethod` implementation.
 class NoSuchMethodResolver {
-  final KernelToElementMapImpl elementMap;
+  final KernelToElementMap elementMap;
 
   NoSuchMethodResolver(this.elementMap);
 
