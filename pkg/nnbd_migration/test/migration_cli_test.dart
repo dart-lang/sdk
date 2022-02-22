@@ -1661,10 +1661,10 @@ int f() => null;
   }
 
   test_option_sdk_default() {
-    var cli = MigrationCli(binaryName: 'nnbd_migration');
+    var cli = _createCli();
     var cliRunner = cli.decodeCommandLineArgs(_parseArgs([]))!;
-    expect(Directory(path.join(cliRunner.options.sdkPath, 'bin')).existsSync(),
-        isTrue);
+    expect(cliRunner.options.sdkPath,
+        cli._test.resourceProvider.convertPath(sdkRootPathPosix));
   }
 
   test_option_sdk_hidden() {
