@@ -315,6 +315,81 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
               'Symbol(C.field): 42, Symbol(_field): 0}');
     });
   });
+  group('Named arguments anywhere', () {
+    var source = r'''
+      String topLevelMethod(int param1, String param2,
+              {int param3 = -1, String param4 = 'default'}) =>
+          '$param1, $param2, $param3, $param4';
+
+      class C {
+        int param1;
+        String param2;
+        int param3;
+        String param4;
+        C(this.param1, this.param2,
+            {this.param3 = -1, this.param4 = 'default'});
+
+        static String staticMethod(int param1, String param2,
+              {int param3 = -1, String param4 = 'default'}) =>
+          '$param1, $param2, $param3, $param4';
+
+        String instanceMethod(int param1, String param2,
+              {int param3 = -1, String param4 = 'default'}) =>
+          '$param1, $param2, $param3, $param4';
+
+        String toString() => '$param1, $param2, $param3, $param4';
+      }
+
+      main() {
+        String localMethod(int param1, String param2,
+              {int param3 = -1, String param4 = 'default'}) =>
+          '$param1, $param2, $param3, $param4';
+        var c = C(1, 'two');
+        // Breakpoint: bp
+        print('hello world');
+      }
+        ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source,
+          experiments: {'named-arguments-anywhere': true});
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('in top level method', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'topLevelMethod(param3: 3, 1, param4: "four", "two")',
+          expectedResult: '1, two, 3, four');
+    });
+    test('in local method', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'topLevelMethod(param3: 3, 1, param4: "four", "two")',
+          expectedResult: '1, two, 3, four');
+    });
+    test('in class constructor', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'C(param3: 3, 1, param4: "four", "two").toString()',
+          expectedResult: '1, two, 3, four');
+    });
+    test('in class static method', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'C.staticMethod(param3: 3, 1, param4: "four", "two")',
+          expectedResult: '1, two, 3, four');
+    });
+    test('in class instance method', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'c.instanceMethod(param3: 3, 1, param4: "four", "two")',
+          expectedResult: '1, two, 3, four');
+    });
+  });
 }
 
 /// Shared tests that are valid in legacy (before 2.12) and are agnostic to
