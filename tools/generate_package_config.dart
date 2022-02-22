@@ -1,9 +1,6 @@
 #!/usr/bin/env dart
 
 /// Generates the repo's ".dart_tool/package_config.json" file.
-
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -90,23 +87,24 @@ void main(List<String> args) {
     ...makeCfePackageConfigs(cfePackageDirs),
     ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs)
   ];
-  packages.sort((a, b) => a["name"].compareTo(b["name"]));
+  packages.sort((a, b) => a['name']!.compareTo(b['name']!));
 
   var configFile = File(p.join(repoRoot, '.dart_tool', 'package_config.json'));
-  var json =
-      jsonDecode(configFile.readAsStringSync()) as Map<dynamic, dynamic>;
+  var json = jsonDecode(configFile.readAsStringSync()) as Map<dynamic, dynamic>;
   var oldPackages = json['packages'] as List<dynamic>;
 
-  // Validate the packages entry only, to avoid spurious failures from changes
-  // in the dates embedded in the other entries.
-  if (jsonEncode(packages) == jsonEncode(oldPackages)) {
-    print("Package config up to date");
-    exit(0);
-  } else if (checkOnly) {
-    print("Package config out of date");
-    print("Run `gclient sync -D && dart tools/generate_package_config.dart` "
-        "to update.");
-    exit(1);
+  if (checkOnly) {
+    // Validate the packages entry only, to avoid spurious failures from changes
+    // in the dates embedded in the other entries.
+    if (jsonEncode(packages) == jsonEncode(oldPackages)) {
+      print("Package config up to date.");
+      exit(0);
+    } else {
+      print("Package config out of date.");
+      print("Run `gclient sync -D && dart tools/generate_package_config.dart` "
+          "to update.");
+      exit(1);
+    }
   }
 
   var year = DateTime.now().year;
@@ -123,7 +121,6 @@ void main(List<String> args) {
       'constraint, update this by running tools/generate_package_config.dart.'
     ],
     'configVersion': 2,
-    'generated': DateTime.now().toIso8601String(),
     'generator': 'tools/generate_package_config.dart',
     'packages': packages,
   };
@@ -131,8 +128,33 @@ void main(List<String> args) {
   // TODO(rnystrom): Consider using package_config_v2 to generate this instead.
   var jsonString = JsonEncoder.withIndent('  ').convert(config);
   configFile.writeAsStringSync('$jsonString\n');
-  print('Generated .dart_tool/package_config.dart containing '
-      '${packages.length} packages.');
+
+  // Also generate the reop's .packages file.
+  var packagesFile = File(p.join(repoRoot, '.packages'));
+  var buffer = StringBuffer('''
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+#
+# This file is generated; do not edit. To re-generate, run:
+#   'dart tools/generate_package_config.dart'.
+
+''');
+  for (var package in packages) {
+    final name = package['name'];
+    var path = package['rootUri']!;
+    if (path.startsWith('../')) {
+      path = path.substring('../'.length);
+    }
+    var packageUri = package['packageUri'];
+    if (packageUri != null && packageUri.endsWith('/')) {
+      packageUri = packageUri.substring(0, packageUri.length - 1);
+    }
+    if (packageUri != null && packageUri != '.nonexisting') {
+      buffer.writeln('$name:$path/$packageUri');
+    }
+  }
+  packagesFile.writeAsStringSync(buffer.toString());
 }
 
 /// Generates package configurations for each package in [packageDirs].
@@ -198,9 +220,9 @@ Iterable<String> listSubdirectories(String packagesDir) sync* {
 
 /// Infers the language version from the SDK constraint in the pubspec for
 /// [packageDir].
-///
-/// Returns `null` if there is no pubspec or no SDK constraint.
 Version pubspecLanguageVersion(String packageDir) {
+  final dartVersion2 = Version.parse('2.0.0');
+
   var pubspecFile = File(p.join(packageDir, 'pubspec.yaml'));
   var relative = p.relative(packageDir, from: repoRoot);
 
@@ -223,7 +245,9 @@ Version pubspecLanguageVersion(String packageDir) {
   }
 
   var sdkConstraint = VersionConstraint.parse(environment['sdk'] as String);
-  if (sdkConstraint is VersionRange) return sdkConstraint.min;
+  if (sdkConstraint is VersionRange) {
+    return sdkConstraint.min ?? dartVersion2;
+  }
 
   print("Error: SDK constraint $relative is not a version range.");
   exit(1);
