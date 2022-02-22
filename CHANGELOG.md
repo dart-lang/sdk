@@ -6,6 +6,13 @@
 
 - Add `Finalizer` and `WeakReference` which can potentially detect when
   objects are "garbage collected".
+- Add `isMimeType` method to `UriData` class, to allow case-insensitive
+  checking of the MIME type.
+- Add `isCharset` and `isEncoding` methods to `UriData` class,
+  to allow case-insensitive and alternative-encoding-name aware checking
+  of the MIME type "charset" parameter.
+- Make `UriData.fromString` and `UriData.fromBytes` recognize and omit
+  a "text/plain" `mimeType` even if it is not all lower-case.
 
 #### `dart:ffi`
 
