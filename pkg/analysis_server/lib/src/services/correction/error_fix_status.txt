@@ -5,12 +5,13 @@ This file contains, for each analysis code and lint name:
 * "fixes infeasible", if it has been deemed infeasible to write a fix for this code
 
 Stats:
-* 793 "needs evaluation"
+* 809 "needs evaluation"
 * 19 "needs fix"
 * 253 "has fix(es)"
+* 2 "fixes infeasible"
 
-AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR: needs evaluation
-AnalysisOptionsErrorCode.PARSE_ERROR: needs evaluation
+AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR: fixes infeasible
+AnalysisOptionsErrorCode.PARSE_ERROR: fixes infeasible
 AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED: needs evaluation
 AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED: needs evaluation
 AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED: needs evaluation
@@ -60,6 +61,7 @@ CompileTimeErrorCode.CAST_TO_NON_TYPE: has fix(es)
 CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER: needs evaluation; new in 2.15
 CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER: needs evaluation; new in 2.15
 CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER: needs evaluation; new in 2.15
+CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE: needs evaluation; new in 2.17
 CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: has fix(es)
 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD: needs evaluation
 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER: needs evaluation; new in 2.15
@@ -70,8 +72,10 @@ CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES: needs evaluation
 CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD: needs evaluation
 CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE: needs evaluation
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS: needs evaluation
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM: needs evaluation; new in 2.17
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION: needs evaluation
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS: needs evaluation
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM: needs evaluation; new in 2.17
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION: needs evaluation
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN: needs evaluation
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN: needs evaluation
@@ -124,6 +128,10 @@ CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER: needs evaluation
 CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT: needs evaluation
 CompileTimeErrorCode.DUPLICATE_PART: needs evaluation
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING: needs evaluation
+CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR: needs evaluation; new in 2.17
+CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED: needs evaluation; new in 2.17
+CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE: needs evaluation; new in 2.17
+CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER: needs evaluation; new in 2.17
 CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET: needs evaluation
 CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP: needs evaluation
 CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS: needs evaluation
@@ -173,6 +181,10 @@ CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES: needs evaluation
 CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY: needs evaluation
 CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE: has fix(es)
 CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: has fix(es)
+CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION: needs evaluation; new in 2.17
+CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE: needs evaluation; new in 2.17
+CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE: needs evaluation; new in 2.17
+CompileTimeErrorCode.ILLEGAL_NON_ABSTRACT_ENUM_INDEX: needs evaluation; new in 2.17
 CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE: has fix(es)
 CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS: needs evaluation
 CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS: needs evaluation
@@ -181,8 +193,7 @@ CompileTimeErrorCode.IMPLEMENTS_REPEATED: needs evaluation
 CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS: needs evaluation
 CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER: needs evaluation
 CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER: needs evaluation
-CompileTimeErrorCode.IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT: has fix(es)
-CompileTimeErrorCode.IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS: has fix(es)
+CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: has fix(es)
 CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY: needs evaluation
 CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY: needs evaluation
 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES: needs evaluation
@@ -221,6 +232,7 @@ CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE: needs evaluation
 CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR: needs evaluation
 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER: needs evaluation
 CompileTimeErrorCode.INVALID_OVERRIDE: has fix(es)
+CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR: needs evaluation; new in 2.17
 CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS: needs evaluation
 CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION: needs fix; new in 2.17
 CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST: needs evaluation
@@ -286,6 +298,7 @@ CompileTimeErrorCode.NON_BOOL_CONDITION: has fix(es)
 CompileTimeErrorCode.NON_BOOL_EXPRESSION: needs evaluation
 CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION: needs evaluation
 CompileTimeErrorCode.NON_BOOL_OPERAND: needs evaluation
+CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR: needs evaluation; new in 2.17
 CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT: needs evaluation
 CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR: needs evaluation
 CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION: needs evaluation
@@ -370,6 +383,7 @@ CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER: needs evaluation
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED: needs fix; new in 2.17
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: needs evaluation; new in 2.17
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL: needs fix; https://github.com/dart-lang/sdk/issues/48359
+CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR: needs evaluation; new in 2.17
 CompileTimeErrorCode.SUPER_IN_EXTENSION: needs evaluation
 CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT: needs evaluation
 CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR: needs evaluation
@@ -401,6 +415,8 @@ CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN: has fix(es)
 CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER: needs evaluation
 CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: has fix(es)
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT: needs evaluation
+CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED: needs evaluation; new in 2.17
+CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED: needs evaluation; new in 2.17
 CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: has fix(es)
 CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD: has fix(es)
 CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR: needs evaluation
@@ -428,6 +444,7 @@ CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED: needs evaluation
 CompileTimeErrorCode.URI_WITH_INTERPOLATION: needs evaluation
 CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION: needs evaluation; compile-time error as of ~2.15
 CompileTimeErrorCode.USE_OF_VOID_RESULT: needs evaluation
+CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM: needs evaluation; new in 2.17
 CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH: needs evaluation
 CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE: needs evaluation
 CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR: needs evaluation
@@ -436,6 +453,7 @@ CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER: needs evaluation
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: has fix(es)
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION: needs fix; new in 2.15
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: has fix(es)
+CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM: needs evaluation; new in 2.17
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: has fix(es)
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION: needs fix; new in ~2.15
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: has fix(es)
@@ -881,6 +899,7 @@ ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT: needs evaluation
 ParserErrorCode.DUPLICATE_PREFIX: needs evaluation
 ParserErrorCode.DUPLICATED_MODIFIER: needs evaluation
 ParserErrorCode.EMPTY_ENUM_BODY: needs evaluation
+ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS: needs evaluation; new in 2.17
 ParserErrorCode.ENUM_IN_CLASS: needs evaluation
 ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND: needs evaluation
 ParserErrorCode.EXPECTED_BODY: needs evaluation
