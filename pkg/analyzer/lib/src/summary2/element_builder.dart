@@ -240,7 +240,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
 
       var constructorSelector = constant.arguments?.constructorSelector;
-      var constructorName = constructorSelector?.name.name ?? '';
+      var constructorName = constructorSelector?.name.name;
 
       var initializer = astFactory.instanceCreationExpression(
         null,
@@ -251,10 +251,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
             ),
             typeArguments: constant.arguments?.typeArguments,
           ),
-          Tokens.period(),
-          astFactory.simpleIdentifier(
-            StringToken(TokenType.STRING, constructorName, -1),
-          ),
+          constructorName != null ? Tokens.period() : null,
+          constructorName != null
+              ? astFactory.simpleIdentifier(
+                  StringToken(TokenType.STRING, constructorName, -1),
+                )
+              : null,
         ),
         astFactory.argumentList(
           Tokens.openParenthesis(),
