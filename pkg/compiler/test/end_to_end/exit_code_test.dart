@@ -12,7 +12,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler.dart' as api;
-import 'package:compiler/src/backend_strategy.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/common/work.dart';
@@ -55,7 +54,7 @@ class TestCompiler extends Compiler {
   }
 
   @override
-  BackendStrategy createBackendStrategy() {
+  JsBackendStrategy createBackendStrategy() {
     return new TestBackendStrategy(this);
   }
 
