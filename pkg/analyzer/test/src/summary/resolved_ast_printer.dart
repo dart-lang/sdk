@@ -1459,7 +1459,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writelnWithIndent('parameters');
     _withIndent(() {
       for (var parameter in parameters) {
-        _writelnWithIndent(parameter.name);
+        var name = parameter.name;
+        _writelnWithIndent(name.isNotEmpty ? name : '<empty>');
         _withIndent(() {
           _writeParameterKind(parameter);
           _writeType('type', parameter.type);
