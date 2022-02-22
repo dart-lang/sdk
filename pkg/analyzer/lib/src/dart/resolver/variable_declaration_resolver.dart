@@ -66,10 +66,7 @@ class VariableDeclarationResolver {
 
     var callInsertion = _resolver.insertImplicitCallReference(initializer);
     if (callInsertion != null) {
-      var insertedExpression = callInsertion.expression;
-      if (insertedExpression != null) {
-        initializer = callInsertion.expression;
-      }
+      initializer = callInsertion.expression;
     }
 
     // Initializers of top-level variables and fields are already included
