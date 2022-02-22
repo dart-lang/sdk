@@ -16,7 +16,16 @@ main() {
 @reflectiveTest
 class ConflictingConstructorAndStaticFieldTest
     extends PubPackageResolutionTest {
-  test_class_field() async {
+  test_class_instance_field() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C.foo();
+  int foo = 0;
+}
+''');
+  }
+
+  test_class_static_field() async {
     await assertErrorsInCode(r'''
 class C {
   C.foo();
@@ -28,7 +37,7 @@ class C {
     ]);
   }
 
-  test_class_getter() async {
+  test_class_static_getter() async {
     await assertErrorsInCode(r'''
 class C {
   C.foo();
@@ -40,7 +49,7 @@ class C {
     ]);
   }
 
-  test_class_OK_notSameClass() async {
+  test_class_static_notSameClass() async {
     await assertNoErrorsInCode(r'''
 class A {
   static int foo = 0;
@@ -51,16 +60,7 @@ class B extends A {
 ''');
   }
 
-  test_class_OK_notStatic() async {
-    await assertNoErrorsInCode(r'''
-class C {
-  C.foo();
-  int foo = 0;
-}
-''');
-  }
-
-  test_class_setter() async {
+  test_class_static_setter() async {
     await assertErrorsInCode(r'''
 class C {
   C.foo();
@@ -72,33 +72,64 @@ class C {
     ]);
   }
 
-  test_enum_field() async {
+  test_enum_constant() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo.foo();
+  const E.foo();
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 32, 3),
+    ]);
+  }
+
+  test_enum_instance_field() async {
     await assertNoErrorsInCode(r'''
 enum E {
   v.foo();
-  const E.foo(); // _$foo
+  const E.foo();
+  final int foo = 0;
+}
+''');
+  }
+
+  test_enum_static_field() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v.foo();
+  const E.foo();
   static int foo = 0;
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 30, 3),
+    ]);
   }
 
-  test_enum_getter() async {
-    await assertNoErrorsInCode(r'''
+  test_enum_static_getter() async {
+    await assertErrorsInCode(r'''
 enum E {
   v.foo();
-  const E.foo(); // _$foo
+  const E.foo();
   static int get foo => 0;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER, 30,
+          3),
+    ]);
   }
 
-  test_enum_setter() async {
-    await assertNoErrorsInCode(r'''
+  test_enum_static_setter() async {
+    await assertErrorsInCode(r'''
 enum E {
   v.foo();
-  const E.foo(); // _$foo
+  const E.foo();
   static void set foo(_) {}
 }
-''');
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER, 30,
+          3),
+    ]);
   }
 }

@@ -81,14 +81,8 @@ typedef WhyNotPromotedGetter = Map<DartType, NonPromotionReason> Function();
 /// Data structure describing the result of inserting an implicit call reference
 /// into the AST.
 class ImplicitCallInsertionResult {
-  /// The expression that was inserted, or `null`, if no expression was
-  /// inserted.
-  ///
-  /// The only reason this might be `null` is that, at the moment, we only
-  /// insert implicit call reference expressions if the 'constructor-tearoffs'
-  /// feature is enabled (to avoid breaking clients).
-  /// TODO(paulberry): make this non-nullable when we change this behavior.
-  final ImplicitCallReferenceImpl? expression;
+  /// The expression that was inserted.
+  final ImplicitCallReferenceImpl expression;
 
   /// The type of the implicit call tear-off.
   final FunctionType staticType;
@@ -860,14 +854,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     } else {
       typeArgumentTypes = [];
-    }
-
-    if (!isConstructorTearoffsEnabled) {
-      // Temporarily, only create [ImplicitCallReference] nodes under the
-      // 'constructor-tearoffs' feature.
-      // TODO(srawlins, paulberry): When we are ready to make a breaking change
-      // release to the analyzer package, remove this exception.
-      return ImplicitCallInsertionResult(null, callMethodType);
     }
 
     var callReference = astFactory.implicitCallReference(

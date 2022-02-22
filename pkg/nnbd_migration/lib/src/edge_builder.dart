@@ -1151,6 +1151,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType? visitImplicitCallReference(ImplicitCallReference node) {
+    return _handlePropertyAccessGeneralized(
+        node: node,
+        target: node.expression,
+        propertyName: 'call',
+        isNullAware: false,
+        isCascaded: false,
+        inSetterContext: false,
+        callee: node.staticElement);
+  }
+
+  @override
   DecoratedType? visitIndexExpression(IndexExpression node) {
     DecoratedType? targetType;
     var target = node.target;
@@ -3112,24 +3124,43 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType? _handlePropertyAccess(Expression node, Expression? target,
       SimpleIdentifier propertyName, bool isNullAware, bool isCascaded) {
-    DecoratedType? targetType;
+    if (!isCascaded && _isPrefix(target)) {
+      return _dispatch(propertyName, skipNullCheckHint: true);
+    }
     var callee = getWriteOrReadElement(propertyName);
+    return _handlePropertyAccessGeneralized(
+        node: node,
+        target: target,
+        propertyName: propertyName.name,
+        isNullAware: isNullAware,
+        isCascaded: isCascaded,
+        inSetterContext: propertyName.inSetterContext(),
+        callee: callee);
+  }
+
+  DecoratedType? _handlePropertyAccessGeneralized(
+      {required Expression node,
+      required Expression? target,
+      required String propertyName,
+      required bool isNullAware,
+      required bool isCascaded,
+      required bool inSetterContext,
+      required Element? callee}) {
+    DecoratedType? targetType;
     bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
     if (isCascaded) {
       targetType = _currentCascadeTargetType;
-    } else if (_isPrefix(target)) {
-      return _dispatch(propertyName, skipNullCheckHint: true);
     } else if (calleeIsStatic) {
       _dispatch(target);
     } else if (isNullAware) {
       targetType = _dispatch(target);
     } else {
-      targetType = _handleTarget(target, propertyName.name, callee);
+      targetType = _handleTarget(target, propertyName, callee);
     }
     DecoratedType? calleeType;
     if (targetType != null &&
         targetType.type is FunctionType &&
-        propertyName.name == 'call') {
+        propertyName == 'call') {
       // If `X` has a function type, then in the expression `X.call`, the
       // function being torn off is `X` itself, so the callee type is simply the
       // non-nullable counterpart to the type of `X`.
@@ -3148,7 +3179,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // Dynamic dispatch.
       return _makeNullableDynamicType(node);
     }
-    if (propertyName.inSetterContext()) {
+    if (inSetterContext) {
       if (isNullAware) {
         _conditionalNodes[node] = targetType!.node;
       }

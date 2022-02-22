@@ -106,6 +106,12 @@ class DuplicateDefinitionVerifier {
       }
     }
 
+    _checkConflictingConstructorAndStatic(
+      classElement: enumElement,
+      staticGetters: staticGetters,
+      staticSetters: staticSetters,
+    );
+
     for (var accessor in enumElement.accessors) {
       var baseName = accessor.displayName;
       if (accessor.isStatic) {
@@ -384,37 +390,17 @@ class DuplicateDefinitionVerifier {
       }
     }
 
+    _checkConflictingConstructorAndStatic(
+      classElement: element,
+      staticGetters: staticGetters,
+      staticSetters: staticSetters,
+    );
+
     // Check for local static members conflicting with local instance members.
+    // TODO(scheglov) This code is duplicated for enums. But for classes it is
+    // separated also into ErrorVerifier - where we check inherited.
     for (ClassMember member in members) {
-      if (member is ConstructorDeclaration) {
-        var nameNode = member.name;
-        if (nameNode != null) {
-          String name = nameNode.name;
-          var staticMember = staticGetters[name] ?? staticSetters[name];
-          if (staticMember != null) {
-            if (staticMember is PropertyAccessorElement) {
-              CompileTimeErrorCode errorCode;
-              if (staticMember.isSynthetic) {
-                errorCode = CompileTimeErrorCode
-                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD;
-              } else if (staticMember.isGetter) {
-                errorCode = CompileTimeErrorCode
-                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER;
-              } else {
-                errorCode = CompileTimeErrorCode
-                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER;
-              }
-              _errorReporter.reportErrorForNode(errorCode, nameNode, [name]);
-            } else {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
-                nameNode,
-                [name],
-              );
-            }
-          }
-        }
-      } else if (member is FieldDeclaration) {
+      if (member is FieldDeclaration) {
         if (member.isStatic) {
           for (VariableDeclaration field in member.fields.variables) {
             SimpleIdentifier identifier = field.name;
@@ -442,6 +428,37 @@ class DuplicateDefinitionVerifier {
                 [className, name, className]);
           }
         }
+      }
+    }
+  }
+
+  void _checkConflictingConstructorAndStatic({
+    required ClassElement classElement,
+    required Map<String, Element> staticGetters,
+    required Map<String, Element> staticSetters,
+  }) {
+    for (var constructor in classElement.constructors) {
+      var name = constructor.name;
+      var staticMember = staticGetters[name] ?? staticSetters[name];
+      if (staticMember is PropertyAccessorElement) {
+        CompileTimeErrorCode errorCode;
+        if (staticMember.isSynthetic) {
+          errorCode =
+              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD;
+        } else if (staticMember.isGetter) {
+          errorCode =
+              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER;
+        } else {
+          errorCode =
+              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER;
+        }
+        _errorReporter.reportErrorForElement(errorCode, constructor, [name]);
+      } else if (staticMember is MethodElement) {
+        _errorReporter.reportErrorForElement(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+          constructor,
+          [name],
+        );
       }
     }
   }
