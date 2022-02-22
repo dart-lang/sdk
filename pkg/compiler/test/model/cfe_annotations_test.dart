@@ -455,7 +455,7 @@ main(List<String> args) {
         // in the IR component, and not just the ones queried specifically for
         // JS-interop and pragma-like annotations.
         elementMap.envIsClosed = false;
-        testAll(new NativeDataImpl.fromIr(elementMap, annotationData));
+        testAll(NativeData.fromIr(elementMap, annotationData));
       }
     }
 
