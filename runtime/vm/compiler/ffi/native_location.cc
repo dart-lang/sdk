@@ -277,14 +277,14 @@ void NativeLocation::PrintTo(BaseTextBuffer* f) const {
 
 void NativeRegistersLocation::PrintTo(BaseTextBuffer* f) const {
   if (num_regs() == 1) {
-    f->Printf("%s", RegisterNames::RegisterName(regs_->At(0)));
+    f->Printf("%s", RegisterNames::RegisterAbiName(regs_->At(0)));
   } else {
     f->AddString("(");
     for (intptr_t i = 0; i < num_regs(); i++) {
       if (i != 0) {
         f->Printf(", ");
       }
-      f->Printf("%s", RegisterNames::RegisterName(regs_->At(i)));
+      f->Printf("%s", RegisterNames::RegisterAbiName(regs_->At(i)));
     }
     f->AddString(")");
   }

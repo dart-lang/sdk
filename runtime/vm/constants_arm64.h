@@ -129,6 +129,7 @@ const int kNumberOfFpuRegisters = kNumberOfVRegisters;
 const FpuRegister kNoFpuRegister = kNoVRegister;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
 extern const char* const fpu_reg_names[kNumberOfFpuRegisters];
 
 // Register aliases.

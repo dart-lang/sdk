@@ -99,6 +99,7 @@ const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
 extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 
 enum RexBits {
