@@ -16,7 +16,27 @@ main() {
 @reflectiveTest
 class ConflictingConstructorAndStaticMethodTest
     extends PubPackageResolutionTest {
-  test_class() async {
+  test_class_instance() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C.foo();
+  void foo() {}
+}
+''');
+  }
+
+  test_class_notSameClass() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static void foo() {}
+}
+class B extends A {
+  B.foo();
+}
+''');
+  }
+
+  test_class_static() async {
     await assertErrorsInCode(r'''
 class C {
   C.foo();
@@ -28,33 +48,26 @@ class C {
     ]);
   }
 
-  test_class_OK_notSameClass() async {
+  test_enum_instance() async {
     await assertNoErrorsInCode(r'''
-class A {
-  static void foo() {}
-}
-class B extends A {
-  B.foo();
-}
-''');
-  }
-
-  test_class_OK_notStatic() async {
-    await assertNoErrorsInCode(r'''
-class C {
-  C.foo();
+enum E {
+  v.foo();
+  const E.foo();
   void foo() {}
 }
 ''');
   }
 
-  test_enum() async {
-    await assertNoErrorsInCode(r'''
+  test_enum_static() async {
+    await assertErrorsInCode(r'''
 enum E {
   v.foo();
-  const E.foo(); // _$foo
+  const E.foo();
   static void foo() {}
 }
-''');
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD, 30,
+          3),
+    ]);
   }
 }
