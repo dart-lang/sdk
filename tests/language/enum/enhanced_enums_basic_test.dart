@@ -84,8 +84,8 @@ void main() {
   EnumAll.staticGetSet = EnumAll.v5;
   Expect.equals(42, EnumAll.staticMethod());
 
-  Expect.identical(EnumAll.v2, EnumAll<num, num>.factory(2));
-  Expect.identical(EnumAll.v2, EnumAll<num, num>.refactory(2));
+  Expect.identical(EnumAll.v3, EnumAll<num, num>.factory(2));
+  Expect.identical(EnumAll.v3, EnumAll<num, num>.refactory(2));
 
   // Access static members through typedef.
   Expect.identical(EnumAll.v3, TypeDefAll.sConst);
@@ -97,14 +97,14 @@ void main() {
   TypeDefAll.staticGetSet = EnumAll.v5;
   Expect.equals(42, TypeDefAll.staticMethod());
 
-  Expect.identical(EnumAll.v2, TypeDefAll.factory(2));
-  Expect.identical(EnumAll.v2, TypeDefAll.refactory(2));
+  Expect.identical(EnumAll.v3, TypeDefAll.factory(2));
+  Expect.identical(EnumAll.v3, TypeDefAll.refactory(2));
 
   // Access instance members.
   Expect.equals(0, EnumAll.v1.instanceGetSet);
   EnumAll.v1.instanceGetSet = 0.5;
   Expect.equals(0, EnumAll.v1.instanceMethod());
-  Expect.identical(EnumAll.v1, EnumAll.v3 ^ EnumAll.v2);
+  Expect.identical(EnumAll.v4, EnumAll.v3 ^ EnumAll.v2);
 
   Expect.equals("EnumAll.v1:EnumMixin<num>:ObjectMixin:this",
       EnumAll.v1.thisAndSuper());
@@ -127,16 +127,17 @@ void main() {
   // But you can call extension members if there is no conflict.
   Expect.equals("extension", EnumAll.v1.extension);
 
-  // The `index` and `toString` implementations are inherited from
-  // the `Enum` implementing superclass.
-  Expect.equals(0, StringIndexEnum.v1.index);
-  Expect.equals(1, StringIndexEnum.v2.index);
-  Expect.equals(0, StringIndexEnum.v1.superIndex);
-  Expect.equals(1, StringIndexEnum.v2.superIndex);
-  Expect.equals("FakeString", StringIndexEnum.v1.toString());
-  Expect.equals("FakeString", StringIndexEnum.v2.toString());
-  Expect.equals("StringIndexEnum.v1", StringIndexEnum.v1.realToString());
-  Expect.equals("StringIndexEnum.v2", StringIndexEnum.v2.realToString());
+  // The `index` implementation is inherited from the `Enum` implementing
+  // superclass, and the `toString` implementation is overridden, but
+  // available via `realToString`.
+  Expect.equals(0, OverrideEnum.v1.index);
+  Expect.equals(1, OverrideEnum.v2.index);
+  Expect.equals(0, OverrideEnum.v1.superIndex);
+  Expect.equals(1, OverrideEnum.v2.superIndex);
+  Expect.equals("FakeString", OverrideEnum.v1.toString());
+  Expect.equals("FakeString", OverrideEnum.v2.toString());
+  Expect.equals("OverrideEnum.v1", OverrideEnum.v1.realToString());
+  Expect.equals("OverrideEnum.v2", OverrideEnum.v2.realToString());
 
   // Enum elements are always distinct, even if their state doesn't differ.
   Expect.notIdentical(Canonical.v1, Canonical.v2, "Canonical - type only");
@@ -307,7 +308,7 @@ enum Canonical<T> {
 }
 
 // Both `toString` and `index` are inherited from superclass.
-enum StringIndexEnum {
+enum OverrideEnum {
   v1, v2;
   // Cannot override index
   int get superIndex => super.index;
