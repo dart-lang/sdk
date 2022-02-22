@@ -603,7 +603,7 @@ enum DeclaresInstanceIndex {
   e1;
   int get index => 42;
   //      ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_NON_ABSTRACT_ENUM_INDEX
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
   // [cfe] unspecified
 }
 
@@ -641,7 +641,7 @@ enum ImplementsNeverIndex {
 
   Never get index => throw "Never!";
   //        ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_NON_ABSTRACT_ENUM_INDEX
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
   // [cfe] unspecified
 }
 
