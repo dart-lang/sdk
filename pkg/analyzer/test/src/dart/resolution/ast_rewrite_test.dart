@@ -47,6 +47,38 @@ void Function(int) foo(C c) {
     );
   }
 
+  test_conditional_else() async {
+    await assertNoErrorsInCode('''
+abstract class A {}
+abstract class C extends A {
+  void call();
+}
+void Function() f(A a, bool b, C c, dynamic d) => b ? d : (b ? a : c);
+''');
+    // `c` is in the "else" position of a conditional expression, so implicit
+    // call tearoff logic should not apply to it.
+    var expr = findNode.conditionalExpression('b ? a : c');
+    expect(expr.thenExpression, TypeMatcher<SimpleIdentifier>());
+    // Therefore the type of `b ? a : c` should be `A`.
+    assertType(expr, 'A');
+  }
+
+  test_conditional_then() async {
+    await assertNoErrorsInCode('''
+abstract class A {}
+abstract class C extends A {
+  void call();
+}
+void Function() f(A a, bool b, C c, dynamic d) => b ? d : (b ? c : a);
+''');
+    // `c` is in the "then" position of a conditional expression, so implicit
+    // call tearoff logic should not apply to it.
+    var expr = findNode.conditionalExpression('b ? c : a');
+    expect(expr.thenExpression, TypeMatcher<SimpleIdentifier>());
+    // Therefore the type of `b ? c : a` should be `A`.
+    assertType(expr, 'A');
+  }
+
   test_explicitTypeArguments() async {
     await assertNoErrorsInCode('''
 class C {
@@ -66,7 +98,26 @@ void foo() {
     );
   }
 
-  test_ifNull() async {
+  test_ifNull_lhs() async {
+    await assertErrorsInCode('''
+abstract class A {}
+abstract class C extends A {
+  void call();
+}
+
+void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
+''', [
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 130, 1),
+    ]);
+    // `c` is on the LHS of an if-null expression, so implicit call tearoff
+    // logic should not apply to it.
+    var expr = findNode.binary('c ?? a');
+    expect(expr.leftOperand, TypeMatcher<SimpleIdentifier>());
+    // Therefore the type of `c ?? a` should be `A`.
+    assertType(expr, 'A');
+  }
+
+  test_ifNull_rhs() async {
     await assertNoErrorsInCode('''
 abstract class C {
   void call(int t) => t;
@@ -161,6 +212,16 @@ List<void Function(int)> foo(C c1, C c2) {
       findElement.method('call'),
       'void Function(int)',
     );
+  }
+
+  test_parenthesized_cascade_target() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void call();
+  void m();
+}
+void Function() f(C c) => (c)..m();
+''');
   }
 
   test_prefixedIdentifier() async {
