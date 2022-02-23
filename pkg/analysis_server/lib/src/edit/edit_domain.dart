@@ -355,7 +355,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         getFixes(request);
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
-        return _getRefactoring(request);
+        return _getRefactoring(request, cancellationToken);
       } else if (requestName == EDIT_REQUEST_IMPORT_ELEMENTS) {
         importElements(request);
         return Response.DELAYED_RESPONSE;
@@ -865,7 +865,8 @@ length: $length
     }
   }
 
-  Response _getRefactoring(Request request) {
+  Response _getRefactoring(
+      Request request, CancellationToken cancellationToken) {
     final refactoringManager = this.refactoringManager;
     if (refactoringManager == null) {
       return Response.unsupportedFeature(request.id, 'Search is not enabled.');
@@ -874,7 +875,7 @@ length: $length
       refactoringManager.cancel();
       _newRefactoringManager();
     }
-    refactoringManager.getRefactoring(request);
+    refactoringManager.getRefactoring(request, cancellationToken);
     return Response.DELAYED_RESPONSE;
   }
 
@@ -973,7 +974,7 @@ class _RefactoringManager {
     _reset();
   }
 
-  void getRefactoring(Request _request) {
+  void getRefactoring(Request _request, CancellationToken cancellationToken) {
     // prepare for processing the request
     request = _request;
     final result = this.result = EditGetRefactoringResult(
@@ -990,7 +991,8 @@ class _RefactoringManager {
         ?.sendEvent('refactor', params.kind.name.toLowerCase());
 
     runZonedGuarded(() async {
-      await _init(params.kind, file, params.offset, params.length);
+      await _init(
+          params.kind, file, params.offset, params.length, cancellationToken);
       if (initStatus.hasFatalError) {
         feedback = null;
         _sendResultResponse();
@@ -1076,8 +1078,8 @@ class _RefactoringManager {
     }
   }
 
-  Future<void> _createRefactoringFromKind(
-      String file, int offset, int length) async {
+  Future<void> _createRefactoringFromKind(String file, int offset, int length,
+      CancellationToken cancellationToken) async {
     if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
@@ -1144,11 +1146,9 @@ class _RefactoringManager {
         );
       }
     } else if (kind == RefactoringKind.MOVE_FILE) {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        refactoring = MoveFileRefactoring(
-            server.resourceProvider, refactoringWorkspace, resolvedUnit, file);
-      }
+      refactoring = MoveFileRefactoring(
+          server.resourceProvider, refactoringWorkspace, file)
+        ..cancellationToken = cancellationToken;
     } else if (kind == RefactoringKind.RENAME) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
@@ -1171,8 +1171,8 @@ class _RefactoringManager {
 
   /// Initializes this context to perform a refactoring with the specified
   /// parameters. The existing [Refactoring] is reused or created as needed.
-  Future _init(
-      RefactoringKind kind, String file, int offset, int length) async {
+  Future _init(RefactoringKind kind, String file, int offset, int length,
+      CancellationToken cancellationToken) async {
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&
@@ -1191,7 +1191,7 @@ class _RefactoringManager {
       throw 'A simulated refactoring exception - init.';
     }
     // create a new Refactoring instance
-    await _createRefactoringFromKind(file, offset, length);
+    await _createRefactoringFromKind(file, offset, length, cancellationToken);
     final refactoring = this.refactoring;
     if (refactoring == null) {
       initStatus = RefactoringStatus.fatal('Unable to create a refactoring');

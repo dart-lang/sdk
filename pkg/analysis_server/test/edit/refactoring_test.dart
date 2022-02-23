@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -25,15 +26,6 @@ void main() {
     defineReflectiveTests(MoveFileTest);
     defineReflectiveTests(RenameTest);
   });
-}
-
-/// Wrapper around the test package's `fail` function.
-///
-/// Unlike the test package's `fail` function, this function is not annotated
-/// with @alwaysThrows, so we can call it at the top of a test method without
-/// causing the rest of the method to be flagged as dead code.
-void _fail(String message) {
-  fail(message);
 }
 
 @reflectiveTest
@@ -1325,9 +1317,7 @@ void f() {
 class MoveFileTest extends _AbstractGetRefactoring_Test {
   late MoveFileOptions options;
 
-  @failingTest
-  Future<void> test_OK() {
-    _fail('The move file refactoring is not supported under the new driver');
+  Future<void> test_file_OK() {
     newFile('/project/bin/lib.dart');
     addTestFile('''
 import 'dart:math';
@@ -1335,16 +1325,59 @@ import 'lib.dart';
 ''');
     _setOptions('/project/test.dart');
     return assertSuccessfulRefactoring(() {
-      return _sendMoveRequest();
+      return _sendMoveRequest(testFile);
     }, '''
 import 'dart:math';
 import 'bin/lib.dart';
 ''');
   }
 
-  Future<Response> _sendMoveRequest() {
+  Future<void> test_folder_cancel() {
+    newFile('/project/bin/original_folder/file.dart');
+    addTestFile('''
+import 'dart:math';
+import 'original_folder/file.dart';
+''');
+    _setOptions('/project/bin/new_folder');
+    return assertEmptySuccessfulRefactoring(() async {
+      return _sendAndCancelMoveRequest(
+          convertPath('/project/bin/original_folder'));
+    });
+  }
+
+  Future<void> test_folder_OK() {
+    newFile('/project/bin/original_folder/file.dart');
+    addTestFile('''
+import 'dart:math';
+import 'original_folder/file.dart';
+''');
+    _setOptions('/project/bin/new_folder');
+    return assertSuccessfulRefactoring(() async {
+      return _sendMoveRequest(convertPath('/project/bin/original_folder'));
+    }, '''
+import 'dart:math';
+import 'new_folder/file.dart';
+''');
+  }
+
+  Future<Response> _cancelMoveRequest() {
+    // 0 is the id from _sendMoveRequest
+    // 1 is another aribtrary id for the cancel request
+    var request = ServerCancelRequestParams('0').toRequest('1');
+    return serverChannel.sendRequest(request);
+  }
+
+  Future<Response> _sendAndCancelMoveRequest(String item) async {
+    final responses = await Future.wait([
+      _sendMoveRequest(item),
+      _cancelMoveRequest(),
+    ]);
+    return responses.first;
+  }
+
+  Future<Response> _sendMoveRequest(String item) {
     var request = EditGetRefactoringParams(
-            RefactoringKind.MOVE_FILE, testFile, 0, 0, false,
+            RefactoringKind.MOVE_FILE, item, 0, 0, false,
             options: options)
         .toRequest('0');
     return serverChannel.sendRequest(request);
@@ -2253,6 +2286,26 @@ void f() {
 class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   bool shouldWaitForFullAnalysis = true;
 
+  Future assertEmptySuccessfulRefactoring(
+      Future<Response> Function() requestSender,
+      {void Function(RefactoringFeedback?)? feedbackValidator}) async {
+    var result = await getRefactoringResult(requestSender);
+    assertResultProblemsOK(result);
+    if (feedbackValidator != null) {
+      feedbackValidator(result.feedback);
+    }
+    assertNoTestRefactoringResult(result);
+  }
+
+  /// Asserts that the given [EditGetRefactoringResult] does not have a change
+  /// for [testFile].
+  void assertNoTestRefactoringResult(EditGetRefactoringResult result) {
+    var change = result.change!;
+    if (change.edits.any((edit) => edit.file == testFile)) {
+      fail('Found a SourceFileEdit for $testFile in $change');
+    }
+  }
+
   /// Asserts that [problems] has a single ERROR problem.
   void assertResultProblemsError(List<RefactoringProblem> problems,
       [String? message]) {
@@ -2344,7 +2397,9 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   Future<void> setUp() async {
     super.setUp();
     await createProject();
-    handler = EditDomainHandler(server);
-    server.handlers = [handler];
+    server.handlers = [
+      EditDomainHandler(server),
+      ServerDomainHandler(server),
+    ];
   }
 }

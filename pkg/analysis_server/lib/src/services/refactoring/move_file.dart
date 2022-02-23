@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -22,16 +23,16 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   final ResourceProvider resourceProvider;
   final pathos.Context pathContext;
   final RefactoringWorkspace refactoringWorkspace;
-  final ResolvedUnitResult resolvedUnit;
   late AnalysisDriver driver;
+  late AnalysisSession _session;
 
   late String oldFile;
   late String newFile;
 
   final packagePrefixedStringPattern = RegExp(r'''^r?['"]+package:''');
 
-  MoveFileRefactoringImpl(this.resourceProvider, this.refactoringWorkspace,
-      this.resolvedUnit, this.oldFile)
+  MoveFileRefactoringImpl(
+      this.resourceProvider, this.refactoringWorkspace, this.oldFile)
       : pathContext = resourceProvider.pathContext;
 
   @override
@@ -54,7 +55,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     }
 
     driver = drivers.first;
-    if (!driver.resourceProvider.getFile(oldFile).exists) {
+    _session = driver.currentSession;
+    if (!resourceProvider.getResource(oldFile).exists) {
       return RefactoringStatus.fatal('$oldFile does not exist.');
     }
 
@@ -68,16 +70,45 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
-    var changeBuilder = ChangeBuilder(session: resolvedUnit.session);
+    var changeBuilder = ChangeBuilder(session: _session);
+
+    final resource = resourceProvider.getResource(oldFile);
+
+    try {
+      await _appendChangesForResource(changeBuilder, resource, newFile);
+    } on InconsistentAnalysisException {
+      // If an InconsistentAnalysisException occurs, it's likely the user
+      // modified the source and is no longer interested in the results.
+      return SourceChange('Refactor cancelled by file modifications');
+    }
+
+    // If cancellation was requested the results may be incomplete so return
+    // a new empty change instead of a partial one with a descriptive name
+    // so it's clear from any logs that cancellation was processed.
+    if (isCancellationRequested) {
+      return SourceChange('Refactor cancelled');
+    }
+
+    return changeBuilder.sourceChange;
+  }
+
+  Future<void> _appendChangeForFile(
+      ChangeBuilder changeBuilder, File file, String newPath) async {
+    var oldPath = file.path;
+    var oldDir = pathContext.dirname(oldPath);
+    var newDir = pathContext.dirname(newPath);
+
+    final resolvedUnit = await _session.getResolvedUnit(file.path);
+    if (resolvedUnit is! ResolvedUnitResult) {
+      return;
+    }
+
     var element = resolvedUnit.unit.declaredElement;
     if (element == null) {
-      return changeBuilder.sourceChange;
+      return;
     }
 
     var libraryElement = element.library;
-
-    final oldDir = pathContext.dirname(oldFile);
-    final newDir = pathContext.dirname(newFile);
 
     // If this element is a library, update outgoing references inside the file.
     if (element == libraryElement.definingCompilationUnit) {
@@ -85,7 +116,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       var libraryResult = await driver.currentSession
           .getResolvedLibraryByElement(libraryElement);
       if (libraryResult is! ResolvedLibraryResult) {
-        return changeBuilder.sourceChange;
+        return;
       }
       var definingUnitResult = libraryResult.units.first;
       for (var result in libraryResult.units) {
@@ -99,9 +130,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
             await changeBuilder.addDartFileEdit(
                 result.unit.declaredElement!.source.fullName, (builder) {
               partOfs.forEach((uri) {
-                var newLocation =
-                    pathContext.join(newDir, pathos.basename(newFile));
-                var newUri = _getRelativeUri(newLocation, oldDir);
+                var newUri = _getRelativeUri(newPath, oldDir);
                 builder.addSimpleReplacement(
                     SourceRange(uri.offset, uri.length), "'$newUri'");
               });
@@ -145,27 +174,41 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     var references = getSourceReferences(matches);
     for (var reference in references) {
       await changeBuilder.addDartFileEdit(reference.file, (builder) {
-        var newUri = _computeNewUri(reference);
+        var newUri = _computeNewUri(reference, newPath);
         builder.addSimpleReplacement(reference.range, "'$newUri'");
       });
     }
-
-    return changeBuilder.sourceChange;
   }
 
-  /// Computes the URI to use to reference [newFile] from [reference].
-  String _computeNewUri(SourceReference reference) {
+  Future<void> _appendChangesForResource(
+      ChangeBuilder changeBuilder, Resource resource, String newPath) async {
+    if (isCancellationRequested) {
+      return;
+    }
+
+    if (resource is File) {
+      await _appendChangeForFile(changeBuilder, resource, newPath);
+    } else if (resource is Folder) {
+      for (final child in resource.getChildren()) {
+        await _appendChangesForResource(changeBuilder, child,
+            pathContext.join(newPath, pathContext.basename(child.path)));
+      }
+    }
+  }
+
+  /// Computes the URI to use to reference [newPath] from [reference].
+  String _computeNewUri(SourceReference reference, String newPath) {
     var refDir = pathContext.dirname(reference.file);
     // Try to keep package: URI
     if (_isPackageReference(reference)) {
-      var restoredUri = driver.sourceFactory.pathToUri(newFile);
+      var restoredUri = driver.sourceFactory.pathToUri(newPath);
       // If the new URI is not a package: URI, fall back to computing a relative
       // URI below.
       if (restoredUri?.isScheme('package') ?? false) {
         return restoredUri.toString();
       }
     }
-    return _getRelativeUri(newFile, refDir);
+    return _getRelativeUri(newPath, refDir);
   }
 
   String _getRelativeUri(String path, String from) {
