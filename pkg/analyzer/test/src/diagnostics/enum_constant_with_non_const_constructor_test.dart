@@ -33,7 +33,6 @@ enum E {
 enum E {
   v();
   factory E() => throw 0;
-  const E.named(); 
 }
 ''', [
       error(
@@ -46,7 +45,6 @@ enum E {
 enum E {
   v;
   factory E() => throw 0;
-  const E.named(); 
 }
 ''', [
       error(

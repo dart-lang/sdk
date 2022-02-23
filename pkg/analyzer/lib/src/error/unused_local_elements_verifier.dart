@@ -101,6 +101,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    usedElements.addElement(node.constructorElement?.declaration);
+    super.visitEnumConstantDeclaration(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     var enclosingExecOld = _enclosingExec;
     try {
@@ -251,8 +257,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
           element.name == 'values') {
         // If the 'values' static accessor of the enum is accessed, then all of
         // the enum values have been read.
-        for (var value in enclosingElement.fields) {
-          usedElements.readMembers.add(value.getter!);
+        for (var field in enclosingElement.fields) {
+          if (field.isEnumConstant) {
+            usedElements.readMembers.add(field.getter!);
+          }
         }
       } else if ((enclosingElement is ClassElement ||
               enclosingElement is ExtensionElement) &&
@@ -492,14 +500,24 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     var enclosingElement = element.enclosingElement;
-    if (enclosingElement is ClassElement &&
-        enclosingElement.isPrivate &&
-        (element.isStatic || element is ConstructorElement)) {
-      return false;
-    } else if (enclosingElement is ExtensionElement &&
-        enclosingElement.isPrivate) {
-      return false;
+
+    if (enclosingElement is ClassElement) {
+      if (enclosingElement.isEnum) {
+        if (element is ConstructorElement && element.isGenerative) {
+          return false;
+        }
+      }
+      if (enclosingElement.isPrivate) {
+        if (element.isStatic || element is ConstructorElement) {
+          return false;
+        }
+      }
     }
+
+    if (enclosingElement is ExtensionElement) {
+      return enclosingElement.isPublic;
+    }
+
     return true;
   }
 

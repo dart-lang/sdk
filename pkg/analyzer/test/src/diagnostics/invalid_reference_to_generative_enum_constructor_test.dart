@@ -183,7 +183,8 @@ void f() {
   test_generative_unnamed_redirectingConstructorInvocation() async {
     await assertNoErrorsInCode('''
 enum E {
-  v;
+  v1,
+  v2.named();
 
   const E();
   const E.named() : this();
