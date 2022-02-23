@@ -95,15 +95,16 @@ class EditDomainHandler extends AbstractRequestHandler {
         }
       }
 
-      var workspace = DartChangeWorkspace(server.currentSessions);
-      var processor = BulkFixProcessor(server.instrumentationService, workspace,
-          useConfigFiles: params.inTestMode ?? false);
-
       var collection = AnalysisContextCollectionImpl(
         includedPaths: params.included,
         resourceProvider: server.resourceProvider,
         sdkPath: server.sdkPath,
       );
+      var workspace = DartChangeWorkspace(
+          collection.contexts.map((c) => c.currentSession).toList());
+      var processor = BulkFixProcessor(server.instrumentationService, workspace,
+          useConfigFiles: params.inTestMode ?? false);
+
       var changeBuilder = await processor.fixErrors(collection.contexts);
 
       var response = EditBulkFixesResult(
