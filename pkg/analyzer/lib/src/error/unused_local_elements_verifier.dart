@@ -103,6 +103,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     usedElements.addElement(node.constructorElement?.declaration);
+
+    var argumentList = node.arguments?.argumentList;
+    if (argumentList != null) {
+      _addParametersForArguments(argumentList);
+    }
+
     super.visitEnumConstantDeclaration(node);
   }
 
@@ -140,10 +146,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    for (var argument in node.argumentList.arguments) {
-      var parameter = argument.staticParameterElement;
-      usedElements.addElement(parameter);
-    }
+    _addParametersForArguments(node.argumentList);
     super.visitInstanceCreationExpression(node);
   }
 
@@ -174,10 +177,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var function = node.methodName.staticElement;
     if (function is FunctionElement || function is MethodElement) {
-      for (var argument in node.argumentList.arguments) {
-        var parameter = argument.staticParameterElement;
-        usedElements.addElement(parameter);
-      }
+      _addParametersForArguments(node.argumentList);
     }
     super.visitMethodInvocation(node);
   }
@@ -294,6 +294,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       usedElements.addReadMember(element.correspondingGetter);
     } else {
       usedElements.addReadMember(element);
+    }
+  }
+
+  void _addParametersForArguments(ArgumentList argumentList) {
+    for (var argument in argumentList.arguments) {
+      var parameter = argument.staticParameterElement;
+      usedElements.addElement(parameter);
     }
   }
 
