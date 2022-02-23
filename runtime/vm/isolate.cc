@@ -1785,6 +1785,8 @@ void Isolate::InitVM() {
   shutdown_callback_ = nullptr;
   cleanup_callback_ = nullptr;
   cleanup_group_callback_ = nullptr;
+  register_kernel_blob_callback_ = nullptr;
+  unregister_kernel_blob_callback_ = nullptr;
   if (isolate_creation_monitor_ == nullptr) {
     isolate_creation_monitor_ = new Monitor();
   }
@@ -2707,6 +2709,10 @@ Dart_IsolateGroupCreateCallback Isolate::create_group_callback_ = nullptr;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = nullptr;
 Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = nullptr;
 Dart_IsolateGroupCleanupCallback Isolate::cleanup_group_callback_ = nullptr;
+Dart_RegisterKernelBlobCallback Isolate::register_kernel_blob_callback_ =
+    nullptr;
+Dart_UnregisterKernelBlobCallback Isolate::unregister_kernel_blob_callback_ =
+    nullptr;
 
 Random* IsolateGroup::isolate_group_random_ = nullptr;
 Monitor* Isolate::isolate_creation_monitor_ = nullptr;

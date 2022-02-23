@@ -304,6 +304,8 @@ namespace dart {
   V(Isolate_getCurrentRootUriStr, 0)                                           \
   V(Isolate_getDebugName, 1)                                                   \
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
+  V(Isolate_registerKernelBlob, 1)                                             \
+  V(Isolate_unregisterKernelBlob, 1)                                           \
   V(Isolate_sendOOB, 2)                                                        \
   V(Isolate_spawnFunction, 10)                                                 \
   V(Isolate_spawnUri, 12)                                                      \

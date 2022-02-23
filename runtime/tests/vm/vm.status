@@ -98,6 +98,7 @@ cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
 dart/b162922506_test: SkipByDesign # Only run in JIT
 dart/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
+dart/spawn_uri_from_kernel_blob_test: SkipByDesign # Only run in JIT.
 dart_2/b162922506_test: SkipByDesign # Only run in JIT
 dart_2/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
 dart_2/isolates/reload_*: SkipByDesign # These tests only run on normal JIT.
