@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:meta/meta.dart';
 
@@ -24,9 +25,11 @@ abstract class FlutterSnippetProducer extends SnippetProducer {
   @override
   @mustCallSuper
   Future<bool> isValid() async {
-    classWidget = await _getClass('Widget');
+    if ((classWidget = await _getClass('Widget')) == null) {
+      return false;
+    }
 
-    return classWidget != null;
+    return true;
   }
 
   Future<ClassElement?> _getClass(String name) =>
@@ -137,7 +140,7 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
               builder.writeln('{');
               builder.write('    ');
               builder.selectHere();
-              builder.writeln('');
+              builder.writeln();
               builder.writeln('  }');
             },
           );
@@ -160,23 +163,10 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
       return false;
     }
 
-    classStatefulWidget = await _getClass('StatefulWidget');
-    if (classStatefulWidget == null) {
-      return false;
-    }
-
-    classState = await _getClass('State');
-    if (classState == null) {
-      return false;
-    }
-
-    classBuildContext = await _getClass('BuildContext');
-    if (classBuildContext == null) {
-      return false;
-    }
-
-    classKey = await _getClass('Key');
-    if (classKey == null) {
+    if ((classStatefulWidget = await _getClass('StatefulWidget')) == null ||
+        (classState = await _getClass('State')) == null ||
+        (classBuildContext = await _getClass('BuildContext')) == null ||
+        (classKey = await _getClass('Key')) == null) {
       return false;
     }
 
@@ -186,6 +176,192 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
   static FlutterStatefulWidgetSnippetProducer newInstance(
           DartSnippetRequest request) =>
       FlutterStatefulWidgetSnippetProducer(request);
+}
+
+/// Produces a [Snippet] that creates a Flutter StatefulWidget with a
+/// AnimationController and related State class.
+class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
+    extends FlutterSnippetProducer {
+  static const prefix = 'stanim';
+  static const label = 'Flutter Widget with AnimationController';
+
+  late ClassElement? classStatefulWidget;
+  late ClassElement? classState;
+  late ClassElement? classBuildContext;
+  late ClassElement? classKey;
+  late ClassElement? classAnimationController;
+  late ClassElement? classSingleTickerProviderStateMixin;
+
+  FlutterStatefulWidgetWithAnimationControllerSnippetProducer(
+      DartSnippetRequest request)
+      : super(request);
+
+  @override
+  Future<Snippet> compute() async {
+    final builder = ChangeBuilder(session: request.analysisSession);
+
+    // Checked by isValid().
+    final classStatefulWidget = this.classStatefulWidget!;
+    final classState = this.classState!;
+    final classWidget = this.classWidget!;
+    final classBuildContext = this.classBuildContext!;
+    final classKey = this.classKey!;
+    final classAnimationController = this.classAnimationController!;
+    final classSingleTickerProviderStateMixin =
+        this.classSingleTickerProviderStateMixin!;
+
+    // Only include `?` for nulable types like Key? if in a null-safe library.
+    final nullableSuffix = request.unit.libraryElement.isNonNullableByDefault
+        ? NullabilitySuffix.question
+        : NullabilitySuffix.none;
+
+    final className = 'MyWidget';
+    await builder.addDartFileEdit(request.filePath, (builder) {
+      builder.addReplacement(request.replacementRange, (builder) {
+        // Write the StatefulWidget class
+        builder.writeClassDeclaration(
+          className,
+          nameGroupName: 'name',
+          superclass: _getType(classStatefulWidget),
+          membersWriter: () {
+            // Add the constructor.
+            builder.write('  ');
+            builder.writeConstructorDeclaration(
+              className,
+              classNameGroupName: 'name',
+              isConst: true,
+              parameterWriter: () {
+                builder.write('{');
+                builder.writeParameter(
+                  'key',
+                  type: _getType(classKey, nullableSuffix),
+                );
+                builder.write('}');
+              },
+              initializerWriter: () => builder.write('super(key: key)'),
+            );
+            builder.writeln();
+            builder.writeln();
+
+            // Add the createState method.
+            builder.writeln('  @override');
+            builder.write('  State<');
+            builder.addSimpleLinkedEdit('name', className);
+            builder.write('> createState() => _');
+            builder.addSimpleLinkedEdit('name', className);
+            builder.writeln('State();');
+          },
+        );
+        builder.writeln();
+        builder.writeln();
+
+        // Write the State class.
+        builder.write('class _');
+        builder.addSimpleLinkedEdit('name', className);
+        builder.write('State extends ');
+        builder.writeReference(classState);
+        builder.write('<');
+        builder.addSimpleLinkedEdit('name', className);
+        builder.writeln('>');
+        builder.write('    with ');
+        builder.writeReference(classSingleTickerProviderStateMixin);
+        builder.writeln(' {');
+        builder.write('  late ');
+        builder.writeReference(classAnimationController);
+        builder.writeln(' _controller;');
+        builder.writeln();
+        {
+          // Add the initState method.
+          builder.writeln('  @override');
+          builder.write('  ');
+          builder.writeFunctionDeclaration(
+            'initState',
+            returnType: VoidTypeImpl.instance,
+            bodyWriter: () {
+              builder.writeln('{');
+              builder.writeln('    super.initState();');
+              builder.write('    _controller = ');
+              builder.writeReference(classAnimationController);
+              builder.writeln('(vsync: this);');
+              builder.writeln('  }');
+            },
+          );
+        }
+        builder.writeln();
+        {
+          // Add the dispose method.
+          builder.writeln('  @override');
+          builder.write('  ');
+          builder.writeFunctionDeclaration(
+            'dispose',
+            returnType: VoidTypeImpl.instance,
+            bodyWriter: () {
+              builder.writeln('{');
+              builder.writeln('    super.dispose();');
+              builder.writeln('    _controller.dispose();');
+              builder.writeln('  }');
+            },
+          );
+        }
+        builder.writeln();
+        {
+          // Add the build method.
+          builder.writeln('  @override');
+          builder.write('  ');
+          builder.writeFunctionDeclaration(
+            'build',
+            returnType: _getType(classWidget),
+            parameterWriter: () {
+              builder.writeParameter(
+                'context',
+                type: _getType(classBuildContext),
+              );
+            },
+            bodyWriter: () {
+              builder.writeln('{');
+              builder.write('    ');
+              builder.selectHere();
+              builder.writeln();
+              builder.writeln('  }');
+            },
+          );
+        }
+        builder.write('}');
+      });
+    });
+
+    return Snippet(
+      prefix,
+      label,
+      'Insert a StatefulWidget with an AnimationController',
+      builder.sourceChange,
+    );
+  }
+
+  @override
+  Future<bool> isValid() async {
+    if (!await super.isValid()) {
+      return false;
+    }
+
+    if ((classStatefulWidget = await _getClass('StatefulWidget')) == null ||
+        (classState = await _getClass('State')) == null ||
+        (classBuildContext = await _getClass('BuildContext')) == null ||
+        (classKey = await _getClass('Key')) == null ||
+        (classAnimationController = await _getClass('AnimationController')) ==
+            null ||
+        (classSingleTickerProviderStateMixin =
+                await _getClass('SingleTickerProviderStateMixin')) ==
+            null) {
+      return false;
+    }
+
+    return true;
+  }
+
+  static FlutterStatefulWidgetWithAnimationControllerSnippetProducer
+      newInstance(DartSnippetRequest request) =>
+          FlutterStatefulWidgetWithAnimationControllerSnippetProducer(request);
 }
 
 /// Produces a [Snippet] that creates a Flutter StatelessWidget.
@@ -258,7 +434,7 @@ class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer {
                 builder.writeln('{');
                 builder.write('    ');
                 builder.selectHere();
-                builder.writeln('');
+                builder.writeln();
                 builder.writeln('  }');
               },
             );
@@ -281,18 +457,9 @@ class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer {
       return false;
     }
 
-    classStatelessWidget = await _getClass('StatelessWidget');
-    if (classStatelessWidget == null) {
-      return false;
-    }
-
-    classBuildContext = await _getClass('BuildContext');
-    if (classBuildContext == null) {
-      return false;
-    }
-
-    classKey = await _getClass('Key');
-    if (classKey == null) {
+    if ((classStatelessWidget = await _getClass('StatelessWidget')) == null ||
+        (classBuildContext = await _getClass('BuildContext')) == null ||
+        (classKey = await _getClass('Key')) == null) {
       return false;
     }
 

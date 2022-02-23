@@ -13,6 +13,8 @@ import 'test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterStatefulWidgetSnippetProducerTest);
+    defineReflectiveTests(
+        FlutterStatefulWidgetWithAnimationControllerSnippetProducerTest);
     defineReflectiveTests(FlutterStatelessWidgetSnippetProducerTest);
   });
 }
@@ -111,6 +113,93 @@ class FlutterStatefulWidgetSnippetProducerTest
         }
       ],
       'selection': {'file': testFile, 'offset': 362}
+    });
+  }
+}
+
+@reflectiveTest
+class FlutterStatefulWidgetWithAnimationControllerSnippetProducerTest
+    extends FlutterSnippetProducerTest {
+  final generator =
+      FlutterStatefulWidgetWithAnimationControllerSnippetProducer.newInstance;
+  Future<void> test_notValid_notFlutterProject() async {
+    writeTestPackageConfig();
+
+    await expectNotValidSnippet(generator, '^');
+  }
+
+  Future<void> test_valid() async {
+    writeTestPackageConfig(flutter: true);
+
+    final snippet = await expectValidSnippet(generator, '^');
+    expect(snippet.prefix, 'stanim');
+    expect(snippet.label, 'Flutter Widget with AnimationController');
+    expect(snippet.change.toJson(), {
+      'message': '',
+      'edits': [
+        {
+          'file': testFile,
+          'fileStamp': 0,
+          'edits': [
+            {
+              'offset': 0,
+              'length': 0,
+              'replacement':
+                  'import \'package:flutter/src/animation/animation_controller.dart\';\n'
+                      'import \'package:flutter/src/foundation/key.dart\';\n'
+                      'import \'package:flutter/src/widgets/framework.dart\';\n'
+                      'import \'package:flutter/src/widgets/ticker_provider.dart\';\n'
+            },
+            {
+              'offset': 0,
+              'length': 0,
+              'replacement': 'class MyWidget extends StatefulWidget {\n'
+                  '  const MyWidget({Key? key}) : super(key: key);\n'
+                  '\n'
+                  '  @override\n'
+                  '  State<MyWidget> createState() => _MyWidgetState();\n'
+                  '}\n'
+                  '\n'
+                  'class _MyWidgetState extends State<MyWidget>\n'
+                  '    with SingleTickerProviderStateMixin {\n'
+                  '  late AnimationController _controller;\n'
+                  '\n'
+                  '  @override\n'
+                  '  void initState() {\n'
+                  '    super.initState();\n'
+                  '    _controller = AnimationController(vsync: this);\n'
+                  '  }\n'
+                  '\n'
+                  '  @override\n'
+                  '  void dispose() {\n'
+                  '    super.dispose();\n'
+                  '    _controller.dispose();\n'
+                  '  }\n'
+                  '\n'
+                  '  @override\n'
+                  '  Widget build(BuildContext context) {\n'
+                  '    \n'
+                  '  }\n'
+                  '}'
+            }
+          ]
+        }
+      ],
+      'linkedEditGroups': [
+        {
+          'positions': [
+            {'file': testFile, 'offset': 234},
+            {'file': testFile, 'offset': 276},
+            {'file': testFile, 'offset': 337},
+            {'file': testFile, 'offset': 365},
+            {'file': testFile, 'offset': 392},
+            {'file': testFile, 'offset': 420}
+          ],
+          'length': 8,
+          'suggestions': []
+        }
+      ],
+      'selection': {'file': testFile, 'offset': 765}
     });
   }
 }

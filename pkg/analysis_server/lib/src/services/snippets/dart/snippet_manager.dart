@@ -23,8 +23,9 @@ class DartSnippetManager {
   final producerGenerators =
       const <SnippetContext, List<SnippetProducerGenerator>>{
     SnippetContext.atTopLevel: [
-      FlutterStatelessWidgetSnippetProducer.newInstance,
       FlutterStatefulWidgetSnippetProducer.newInstance,
+      FlutterStatefulWidgetWithAnimationControllerSnippetProducer.newInstance,
+      FlutterStatelessWidgetSnippetProducer.newInstance,
     ]
   };
 

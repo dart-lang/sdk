@@ -2479,6 +2479,63 @@ class B {}
 ''');
   }
 
+  Future<void> test_snippets_flutterStatefulWithAnimationController() async {
+    final content = '''
+import 'package:flutter/widgets.dart';
+
+class A {}
+
+stanim^
+
+class B {}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix:
+          FlutterStatefulWidgetWithAnimationControllerSnippetProducer.prefix,
+      label: FlutterStatefulWidgetWithAnimationControllerSnippetProducer.label,
+    );
+
+    expect(updated, '''
+import 'package:flutter/widgets.dart';
+
+class A {}
+
+class \${1:MyWidget} extends StatefulWidget {
+  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+
+  @override
+  State<\${1:MyWidget}> createState() => _\${1:MyWidget}State();
+}
+
+class _\${1:MyWidget}State extends State<\${1:MyWidget}>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    \$0
+  }
+}
+
+class B {}
+''');
+  }
+
   Future<void> test_snippets_flutterStateless() async {
     final content = '''
 import 'package:flutter/widgets.dart';
