@@ -6895,7 +6895,7 @@ class Parser {
         typeInfo.couldBeExpression) {
       assert(optional('?', token));
       assert(next.isKeywordOrIdentifier);
-      if (!next.isIdentifier) {
+      if (!looksLikeName(next)) {
         reportRecoverableError(
             next, codes.templateExpectedIdentifier.withArguments(next));
         next = rewriter.insertSyntheticIdentifier(next);

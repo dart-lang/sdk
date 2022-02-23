@@ -225,7 +225,9 @@ regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
 super_parameters/circular_dependency_inference: FormatterCrash
 super_parameters/default_values: FormatterCrash
+super_parameters/issue47741: FormatterCrash
 super_parameters/issue47922: FormatterCrash
+super_parameters/issue47951: FormatterCrash
 super_parameters/issue48142: FormatterCrash
 super_parameters/issue48286: FormatterCrash
 super_parameters/simple: FormatterCrash
@@ -236,6 +238,7 @@ super_parameters/super_parameters_with_types_and_default_values: FormatterCrash
 super_parameters/synthesized_super_constructor_with_parameters: FormatterCrash
 super_parameters/type_alias_in_supertype: FormatterCrash
 super_parameters/typed_super_parameter: FormatterCrash
+super_parameters/typed_super_parameters: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash
 variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash

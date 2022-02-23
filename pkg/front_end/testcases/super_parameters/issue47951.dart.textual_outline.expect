@@ -1,0 +1,8 @@
+class A {
+  A(num a);
+}
+class B extends A {
+  B.sub1(int super.a1);
+  B.sub2(double super.a2);
+}
+main() {}
