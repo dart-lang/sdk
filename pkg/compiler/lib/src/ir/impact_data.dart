@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/class_hierarchy.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
+import '../common.dart';
+import '../ir/scope.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'constants.dart';
@@ -11,9 +15,34 @@ import 'impact.dart';
 import 'runtime_type_analysis.dart';
 import 'static_type.dart';
 
-/// [ImpactRegistry] that stores registered impact in an [ImpactData] object.
-abstract class ImpactRegistryMixin implements ImpactRegistry {
-  final ImpactDataImpl _data = ImpactDataImpl();
+/// Visitor that builds an [ImpactData] object for the world impact.
+class ImpactBuilder extends ImpactBuilderBase {
+  final ImpactData _data = ImpactData();
+
+  @override
+  final bool useAsserts;
+
+  @override
+  final inferEffectivelyFinalVariableTypes;
+
+  ImpactBuilder(
+      ir.StaticTypeContext staticTypeContext,
+      StaticTypeCacheImpl staticTypeCache,
+      ir.ClassHierarchy classHierarchy,
+      VariableScopeModel variableScopeModel,
+      {this.useAsserts = false,
+      this.inferEffectivelyFinalVariableTypes = true})
+      : super(staticTypeContext, staticTypeCache, classHierarchy,
+            variableScopeModel);
+
+  ImpactBuilderData computeImpact(ir.Member node) {
+    if (retainDataForTesting) {
+      typeMapsForTesting = {};
+    }
+    node.accept(this);
+    return ImpactBuilderData(
+        node, impactData, typeMapsForTesting, getStaticTypeCache());
+  }
 
   ImpactData get impactData => _data;
 
@@ -451,17 +480,7 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
 }
 
 /// Data object that contains the world impact data derived purely from kernel.
-abstract class ImpactData {
-  factory ImpactData.fromDataSource(DataSource source) =
-      ImpactDataImpl.fromDataSource;
-
-  void toDataSink(DataSink sink);
-
-  /// Registers the impact data with [registry].
-  void apply(ImpactRegistry registry);
-}
-
-class ImpactDataImpl implements ImpactData {
+class ImpactData {
   static const String tag = 'ImpactData';
 
   List<_SuperInitializer> _superInitializers;
@@ -509,9 +528,9 @@ class ImpactDataImpl implements ImpactData {
   List<ir.StaticInvocation> _staticInvocationNodes;
   List<ir.ConstructorInvocation> _constConstructorInvocationNodes;
 
-  ImpactDataImpl();
+  ImpactData();
 
-  ImpactDataImpl.fromDataSource(DataSource source) {
+  ImpactData.fromDataSource(DataSource source) {
     source.begin(tag);
     _superInitializers = source.readList(
         () => _SuperInitializer.fromDataSource(source),
@@ -609,7 +628,6 @@ class ImpactDataImpl implements ImpactData {
     source.end(tag);
   }
 
-  @override
   void toDataSink(DataSink sink) {
     sink.begin(tag);
 
@@ -693,7 +711,7 @@ class ImpactDataImpl implements ImpactData {
     sink.end(tag);
   }
 
-  @override
+  /// Registers the impact data with [registry].
   void apply(ImpactRegistry registry) {
     if (_superInitializers != null) {
       for (_SuperInitializer data in _superInitializers) {
