@@ -119,12 +119,6 @@
     "Dynamic access of 'superclass'.": 1,
     "Dynamic access of 'needsTearOff'.": 1
   },
-  "pkg/compiler/lib/src/ssa/variable_allocator.dart": {
-    "Dynamic access of 'usedBy'.": 1,
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of 'nonCheck'.": 1,
-    "Dynamic invocation of 'isCodeMotionInvariant'.": 1
-  },
   "pkg/compiler/lib/src/ssa/value_range_analyzer.dart": {
     "Dynamic access of 'isZero'.": 2,
     "Dynamic invocation of '+'.": 2,
