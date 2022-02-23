@@ -78,7 +78,15 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     node.metadata.accept(this);
-    node.constants.accept(this);
+    node.typeParameters?.accept(this);
+
+    _scope = LinkingNodeContext.get(node).scope;
+    try {
+      node.constants.accept(this);
+      node.members.accept(this);
+    } finally {
+      _scope = _libraryScope;
+    }
   }
 
   @override
