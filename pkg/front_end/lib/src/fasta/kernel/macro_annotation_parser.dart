@@ -426,6 +426,7 @@ class _MacroListener implements Listener {
   void beginFields(
       DeclarationKind declarationKind,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -589,7 +590,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(
+      Token? augmentToken, Token mixinKeyword, Token name) {
     _unexpected();
   }
 
@@ -670,7 +672,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
+  void beginTopLevelMethod(
+      Token lastConsumed, Token? augmentToken, Token? externalToken) {
     _unexpected();
   }
 
@@ -802,6 +805,7 @@ class _MacroListener implements Listener {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -902,6 +906,7 @@ class _MacroListener implements Listener {
   @override
   void endEnumFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -945,6 +950,7 @@ class _MacroListener implements Listener {
   @override
   void endExtensionFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1163,6 +1169,7 @@ class _MacroListener implements Listener {
   @override
   void endMixinFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,

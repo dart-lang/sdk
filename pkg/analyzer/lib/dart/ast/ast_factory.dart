@@ -401,12 +401,14 @@ abstract class AstFactory {
 
   /// Returns a newly created field declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
-  /// the corresponding attribute. The [staticKeyword] can be `null` if the
-  /// field is not a static field.
+  /// the corresponding attribute. The [abstractKeyword], [augmentKeyword],
+  /// [covariantKeyword], [externalKeyword] and [staticKeyword] can be `null` if
+  /// the field does not have the corresponding modifier.
   FieldDeclaration fieldDeclaration2(
       {Comment? comment,
       List<Annotation>? metadata,
       Token? abstractKeyword,
+      Token? augmentKeyword,
       Token? covariantKeyword,
       Token? externalKeyword,
       Token? staticKeyword,
@@ -494,13 +496,15 @@ abstract class AstFactory {
 
   /// Returns a newly created function declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the function does not have the
-  /// corresponding attribute. The [externalKeyword] can be `null` if the
-  /// function is not an external function. The [returnType] can be `null` if no
-  /// return type was specified. The [propertyKeyword] can be `null` if the
-  /// function is neither a getter or a setter.
+  /// corresponding attribute. The [augmentKeyword] can be `null` if the
+  /// function is not a function augmentation. The [externalKeyword] can be
+  /// `null` if the function is not an external function. The [returnType] can
+  /// be `null` if no return type was specified. The [propertyKeyword] can be
+  /// `null` if the function is neither a getter or a setter.
   FunctionDeclaration functionDeclaration(
       Comment? comment,
       List<Annotation>? metadata,
+      Token? augmentKeyword,
       Token? externalKeyword,
       TypeAnnotation? returnType,
       Token? propertyKeyword,
@@ -742,6 +746,7 @@ abstract class AstFactory {
   MixinDeclaration mixinDeclaration(
       Comment? comment,
       List<Annotation>? metadata,
+      Token? augmentKeyword,
       Token mixinKeyword,
       SimpleIdentifier name,
       TypeParameterList? typeParameters,

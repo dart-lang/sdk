@@ -1,4 +1,74 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/macros/augment_class.dart:8:1: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// augment class Class1 {}
+// ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:8:1: Error: Expected ';' after this.
+// augment class Class1 {}
+// ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:9:1: Error: Can't have modifier 'abstract' here.
+// Try removing 'abstract'.
+// abstract augment class Class2 {}
+// ^^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:9:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// abstract augment class Class2 {}
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:9:10: Error: Expected ';' after this.
+// abstract augment class Class2 {}
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:9:10: Error: 'augment' is already declared in this scope.
+// abstract augment class Class2 {}
+//          ^^^^^^^
+// pkg/front_end/testcases/macros/augment_class.dart:8:1: Context: Previous declaration of 'augment'.
+// augment class Class1 {}
+// ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:10:1: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// augment class Class3 = Super with Mixin;
+// ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:10:1: Error: Expected ';' after this.
+// augment class Class3 = Super with Mixin;
+// ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:10:1: Error: 'augment' is already declared in this scope.
+// augment class Class3 = Super with Mixin;
+// ^^^^^^^
+// pkg/front_end/testcases/macros/augment_class.dart:9:10: Context: Previous declaration of 'augment'.
+// abstract augment class Class2 {}
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:11:1: Error: Can't have modifier 'abstract' here.
+// Try removing 'abstract'.
+// abstract augment class Class4 = Super with Mixin;
+// ^^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:11:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// abstract augment class Class4 = Super with Mixin;
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:11:10: Error: Expected ';' after this.
+// abstract augment class Class4 = Super with Mixin;
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_class.dart:11:10: Error: 'augment' is already declared in this scope.
+// abstract augment class Class4 = Super with Mixin;
+//          ^^^^^^^
+// pkg/front_end/testcases/macros/augment_class.dart:10:1: Context: Previous declaration of 'augment'.
+// augment class Class3 = Super with Mixin;
+// ^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -12,7 +82,7 @@ class Class1 extends core::Object {
   synthetic constructor •() → self::Class1
     ;
 }
-abstract class Class2 extends core::Object {
+class Class2 extends core::Object {
   synthetic constructor •() → self::Class2
     ;
 }
@@ -21,10 +91,11 @@ class Class3 = self::Super with self::Mixin {
     : super self::Super::•()
     ;
 }
-abstract class Class4 = self::Super with self::Mixin {
+class Class4 = self::Super with self::Mixin {
   synthetic constructor •() → self::Class4
     : super self::Super::•()
     ;
 }
+static field dynamic augment;
 static method main() → dynamic
   ;

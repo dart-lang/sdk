@@ -144,6 +144,10 @@ class Keyword extends TokenType {
   static const Keyword ASYNC =
       const Keyword("async", "ASYNC", KeywordStyle.pseudo);
 
+  static const Keyword AUGMENT = const Keyword(
+      "augment", "AUGMENT", KeywordStyle.builtIn,
+      isModifier: true);
+
   static const Keyword AWAIT =
       const Keyword("await", "AWAIT", KeywordStyle.pseudo);
 
@@ -345,6 +349,7 @@ class Keyword extends TokenType {
     AS,
     ASSERT,
     ASYNC,
+    AUGMENT,
     AWAIT,
     BREAK,
     CASE,
@@ -1091,7 +1096,8 @@ abstract class Token implements SyntacticEntity {
    * Return the token with the smallest offset, or `null` if all of the
    * tokens are `null`.
    */
-  static Token? lexicallyFirst([Token? t1, Token? t2, Token? t3, Token? t4]) {
+  static Token? lexicallyFirst(
+      [Token? t1, Token? t2, Token? t3, Token? t4, Token? t5]) {
     Token? result = t1;
     if (result == null || t2 != null && t2.offset < result.offset) {
       result = t2;
@@ -1101,6 +1107,9 @@ abstract class Token implements SyntacticEntity {
     }
     if (result == null || t4 != null && t4.offset < result.offset) {
       result = t4;
+    }
+    if (result == null || t5 != null && t5.offset < result.offset) {
+      result = t5;
     }
     return result;
   }

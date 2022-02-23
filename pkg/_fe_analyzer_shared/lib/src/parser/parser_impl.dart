@@ -89,7 +89,7 @@ import 'loop_state.dart' show LoopState;
 
 import 'member_kind.dart' show MemberKind;
 
-import 'modifier_context.dart' show ModifierRecoveryContext, isModifier;
+import 'modifier_context.dart' show ModifierContext, isModifier;
 
 import 'recovery_listeners.dart'
     show
@@ -494,12 +494,8 @@ class Parser {
     token = parseMetadataStar(token);
     Token next = token.next!;
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(
-          /* start = */ token,
-          /* keyword = */ next,
-          /* macroToken = */ null,
-          /* augmentToken = */ null,
-          directiveState);
+      return parseTopLevelKeywordDeclaration(/* start = */ token,
+          /* keyword = */ next, /* macroToken = */ null, directiveState);
     }
     Token start = token;
     // Skip modifiers to find a top level keyword or identifier
@@ -519,27 +515,15 @@ class Parser {
     }
     next = token.next!;
     Token? macroToken;
-    Token? augmentToken;
-    // TODO(johnniwinther): Should we support/recognize the combination
-    // of 'macro' and 'augment'.
     if (next.isIdentifier &&
         next.lexeme == 'macro' &&
         optional('class', next.next!)) {
       macroToken = next;
       next = next.next!;
-    } else if (next.isIdentifier &&
-        next.lexeme == 'augment' &&
-        optional('class', next.next!)) {
-      augmentToken = next;
-      next = next.next!;
     }
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(
-          /* start = */ start,
-          /* keyword = */ next,
-          /* macroToken = */ macroToken,
-          /* augmentToken =*/ augmentToken,
-          directiveState);
+      return parseTopLevelKeywordDeclaration(/* start = */ start,
+          /* keyword = */ next, /* macroToken = */ macroToken, directiveState);
     } else if (next.isKeywordOrIdentifier) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
@@ -565,74 +549,24 @@ class Parser {
     return parseInvalidTopLevelDeclaration(token);
   }
 
-  /// Parse the modifiers before the `class` keyword.
-  /// Return the first `abstract` modifier or `null` if not found.
-  Token? parseClassDeclarationModifiers(Token start, Token keyword) {
-    Token modifier = start.next!;
-    while (modifier != keyword) {
-      if (optional('abstract', modifier)) {
-        parseTopLevelKeywordModifiers(modifier, keyword);
-        return modifier;
-      } else {
-        // Recovery
-        reportTopLevelModifierError(modifier, keyword);
-      }
-      modifier = modifier.next!;
-    }
-    return null;
-  }
-
-  /// Report errors on any modifiers before the specified keyword.
-  void parseTopLevelKeywordModifiers(Token start, Token keyword) {
-    Token modifier = start.next!;
-    while (modifier != keyword) {
-      // Recovery
-      reportTopLevelModifierError(modifier, keyword);
-      modifier = modifier.next!;
-    }
-  }
-
-  // Report an error for the given modifier preceding a top level keyword
-  // such as `import` or `class`.
-  void reportTopLevelModifierError(Token modifier, Token afterModifiers) {
-    if (optional('const', modifier) && optional('class', afterModifiers)) {
-      reportRecoverableError(modifier, codes.messageConstClass);
-    } else if (optional('external', modifier)) {
-      if (optional('class', afterModifiers)) {
-        reportRecoverableError(modifier, codes.messageExternalClass);
-      } else if (optional('enum', afterModifiers)) {
-        reportRecoverableError(modifier, codes.messageExternalEnum);
-      } else if (optional('typedef', afterModifiers)) {
-        reportRecoverableError(modifier, codes.messageExternalTypedef);
-      } else {
-        reportRecoverableErrorWithToken(
-            modifier, codes.templateExtraneousModifier);
-      }
-    } else {
-      reportRecoverableErrorWithToken(
-          modifier, codes.templateExtraneousModifier);
-    }
-  }
-
   /// Parse any top-level declaration that begins with a keyword.
   /// [start] is the token before any modifiers preceding [keyword].
-  Token parseTopLevelKeywordDeclaration(
-      Token start,
-      Token keyword,
-      Token? macroToken,
-      Token? augmentToken,
-      DirectiveContext? directiveState) {
+  Token parseTopLevelKeywordDeclaration(Token start, Token keyword,
+      Token? macroToken, DirectiveContext? directiveState) {
     assert(keyword.isTopLevelKeyword);
     final String? value = keyword.stringValue;
     if (identical(value, 'class')) {
       directiveState?.checkDeclaration();
-      Token? abstractToken = parseClassDeclarationModifiers(
-          start, macroToken ?? augmentToken ?? keyword);
+      ModifierContext context = new ModifierContext(this);
+      context.parseClassModifiers(start, keyword);
+      Token? abstractToken = context.abstractToken;
+      Token? augmentToken = context.augmentToken;
       return parseClassOrNamedMixinApplication(
           abstractToken, macroToken, augmentToken, keyword);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
-      parseTopLevelKeywordModifiers(start, keyword);
+      ModifierContext context = new ModifierContext(this);
+      context.parseEnumModifiers(start, keyword);
       return parseEnum(keyword);
     } else {
       // The remaining top level keywords are built-in keywords
@@ -656,25 +590,32 @@ class Parser {
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(start);
       } else {
-        parseTopLevelKeywordModifiers(start, keyword);
+        ModifierContext context = new ModifierContext(this);
         if (identical(value, 'import')) {
+          context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkImport(this, keyword);
           return parseImport(keyword);
         } else if (identical(value, 'export')) {
+          context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkExport(this, keyword);
           return parseExport(keyword);
         } else if (identical(value, 'typedef')) {
+          context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkDeclaration();
           return parseTypedef(keyword);
         } else if (identical(value, 'mixin')) {
+          context.parseMixinModifiers(start, keyword);
           directiveState?.checkDeclaration();
-          return parseMixin(keyword);
+          return parseMixin(context.augmentToken, keyword);
         } else if (identical(value, 'extension')) {
+          context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkDeclaration();
           return parseExtension(keyword);
         } else if (identical(value, 'part')) {
+          context.parseTopLevelKeywordModifiers(start, keyword);
           return parsePartOrPartOf(keyword, directiveState);
         } else if (identical(value, 'library')) {
+          context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkLibrary(this, keyword);
           return parseLibraryName(keyword);
         }
@@ -1605,7 +1546,7 @@ class Parser {
 
           if (isModifier(next)) {
             // Recovery
-            ModifierRecoveryContext context = new ModifierRecoveryContext(this)
+            ModifierContext context = new ModifierContext(this)
               ..covariantToken = covariantToken
               ..requiredToken = requiredToken
               ..varFinalOrConst = varFinalOrConst;
@@ -2315,11 +2256,11 @@ class Parser {
   ///
   /// ```
   /// mixinDeclaration:
-  ///   metadata? 'mixin' [SimpleIdentifier] [TypeParameterList]?
+  ///   metadata? 'augment'? 'mixin' [SimpleIdentifier] [TypeParameterList]?
   ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
   /// ;
   /// ```
-  Token parseMixin(Token mixinKeyword) {
+  Token parseMixin(Token? augmentToken, Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(mixinKeyword);
     Token name = ensureIdentifier(
@@ -2327,7 +2268,7 @@ class Parser {
     Token headerStart = computeTypeParamOrArg(
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
-    listener.beginMixinDeclaration(mixinKeyword, name);
+    listener.beginMixinDeclaration(augmentToken, mixinKeyword, name);
     Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
     if (!optional('{', token.next!)) {
       // Recovery
@@ -2766,12 +2707,16 @@ class Parser {
     }
 
     Token? externalToken;
+    Token? augmentToken;
     Token? lateToken;
     Token? varFinalOrConst;
 
     if (isModifier(next)) {
       if (optional('external', next)) {
         externalToken = token = next;
+        next = token.next!;
+      } else if (optional('augment', next)) {
+        augmentToken = token = next;
         next = token.next!;
       }
       if (isModifier(next)) {
@@ -2801,14 +2746,16 @@ class Parser {
             // If another `var`, `final`, or `const` then fall through
             // to parse that as part of the next top level declaration.
           } else {
-            ModifierRecoveryContext context = new ModifierRecoveryContext(this)
+            ModifierContext context = new ModifierContext(this)
               ..externalToken = externalToken
+              ..augmentToken = augmentToken
               ..lateToken = lateToken
               ..varFinalOrConst = varFinalOrConst;
 
-            token = context.parseTopLevelModifiers(token);
+            token = context.parseTopLevelMemberModifiers(token);
             next = token.next!;
 
+            augmentToken = context.augmentToken;
             externalToken = context.externalToken;
             lateToken = context.lateToken;
             varFinalOrConst = context.varFinalOrConst;
@@ -2933,8 +2880,8 @@ class Parser {
         reportRecoverableErrorWithToken(
             lateToken, codes.templateExtraneousModifier);
       }
-      return parseTopLevelMethod(beforeStart, externalToken, beforeType,
-          typeInfo, getOrSet, token.next!, nameIsRecovered);
+      return parseTopLevelMethod(beforeStart, augmentToken, externalToken,
+          beforeType, typeInfo, getOrSet, token.next!, nameIsRecovered);
     }
 
     if (getOrSet != null) {
@@ -2944,6 +2891,7 @@ class Parser {
     return parseFields(
         beforeStart,
         /* abstractToken = */ null,
+        augmentToken,
         externalToken,
         /* staticToken = */ null,
         /* covariantToken = */ null,
@@ -2960,6 +2908,7 @@ class Parser {
   Token parseFields(
       Token beforeStart,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2971,8 +2920,8 @@ class Parser {
       DeclarationKind kind,
       String? enclosingDeclarationName,
       bool nameIsRecovered) {
-    listener.beginFields(kind, abstractToken, externalToken, staticToken,
-        covariantToken, lateToken, varFinalOrConst, beforeStart);
+    listener.beginFields(kind, abstractToken, augmentToken, externalToken,
+        staticToken, covariantToken, lateToken, varFinalOrConst, beforeStart);
 
     // Covariant affects only the setter and final fields do not have a setter,
     // unless it's a late field (dartbug.com/40805).
@@ -3019,12 +2968,28 @@ class Parser {
     }
 
     int fieldCount = 1;
-    token = parseFieldInitializerOpt(name, name, lateToken, abstractToken,
-        externalToken, varFinalOrConst, kind, enclosingDeclarationName);
+    token = parseFieldInitializerOpt(
+        name,
+        name,
+        lateToken,
+        abstractToken,
+        augmentToken,
+        externalToken,
+        varFinalOrConst,
+        kind,
+        enclosingDeclarationName);
     while (optional(',', token.next!)) {
       name = ensureIdentifier(token.next!, context);
-      token = parseFieldInitializerOpt(name, name, lateToken, abstractToken,
-          externalToken, varFinalOrConst, kind, enclosingDeclarationName);
+      token = parseFieldInitializerOpt(
+          name,
+          name,
+          lateToken,
+          abstractToken,
+          augmentToken,
+          externalToken,
+          varFinalOrConst,
+          kind,
+          enclosingDeclarationName);
       ++fieldCount;
     }
     Token semicolon = token.next!;
@@ -3057,6 +3022,7 @@ class Parser {
       case DeclarationKind.Class:
         listener.endClassFields(
             abstractToken,
+            augmentToken,
             externalToken,
             staticToken,
             covariantToken,
@@ -3069,6 +3035,7 @@ class Parser {
       case DeclarationKind.Mixin:
         listener.endMixinFields(
             abstractToken,
+            augmentToken,
             externalToken,
             staticToken,
             covariantToken,
@@ -3089,6 +3056,7 @@ class Parser {
         }
         listener.endExtensionFields(
             abstractToken,
+            augmentToken,
             externalToken,
             staticToken,
             covariantToken,
@@ -3101,6 +3069,7 @@ class Parser {
       case DeclarationKind.Enum:
         listener.endEnumFields(
             abstractToken,
+            augmentToken,
             externalToken,
             staticToken,
             covariantToken,
@@ -3116,13 +3085,14 @@ class Parser {
 
   Token parseTopLevelMethod(
       Token beforeStart,
+      Token? augmentToken,
       Token? externalToken,
       Token beforeType,
       TypeInfo typeInfo,
       Token? getOrSet,
       Token name,
       bool nameIsRecovered) {
-    listener.beginTopLevelMethod(beforeStart, externalToken);
+    listener.beginTopLevelMethod(beforeStart, augmentToken, externalToken);
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == (getOrSet ?? name) || token.next!.isEof);
@@ -3199,6 +3169,7 @@ class Parser {
       Token name,
       Token? lateToken,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? varFinalOrConst,
       DeclarationKind kind,
@@ -3758,6 +3729,7 @@ class Parser {
 
     Token? covariantToken;
     Token? abstractToken;
+    Token? augmentToken;
     Token? externalToken;
     Token? lateToken;
     Token? staticToken;
@@ -3767,6 +3739,9 @@ class Parser {
     if (isModifier(next)) {
       if (optional('external', next)) {
         externalToken = token = next;
+        next = token.next!;
+      } else if (optional('augment', next)) {
+        augmentToken = token = next;
         next = token.next!;
       } else if (optional('abstract', next)) {
         abstractToken = token = next;
@@ -3799,8 +3774,9 @@ class Parser {
             }
           }
           if (isModifier(next)) {
-            ModifierRecoveryContext context = new ModifierRecoveryContext(this)
+            ModifierContext context = new ModifierContext(this)
               ..covariantToken = covariantToken
+              ..augmentToken = augmentToken
               ..externalToken = externalToken
               ..lateToken = lateToken
               ..staticToken = staticToken
@@ -3945,6 +3921,7 @@ class Parser {
             token,
             beforeStart,
             abstractToken,
+            augmentToken,
             externalToken,
             staticToken,
             covariantToken,
@@ -4022,6 +3999,7 @@ class Parser {
       token = parseFields(
           beforeStart,
           abstractToken,
+          augmentToken,
           externalToken,
           staticToken,
           covariantToken,
@@ -4315,7 +4293,7 @@ class Parser {
 
     if (!isValidTypeReference(token.next!)) {
       // Recovery
-      ModifierRecoveryContext context = new ModifierRecoveryContext(this)
+      ModifierContext context = new ModifierContext(this)
         ..externalToken = externalToken
         ..staticOrCovariant = staticOrCovariant
         ..varFinalOrConst = varFinalOrConst;
@@ -6807,7 +6785,7 @@ class Parser {
 
       if (isModifier(next)) {
         // Recovery
-        ModifierRecoveryContext context = new ModifierRecoveryContext(this)
+        ModifierContext context = new ModifierContext(this)
           ..lateToken = lateToken
           ..varFinalOrConst = varFinalOrConst;
 
@@ -6848,7 +6826,7 @@ class Parser {
       beforeType = start = beforeType.next!;
 
       // The below doesn't parse modifiers, so we need to do it here.
-      ModifierRecoveryContext context = new ModifierRecoveryContext(this);
+      ModifierContext context = new ModifierContext(this);
       beforeType =
           start = context.parseVariableDeclarationModifiers(beforeType);
       varFinalOrConst = context.varFinalOrConst;
@@ -8001,6 +7979,7 @@ class Parser {
       Token token,
       Token beforeStart,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -8065,6 +8044,7 @@ class Parser {
       token = parseFields(
           beforeStart,
           abstractToken,
+          augmentToken,
           externalToken,
           staticToken,
           covariantToken,
