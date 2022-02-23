@@ -43,9 +43,7 @@ void main() {
         remoteVmServiceUri,
         devToolsConfiguration: DevToolsConfiguration(
           enable: true,
-          customBuildDirectoryPath: Platform.script.resolve(
-            '../../../third_party/devtools/web',
-          ),
+          customBuildDirectoryPath: devtoolsAppUri(prefix: '../../../'),
         ),
       );
       expect(dds.isRunning, true);
