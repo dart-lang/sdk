@@ -78,16 +78,6 @@
   "pkg/dart2js_info/lib/binary_serialization.dart": {
     "Dynamic invocation of 'cast'.": 1
   },
-  "pkg/compiler/lib/src/ssa/types.dart": {
-    "Dynamic access of 'element'.": 1
-  },
-  "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {
-    "Dynamic invocation of '[]='.": 1,
-    "Dynamic invocation of 'add'.": 1
-  },
-  "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_merger.dart": {
-    "Dynamic invocation of '[]='.": 1
-  },
   "pkg/js_ast/lib/src/builder.dart": {
     "Dynamic invocation of 'call'.": 2
   },
@@ -99,6 +89,13 @@
     "Dynamic invocation of 'containsKey'.": 2,
     "Dynamic invocation of '[]'.": 9,
     "Dynamic invocation of 'toStatement'.": 3
+  },
+  "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {
+    "Dynamic invocation of '[]='.": 1,
+    "Dynamic invocation of 'add'.": 1
+  },
+  "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_merger.dart": {
+    "Dynamic invocation of '[]='.": 1
   },
   "pkg/dart2js_info/lib/src/util.dart": {
     "Dynamic access of 'name'.": 1,

@@ -46,7 +46,7 @@ class AbstractValueFactory {
 
     // [type] is either an instance of [DartType] or special objects
     // like [native.SpecialType.JsObject].
-    AbstractValue fromNativeType(dynamic type) {
+    AbstractValue fromNativeType(Object type) {
       if (type == SpecialType.JsObject) {
         return abstractValueDomain
             .createNonNullExact(commonElements.objectClass);
@@ -56,8 +56,10 @@ class AbstractValueFactory {
         return abstractValueDomain.dynamicType;
       } else if (type == commonElements.nullType) {
         return abstractValueDomain.nullType;
-      } else {
+      } else if (type is InterfaceType) {
         return abstractValueDomain.createNonNullSubtype(type.element);
+      } else {
+        throw 'Unexpected type $type';
       }
     }
 

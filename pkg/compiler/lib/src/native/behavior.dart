@@ -15,7 +15,7 @@ import '../serialization/serialization.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import 'js.dart';
 
-typedef TypeLookup = dynamic /*DartType|SpecialType*/
+typedef TypeLookup = Object /*DartType|SpecialType*/
     Function(String typeString, {bool required});
 
 /// This class is a temporary work-around until we get a more powerful DartType.
@@ -164,11 +164,11 @@ class NativeBehavior {
 
   /// [DartType]s or [SpecialType]s returned or yielded by the native
   /// element.
-  final List typesReturned = [];
+  final List<Object> typesReturned = [];
 
   /// [DartType]s or [SpecialType]s instantiated by the native
   /// element.
-  final List typesInstantiated = [];
+  final List<Object> typesInstantiated = [];
 
   String codeTemplateText;
   // If this behavior is for a JS expression, [codeTemplate] contains the
@@ -198,8 +198,8 @@ class NativeBehavior {
   factory NativeBehavior.readFromDataSource(DataSource source) {
     source.begin(tag);
 
-    List readTypes() {
-      List types = [];
+    List<Object> readTypes() {
+      List<Object> types = [];
       types.addAll(source.readDartTypes());
       int specialCount = source.readInt();
       for (int i = 0; i < specialCount; i++) {
@@ -209,8 +209,8 @@ class NativeBehavior {
       return types;
     }
 
-    List typesReturned = readTypes();
-    List typesInstantiated = readTypes();
+    List<Object> typesReturned = readTypes();
+    List<Object> typesInstantiated = readTypes();
     String codeTemplateText = source.readStringOrNull();
     SideEffects sideEffects = SideEffects.readFromDataSource(source);
     int throwBehavior = source.readInt();
@@ -236,7 +236,7 @@ class NativeBehavior {
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
 
-    void writeTypes(List types) {
+    void writeTypes(List<Object> types) {
       List<DartType> dartTypes = [];
       List<SpecialType> specialTypes = [];
       for (var type in types) {
@@ -373,8 +373,8 @@ class NativeBehavior {
       void setIsAllocation(bool isAllocation),
       void setUseGvn(bool useGvn),
       TypeLookup lookupType,
-      List typesReturned,
-      List typesInstantiated,
+      List<Object> typesReturned,
+      List<Object> typesInstantiated,
       objectType,
       nullType}) {
     bool seenError = false;
@@ -731,7 +731,7 @@ class NativeBehavior {
     return dartTypes.dynamicType();
   }
 
-  dynamic _convertNativeBehaviorType(JsToFrontendMap map, dynamic type) {
+  Object _convertNativeBehaviorType(JsToFrontendMap map, Object type) {
     if (type is DartType) {
       // TODO(johnniwinther): Avoid free variables in types. If the type
       // pulled from a generic function type it might contain a function
@@ -744,10 +744,10 @@ class NativeBehavior {
 
   NativeBehavior convert(JsToFrontendMap map) {
     final newBehavior = NativeBehavior();
-    for (dynamic type in typesReturned) {
+    for (Object type in typesReturned) {
       newBehavior.typesReturned.add(_convertNativeBehaviorType(map, type));
     }
-    for (dynamic type in typesInstantiated) {
+    for (Object type in typesInstantiated) {
       newBehavior.typesInstantiated.add(_convertNativeBehaviorType(map, type));
     }
     newBehavior.codeTemplateText = codeTemplateText;
@@ -777,8 +777,8 @@ class BehaviorBuilder {
       Iterable<String> returnsAnnotations, TypeLookup lookupType) {
     if (createsAnnotations.isEmpty && returnsAnnotations.isEmpty) return;
 
-    List creates = _collect(createsAnnotations, lookupType);
-    List returns = _collect(returnsAnnotations, lookupType);
+    List<Object> creates = _collect(createsAnnotations, lookupType);
+    List<Object> returns = _collect(returnsAnnotations, lookupType);
 
     if (creates != null) {
       _behavior.typesInstantiated
