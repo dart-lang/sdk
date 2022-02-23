@@ -155,7 +155,7 @@ FunctionReference
     readType: void Function<T>(T)
     writeElement: f@144
     writeType: void Function<T>(T)
-    staticElement: self::@extension::extension-0::@method::+
+    staticElement: self::@extension::0::@method::+
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -459,7 +459,7 @@ FunctionReference
     readType: void Function<T>(T)
     writeElement: f@144
     writeType: void Function<T>(T)
-    staticElement: self::@extension::extension-0::@method::+
+    staticElement: self::@extension::0::@method::+
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -523,7 +523,7 @@ FunctionReference
     readType: void Function<T>(T)
     writeElement: f@144
     writeType: void Function<T>(T)
-    staticElement: self::@extension::extension-0::@method::+
+    staticElement: self::@extension::0::@method::+
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -1639,9 +1639,9 @@ FunctionReference
     period: .
     identifier: SimpleIdentifier
       token: m
-      staticElement: self::@extension::extension-0::@method::m
+      staticElement: self::@extension::0::@method::m
       staticType: null
-    staticElement: self::@extension::extension-0::@method::m
+    staticElement: self::@extension::0::@method::m
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1688,9 +1688,9 @@ FunctionReference
     period: .
     identifier: SimpleIdentifier
       token: m
-      staticElement: self::@extension::extension-0::@method::m
+      staticElement: self::@extension::0::@method::m
       staticType: null
-    staticElement: self::@extension::extension-0::@method::m
+    staticElement: self::@extension::0::@method::m
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2310,7 +2310,7 @@ FunctionReference
       operator: .
       propertyName: SimpleIdentifier
         token: foo
-        staticElement: self::@extension::extension-0::@method::foo
+        staticElement: self::@extension::0::@method::foo
         staticType: void Function<T>(T)
       staticType: void Function<T>(T)
     operator: .
