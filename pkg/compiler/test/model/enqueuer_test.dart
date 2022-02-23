@@ -164,7 +164,7 @@ main() {}
   void checkInvariant(
       Enqueuer enqueuer, ElementEnvironment elementEnvironment) {
     for (MemberEntity member
-        in compiler.enqueuer.resolutionEnqueuerForTesting.processedEntities) {
+        in compiler.resolutionEnqueuerForTesting.processedEntities) {
       Expect.isTrue(
           member == elementEnvironment.mainFunction ||
               member.library != elementEnvironment.mainLibrary,
@@ -247,7 +247,7 @@ main() {}
   }
 
   compiler.onResolutionQueueEmptyForTesting = () {
-    Enqueuer enqueuer = compiler.enqueuer.resolutionEnqueuerForTesting;
+    Enqueuer enqueuer = compiler.resolutionEnqueuerForTesting;
     ElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
     checkInvariant(enqueuer, elementEnvironment);
@@ -262,7 +262,7 @@ main() {}
     }
   };
   compiler.onCodegenQueueEmptyForTesting = () {
-    Enqueuer enqueuer = compiler.enqueuer.codegenEnqueuerForTesting;
+    Enqueuer enqueuer = compiler.codegenEnqueuerForTesting;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment =
         compiler.backendClosedWorldForTesting.elementEnvironment;
@@ -280,12 +280,12 @@ main() {}
   await compiler.run();
 
   checkLiveMembers(
-      compiler.enqueuer.resolutionEnqueuerForTesting,
+      compiler.resolutionEnqueuerForTesting,
       compiler.frontendStrategy.elementEnvironment,
       test.expectedLiveResolutionMap);
 
   checkLiveMembers(
-      compiler.enqueuer.codegenEnqueuerForTesting,
+      compiler.codegenEnqueuerForTesting,
       compiler.backendClosedWorldForTesting.elementEnvironment,
       test.expectedLiveCodegenMap);
 }

@@ -26,7 +26,7 @@ import 'diagnostics/code_location.dart';
 import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/entities.dart';
-import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
+import 'enqueue.dart' show Enqueuer, ResolutionEnqueuer;
 import 'environment.dart';
 import 'inferrer/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
@@ -94,6 +94,8 @@ class Compiler {
   ir.Component componentForTesting;
   JClosedWorld backendClosedWorldForTesting;
   DataSourceIndices closedWorldIndicesForTesting;
+  ResolutionEnqueuer resolutionEnqueuerForTesting;
+  CodegenEnqueuer codegenEnqueuerForTesting;
 
   DiagnosticReporter get reporter => _reporter;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
@@ -111,7 +113,7 @@ class Compiler {
 
   GenericTask selfTask;
 
-  EnqueueTask enqueuer;
+  GenericTask enqueueTask;
   DeferredLoadTask deferredLoadTask;
   DumpInfoTask dumpInfoTask;
   SerializationTask serializationTask;
@@ -173,16 +175,14 @@ class Compiler {
       progress = InteractiveProgress();
     }
 
-    enqueuer = EnqueueTask(this);
-
     tasks = [
+      // [enqueueTask] is created earlier because it contains the resolution
+      // world objects needed by other tasks.
+      enqueueTask = GenericTask('Enqueue', measurer),
       kernelLoader = KernelLoaderTask(options, provider, reporter, measurer),
       kernelFrontEndTask,
       globalInference = GlobalTypeInferenceTask(this),
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
-      // [enqueuer] is created earlier because it contains the resolution world
-      // objects needed by other tasks.
-      enqueuer,
       dumpInfoTask = DumpInfoTask(this),
       selfTask,
       serializationTask = SerializationTask(
@@ -422,8 +422,11 @@ class Compiler {
   }
 
   JClosedWorld computeClosedWorld(Uri rootLibraryUri, Iterable<Uri> libraries) {
-    ResolutionEnqueuer resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
+    ResolutionEnqueuer resolutionEnqueuer = frontendStrategy
+        .createResolutionEnqueuer(enqueueTask, this)
+      ..onEmptyForTesting = onResolutionQueueEmptyForTesting;
     if (retainDataForTesting) {
+      resolutionEnqueuerForTesting = resolutionEnqueuer;
       resolutionWorldBuilderForTesting = resolutionEnqueuer.worldBuilder;
     }
     frontendStrategy.onResolutionStart();
@@ -500,8 +503,16 @@ class Compiler {
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
     CodegenInputs codegenInputs = codegenResults.codegenInputs;
-    CodegenEnqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(
-        closedWorld, globalInferenceResults, codegenInputs, codegenResults);
+    CodegenEnqueuer codegenEnqueuer = backendStrategy.createCodegenEnqueuer(
+        enqueueTask,
+        closedWorld,
+        globalInferenceResults,
+        codegenInputs,
+        codegenResults)
+      ..onEmptyForTesting = onCodegenQueueEmptyForTesting;
+    if (retainDataForTesting) {
+      codegenEnqueuerForTesting = codegenEnqueuer;
+    }
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
 
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
