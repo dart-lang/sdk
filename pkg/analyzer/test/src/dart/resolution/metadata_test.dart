@@ -95,6 +95,32 @@ int 42
 ''');
   }
 
+  test_onEnumConstant() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  @v
+  v;
+}
+''');
+
+    var annotation = findNode.annotation('@v');
+    assertResolvedNodeText(annotation, '''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: v
+    staticElement: self::@enum::E::@getter::v
+    staticType: null
+  element: self::@enum::E::@getter::v
+''');
+
+    _assertAnnotationValueText(annotation, '''
+E
+  _name: String v
+  index: int 0
+''');
+  }
+
   test_onFieldFormal() async {
     await assertNoErrorsInCode(r'''
 class A {

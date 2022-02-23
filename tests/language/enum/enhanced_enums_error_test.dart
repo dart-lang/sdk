@@ -661,11 +661,11 @@ enum CyclicReference {
   e1(e2),
 //^
 // [cfe] Constant evaluation error:
-//   ^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+//^^
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
   e2(e1);
-  // ^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+//^^
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
   final CyclicReference other;
   const CyclicReference(this.other);
 }
@@ -676,8 +676,8 @@ enum CyclicReferenceValues {
 //   ^
 // [cfe] Constant evaluation error:
   e1(values);
-  // ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+//^^
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
   final List<CyclicReferenceValues> list;
   const CyclicReferenceValues(this.list);
 }

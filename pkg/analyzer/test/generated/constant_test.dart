@@ -5,6 +5,7 @@
 @deprecated
 library analyzer.test.constant_test;
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
@@ -392,6 +393,27 @@ E
 ''');
   }
 
+  /// Enum constants can reference other constants.
+  test_object_enum_enhanced_constants() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v1(42), v2(v1);
+  final Object? a;
+  const E([this.a]);
+}
+''');
+
+    assertDartObjectText(findElement.field('v2').evaluationResult.value, r'''
+E
+  _name: String v2
+  a: E
+    _name: String v1
+    a: int 42
+    index: int 0
+  index: int 1
+''');
+  }
+
   test_object_enum_enhanced_named() async {
     await resolveTestCode('''
 enum E<T> {
@@ -584,5 +606,16 @@ $context
   EvaluationResultImpl _topVarConstResult(String name) {
     var element = findElement.topVar(name) as ConstTopLevelVariableElementImpl;
     return element.evaluationResult!;
+  }
+}
+
+extension on VariableElement {
+  EvaluationResultImpl get evaluationResult {
+    var constVariable = this as ConstVariableElement;
+    var evaluationResult = constVariable.evaluationResult;
+    if (evaluationResult == null) {
+      fail('Not evaluated: $this');
+    }
+    return evaluationResult;
   }
 }
