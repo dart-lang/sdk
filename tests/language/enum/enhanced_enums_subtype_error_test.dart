@@ -21,7 +21,7 @@ class NonAbstract implements Enum {
   //  ^
   // [cfe] Non-abstract class 'NonAbstract' has 'Enum' as a superinterface.
   //                         ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE
 
   int get index => 42;
 }
@@ -30,56 +30,56 @@ class NonAbstract implements Enum {
 abstract class AbstractImplementsWithValues implements Enum {
   int get values => 42;
   //      ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES
   // [cfe] 'AbstractImplementsWithValues' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 }
 
 abstract class AbstractExtendsWithValues extends Enum {
   int get values => 42;
   //      ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES
   // [cfe] 'AbstractExtendsWithValues' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 }
 
 abstract class AbstractImplementsWithIndex implements Enum {
   int get index => 42;
   //      ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] unspecified
 }
 
 abstract class AbstractExtendsWithIndex extends Enum {
   int get index => 42;
   //      ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] unspecified
 }
 
 mixin MixinWithIndex on Enum {
   int get index => 42;
   //      ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] unspecified
 }
 
 mixin MixinWithIndex2 implements Enum {
   int get index => 42;
   //      ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] unspecified
 }
 
 mixin MixinWithValues on Enum {
   int get values => 42;
   //      ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES
   // [cfe] 'MixinWithValues' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 }
 
 mixin MixinWithValues2 implements Enum {
   int get values => 42;
   //      ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES
   // [cfe] 'MixinWithValues2' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.
 }
 
@@ -87,7 +87,7 @@ mixin MixinWithValues2 implements Enum {
 abstract class ClassWithEquals implements Enum {
   bool operator ==(Object other) => true;
   //            ^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   //      ^^^^^^^^
   // [cfe] unspecified
 }
@@ -95,7 +95,7 @@ abstract class ClassWithEquals implements Enum {
 mixin MixinWithEquals implements Enum {
   bool operator ==(Object other) => true;
   //            ^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   //      ^^^^^^^^
   // [cfe] unspecified
 }
@@ -103,14 +103,14 @@ mixin MixinWithEquals implements Enum {
 abstract class ClassWithHashCode implements Enum {
   int get hashCode => 0;
   //      ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] unspecified
 }
 
 mixin MixinWithHashCode implements Enum {
   int get hashCode => 0;
   //      ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] unspecified
 }
 
@@ -125,13 +125,13 @@ abstract class SuperclassWithHashCode {
 // Can't implement `Enum` and inherit concrete hashCode/==.
 abstract class ClassSuperEquals extends SuperclassWithEquals implements Enum {
   //           ^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] unspecified
 }
 
 abstract class ClassSuperHash extends SuperclassWithHashCode implements Enum {
   //           ^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] unspecified
 }
 
