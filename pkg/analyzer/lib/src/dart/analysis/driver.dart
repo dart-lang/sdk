@@ -2121,7 +2121,11 @@ class AnalysisDriverTestView {
 
   FileTracker get fileTracker => driver._fileTracker;
 
-  LibraryContext? get libraryContext => driver._libraryContext;
+  Set<String> get loadedLibraryUriSet {
+    var elementFactory = driver.libraryContext.elementFactory;
+    var libraryReferences = elementFactory.rootReference.children;
+    return libraryReferences.map((e) => e.name).toSet();
+  }
 
   Map<String, ResolvedUnitResult> get priorityResults {
     return driver._priorityResults;
