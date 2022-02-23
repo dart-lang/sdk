@@ -9,6 +9,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
+import '../js_model/js_world_builder.dart' show JsToFrontendMap;
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/side_effects.dart' show SideEffects;
@@ -728,6 +729,34 @@ class NativeBehavior {
       }
     }
     return dartTypes.dynamicType();
+  }
+
+  dynamic _convertNativeBehaviorType(JsToFrontendMap map, dynamic type) {
+    if (type is DartType) {
+      // TODO(johnniwinther): Avoid free variables in types. If the type
+      // pulled from a generic function type it might contain a function
+      // type variable that should probably have been replaced by its bound.
+      return map.toBackendType(type, allowFreeVariables: true);
+    }
+    assert(type is SpecialType);
+    return type;
+  }
+
+  NativeBehavior convert(JsToFrontendMap map) {
+    final newBehavior = NativeBehavior();
+    for (dynamic type in typesReturned) {
+      newBehavior.typesReturned.add(_convertNativeBehaviorType(map, type));
+    }
+    for (dynamic type in typesInstantiated) {
+      newBehavior.typesInstantiated.add(_convertNativeBehaviorType(map, type));
+    }
+    newBehavior.codeTemplateText = codeTemplateText;
+    newBehavior.codeTemplate = codeTemplate;
+    newBehavior.throwBehavior = throwBehavior;
+    newBehavior.isAllocation = isAllocation;
+    newBehavior.useGvn = useGvn;
+    newBehavior.sideEffects.add(sideEffects);
+    return newBehavior;
   }
 }
 

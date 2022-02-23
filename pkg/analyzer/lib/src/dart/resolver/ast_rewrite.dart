@@ -543,18 +543,24 @@ class AstRewriter {
     return methodInvocation;
   }
 
-  MethodInvocation _toMethodInvocationOfFunctionReference({
+  AstNode _toMethodInvocationOfFunctionReference({
     required InstanceCreationExpression node,
     required Identifier function,
   }) {
+    var period = node.constructorName.period;
+    var constructorId = node.constructorName.name;
+    if (period == null || constructorId == null) {
+      return node;
+    }
+
     var functionReference = astFactory.functionReference(
       function: function,
       typeArguments: node.constructorName.type.typeArguments,
     );
     var methodInvocation = astFactory.methodInvocation(
       functionReference,
-      node.constructorName.period,
-      node.constructorName.name!,
+      period,
+      constructorId,
       null,
       node.argumentList,
     );

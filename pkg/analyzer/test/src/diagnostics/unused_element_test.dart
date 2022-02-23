@@ -267,6 +267,587 @@ f() => _A.named();
     ]);
   }
 
+  test_privateEnum_privateConstructor_isUsed_redirect() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v._foo();
+  const _E._foo() : this._bar();
+  const _E._bar();
+}
+
+void f() {
+  _E.v;
+}
+''');
+  }
+
+  test_privateEnum_privateConstructor_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v._foo();
+  const _E._foo();
+  const _E._bar();
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 52, 4),
+    ]);
+  }
+
+  test_privateEnum_privateInstanceGetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  int get _foo => 0;
+}
+
+void f() {
+  _E.v._foo;
+}
+''');
+  }
+
+  test_privateEnum_privateInstanceGetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  int get _foo => 0;
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 25, 4),
+    ]);
+  }
+
+  test_privateEnum_privateInstanceMethod_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo() {}
+}
+
+void f() {
+  _E.v._foo();
+}
+''');
+  }
+
+  test_privateEnum_privateInstanceMethod_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo() {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 22, 4),
+    ]);
+  }
+
+  test_privateEnum_privateInstanceMethod_optionalNamedParameter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo({int? a}) {}
+}
+
+void f() {
+  _E.v._foo(a: 0);
+}
+''');
+  }
+
+  test_privateEnum_privateInstanceMethod_optionalNamedParameter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo({int? a}) {}
+}
+
+void f() {
+  _E.v._foo();
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
+    ]);
+  }
+
+  test_privateEnum_privateInstanceMethod_optionalPositionalParameter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo([int? a]) {}
+}
+
+void f() {
+  _E.v._foo(0);
+}
+''');
+  }
+
+  test_privateEnum_privateInstanceMethod_optionalPositionalParameter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo([int? a]) {}
+}
+
+void f() {
+  _E.v._foo();
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
+    ]);
+  }
+
+  test_privateEnum_privateInstanceSetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  set _foo(int _) {}
+}
+
+void f() {
+  _E.v._foo = 0;
+}
+''');
+  }
+
+  test_privateEnum_privateInstanceSetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  set _foo(int _) {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 21, 4),
+    ]);
+  }
+
+  test_privateEnum_privateStaticGetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static int get _foo => 0;
+}
+
+void f() {
+  _E.v;
+  _E._foo;
+}
+''');
+  }
+
+  test_privateEnum_privateStaticGetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static int get _foo => 0;
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 32, 4),
+    ]);
+  }
+
+  test_privateEnum_privateStaticMethod_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static void _foo() {}
+}
+
+void f() {
+  _E.v;
+  _E._foo();
+}
+''');
+  }
+
+  test_privateEnum_privateStaticMethod_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static void _foo() {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 29, 4),
+    ]);
+  }
+
+  test_privateEnum_privateStaticSetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static set _foo(int _) {}
+}
+
+void f() {
+  _E.v;
+  _E._foo = 0;
+}
+''');
+  }
+
+  test_privateEnum_privateStaticSetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static set _foo(int _) {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 28, 4),
+    ]);
+  }
+
+  test_privateEnum_publicConstructor_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v.foo();
+  const _E.foo();
+  const _E.bar();
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 50, 3),
+    ]);
+  }
+
+  test_privateEnum_publicInstanceGetter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  int get foo => 0;
+}
+
+void f() {
+  _E.v;
+}
+''');
+  }
+
+  test_privateEnum_publicInstanceMethod_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void foo() {}
+}
+
+void f() {
+  _E.v;
+}
+''');
+  }
+
+  test_privateEnum_publicInstanceMethod_optionalNamedParameter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void foo({int? a}) {}
+}
+
+void f() {
+  _E.v.foo();
+}
+''');
+  }
+
+  test_privateEnum_publicInstanceMethod_optionalPositionalParameter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void foo([int? a]) {}
+}
+
+void f() {
+  _E.v.foo();
+}
+''');
+  }
+
+  test_privateEnum_publicInstanceSetter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  set foo(int _) {}
+}
+
+void f() {
+  _E.v;
+}
+''');
+  }
+
+  test_privateEnum_publicStaticGetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static int get foo => 0;
+}
+
+void f() {
+  _E.v;
+  _E.foo;
+}
+''');
+  }
+
+  test_privateEnum_publicStaticGetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static int get foo => 0;
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 32, 3),
+    ]);
+  }
+
+  test_privateEnum_publicStaticMethod_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static void foo() {}
+}
+
+void f() {
+  _E.v;
+  _E.foo();
+}
+''');
+  }
+
+  test_privateEnum_publicStaticMethod_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static void foo() {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 29, 3),
+    ]);
+  }
+
+  test_privateEnum_publicStaticSetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static set foo(int _) {}
+}
+
+void f() {
+  _E.v;
+  _E.foo = 0;
+}
+''');
+  }
+
+  test_privateEnum_publicStaticSetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static set foo(int _) {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 28, 3),
+    ]);
+  }
+
+  test_publicEnum_privateConstructor_isUsed_redirect() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v._foo();
+  const E._foo() : this._bar();
+  const E._bar();
+}
+''');
+  }
+
+  test_publicEnum_privateConstructor_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v._foo();
+  const E._foo();
+  const E._bar();
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 49, 4),
+    ]);
+  }
+
+  test_publicEnum_privateStaticGetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static int get _foo => 0;
+}
+
+void f() {
+  E._foo;
+}
+''');
+  }
+
+  test_publicEnum_privateStaticGetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static int get _foo => 0;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 31, 4),
+    ]);
+  }
+
+  test_publicEnum_privateStaticMethod_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static void _foo() {}
+}
+
+void f() {
+  E._foo();
+}
+''');
+  }
+
+  test_publicEnum_privateStaticMethod_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static void _foo() {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 28, 4),
+    ]);
+  }
+
+  test_publicEnum_privateStaticSetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static set _foo(int _) {}
+}
+
+void f() {
+  E._foo = 0;
+}
+''');
+  }
+
+  test_publicEnum_privateStaticSetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static set _foo(int _) {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 27, 4),
+    ]);
+  }
+
+  test_publicEnum_publicConstructor_isUsed_generic() async {
+    await assertNoErrorsInCode(r'''
+enum E<T> {
+  v1<int>.named(),
+  v2<int>.renamed();
+
+  const E.named();
+  const E.renamed() : this.named();
+}
+''');
+  }
+
+  test_publicEnum_publicConstructor_isUsed_redirect() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v.foo();
+  const E.foo() : this.bar();
+  const E.bar();
+}
+''');
+  }
+
+  test_publicEnum_publicConstructor_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v.foo();
+  const E.foo();
+  const E.bar();
+  factory E.baz() => throw 0;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 47, 3),
+    ]);
+  }
+
+  test_publicEnum_publicStaticGetter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static int get foo => 0;
+}
+''');
+  }
+
+  test_publicEnum_publicStaticMethod_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static void foo() {}
+}
+''');
+  }
+
+  test_publicEnum_publicStaticSetter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static set foo(int _) {}
+}
+''');
+  }
+
   test_typeAlias_interfaceType_isUsed_typeName_isExpression() async {
     await assertNoErrorsInCode(r'''
 typedef _A = List<int>;

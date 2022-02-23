@@ -8316,11 +8316,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -8339,11 +8334,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -8362,11 +8352,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -13553,11 +13538,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -13574,11 +13554,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -13595,11 +13570,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -15838,11 +15808,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -15859,11 +15824,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -15880,11 +15840,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -15961,11 +15916,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -16955,11 +16905,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -16976,11 +16921,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17025,11 +16965,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17046,11 +16981,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17067,11 +16997,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17354,13 +17279,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E<int>
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: int}
-                    staticType: null
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {T: int}
@@ -17383,13 +17301,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E<String>
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: String}
-                    staticType: null
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {T: String}
@@ -17456,11 +17367,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17526,13 +17432,6 @@ library
                           type: double
                       rightBracket: > @22
                     type: E<double>
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: double}
-                    staticType: null
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {T: double}
@@ -17593,11 +17492,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17650,11 +17544,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17710,11 +17599,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17768,11 +17652,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17838,11 +17717,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17907,11 +17781,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17969,11 +17838,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18035,11 +17899,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18101,11 +17960,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18232,11 +18086,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18297,11 +18146,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18354,11 +18198,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18419,11 +18258,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18486,11 +18320,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18555,13 +18384,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E<dynamic>
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {U: dynamic}
-                    staticType: null
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {U: dynamic}
@@ -18627,11 +18449,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18687,13 +18504,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E<dynamic>
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: dynamic}
-                    staticType: null
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {T: dynamic}
@@ -18758,11 +18568,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18820,11 +18625,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18887,11 +18687,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18961,11 +18756,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19027,13 +18817,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E<dynamic>
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: dynamic}
-                    staticType: null
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {T: dynamic}
@@ -19094,13 +18877,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E<num, num>
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: num, U: num}
-                    staticType: null
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {T: num, U: num}
@@ -19375,11 +19151,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19397,11 +19168,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19477,11 +19243,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19507,11 +19268,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19575,11 +19331,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19596,11 +19347,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19654,11 +19400,6 @@ library
                       staticElement: self::@enum::E1
                       staticType: null
                     type: E1
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E1::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E1::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19697,11 +19438,6 @@ library
                       staticElement: self::@enum::E2
                       staticType: null
                     type: E2
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E2::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E2::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19807,11 +19543,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19828,11 +19559,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19849,11 +19575,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -26740,11 +26461,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -26842,11 +26558,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -26863,11 +26574,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -26899,11 +26605,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -26971,11 +26672,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -28502,11 +28198,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -28523,11 +28214,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -28552,11 +28238,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -29642,13 +29323,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E<dynamic>
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: dynamic}
-                    staticType: null
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {T: dynamic}
@@ -29890,11 +29564,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -29911,11 +29580,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -29932,11 +29596,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -31272,11 +30931,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -31294,11 +30948,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -33318,11 +32967,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -33449,11 +33093,6 @@ library
                         staticElement: self::@enum::E
                         staticType: null
                       type: E
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: <empty> @-1 <synthetic>
-                      staticElement: self::@enum::E::@constructor::•
-                      staticType: null
                     staticElement: self::@enum::E::@constructor::•
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -33514,11 +33153,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -33616,11 +33250,6 @@ library
                         staticElement: self::@enum::E
                         staticType: null
                       type: E
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: <empty> @-1 <synthetic>
-                      staticElement: self::@enum::E::@constructor::•
-                      staticType: null
                     staticElement: self::@enum::E::@constructor::•
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -33716,11 +33345,6 @@ library
                         staticElement: self::@enum::E
                         staticType: null
                       type: E
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: <empty> @-1 <synthetic>
-                      staticElement: self::@enum::E::@constructor::•
-                      staticType: null
                     staticElement: self::@enum::E::@constructor::•
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -33884,11 +33508,6 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  period: . @0
-                  name: SimpleIdentifier
-                    token: <empty> @-1 <synthetic>
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
                   staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0

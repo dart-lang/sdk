@@ -50,8 +50,8 @@ import 'native_basic_data.dart';
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
 class KernelFrontendStrategy {
-  final NativeBasicDataBuilderImpl nativeBasicDataBuilder =
-      NativeBasicDataBuilderImpl();
+  final NativeBasicDataBuilder nativeBasicDataBuilder =
+      NativeBasicDataBuilder();
   NativeBasicData _nativeBasicData;
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
@@ -65,7 +65,7 @@ class KernelFrontendStrategy {
   ModularStrategy _modularStrategy;
   IrAnnotationData _irAnnotationData;
 
-  NativeDataBuilderImpl _nativeDataBuilder;
+  NativeDataBuilder _nativeDataBuilder;
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
 
   BackendUsageBuilder _backendUsageBuilder;
@@ -141,7 +141,7 @@ class KernelFrontendStrategy {
         commonElements,
         _elementMap.types,
         NativeClassFinder(elementEnvironment, nativeBasicData));
-    _nativeDataBuilder = NativeDataBuilderImpl(nativeBasicData);
+    _nativeDataBuilder = NativeDataBuilder(nativeBasicData);
     _customElementsResolutionAnalysis = CustomElementsResolutionAnalysis(
         elementEnvironment,
         commonElements,
