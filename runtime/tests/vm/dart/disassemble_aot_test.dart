@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// OtherResources=use_dwarf_stack_traces_flag_program.dart
+// OtherResources=hello_world_test.dart
 //
 // Tests proper object recognition in disassembler.
 
@@ -40,7 +40,7 @@ Future<void> main(List<String> args) async {
 
   await withTempDir('disassemble_aot', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
-    final script = path.join(cwDir, 'use_dwarf_stack_traces_flag_program.dart');
+    final script = path.join(cwDir, 'hello_world_test.dart');
     final scriptDill = path.join(tempDir, 'out.dill');
 
     // Compile script to Kernel IR.
@@ -54,14 +54,17 @@ Future<void> main(List<String> args) async {
 
     // Run the AOT compiler with the disassemble flags set.
     final elfFile = path.join(tempDir, 'aot.snapshot');
-    await Future.wait(<Future>[
-      run(genSnapshot, <String>[
-        '--snapshot-kind=app-aot-elf',
-        '--disassemble',
-        '--always_generate_trampolines_for_testing',
-        '--elf=$elfFile',
-        scriptDill,
-      ]),
+    await run(genSnapshot, <String>[
+      '--disassemble',
+      '--disassemble_stubs',
+      '--always_generate_trampolines_for_testing',
+      '--snapshot-kind=app-aot-elf',
+      '--elf=$elfFile',
+      scriptDill
     ]);
+
+    // Run the AOT runtime with the disassemble flags set.
+    await run(
+        aotRuntime, <String>['--disassemble', '--disassemble_stubs', elfFile]);
   });
 }
