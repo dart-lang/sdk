@@ -95,7 +95,8 @@ class TypedLiteralResolver {
         : NullabilitySuffix.star;
   }
 
-  void resolveListLiteral(ListLiteralImpl node) {
+  void resolveListLiteral(ListLiteralImpl node,
+      {required DartType? contextType}) {
     InterfaceType? listType;
 
     var typeArguments = node.typeArguments?.arguments;
@@ -107,7 +108,8 @@ class TypedLiteralResolver {
         }
       }
     } else {
-      listType = _inferListType(node, downwards: true);
+      listType =
+          _inferListType(node, downwards: true, contextType: contextType);
     }
     CollectionLiteralContext? context;
     if (listType != null) {
@@ -119,15 +121,17 @@ class TypedLiteralResolver {
 
     node.typeArguments?.accept(_resolver);
     _resolveElements(node.elements, context);
-    _resolveListLiteral2(node);
+    _resolveListLiteral2(node, contextType: contextType);
   }
 
-  void resolveSetOrMapLiteral(SetOrMapLiteral node) {
+  void resolveSetOrMapLiteral(SetOrMapLiteral node,
+      {required DartType? contextType}) {
     (node as SetOrMapLiteralImpl).becomeUnresolved();
     var typeArguments = node.typeArguments?.arguments;
 
     InterfaceType? literalType;
-    var literalResolution = _computeSetOrMapResolution(node);
+    var literalResolution =
+        _computeSetOrMapResolution(node, contextType: contextType);
     if (literalResolution.kind == _LiteralResolutionKind.set) {
       if (typeArguments != null && typeArguments.length == 1) {
         var elementType = typeArguments[0].typeOrThrow;
@@ -178,7 +182,7 @@ class TypedLiteralResolver {
 
     node.typeArguments?.accept(_resolver);
     _resolveElements(node.elements, context);
-    _resolveSetOrMapLiteral2(node);
+    _resolveSetOrMapLiteral2(node, contextType: contextType);
   }
 
   DartType _computeElementType(CollectionElement element) {
@@ -240,10 +244,10 @@ class TypedLiteralResolver {
   }
 
   /// Compute the context type for the given set or map [literal].
-  _LiteralResolution _computeSetOrMapResolution(SetOrMapLiteral literal) {
+  _LiteralResolution _computeSetOrMapResolution(SetOrMapLiteral literal,
+      {required DartType? contextType}) {
     _LiteralResolution typeArgumentsResolution =
         _fromTypeArguments(literal.typeArguments?.arguments);
-    var contextType = InferenceContext.getContext(literal);
     _LiteralResolution contextResolution = _fromContextType(contextType);
     _LeafElements elementCounts = _LeafElements(_getSetOrMapElements(literal));
     _LiteralResolution elementResolution = elementCounts.resolution;
@@ -446,9 +450,8 @@ class TypedLiteralResolver {
     }
   }
 
-  InterfaceType? _inferListType(ListLiteral node, {bool downwards = false}) {
-    var contextType = InferenceContext.getContext(node);
-
+  InterfaceType? _inferListType(ListLiteral node,
+      {bool downwards = false, required DartType? contextType}) {
     var element = _typeProvider.listElement;
     var typeParameters = element.typeParameters;
     var genericElementType = typeParameters[0].instantiate(
@@ -628,7 +631,8 @@ class TypedLiteralResolver {
     }
   }
 
-  void _resolveListLiteral2(ListLiteralImpl node) {
+  void _resolveListLiteral2(ListLiteralImpl node,
+      {required DartType? contextType}) {
     var typeArguments = node.typeArguments?.arguments;
 
     // If we have explicit arguments, use them.
@@ -647,7 +651,7 @@ class TypedLiteralResolver {
     DartType listDynamicType = _typeProvider.listType(_dynamicType);
 
     // If there are no type arguments, try to infer some arguments.
-    var inferred = _inferListType(node);
+    var inferred = _inferListType(node, contextType: contextType);
 
     if (inferred != listDynamicType) {
       // TODO(brianwilkerson) Determine whether we need to make the inferred
@@ -660,7 +664,8 @@ class TypedLiteralResolver {
     node.staticType = listDynamicType;
   }
 
-  void _resolveSetOrMapLiteral2(SetOrMapLiteralImpl node) {
+  void _resolveSetOrMapLiteral2(SetOrMapLiteralImpl node,
+      {required DartType? contextType}) {
     var typeArguments = node.typeArguments?.arguments;
 
     // If we have type arguments, use them.
@@ -700,7 +705,7 @@ class TypedLiteralResolver {
     }
     if (_strictInference &&
         _getSetOrMapElements(node).isEmpty &&
-        InferenceContext.getContext(node) == null) {
+        contextType == null) {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
