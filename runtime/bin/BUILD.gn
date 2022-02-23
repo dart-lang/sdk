@@ -880,6 +880,45 @@ dart_executable("dart_precompiled_runtime_product") {
   extra_deps += [ ":elf_loader_product" ]
 }
 
+dart_executable("analyze_snapshot") {
+  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_deps = [
+    "..:libdart_precompiled_runtime",
+    "../platform:libdart_platform_precompiled_runtime",
+  ]
+
+  extra_sources = [
+    "analyze_snapshot.cc",
+    "builtin.cc",
+    "loader.cc",
+    "loader.h",
+  ]
+
+  if (dart_runtime_mode == "release") {
+    extra_deps += [ ":elf_loader_product" ]
+  } else {
+    extra_deps += [ ":elf_loader" ]
+  }
+}
+
+dart_executable("analyze_snapshot_product") {
+  use_product_mode = true
+  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_deps = [
+    "..:libdart_precompiled_runtime_product",
+    "../platform:libdart_platform_precompiled_runtime_product",
+  ]
+
+  extra_sources = [
+    "analyze_snapshot.cc",
+    "builtin.cc",
+    "loader.cc",
+    "loader.h",
+  ]
+
+  extra_deps += [ ":elf_loader_product" ]
+}
+
 executable("process_test") {
   sources = [ "process_test.cc" ]
 }
