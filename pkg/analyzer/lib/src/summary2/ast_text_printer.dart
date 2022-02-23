@@ -142,7 +142,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _compilationUnitMember(node);
     _token(node.abstractKeyword);
     _token(node.macroKeyword);
@@ -159,7 +159,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     _compilationUnitMember(node);
     _token(node.abstractKeyword);
     _token(node.macroKeyword);

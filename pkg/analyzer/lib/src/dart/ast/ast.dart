@@ -1464,11 +1464,9 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   Token? abstractKeyword;
 
   /// The 'macro' keyword, or `null` if the keyword was absent.
-  @override
   Token? macroKeyword;
 
   /// The 'augment' keyword, or `null` if the keyword was absent.
-  @override
   Token? augmentKeyword;
 
   /// The token representing the 'class' keyword.
@@ -1726,12 +1724,10 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   /// The token for the 'macro' keyword, or `null` if this is not defining a
   /// macro class.
-  @override
   Token? macroKeyword;
 
   /// The token for the 'augment' keyword, or `null` if this is not defining an
   /// augmentation class.
-  @override
   Token? augmentKeyword;
 
   /// The name of the superclass of the class being declared.
@@ -4203,7 +4199,6 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   Token? abstractKeyword;
 
   /// The 'augment' keyword, or `null` if the keyword was not used.
-  @override
   Token? augmentKeyword;
 
   /// The 'covariant' keyword, or `null` if the keyword was not used.
@@ -5057,7 +5052,6 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements FunctionDeclaration {
   /// The token representing the 'augment' keyword, or `null` if this is not an
   /// function augmentation.
-  @override
   Token? augmentKeyword;
 
   /// The token representing the 'external' keyword, or `null` if this is not an
@@ -7599,7 +7593,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 ///        [RequiresClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
     implements MixinDeclaration {
-  @override
+  /// Return the 'augment' keyword, or `null` if the keyword was absent.
   Token? augmentKeyword;
 
   @override

@@ -148,7 +148,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
     _visitToken(node.macroKeyword, suffix: ' ');
@@ -165,7 +165,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     if (node.abstractKeyword != null) {
       sink.write('abstract ');
