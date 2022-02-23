@@ -12,7 +12,6 @@ import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 
 import '../compiler.dart';
-import 'backend_strategy.dart';
 import 'common.dart';
 import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
@@ -25,6 +24,7 @@ import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
+import 'js_model/js_strategy.dart';
 import 'js_backend/field_analysis.dart';
 import 'universe/codegen_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactVisitorImpl;
@@ -369,7 +369,7 @@ class ElementInfoCollector {
     return _outputToInfo.putIfAbsent(outputUnit, () {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
-      BackendStrategy backendStrategy = compiler.backendStrategy;
+      JsBackendStrategy backendStrategy = compiler.backendStrategy;
       assert(outputUnit.name != null || outputUnit.isMainOutput);
       var filename = outputUnit.isMainOutput
           ? compiler.options.outputUri.pathSegments.last

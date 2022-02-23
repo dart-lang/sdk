@@ -201,7 +201,7 @@ class _ClassVerifier {
             _checkIllegalEnumValuesDeclaration(field.name);
           }
           if (!member.isStatic) {
-            _checkIllegalNonAbstractEnumIndex(field.name);
+            _checkIllegalConcreteEnumMemberDeclaration(field.name);
           }
         }
       } else if (member is MethodDeclaration) {
@@ -212,15 +212,16 @@ class _ClassVerifier {
 
         _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
             methodParameterNodes: member.parameters?.parameters);
+        if (!(member.isStatic || member.isAbstract || member.isSetter)) {
+          _checkIllegalConcreteEnumMemberDeclaration(member.name);
+        }
         if (!member.isStatic && !classElement.isEnum) {
           _checkIllegalEnumValuesDeclaration(member.name);
-        }
-        if (!(member.isStatic || member.isAbstract || member.isSetter)) {
-          _checkIllegalNonAbstractEnumIndex(member.name);
         }
       }
     }
 
+    _checkIllegalConcreteEnumMemberInheritance();
     _checkIllegalEnumValuesInheritance();
 
     GetterSetterTypesVerifier(
@@ -639,6 +640,44 @@ class _ClassVerifier {
     return false;
   }
 
+  void _checkIllegalConcreteEnumMemberDeclaration(SimpleIdentifier name) {
+    if (implementsDartCoreEnum &&
+        const {'index', 'hashCode', '=='}.contains(name.name)) {
+      reporter.reportErrorForNode(
+        CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+        name,
+        [name.name],
+      );
+    }
+  }
+
+  void _checkIllegalConcreteEnumMemberInheritance() {
+    // We ignore mixins because they don't inherit and members.
+    // But to support `super.foo()` invocations we put members from superclass
+    // constraints into the `superImplemented` bucket, the same we look below.
+    if (classElement.isMixin) {
+      return;
+    }
+
+    if (implementsDartCoreEnum) {
+      var concreteMap = inheritance.getInheritedConcreteMap2(classElement);
+      for (var memberName in const ['hashCode', '==']) {
+        var member = concreteMap[Name(libraryUri, memberName)];
+        if (member != null) {
+          var enclosingClass = member.enclosingElement;
+          if (enclosingClass is ClassElement &&
+              !enclosingClass.isDartCoreObject) {
+            reporter.reportErrorForNode(
+              CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+              classNameNode,
+              [memberName, enclosingClass.name],
+            );
+          }
+        }
+      }
+    }
+  }
+
   void _checkIllegalEnumValuesDeclaration(SimpleIdentifier name) {
     if (implementsDartCoreEnum && name.name == 'values') {
       reporter.reportErrorForNode(
@@ -666,15 +705,6 @@ class _ClassVerifier {
           [inherited.enclosingElement.name!],
         );
       }
-    }
-  }
-
-  void _checkIllegalNonAbstractEnumIndex(SimpleIdentifier name) {
-    if (implementsDartCoreEnum && name.name == 'index') {
-      reporter.reportErrorForNode(
-        CompileTimeErrorCode.ILLEGAL_NON_ABSTRACT_ENUM_INDEX,
-        name,
-      );
     }
   }
 

@@ -276,19 +276,6 @@ class Primitives {
   }
 
   static Object _computeIdentityHashCodeProperty() =>
-      JS_GET_FLAG('LEGACY_JAVASCRIPT')
-          ? _computeIdentityHashCodePropertyLegacy()
-          : _computeIdentityHashCodePropertyModern();
-
-  static Object _computeIdentityHashCodePropertyLegacy() {
-    if (JS<bool>('bool', 'typeof Symbol == "function"') ||
-        JS<bool>('bool', 'typeof Symbol() == "symbol"')) {
-      return _computeIdentityHashCodePropertyModern();
-    }
-    return r'$identityHashCode';
-  }
-
-  static Object _computeIdentityHashCodePropertyModern() =>
       JS('', 'Symbol("identityHashCode")');
 
   static int? parseInt(String source, int? radix) {

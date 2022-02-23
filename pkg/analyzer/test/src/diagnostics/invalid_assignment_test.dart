@@ -383,11 +383,16 @@ int Function() foo(int Function<T extends int>() f) {
 }
 ''');
 
-    assertFunctionReference(
-      findNode.functionReference('f;'),
-      findElement.parameter('f'),
-      'int Function()',
-    );
+    assertResolvedNodeText(findNode.functionReference('f;'), r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+    staticElement: f@49
+    staticType: int Function<T extends int>()
+  staticType: int Function()
+  typeArgumentTypes
+    int
+''');
   }
 
   test_functionTearoff_inferredTypeArgs() async {

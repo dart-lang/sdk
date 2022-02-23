@@ -12,7 +12,6 @@ import 'package:compiler/src/ir/annotations.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -198,7 +197,7 @@ main(List<String> args) {
       Expect.isTrue(result.isSuccess);
       Compiler compiler = result.compiler;
       KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
-      KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+      KernelToElementMap elementMap = frontendStrategy.elementMap;
       ir.Component component = elementMap.env.mainComponent;
       IrAnnotationData annotationData =
           frontendStrategy.irAnnotationDataForTesting;

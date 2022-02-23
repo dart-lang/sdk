@@ -225,16 +225,13 @@ class AssignmentExpressionResolver {
   void _resolveTypes(AssignmentExpressionImpl node,
       {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     DartType assignedType;
-    DartType? implicitCallContext;
 
     var rightHandSide = node.rightHandSide;
     var operator = node.operator.type;
     if (operator == TokenType.EQ) {
       assignedType = rightHandSide.typeOrThrow;
-      implicitCallContext = node.writeType;
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
       assignedType = rightHandSide.typeOrThrow;
-      implicitCallContext = node.writeType;
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
       assignedType = _typeProvider.boolType;
@@ -255,11 +252,6 @@ class AssignmentExpressionResolver {
       }
     }
 
-    var callInsertion = _resolver.insertImplicitCallReference(rightHandSide,
-        context: implicitCallContext);
-    if (callInsertion != null) {
-      assignedType = callInsertion.staticType;
-    }
     DartType nodeType;
     if (operator == TokenType.QUESTION_QUESTION_EQ) {
       var leftType = node.readType!;

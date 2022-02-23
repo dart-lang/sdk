@@ -5759,6 +5759,33 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  /**
+   * Parameters:
+   * 0: the name of member that cannot be declared
+   */
+  static const CompileTimeErrorCode ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION =
+      CompileTimeErrorCode(
+    'ILLEGAL_CONCRETE_ENUM_MEMBER',
+    "A concrete instance member named '{0}' can't be declared in a class that "
+        "implements 'Enum'.",
+    correctionMessage: "Try using a different name.",
+    uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION',
+  );
+
+  /**
+   * Parameters:
+   * 0: the name of member that cannot be inherited
+   * 1: the name of the class that declares the member
+   */
+  static const CompileTimeErrorCode ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE =
+      CompileTimeErrorCode(
+    'ILLEGAL_CONCRETE_ENUM_MEMBER',
+    "A concrete instance member named '{0}' can't be inherited from '{1}' in a "
+        "class that implements 'Enum'.",
+    correctionMessage: "Try using a different name.",
+    uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE',
+  );
+
   static const CompileTimeErrorCode ILLEGAL_ENUM_VALUES_DECLARATION =
       CompileTimeErrorCode(
     'ILLEGAL_ENUM_VALUES',
@@ -5787,14 +5814,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The language version must be {0}.",
     correctionMessage:
         "Try removing the language version override and migrating the code.",
-  );
-
-  static const CompileTimeErrorCode ILLEGAL_NON_ABSTRACT_ENUM_INDEX =
-      CompileTimeErrorCode(
-    'ILLEGAL_NON_ABSTRACT_ENUM_INDEX',
-    "A non-abstract instance member named 'index' can't be declared in a class "
-        "that implements 'Enum'.",
-    correctionMessage: "Try using a different name.",
   );
 
   /**

@@ -2,37 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' as ir;
-
 import '../common.dart';
 import '../common/elements.dart' show KElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../ir/annotations.dart';
 import '../js_backend/native_data.dart';
 
-/// Interface for computing native members.
-abstract class NativeMemberResolver {
-  /// Computes whether [node] is native or JsInterop.
-  void resolveNativeMember(ir.Member node, IrAnnotationData annotationData);
-}
-
 /// Determines all native classes in a set of libraries.
-abstract class NativeClassFinder {
-  /// Returns the set of all native classes declared in [libraries].
-  Iterable<ClassEntity> computeNativeClasses(Iterable<Uri> libraries);
-}
-
-class BaseNativeClassFinder implements NativeClassFinder {
+class NativeClassFinder {
   final KElementEnvironment _elementEnvironment;
   final NativeBasicData _nativeBasicData;
 
   final Map<String, ClassEntity> _tagOwner = {};
 
-  BaseNativeClassFinder(this._elementEnvironment, this._nativeBasicData);
+  NativeClassFinder(this._elementEnvironment, this._nativeBasicData);
 
-  @override
+  /// Returns the set of all native classes declared in [libraries].
   Iterable<ClassEntity> computeNativeClasses(Iterable<Uri> libraries) {
     Set<ClassEntity> nativeClasses = {};
     libraries.forEach((uri) => _processNativeClassesInLibrary(

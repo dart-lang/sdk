@@ -391,14 +391,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(node, type);
   }
 
-  void assertFunctionReference(
-      FunctionReference node, Element? expectedElement, String expectedType) {
-    if (expectedElement != null) {
-      assertElement(node, expectedElement);
-    }
-    assertType(node, expectedType);
-  }
-
   void assertHasTestErrors() {
     expect(result.errors, isNotEmpty);
   }

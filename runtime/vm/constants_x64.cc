@@ -12,7 +12,11 @@ namespace dart {
 
 const char* const cpu_reg_names[kNumberOfCpuRegisters] = {
     "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-    "r8",  "r9",  "r10", "r11", "r12", "r13", "thr", "pp"};
+    "r8",  "r9",  "r10", "tmp", "r12", "r13", "thr", "pp"};
+
+const char* const cpu_reg_abi_names[kNumberOfCpuRegisters] = {
+    "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+    "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15"};
 
 const char* const fpu_reg_names[kNumberOfXmmRegisters] = {
     "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",

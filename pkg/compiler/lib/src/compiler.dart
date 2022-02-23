@@ -10,7 +10,6 @@ import 'dart:convert' show jsonEncode;
 import 'package:kernel/ast.dart' as ir;
 
 import '../compiler.dart' as api;
-import 'backend_strategy.dart';
 import 'common.dart';
 import 'common/codegen.dart';
 import 'common/elements.dart' show ElementEnvironment;
@@ -71,7 +70,7 @@ class Compiler {
   final api.CompilerDiagnostics handler;
 
   KernelFrontendStrategy frontendStrategy;
-  BackendStrategy backendStrategy;
+  JsBackendStrategy backendStrategy;
   CompilerDiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
   GenericTask userHandlerTask;
@@ -197,7 +196,7 @@ class Compiler {
   /// Creates the backend strategy.
   ///
   /// Override this to mock the backend strategy for testing.
-  BackendStrategy createBackendStrategy() {
+  JsBackendStrategy createBackendStrategy() {
     return JsBackendStrategy(this);
   }
 

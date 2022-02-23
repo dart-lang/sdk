@@ -17,7 +17,7 @@ import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
 import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types_resolution.dart';
-import '../kernel/element_map_impl.dart';
+import '../kernel/element_map.dart';
 import '../kernel/kernel_world.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../options.dart';
@@ -25,7 +25,7 @@ import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart' show World;
 import 'call_structure.dart';
-import 'class_hierarchy.dart' show ClassHierarchyBuilder, ClassQueries;
+import 'class_hierarchy.dart' show ClassHierarchyBuilder;
 import 'class_set.dart';
 import 'member_usage.dart';
 import 'selector.dart' show Selector;
@@ -263,7 +263,6 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
 
   final SelectorConstraintsStrategy _selectorConstraintsStrategy;
   final ClassHierarchyBuilder _classHierarchyBuilder;
-  final ClassQueries _classQueries;
 
   bool _closed = false;
   KClosedWorld _closedWorldCache;
@@ -277,7 +276,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
 
   bool get isClosed => _closed;
 
-  final KernelToElementMapImpl _elementMap;
+  final KernelToElementMap _elementMap;
 
   ResolutionWorldBuilder(
       this._options,
@@ -295,8 +294,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
       this._noSuchMethodRegistry,
       this._annotationsDataBuilder,
       this._selectorConstraintsStrategy,
-      this._classHierarchyBuilder,
-      this._classQueries);
+      this._classHierarchyBuilder);
 
   /// Returns the classes registered as directly or indirectly instantiated.
   Iterable<ClassEntity> get processedClasses => _processedClasses.keys
@@ -857,14 +855,14 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
 
       // Walk through the superclasses, and record the types
       // implemented by that type on the superclasses.
-      ClassEntity superclass = _classQueries.getSuperClass(cls);
+      ClassEntity superclass = _elementMap.getSuperClass(cls);
       while (superclass != null) {
         Set<ClassEntity> typesImplementedBySubclassesOfCls =
             typesImplementedBySubclasses.putIfAbsent(superclass, () => {});
-        for (InterfaceType current in _classQueries.getSupertypes(cls)) {
+        for (InterfaceType current in _elementMap.getSuperTypes(cls)) {
           typesImplementedBySubclassesOfCls.add(current.element);
         }
-        superclass = _classQueries.getSuperClass(superclass);
+        superclass = _elementMap.getSuperClass(superclass);
       }
     }
 

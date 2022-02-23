@@ -20,7 +20,7 @@ import 'package:compiler/src/environment.dart';
 import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/visitors.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
@@ -574,7 +574,7 @@ Future testData(TestData data) async {
         options: [Flags.enableAsserts]);
     Compiler compiler = result.compiler;
     KernelFrontendStrategy frontEndStrategy = compiler.frontendStrategy;
-    KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
+    KernelToElementMap elementMap = frontEndStrategy.elementMap;
     DartTypes dartTypes = elementMap.types;
     ir.TypeEnvironment typeEnvironment = elementMap.typeEnvironment;
     KElementEnvironment elementEnvironment =

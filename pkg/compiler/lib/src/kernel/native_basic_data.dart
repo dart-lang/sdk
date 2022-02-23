@@ -12,10 +12,10 @@ import '../ir/annotations.dart';
 import '../js_backend/native_data.dart';
 import '../native/resolver.dart';
 
-import 'element_map_impl.dart';
+import 'element_map.dart';
 
 class KernelAnnotationProcessor {
-  final KernelToElementMapImpl elementMap;
+  final KernelToElementMap elementMap;
   final NativeBasicDataBuilder _nativeBasicDataBuilder;
   final IrAnnotationData annotationData;
 

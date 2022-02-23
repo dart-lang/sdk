@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -77,18 +78,6 @@ import 'package:meta/meta.dart';
 /// A function which returns [NonPromotionReason]s that various types are not
 /// promoted.
 typedef WhyNotPromotedGetter = Map<DartType, NonPromotionReason> Function();
-
-/// Data structure describing the result of inserting an implicit call reference
-/// into the AST.
-class ImplicitCallInsertionResult {
-  /// The expression that was inserted.
-  final ImplicitCallReferenceImpl expression;
-
-  /// The type of the implicit call tear-off.
-  final FunctionType staticType;
-
-  ImplicitCallInsertionResult(this.expression, this.staticType);
-}
 
 /// Maintains and manages contextual type information used for
 /// inferring types.
@@ -541,13 +530,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypesNotAssignableInList(ArgumentList argumentList,
       List<WhyNotPromotedGetter> whyNotPromotedList) {
-    for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression) {
-        insertImplicitCallReference(argument.expression);
-      } else {
-        insertImplicitCallReference(argument);
-      }
-    }
     var arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       checkForArgumentTypeNotAssignableForArgument(arguments[i],
@@ -807,66 +789,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     genericFunctionInstantiation.staticType = staticType;
 
     return genericFunctionInstantiation;
-  }
-
-  /// If `expression` should be treated as `expression.call`, inserts an
-  /// [ImplicitCallReference] node which wraps [expression].
-  ///
-  /// If an [ImplicitCallReference] is inserted, returns an
-  /// [ImplicitCallInsertionResult] describing what was changed; otherwise,
-  /// returns `null`.
-  ImplicitCallInsertionResult? insertImplicitCallReference(
-      Expression expression,
-      {DartType? context}) {
-    expression as ExpressionImpl;
-    var parent = expression.parent;
-    if (parent is CascadeExpression && parent.target == expression) {
-      // Do not perform an "implicit tear-off conversion" here. It should only
-      // be performed on [parent]. See
-      // https://github.com/dart-lang/language/issues/1873.
-      return null;
-    }
-    context ??= InferenceContext.getContext(expression);
-    var callMethod =
-        getImplicitCallMethod(expression.typeOrThrow, context, expression);
-    if (callMethod == null || context == null) {
-      return null;
-    }
-
-    // `expression` is to be treated as `expression.call`.
-    context = typeSystem.flatten(context);
-    var callMethodType = callMethod.type;
-    List<DartType> typeArgumentTypes;
-    if (isConstructorTearoffsEnabled &&
-        callMethodType.typeFormals.isNotEmpty &&
-        context is FunctionType) {
-      typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
-        context,
-        callMethodType,
-        errorReporter: errorReporter,
-        errorNode: expression,
-        // If the constructor-tearoffs feature is enabled, then so is
-        // generic-metadata.
-        genericMetadataIsEnabled: true,
-      )!;
-      if (typeArgumentTypes.isNotEmpty) {
-        callMethodType = callMethodType.instantiate(typeArgumentTypes);
-      }
-    } else {
-      typeArgumentTypes = [];
-    }
-
-    var callReference = astFactory.implicitCallReference(
-      expression: expression,
-      staticElement: callMethod,
-      typeArguments: null,
-      typeArgumentTypes: typeArgumentTypes,
-    );
-    NodeReplacer.replace(expression, callReference, parent: parent);
-
-    callReference.staticType = callMethodType;
-
-    return ImplicitCallInsertionResult(callReference, callMethodType);
   }
 
   /// If we reached a null-shorting termination, and the [node] has null
@@ -1176,7 +1098,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.visitChildren(this);
     typeAnalyzer.visitAsExpression(node as AsExpressionImpl);
     flowAnalysis.asExpression(node);
-    insertGenericFunctionInstantiation(node);
+    _insertImplicitCallReference(insertGenericFunctionInstantiation(node));
   }
 
   @override
@@ -1210,7 +1132,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _assignmentExpressionResolver.resolve(node as AssignmentExpressionImpl);
-    insertGenericFunctionInstantiation(node);
+    _insertImplicitCallReference(insertGenericFunctionInstantiation(node));
   }
 
   @override
@@ -1223,7 +1145,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     checkUnreachableNode(node);
     analyzeExpression(node.expression, futureUnion);
     typeAnalyzer.visitAwaitExpression(node as AwaitExpressionImpl);
-    insertGenericFunctionInstantiation(node);
+    _insertImplicitCallReference(insertGenericFunctionInstantiation(node));
   }
 
   @override
@@ -1234,7 +1156,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           node, InferenceContext.getContext(node));
     }
     _binaryExpressionResolver.resolve(node as BinaryExpressionImpl);
-    insertGenericFunctionInstantiation(node);
+    _insertImplicitCallReference(insertGenericFunctionInstantiation(node));
   }
 
   @override
@@ -1291,6 +1213,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     typeAnalyzer.visitCascadeExpression(node);
 
     nullShortingTermination(node);
+    _insertImplicitCallReference(node);
   }
 
   @override
@@ -1386,6 +1309,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     elseExpression = node.elseExpression;
 
     typeAnalyzer.visitConditionalExpression(node as ConditionalExpressionImpl);
+    _insertImplicitCallReference(node);
   }
 
   @override
@@ -1447,13 +1371,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     elementResolver.visitConstructorFieldInitializer(
         node as ConstructorFieldInitializerImpl);
     if (fieldElement != null) {
-      if (fieldType != null && expression.staticType != null) {
-        var callReference = insertImplicitCallReference(expression)?.expression;
-        if (callReference != null) {
-          checkForInvalidAssignment(node.fieldName, callReference,
-              whyNotPromoted: whyNotPromoted);
-        }
-      }
       var enclosingConstructor = enclosingFunction as ConstructorElement;
       checkForFieldInitializerNotAssignable(node, fieldElement,
           isConstConstructor: enclosingConstructor.isConst,
@@ -1470,6 +1387,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitConstructorReference(covariant ConstructorReferenceImpl node) {
     _constructorReferenceResolver.resolve(node);
+    _insertImplicitCallReference(node);
   }
 
   @override
@@ -1674,7 +1592,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node.expression,
         inferenceContext.bodyContext!.contextType,
       );
-      insertImplicitCallReference(node.expression);
 
       flowAnalysis.flow?.handleExit();
 
@@ -1845,9 +1762,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     _functionExpressionInvocationResolver.resolve(
         node as FunctionExpressionInvocationImpl, whyNotPromotedList);
     nullShortingTermination(node);
-    insertGenericFunctionInstantiation(node);
+    var replacement = insertGenericFunctionInstantiation(node);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
+    _insertImplicitCallReference(replacement);
   }
 
   @override
@@ -1989,15 +1907,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       type = DynamicTypeImpl.instance;
     }
     inferenceHelper.recordStaticType(node, type);
-    insertGenericFunctionInstantiation(node);
+    var replacement = insertGenericFunctionInstantiation(node);
 
     nullShortingTermination(node);
+    _insertImplicitCallReference(replacement);
   }
 
   @override
   void visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node) {
     _instanceCreationExpressionResolver.resolve(node);
+    _insertImplicitCallReference(node);
   }
 
   @override
@@ -2132,9 +2052,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } else {
       nullShortingTermination(node);
     }
-    insertGenericFunctionInstantiation(node);
+    var replacement = insertGenericFunctionInstantiation(node);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
+    _insertImplicitCallReference(replacement);
   }
 
   @override
@@ -2229,19 +2150,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _postfixExpressionResolver.resolve(node as PostfixExpressionImpl);
-    insertGenericFunctionInstantiation(node);
+    _insertImplicitCallReference(insertGenericFunctionInstantiation(node));
   }
 
   @override
   void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     _prefixedIdentifierResolver.resolve(node);
-    insertGenericFunctionInstantiation(node);
+    _insertImplicitCallReference(insertGenericFunctionInstantiation(node));
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
     _prefixExpressionResolver.resolve(node as PrefixExpressionImpl);
-    insertGenericFunctionInstantiation(node);
+    _insertImplicitCallReference(insertGenericFunctionInstantiation(node));
   }
 
   @override
@@ -2283,9 +2204,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     inferenceHelper.recordStaticType(propertyName, type);
     inferenceHelper.recordStaticType(node, type);
-    insertGenericFunctionInstantiation(node);
+    var replacement = insertGenericFunctionInstantiation(node);
 
     nullShortingTermination(node);
+    _insertImplicitCallReference(replacement);
   }
 
   @override
@@ -2328,10 +2250,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     inferenceContext.bodyContext?.addReturnExpression(expression);
     flowAnalysis.flow?.handleExit();
-
-    if (expression != null) {
-      insertImplicitCallReference(expression);
-    }
   }
 
   @override
@@ -2353,7 +2271,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
     _simpleIdentifierResolver.resolve(node);
-    insertGenericFunctionInstantiation(node);
+    _insertImplicitCallReference(insertGenericFunctionInstantiation(node));
   }
 
   @override
@@ -2494,6 +2412,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     checkUnreachableNode(node);
     node.visitChildren(this);
     typeAnalyzer.visitThisExpression(node as ThisExpressionImpl);
+    _insertImplicitCallReference(node);
   }
 
   @override
@@ -2658,6 +2577,62 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return typeProvider.futureOrType(type);
   }
 
+  /// If `expression` should be treated as `expression.call`, inserts an
+  /// [ImplicitCallReference] node which wraps [expression].
+  void _insertImplicitCallReference(ExpressionImpl expression) {
+    var parent = expression.parent;
+    if (_shouldSkipImplicitCallReferenceDueToForm(expression, parent)) {
+      return;
+    }
+    var staticType = expression.staticType;
+    if (staticType == null) {
+      return;
+    }
+    DartType? context;
+    if (parent is AssignmentExpression) {
+      context = parent.writeType;
+    } else {
+      context = InferenceContext.getContext(expression);
+    }
+    var callMethod = getImplicitCallMethod(staticType, context, expression);
+    if (callMethod == null || context == null) {
+      return;
+    }
+
+    // `expression` is to be treated as `expression.call`.
+    context = typeSystem.flatten(context);
+    var callMethodType = callMethod.type;
+    List<DartType> typeArgumentTypes;
+    if (isConstructorTearoffsEnabled &&
+        callMethodType.typeFormals.isNotEmpty &&
+        context is FunctionType) {
+      typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
+        context,
+        callMethodType,
+        errorReporter: errorReporter,
+        errorNode: expression,
+        // If the constructor-tearoffs feature is enabled, then so is
+        // generic-metadata.
+        genericMetadataIsEnabled: true,
+      )!;
+      if (typeArgumentTypes.isNotEmpty) {
+        callMethodType = callMethodType.instantiate(typeArgumentTypes);
+      }
+    } else {
+      typeArgumentTypes = [];
+    }
+
+    var callReference = astFactory.implicitCallReference(
+      expression: expression,
+      staticElement: callMethod,
+      typeArguments: null,
+      typeArgumentTypes: typeArgumentTypes,
+    );
+    NodeReplacer.replace(expression, callReference, parent: parent);
+
+    callReference.staticType = callMethodType;
+  }
+
   /// Continues resolution of a [FunctionExpressionInvocation] that was created
   /// from a rewritten [MethodInvocation]. The target function is already
   /// resolved.
@@ -2700,6 +2675,34 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         _thisType = enclosingExtension.extendedType;
       }
     }
+  }
+
+  bool _shouldSkipImplicitCallReferenceDueToForm(
+      Expression expression, AstNode? parent) {
+    while (parent is ParenthesizedExpression) {
+      expression = parent;
+      parent = expression.parent;
+    }
+    if (parent is CascadeExpression && parent.target == expression) {
+      // Do not perform an "implicit tear-off conversion" here. It should only
+      // be performed on [parent]. See
+      // https://github.com/dart-lang/language/issues/1873.
+      return true;
+    }
+    if (parent is ConditionalExpression &&
+        (parent.thenExpression == expression ||
+            parent.elseExpression == expression)) {
+      // Do not perform an "implicit tear-off conversion" on the branches of a
+      // conditional expression.
+      return true;
+    }
+    if (parent is BinaryExpression &&
+        parent.operator.type == TokenType.QUESTION_QUESTION) {
+      // Do not perform an "implicit tear-off conversion" on the branches of a
+      // `??` operator.
+      return true;
+    }
+    return false;
   }
 
   /// Given an [argumentList] and the [parameters] related to the element that

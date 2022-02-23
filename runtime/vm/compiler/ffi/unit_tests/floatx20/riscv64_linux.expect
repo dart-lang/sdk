@@ -9,9 +9,9 @@ fa7 float
 a0 int64[float]
 a1 int64[float]
 a2 int64[float]
-tmp int64[float]
-tmp2 int64[float]
-pp int64[float]
+a3 int64[float]
+a4 int64[float]
+a5 int64[float]
 a6 int64[float]
 a7 int64[float]
 S+0 float

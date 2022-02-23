@@ -64,11 +64,6 @@ class VariableDeclarationResolver {
       _resolver.flowAnalysis.flow?.lateInitializer_end();
     }
 
-    var callInsertion = _resolver.insertImplicitCallReference(initializer);
-    if (callInsertion != null) {
-      initializer = callInsertion.expression;
-    }
-
     // Initializers of top-level variables and fields are already included
     // into elements during linking.
     if (element is ConstLocalVariableElementImpl) {

@@ -4,7 +4,6 @@
 
 library ssa;
 
-import '../backend_strategy.dart';
 import '../common.dart';
 import '../common/codegen.dart' show CodegenResult, CodegenRegistry;
 import '../common/elements.dart' show CommonElements, JElementEnvironment;
@@ -22,6 +21,7 @@ import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/startup_emitter/emitter.dart' show ModularEmitterImpl;
 import '../js_model/elements.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
+import '../js_model/js_strategy.dart';
 import '../options.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse;
@@ -44,7 +44,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
   SsaFunctionCompiler(
       this._options,
       this._reporter,
-      BackendStrategy backendStrategy,
+      JsBackendStrategy backendStrategy,
       Measurer measurer,
       this.sourceInformationStrategy)
       : generator =
@@ -319,7 +319,7 @@ abstract class SsaBuilder {
 }
 
 class SsaBuilderTask extends CompilerTask {
-  final BackendStrategy _backendStrategy;
+  final JsBackendStrategy _backendStrategy;
   final SourceInformationStrategy _sourceInformationFactory;
   SsaBuilder _builder;
 
