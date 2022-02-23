@@ -21963,6 +21963,7 @@ library
                         token: c @68
                         staticElement: c@52
                         staticType: C
+                      staticElement: self::@class::C::@method::call
                       staticType: void Function()
                   rightParenthesis: ) @69
                 staticElement: self::@class::D::@constructor::named

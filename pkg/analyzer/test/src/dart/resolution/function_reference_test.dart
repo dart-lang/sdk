@@ -1723,6 +1723,51 @@ foo() {
         findElement.method('call'), 'int Function(int)');
   }
 
+  test_implicitCallTearoff_class_staticGetter() async {
+    await assertNoErrorsInCode('''
+class C {
+  static const v = C();
+  const C();
+  T call<T>(T t) => t;
+}
+
+void f() {
+  C.v<int>;
+}
+''');
+
+    var node = findNode.implicitCallReference('C.v<int>');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: v
+      staticElement: self::@class::C::@getter::v
+      staticType: null
+    staticElement: self::@class::C::@getter::v
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  staticElement: self::@class::C::@method::call
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
   test_implicitCallTearoff_extensionOnNullable() async {
     await assertNoErrorsInCode('''
 Object? v = null;
@@ -1739,6 +1784,62 @@ void foo() {
         findNode.implicitCallReference('v<int, String>;'),
         findElement.method('call'),
         'void Function(int, String)');
+  }
+
+  test_implicitCallTearoff_prefix_class_staticGetter() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class C {
+  static const v = C();
+  const C();
+  T call<T>(T t) => t;
+}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.C.v<int>;
+}
+''');
+
+    var node = findNode.implicitCallReference('C.v<int>');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+        staticElement: self::@prefix::prefix
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: C
+        staticElement: package:test/a.dart::@class::C
+        staticType: null
+      staticElement: package:test/a.dart::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: v
+      staticElement: package:test/a.dart::@class::C::@getter::v
+      staticType: C
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  staticElement: package:test/a.dart::@class::C::@method::call
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_implicitCallTearoff_prefixed() async {

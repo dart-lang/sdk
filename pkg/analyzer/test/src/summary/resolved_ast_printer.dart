@@ -684,6 +684,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ImplicitCallReference');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
       _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
     });
