@@ -453,7 +453,6 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
   }
 
 DEFINE_ARRAY_GETTER_INTRINSIC(ObjectArray)
-DEFINE_ARRAY_GETTER_INTRINSIC(ImmutableArray)
 
 #define DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(enum_name)                       \
   DEFINE_ARRAY_GETTER_INTRINSIC(enum_name)                                     \
@@ -740,10 +739,6 @@ static bool BuildLoadField(FlowGraph* flow_graph, const Slot& field) {
 }
 
 bool GraphIntrinsifier::Build_ObjectArrayLength(FlowGraph* flow_graph) {
-  return BuildLoadField(flow_graph, Slot::Array_length());
-}
-
-bool GraphIntrinsifier::Build_ImmutableArrayLength(FlowGraph* flow_graph) {
   return BuildLoadField(flow_graph, Slot::Array_length());
 }
 

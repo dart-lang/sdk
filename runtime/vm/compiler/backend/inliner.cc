@@ -3772,7 +3772,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
   const MethodRecognizer::Kind kind = target.recognized_kind();
   switch (kind) {
     // Recognized [] operators.
-    case MethodRecognizer::kImmutableArrayGetIndexed:
     case MethodRecognizer::kObjectArrayGetIndexed:
     case MethodRecognizer::kGrowableArrayGetIndexed:
     case MethodRecognizer::kInt8ArrayGetIndexed:

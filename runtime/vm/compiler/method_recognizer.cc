@@ -94,9 +94,6 @@ bool MethodRecognizer::HasNonNullableResultTypeFromPragma(
 
 intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
   switch (kind) {
-    case kImmutableArrayGetIndexed:
-      return kImmutableArrayCid;
-
     case kObjectArrayGetIndexed:
     case kObjectArraySetIndexed:
     case kObjectArraySetIndexedUnchecked:

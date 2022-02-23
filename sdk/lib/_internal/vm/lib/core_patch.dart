@@ -23,7 +23,7 @@ import "dart:_internal"
         Lists,
         POWERS_OF_TEN,
         SubListIterable,
-        UnmodifiableListBase,
+        UnmodifiableListMixin,
         has63BitSmis,
         makeFixedListUnmodifiable,
         makeListFixedLength,

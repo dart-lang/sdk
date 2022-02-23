@@ -357,11 +357,9 @@ namespace dart {
   V(_Float64x2, +, Float64x2Add, 0x0a09dbd8)                                   \
 
 #define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
-  V(_List, get:length, ObjectArrayLength, 0x5850f06b)                          \
-  V(_List, [], ObjectArrayGetIndexed, 0x57b029cf)                              \
+  V(_Array, get:length, ObjectArrayLength, 0x5850f06b)                         \
+  V(_Array, [], ObjectArrayGetIndexed, 0x57b029cf)                             \
   V(_List, _setIndexed, ObjectArraySetIndexedUnchecked, 0x02f293ae)            \
-  V(_ImmutableList, get:length, ImmutableArrayLength, 0x5850f06b)              \
-  V(_ImmutableList, [], ImmutableArrayGetIndexed, 0x57b029cf)                  \
   V(_GrowableList, get:length, GrowableArrayLength, 0x5850f06b)                \
   V(_GrowableList, get:_capacity, GrowableArrayCapacity, 0x7d9f9bf2)           \
   V(_GrowableList, _setData, GrowableArraySetData, 0xbdda401b)                 \
