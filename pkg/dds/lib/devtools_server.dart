@@ -489,12 +489,11 @@ class DevToolsServer {
   }
 
   Future<Map<String, dynamic>> launchDevTools(
-    Map<String, dynamic> params,
-    Uri vmServiceUri,
-    String devToolsUrl,
-    bool headlessMode,
-    bool machineMode,
-  ) async {
+      Map<String, dynamic> params,
+      Uri vmServiceUri,
+      String devToolsUrl,
+      bool headlessMode,
+      bool machineMode) async {
     // First see if we have an existing DevTools client open that we can
     // reuse.
     final canReuse =
@@ -509,11 +508,10 @@ class DevToolsServer {
           shouldNotify,
         )) {
       _emitLaunchEvent(
-        reused: true,
-        notified: shouldNotify,
-        pid: null,
-        machineMode: machineMode,
-      );
+          reused: true,
+          notified: shouldNotify,
+          pid: null,
+          machineMode: machineMode);
       return {
         'reused': true,
         'notified': shouldNotify,
@@ -584,7 +582,7 @@ class DevToolsServer {
 
   bool _tryReuseExistingDevToolsInstance(
     Uri vmServiceUri,
-    String? page,
+    String page,
     bool notifyUser,
   ) {
     // First try to find a client that's already connected to this VM service,
@@ -593,9 +591,7 @@ class DevToolsServer {
         clientManager.findExistingConnectedReusableClient(vmServiceUri);
     if (existingClient != null) {
       try {
-        if (page != null) {
-          existingClient.showPage(page);
-        }
+        existingClient.showPage(page);
         if (notifyUser) {
           existingClient.notify();
         }
@@ -621,7 +617,7 @@ class DevToolsServer {
 
   String _buildUriToLaunch(
     Map<String, dynamic> uriParams,
-    String? page,
+    page,
     Uri devToolsUri,
   ) {
     final queryStringNameValues = [];

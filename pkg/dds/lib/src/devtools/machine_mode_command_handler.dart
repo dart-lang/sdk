@@ -18,7 +18,7 @@ import 'utils.dart';
 class MachineModeCommandHandler {
   static const launchDevToolsService = 'launchDevTools';
   static const copyAndCreateDevToolsFile = 'copyAndCreateDevToolsFile';
-  static const restoreDevToolsFile = 'restoreDevToolsFile';
+  static const restoreDevToolsFile = 'restoreDevToolsFiles';
   static const errorLaunchingBrowserCode = 500;
   static const bool machineMode = true;
 
@@ -67,7 +67,7 @@ class MachineModeCommandHandler {
     _stdinCommandStream.listen((Map<String, dynamic> json) async {
       // ID can be String, int or null
       final dynamic id = json['id'];
-      final Map<String, dynamic> params = json['params'] ?? <String, dynamic>{};
+      final Map<String, dynamic> params = json['params'];
       final method = json['method'];
       switch (method) {
         case 'vm.register':
@@ -200,7 +200,7 @@ class MachineModeCommandHandler {
   void _handleDevToolsSurvey(dynamic id, Map<String, dynamic> params) {
     _devToolsUsage ??= DevToolsUsage();
     final String surveyRequest = params['surveyRequest'];
-    final String value = params['value'] ?? '';
+    final String value = params['value'];
 
     switch (surveyRequest) {
       case copyAndCreateDevToolsFile:
@@ -212,6 +212,8 @@ class MachineModeCommandHandler {
             {
               'id': id,
               'result': {
+                // TODO(bkonyi): fix incorrect spelling of "success" here and
+                // below once we figure out the impact of changing this key.
                 'success': true,
               },
             },

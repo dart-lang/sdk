@@ -61,12 +61,3 @@ Future<void> executeUntilNextPause(VmService service) async {
   await service.resume(isolate.id!);
   await completer.future;
 }
-
-/// Returns the resolved URI to the pre-built devtools app.
-///
-/// The method caller is responsible for providing the relative [prefix] that
-/// will resolve to the sdk/ directory (e.g. '../../../').
-Uri devtoolsAppUri({required String prefix}) {
-  const pathFromSdkDirectory = 'third_party/devtools/web';
-  return Platform.script.resolve('$prefix$pathFromSdkDirectory');
-}
