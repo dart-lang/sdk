@@ -1886,7 +1886,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitImplicitCallReference(ImplicitCallReference node) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    analyzeExpression(node.expression, null);
+    node.typeArguments?.accept(this);
   }
 
   @override
