@@ -184,6 +184,9 @@ dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
 dart_2/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
 
+[ $arch == ia32 && ($nnbd == strong || $nnbd == weak) ]
+dart/type_casts_with_null_safety_autodetection_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
+
 [ $arch != simarm && $arch != simarm64 && $arch != simarm64c && $arch != simriscv32 && $arch != simriscv64 && $compiler == dartk && $hot_reload ]
 dart/data_uri_import_test/base64: Crash
 dart/data_uri_import_test/nocharset: Crash
