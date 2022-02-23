@@ -8,11 +8,15 @@ import '../templates.dart';
 import 'common.dart' as common;
 
 /// A generator for a uber-simple web application.
-class WebSimpleGenerator extends DefaultGenerator {
-  WebSimpleGenerator()
-      : super('web-simple', 'Bare-bones Web App',
-            'A web app that uses only core Dart libraries.',
-            categories: const ['dart', 'web']) {
+class WebGenerator extends DefaultGenerator {
+  WebGenerator()
+      : super(
+          'web',
+          'Bare-bones Web App',
+          'A web app that uses only core Dart libraries.',
+          alternateId: 'web-simple',
+          categories: const ['dart', 'web'],
+        ) {
     addFile('.gitignore', common.gitignore);
     addFile('analysis_options.yaml', common.analysisOptions);
     addFile('CHANGELOG.md', common.changelog);

@@ -111,7 +111,7 @@ class Foo {
     final p = project(mainSrc: 'void main() { print("Hello, World"); }');
     p.file('lib/foo.dart', source);
     final result = await p.run(['doc', '--validate-links', p.dirPath]);
-    // TODO (mit@): Update this test to actually test for the
+    // TODO (mit): Update this test to actually test for the
     // --validate-links flag.
     expect(result.stdout, contains('Documenting dartdev_temp'));
   });
