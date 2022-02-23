@@ -34088,8 +34088,6 @@ class WorkletGlobalScope extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathEvaluator
-@deprecated // experimental
 @Native("XPathEvaluator")
 class XPathEvaluator extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
@@ -34116,8 +34114,6 @@ class XPathEvaluator extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathExpression
-@deprecated // experimental
 @Native("XPathExpression")
 class XPathExpression extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
@@ -34131,8 +34127,6 @@ class XPathExpression extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathNSResolver
-@deprecated // experimental
 @Native("XPathNSResolver")
 class XPathNSResolver extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
@@ -34147,8 +34141,6 @@ class XPathNSResolver extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathResult
-@deprecated // experimental
 @Native("XPathResult")
 class XPathResult extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
