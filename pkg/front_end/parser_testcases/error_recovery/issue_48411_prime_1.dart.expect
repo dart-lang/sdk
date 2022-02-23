@@ -1,0 +1,293 @@
+Problems reported:
+
+parser/error_recovery/issue_48411_prime_1:4:16: Expected '(' before this.
+  C() : assert = 0;
+               ^
+
+parser/error_recovery/issue_48411_prime_1:4:16: Only factory constructor can specify '=' redirection.
+  C() : assert = 0;
+               ^
+
+parser/error_recovery/issue_48411_prime_1:4:18: Expected an identifier, but got '0'.
+  C() : assert = 0;
+                 ^
+
+parser/error_recovery/issue_48411_prime_1:4:16: Expected ';' after this.
+  C() : assert = 0;
+               ^
+
+parser/error_recovery/issue_48411_prime_1:4:18: Expected a class member, but got '0'.
+  C() : assert = 0;
+                 ^
+
+parser/error_recovery/issue_48411_prime_1:4:19: Expected a class member, but got ';'.
+  C() : assert = 0;
+                  ^
+
+parser/error_recovery/issue_48411_prime_1:8:7: Expected an initializer.
+  C() : null = 0;
+      ^
+
+parser/error_recovery/issue_48411_prime_1:8:9: Expected a function body, but got 'null'.
+  C() : null = 0;
+        ^^^^
+
+parser/error_recovery/issue_48411_prime_1:8:9: Expected a class member, but got 'null'.
+  C() : null = 0;
+        ^^^^
+
+parser/error_recovery/issue_48411_prime_1:8:14: Operator declarations must be preceded by the keyword 'operator'.
+  C() : null = 0;
+             ^
+
+parser/error_recovery/issue_48411_prime_1:8:14: The string '=' isn't a user-definable operator.
+  C() : null = 0;
+             ^
+
+parser/error_recovery/issue_48411_prime_1:8:14: A method declaration needs an explicit list of parameters.
+  C() : null = 0;
+             ^
+
+parser/error_recovery/issue_48411_prime_1:8:16: Expected a function body, but got '0'.
+  C() : null = 0;
+               ^
+
+parser/error_recovery/issue_48411_prime_1:8:16: Expected a class member, but got '0'.
+  C() : null = 0;
+               ^
+
+parser/error_recovery/issue_48411_prime_1:8:17: Expected a class member, but got ';'.
+  C() : null = 0;
+                ^
+
+parser/error_recovery/issue_48411_prime_1:16:14: Expected '.' before this.
+  C() : this = 0;
+             ^
+
+parser/error_recovery/issue_48411_prime_1:16:9: Expected an assignment after the field name.
+  C() : this = 0;
+        ^^^^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, C)
+      handleNoType(C)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(C)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, C)
+            handleNoType({)
+            handleIdentifier(C, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            beginInitializers(:)
+              beginInitializer(assert)
+                beginAssert(assert, Assert.Initializer)
+                  handleRecoverableError(Message[ExpectedButGot, Expected '(' before this., null, {string: (}], =, =)
+                  handleIdentifier(, expression)
+                  handleNoTypeArguments())
+                  handleNoArguments())
+                  handleSend(, ))
+                endAssert(assert, Assert.Initializer, (, null, =)
+              endInitializer(=)
+            endInitializers(1, :, =)
+            handleAsyncModifier(null, null)
+            handleRecoverableError(RedirectionInNonFactory, =, =)
+            beginRedirectingFactoryBody(=)
+              handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '0'., Try inserting an identifier before '0'., {lexeme: 0}], 0, 0)
+              handleIdentifier(, constructorReference)
+              beginConstructorReference()
+                handleNoTypeArguments(0)
+                handleNoConstructorReferenceContinuationAfterTypeArguments(0)
+              endConstructorReference(, null, 0, ConstructorReferenceContext.RedirectingFactory)
+              handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], =, =)
+            endRedirectingFactoryBody(=, ;)
+          endClassConstructor(null, C, (, :, ;)
+        endMember()
+        beginMetadataStar(0)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '0'., null, {lexeme: 0}], 0, 0)
+          handleInvalidMember(0)
+        endMember()
+        beginMetadataStar(;)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {lexeme: ;}], ;, ;)
+          handleInvalidMember(;)
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 3, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, C)
+      handleNoType(C)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(C)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, C)
+            handleNoType({)
+            handleIdentifier(C, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            beginInitializers(:)
+              beginInitializer(null)
+                handleRecoverableError(ExpectedAnInitializer, :, :)
+                handleIdentifier(, expression)
+                handleNoTypeArguments(=)
+                handleNoArguments(=)
+                handleSend(, =)
+                handleIdentifier(, expression)
+                handleNoTypeArguments(null)
+                handleNoArguments(null)
+                handleSend(, null)
+                handleAssignmentExpression(=)
+              endInitializer(null)
+            endInitializers(1, :, null)
+            handleAsyncModifier(null, null)
+            handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got 'null'., null, {lexeme: null}], null, null)
+            handleInvalidFunctionBody({)
+          endClassConstructor(null, C, (, :, })
+        endMember()
+        beginMetadataStar(null)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'null'., null, {lexeme: null}], null, null)
+          handleInvalidMember(null)
+        endMember()
+        beginMetadataStar(=)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(MissingOperatorKeyword, =, =)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, operator)
+            handleNoType(null)
+            handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {lexeme: =}], =, =)
+            handleInvalidOperatorName(operator, =)
+            handleNoTypeVariables(0)
+            handleRecoverableError(MissingMethodParameters, =, =)
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '0'., null, {lexeme: 0}], 0, 0)
+            handleInvalidFunctionBody({)
+          endClassMethod(null, operator, (, null, })
+        endMember()
+        beginMetadataStar(0)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '0'., null, {lexeme: 0}], 0, 0)
+          handleInvalidMember(0)
+        endMember()
+        beginMetadataStar(;)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {lexeme: ;}], ;, ;)
+          handleInvalidMember(;)
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 5, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, C)
+      handleNoType(C)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(C)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, C)
+            handleNoType({)
+            handleIdentifier(C, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            beginInitializers(:)
+              beginInitializer(super)
+                handleSuperExpression(super, expression)
+                handleLiteralInt(0)
+                handleAssignmentExpression(=)
+              endInitializer(;)
+            endInitializers(1, :, ;)
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassConstructor(null, C, (, :, ;)
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 1, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, C)
+      handleNoType(C)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(C)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, C)
+            handleNoType({)
+            handleIdentifier(C, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            beginInitializers(:)
+              beginInitializer(this)
+                handleRecoverableError(Message[ExpectedButGot, Expected '.' before this., null, {string: .}], =, =)
+                handleRecoverableError(MissingAssignmentInInitializer, this, this)
+                handleIdentifier(, expression)
+                handleNoTypeArguments(=)
+                handleNoArguments(=)
+                handleSend(, =)
+                handleThisExpression(this, expression)
+                handleIdentifier(, expressionContinuation)
+                handleNoTypeArguments(=)
+                handleNoArguments(=)
+                handleSend(, =)
+                handleEndingBinaryExpression(.)
+                handleLiteralInt(0)
+                handleAssignmentExpression(=)
+                handleAssignmentExpression(=)
+              endInitializer(;)
+            endInitializers(1, :, ;)
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassConstructor(null, C, (, :, ;)
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 1, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration()
+endCompilationUnit(4, )

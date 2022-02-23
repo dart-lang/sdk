@@ -3254,26 +3254,22 @@ class Parser {
           if (!optional('(', next)) {
             break;
           }
-          // Looks like assert expression ... fall through to insert comma
-        } else if (!next.isIdentifier && !optional('this', next)) {
-          // An identifier that wasn't an initializer. Break.
-          break;
-        } else {
-          if (optional('this', next)) {
-            next = next.next!;
-            if (!optional('.', next)) {
-              break;
-            }
-            next = next.next!;
-            if (!next.isIdentifier && !optional('assert', next)) {
-              break;
-            }
+          // Looks like assert expression ... fall through to insert comma.
+        } else if (optional('this', next) || optional('super', next)) {
+          next = next.next!;
+          if (!optional('(', next) && !optional('.', next)) {
+            break;
           }
+          // `this` or `super` followed by either `.` or `(`.
+          // Fall through to insert comma.
+        } else if (next.isIdentifier) {
           next = next.next!;
           if (!optional('=', next)) {
             break;
           }
-          // Looks like field assignment... fall through to insert comma
+          // Looks like field assignment... fall through to insert comma.
+        } else {
+          break;
         }
         // TODO(danrubel): Consider enhancing this to indicate that we are
         // expecting one of `,` or `;` or `{`
