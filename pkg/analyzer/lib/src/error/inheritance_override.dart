@@ -242,10 +242,16 @@ class _ClassVerifier {
 
         // No concrete implementation of the name.
         if (concreteElement == null) {
-          if (!_reportConcreteClassWithAbstractMember(name.name)) {
-            inheritedAbstract ??= [];
-            inheritedAbstract.add(interfaceElement);
+          if (_reportConcreteClassWithAbstractMember(name.name)) {
+            continue;
           }
+          // We already reported ILLEGAL_ENUM_VALUES_INHERITANCE.
+          if (classElement.isEnum &&
+              const {'values', 'values='}.contains(name.name)) {
+            continue;
+          }
+          inheritedAbstract ??= [];
+          inheritedAbstract.add(interfaceElement);
           continue;
         }
 
