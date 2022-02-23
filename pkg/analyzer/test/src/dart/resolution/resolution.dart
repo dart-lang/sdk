@@ -163,36 +163,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertConstructorReference(
-    ConstructorReference node,
-    Object? expectedConstructorElement,
-    ClassElement expectedClassElement,
-    String expectedType, {
-    PrefixElement? expectedPrefix,
-    Element? expectedTypeNameElement,
-  }) {
-    var actualConstructorName = node.constructorName.name;
-    if (actualConstructorName != null) {
-      assertConstructorElement(
-        actualConstructorName.staticElement as ConstructorElement?,
-        expectedConstructorElement,
-      );
-    }
-
-    assertElement(node, expectedConstructorElement);
-    assertType(node, expectedType);
-
-    var namedType = node.constructorName.type;
-    expectedTypeNameElement ??= expectedClassElement;
-    assertNamedType(
-      namedType, expectedTypeNameElement,
-      // The [NamedType] child node of the [ConstructorName] should not have a
-      // static type.
-      null,
-      expectedPrefix: expectedPrefix,
-    );
-  }
-
   void assertConstructors(ClassElement class_, List<String> expected) {
     expect(
       class_.constructors.map((c) {
@@ -427,7 +397,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// TODO(srawlins): Refactor to accept an `Object? expectedConstructor` which
   /// can accept `elementMatcher` for generics, and simplify, similar to
-  /// [assertConstructorReference].
+  /// `assertConstructorReference`.
   void assertInstanceCreation(
     InstanceCreationExpression creation,
     ClassElement expectedClassElement,

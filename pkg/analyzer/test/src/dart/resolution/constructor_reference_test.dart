@@ -30,18 +30,47 @@ typedef TA<T, U> = A<U, T>;
 const a = TA<int, String>.foo;
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('TA<int, String>.foo;'),
-      elementMatcher(classElement.getNamedConstructor('foo')!,
-          substitution: {'T': 'String', 'U': 'int'}),
-      classElement,
-      'A<String, int> Function()',
-      expectedTypeNameElement: findElement.typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('TA<int, String>.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          NamedType
+            name: SimpleIdentifier
+              token: String
+              staticElement: dart:core::@class::String
+              staticType: null
+            type: String
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::foo
+        substitution: {T: String, U: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::foo
+      substitution: {T: String, U: int}
+  staticType: A<String, int> Function()
+''');
   }
 
-  test_alias_generic_const_differingNumberOfTypeParamters() async {
+  test_alias_generic_const_differingNumberOfTypeParameters() async {
     await assertNoErrorsInCode('''
 class A<T, U> {
   A.foo() {}
@@ -51,15 +80,38 @@ typedef TA<T> = A<T, String>;
 const x = TA<int>.foo;
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('TA<int>.foo;'),
-      elementMatcher(classElement.getNamedConstructor('foo')!,
-          substitution: {'T': 'int', 'U': 'String'}),
-      classElement,
-      'A<int, String> Function()',
-      expectedTypeNameElement: findElement.typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('TA<int>.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::foo
+        substitution: {T: int, U: String}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::foo
+      substitution: {T: int, U: String}
+  staticType: A<int, String> Function()
+''');
   }
 
   test_alias_generic_named() async {
@@ -74,15 +126,44 @@ void bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('TA<int, String>.foo;'),
-      elementMatcher(classElement.getNamedConstructor('foo')!,
-          substitution: {'T': 'String', 'U': 'int'}),
-      classElement,
-      'A<String, int> Function()',
-      expectedTypeNameElement: findElement.typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('TA<int, String>.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          NamedType
+            name: SimpleIdentifier
+              token: String
+              staticElement: dart:core::@class::String
+              staticType: null
+            type: String
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::foo
+        substitution: {T: String, U: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::foo
+      substitution: {T: String, U: int}
+  staticType: A<String, int> Function()
+''');
   }
 
   test_alias_generic_uninstantiated_const() async {
@@ -95,14 +176,24 @@ typedef TA<T, U> = A<U, T>;
 const a = TA.foo;
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('TA.foo;'),
-      classElement.getNamedConstructor('foo'),
-      classElement,
-      'A<U, T> Function<T, U>()',
-      expectedTypeNameElement: findElement.typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('TA.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A<U, T> Function<T, U>()
+''');
   }
 
   test_alias_generic_unnamed() async {
@@ -117,15 +208,38 @@ void bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('TA<int>.new;'),
-      elementMatcher(classElement.unnamedConstructor,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-      expectedTypeNameElement: findElement.typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('TA<int>.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_alias_genericWithBound_unnamed() async {
@@ -140,15 +254,38 @@ void bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('TA<int>.new;'),
-      elementMatcher(classElement.unnamedConstructor,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-      expectedTypeNameElement: findElement.typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('TA<int>.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_alias_genericWithBound_unnamed_badBound() async {
@@ -165,15 +302,38 @@ void bar() {
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 75, 6),
     ]);
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('TA<String>.new;'),
-      elementMatcher(classElement.unnamedConstructor,
-          substitution: {'T': 'String'}),
-      classElement,
-      'A<String> Function()',
-      expectedTypeNameElement: findElement.typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('TA<String>.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: String
+              staticElement: dart:core::@class::String
+              staticType: null
+            type: String
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: String}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: String}
+  staticType: A<String> Function()
+''');
   }
 
   test_class_generic_const() async {
@@ -185,14 +345,38 @@ class A<T> {
 const a = A<int>.new;
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<int>.new;'),
-      elementMatcher(classElement.unnamedConstructor,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-    );
+    var node = findNode.constructorReference('A<int>.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_class_generic_named() async {
@@ -206,14 +390,38 @@ void bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<int>.foo;'),
-      elementMatcher(classElement.getNamedConstructor('foo')!,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-    );
+    var node = findNode.constructorReference('A<int>.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::foo
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::foo
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_class_generic_named_cascade() async {
@@ -269,14 +477,38 @@ void bar() {
           messageContains: ["The constructor 'A.foo'"]),
     ]);
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<int>.foo<int>;'),
-      elementMatcher(classElement.getNamedConstructor('foo')!,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-    );
+    var node = findNode.constructorReference('A<int>.foo<int>;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::foo
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::foo
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_class_generic_new_typeArgs() async {
@@ -294,14 +526,38 @@ void bar() {
           messageContains: ["The constructor 'A.new'"]),
     ]);
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<int>.new<int>;'),
-      elementMatcher(classElement.unnamedConstructor!,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-    );
+    var node = findNode.constructorReference('A<int>.new<int>;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_class_generic_nonConstructor() async {
@@ -318,13 +574,34 @@ void bar() {
           51, 8),
     ]);
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<int>.i;'),
-      null,
-      classElement,
-      'dynamic',
-    );
+    var node = findNode.constructorReference('A<int>.i;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: i
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_class_generic_nothing_hasNamedConstructor() async {
@@ -340,13 +617,34 @@ void bar() {
       error(ParserErrorCode.MISSING_IDENTIFIER, 49, 1),
     ]);
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<int>.;'),
-      null,
-      classElement,
-      'dynamic',
-    );
+    var node = findNode.constructorReference('A<int>.;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: <empty> <synthetic>
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_class_generic_unnamed() async {
@@ -360,14 +658,38 @@ void bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<int>.new;'),
-      elementMatcher(classElement.unnamedConstructor,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-    );
+    var node = findNode.constructorReference('A<int>.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_class_generic_unnamed_partOfPropertyAccess() async {
@@ -381,14 +703,38 @@ void bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<int>.new'),
-      elementMatcher(classElement.unnamedConstructor,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-    );
+    var node = findNode.constructorReference('A<int>.new');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_class_genericWithBound_unnamed() async {
@@ -402,14 +748,38 @@ void bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<int>.new;'),
-      elementMatcher(classElement.unnamedConstructor,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-    );
+    var node = findNode.constructorReference('A<int>.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_class_genericWithBound_unnamed_badBound() async {
@@ -425,14 +795,38 @@ void bar() {
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 52, 6),
     ]);
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<String>.new;'),
-      elementMatcher(classElement.unnamedConstructor,
-          substitution: {'T': 'String'}),
-      classElement,
-      'A<String> Function()',
-    );
+    var node = findNode.constructorReference('A<String>.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: String
+              staticElement: dart:core::@class::String
+              staticType: null
+            type: String
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: String}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: String}
+  staticType: A<String> Function()
+''');
   }
 
   test_prefixedAlias_generic_unnamed() async {
@@ -449,18 +843,46 @@ void bar() {
 }
 ''');
 
-    var classElement =
-        findElement.importFind('package:test/a.dart').class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('a.TA<int>.new;'),
-      elementMatcher(classElement.unnamedConstructor,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix,
-      expectedTypeNameElement:
-          findElement.importFind('package:test/a.dart').typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('a.TA<int>.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: TA
+          staticElement: package:test/a.dart::@typeAlias::TA
+          staticType: null
+        staticElement: package:test/a.dart::@typeAlias::TA
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: package:test/a.dart::@class::A::@constructor::•
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::•
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_prefixedClass_generic_named() async {
@@ -476,16 +898,46 @@ void bar() {
 }
 ''');
 
-    var classElement =
-        findElement.importFind('package:test/a.dart').class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('a.A<int>.foo;'),
-      elementMatcher(classElement.getNamedConstructor('foo')!,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix,
-    );
+    var node = findNode.constructorReference('a.A<int>.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          staticElement: package:test/a.dart::@class::A
+          staticType: null
+        staticElement: package:test/a.dart::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: ConstructorMember
+        base: package:test/a.dart::@class::A::@constructor::foo
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::foo
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_prefixedClass_generic_targetOfFunctionCall() async {
@@ -504,16 +956,46 @@ void bar() {
 }
 ''');
 
-    var classElement =
-        findElement.importFind('package:test/a.dart').class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('a.A<int>.new'),
-      elementMatcher(classElement.unnamedConstructor,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix,
-    );
+    var node = findNode.constructorReference('a.A<int>.new');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          staticElement: package:test/a.dart::@class::A
+          staticType: null
+        staticElement: package:test/a.dart::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: package:test/a.dart::@class::A::@constructor::•
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::•
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_prefixedClass_generic_unnamed() async {
@@ -529,16 +1011,46 @@ void bar() {
 }
 ''');
 
-    var classElement =
-        findElement.importFind('package:test/a.dart').class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('a.A<int>.new;'),
-      elementMatcher(classElement.unnamedConstructor,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix,
-    );
+    var node = findNode.constructorReference('a.A<int>.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          staticElement: package:test/a.dart::@class::A
+          staticType: null
+        staticElement: package:test/a.dart::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: package:test/a.dart::@class::A::@constructor::•
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::•
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 }
 
@@ -557,13 +1069,24 @@ foo() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A.new;'),
-      classElement.unnamedConstructor,
-      classElement,
-      'A Function()',
-    );
+    var node = findNode.constructorReference('A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::•
+      staticType: null
+    staticElement: self::@class::A::@constructor::•
+  staticType: A Function()
+''');
   }
 
   test_abstractClass_generative() async {
@@ -583,13 +1106,24 @@ foo() {
           5),
     ]);
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A.new;'),
-      classElement.unnamedConstructor,
-      classElement,
-      'A Function()',
-    );
+    var node = findNode.constructorReference('A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::•
+      staticType: null
+    staticElement: self::@class::A::@constructor::•
+  staticType: A Function()
+''');
   }
 
   test_abstractClass_redirecting() async {
@@ -611,13 +1145,24 @@ foo() {
           5),
     ]);
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A.new;'),
-      classElement.unnamedConstructor,
-      classElement,
-      'A Function()',
-    );
+    var node = findNode.constructorReference('A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::•
+      staticType: null
+    staticElement: self::@class::A::@constructor::•
+  staticType: A Function()
+''');
   }
 
   test_class_generic_inferFromContext_badTypeArgument() async {
@@ -634,14 +1179,26 @@ A<String> Function() bar() {
           contextMessages: [message('/home/test/lib/test.dart', 39, 9)]),
     ]);
 
-    var classElement = findElement.class_('A');
-    var constructorElement = classElement.getNamedConstructor('foo')!;
-    assertConstructorReference(
-      findNode.constructorReference('A.foo;'),
-      constructorElement,
-      classElement,
-      'A<Never> Function()',
-    );
+    var node = findNode.constructorReference('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+      tearOffTypeArgumentTypes
+        Never
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A<Never> Function()
+''');
   }
 
   test_class_generic_named_inferTypeFromContext() async {
@@ -655,14 +1212,26 @@ A<int> Function() bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    var constructorElement = classElement.getNamedConstructor('foo')!;
-    assertConstructorReference(
-      findNode.constructorReference('A.foo;'),
-      constructorElement,
-      classElement,
-      'A<int> Function()',
-    );
+    var node = findNode.constructorReference('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+      tearOffTypeArgumentTypes
+        int
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A<int> Function()
+''');
   }
 
   test_class_generic_named_uninstantiated() async {
@@ -676,14 +1245,24 @@ void bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    var constructorElement = classElement.getNamedConstructor('foo')!;
-    assertConstructorReference(
-      findNode.constructorReference('A.foo;'),
-      constructorElement,
-      classElement,
-      'A<T> Function<T>()',
-    );
+    var node = findNode.constructorReference('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A<T> Function<T>()
+''');
   }
 
   test_class_generic_named_uninstantiated_bound() async {
@@ -697,14 +1276,24 @@ void bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    var constructorElement = classElement.getNamedConstructor('foo')!;
-    assertConstructorReference(
-      findNode.constructorReference('A.foo;'),
-      constructorElement,
-      classElement,
-      'A<T> Function<T extends num>()',
-    );
+    var node = findNode.constructorReference('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A<T> Function<T extends num>()
+''');
   }
 
   test_class_nonGeneric_const() async {
@@ -716,13 +1305,24 @@ class A {
 const a1 = A.new;
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A.new;'),
-      classElement.unnamedConstructor,
-      classElement,
-      'A Function()',
-    );
+    var node = findNode.constructorReference('A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::•
+      staticType: null
+    staticElement: self::@class::A::@constructor::•
+  staticType: A Function()
+''');
   }
 
   test_class_nonGeneric_named() async {
@@ -736,13 +1336,24 @@ void bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A.foo;'),
-      classElement.getNamedConstructor('foo')!,
-      classElement,
-      'A Function()',
-    );
+    var node = findNode.constructorReference('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A Function()
+''');
   }
 
   test_class_nonGeneric_unnamed() async {
@@ -756,13 +1367,24 @@ bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A.new;'),
-      classElement.unnamedConstructor,
-      classElement,
-      'A Function()',
-    );
+    var node = findNode.constructorReference('A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::•
+      staticType: null
+    staticElement: self::@class::A::@constructor::•
+  staticType: A Function()
+''');
   }
 
   test_prefixedAlias_nonGeneric_named() async {
@@ -779,17 +1401,32 @@ bar() {
 }
 ''');
 
-    var classElement =
-        findElement.importFind('package:test/a.dart').class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('a.TA.foo;'),
-      classElement.getNamedConstructor('foo'),
-      classElement,
-      'A Function()',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix,
-      expectedTypeNameElement:
-          findElement.importFind('package:test/a.dart').typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('a.TA.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: TA
+          staticElement: package:test/a.dart::@typeAlias::TA
+          staticType: null
+        staticElement: package:test/a.dart::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: package:test/a.dart::@class::A::@constructor::foo
+      staticType: null
+    staticElement: package:test/a.dart::@class::A::@constructor::foo
+  staticType: A Function()
+''');
   }
 
   test_prefixedAlias_nonGeneric_unnamed() async {
@@ -806,17 +1443,32 @@ bar() {
 }
 ''');
 
-    var classElement =
-        findElement.importFind('package:test/a.dart').class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('a.TA.new;'),
-      classElement.unnamedConstructor,
-      classElement,
-      'A Function()',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix,
-      expectedTypeNameElement:
-          findElement.importFind('package:test/a.dart').typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('a.TA.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: TA
+          staticElement: package:test/a.dart::@typeAlias::TA
+          staticType: null
+        staticElement: package:test/a.dart::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: package:test/a.dart::@class::A::@constructor::•
+      staticType: null
+    staticElement: package:test/a.dart::@class::A::@constructor::•
+  staticType: A Function()
+''');
   }
 
   test_prefixedClass_nonGeneric_named() async {
@@ -832,15 +1484,32 @@ bar() {
 }
 ''');
 
-    var classElement =
-        findElement.importFind('package:test/a.dart').class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('a.A.foo;'),
-      classElement.getNamedConstructor('foo'),
-      classElement,
-      'A Function()',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix,
-    );
+    var node = findNode.constructorReference('a.A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          staticElement: package:test/a.dart::@class::A
+          staticType: null
+        staticElement: package:test/a.dart::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: package:test/a.dart::@class::A::@constructor::foo
+      staticType: null
+    staticElement: package:test/a.dart::@class::A::@constructor::foo
+  staticType: A Function()
+''');
   }
 
   test_prefixedClass_nonGeneric_unnamed() async {
@@ -856,15 +1525,32 @@ bar() {
 }
 ''');
 
-    var classElement =
-        findElement.importFind('package:test/a.dart').class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('a.A.new;'),
-      classElement.unnamedConstructor,
-      classElement,
-      'A Function()',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix,
-    );
+    var node = findNode.constructorReference('a.A.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: a
+          staticElement: self::@prefix::a
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          staticElement: package:test/a.dart::@class::A
+          staticType: null
+        staticElement: package:test/a.dart::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: package:test/a.dart::@class::A::@constructor::•
+      staticType: null
+    staticElement: package:test/a.dart::@class::A::@constructor::•
+  staticType: A Function()
+''');
   }
 
   test_typeAlias_generic_const() async {
@@ -877,15 +1563,24 @@ typedef TA<T> = A<T>;
 const a = TA.new;
 ''');
 
-    var classElement = findElement.class_('A');
-    var constructorElement = classElement.unnamedConstructor!;
-    assertConstructorReference(
-      findNode.constructorReference('TA.new;'),
-      constructorElement,
-      classElement,
-      'A<T> Function<T>()',
-      expectedTypeNameElement: findElement.typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('TA.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::•
+      staticType: null
+    staticElement: self::@class::A::@constructor::•
+  staticType: A<T> Function<T>()
+''');
   }
 
   test_typeAlias_generic_named_uninstantiated() async {
@@ -900,15 +1595,24 @@ bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    var constructorElement = classElement.getNamedConstructor('foo')!;
-    assertConstructorReference(
-      findNode.constructorReference('TA.foo;'),
-      constructorElement,
-      findElement.class_('A'),
-      'A<String, U> Function<U>()',
-      expectedTypeNameElement: findElement.typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('TA.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A<String, U> Function<U>()
+''');
   }
 
   test_typeAlias_instantiated_const() async {
@@ -921,15 +1625,28 @@ typedef TA = A<int>;
 const a = TA.new;
 ''');
 
-    var classElement = findElement.class_('A');
-    var constructorElement = classElement.unnamedConstructor!;
-    assertConstructorReference(
-      findNode.constructorReference('TA.new;'),
-      elementMatcher(constructorElement, substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-      expectedTypeNameElement: findElement.typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('TA.new;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 
   test_typeAlias_instantiated_named() async {
@@ -944,15 +1661,28 @@ bar() {
 }
 ''');
 
-    var classElement = findElement.class_('A');
-    var constructorElement = classElement.getNamedConstructor('foo')!;
-    assertConstructorReference(
-      findNode.constructorReference('TA.foo;'),
-      elementMatcher(constructorElement, substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-      expectedTypeNameElement: findElement.typeAlias('TA'),
-    );
+    var node = findNode.constructorReference('TA.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: TA
+        staticElement: self::@typeAlias::TA
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::foo
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::foo
+      substitution: {T: int}
+  staticType: A<int> Function()
+''');
   }
 }
 
@@ -972,13 +1702,34 @@ void bar() {
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 52, 5),
     ]);
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<int>.i;'),
-      null,
-      classElement,
-      'dynamic',
-    );
+    var node = findNode.constructorReference('A<int>.i;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: i
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_constructorTearoff() async {
@@ -994,12 +1745,23 @@ void bar() {
       error(HintCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, 39, 5),
     ]);
 
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A.foo;'),
-      classElement.getNamedConstructor('foo')!,
-      classElement,
-      'A Function()',
-    );
+    var node = findNode.constructorReference('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@constructor::foo
+      staticType: null
+    staticElement: self::@class::A::@constructor::foo
+  staticType: A Function()
+''');
   }
 }

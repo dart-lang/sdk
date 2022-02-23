@@ -249,11 +249,25 @@ C<int> Function(int) foo() {
 
     // TODO(srawlins): Leave the constructor reference uninstantiated, then
     // perform generic function instantiation as a wrapping node.
-    assertConstructorReference(
-        findNode.constructorReference('C.new'),
-        findElement.unnamedConstructor('C'),
-        findElement.class_('C'),
-        'C<int> Function(int)');
+    assertResolvedNodeText(findNode.constructorReference('C.new'), r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: C
+        staticElement: self::@class::C
+        staticType: null
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::C::@constructor::•
+      staticType: null
+      tearOffTypeArgumentTypes
+        int
+    staticElement: self::@class::C::@constructor::•
+  staticType: C<int> Function(int)
+''');
   }
 
   test_functionExpression() async {
