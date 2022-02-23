@@ -131,8 +131,5 @@
     "Dynamic invocation of 'unary-'.": 1,
     "Dynamic invocation of 'min'.": 1,
     "Dynamic invocation of 'max'.": 1
-  },
-  "pkg/compiler/lib/src/ssa/value_set.dart": {
-    "Dynamic invocation of 'add'.": 2
   }
 }
