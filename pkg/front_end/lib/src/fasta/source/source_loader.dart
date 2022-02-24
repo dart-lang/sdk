@@ -647,9 +647,9 @@ class SourceLoader extends Loader {
     }
   }
 
-  Future<Null> buildBodies() async {
+  Future<Null> buildBodies(List<SourceLibraryBuilder> libraryBuilders) async {
     assert(_coreLibrary != null);
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+    for (SourceLibraryBuilder library in libraryBuilders) {
       currentUriForCrashReporting = library.importUri;
       await buildBody(library);
     }

@@ -10,18 +10,24 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  external method getSuperClass() → core::String;
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ getSuperClass() → core::String {
+    return "Object";
+  }
 }
 @#C1
 class B extends self::A {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
-  external method getSuperClass() → core::String;
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ getSuperClass() → core::String {
+    return "A";
+  }
 }
 @#C1
-abstract class M extends core::Object /*isMixinDeclaration*/  {
-  external method getSuperClass() → core::String;
+class M extends core::Object /*isMixinDeclaration*/  {
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ getSuperClass() → core::String {
+    return "Object";
+  }
 }
 abstract class _C&A&M = self::A with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_C&A&M
@@ -35,7 +41,9 @@ class C extends self::_C&A&M {
   synthetic constructor •() → self::C
     : super self::_C&A&M::•()
     ;
-  external method getSuperClass() → core::String;
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ getSuperClass() → core::String {
+    return "A";
+  }
 }
 
 constants  {

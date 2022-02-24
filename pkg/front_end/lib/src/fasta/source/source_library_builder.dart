@@ -66,6 +66,7 @@ import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
+import '../kernel/macro.dart';
 import '../kernel/type_algorithms.dart'
     show
         NonSimplicityIssue,
@@ -519,8 +520,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// unparsed library on the [loader].
   SourceLibraryBuilder createAugmentationLibrary(String source) {
     int index = _patchLibraries?.length ?? 0;
-    Uri uri = new Uri(
-        scheme: 'org-dartlang-augmentation', path: '${fileUri.path}-$index');
+    Uri uri =
+        new Uri(scheme: augmentationScheme, path: '${fileUri.path}-$index');
     SourceLibraryBuilder augmentationLibrary = new SourceLibraryBuilder(
         fileUri: uri,
         importUri: uri,

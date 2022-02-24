@@ -438,12 +438,21 @@ class KernelTarget extends TargetImplementation {
     loader.resolveTypes(augmentationLibraries);
   }
 
-  /// Builds [augmentationLibrary] to the state expected after applying phase
+  /// Builds [augmentationLibraries] to the state expected after applying phase
   /// 2 macros.
-  void _buildForPhase2(SourceLibraryBuilder augmentationLibrary) {
-    augmentationLibrary.finishTypeVariables(objectClassBuilder, dynamicType);
-    augmentationLibrary.build(loader.coreLibrary, modifyTarget: false);
-    augmentationLibrary.resolveConstructors();
+  void _buildForPhase2(List<SourceLibraryBuilder> augmentationLibraries) {
+    loader.finishTypeVariables(
+        augmentationLibraries, objectClassBuilder, dynamicType);
+    for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+      augmentationLibrary.build(loader.coreLibrary, modifyTarget: false);
+    }
+    loader.resolveConstructors(augmentationLibraries);
+  }
+
+  /// Builds [augmentationLibraries] to the state expected after applying phase
+  /// 3 macros.
+  void _buildForPhase3(List<SourceLibraryBuilder> augmentationLibraries) {
+    // Currently there nothing to do here. The method is left in for symmetry.
   }
 
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
@@ -533,8 +542,11 @@ class KernelTarget extends TargetImplementation {
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
         await macroApplications.applyDeclarationsMacros(loader.hierarchyBuilder,
             (SourceLibraryBuilder augmentationLibrary) async {
-          await _buildForPhase1([augmentationLibrary]);
-          _buildForPhase2(augmentationLibrary);
+          List<SourceLibraryBuilder> augmentationLibraries = [
+            augmentationLibrary
+          ];
+          await _buildForPhase1(augmentationLibraries);
+          _buildForPhase2(augmentationLibraries);
         });
       }
 
@@ -620,8 +632,17 @@ class KernelTarget extends TargetImplementation {
     return withCrashReporting<BuildResult>(() async {
       ticker.logMs("Building component");
 
+      if (macroApplications != null) {
+        benchmarker?.enterPhase(BenchmarkPhases.body_applyDefinitionMacros);
+        List<SourceLibraryBuilder> augmentationLibraries =
+            await macroApplications.applyDefinitionMacros();
+        await _buildForPhase1(augmentationLibraries);
+        _buildForPhase2(augmentationLibraries);
+        _buildForPhase3(augmentationLibraries);
+      }
+
       benchmarker?.enterPhase(BenchmarkPhases.body_buildBodies);
-      await loader.buildBodies();
+      await loader.buildBodies(loader.sourceLibraryBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishSynthesizedParameters);
       finishSynthesizedParameters();
@@ -635,11 +656,6 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.body_collectSourceClasses);
       List<SourceClassBuilder>? sourceClasses = loader.collectSourceClasses();
-
-      if (macroApplications != null) {
-        benchmarker?.enterPhase(BenchmarkPhases.body_applyDefinitionMacros);
-        await macroApplications.applyDefinitionMacros();
-      }
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishNativeMethods);
       loader.finishNativeMethods();

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
+Types:
 import 'dart:core' as i0;
 import 'package:macro/macro.dart' as i1;
 
@@ -21,8 +22,7 @@ class topLevelFunction4GeneratedClass {
 }
 class topLevelFunction5GeneratedClass {
   external i0.dynamic method();
-}
-*/
+}*/
 
 import 'package:macro/macro.dart';
 

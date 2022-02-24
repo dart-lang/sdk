@@ -8,21 +8,37 @@ import "dart:math" as math;
 import "package:macro/macro.dart";
 
 @#C1
-external static method topLevelFunction1() → void;
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ topLevelFunction1() → void {
+  throw 42;
+}
 @#C1
-external static method topLevelFunction2() → dynamic;
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ topLevelFunction2() → dynamic {
+  throw 42;
+}
 @#C1
-external static method topLevelFunction3() → core::int;
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ topLevelFunction3() → core::int {
+  throw 42;
+}
 @#C1
-external static method topLevelFunction4() → dynamic;
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ topLevelFunction4() → dynamic {
+  throw 42;
+}
 @#C1
-external static method topLevelFunction5() → math::Random;
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ topLevelFunction5() → math::Random {
+  throw 42;
+}
 @#C1
-external static method topLevelFunction6() → core::List<core::int>;
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ topLevelFunction6() → core::List<core::int> {
+  throw 42;
+}
 @#C1
-external static method topLevelFunction7() → core::Map<math::Random, core::List<core::int>>;
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ topLevelFunction7() → core::Map<math::Random, core::List<core::int>> {
+  throw 42;
+}
 @#C1
-external static method topLevelFunction8() → core::Map<core::int?, core::String>?;
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ topLevelFunction8() → core::Map<core::int?, core::String>? {
+  throw 42;
+}
 
 constants  {
   #C1 = mac::FunctionDefinitionMacro1 {}
