@@ -521,11 +521,11 @@ class Server {
       var trimmedLine = line.trim();
 
       // Guard against lines like:
-      //   {"event":"server.connected","params":{...}}The Dart VM service is listening on ...
-      var dartVMServiceMessage = 'The Dart VM service is listening on ';
-      if (trimmedLine.contains(dartVMServiceMessage)) {
+      //   {"event":"server.connected","params":{...}}Observatory listening on ...
+      var observatoryMessage = 'Observatory listening on ';
+      if (trimmedLine.contains(observatoryMessage)) {
         trimmedLine = trimmedLine
-            .substring(0, trimmedLine.indexOf(dartVMServiceMessage))
+            .substring(0, trimmedLine.indexOf(observatoryMessage))
             .trim();
       }
       if (trimmedLine.isEmpty) {

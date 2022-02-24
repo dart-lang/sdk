@@ -443,7 +443,7 @@ class Server {
         .listen((String line) {
       lastCommunicationTime = currentElapseTime;
       var trimmedLine = line.trim();
-      if (trimmedLine.startsWith('The Dart VM service is listening on ')) {
+      if (trimmedLine.startsWith('Observatory listening on ')) {
         return;
       }
       _recordStdio('RECV: $trimmedLine');

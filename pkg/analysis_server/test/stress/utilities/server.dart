@@ -762,7 +762,7 @@ class Server {
 
     var trimmedLine = line.trim();
     if (trimmedLine.isEmpty ||
-        trimmedLine.startsWith('The Dart VM service is listening on ')) {
+        trimmedLine.startsWith('Observatory listening on ')) {
       return;
     }
     logger?.log(fromServer, '$trimmedLine');

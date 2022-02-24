@@ -23,7 +23,7 @@ void runTest(bool withDartDev) {
     sub = process.stdout.transform(utf8.decoder).listen((e) async {
       if (e.contains('ready') && !readyCompleter.isCompleted) {
         readyCompleter.complete();
-      } else if (e.contains('The Dart VM service is listening on')) {
+      } else if (e.contains('Observatory listening on')) {
         await sub.cancel();
         completer.complete();
       }
