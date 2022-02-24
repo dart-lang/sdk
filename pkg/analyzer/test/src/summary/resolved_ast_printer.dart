@@ -1361,9 +1361,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _sink.writeln(_nameOfMemberClass(element));
       _withIndent(() {
         _writeElement('base', element.declaration);
+
+        if (element.isLegacy) {
+          _writelnWithIndent('isLegacy: true');
+        }
+
         var map = element.substitution.map;
-        var mapStr = _substitutionMapStr(map);
-        _writelnWithIndent('substitution: $mapStr');
+        if (map.isNotEmpty) {
+          var mapStr = _substitutionMapStr(map);
+          _writelnWithIndent('substitution: $mapStr');
+        }
       });
     } else if (element is MultiplyDefinedElement) {
       _sink.writeln('<null>');

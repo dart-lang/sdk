@@ -16268,11 +16268,11 @@ library
                   token: compare @43
                   staticElement: MethodMember
                     base: dart:core::@class::Comparable::@method::compare
-                    substitution: {}
+                    isLegacy: true
                   staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
                 staticElement: MethodMember
                   base: dart:core::@class::Comparable::@method::compare
-                  substitution: {}
+                  isLegacy: true
                 staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
         returnType: void
 ''');

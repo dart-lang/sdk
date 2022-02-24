@@ -705,12 +705,12 @@ BinaryExpression
       staticType: int*
     staticElement: MethodMember
       base: dart:core::@class::num::@method::+
-      substitution: {}
+      isLegacy: true
     staticInvokeType: num* Function(num*)*
     staticType: int*
   staticElement: MethodMember
     base: dart:core::@class::Object::@method::==
-    substitution: {}
+    isLegacy: true
   staticInvokeType: bool* Function(Object*)*
   staticType: bool*
 ''');
@@ -723,7 +723,6 @@ void f() {
 }
 ''');
 
-    // TODO(scheglov) Why do we have `MethodMember`? For legacy?
     assertResolvedNodeText(findNode.binary('+ ('), r'''
 BinaryExpression
   leftOperand: ParenthesizedExpression
@@ -748,7 +747,7 @@ BinaryExpression
         staticType: int*
       staticElement: MethodMember
         base: dart:core::@class::num::@method::+
-        substitution: {}
+        isLegacy: true
       staticInvokeType: num* Function(num*)*
       staticType: int*
     rightParenthesis: )
