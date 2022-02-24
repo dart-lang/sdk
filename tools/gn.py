@@ -282,8 +282,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
             'exe.stripped/dart_precompiled_runtime_product')
         gn_args['gen_snapshot_stripped_binary'] = (
             'exe.stripped/gen_snapshot_product')
-        gn_args['analyze_snapshot_binary'] = (
-            'exe.stripped/analyze_snapshot_product')
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):

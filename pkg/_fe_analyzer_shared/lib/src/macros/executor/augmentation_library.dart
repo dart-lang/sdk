@@ -59,11 +59,27 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
       }
     }
 
+    Map<String, List<DeclarationCode>> mergedClassResults = {};
     for (MacroExecutionResult result in macroResults) {
-      for (DeclarationCode augmentation in result.augmentations) {
+      for (DeclarationCode augmentation in result.libraryAugmentations) {
         buildCode(augmentation);
         directivesBuffer.writeln();
       }
+      for (MapEntry<String, Iterable<DeclarationCode>> entry
+          in result.classAugmentations.entries) {
+        mergedClassResults.update(
+            entry.key, (value) => value..addAll(entry.value),
+            ifAbsent: () => entry.value.toList());
+      }
+    }
+    for (MapEntry<String, List<DeclarationCode>> entry
+        in mergedClassResults.entries) {
+      directivesBuffer.writeln('augment class ${entry.key} {');
+      for (DeclarationCode augmentation in entry.value) {
+        buildCode(augmentation);
+        directivesBuffer.writeln();
+      }
+      directivesBuffer.writeln('}');
     }
     return '$importsBuffer\n\n$directivesBuffer';
   }

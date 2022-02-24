@@ -219,6 +219,26 @@ void g() {
     assertHasOffset('ddd: 3');
   }
 
+  Future<void> test_superFormalParameter_requiredPositional() async {
+    addTestFile('''
+class A {
+  A(int x);
+}
+
+class B extends A {
+  int y;
+
+  B(super.x) : y = x * 2;
+}
+''');
+    await prepareOccurrences();
+    assertHasRegion('x) :');
+    expect(testOccurrences.element.kind, ElementKind.PARAMETER);
+    expect(testOccurrences.element.name, 'x');
+    assertHasOffset('x) :');
+    assertHasOffset('x * 2');
+  }
+
   Future<void> test_topLevelVariable() async {
     addTestFile('''
 var VVV = 1;

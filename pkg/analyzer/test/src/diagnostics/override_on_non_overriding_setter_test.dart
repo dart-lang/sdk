@@ -15,29 +15,7 @@ main() {
 
 @reflectiveTest
 class OverrideOnNonOverridingSetterTest extends PubPackageResolutionTest {
-  test_inInterface() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  set m(int x) {}
-}
-class B implements A {
-  @override
-  set m(int x) {}
-}''');
-  }
-
-  test_inSupertype() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  set m(int x) {}
-}
-class B extends A {
-  @override
-  set m(int x) {}
-}''');
-  }
-
-  test_invalid_class() async {
+  test_class() async {
     await assertErrorsInCode(r'''
 class A {}
 
@@ -50,7 +28,69 @@ class B extends A {
     ]);
   }
 
-  test_invalid_extension() async {
+  test_class_extends() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set m(int x) {}
+}
+class B extends A {
+  @override
+  set m(int x) {}
+}''');
+  }
+
+  test_class_implements() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set m(int x) {}
+}
+class B implements A {
+  @override
+  set m(int x) {}
+}''');
+  }
+
+  test_enum() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  @override
+  set foo(int _) {}
+}
+''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 32, 3),
+    ]);
+  }
+
+  test_enum_implements() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set foo(int _) {}
+}
+
+enum E implements A {
+  v;
+  @override
+  set foo(int _) {}
+}
+''');
+  }
+
+  test_enum_with() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  set foo(int _) {}
+}
+
+enum E with M {
+  v;
+  @override
+  set foo(int _) {}
+}
+''');
+  }
+
+  test_extension() async {
     await assertErrorsInCode(r'''
 extension E on int {
   @override
@@ -61,7 +101,7 @@ extension E on int {
     ]);
   }
 
-  test_invalid_mixin() async {
+  test_mixin() async {
     await assertErrorsInCode(r'''
 class A {}
 

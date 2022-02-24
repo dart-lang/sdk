@@ -497,6 +497,8 @@ class KernelTarget extends TargetImplementation {
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyTypeMacros);
         List<SourceLibraryBuilder> augmentationLibraries =
             await macroApplications.applyTypeMacros();
+        benchmarker
+            ?.enterPhase(BenchmarkPhases.outline_buildMacroTypesForPhase1);
         await _buildForPhase1(augmentationLibraries);
       }
 
@@ -545,7 +547,11 @@ class KernelTarget extends TargetImplementation {
           List<SourceLibraryBuilder> augmentationLibraries = [
             augmentationLibrary
           ];
+          benchmarker?.enterPhase(
+              BenchmarkPhases.outline_buildMacroDeclarationsForPhase1);
           await _buildForPhase1(augmentationLibraries);
+          benchmarker?.enterPhase(
+              BenchmarkPhases.outline_buildMacroDeclarationsForPhase2);
           _buildForPhase2(augmentationLibraries);
         });
       }
@@ -636,8 +642,14 @@ class KernelTarget extends TargetImplementation {
         benchmarker?.enterPhase(BenchmarkPhases.body_applyDefinitionMacros);
         List<SourceLibraryBuilder> augmentationLibraries =
             await macroApplications.applyDefinitionMacros();
+        benchmarker
+            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase1);
         await _buildForPhase1(augmentationLibraries);
+        benchmarker
+            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase2);
         _buildForPhase2(augmentationLibraries);
+        benchmarker
+            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase3);
         _buildForPhase3(augmentationLibraries);
       }
 

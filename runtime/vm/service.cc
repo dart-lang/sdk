@@ -1205,9 +1205,9 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
   if (!ServiceIsolate::IsRunning()) {
     OS::PrintErr("  Start the vm-service to debug.\n");
   } else if (ServiceIsolate::server_address() == NULL) {
-    OS::PrintErr("  Connect to the Dart VM service to debug.\n");
+    OS::PrintErr("  Connect to Observatory to debug.\n");
   } else {
-    OS::PrintErr("  Connect to the Dart VM service at %s to debug.\n",
+    OS::PrintErr("  Connect to Observatory at %s to debug.\n",
                  ServiceIsolate::server_address());
   }
   const Error& err = Error::Handle(Thread::Current()->sticky_error());

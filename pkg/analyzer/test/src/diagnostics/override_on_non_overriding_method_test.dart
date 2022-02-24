@@ -15,18 +15,56 @@ main() {
 
 @reflectiveTest
 class OverrideOnNonOverridingMethodTest extends PubPackageResolutionTest {
-  test_inInterface() async {
+  test_class() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+class B extends A {
+  @override
+  void foo() {}
+}
+''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, 51, 3),
+    ]);
+  }
+
+  test_class_extends() async {
     await assertNoErrorsInCode(r'''
 class A {
-  int m() => 1;
+  void foo() {}
 }
-class B implements A {
+
+class B extends A {
   @override
-  int m() => 1;
+  void foo() {}
 }''');
   }
 
-  test_inInterfaces() async {
+  test_class_extends_abstract() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  @override
+  void foo() {}
+}''');
+  }
+
+  test_class_implements() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  @override
+  void foo() {}
+}''');
+  }
+
+  test_class_implements2() async {
     await assertNoErrorsInCode(r'''
 abstract class I {
   void foo(int _);
@@ -42,42 +80,19 @@ class C implements I, J {
 }''');
   }
 
-  test_inSuperclass() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int m() => 1;
-}
-class B extends A {
-  @override
-  int m() => 1;
-}''');
-  }
-
-  test_inSuperclass_abstract() async {
-    await assertNoErrorsInCode(r'''
-abstract class A {
-  int m();
-}
-class B extends A {
-  @override
-  int m() => 1;
-}''');
-  }
-
-  test_invalid_class() async {
+  test_enum() async {
     await assertErrorsInCode(r'''
-class A {}
-
-class B extends A {
+enum E {
+  v;
   @override
   void foo() {}
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, 51, 3),
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, 33, 3),
     ]);
   }
 
-  test_invalid_extension() async {
+  test_extension() async {
     await assertErrorsInCode(r'''
 extension E on int {
   @override
@@ -88,7 +103,7 @@ extension E on int {
     ]);
   }
 
-  test_invalid_mixin() async {
+  test_mixin() async {
     await assertErrorsInCode(r'''
 class A {}
 
@@ -99,5 +114,31 @@ mixin M on A {
 ''', [
       error(HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, 46, 3),
     ]);
+  }
+
+  test_mixin_implements() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+mixin M implements A {
+  @override
+  void foo() {}
+}
+''');
+  }
+
+  test_mixin_on() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  @override
+  void foo() {}
+}
+''');
   }
 }

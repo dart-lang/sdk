@@ -44,10 +44,9 @@ final verboseLogging = true;
 /// an authentication token.
 final vmServiceAuthCodePathPattern = RegExp(r'^/[\w_\-=]{5,15}/ws$');
 
-/// A [RegExp] that matches the "The Dart VM service is listening on" banner that is sent
+/// A [RegExp] that matches the "Observatory listening on" banner that is sent
 /// by the VM when not using --write-service-info.
-final vmServiceBannerPattern =
-    RegExp(r'The Dart VM service is listening on ([^\s]+)\s');
+final vmServiceBannerPattern = RegExp(r'Observatory listening on ([^\s]+)\s');
 
 /// The root of the SDK containing the current running VM.
 final sdkRoot = path.dirname(path.dirname(Platform.resolvedExecutable));

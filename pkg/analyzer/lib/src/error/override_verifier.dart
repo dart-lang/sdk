@@ -37,6 +37,13 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    _currentClass = node.declaredElement;
+    super.visitEnumDeclaration(node);
+    _currentClass = null;
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
       var fieldElement = field.declaredElement as FieldElement;

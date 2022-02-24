@@ -39,7 +39,6 @@ group("runtime") {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
-
   deps = [
     "runtime/bin:dart",
     "runtime/bin:entrypoints_verification_test",
@@ -58,16 +57,6 @@ group("runtime") {
       "utils/dartdev:dartdev",
       "utils/dds:dds",
     ]
-  }
-
-  # We do not support AOT on ia32 and should therefore cannot provide native
-  # snapshot tooling.
-  if (dart_target_arch != "ia32") {
-    if (dart_runtime_mode == "release") {
-      deps += [ "runtime/bin:analyze_snapshot_product" ]
-    } else {
-      deps += [ "runtime/bin:analyze_snapshot" ]
-    }
   }
 
   if (is_linux || is_android) {

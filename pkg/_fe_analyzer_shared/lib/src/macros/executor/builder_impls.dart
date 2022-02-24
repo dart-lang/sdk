@@ -12,28 +12,34 @@ import 'response_impls.dart';
 
 class TypeBuilderBase {
   /// The final result, will be built up over `augment` calls.
-  final List<DeclarationCode> _augmentations;
+  final List<DeclarationCode> _libraryAugmentations;
 
-  /// The names of any new types added in [_augmentations].
-  final List<String> _newTypeNames;
+  /// The final result, will be built up over `augment` calls.
+  final Map<String, List<DeclarationCode>> _classAugmentations;
+
+  /// The names of any new types added in [_libraryAugmentations].
+  final List<String> _newTypeNames = [];
 
   /// Creates and returns a [MacroExecutionResult] out of the [_augmentations]
   /// created by this builder.
   MacroExecutionResult get result => new MacroExecutionResultImpl(
-        augmentations: _augmentations,
+        classAugmentations: _classAugmentations,
+        libraryAugmentations: _libraryAugmentations,
         newTypeNames: _newTypeNames,
       );
 
-  TypeBuilderBase({List<DeclarationCode>? parentAugmentations})
-      : _augmentations = parentAugmentations ?? [],
-        _newTypeNames = [];
+  TypeBuilderBase(
+      {Map<String, List<DeclarationCode>>? parentClassAugmentations,
+      List<DeclarationCode>? parentLibraryAugmentations})
+      : _classAugmentations = parentClassAugmentations ?? {},
+        _libraryAugmentations = parentLibraryAugmentations ?? [];
 }
 
 class TypeBuilderImpl extends TypeBuilderBase implements TypeBuilder {
   @override
   void declareType(String name, DeclarationCode typeDeclaration) {
     _newTypeNames.add(name);
-    _augmentations.add(typeDeclaration);
+    _libraryAugmentations.add(typeDeclaration);
   }
 }
 
@@ -44,8 +50,11 @@ class DeclarationBuilderBase extends TypeBuilderBase
   final TypeResolver typeResolver;
 
   DeclarationBuilderBase(this.classIntrospector, this.typeResolver,
-      {List<DeclarationCode>? parentAugmentations})
-      : super(parentAugmentations: parentAugmentations);
+      {Map<String, List<DeclarationCode>>? parentClassAugmentations,
+      List<DeclarationCode>? parentLibraryAugmentations})
+      : super(
+            parentClassAugmentations: parentClassAugmentations,
+            parentLibraryAugmentations: parentLibraryAugmentations);
 
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(ClassDeclaration clazz) =>
@@ -84,7 +93,7 @@ class DeclarationBuilderImpl extends DeclarationBuilderBase
 
   @override
   void declareInLibrary(DeclarationCode declaration) {
-    _augmentations.add(declaration);
+    _libraryAugmentations.add(declaration);
   }
 }
 
@@ -98,7 +107,9 @@ class ClassMemberDeclarationBuilderImpl extends DeclarationBuilderImpl
 
   @override
   void declareInClass(DeclarationCode declaration) {
-    _augmentations.add(_buildClassAugmentation(definingClass, [declaration]));
+    _classAugmentations.update(
+        definingClass.name, (value) => value..add(declaration),
+        ifAbsent: () => [declaration]);
   }
 }
 
@@ -109,9 +120,11 @@ class DefinitionBuilderBase extends DeclarationBuilderBase
 
   DefinitionBuilderBase(ClassIntrospector classIntrospector,
       TypeResolver typeResolver, this.typeDeclarationResolver,
-      {List<DeclarationCode>? parentAugmentations})
+      {Map<String, List<DeclarationCode>>? parentClassAugmentations,
+      List<DeclarationCode>? parentLibraryAugmentations})
       : super(classIntrospector, typeResolver,
-            parentAugmentations: parentAugmentations);
+            parentClassAugmentations: parentClassAugmentations,
+            parentLibraryAugmentations: parentLibraryAugmentations);
 
   @override
   Future<TypeDeclaration> declarationOf(IdentifierImpl identifier) =>
@@ -128,9 +141,11 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
       ClassIntrospector classIntrospector,
       TypeResolver typeResolver,
       TypeDeclarationResolver typeDeclarationResolver,
-      {List<DeclarationCode>? parentAugmentations})
+      {Map<String, List<DeclarationCode>>? parentClassAugmentations,
+      List<DeclarationCode>? parentLibraryAugmentations})
       : super(classIntrospector, typeResolver, typeDeclarationResolver,
-            parentAugmentations: parentAugmentations);
+            parentClassAugmentations: parentClassAugmentations,
+            parentLibraryAugmentations: parentLibraryAugmentations);
 
   @override
   Future<ConstructorDefinitionBuilder> buildConstructor(
@@ -140,7 +155,8 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
             .firstWhere((constructor) => constructor.identifier == identifier);
     return new ConstructorDefinitionBuilderImpl(
         constructor, classIntrospector, typeResolver, typeDeclarationResolver,
-        parentAugmentations: _augmentations);
+        parentClassAugmentations: _classAugmentations,
+        parentLibraryAugmentations: _libraryAugmentations);
   }
 
   @override
@@ -149,7 +165,8 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
         .firstWhere((field) => field.identifier == identifier);
     return new VariableDefinitionBuilderImpl(
         field, classIntrospector, typeResolver, typeDeclarationResolver,
-        parentAugmentations: _augmentations);
+        parentClassAugmentations: _classAugmentations,
+        parentLibraryAugmentations: _libraryAugmentations);
   }
 
   @override
@@ -158,7 +175,8 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
         .firstWhere((method) => method.identifier == identifier);
     return new FunctionDefinitionBuilderImpl(
         method, classIntrospector, typeResolver, typeDeclarationResolver,
-        parentAugmentations: _augmentations);
+        parentClassAugmentations: _classAugmentations,
+        parentLibraryAugmentations: _libraryAugmentations);
   }
 }
 
@@ -172,20 +190,24 @@ class FunctionDefinitionBuilderImpl extends DefinitionBuilderBase
       ClassIntrospector classIntrospector,
       TypeResolver typeResolver,
       TypeDeclarationResolver typeDeclarationResolver,
-      {List<DeclarationCode>? parentAugmentations})
+      {Map<String, List<DeclarationCode>>? parentClassAugmentations,
+      List<DeclarationCode>? parentLibraryAugmentations})
       : super(classIntrospector, typeResolver, typeDeclarationResolver,
-            parentAugmentations: parentAugmentations);
+            parentClassAugmentations: parentClassAugmentations,
+            parentLibraryAugmentations: parentLibraryAugmentations);
 
   @override
   void augment(FunctionBodyCode body) {
     DeclarationCode augmentation =
         _buildFunctionAugmentation(body, declaration);
     if (declaration is ClassMemberDeclaration) {
-      augmentation = _buildClassAugmentation(
-          (declaration as ClassMemberDeclaration).definingClass,
-          [augmentation]);
+      _classAugmentations.update(
+          (declaration as ClassMemberDeclaration).definingClass.name,
+          (value) => value..add(augmentation),
+          ifAbsent: () => [augmentation]);
+    } else {
+      _libraryAugmentations.add(augmentation);
     }
-    _augmentations.add(augmentation);
   }
 }
 
@@ -198,18 +220,22 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
       ClassIntrospector classIntrospector,
       TypeResolver typeResolver,
       TypeDeclarationResolver typeDeclarationResolver,
-      {List<DeclarationCode>? parentAugmentations})
+      {Map<String, List<DeclarationCode>>? parentClassAugmentations,
+      List<DeclarationCode>? parentLibraryAugmentations})
       : super(classIntrospector, typeResolver, typeDeclarationResolver,
-            parentAugmentations: parentAugmentations);
+            parentClassAugmentations: parentClassAugmentations,
+            parentLibraryAugmentations: parentLibraryAugmentations);
 
   @override
   void augment({FunctionBodyCode? body, List<Code>? initializers}) {
     body ??= new FunctionBodyCode.fromString('''{
       augment super();
     }''');
-    _augmentations.add(_buildClassAugmentation(declaration.definingClass, [
-      _buildFunctionAugmentation(body, declaration, initializers: initializers)
-    ]));
+    DeclarationCode augmentation = _buildFunctionAugmentation(body, declaration,
+        initializers: initializers);
+    _classAugmentations.update(
+        declaration.definingClass.name, (value) => value..add(augmentation),
+        ifAbsent: () => [augmentation]);
   }
 }
 
@@ -222,9 +248,11 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
       ClassIntrospector classIntrospector,
       TypeResolver typeResolver,
       TypeDeclarationResolver typeDeclarationResolver,
-      {List<DeclarationCode>? parentAugmentations})
+      {Map<String, List<DeclarationCode>>? parentClassAugmentations,
+      List<DeclarationCode>? parentLibraryAugmentations})
       : super(classIntrospector, typeResolver, typeDeclarationResolver,
-            parentAugmentations: parentAugmentations);
+            parentClassAugmentations: parentClassAugmentations,
+            parentLibraryAugmentations: parentLibraryAugmentations);
 
   @override
   void augment(
@@ -237,27 +265,15 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
         setter: setter,
         initializer: initializer);
     if (declaration is ClassMemberDeclaration) {
-      augmentations = [
-        _buildClassAugmentation(
-            (declaration as ClassMemberDeclaration).definingClass,
-            augmentations)
-      ];
+      _classAugmentations.update(
+          (declaration as ClassMemberDeclaration).definingClass.name,
+          (value) => value..addAll(augmentations),
+          ifAbsent: () => augmentations);
+    } else {
+      _libraryAugmentations.addAll(augmentations);
     }
-
-    _augmentations.addAll(augmentations);
   }
 }
-
-/// Creates an augmentation of [clazz] with member [augmentations].
-DeclarationCode _buildClassAugmentation(
-        Identifier clazz, List<DeclarationCode> augmentations) =>
-    new DeclarationCode.fromParts([
-      'augment class ',
-      clazz.name,
-      ' {\n',
-      ...augmentations.joinAsCode('\n'),
-      '\n}',
-    ]);
 
 /// Builds all the possible augmentations for a variable.
 List<DeclarationCode> _buildVariableAugmentations(

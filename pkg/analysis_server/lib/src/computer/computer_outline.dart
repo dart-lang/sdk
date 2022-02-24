@@ -29,12 +29,13 @@ class DartUnitOutlineComputer {
         unitContents.add(_newMixinOutline(
             unitMember, _outlinesForMembers(unitMember.members)));
       } else if (unitMember is EnumDeclaration) {
-        var enumDeclaration = unitMember;
-        var constantOutlines = <Outline>[];
-        for (var constant in enumDeclaration.constants) {
-          constantOutlines.add(_newEnumConstant(constant));
-        }
-        unitContents.add(_newEnumOutline(enumDeclaration, constantOutlines));
+        unitContents.add(
+          _newEnumOutline(unitMember, [
+            for (var constant in unitMember.constants)
+              _newEnumConstant(constant),
+            ..._outlinesForMembers(unitMember.members),
+          ]),
+        );
       } else if (unitMember is ExtensionDeclaration) {
         unitContents.add(_newExtensionOutline(
             unitMember, _outlinesForMembers(unitMember.members)));

@@ -1,3 +1,6 @@
+## 3.3.1
+* Report HintCode.OVERRIDE_ON_NON_OVERRIDING_xyz on enum.
+
 ## 3.3.0
 * Added `getField` to `ExtensionElement`.
 * Added `isGenerative` to `ConstructorElement`.

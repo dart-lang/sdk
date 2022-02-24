@@ -928,7 +928,6 @@ class MethodInvocationResolver {
     );
     NodeReplacer.replace(node, invocation);
     node.setProperty(_rewriteResultKey, invocation);
-    InferenceContext.setType(invocation, contextType);
     _resolver.flowAnalysis.transferTestData(node, invocation);
   }
 

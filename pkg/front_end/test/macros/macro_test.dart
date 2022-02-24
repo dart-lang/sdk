@@ -396,7 +396,10 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
 
 class _MacroExecutionResult implements MacroExecutionResult {
   @override
-  Iterable<DeclarationCode> augmentations = const [];
+  Map<String, Iterable<DeclarationCode>> classAugmentations = const {};
+
+  @override
+  Iterable<DeclarationCode> libraryAugmentations = const [];
 
   @override
   Iterable<String> newTypeNames = const [];

@@ -168,7 +168,7 @@ void Options::PrintUsage() {
 "--write-service-info=<file_uri>\n"
 "  Outputs information necessary to connect to the VM service to the\n"
 "  specified file in JSON format. Useful for clients which are unable to\n"
-"  listen to stdout for the Dart VM service listening message.\n"
+"  listen to stdout for the Observatory listening message.\n"
 #endif  // !defined(PRODUCT)
 "--snapshot-kind=<snapshot_kind>\n"
 "--snapshot=<file_name>\n"

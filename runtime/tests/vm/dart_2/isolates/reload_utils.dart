@@ -166,7 +166,7 @@ class Reloader {
   }
 
   Future _waitUntilService() async {
-    final needle = 'The Dart VM service is listening on ';
+    final needle = 'Observatory listening on ';
     final line = await waitUntilStdoutContains(needle);
     final Uri uri = Uri.parse(line.substring(needle.length));
     assert(_remoteVm == null);

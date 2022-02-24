@@ -275,8 +275,13 @@ abstract class MacroInstanceIdentifier implements Serializable {
 /// All modifications are expressed in terms of library augmentation
 /// declarations.
 abstract class MacroExecutionResult implements Serializable {
-  /// Any augmentations that should be applied as a result of executing a macro.
-  Iterable<DeclarationCode> get augmentations;
+  /// Any augmentations that should be applied to a class as a result of
+  /// executing a macro, indexed by the name of the class.
+  Map<String, Iterable<DeclarationCode>> get classAugmentations;
+
+  /// Any augmentations that should be applied to the library as a result of
+  /// executing a macro.
+  Iterable<DeclarationCode> get libraryAugmentations;
 
   /// The names of any new types declared in [augmentations].
   Iterable<String> get newTypeNames;

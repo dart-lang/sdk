@@ -16,8 +16,6 @@ class Class1 {}
 /*class: Class2:
 augment class Class2 {
   method() {}
-}
-augment class Class2 {
   method1() {}
 }*/
 class Class2 {}
@@ -37,11 +35,7 @@ class Class3 {
 /*class: Class4:
 augment class Class4 {
   method1() {}
-}
-augment class Class4 {
   method3() {}
-}
-augment class Class4 {
   method4() {}
 }*/
 class Class4 {

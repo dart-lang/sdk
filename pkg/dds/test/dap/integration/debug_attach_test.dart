@@ -50,7 +50,7 @@ main() {
           // The stdout also contains the Observatory+DevTools banners.
           .where(
             (line) =>
-                !line.startsWith('The Dart VM service is listening on') &&
+                !line.startsWith('Observatory listening on') &&
                 !line.startsWith(
                     'The Dart DevTools debugger and profiler is available at'),
           )
@@ -103,7 +103,7 @@ main() {
           // The stdout also contains the Observatory+DevTools banners.
           .where(
             (line) =>
-                !line.startsWith('The Dart VM service is listening on') &&
+                !line.startsWith('Observatory listening on') &&
                 !line.startsWith(
                     'The Dart DevTools debugger and profiler is available at'),
           )
