@@ -1033,5 +1033,6 @@ class _ApplicationData {
 }
 
 extension on macro.MacroExecutionResult {
-  bool get isNotEmpty => augmentations.isNotEmpty;
+  bool get isNotEmpty =>
+      libraryAugmentations.isNotEmpty || classAugmentations.isNotEmpty;
 }

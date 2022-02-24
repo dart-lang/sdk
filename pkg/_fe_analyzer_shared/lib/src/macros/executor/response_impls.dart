@@ -207,20 +207,41 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
 /// Implementation of [MacroExecutionResult].
 class MacroExecutionResultImpl implements MacroExecutionResult {
   @override
-  final List<DeclarationCode> augmentations;
+  final Map<String, List<DeclarationCode>> classAugmentations;
+
+  @override
+  final List<DeclarationCode> libraryAugmentations;
 
   @override
   final List<String> newTypeNames;
 
   MacroExecutionResultImpl({
-    required this.augmentations,
+    required this.classAugmentations,
+    required this.libraryAugmentations,
     required this.newTypeNames,
   });
 
   factory MacroExecutionResultImpl.deserialize(Deserializer deserializer) {
     deserializer.moveNext();
     deserializer.expectList();
-    List<DeclarationCode> augmentations = [
+    Map<String, List<DeclarationCode>> classAugmentations = {
+      for (bool hasNext = deserializer.moveNext();
+          hasNext;
+          hasNext = deserializer.moveNext())
+        deserializer.expectString(): [
+          for (bool hasNextCode = (deserializer
+                    ..moveNext()
+                    ..expectList())
+                  .moveNext();
+              hasNextCode;
+              hasNextCode = deserializer.moveNext())
+            deserializer.expectCode(),
+        ]
+    };
+
+    deserializer.moveNext();
+    deserializer.expectList();
+    List<DeclarationCode> libraryAugmentations = [
       for (bool hasNext = deserializer.moveNext();
           hasNext;
           hasNext = deserializer.moveNext())
@@ -236,14 +257,26 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
     ];
 
     return new MacroExecutionResultImpl(
-      augmentations: augmentations,
+      classAugmentations: classAugmentations,
+      libraryAugmentations: libraryAugmentations,
       newTypeNames: newTypeNames,
     );
   }
 
   void serialize(Serializer serializer) {
     serializer.startList();
-    for (DeclarationCode augmentation in augmentations) {
+    for (String clazz in classAugmentations.keys) {
+      serializer.addString(clazz);
+      serializer.startList();
+      for (DeclarationCode augmentation in classAugmentations[clazz]!) {
+        augmentation.serialize(serializer);
+      }
+      serializer.endList();
+    }
+    serializer.endList();
+
+    serializer.startList();
+    for (DeclarationCode augmentation in libraryAugmentations) {
       augmentation.serialize(serializer);
     }
     serializer.endList();

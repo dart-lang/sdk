@@ -110,14 +110,18 @@ void main() {
               test('on functions', () async {
                 var result = await executor.executeTypesPhase(
                     instanceId, Fixtures.myFunction);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('class GeneratedByMyFunction {}'));
               });
 
               test('on methods', () async {
                 var result = await executor.executeTypesPhase(
                     instanceId, Fixtures.myMethod);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('class GeneratedByMyMethod {}'));
               });
 
@@ -126,8 +130,9 @@ void main() {
                   instanceId,
                   Fixtures.myVariableGetter,
                 );
+                expect(result.classAugmentations, isEmpty);
                 expect(
-                    result.augmentations.single.debugString().toString(),
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace(
                         'class GeneratedByMyVariableGetter {}'));
               });
@@ -137,8 +142,9 @@ void main() {
                   instanceId,
                   Fixtures.myVariableSetter,
                 );
+                expect(result.classAugmentations, isEmpty);
                 expect(
-                    result.augmentations.single.debugString().toString(),
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace(
                         'class GeneratedByMyVariableSetter {}'));
               });
@@ -148,8 +154,9 @@ void main() {
                   instanceId,
                   Fixtures.myVariable,
                 );
+                expect(result.classAugmentations, isEmpty);
                 expect(
-                    result.augmentations.single.debugString().toString(),
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace(
                         'class GeneratedBy_myVariable {}'));
               });
@@ -157,8 +164,9 @@ void main() {
               test('on constructors', () async {
                 var result = await executor.executeTypesPhase(
                     instanceId, Fixtures.myConstructor);
+                expect(result.classAugmentations, isEmpty);
                 expect(
-                    result.augmentations.single.debugString().toString(),
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace(
                         'class GeneratedByMyConstructor {}'));
               });
@@ -166,15 +174,18 @@ void main() {
               test('on fields', () async {
                 var result = await executor.executeTypesPhase(
                     instanceId, Fixtures.myField);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('class GeneratedByMyField {}'));
               });
 
               test('on classes', () async {
                 var result = await executor.executeTypesPhase(
                     instanceId, Fixtures.myClass);
+                expect(result.classAugmentations, isEmpty);
                 expect(
-                    result.augmentations.single.debugString().toString(),
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace(
                         'class MyClassBuilder implements Builder<MyClass> {}'));
               });
@@ -187,8 +198,9 @@ void main() {
                     Fixtures.myFunction,
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
+                expect(result.classAugmentations, isEmpty);
                 expect(
-                    result.augmentations.single.debugString().toString(),
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace(
                         'String delegateMyFunction() => myFunction();'));
               });
@@ -199,8 +211,9 @@ void main() {
                     Fixtures.myMethod,
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
+                expect(result.classAugmentations, isEmpty);
                 expect(
-                    result.augmentations.single.debugString().toString(),
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace(
                         'String delegateMemberMyMethod() => myMethod();'));
               });
@@ -211,11 +224,15 @@ void main() {
                     Fixtures.myConstructor,
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, hasLength(1));
+                expect(
+                    result.classAugmentations['MyClass']!.single
+                        .debugString()
+                        .toString(),
                     equalsIgnoringWhitespace('''
-              augment class MyClass {
                 factory MyClass.myConstructorDelegate() => MyClass.myConstructor();
-              }'''));
+              '''));
+                expect(result.libraryAugmentations, isEmpty);
               });
 
               test('on getters', () async {
@@ -224,7 +241,9 @@ void main() {
                     Fixtures.myVariableGetter,
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
                 String get delegateMyVariable => myVariable;'''));
               });
@@ -235,7 +254,9 @@ void main() {
                     Fixtures.myVariableSetter,
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
                 void set delegateMyVariable(String value) => myVariable = value;'''));
               });
@@ -246,7 +267,9 @@ void main() {
                     Fixtures.myVariable,
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
                 String get delegate_myVariable => _myVariable;'''));
               });
@@ -257,11 +280,15 @@ void main() {
                     Fixtures.myField,
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, hasLength(1));
+                expect(
+                    result.classAugmentations['MyClass']!.single
+                        .debugString()
+                        .toString(),
                     equalsIgnoringWhitespace('''
-              augment class MyClass {
                 String get delegateMyField => myField;
-              }'''));
+              '''));
+                expect(result.libraryAugmentations, isEmpty);
               });
 
               test('on classes', () async {
@@ -270,11 +297,15 @@ void main() {
                     Fixtures.myClass,
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, hasLength(1));
+                expect(
+                    result.classAugmentations['MyClass']!.single
+                        .debugString()
+                        .toString(),
                     equalsIgnoringWhitespace('''
-              augment class MyClass {
                 static const List<String> fieldNames = ['myField',];
-              }'''));
+              '''));
+                expect(result.libraryAugmentations, isEmpty);
               });
             });
 
@@ -286,7 +317,9 @@ void main() {
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
                 augment String myFunction() {
                   print('isAbstract: false');
@@ -305,12 +338,14 @@ void main() {
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
-                expect(definitionResult.augmentations, hasLength(2));
-                var augmentationStrings = definitionResult.augmentations
+                expect(definitionResult.classAugmentations, hasLength(1));
+                var augmentationStrings = definitionResult
+                    .classAugmentations['MyClass']!
                     .map((a) => a.debugString().toString())
                     .toList();
                 expect(augmentationStrings,
                     unorderedEquals(methodDefinitionMatchers));
+                expect(definitionResult.libraryAugmentations, isEmpty);
               });
 
               test('on constructors', () async {
@@ -320,12 +355,13 @@ void main() {
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
-                expect(definitionResult.augmentations, hasLength(1));
+                expect(definitionResult.classAugmentations, hasLength(1));
                 expect(
-                    definitionResult.augmentations.first
+                    definitionResult.classAugmentations['MyClass']!.first
                         .debugString()
                         .toString(),
                     constructorDefinitionMatcher);
+                expect(definitionResult.libraryAugmentations, isEmpty);
               });
 
               test('on getters', () async {
@@ -335,7 +371,9 @@ void main() {
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
                 augment String myVariable() {
                   print('isAbstract: false');
@@ -354,7 +392,9 @@ void main() {
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
-                expect(result.augmentations.single.debugString().toString(),
+                expect(result.classAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
                 augment void myVariable(String value, ) {
                   print('isAbstract: false');
@@ -374,8 +414,10 @@ void main() {
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
+                expect(result.classAugmentations, isEmpty);
                 expect(
-                    result.augmentations.map((a) => a.debugString().toString()),
+                    result.libraryAugmentations
+                        .map((a) => a.debugString().toString()),
                     unorderedEquals([
                       equalsIgnoringWhitespace('''
                 augment String get _myVariable {
@@ -402,12 +444,12 @@ void main() {
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
-                expect(definitionResult.augmentations, hasLength(1));
+                expect(definitionResult.classAugmentations, hasLength(1));
                 expect(
-                    definitionResult.augmentations.first
-                        .debugString()
-                        .toString(),
-                    fieldDefinitionMatcher);
+                    definitionResult.classAugmentations['MyClass']!
+                        .map((a) => a.debugString().toString()),
+                    unorderedEquals(fieldDefinitionMatchers));
+                expect(definitionResult.libraryAugmentations, isEmpty);
               });
 
               test('on classes', () async {
@@ -417,7 +459,9 @@ void main() {
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
-                var augmentationStrings = definitionResult.augmentations
+                expect(definitionResult.classAugmentations, hasLength(1));
+                var augmentationStrings = definitionResult
+                    .classAugmentations['MyClass']!
                     .map((a) => a.debugString().toString())
                     .toList();
                 expect(
@@ -425,7 +469,7 @@ void main() {
                     unorderedEquals([
                       ...methodDefinitionMatchers,
                       constructorDefinitionMatcher,
-                      fieldDefinitionMatcher
+                      ...fieldDefinitionMatchers,
                     ]));
               });
             });
@@ -437,60 +481,55 @@ void main() {
 }
 
 final constructorDefinitionMatcher = equalsIgnoringWhitespace('''
-augment class MyClass {
-  augment MyClass.myConstructor() {
-    print('definingClass: MyClass');
-    print('isFactory: false');
-    print('isAbstract: false');
-    print('isExternal: false');
-    print('isGetter: false');
-    print('isSetter: false');
-    print('returnType: MyClass');
-    return augment super();
-  }
+augment MyClass.myConstructor() {
+  print('definingClass: MyClass');
+  print('isFactory: false');
+  print('isAbstract: false');
+  print('isExternal: false');
+  print('isGetter: false');
+  print('isSetter: false');
+  print('returnType: MyClass');
+  return augment super();
 }''');
 
-final fieldDefinitionMatcher = equalsIgnoringWhitespace('''
-augment class MyClass {
-  augment String get myField {
-    print('parentClass: MyClass');
-    print('isExternal: false');
-    print('isFinal: false');
-    print('isLate: false');
-    return augment super;
-  }
-  augment set myField(String value) {
-    augment super = value;
-  }
-  augment String myField = \'new initial value\' + augment super;
-}''');
+final fieldDefinitionMatchers = [
+  equalsIgnoringWhitespace('''
+    augment String get myField {
+      print('parentClass: MyClass');
+      print('isExternal: false');
+      print('isFinal: false');
+      print('isLate: false');
+      return augment super;
+    }'''),
+  equalsIgnoringWhitespace('''
+    augment set myField(String value) {
+      augment super = value;
+    }'''),
+  equalsIgnoringWhitespace('''
+    augment String myField = \'new initial value\' + augment super;'''),
+];
 
 final methodDefinitionMatchers = [
   equalsIgnoringWhitespace('''
-    augment class MyClass {
-      augment String myMethod() {
-        print('definingClass: MyClass');
-        print('isAbstract: false');
-        print('isExternal: false');
-        print('isGetter: false');
-        print('isSetter: false');
-        print('returnType: String');
-        return augment super();
-      }
-    }
-    '''),
+    augment String myMethod() {
+      print('definingClass: MyClass');
+      print('isAbstract: false');
+      print('isExternal: false');
+      print('isGetter: false');
+      print('isSetter: false');
+      print('returnType: String');
+      return augment super();
+    }'''),
   equalsIgnoringWhitespace('''
-    augment class MyClass {
-      augment String myMethod() {
-        print('x: 1, y: 2');
-        print('parentClass: MyClass');
-        print('superClass: MySuperclass');
-        print('interface: MyInterface');
-        print('mixin: MyMixin');
-        print('field: myField');
-        print('method: myMethod');
-        print('constructor: myConstructor');
-        return augment super();
-      }
+    augment String myMethod() {
+      print('x: 1, y: 2');
+      print('parentClass: MyClass');
+      print('superClass: MySuperclass');
+      print('interface: MyInterface');
+      print('mixin: MyMixin');
+      print('field: myField');
+      print('method: myMethod');
+      print('constructor: myConstructor');
+      return augment super();
     }'''),
 ];

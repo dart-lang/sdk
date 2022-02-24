@@ -18,16 +18,15 @@ void main() {
     test('can combine multiple execution results', () {
       var results = [
         for (var i = 0; i < 2; i++)
-          MacroExecutionResultImpl(augmentations: [
+          MacroExecutionResultImpl(classAugmentations: {
             for (var j = 0; j < 3; j++)
-              DeclarationCode.fromParts([
-                'augment class Foo$i$j {\n',
-                DeclarationCode.fromParts([
-                  'int get i => $i;\n',
-                  'int get j => $j;\n',
-                ]),
-                '}',
-              ]),
+              'Foo$i$j': [
+                DeclarationCode.fromString('int get i => $i;\n'),
+                DeclarationCode.fromString('int get j => $j;\n'),
+              ]
+          }, libraryAugmentations: [
+            for (var j = 0; j < 3; j++)
+              DeclarationCode.fromString('int get i${i}j$j => ${i + j};\n'),
           ], newTypeNames: [
             'Foo${i}0',
             'Foo${i}1',
@@ -37,6 +36,12 @@ void main() {
       var library = _TestExecutor().buildAugmentationLibrary(
           results, (Identifier i) => (i as TestIdentifier).resolved);
       expect(library, equalsIgnoringWhitespace('''
+        int get i0j0 => 0;
+        int get i0j1 => 1;
+        int get i0j2 => 2;
+        int get i1j0 => 1;
+        int get i1j1 => 2;
+        int get i1j2 => 3;
         augment class Foo00 {
           int get i => 0;
           int get j => 0;
@@ -96,29 +101,33 @@ void main() {
           staticScope: 'Bar',
           uri: Uri.parse('package:bar/bar.dart'));
       var results = [
-        MacroExecutionResultImpl(augmentations: [
-          DeclarationCode.fromParts([
-            'class FooBuilder<T extends ',
-            fooIdentifier,
-            '> implements ',
-            builderIdentifier,
-            '<',
-            barIdentifier,
-            '<T>> {\n',
-            'late int ${barInstanceMember.name};\n',
-            barIdentifier,
-            '<T> build() => new ',
-            barIdentifier,
-            '()..',
-            barInstanceMember,
-            ' = ',
-            barStaticMember,
-            ';',
-            '\n}',
-          ]),
-        ], newTypeNames: [
-          'FooBuilder',
-        ])
+        MacroExecutionResultImpl(
+          classAugmentations: {},
+          libraryAugmentations: [
+            DeclarationCode.fromParts([
+              'class FooBuilder<T extends ',
+              fooIdentifier,
+              '> implements ',
+              builderIdentifier,
+              '<',
+              barIdentifier,
+              '<T>> {\n',
+              'late int ${barInstanceMember.name};\n',
+              barIdentifier,
+              '<T> build() => new ',
+              barIdentifier,
+              '()..',
+              barInstanceMember,
+              ' = ',
+              barStaticMember,
+              ';',
+              '\n}',
+            ]),
+          ],
+          newTypeNames: [
+            'FooBuilder',
+          ],
+        )
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
           results, (Identifier i) => (i as TestIdentifier).resolved);

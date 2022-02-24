@@ -191,13 +191,16 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = new StringBuffer();
+    List<DeclarationCode> mergedClassAugmentations = [];
     for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.classTypesResults.entries) {
       if (entry.key.cls == cls) {
         for (MacroExecutionResult result in entry.value) {
-          if (result.augmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.augmentations.first)}');
+          if (result.libraryAugmentations.isNotEmpty) {
+            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
           }
+          mergedClassAugmentations
+              .addAll(result.classAugmentations[entry.key.name] ?? const []);
         }
       }
     }
@@ -205,9 +208,11 @@ class MacroDataComputer extends DataComputer<String> {
         in macroApplicationData.classDeclarationsResults.entries) {
       if (entry.key.cls == cls) {
         for (MacroExecutionResult result in entry.value) {
-          if (result.augmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.augmentations.first)}');
+          if (result.libraryAugmentations.isNotEmpty) {
+            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
           }
+          mergedClassAugmentations
+              .addAll(result.classAugmentations[entry.key.name] ?? const []);
         }
       }
     }
@@ -215,11 +220,20 @@ class MacroDataComputer extends DataComputer<String> {
         in macroApplicationData.classDefinitionsResults.entries) {
       if (entry.key.cls == cls) {
         for (MacroExecutionResult result in entry.value) {
-          if (result.augmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.augmentations.first)}');
+          if (result.libraryAugmentations.isNotEmpty) {
+            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
           }
+          mergedClassAugmentations
+              .addAll(result.classAugmentations[entry.key.name] ?? const []);
         }
       }
+    }
+    if (mergedClassAugmentations.isNotEmpty) {
+      sb.write('\naugment class ${cls.name} {');
+      for (var result in mergedClassAugmentations) {
+        sb.write('\n${codeToString(result)}');
+      }
+      sb.write('\n}');
     }
     if (sb.isNotEmpty) {
       Id id = new ClassId(cls.name);
@@ -240,12 +254,20 @@ class MacroDataComputer extends DataComputer<String> {
         .loader
         .dataForTesting!
         .macroApplicationData;
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
+    List<DeclarationCode> mergedAugmentations = [];
     for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.memberTypesResults.entries) {
       if (_isMember(entry.key, member)) {
         for (MacroExecutionResult result in entry.value) {
-          sb.write('\n${codeToString(result.augmentations.first)}');
+          if (result.libraryAugmentations.isNotEmpty) {
+            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
+          }
+          if (member.enclosingClass != null) {
+            mergedAugmentations.addAll(
+                result.classAugmentations[member.enclosingClass!.name] ??
+                    const []);
+          }
         }
       }
     }
@@ -253,7 +275,14 @@ class MacroDataComputer extends DataComputer<String> {
         in macroApplicationData.memberDeclarationsResults.entries) {
       if (_isMember(entry.key, member)) {
         for (MacroExecutionResult result in entry.value) {
-          sb.write('\n${codeToString(result.augmentations.first)}');
+          if (result.libraryAugmentations.isNotEmpty) {
+            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
+          }
+          if (member.enclosingClass != null) {
+            mergedAugmentations.addAll(
+                result.classAugmentations[member.enclosingClass!.name] ??
+                    const []);
+          }
         }
       }
     }
@@ -261,8 +290,26 @@ class MacroDataComputer extends DataComputer<String> {
         in macroApplicationData.memberDefinitionsResults.entries) {
       if (_isMember(entry.key, member)) {
         for (MacroExecutionResult result in entry.value) {
-          sb.write('\n${codeToString(result.augmentations.first)}');
+          if (result.libraryAugmentations.isNotEmpty) {
+            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
+          }
+          if (member.enclosingClass != null) {
+            mergedAugmentations.addAll(
+                result.classAugmentations[member.enclosingClass!.name] ??
+                    const []);
+          }
         }
+      }
+    }
+    if (mergedAugmentations.isNotEmpty) {
+      if (member.enclosingClass != null) {
+        sb.write('\naugment class ${member.enclosingClass!.name} {');
+      }
+      for (DeclarationCode augmentation in mergedAugmentations) {
+        sb.write('\n${codeToString(augmentation)}');
+      }
+      if (member.enclosingClass != null) {
+        sb.write('\n}');
       }
     }
     if (sb.isNotEmpty) {
