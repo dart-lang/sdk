@@ -15,27 +15,18 @@ main() {
 
 @reflectiveTest
 class OverrideOnNonOverridingFieldTest extends PubPackageResolutionTest {
-  test_inInterface() async {
+  test_class() async {
     await assertErrorsInCode(r'''
 class A {
-  int get a => 0;
-  void set b(_) {}
-  int c = 0;
+  @override
+  int? foo;
 }
-class B implements A {
-  @override
-  final int a = 1;
-  @override
-  int b = 0;
-  @override
-  int c = 0;
-}''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 134, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 39, 1)]),
+''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 29, 3),
     ]);
   }
 
-  test_inSuperclass() async {
+  test_class_extends() async {
     await assertErrorsInCode(r'''
 class A {
   int get a => 0;
@@ -55,15 +46,75 @@ class B extends A {
     ]);
   }
 
-  test_invalid() async {
+  test_class_implements() async {
     await assertErrorsInCode(r'''
 class A {
+  int get a => 0;
+  void set b(_) {}
+  int c = 0;
 }
-class B extends A {
+class B implements A {
   @override
-  final int m = 1;
+  final int a = 1;
+  @override
+  int b = 0;
+  @override
+  int c = 0;
 }''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 56, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 134, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 39, 1)]),
     ]);
+  }
+
+  test_enum() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  @override
+  int? foo;
+}
+''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 33, 3),
+    ]);
+  }
+
+  test_enum_implements() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get a => 0;
+  void set b(int _) {}
+  int c = 0;
+}
+
+enum E implements A {
+  v;
+  @override
+  final int a = 1;
+
+  @override
+  int b = 0;
+
+  @override
+  int c = 0;
+}
+''');
+  }
+
+  test_enum_with() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int get a => 0;
+  void set b(int _) {}
+}
+
+enum E with M {
+  v;
+  @override
+  final int a = 1;
+
+  @override
+  int b = 0;
+}
+''');
   }
 }
