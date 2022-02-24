@@ -58,6 +58,11 @@ class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAdjacentStrings(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitAdjacentStrings(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _strings.accept(visitor);
   }
@@ -455,6 +460,11 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAsExpression(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitAsExpression(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
     _type.accept(visitor);
@@ -700,6 +710,11 @@ class AssignmentExpressionImpl extends ExpressionImpl
       visitor.visitAssignmentExpression(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitAssignmentExpression(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _leftHandSide.accept(visitor);
     _rightHandSide.accept(visitor);
@@ -874,6 +889,11 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitAwaitExpression(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
   }
@@ -940,6 +960,11 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitBinaryExpression(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -1099,6 +1124,11 @@ class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBooleanLiteral(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitBooleanLiteral(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
   }
@@ -1228,6 +1258,11 @@ class CascadeExpressionImpl extends ExpressionImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCascadeExpression(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitCascadeExpression(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -2303,6 +2338,11 @@ class ConditionalExpressionImpl extends ExpressionImpl
       visitor.visitConditionalExpression(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitConditionalExpression(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _condition.accept(visitor);
     _thenExpression.accept(visitor);
@@ -2805,6 +2845,11 @@ class ConstructorReferenceImpl extends CommentReferableExpressionImpl
       visitor.visitConstructorReference(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitConstructorReference(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     constructorName.accept(visitor);
   }
@@ -3288,6 +3333,11 @@ class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDoubleLiteral(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitDoubleLiteral(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -3847,6 +3897,14 @@ abstract class ExpressionImpl extends AstNodeImpl
       ResolverVisitor resolver, CollectionLiteralContext? context) {
     resolver.analyzeExpression(this, context?.elementType);
   }
+
+  /// Dispatches this expression to the [resolver], with the given [contextType]
+  /// information.
+  ///
+  /// Note: most code shouldn't call this method directly, but should instead
+  /// call [ResolverVisitor.analyzeExpression], which has some special logic for
+  /// handling dynamic contexts.
+  void resolveExpression(ResolverVisitor resolver, DartType? contextType);
 }
 
 /// An expression used as a statement.
@@ -4180,6 +4238,11 @@ class ExtensionOverrideImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     return visitor.visitExtensionOverride(this);
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+    resolver.visitExtensionOverride(this, contextType: contextType);
   }
 
   @override
@@ -5268,6 +5331,11 @@ class FunctionExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionExpression(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitFunctionExpression(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _typeParameters?.accept(visitor);
     _parameters?.accept(visitor);
@@ -5330,6 +5398,11 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
       visitor.visitFunctionExpressionInvocation(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitFunctionExpressionInvocation(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _function.accept(visitor);
     _typeArguments?.accept(visitor);
@@ -5388,6 +5461,11 @@ class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionReference(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitFunctionReference(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6171,6 +6249,11 @@ class ImplicitCallReferenceImpl extends ExpressionImpl
   }
 
   @override
+  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+    resolver.visitImplicitCallReference(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     typeArguments?.accept(visitor);
@@ -6436,6 +6519,11 @@ class IndexExpressionImpl extends ExpressionImpl
   }
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitIndexExpression(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _target?.accept(visitor);
     _index.accept(visitor);
@@ -6544,6 +6632,11 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
       visitor.visitInstanceCreationExpression(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitInstanceCreationExpression(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _constructorName.accept(visitor);
     _typeArguments?.accept(visitor);
@@ -6599,6 +6692,11 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIntegerLiteral(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitIntegerLiteral(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6872,6 +6970,11 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIsExpression(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitIsExpression(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
     _type.accept(visitor);
@@ -7090,6 +7193,11 @@ class LibraryIdentifierImpl extends IdentifierImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLibraryIdentifier(this);
 
   @override
+  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+    resolver.visitLibraryIdentifier(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _components.accept(visitor);
   }
@@ -7159,6 +7267,11 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitListLiteral(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7575,6 +7688,11 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitMethodInvocation(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _target?.accept(visitor);
     _methodName.accept(visitor);
@@ -7756,6 +7874,11 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedExpression(this);
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+    resolver.visitNamedExpression(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8258,6 +8381,11 @@ class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullLiteral(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitNullLiteral(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
   }
@@ -8393,6 +8521,11 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitParenthesizedExpression(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitParenthesizedExpression(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8593,6 +8726,11 @@ class PostfixExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixExpression(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitPostfixExpression(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _operand.accept(visitor);
   }
@@ -8679,6 +8817,11 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixedIdentifier(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitPrefixedIdentifier(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _prefix.accept(visitor);
     _identifier.accept(visitor);
@@ -8751,6 +8894,11 @@ class PrefixExpressionImpl extends ExpressionImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitPrefixExpression(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8867,6 +9015,11 @@ class PropertyAccessImpl extends CommentReferableExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitPropertyAccess(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _target?.accept(visitor);
     _propertyName.accept(visitor);
@@ -8981,6 +9134,11 @@ class RethrowExpressionImpl extends ExpressionImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitRethrowExpression(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9156,6 +9314,11 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
 
   void becomeUnresolved() {
     _resolvedKind = _SetOrMapKind.unresolved;
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+    resolver.visitSetOrMapLiteral(this, contextType: contextType);
   }
 
   @override
@@ -9577,6 +9740,11 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   }
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitSimpleIdentifier(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
   }
@@ -9649,6 +9817,11 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleStringLiteral(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitSimpleStringLiteral(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9821,6 +9994,11 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitStringInterpolation(this);
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+    resolver.visitStringInterpolation(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10050,6 +10228,11 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitSuperExpression(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10431,6 +10614,11 @@ class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSymbolLiteral(this);
 
   @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitSymbolLiteral(this, contextType: contextType);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
   }
@@ -10463,6 +10651,11 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitThisExpression(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10512,6 +10705,11 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);
+
+  @override
+  void resolveExpression(ResolverVisitor visitor, DartType? contextType) {
+    visitor.visitThrowExpression(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10843,6 +11041,11 @@ class TypeLiteralImpl extends CommentReferableExpressionImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeLiteral(this);
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+    resolver.visitTypeLiteral(this, contextType: contextType);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
