@@ -102,7 +102,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       argResults: argResults,
     );
 
-    await server.start();
+    await server.start(setAnalysisRoots: false);
 
     server.onExit.then((int exitCode) {
       if (computeFixesProgress != null && exitCode != 0) {

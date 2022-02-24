@@ -82,7 +82,7 @@ class AnalysisServer {
 
   final Map<String, Completer<Map<String, dynamic>>> _requestCompleters = {};
 
-  Future<void> start() async {
+  Future<void> start({bool setAnalysisRoots = true}) async {
     preAnalysisServerStart?.call(commandName, analysisRoots, argResults);
     final List<String> command = <String>[
       sdk.analysisServerSnapshot,
@@ -138,10 +138,12 @@ class AnalysisServer {
       }
     });
 
-    await _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
-      'included': analysisRootPaths,
-      'excluded': <String>[]
-    });
+    if (setAnalysisRoots) {
+      await _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
+        'included': analysisRootPaths,
+        'excluded': <String>[]
+      });
+    }
   }
 
   Future<String> getVersion() {
