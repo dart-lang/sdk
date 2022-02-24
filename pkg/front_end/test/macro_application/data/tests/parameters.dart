@@ -3,36 +3,50 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
+Definitions:
+import 'dart:core' as i0;
 
 
+augment void topLevelFunction1(i0.int a, ) {
+  throw 42;
+}
+augment void topLevelFunction2(i0.int a, i0.int b, ) {
+  throw 42;
+}
+augment void topLevelFunction3(i0.int a, [i0.int? b, ]) {
+  throw 42;
+}
+augment void topLevelFunction4(i0.int a, {i0.int? b, i0.int? c, }) {
+  throw 42;
+}
 */
 
 import 'package:macro/macro.dart';
 
 /*member: topLevelFunction1:
 augment void topLevelFunction1(int a, ) {
-  return 42;
+  throw 42;
 }*/
 @FunctionDefinitionMacro1()
 external void topLevelFunction1(int a);
 
 /*member: topLevelFunction2:
 augment void topLevelFunction2(int a, int b, ) {
-  return 42;
+  throw 42;
 }*/
 @FunctionDefinitionMacro1()
 external void topLevelFunction2(int a, int b);
 
 /*member: topLevelFunction3:
 augment void topLevelFunction3(int a, [int? b, ]) {
-  return 42;
+  throw 42;
 }*/
 @FunctionDefinitionMacro1()
 external void topLevelFunction3(int a, [int? b]);
 
 /*member: topLevelFunction4:
 augment void topLevelFunction4(int a, {int? b, int? c, }) {
-  return 42;
+  throw 42;
 }*/
 @FunctionDefinitionMacro1()
 external void topLevelFunction4(int a, {int? b, int? c});

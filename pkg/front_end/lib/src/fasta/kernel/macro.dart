@@ -35,6 +35,8 @@ import 'hierarchy/hierarchy_node.dart';
 
 bool enableMacros = false;
 
+const String augmentationScheme = 'org-dartlang-augmentation';
+
 final Uri macroLibraryUri =
     Uri.parse('package:_fe_analyzer_shared/src/macros/api.dart');
 const String macroClassName = 'Macro';
@@ -80,6 +82,7 @@ class MacroApplication {
 class MacroApplicationDataForTesting {
   Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
   Map<SourceLibraryBuilder, String> libraryTypesResult = {};
+  Map<SourceLibraryBuilder, String> libraryDefinitionResult = {};
   Map<SourceClassBuilder, List<macro.MacroExecutionResult>> classTypesResults =
       {};
   Map<SourceClassBuilder, List<macro.MacroExecutionResult>>
@@ -330,7 +333,9 @@ class MacroApplications {
         macro.MacroExecutionResult result =
             await _macroExecutor.executeTypesPhase(
                 macroApplication.instanceIdentifier, declaration);
-        results.add(result);
+        if (result.isNotEmpty) {
+          results.add(result);
+        }
       }
     }
 
@@ -351,19 +356,29 @@ class MacroApplications {
     for (_ApplicationData macroApplication in _applicationData) {
       List<macro.MacroExecutionResult> executionResults =
           await _applyTypeMacros(macroApplication);
-      (results[macroApplication.libraryBuilder] ??= [])
-          .addAll(executionResults);
+      if (executionResults.isNotEmpty) {
+        (results[macroApplication.libraryBuilder] ??= [])
+            .addAll(executionResults);
+      }
     }
     for (MapEntry<SourceLibraryBuilder, List<macro.MacroExecutionResult>> entry
         in results.entries) {
       SourceLibraryBuilder sourceLibraryBuilder = entry.key;
-      String result = _macroExecutor.buildAugmentationLibrary(
-          entry.value, _resolveIdentifier);
-      if (retainDataForTesting) {
-        dataForTesting?.libraryTypesResult[sourceLibraryBuilder] = result;
+      assert(entry.value.isNotEmpty);
+      String result = _macroExecutor
+          .buildAugmentationLibrary(entry.value, _resolveIdentifier)
+          .trim();
+      assert(
+          result.trim().isNotEmpty,
+          "Empty types phase augmentation library source for "
+          "$sourceLibraryBuilder}");
+      if (result.isNotEmpty) {
+        if (retainDataForTesting) {
+          dataForTesting?.libraryTypesResult[sourceLibraryBuilder] = result;
+        }
+        augmentationLibraries
+            .add(await sourceLibraryBuilder.createAugmentationLibrary(result));
       }
-      augmentationLibraries
-          .add(await sourceLibraryBuilder.createAugmentationLibrary(result));
     }
     return augmentationLibraries;
   }
@@ -382,14 +397,16 @@ class MacroApplications {
                 declaration,
                 typeResolver,
                 classIntrospector);
-        String source = _macroExecutor
-            .buildAugmentationLibrary([result], _resolveIdentifier);
-        SourceLibraryBuilder augmentationLibrary = await applicationData
-            .libraryBuilder
-            .createAugmentationLibrary(source);
-        await onAugmentationLibrary(augmentationLibrary);
-        if (retainDataForTesting) {
-          results.add(result);
+        if (result.isNotEmpty) {
+          String source = _macroExecutor
+              .buildAugmentationLibrary([result], _resolveIdentifier);
+          SourceLibraryBuilder augmentationLibrary = await applicationData
+              .libraryBuilder
+              .createAugmentationLibrary(source);
+          await onAugmentationLibrary(augmentationLibrary);
+          if (retainDataForTesting) {
+            results.add(result);
+          }
         }
       }
     }
@@ -433,7 +450,9 @@ class MacroApplications {
                 typeResolver,
                 classIntrospector,
                 typeDeclarationResolver);
-        results.add(result);
+        if (result.isNotEmpty) {
+          results.add(result);
+        }
       }
     }
     if (retainDataForTesting) {
@@ -450,11 +469,34 @@ class MacroApplications {
 
   late macro.TypeDeclarationResolver typeDeclarationResolver;
 
-  Future<void> applyDefinitionMacros() async {
+  Future<List<SourceLibraryBuilder>> applyDefinitionMacros() async {
     typeDeclarationResolver = new _TypeDeclarationResolver();
+    List<SourceLibraryBuilder> augmentationLibraries = [];
+    Map<SourceLibraryBuilder, List<macro.MacroExecutionResult>> results = {};
     for (_ApplicationData macroApplication in _applicationData) {
-      await _applyDefinitionMacros(macroApplication);
+      List<macro.MacroExecutionResult> executionResults =
+          await _applyDefinitionMacros(macroApplication);
+      if (executionResults.isNotEmpty) {
+        (results[macroApplication.libraryBuilder] ??= [])
+            .addAll(executionResults);
+      }
     }
+    for (MapEntry<SourceLibraryBuilder, List<macro.MacroExecutionResult>> entry
+        in results.entries) {
+      SourceLibraryBuilder sourceLibraryBuilder = entry.key;
+      String result = _macroExecutor.buildAugmentationLibrary(
+          entry.value, _resolveIdentifier);
+      assert(
+          result.trim().isNotEmpty,
+          "Empty definitions phase augmentation library source for "
+          "$sourceLibraryBuilder}");
+      if (retainDataForTesting) {
+        dataForTesting?.libraryDefinitionResult[sourceLibraryBuilder] = result;
+      }
+      augmentationLibraries
+          .add(await sourceLibraryBuilder.createAugmentationLibrary(result));
+    }
+    return augmentationLibraries;
   }
 
   void close() {
@@ -708,11 +750,7 @@ class MacroApplications {
                   typeBuilder: typeBuilder,
                   libraryBuilder: libraryBuilder,
                   id: macro.RemoteInstance.uniqueId,
-                  // TODO: We probably shouldn't be including the qualifier
-                  // here. Kernel should probably have its own implementation
-                  // of Identifier which holds on to the qualified reference
-                  // instead.
-                  name: '${name.qualifier}.${name.name}'),
+                  name: name.name),
               typeArguments: typeArguments,
               isNullable: isNullable);
         }
@@ -992,4 +1030,8 @@ class _ApplicationData {
 
   _ApplicationData(this.libraryBuilder, this.builder, this.declaration,
       this.macroApplications);
+}
+
+extension on macro.MacroExecutionResult {
+  bool get isNotEmpty => augmentations.isNotEmpty;
 }

@@ -12,7 +12,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ toString() → dynamic {
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ toString() → dynamic {
     return "A(a=${this.{self::A::a}{dynamic}},b=${this.{self::A::b}{dynamic}})";
   }
 }
@@ -24,7 +24,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ toString() → dynamic {
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ toString() → dynamic {
     return "B(c=${this.{self::B::c}{dynamic}},d=${this.{self::B::d}{dynamic}},e=${this.{self::B::e}{dynamic}})";
   }
 }

@@ -3,8 +3,30 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
+Definitions:
+import 'dart:core' as i0;
 
 
+augment class A {
+augment i0.String getSuperClass() {
+    return "Object";
+  }
+}
+augment class B {
+augment i0.String getSuperClass() {
+    return "A";
+  }
+}
+augment class M {
+augment i0.String getSuperClass() {
+    return "Object";
+  }
+}
+augment class C {
+augment i0.String getSuperClass() {
+    return "A";
+  }
+}
 */
 
 import 'package:macro/macro.dart';

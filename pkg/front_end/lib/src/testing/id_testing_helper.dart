@@ -25,6 +25,7 @@ import '../api_prototype/experimental_flags.dart'
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 import '../base/common.dart';
+import '../fasta/kernel/macro.dart';
 import '../fasta/messages.dart' show FormattedMessage;
 import '../kernel_generator_impl.dart' show InternalCompilerResult;
 import 'compiler_common.dart' show compileScript, toTestUri;
@@ -380,6 +381,10 @@ Future<TestResult<T>> runTestForConfig<T>(
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
 
   Map<Id, ActualData<T>> actualMapForUri(Uri? uri) {
+    if (uri?.scheme == augmentationScheme) {
+      throw new UnsupportedError(
+          "Annotations are not support on augmentation uris.");
+    }
     return actualMaps.putIfAbsent(uri ?? nullUri, () => <Id, ActualData<T>>{});
   }
 
@@ -391,9 +396,15 @@ Future<TestResult<T>> runTestForConfig<T>(
 
     Map<Uri, Map<int, List<FormattedMessage>>> errorMap = {};
     for (FormattedMessage error in errors) {
+      Uri? uri = error.uri;
+      bool isAugmentation = uri?.scheme == augmentationScheme;
+      if (isAugmentation) {
+        uri = testData.entryPoint;
+      }
       Map<int, List<FormattedMessage>> map =
-          errorMap.putIfAbsent(error.uri ?? nullUri, () => {});
-      List<FormattedMessage> list = map.putIfAbsent(error.charOffset, () => []);
+          errorMap.putIfAbsent(uri ?? nullUri, () => {});
+      List<FormattedMessage> list =
+          map.putIfAbsent(isAugmentation ? -1 : error.charOffset, () => []);
       list.add(error);
     }
 
@@ -418,7 +429,14 @@ Future<TestResult<T>> runTestForConfig<T>(
     Uri uri = node is Library
         ? node.fileUri
         : (node is Member ? node.fileUri : node.location!.file);
-    return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
+    if (uri.scheme == augmentationScheme) {
+      TreeNode library = node;
+      while (library is! Library) {
+        library = library.parent!;
+      }
+      uri = library.fileUri;
+    }
+    return actualMapForUri(uri);
   }
 
   void processMember(Member member, Map<Id, ActualData<T>> actualMap) {

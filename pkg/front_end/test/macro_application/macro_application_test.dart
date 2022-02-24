@@ -23,6 +23,7 @@ import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
+import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Arguments;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
@@ -157,6 +158,16 @@ class MacroDataComputer extends DataComputer<String> {
       if (sourceLibraryBuilder.library == library) {
         String source =
             macroApplicationData.libraryTypesResult[sourceLibraryBuilder]!;
+        sb.write('\nTypes:');
+        sb.write('\n${source}');
+      }
+    }
+    for (SourceLibraryBuilder sourceLibraryBuilder
+        in macroApplicationData.libraryDefinitionResult.keys) {
+      if (sourceLibraryBuilder.library == library) {
+        String source =
+            macroApplicationData.libraryDefinitionResult[sourceLibraryBuilder]!;
+        sb.write('\nDefinitions:');
         sb.write('\n${source}');
       }
     }
@@ -256,8 +267,10 @@ class MacroDataComputer extends DataComputer<String> {
     }
     if (sb.isNotEmpty) {
       Id id = computeMemberId(member);
-      registry.registerValue(
-          member.fileUri, member.fileOffset, id, sb.toString(), member);
+      MemberBuilder memberBuilder =
+          lookupMemberBuilder(testResultData.compilerResult, member)!;
+      registry.registerValue(memberBuilder.fileUri!, memberBuilder.charOffset,
+          id, sb.toString(), member);
     }
   }
 }

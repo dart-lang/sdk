@@ -13,7 +13,7 @@ class FunctionDefinitionMacro1 implements FunctionDefinitionMacro {
   FutureOr<void> buildDefinitionForFunction(FunctionDeclaration function,
       FunctionDefinitionBuilder builder) {
     builder.augment(new FunctionBodyCode.fromString('''{
-  return 42;
+  throw 42;
 }'''));
   }
 }
@@ -34,6 +34,7 @@ class FunctionDefinitionMacro2 implements FunctionDefinitionMacro {
     builder.augment(new FunctionBodyCode.fromString('''{
   print('isExactly=${await returnType.isExactly(parameterType)}');
   print('isSubtype=${await returnType.isSubtypeOf(parameterType)}');
+  throw 42;
 }'''));
   }
 }
