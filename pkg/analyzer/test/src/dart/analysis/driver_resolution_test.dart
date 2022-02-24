@@ -796,11 +796,20 @@ f(A a) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('>>> 3'),
-      element: findElement.method('>>>'),
-      type: 'A',
-    );
+    assertResolvedNodeText(findNode.binary('>>> 3'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@54
+    staticType: A
+  operator: >>>
+  rightOperand: IntegerLiteral
+    literal: 3
+    staticType: int
+  staticElement: self::@class::A::@method::>>>
+  staticInvokeType: A Function(int)
+  staticType: A
+''');
   }
 
   test_binaryExpression_ifNull() async {

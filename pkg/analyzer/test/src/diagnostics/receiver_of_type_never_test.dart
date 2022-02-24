@@ -26,13 +26,28 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 25, 6),
     ]);
 
-    assertBinaryExpression(
-      findNode.binary('x =='),
-      element: null,
-      type: 'Never',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.binary('x =='), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: Never
+  operator: ==
+  rightOperand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      staticType: int
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: Never
+''');
   }
 
   test_binaryExpression_never_plus() async {
@@ -45,13 +60,32 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 24, 8),
     ]);
 
-    assertBinaryExpression(
-      findNode.binary('x +'),
-      element: null,
-      type: 'Never',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.binary('x +'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: Never
+  operator: +
+  rightOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
+        literal: 2
+        staticType: int
+      staticElement: dart:core::@class::num::@method::+
+      staticInvokeType: num Function(num)
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: Never
+''');
   }
 
   test_binaryExpression_neverQ_eqEq() async {
@@ -61,13 +95,28 @@ void f(Never? x) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('x =='),
-      element: objectElement.getMethod('=='),
-      type: 'bool',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.binary('x =='), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: Never?
+  operator: ==
+  rightOperand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      staticType: int
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  staticElement: dart:core::@class::Object::@method::==
+  staticInvokeType: bool Function(Object)
+  staticType: bool
+''');
   }
 
   test_binaryExpression_neverQ_plus() async {
@@ -82,13 +131,32 @@ void f(Never? x) {
           1),
     ]);
 
-    assertBinaryExpression(
-      findNode.binary('x +'),
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.binary('x +'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: Never?
+  operator: +
+  rightOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
+        literal: 2
+        staticType: int
+      staticElement: dart:core::@class::num::@method::+
+      staticInvokeType: num Function(num)
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
   }
 
   test_conditionalExpression_falseBranch() async {
@@ -615,16 +683,37 @@ void f() {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('=='),
-      element: elementMatcher(
-        objectElement.getMethod('=='),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'bool',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.binary('=='), r'''
+BinaryExpression
+  leftOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never*
+    rightParenthesis: )
+    staticType: Never*
+  operator: ==
+  rightOperand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int*
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      staticType: int*
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::+
+      substitution: {}
+    staticInvokeType: num* Function(num*)*
+    staticType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::Object::@method::==
+    substitution: {}
+  staticInvokeType: bool* Function(Object*)*
+  staticType: bool*
+''');
   }
 
   test_binaryExpression_plus() async {
@@ -634,11 +723,40 @@ void f() {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('+ ('),
-      element: null,
-      type: 'dynamic',
-    );
+    // TODO(scheglov) Why do we have `MethodMember`? For legacy?
+    assertResolvedNodeText(findNode.binary('+ ('), r'''
+BinaryExpression
+  leftOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never*
+    rightParenthesis: )
+    staticType: Never*
+  operator: +
+  rightOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int*
+      operator: +
+      rightOperand: IntegerLiteral
+        literal: 2
+        staticType: int*
+      staticElement: MethodMember
+        base: dart:core::@class::num::@method::+
+        substitution: {}
+      staticInvokeType: num* Function(num*)*
+      staticType: int*
+    rightParenthesis: )
+    staticType: int*
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
 
     assertType(findNode.binary('1 + 2'), 'int');
   }

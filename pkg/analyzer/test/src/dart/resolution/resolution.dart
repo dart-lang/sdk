@@ -114,15 +114,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     _assertUnresolvedAssignmentTarget(node.leftHandSide);
   }
 
-  void assertBinaryExpression(
-    BinaryExpression node, {
-    required Object? element,
-    required String type,
-  }) {
-    assertElement(node.staticElement, element);
-    assertType(node, type);
-  }
-
   /// Assert that the given [identifier] is a reference to a class, in the
   /// form that is not a separate expression, e.g. in a static method
   /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
