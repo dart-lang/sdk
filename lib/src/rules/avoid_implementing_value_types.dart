@@ -113,7 +113,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (implementsClause == null) {
       return;
     }
-    for (var interface in implementsClause.interfaces2) {
+    for (var interface in implementsClause.interfaces) {
       var element = interface.type?.element;
       if (element is ClassElement && _overridesEquals(element)) {
         rule.reportLint(interface);

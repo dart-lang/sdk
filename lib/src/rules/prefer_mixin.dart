@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    for (var type in node.mixinTypes2) {
+    for (var type in node.mixinTypes) {
       var element = type.name.staticElement;
       if (element is TypeAliasElement) {
         element = element.aliasedType.element;

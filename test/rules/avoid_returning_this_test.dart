@@ -26,10 +26,10 @@ class AvoidReturningThisTest extends LintRuleTest {
     await assertDiagnostics(r'''
 enum A {
   a,b,c;
-  A a() => this;
+  A aa() => this;
 }
 ''', [
-      lint('avoid_returning_this', 22, 1),
+      lint('avoid_returning_this', 22, 2),
     ]);
   }
 }

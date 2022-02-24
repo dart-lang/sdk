@@ -75,7 +75,7 @@ class Validator extends SimpleAstVisitor<void> {
     if (Identifier.isPrivateName(node.name.name)) {
       return;
     }
-    node.superclass2.accept(this);
+    node.superclass.accept(this);
     node.typeParameters?.accept(this);
   }
 
@@ -198,7 +198,7 @@ class Validator extends SimpleAstVisitor<void> {
     if (Identifier.isPrivateName(node.name.name)) {
       return;
     }
-    node.onClause?.superclassConstraints2.accept(this);
+    node.onClause?.superclassConstraints.accept(this);
     node.typeParameters?.accept(this);
     node.members.accept(this);
   }
