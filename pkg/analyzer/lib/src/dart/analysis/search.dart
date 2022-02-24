@@ -154,6 +154,7 @@ class Search {
         var unitResult = await _driver.getUnitElement(file);
         if (unitResult is UnitElementResult) {
           unitResult.element.classes.forEach(addElements);
+          unitResult.element.enums.forEach(addElements);
           unitResult.element.mixins.forEach(addElements);
         }
       }

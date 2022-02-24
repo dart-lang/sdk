@@ -89,6 +89,28 @@ class B {
         unorderedEquals([a.methods[0], b.fields[0]]));
   }
 
+  test_classMembers_enum() async {
+    await resolveTestCode('''
+enum E1 {
+  v;
+  void test() {}
+}
+
+enum E2 {
+  v;
+  final int test = 0;
+}
+''');
+
+    expect(
+      await _findClassMembers('test'),
+      unorderedEquals([
+        findElement.method('test', of: 'E1'),
+        findElement.field('test', of: 'E2'),
+      ]),
+    );
+  }
+
   test_classMembers_importNotDart() async {
     await resolveTestCode('''
 import 'not-dart.txt';
