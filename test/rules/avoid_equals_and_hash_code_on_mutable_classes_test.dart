@@ -25,12 +25,8 @@ class AvoidEqualsAndHashCodeOnMutableClassesTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_equals_and_hash_code_on_mutable_classes';
 
-  @FailingTest(
-      issue: 'https://github.com/dart-lang/linter/issues/3094',
-      reason: 'Needs new analyzer')
   test_enums() async {
-    // Enums are constant by design.
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(r'''
 enum E {
   e(1), f(2), g(3);
   final int key;
@@ -38,6 +34,12 @@ enum E {
   bool operator ==(Object other) => other is E && other.key == key;
   int get hashCode => key.hashCode;
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 83, 2),
+      error(CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 145,
+          8),
+      // No lint.
+    ]);
   }
 }

@@ -22,7 +22,6 @@ class HashAndEqualsTest extends LintRuleTest {
   @override
   String get lintRule => 'hash_and_equals';
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3195')
   test_enum_missingHash() async {
     await assertDiagnostics(r'''
 enum A {
@@ -31,7 +30,9 @@ enum A {
   bool operator ==(Object other) => false;
 }
 ''', [
-      lint('hash_and_equals', 46, 2), // todo(pq): fix index
+      error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 46, 2),
+      // no lint
     ]);
   }
 }

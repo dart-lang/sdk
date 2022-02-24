@@ -63,7 +63,6 @@ class HashAndEquals extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
-    registry.addEnumDeclaration(this, visitor);
   }
 }
 
@@ -81,11 +80,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _check(node.members);
-  }
-
-  @override
-  void visitEnumDeclaration(EnumDeclaration node) {
     _check(node.members);
   }
 

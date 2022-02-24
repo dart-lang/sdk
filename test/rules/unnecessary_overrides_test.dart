@@ -22,29 +22,27 @@ class UnnecessaryOverridesTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_overrides';
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3097')
   test_field() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(r'''    
 enum A {
   a,b,c;
   @override
-  int get foo => 0;
+  Type get runtimeType => super.runtimeType;
 }
 ''', [
-      lint('unnecessary_overrides', 28, 8),
+      lint('unnecessary_overrides', 41, 11),
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3097')
   test_method() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(r'''    
 enum A {
   a,b,c;
   @override
-  String bar() => '';
+  String toString() => super.toString();
 }
 ''', [
-      lint('unnecessary_overrides', 27, 8),
+      lint('unnecessary_overrides', 39, 8),
     ]);
   }
 }

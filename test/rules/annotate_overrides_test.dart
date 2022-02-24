@@ -48,7 +48,6 @@ enum A {
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3093')
   test_ok() async {
     await assertNoDiagnostics(r'''
 class O {
