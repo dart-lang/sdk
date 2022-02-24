@@ -22,19 +22,18 @@ class AvoidRenamingMethodParametersTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_renaming_method_parameters';
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3095')
   test_rename() async {
     await assertDiagnostics(r'''
 class C {
   int f(int f) => f;
 }
-enum A implements C {
+enum A with C {
   a,b,c;
   @override
   int f(int x) => x;
 }
 ''', [
-      lint('avoid_renaming_method_parameters', 28, 8), // todo(pq): update index
+      lint('avoid_renaming_method_parameters', 82, 1),
     ]);
   }
 }
