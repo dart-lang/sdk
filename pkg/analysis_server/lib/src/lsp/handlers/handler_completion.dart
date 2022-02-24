@@ -465,8 +465,9 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           final fuzzyMatcher =
               FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
 
-          final matchingResults =
-              results.where((e) => fuzzyMatcher.score(e.label) > 0).toList();
+          final matchingResults = results
+              .where((e) => fuzzyMatcher.score(e.filterText ?? e.label) > 0)
+              .toList();
 
           completionPerformance.suggestionCount = results.length;
 

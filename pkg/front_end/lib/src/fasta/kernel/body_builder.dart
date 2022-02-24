@@ -775,6 +775,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,

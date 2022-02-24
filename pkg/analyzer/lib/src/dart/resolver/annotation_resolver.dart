@@ -226,7 +226,8 @@ class AnnotationResolver with InstanceCreationResolverMixin {
         typeArguments: node.typeArguments,
         arguments: node.arguments!,
         errorNode: node,
-        isConst: true);
+        isConst: true,
+        contextReturnType: null);
     if (inferenceResult != null) {
       constructorElement = inferenceResult.constructorElement;
     }
@@ -237,7 +238,7 @@ class AnnotationResolver with InstanceCreationResolverMixin {
 
     var inferred = _resolver.inferenceHelper.inferGenericInvoke(
         node, constructorRawType, typeArgumentList, argumentList, node,
-        isConst: true)!;
+        isConst: true, contextReturnType: null)!;
 
     constructorElement = ConstructorMember.from(
       constructorElement,

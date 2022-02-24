@@ -104,6 +104,32 @@ var v = const A(null);
     ]);
   }
 
+  test_enum_int_null() async {
+    await assertErrorsInCode(r'''
+const dynamic a = null;
+
+enum E {
+  v(a);
+  const E(int a);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 38, 1),
+    ]);
+  }
+
+  test_enum_int_String() async {
+    await assertErrorsInCode(r'''
+const dynamic a = '0';
+
+enum E {
+  v(a);
+  const E(int a);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 37, 1),
+    ]);
+  }
+
   test_int_to_double_reference_from_other_library_other_file_after() async {
     newFile('$testPackageLibPath/other.dart', content: '''
 import 'test.dart';

@@ -166,6 +166,45 @@ enum E with M {
 ''');
   }
 
+  test_index_getter_fromImplements() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get index => 0;
+}
+
+enum E implements A {
+  v;
+}
+''');
+  }
+
+  test_index_getter_fromWith() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  int get index => 0;
+}
+
+enum E with M {
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE, 40, 1),
+    ]);
+  }
+
+  test_index_setter_fromWith() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  set index(int _) {}
+}
+
+enum E with M {
+  v;
+}
+''');
+  }
+
   test_operatorEqEq_fromImplements() async {
     await assertNoErrorsInCode(r'''
 class A {

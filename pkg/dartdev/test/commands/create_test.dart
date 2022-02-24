@@ -54,13 +54,21 @@ void defineCreateTests() {
   });
 
   test('default template exists', () async {
-    expect(CreateCommand.legalTemplateIds,
+    expect(CreateCommand.legalTemplateIds(),
         contains(CreateCommand.defaultTemplateId));
   });
 
-  test('all templates exist', () async {
-    for (String templateId in CreateCommand.legalTemplateIds) {
-      expect(CreateCommand.legalTemplateIds, contains(templateId));
+  test('no templates IDs overlap', () async {
+    final ids = <String>{};
+
+    for (final g in templates.generators) {
+      expect(ids.contains(g.id), false);
+      ids.add(g.id);
+
+      if (g.alternateId != null) {
+        expect(ids.contains(g.alternateId), false);
+        ids.add(g.alternateId!);
+      }
     }
   });
 
@@ -72,7 +80,6 @@ void defineCreateTests() {
 
     String output = result.stdout.toString();
     var parsedResult = jsonDecode(output);
-    expect(parsedResult, hasLength(CreateCommand.legalTemplateIds.length));
     expect(parsedResult[0]['name'], isNotNull);
     expect(parsedResult[0]['label'], isNotNull);
     expect(parsedResult[0]['description'], isNotNull);
@@ -81,9 +88,7 @@ void defineCreateTests() {
   test('no directory given', () async {
     p = project();
 
-    ProcessResult result = await p!.run([
-      'create',
-    ]);
+    ProcessResult result = await p!.run(['create']);
     expect(result.exitCode, 1);
   });
 
@@ -109,7 +114,8 @@ void defineCreateTests() {
 
   test('project with normalized package name', () async {
     p = project();
-    final result = await p!.run(['create', 'requires-normalization']);
+    final result =
+        await p!.run(['create', '--no-pub', 'requires-normalization']);
     expect(result.stderr, isEmpty);
     expect(
         result.stdout,
@@ -140,7 +146,8 @@ void defineCreateTests() {
   });
 
   // Create tests for each template.
-  for (String templateId in CreateCommand.legalTemplateIds) {
+  for (String templateId
+      in CreateCommand.legalTemplateIds(includeDeprecated: true)) {
     test(templateId, () async {
       p = project();
       const projectName = 'template_project';

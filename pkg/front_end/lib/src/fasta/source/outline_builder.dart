@@ -51,6 +51,7 @@ import '../modifier.dart'
         Static,
         Var,
         abstractMask,
+        augmentMask,
         constMask,
         covariantMask,
         externalMask,
@@ -821,30 +822,21 @@ class OutlineBuilder extends StackListenerImpl {
             macroToken.next!.length);
         macroToken = null;
       }
-      if (augmentToken != null) {
-        // TODO(johnniwinther): We should emit a different message when the
-        // experiment is not released yet. The current message indicates that
-        // changing the sdk version can solve the problem.
-        addProblem(
-            templateExperimentNotEnabled.withArguments(
-                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-            augmentToken.next!.charOffset,
-            augmentToken.next!.length);
-        augmentToken = null;
-      }
     }
     push(macroToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
 
   @override
-  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(
+      Token? augmentToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
     pushDeclarationContext(DeclarationContext.Mixin);
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
+    push(augmentToken ?? NullValue.Token);
     push(typeVariables ?? NullValue.TypeVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
         .markAsMixinDeclaration(name.lexeme, name.charOffset, typeVariables);
@@ -926,14 +918,6 @@ class OutlineBuilder extends StackListenerImpl {
             macroToken.next!.charOffset,
             macroToken.next!.length);
         macroToken = null;
-      }
-      if (augmentToken != null) {
-        addProblem(
-            templateExperimentNotEnabled.withArguments(
-                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-            augmentToken.next!.charOffset,
-            augmentToken.next!.length);
-        augmentToken = null;
       }
     }
     push(macroToken ?? NullValue.Token);
@@ -1183,12 +1167,26 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endMixinDeclaration(Token mixinToken, Token endToken) {
     debugEvent("endMixinDeclaration");
+    assert(checkState(mixinToken, [
+      /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+      /* supertypeConstraints */ unionOfKinds([
+        ValueKinds.TypeBuilderListOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+      /* type variables */ ValueKinds.TypeVariableListOrNull,
+      /* augment token */ ValueKinds.TokenOrNull,
+      /* name offset */ ValueKinds.Integer,
+      /* name */ ValueKinds.NameOrParserRecovery,
+      /* metadata */ ValueKinds.MetadataListOrNull,
+    ]));
+
     List<TypeBuilder>? interfaces =
         pop(NullValue.TypeBuilderList) as List<TypeBuilder>?;
     List<TypeBuilder>? supertypeConstraints =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
     List<TypeVariableBuilder>? typeVariables =
         pop(NullValue.TypeVariables) as List<TypeVariableBuilder>?;
+    Token? augmentToken = pop(NullValue.Token) as Token?;
     int nameOffset = popCharOffset();
     Object? name = pop();
     List<MetadataBuilder>? metadata =
@@ -1255,7 +1253,8 @@ class OutlineBuilder extends StackListenerImpl {
           startOffset,
           nameOffset,
           endToken.charOffset,
-          -1);
+          -1,
+          isAugmentation: augmentToken != null);
     }
     libraryBuilder.setCurrentClassName(null);
     popDeclarationContext(DeclarationContext.Mixin);
@@ -1395,12 +1394,20 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
+  void beginTopLevelMethod(
+      Token lastConsumed, Token? augmentToken, Token? externalToken) {
     pushDeclarationContext(DeclarationContext.TopLevelMethod);
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.topLevelMethod, "#method",
         hasMembers: false);
-    push(externalToken != null ? externalMask : 0);
+    int modifiers = 0;
+    if (augmentToken != null) {
+      modifiers |= augmentMask;
+    }
+    if (externalToken != null) {
+      modifiers |= externalMask;
+    }
+    push(modifiers);
   }
 
   @override
@@ -2658,6 +2665,7 @@ class OutlineBuilder extends StackListenerImpl {
   void beginFields(
       DeclarationKind declarationKind,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2747,6 +2755,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2787,6 +2796,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<FieldInfo>? fieldInfos = popFieldInfos(count);
     TypeBuilder? type = pop() as TypeBuilder?;
     int modifiers = (abstractToken != null ? abstractMask : 0) |
+        (augmentToken != null ? augmentMask : 0) |
         (externalToken != null ? externalMask : 0) |
         (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
@@ -3142,6 +3152,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endEnumFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -3157,8 +3168,17 @@ class OutlineBuilder extends StackListenerImpl {
           beginToken.charOffset,
           -1);
     }
-    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    endClassFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override

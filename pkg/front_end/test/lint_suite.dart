@@ -259,6 +259,7 @@ class ExplicitTypeLintListener extends LintListener {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,

@@ -41,7 +41,9 @@ dart_2/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart_2/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 
 [ $arch == ia32 ]
+dart/analyze_snapshot_binary_test: SkipByDesign # IA32 does not support AOT.
 dart/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
+dart_2/analyze_snapshot_binary_test: SkipByDesign # IA32 does not support AOT.
 dart_2/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
 
 [ $builder_tag == asan ]
@@ -96,6 +98,7 @@ cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
 dart/b162922506_test: SkipByDesign # Only run in JIT
 dart/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
+dart/spawn_uri_from_kernel_blob_test: SkipByDesign # Only run in JIT.
 dart_2/b162922506_test: SkipByDesign # Only run in JIT
 dart_2/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
 dart_2/isolates/reload_*: SkipByDesign # These tests only run on normal JIT.
@@ -162,8 +165,10 @@ dart_2/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-pla
 [ $system == fuchsia ]
 cc/CorelibIsolateStartup: Skip # OOM crash can bring down the OS.
 cc/Read: Fail # TODO(zra): Investigate, ../../dart/runtime/bin/file_test.cc: 34: error: expected: !file->WriteByte(1)
+dart/analyze_snapshot_binary_test: SkipByDesign # Not supported for Fuchsia.
 dart/data_uri_spawn_test: Skip # TODO(zra): package:unittest is not in the image.
 dart/spawn_shutdown_test: Skip # OOM crash can bring down the OS.
+dart_2/analyze_snapshot_binary_test: SkipByDesign # Not supported for Fuchsia.
 dart_2/data_uri_spawn_test: Skip # TODO(zra): package:unittest is not in the image.
 dart_2/spawn_shutdown_test: Skip # OOM crash can bring down the OS.
 
@@ -179,6 +184,9 @@ dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 [ $arch == ia32 && $mode == debug && $system == windows ]
 dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
 dart_2/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
+
+[ $arch == ia32 && ($nnbd == strong || $nnbd == weak) ]
+dart/type_casts_with_null_safety_autodetection_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 
 [ $arch != simarm && $arch != simarm64 && $arch != simarm64c && $arch != simriscv32 && $arch != simriscv64 && $compiler == dartk && $hot_reload ]
 dart/data_uri_import_test/base64: Crash
@@ -317,8 +325,10 @@ dart_2/catch_entry_state: SkipByDesign
 [ $system != fuchsia && ($arch != x64 || $system != linux) ]
 cc/CodeExecutability: SkipByDesign # --dual-map-code not supported on non-Linux/Fuchsia
 
-[ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
+dart/analyze_snapshot_binary_test: SkipByDesign # These tests should only run on AOT. On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
+dart_2/analyze_snapshot_binary_test: SkipByDesign # These tests should only run on AOT. On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 
 # On the simluator stack traces produced by the Profiler do not match

@@ -252,17 +252,6 @@ TypeInfo computeType(final Token token, bool required,
   assert(typeParamOrArg == noTypeParamOrArg);
   next = next.next!;
 
-  // TODO(scheglov) This is a hack to partially fix.
-  // https://github.com/dart-lang/sdk/issues/47951
-  if (optional('?', next) &&
-      optional('super', next.next!) &&
-      optional('.', next.next!.next!)) {
-    return simpleNullableType;
-  }
-  if (optional('super', next) && optional('.', next.next!)) {
-    return simpleType;
-  }
-
   if (optional('.', next)) {
     next = next.next!;
     if (isValidTypeReference(next)) {

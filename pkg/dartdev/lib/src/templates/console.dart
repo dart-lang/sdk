@@ -6,11 +6,15 @@ import '../templates.dart';
 import 'common.dart' as common;
 
 /// A generator for a hello world command-line application.
-class ConsoleFullGenerator extends DefaultGenerator {
-  ConsoleFullGenerator()
-      : super('console-full', 'Console Application',
-            'A command-line application sample.',
-            categories: const ['dart', 'console']) {
+class ConsoleGenerator extends DefaultGenerator {
+  ConsoleGenerator()
+      : super(
+          'console',
+          'Console Application',
+          'A command-line application.',
+          alternateId: 'console-full',
+          categories: const ['dart', 'console'],
+        ) {
     addFile('.gitignore', common.gitignore);
     addFile('analysis_options.yaml', common.analysisOptions);
     addFile('CHANGELOG.md', common.changelog);

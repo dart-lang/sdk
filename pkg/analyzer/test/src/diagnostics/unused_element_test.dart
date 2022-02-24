@@ -89,6 +89,46 @@ print(x) {}
     ]);
   }
 
+  test_enum_constructor_parameter_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v(a: 0);
+  const E({int? a});
+}
+''');
+  }
+
+  test_enum_constructor_parameter_optionalNamed_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v1, v2();
+  const E({int? a});
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
+    ]);
+  }
+
+  test_enum_constructor_parameter_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v(0);
+  const E([int? a]);
+}
+''');
+  }
+
+  test_enum_constructor_parameter_optionalPositional_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v1, v2();
+  const E([int? a]);
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
+    ]);
+  }
+
   test_optionalParameter_isUsed_genericConstructor() async {
     await assertNoErrorsInCode('''
 class C<T> {

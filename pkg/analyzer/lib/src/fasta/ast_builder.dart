@@ -269,18 +269,6 @@ class AstBuilder extends StackListener {
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
       }
-      if (augmentToken != null) {
-        var feature = ExperimentalFeatures.macros;
-        handleRecoverableError(
-            templateExperimentNotEnabled.withArguments(
-              feature.enableString,
-              _versionAsString(ExperimentStatus.currentVersion),
-            ),
-            augmentToken,
-            augmentToken);
-        // Pretend that 'augment' didn't occur while this feature is incomplete.
-        augmentToken = null;
-      }
     }
     push(macroToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
@@ -406,10 +394,12 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(
+      Token? augmentToken, Token mixinKeyword, Token name) {
     assert(classDeclaration == null &&
         mixinDeclaration == null &&
         extensionDeclaration == null);
+    push(augmentToken ?? NullValue.Token);
   }
 
   @override
@@ -429,26 +419,17 @@ class AstBuilder extends StackListener {
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
       }
-      if (augmentToken != null) {
-        var feature = ExperimentalFeatures.macros;
-        handleRecoverableError(
-            templateExperimentNotEnabled.withArguments(
-              feature.enableString,
-              _versionAsString(ExperimentStatus.currentVersion),
-            ),
-            augmentToken,
-            augmentToken);
-        // Pretend that 'augment' didn't occur while this feature is incomplete.
-        augmentToken = null;
-      }
     }
     push(macroToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
-    push(_Modifiers()..externalKeyword = externalToken);
+  void beginTopLevelMethod(
+      Token lastConsumed, Token? augmentToken, Token? externalToken) {
+    push(_Modifiers()
+      ..augmentKeyword = augmentToken
+      ..externalKeyword = externalToken);
   }
 
   @override
@@ -975,6 +956,7 @@ class AstBuilder extends StackListener {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1026,6 +1008,7 @@ class AstBuilder extends StackListener {
         comment: comment,
         metadata: metadata,
         abstractKeyword: abstractToken,
+        augmentKeyword: augmentToken,
         covariantKeyword: covariantKeyword,
         externalKeyword: externalToken,
         staticKeyword: staticToken,
@@ -1402,6 +1385,7 @@ class AstBuilder extends StackListener {
   @override
   void endExtensionFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1416,8 +1400,17 @@ class AstBuilder extends StackListener {
       // an error at this point, but we include them in order to get navigation,
       // search, etc.
     }
-    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    endClassFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override
@@ -1992,7 +1985,7 @@ class AstBuilder extends StackListener {
     FunctionExpression functionExpression =
         ast.functionExpression(typeParameters, parameters, body);
     var functionDeclaration = ast.functionDeclaration(
-        null, metadata, null, returnType, null, name, functionExpression);
+        null, metadata, null, null, returnType, null, name, functionExpression);
     push(ast.functionDeclarationStatement(functionDeclaration));
   }
 
@@ -2068,6 +2061,7 @@ class AstBuilder extends StackListener {
   @override
   void endMixinFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2076,8 +2070,17 @@ class AstBuilder extends StackListener {
       int count,
       Token beginToken,
       Token endToken) {
-    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    endClassFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override
@@ -2401,12 +2404,14 @@ class AstBuilder extends StackListener {
     var name = pop() as SimpleIdentifier;
     var returnType = pop() as TypeAnnotation?;
     var modifiers = pop() as _Modifiers?;
+    var augmentKeyword = modifiers?.augmentKeyword;
     var externalKeyword = modifiers?.externalKeyword;
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, beginToken);
     declarations.add(ast.functionDeclaration(
         comment,
         metadata,
+        augmentKeyword,
         externalKeyword,
         returnType,
         getOrSet,
@@ -3564,6 +3569,7 @@ class AstBuilder extends StackListener {
 
     var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
     var onClause = pop(NullValue.IdentifierList) as OnClause?;
+    var augmentKeyword = pop(NullValue.Token) as Token?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
     var metadata = pop() as List<Annotation>?;
@@ -3572,6 +3578,7 @@ class AstBuilder extends StackListener {
     mixinDeclaration = ast.mixinDeclaration(
       comment,
       metadata,
+      augmentKeyword,
       mixinKeyword,
       name,
       typeParameters,
@@ -4370,6 +4377,7 @@ class _InvalidCollectionElement implements CollectionElement {
 /// of modifiers.
 class _Modifiers {
   Token? abstractKeyword;
+  Token? augmentKeyword;
   Token? externalKeyword;
   Token? finalConstOrVarKeyword;
   Token? staticKeyword;

@@ -3436,17 +3436,11 @@ class _SourceMock implements Source {
 }
 
 extension on AnalysisDriver {
-  Set<String> get loadedLibraryUriSet {
-    var elementFactory = this.test.libraryContext!.elementFactory;
-    var libraryReferences = elementFactory.rootReference.children;
-    return libraryReferences.map((e) => e.name).toSet();
-  }
-
   void assertLoadedLibraryUriSet({
     Iterable<String>? included,
     Iterable<String>? excluded,
   }) {
-    var uriSet = loadedLibraryUriSet;
+    var uriSet = this.test.loadedLibraryUriSet;
     if (included != null) {
       expect(uriSet, containsAll(included));
     }

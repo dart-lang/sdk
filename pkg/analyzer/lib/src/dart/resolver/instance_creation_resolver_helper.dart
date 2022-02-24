@@ -37,7 +37,8 @@ mixin InstanceCreationResolverMixin {
       required TypeArgumentListImpl? typeArguments,
       required ArgumentListImpl arguments,
       required AstNode errorNode,
-      required bool isConst}) {
+      required bool isConst,
+      required DartType? contextReturnType}) {
     InstanceCreationInferenceResult? inferenceResult;
     FunctionType? inferred;
 
@@ -63,7 +64,9 @@ mixin InstanceCreationResolverMixin {
 
       inferred = resolver.inferenceHelper.inferArgumentTypesForGeneric(
           inferenceNode, constructorType, typeArguments,
-          isConst: isConst, errorNode: errorNode);
+          isConst: isConst,
+          errorNode: errorNode,
+          contextReturnType: contextReturnType);
 
       if (inferred != null) {
         // Fix up the parameter elements based on inferred method.

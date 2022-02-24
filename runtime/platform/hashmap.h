@@ -23,7 +23,7 @@ class SimpleHashMap {
 
   static bool SamePointerValue(void* key1, void* key2) { return key1 == key2; }
 
-  static uint32_t StringHash(char* key) {
+  static uint32_t StringHash(const char* key) {
     uint32_t hash_ = 0;
     if (key == NULL) return hash_;
     int len = strlen(key);

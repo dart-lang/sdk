@@ -643,6 +643,7 @@ class AstTestFactory {
           null,
           null,
           null,
+          null,
           type,
           keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
           identifier3(name),

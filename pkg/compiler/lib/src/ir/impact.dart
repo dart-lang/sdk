@@ -684,34 +684,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   }
 }
 
-/// Visitor that builds an [ImpactData] object for the world impact.
-class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
-  @override
-  final bool useAsserts;
-
-  @override
-  final inferEffectivelyFinalVariableTypes;
-
-  ImpactBuilder(
-      ir.StaticTypeContext staticTypeContext,
-      StaticTypeCacheImpl staticTypeCache,
-      ir.ClassHierarchy classHierarchy,
-      VariableScopeModel variableScopeModel,
-      {this.useAsserts = false,
-      this.inferEffectivelyFinalVariableTypes = true})
-      : super(staticTypeContext, staticTypeCache, classHierarchy,
-            variableScopeModel);
-
-  ImpactBuilderData computeImpact(ir.Member node) {
-    if (retainDataForTesting) {
-      typeMapsForTesting = {};
-    }
-    node.accept(this);
-    return ImpactBuilderData(
-        node, impactData, typeMapsForTesting, getStaticTypeCache());
-  }
-}
-
 /// Return the named arguments names as a list of strings.
 List<String> _getNamedArguments(ir.Arguments arguments) =>
     arguments.named.map((n) => n.name).toList();

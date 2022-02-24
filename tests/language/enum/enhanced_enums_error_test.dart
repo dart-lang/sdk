@@ -344,22 +344,22 @@ enum ConflictConstructorNameStatic {
   const ConflictConstructorNameStatic.foo();
   //    ^
   // [cfe] Conflicts with member 'foo'.
-  // [analyzer] unspecified
+  //                                  ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER
   static int get foo => 42;
   //             ^^^
-  // [analyzer] unspecified
   // [cfe] Conflicts with constructor 'ConflictConstructorNameStatic.foo'.
 }
 
 enum ConflictConstructorNameStaticEnumValue {
   e1.e1();
 //^^
-// [analyzer] unspecified
 // [cfe] Conflicts with constructor 'ConflictConstructorNameStaticEnumValue.e1'.
   const ConflictConstructorNameStaticEnumValue.e1();
   //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] unspecified
   // [cfe] Conflicts with member 'e1'.
+  //                                           ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER
 }
 
 // "It is an error if a member has the same name as its enclosing class"
@@ -586,14 +586,14 @@ enum DeclaresStaticValues {
 enum InheritsValues with ValuesGetter {
   // ^^^^^^^^^^^^^^
   // [cfe] Can't declare a member that conflicts with an inherited one.
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES_INHERITANCE
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES
   e1;
 }
 
 enum ImplementsValues implements ValuesGetter {
   // ^^^^^^^^^^^^^^^^
   // [cfe] Can't declare a member that conflicts with an inherited one.
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES_INHERITANCE
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES
   e1;
 
   noSuchMethod(i) => 42;
@@ -603,7 +603,7 @@ enum DeclaresInstanceIndex {
   e1;
   int get index => 42;
   //      ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] unspecified
 }
 
@@ -641,7 +641,7 @@ enum ImplementsNeverIndex {
 
   Never get index => throw "Never!";
   //        ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] unspecified
 }
 
@@ -661,11 +661,11 @@ enum CyclicReference {
   e1(e2),
 //^
 // [cfe] Constant evaluation error:
-//   ^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+//^^
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
   e2(e1);
-  // ^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+//^^
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
   final CyclicReference other;
   const CyclicReference(this.other);
 }
@@ -676,8 +676,8 @@ enum CyclicReferenceValues {
 //   ^
 // [cfe] Constant evaluation error:
   e1(values);
-  // ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+//^^
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
   final List<CyclicReferenceValues> list;
   const CyclicReferenceValues(this.list);
 }

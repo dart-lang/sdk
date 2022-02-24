@@ -14,6 +14,7 @@ import '../diagnostics/messages.dart';
 import '../diagnostics/source_span.dart';
 import '../kernel/element_map.dart';
 import '../environment.dart';
+import '../ir/impact_data.dart';
 import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
 import '../options.dart';

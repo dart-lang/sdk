@@ -40,11 +40,11 @@ class PrefixExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(PrefixExpressionImpl node) {
+  void resolve(PrefixExpressionImpl node, {required DartType? contextType}) {
     var operator = node.operator.type;
 
     if (operator == TokenType.BANG) {
-      _resolveNegation(node);
+      _resolveNegation(node, contextType: contextType);
       return;
     }
 
@@ -70,13 +70,13 @@ class PrefixExpressionResolver {
         // Negated integer literals should undergo int->double conversion in the
         // same circumstances as non-negated integer literals, so pass the
         // context type through.
-        innerContextType = InferenceContext.getContext(node);
+        innerContextType = contextType;
       }
       _resolver.analyzeExpression(operand, innerContextType);
     }
 
     _resolve1(node);
-    _resolve2(node);
+    _resolve2(node, contextType: contextType);
   }
 
   /// Check that the result [type] of a prefix or postfix `++` or `--`
@@ -189,10 +189,11 @@ class PrefixExpressionResolver {
     }
   }
 
-  void _resolve2(PrefixExpressionImpl node) {
+  void _resolve2(PrefixExpressionImpl node, {required DartType? contextType}) {
     TokenType operator = node.operator.type;
     if (identical(node.readType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
+      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance,
+          contextType: contextType);
     } else {
       // The other cases are equivalent to invoking a method.
       var staticMethodElement = node.staticElement;
@@ -213,12 +214,14 @@ class PrefixExpressionResolver {
           }
         }
       }
-      _inferenceHelper.recordStaticType(node, staticType);
+      _inferenceHelper.recordStaticType(node, staticType,
+          contextType: contextType);
     }
     _resolver.nullShortingTermination(node);
   }
 
-  void _resolveNegation(PrefixExpressionImpl node) {
+  void _resolveNegation(PrefixExpressionImpl node,
+      {required DartType? contextType}) {
     var operand = node.operand;
 
     _resolver.analyzeExpression(operand, _typeProvider.boolType);
@@ -228,7 +231,8 @@ class PrefixExpressionResolver {
     _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand,
         whyNotPromoted: whyNotPromoted);
 
-    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
+    _inferenceHelper.recordStaticType(node, _typeProvider.boolType,
+        contextType: contextType);
 
     _resolver.flowAnalysis.flow?.logicalNot_end(node, operand);
   }

@@ -316,9 +316,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  {
-    const auto& stackmaps =
-        CompressedStackMaps::Handle(zone, code.compressed_stackmaps());
+  const auto& stackmaps =
+      CompressedStackMaps::Handle(zone, code.compressed_stackmaps());
+  if (!stackmaps.IsNull()) {
     TextBuffer buffer(100);
     buffer.Printf("StackMaps for function '%s' {\n", function_fullname);
     stackmaps.WriteToBuffer(&buffer, "\n");

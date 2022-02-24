@@ -8,6 +8,7 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -36,6 +37,11 @@ List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
 abstract class RefactoringImpl implements Refactoring {
   @override
   final List<String> potentialEditIds = <String>[];
+
+  CancellationToken? cancellationToken;
+
+  bool get isCancellationRequested =>
+      cancellationToken?.isCancellationRequested ?? false;
 
   @override
   Future<RefactoringStatus> checkAllConditions() async {

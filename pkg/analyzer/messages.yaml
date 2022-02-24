@@ -3370,6 +3370,9 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the abstract method
       1: the name of the enclosing enum
+  ENUM_WITH_NAME_VALUES:
+    problemMessage: The name 'values' is not a valid name for an enum.
+    correctionMessage: Try using a different name.
   EQUAL_ELEMENTS_IN_CONST_SET:
     problemMessage: "Two elements in a constant set literal can't be equal."
     correctionMessage: Change or remove the duplicate element.

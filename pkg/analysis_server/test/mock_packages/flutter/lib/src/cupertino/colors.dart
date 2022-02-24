@@ -41,7 +41,6 @@ class CupertinoDynamicColor extends Color {
           darkElevatedColor,
           highContrastElevatedColor,
           darkHighContrastElevatedColor,
-          null,
         );
 
   const CupertinoDynamicColor.withBrightnessAndContrast({

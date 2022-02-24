@@ -64,6 +64,7 @@ enum E {
   const E(int a);
 }
 ''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 11, 3),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 12, 2),
     ]);
   }
@@ -75,6 +76,7 @@ enum E {
   const E(int a);
 }
 ''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 11, 1),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 11, 1),
     ]);
   }

@@ -1926,6 +1926,9 @@ abstract class FieldDeclaration implements ClassMember {
   /// The `abstract` keyword, or `null` if the keyword was not used.
   Token? get abstractKeyword;
 
+  /// The 'augment' keyword, or `null` if the keyword was not used.
+  Token? get augmentKeyword;
+
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   Token? get covariantKeyword;
 
@@ -2338,6 +2341,10 @@ abstract class FunctionBody implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionDeclaration implements NamedCompilationUnitMember {
+  /// The token representing the 'augment' keyword, or `null` if this is not an
+  /// function augmentation.
+  Token? get augmentKeyword;
+
   @override
   ExecutableElement? get declaredElement;
 
@@ -3343,6 +3350,9 @@ abstract class MethodReferenceExpression implements Expression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinDeclaration implements ClassOrMixinDeclaration {
+  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
   /// Return the token representing the 'mixin' keyword.
   Token get mixinKeyword;
 

@@ -4202,6 +4202,10 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   @override
   Token? abstractKeyword;
 
+  /// The 'augment' keyword, or `null` if the keyword was not used.
+  @override
+  Token? augmentKeyword;
+
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   @override
   Token? covariantKeyword;
@@ -4229,6 +4233,7 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
       CommentImpl? comment,
       List<Annotation>? metadata,
       this.abstractKeyword,
+      this.augmentKeyword,
       this.covariantKeyword,
       this.externalKeyword,
       this.staticKeyword,
@@ -4253,8 +4258,8 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return Token.lexicallyFirst(abstractKeyword, externalKeyword,
-            covariantKeyword, staticKeyword) ??
+    return Token.lexicallyFirst(abstractKeyword, augmentKeyword,
+            externalKeyword, covariantKeyword, staticKeyword) ??
         _fieldList.beginToken;
   }
 
@@ -5050,6 +5055,11 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 ///        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
 class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements FunctionDeclaration {
+  /// The token representing the 'augment' keyword, or `null` if this is not an
+  /// function augmentation.
+  @override
+  Token? augmentKeyword;
+
   /// The token representing the 'external' keyword, or `null` if this is not an
   /// external function.
   @override
@@ -5075,6 +5085,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   FunctionDeclarationImpl(
       CommentImpl? comment,
       List<Annotation>? metadata,
+      this.augmentKeyword,
       this.externalKeyword,
       this._returnType,
       this.propertyKeyword,
@@ -5094,7 +5105,8 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return externalKeyword ??
+    return augmentKeyword ??
+        externalKeyword ??
         _returnType?.beginToken ??
         propertyKeyword ??
         _name.beginToken;
@@ -5123,6 +5135,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('externalKeyword', externalKeyword)
     ..addNode('returnType', returnType)
     ..addToken('propertyKeyword', propertyKeyword)
@@ -7587,6 +7600,9 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
     implements MixinDeclaration {
   @override
+  Token? augmentKeyword;
+
+  @override
   Token mixinKeyword;
 
   /// The on clause for the mixin, or `null` if the mixin does not have any
@@ -7603,6 +7619,7 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   MixinDeclarationImpl(
       CommentImpl? comment,
       List<Annotation>? metadata,
+      this.augmentKeyword,
       this.mixinKeyword,
       SimpleIdentifierImpl name,
       TypeParameterListImpl? typeParameters,

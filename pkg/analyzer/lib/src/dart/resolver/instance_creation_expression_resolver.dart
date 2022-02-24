@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/instance_creation_resolver_helper.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -22,7 +23,8 @@ class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
   @override
   ResolverVisitor get resolver => _resolver;
 
-  void resolve(InstanceCreationExpressionImpl node) {
+  void resolve(InstanceCreationExpressionImpl node,
+      {required DartType? contextType}) {
     // The parser can parse certain code as [InstanceCreationExpression] when it
     // might be an invocation of a method on a [FunctionReference] or
     // [ConstructorReference]. In such a case, it is this resolver's
@@ -42,15 +44,17 @@ class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
       if (typeNameTypeArguments != null) {
         // This could be a method call on a function reference or a constructor
         // reference.
-        _resolveWithTypeNameWithTypeArguments(node, typeNameTypeArguments);
+        _resolveWithTypeNameWithTypeArguments(node, typeNameTypeArguments,
+            contextType: contextType);
         return;
       }
     }
 
-    _resolveInstanceCreationExpression(node);
+    _resolveInstanceCreationExpression(node, contextType: contextType);
   }
 
-  void _resolveInstanceCreationExpression(InstanceCreationExpressionImpl node) {
+  void _resolveInstanceCreationExpression(InstanceCreationExpressionImpl node,
+      {required DartType? contextType}) {
     var whyNotPromotedList = <WhyNotPromotedGetter>[];
     var constructorName = node.constructorName;
     constructorName.accept(_resolver);
@@ -69,7 +73,8 @@ class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
         typeArguments: typeName.typeArguments,
         arguments: node.argumentList,
         errorNode: constructorName,
-        isConst: node.isConst);
+        isConst: node.isConst,
+        contextReturnType: contextType);
     if (inferenceResult != null) {
       typeName.type = inferenceResult.constructedType;
       constructorElement =
@@ -79,7 +84,8 @@ class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
         node.argumentList, constructorElement?.parameters,
         whyNotPromotedList: whyNotPromotedList);
     _resolver.elementResolver.visitInstanceCreationExpression(node);
-    _resolver.typeAnalyzer.visitInstanceCreationExpression(node);
+    _resolver.typeAnalyzer
+        .visitInstanceCreationExpression(node, contextType: contextType);
     _resolver.checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
@@ -90,23 +96,23 @@ class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
   /// The instance creation expression may actually be a method call on a
   /// type-instantiated function reference or constructor reference.
   void _resolveWithTypeNameWithTypeArguments(
-    InstanceCreationExpressionImpl node,
-    TypeArgumentListImpl typeNameTypeArguments,
-  ) {
+      InstanceCreationExpressionImpl node,
+      TypeArgumentListImpl typeNameTypeArguments,
+      {required DartType? contextType}) {
     var typeNameName = node.constructorName.type.name;
     if (typeNameName is SimpleIdentifierImpl) {
       // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
       // [MethodInvocation].
-      _resolveInstanceCreationExpression(node);
+      _resolveInstanceCreationExpression(node, contextType: contextType);
       return;
     } else if (typeNameName is PrefixedIdentifierImpl) {
       // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
       // [MethodInvocation].
-      _resolveInstanceCreationExpression(node);
+      _resolveInstanceCreationExpression(node, contextType: contextType);
     } else {
       assert(
           false, 'Unexpected typeNameName type: ${typeNameName.runtimeType}');
-      _resolveInstanceCreationExpression(node);
+      _resolveInstanceCreationExpression(node, contextType: contextType);
     }
   }
 }

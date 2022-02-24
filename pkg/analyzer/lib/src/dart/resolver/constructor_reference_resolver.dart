@@ -18,7 +18,8 @@ class ConstructorReferenceResolver {
 
   ConstructorReferenceResolver(this._resolver);
 
-  void resolve(ConstructorReferenceImpl node) {
+  void resolve(ConstructorReferenceImpl node,
+      {required DartType? contextType}) {
     if (!_resolver.isConstructorTearoffsEnabled &&
         node.constructorName.type.typeArguments == null) {
       // Only report this if [node] has no explicit type arguments; otherwise
@@ -79,10 +80,11 @@ class ConstructorReferenceResolver {
         }
       }
     }
-    _inferArgumentTypes(node);
+    _inferArgumentTypes(node, contextType: contextType);
   }
 
-  void _inferArgumentTypes(ConstructorReferenceImpl node) {
+  void _inferArgumentTypes(ConstructorReferenceImpl node,
+      {required DartType? contextType}) {
     var constructorName = node.constructorName;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       constructorName: constructorName,
@@ -110,7 +112,8 @@ class ConstructorReferenceResolver {
       var constructorType = elementToInfer.asType;
 
       var inferred = _resolver.inferenceHelper.inferTearOff(
-          node, constructorName.name!, constructorType) as FunctionType?;
+          node, constructorName.name!, constructorType,
+          contextType: contextType) as FunctionType?;
 
       if (inferred != null) {
         var inferredReturnType = inferred.returnType as InterfaceType;

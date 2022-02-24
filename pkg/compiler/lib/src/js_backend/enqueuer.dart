@@ -76,10 +76,6 @@ class CodegenEnqueuer extends Enqueuer {
     }
   }
 
-  /// Returns [:true:] if this enqueuer is the resolution enqueuer.
-  @override
-  bool get isResolutionQueue => false;
-
   /// Create a [WorkItem] for [entity] and add it to the work list if it has not
   /// already been processed.
   void _addToWorkList(MemberEntity entity) {
@@ -301,8 +297,4 @@ class CodegenEnqueuer extends Enqueuer {
 
   @override
   Iterable<MemberEntity> get processedEntities => _processedEntities;
-
-  @override
-  Iterable<ClassEntity> get processedClasses =>
-      worldBuilder.instantiatedClasses;
 }

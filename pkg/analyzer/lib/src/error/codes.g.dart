@@ -3705,6 +3705,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try adding a body to '{0}'.",
   );
 
+  static const CompileTimeErrorCode ENUM_WITH_NAME_VALUES =
+      CompileTimeErrorCode(
+    'ENUM_WITH_NAME_VALUES',
+    "The name 'values' is not a valid name for an enum.",
+    correctionMessage: "Try using a different name.",
+  );
+
   /**
    * No parameters.
    */

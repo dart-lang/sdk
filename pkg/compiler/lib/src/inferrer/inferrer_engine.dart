@@ -167,7 +167,7 @@ class InferrerEngine {
   /// [NativeBehavior].
   TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior) {
     if (nativeBehavior == null) return types.dynamicType;
-    List typesReturned = nativeBehavior.typesReturned;
+    List<Object> typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return types.dynamicType;
     TypeInformation returnType;
     for (var type in typesReturned) {

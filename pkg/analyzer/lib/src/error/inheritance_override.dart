@@ -242,10 +242,16 @@ class _ClassVerifier {
 
         // No concrete implementation of the name.
         if (concreteElement == null) {
-          if (!_reportConcreteClassWithAbstractMember(name.name)) {
-            inheritedAbstract ??= [];
-            inheritedAbstract.add(interfaceElement);
+          if (_reportConcreteClassWithAbstractMember(name.name)) {
+            continue;
           }
+          // We already reported ILLEGAL_ENUM_VALUES_INHERITANCE.
+          if (classElement.isEnum &&
+              const {'values', 'values='}.contains(name.name)) {
+            continue;
+          }
+          inheritedAbstract ??= [];
+          inheritedAbstract.add(interfaceElement);
           continue;
         }
 
@@ -661,12 +667,15 @@ class _ClassVerifier {
 
     if (implementsDartCoreEnum) {
       var concreteMap = inheritance.getInheritedConcreteMap2(classElement);
-      for (var memberName in const ['hashCode', '==']) {
+
+      void checkSingle(
+        String memberName,
+        bool Function(ClassElement enclosingClass) filter,
+      ) {
         var member = concreteMap[Name(libraryUri, memberName)];
         if (member != null) {
           var enclosingClass = member.enclosingElement;
-          if (enclosingClass is ClassElement &&
-              !enclosingClass.isDartCoreObject) {
+          if (enclosingClass is ClassElement && filter(enclosingClass)) {
             reporter.reportErrorForNode(
               CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
               classNameNode,
@@ -675,6 +684,10 @@ class _ClassVerifier {
           }
         }
       }
+
+      checkSingle('hashCode', (e) => !e.isDartCoreObject);
+      checkSingle('==', (e) => !e.isDartCoreObject);
+      checkSingle('index', (e) => !e.isDartCoreEnum);
     }
   }
 

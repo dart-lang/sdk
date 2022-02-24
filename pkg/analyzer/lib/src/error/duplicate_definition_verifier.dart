@@ -97,6 +97,13 @@ class DuplicateDefinitionVerifier {
       }
     }
 
+    if (enumName == 'values') {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.ENUM_WITH_NAME_VALUES,
+        node.name,
+      );
+    }
+
     for (var constant in node.constants) {
       if (constant.name.name == enumName) {
         _errorReporter.reportErrorForNode(

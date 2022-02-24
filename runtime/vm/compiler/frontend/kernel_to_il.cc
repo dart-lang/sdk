@@ -796,7 +796,6 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(ByteDataViewOffsetInBytes, TypedDataView_offset_in_bytes)                  \
   V(ByteDataViewTypedData, TypedDataView_typed_data)                           \
   V(GrowableArrayLength, GrowableObjectArray_length)                           \
-  V(ImmutableArrayLength, Array_length)                                        \
   V(ImmutableLinkedHashBase_getData, ImmutableLinkedHashBase_data)             \
   V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)           \
   V(LinkedHashBase_getData, LinkedHashBase_data)                               \

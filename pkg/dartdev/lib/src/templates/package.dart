@@ -6,11 +6,15 @@ import '../templates.dart';
 import 'common.dart' as common;
 
 /// A generator for a simple command-line application.
-class PackageSimpleGenerator extends DefaultGenerator {
-  PackageSimpleGenerator()
-      : super('package-simple', 'Dart Package',
-            'A starting point for Dart libraries or applications.',
-            categories: const ['dart']) {
+class PackageGenerator extends DefaultGenerator {
+  PackageGenerator()
+      : super(
+          'package',
+          'Dart Package',
+          'A package containing shared Dart libraries.',
+          categories: const ['dart'],
+          alternateId: 'package-simple',
+        ) {
     addFile('.gitignore', _gitignore);
     addFile('analysis_options.yaml', common.analysisOptions);
     addFile('CHANGELOG.md', common.changelog);

@@ -124,12 +124,18 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  visitEnumConstantDeclaration(node) {
+  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     super.visitEnumConstantDeclaration(node);
 
     var argumentList = node.arguments?.argumentList;
     if (argumentList != null) {
       _validateConstantArguments(argumentList);
+    }
+
+    var element = node.declaredElement as ConstFieldElementImpl;
+    var result = element.evaluationResult;
+    if (result != null) {
+      _reportErrors(result.errors, null);
     }
   }
 

@@ -855,6 +855,7 @@ class AstBinaryReader {
     var node = astFactory.mixinDeclaration(
       null,
       metadata,
+      null,
       Tokens.mixin_(),
       name,
       typeParameters,

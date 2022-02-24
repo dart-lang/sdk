@@ -1795,7 +1795,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int startOffset,
       int nameOffset,
       int endOffset,
-      int supertypeOffset) {
+      int supertypeOffset,
+      {required bool isAugmentation}) {
     _addClass(
         TypeParameterScopeKind.mixinDeclaration,
         metadata,
@@ -1809,7 +1810,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         endOffset,
         supertypeOffset,
         isMacro: false,
-        isAugmentation: false);
+        isAugmentation: isAugmentation);
   }
 
   void _addClass(

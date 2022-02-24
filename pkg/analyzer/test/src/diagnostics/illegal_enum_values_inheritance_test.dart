@@ -87,7 +87,35 @@ abstract class B extends A implements Enum {}
     ]);
   }
 
-  test_enum_method() async {
+  test_enum_getter_fromImplements() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get values => 0;
+}
+
+enum E implements A {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 41, 1),
+    ]);
+  }
+
+  test_enum_method_fromImplements() async {
+    await assertErrorsInCode(r'''
+class A {
+  int values() => 0;
+}
+
+enum E implements A {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 39, 1),
+    ]);
+  }
+
+  test_enum_method_fromWith() async {
     await assertErrorsInCode(r'''
 mixin M {
   int values() => 0;
@@ -98,6 +126,34 @@ enum E with M {
 }
 ''', [
       error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 39, 1),
+    ]);
+  }
+
+  test_enum_setter_fromImplements() async {
+    await assertErrorsInCode(r'''
+class A {
+  set values(int _) {}
+}
+
+enum E implements A {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 41, 1),
+    ]);
+  }
+
+  test_enum_setter_fromWith() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  set values(int _) {}
+}
+
+enum E with M {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 41, 1),
     ]);
   }
 

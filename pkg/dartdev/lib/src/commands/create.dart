@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
-import 'dart:math' as math;
 
 import 'package:path/path.dart' as p;
 
@@ -18,16 +17,26 @@ import '../utils.dart';
 class CreateCommand extends DartdevCommand {
   static const String cmdName = 'create';
 
-  static String defaultTemplateId = 'console-simple';
+  static const String defaultTemplateId = 'console';
 
-  static final List<String> legalTemplateIds =
-      generators.map((generator) => generator.id).toList();
+  static List<String> legalTemplateIds({bool includeDeprecated = false}) => [
+        for (var g in generators) ...[
+          if (includeDeprecated || !g.deprecated) g.id,
+          if (includeDeprecated && g.alternateId != null) g.alternateId!
+        ]
+      ];
+
+  static final Map<String, String> templateHelp = {
+    for (var g in generators)
+      if (!g.deprecated) g.id: g.description
+  };
 
   CreateCommand({bool verbose = false})
       : super(cmdName, 'Create a new Dart project.', verbose) {
     argParser.addOption(
       'template',
-      allowed: legalTemplateIds,
+      allowed: legalTemplateIds(includeDeprecated: true),
+      allowedHelp: templateHelp,
       help: 'The project template to use.',
       defaultsTo: defaultTemplateId,
       abbr: 't',
@@ -145,18 +154,9 @@ class CreateCommand extends DartdevCommand {
     return 0;
   }
 
-  @override
-  String get usageFooter {
-    int width = legalTemplateIds.map((s) => s.length).reduce(math.max);
-    String desc = generators.map((g) {
-      String suffix = g.id == defaultTemplateId ? ' (default)' : '';
-      return '  ${g.id.padLeft(width)}: ${g.description}$suffix';
-    }).join('\n');
-    return '\nAvailable templates:\n$desc';
-  }
-
   String _availableTemplatesJson() {
-    var items = generators.map((Generator generator) {
+    var items =
+        generators.where((g) => !g.deprecated).map((Generator generator) {
       var m = {
         'name': generator.id,
         'label': generator.label,

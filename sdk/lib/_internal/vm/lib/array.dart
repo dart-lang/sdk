@@ -4,8 +4,81 @@
 
 // part of "core_patch.dart";
 
+abstract class _Array<E> extends FixedLengthListBase<E> {
+  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:external-name", "List_getIndexed")
+  external E operator [](int index);
+
+  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "List_getLength")
+  external int get length;
+
+  @pragma("vm:prefer-inline")
+  _List _slice(int start, int count, bool needsTypeArgument) {
+    if (count <= 64) {
+      final result = needsTypeArgument ? new _List<E>(count) : new _List(count);
+      for (int i = 0; i < result.length; i++) {
+        result[i] = this[start + i];
+      }
+      return result;
+    } else {
+      return _sliceInternal(start, count, needsTypeArgument);
+    }
+  }
+
+  @pragma("vm:external-name", "List_slice")
+  external _List _sliceInternal(int start, int count, bool needsTypeArgument);
+
+  // Iterable interface.
+
+  @pragma("vm:prefer-inline")
+  void forEach(f(E element)) {
+    final length = this.length;
+    for (int i = 0; i < length; i++) {
+      f(this[i]);
+    }
+  }
+
+  @pragma("vm:prefer-inline")
+  Iterator<E> get iterator {
+    return new _ArrayIterator<E>(this);
+  }
+
+  E get first {
+    if (length > 0) return this[0];
+    throw IterableElementError.noElement();
+  }
+
+  E get last {
+    if (length > 0) return this[length - 1];
+    throw IterableElementError.noElement();
+  }
+
+  E get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw IterableElementError.noElement();
+    throw IterableElementError.tooMany();
+  }
+
+  List<E> toList({bool growable: true}) {
+    var length = this.length;
+    if (length > 0) {
+      _List result = _slice(0, length, !growable);
+      if (growable) {
+        return new _GrowableList<E>._withData(result).._setLength(length);
+      }
+      return unsafeCast<_List<E>>(result);
+    }
+    // _GrowableList._withData must not be called with empty list.
+    return growable ? <E>[] : new _List<E>(0);
+  }
+}
+
+// Known to the VM as kArrayCid.
 @pragma("vm:entry-point")
-class _List<E> extends FixedLengthListBase<E> {
+class _List<E> extends _Array<E> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type",
       <dynamic>[_List, "result-type-uses-passed-type-arguments"])
@@ -46,11 +119,8 @@ class _List<E> extends FixedLengthListBase<E> {
     if (elements is _GrowableList) {
       return _List._ofGrowableList(unsafeCast(elements));
     }
-    if (elements is _List) {
-      return _List._ofList(unsafeCast(elements));
-    }
-    if (elements is _ImmutableList) {
-      return _List._ofImmutableList(unsafeCast(elements));
+    if (elements is _Array) {
+      return _List._ofArray(unsafeCast(elements));
     }
     if (elements is EfficientLengthIterable) {
       return _List._ofEfficientLengthIterable(unsafeCast(elements));
@@ -70,19 +140,7 @@ class _List<E> extends FixedLengthListBase<E> {
     return list;
   }
 
-  factory _List._ofList(_List<E> elements) {
-    final int length = elements.length;
-    final list = _List<E>(length);
-    // TODO(30102): Remove this loop zero-trip guard.
-    if (length > 0) {
-      for (int i = 0; i < length; i++) {
-        list[i] = elements[i];
-      }
-    }
-    return list;
-  }
-
-  factory _List._ofImmutableList(_ImmutableList<E> elements) {
+  factory _List._ofArray(_Array<E> elements) {
     final int length = elements.length;
     final list = _List<E>(length);
     // TODO(30102): Remove this loop zero-trip guard.
@@ -116,10 +174,6 @@ class _List<E> extends FixedLengthListBase<E> {
     return unsafeCast(makeListFixedLength(_GrowableList<E>._ofOther(elements)));
   }
 
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:external-name", "List_getIndexed")
-  external E operator [](int index);
-
   @pragma("vm:recognized", "other")
   void operator []=(int index, E value) {
     _setIndexed(index, value);
@@ -128,28 +182,6 @@ class _List<E> extends FixedLengthListBase<E> {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:external-name", "List_setIndexed")
   external void _setIndexed(int index, E value);
-
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "List_getLength")
-  external int get length;
-
-  @pragma("vm:prefer-inline")
-  _List _slice(int start, int count, bool needsTypeArgument) {
-    if (count <= 64) {
-      final result = needsTypeArgument ? new _List<E>(count) : new _List(count);
-      for (int i = 0; i < result.length; i++) {
-        result[i] = this[start + i];
-      }
-      return result;
-    } else {
-      return _sliceInternal(start, count, needsTypeArgument);
-    }
-  }
-
-  @pragma("vm:external-name", "List_slice")
-  external _List _sliceInternal(int start, int count, bool needsTypeArgument);
 
   // List interface.
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
@@ -214,61 +246,11 @@ class _List<E> extends FixedLengthListBase<E> {
     result._setLength(length);
     return result;
   }
-
-  // Iterable interface.
-
-  @pragma("vm:prefer-inline")
-  void forEach(f(E element)) {
-    final length = this.length;
-    for (int i = 0; i < length; i++) {
-      f(this[i]);
-    }
-  }
-
-  @pragma("vm:prefer-inline")
-  Iterator<E> get iterator {
-    return new _FixedSizeArrayIterator<E>(this);
-  }
-
-  E get first {
-    if (length > 0) return this[0];
-    throw IterableElementError.noElement();
-  }
-
-  E get last {
-    if (length > 0) return this[length - 1];
-    throw IterableElementError.noElement();
-  }
-
-  E get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw IterableElementError.noElement();
-    throw IterableElementError.tooMany();
-  }
-
-  List<E> toList({bool growable: true}) {
-    var length = this.length;
-    if (length > 0) {
-      _List result = _slice(0, length, !growable);
-      if (growable) {
-        return new _GrowableList<E>._withData(result).._setLength(length);
-      }
-      return unsafeCast<_List<E>>(result);
-    }
-    // _GrowableList._withData must not be called with empty list.
-    return growable ? <E>[] : new _List<E>(0);
-  }
 }
 
-// This is essentially the same class as _List, but it does not
-// permit any modification of array elements from Dart code. We use
-// this class for arrays constructed from Dart array literals.
-// TODO(hausner): We should consider the trade-offs between two
-// classes (and inline cache misses) versus a field in the native
-// implementation (checks when modifying). We should keep watching
-// the inline cache misses.
+// Known to the VM as kImmutableArrayCid.
 @pragma("vm:entry-point")
-class _ImmutableList<E> extends UnmodifiableListBase<E> {
+class _ImmutableList<E> extends _Array<E> with UnmodifiableListMixin<E> {
   factory _ImmutableList._uninstantiable() {
     throw new UnsupportedError(
         "ImmutableArray can only be allocated by the VM");
@@ -276,95 +258,19 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
 
   @pragma("vm:external-name", "ImmutableList_from")
   external factory _ImmutableList._from(List from, int offset, int length);
-
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:external-name", "List_getIndexed")
-  external E operator [](int index);
-
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "List_getLength")
-  external int get length;
-
-  List<E> sublist(int start, [int? end]) {
-    final int actualEnd = RangeError.checkValidRange(start, end, this.length);
-    int length = actualEnd - start;
-    if (length == 0) return <E>[];
-    final list = new _List(length);
-    for (int i = 0; i < length; i++) {
-      list[i] = this[start + i];
-    }
-    final result = new _GrowableList<E>._withData(list);
-    result._setLength(length);
-    return result;
-  }
-
-  // Collection interface.
-
-  @pragma("vm:prefer-inline")
-  void forEach(f(E element)) {
-    final length = this.length;
-    for (int i = 0; i < length; i++) {
-      f(this[i]);
-    }
-  }
-
-  @pragma("vm:prefer-inline")
-  Iterator<E> get iterator {
-    return new _FixedSizeArrayIterator<E>(this);
-  }
-
-  E get first {
-    if (length > 0) return this[0];
-    throw IterableElementError.noElement();
-  }
-
-  E get last {
-    if (length > 0) return this[length - 1];
-    throw IterableElementError.noElement();
-  }
-
-  E get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw IterableElementError.noElement();
-    throw IterableElementError.tooMany();
-  }
-
-  List<E> toList({bool growable: true}) {
-    final int length = this.length;
-    if (length > 0) {
-      if (growable) {
-        final list = new _List(length);
-        for (int i = 0; i < length; i++) {
-          list[i] = this[i];
-        }
-        return _GrowableList<E>._withData(list).._setLength(length);
-      } else {
-        final list = new _List<E>(length);
-        for (int i = 0; i < length; i++) {
-          list[i] = this[i];
-        }
-        return list;
-      }
-    }
-    return growable ? <E>[] : new _List<E>(0);
-  }
 }
 
-// Iterator for arrays with fixed size.
-class _FixedSizeArrayIterator<E> implements Iterator<E> {
-  final List<E> _array;
+// Iterator for arrays.
+class _ArrayIterator<E> implements Iterator<E> {
+  final _Array<E> _array;
   final int _length; // Cache array length for faster access.
   int _index;
   E? _current;
 
-  _FixedSizeArrayIterator(List<E> array)
+  _ArrayIterator(_Array<E> array)
       : _array = array,
         _length = array.length,
-        _index = 0 {
-    assert(array is _List<E> || array is _ImmutableList<E>);
-  }
+        _index = 0 {}
 
   E get current => _current as E;
 

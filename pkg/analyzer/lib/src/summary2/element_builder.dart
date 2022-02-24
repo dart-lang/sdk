@@ -406,7 +406,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    var refName = name ?? 'extension-${_nextUnnamedExtensionId++}';
+    var refName = name ?? '${_nextUnnamedExtensionId++}';
     var reference = _enclosingContext.addExtension(refName, element);
 
     if (name != null) {

@@ -18120,6 +18120,98 @@ library
 ''');
   }
 
+  test_enum_constructor_initializer() async {
+    var library = await checkLibrary(r'''
+enum E<T> {
+  v;
+  final int x;
+  const E(T? a) : assert(a is T), x = 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          static const enumConstant v @14
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<dynamic>
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: dynamic}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          final x @29
+            type: int
+        constructors
+          const @40
+            parameters
+              requiredPositional a @45
+                type: T?
+            constantInitializers
+              AssertInitializer
+                assertKeyword: assert @50
+                leftParenthesis: ( @56
+                condition: IsExpression
+                  expression: SimpleIdentifier
+                    token: a @57
+                    staticElement: a@45
+                    staticType: T?
+                  isOperator: is @59
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: T @62
+                      staticElement: T@7
+                      staticType: null
+                    type: T
+                  staticType: bool
+                rightParenthesis: ) @63
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x @66
+                  staticElement: self::@enum::E::@field::x
+                  staticType: null
+                equals: = @68
+                expression: IntegerLiteral
+                  literal: 0 @70
+                  staticType: int
+        accessors
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get x @-1
+            returnType: int
+''');
+  }
+
   test_enum_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -21963,6 +22055,7 @@ library
                         token: c @68
                         staticElement: c@52
                         staticType: C
+                      staticElement: self::@class::C::@method::call
                       staticType: void Function()
                   rightParenthesis: ) @69
                 staticElement: self::@class::D::@constructor::named
@@ -26433,7 +26526,7 @@ library
 ''');
   }
 
-  test_metadata_enumConstantDeclaration() async {
+  test_metadata_enum_constant() async {
     var library = await checkLibrary('const a = 42; enum E { @a v }');
     checkElementText(library, r'''
 library
@@ -26498,7 +26591,7 @@ library
 ''');
   }
 
-  test_metadata_enumConstantDeclaration_instanceCreation() async {
+  test_metadata_enum_constant_instanceCreation() async {
     var library = await checkLibrary('''
 class A {
   final dynamic value;
@@ -26641,6 +26734,395 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
+''');
+  }
+
+  test_metadata_enum_constant_self() async {
+    var library = await checkLibrary(r'''
+enum E {
+  @v
+  v
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @16
+            metadata
+              Annotation
+                atSign: @ @11
+                name: SimpleIdentifier
+                  token: v @12
+                  staticElement: self::@enum::E::@getter::v
+                  staticType: null
+                element: self::@enum::E::@getter::v
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+''');
+  }
+
+  test_metadata_enum_constructor() async {
+    var library = await checkLibrary(r'''
+const a = 42;
+enum E {
+  v;
+  @a
+  const E();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @19
+        supertype: Enum
+        fields
+          static const enumConstant v @25
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          const @41
+            metadata
+              Annotation
+                atSign: @ @30
+                name: SimpleIdentifier
+                  token: a @31
+                  staticElement: self::@getter::a
+                  staticType: null
+                element: self::@getter::a
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @-1
+        returnType: int
+''');
+  }
+
+  test_metadata_enum_method() async {
+    var library = await checkLibrary(r'''
+const a = 42;
+enum E {
+  v;
+  @a
+  void foo() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @19
+        supertype: Enum
+        fields
+          static const enumConstant v @25
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+        methods
+          foo @40
+            metadata
+              Annotation
+                atSign: @ @30
+                name: SimpleIdentifier
+                  token: a @31
+                  staticElement: self::@getter::a
+                  staticType: null
+                element: self::@getter::a
+            returnType: void
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @-1
+        returnType: int
+''');
+  }
+
+  test_metadata_enum_scope() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+enum E<@foo T> {
+  v;
+  static const foo = 1;
+  @foo
+  void bar() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @26
+        metadata
+          Annotation
+            atSign: @ @16
+            name: SimpleIdentifier
+              token: foo @17
+              staticElement: self::@getter::foo
+              staticType: null
+            element: self::@getter::foo
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign: @ @28
+                name: SimpleIdentifier
+                  token: foo @29
+                  staticElement: self::@getter::foo
+                  staticType: null
+                element: self::@getter::foo
+        supertype: Enum
+        fields
+          static const enumConstant v @40
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<dynamic>
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: dynamic}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          static const foo @58
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 1 @64
+                staticType: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic static get foo @-1
+            returnType: int
+        methods
+          bar @81
+            metadata
+              Annotation
+                atSign: @ @69
+                name: SimpleIdentifier
+                  token: foo @70
+                  staticElement: self::@enum::E::@getter::foo
+                  staticType: null
+                element: self::@enum::E::@getter::foo
+            returnType: void
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+''');
+  }
+
+  test_metadata_enum_typeParameter() async {
+    var library = await checkLibrary('''
+const a = 42;
+enum E<@a T> {
+  v
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @19
+        typeParameters
+          covariant T @24
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign: @ @21
+                name: SimpleIdentifier
+                  token: a @22
+                  staticElement: self::@getter::a
+                  staticType: null
+                element: self::@getter::a
+        supertype: Enum
+        fields
+          static const enumConstant v @31
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<dynamic>
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: dynamic}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @-1
+        returnType: int
 ''');
   }
 
@@ -29284,81 +29766,6 @@ library
     accessors
       synthetic static get a @-1
         returnType: dynamic
-''');
-  }
-
-  test_metadata_typeParameter_ofEnum() async {
-    var library = await checkLibrary('''
-const a = 42;
-enum E<@a T> {
-  v
-}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    enums
-      enum E @19
-        typeParameters
-          covariant T @24
-            defaultType: dynamic
-            metadata
-              Annotation
-                atSign: @ @21
-                name: SimpleIdentifier
-                  token: a @22
-                  staticElement: <null>
-                  staticType: null
-                element: <null>
-        supertype: Enum
-        fields
-          static const enumConstant v @31
-            type: E<dynamic>
-            constantInitializer
-              InstanceCreationExpression
-                constructorName: ConstructorName
-                  type: NamedType
-                    name: SimpleIdentifier
-                      token: E @-1
-                      staticElement: self::@enum::E
-                      staticType: null
-                    type: E<dynamic>
-                  staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
-                    substitution: {T: dynamic}
-                argumentList: ArgumentList
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
-                staticType: E<dynamic>
-          synthetic static const values @-1
-            type: List<E<dynamic>>
-            constantInitializer
-              ListLiteral
-                leftBracket: [ @0
-                elements
-                  SimpleIdentifier
-                    token: v @-1
-                    staticElement: self::@enum::E::@getter::v
-                    staticType: E<dynamic>
-                rightBracket: ] @0
-                staticType: List<E<dynamic>>
-        constructors
-          synthetic const @-1
-        accessors
-          synthetic static get v @-1
-            returnType: E<dynamic>
-          synthetic static get values @-1
-            returnType: List<E<dynamic>>
-    topLevelVariables
-      static const a @6
-        type: int
-        constantInitializer
-          IntegerLiteral
-            literal: 42 @10
-            staticType: int
-    accessors
-      synthetic static get a @-1
-        returnType: int
 ''');
   }
 

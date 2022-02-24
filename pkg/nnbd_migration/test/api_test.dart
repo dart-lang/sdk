@@ -1162,7 +1162,6 @@ Map<int, String?> Function() f(C<String?> c) => c;
     });
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47848')
   Future<void> test_call_tearoff_futureOr() async {
     var content = '''
 import 'dart:async';
@@ -1233,7 +1232,6 @@ Map<int, String?> Function() f(C c) => c;
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47848')
   Future<void> test_call_tearoff_raw_function() async {
     var content = '''
 class C {

@@ -53,6 +53,18 @@ main() {
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 129, 18),
     ]);
   }
+
+  test_enum_constructor_initializer_asExpression() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v();
+  final int x;
+  const E({int? x}) : x = x as int;
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 3),
+    ]);
+  }
 }
 
 @reflectiveTest

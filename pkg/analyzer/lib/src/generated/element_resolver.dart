@@ -271,10 +271,12 @@ class ElementResolver {
   }
 
   void visitMethodInvocation(MethodInvocation node,
-      {List<WhyNotPromotedGetter>? whyNotPromotedList}) {
+      {List<WhyNotPromotedGetter>? whyNotPromotedList,
+      required DartType? contextType}) {
     whyNotPromotedList ??= [];
     _methodInvocationResolver.resolve(
-        node as MethodInvocationImpl, whyNotPromotedList);
+        node as MethodInvocationImpl, whyNotPromotedList,
+        contextType: contextType);
   }
 
   void visitMixinDeclaration(MixinDeclaration node) {

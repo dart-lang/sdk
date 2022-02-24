@@ -586,7 +586,7 @@ class SsaVariableAllocator extends HBaseVisitor with CodegenPhase {
 
   /// Returns whether [instruction] needs a name. Instructions that
   /// have no users or that are generated at use site do not need a name.
-  bool needsName(instruction) {
+  bool needsName(HInstruction instruction) {
     if (instruction is HThis) return false;
     if (instruction is HParameterValue) return true;
     if (instruction.usedBy.isEmpty) return false;

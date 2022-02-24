@@ -84,6 +84,7 @@ class Foo {
     var builtInKeywords = new Set<Keyword>.from([
       Keyword.ABSTRACT,
       Keyword.AS,
+      Keyword.AUGMENT,
       Keyword.COVARIANT,
       Keyword.DEFERRED,
       Keyword.DYNAMIC,

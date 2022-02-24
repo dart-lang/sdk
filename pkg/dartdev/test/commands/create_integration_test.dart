@@ -21,7 +21,8 @@ void defineCreateTests() {
   tearDown(() async => await p?.dispose());
 
   // Create tests for each template.
-  for (String templateId in CreateCommand.legalTemplateIds) {
+  for (String templateId
+      in CreateCommand.legalTemplateIds(includeDeprecated: true)) {
     test(templateId, () async {
       p = project();
 

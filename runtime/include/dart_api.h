@@ -920,6 +920,36 @@ typedef void (*Dart_PostTaskCallback)(void* post_task_data,
 DART_EXPORT void Dart_RunTask(Dart_Task task);
 
 /**
+ * Optional callback provided by the embedder that is used by the VM to
+ * implement registration of kernel blobs for the subsequent Isolate.spawnUri
+ * If no callback is provided, the registration of kernel blobs will throw
+ * an error.
+ * 
+ * \param kernel_buffer A buffer which contains a kernel program. Callback
+ *                      should copy the contents of `kernel_buffer` as
+ *                      it may be freed immediately after registration.
+ * \param kernel_buffer_size The size of `kernel_buffer`.
+ *
+ * \return A C string representing URI which can be later used
+ *         to spawn a new isolate. This C String should be scope allocated
+ *         or owned by the embedder.
+ *         Returns NULL if embedder runs out of memory.
+ */
+typedef const char* (*Dart_RegisterKernelBlobCallback)(
+    const uint8_t* kernel_buffer,
+    intptr_t kernel_buffer_size);
+
+/**
+ * Optional callback provided by the embedder that is used by the VM to
+ * unregister kernel blobs.
+ * If no callback is provided, the unregistration of kernel blobs will throw
+ * an error.
+ * 
+ * \param kernel_blob_uri URI of the kernel blob to unregister.
+ */
+typedef void (*Dart_UnregisterKernelBlobCallback)(const char* kernel_blob_uri);
+
+/**
  * Describes how to initialize the VM. Used with Dart_Initialize.
  */
 typedef struct {
@@ -1003,6 +1033,16 @@ typedef struct {
   Dart_PostTaskCallback post_task;
 
   void* post_task_data;
+
+  /**
+   * Kernel blob registration callback function. See Dart_RegisterKernelBlobCallback.
+   */
+  Dart_RegisterKernelBlobCallback register_kernel_blob;
+
+  /**
+   * Kernel blob unregistration callback function. See Dart_UnregisterKernelBlobCallback.
+   */
+  Dart_UnregisterKernelBlobCallback unregister_kernel_blob;
 } Dart_InitializeParams;
 
 /**

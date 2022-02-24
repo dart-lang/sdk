@@ -9,8 +9,11 @@ import 'common.dart' as common;
 class ServerShelfGenerator extends DefaultGenerator {
   ServerShelfGenerator()
       : super(
-            'server-shelf', 'Server app', 'A server app using `package:shelf`',
-            categories: const ['dart', 'server']) {
+          'server-shelf',
+          'Server app',
+          'A server app using `package:shelf`',
+          categories: const ['dart', 'server'],
+        ) {
     addFile('.gitignore', common.gitignore);
     addFile('analysis_options.yaml', common.analysisOptions);
     addFile('CHANGELOG.md', common.changelog);

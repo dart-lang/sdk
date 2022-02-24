@@ -875,7 +875,8 @@ severity: $severity
             enableNonNullable: target.isExperimentEnabledInLibraryByVersion(
                 ExperimentalFlag.nonNullable,
                 library.importUri,
-                library.packageLanguageVersion.version)),
+                library.packageLanguageVersion.version),
+            forAugmentationLibrary: library.isAugmentation),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       if (!suppressLexicalErrors) {

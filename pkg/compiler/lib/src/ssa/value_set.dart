@@ -85,26 +85,33 @@ class ValueSet {
   }
 
   List<HInstruction> toList() {
-    return copyTo(<HInstruction>[], table, collisions);
+    List<HInstruction> result = [];
+    // Copy elements from the hash table.
+    for (final instruction in table) {
+      if (instruction != null) result.add(instruction);
+    }
+    // Copy elements from the collision list.
+    for (var current = collisions; current != null; current = current.next) {
+      result.add(current.value);
+    }
+    return result;
   }
 
   // Copy the instructions in value set defined by [table] and
   // [collisions] into [other] and returns [other]. The copy is done
   // by iterating through the hash table and the collisions list and
   // calling [:other.add:].
-  static copyTo(var other, List<HInstruction> table, ValueSetNode collisions) {
+  static ValueSet copyTo(
+      ValueSet other, List<HInstruction> table, ValueSetNode collisions) {
     // Copy elements from the hash table.
-    for (int index = 0, length = table.length; index < length; index++) {
-      HInstruction instruction = table[index];
+    for (final instruction in table) {
       if (instruction != null) other.add(instruction);
     }
     // Copy elements from the collision list.
-    ValueSetNode current = collisions;
-    while (current != null) {
+    for (var current = collisions; current != null; current = current.next) {
       // TODO(kasperl): Maybe find a way of reusing the hash code
       // rather than recomputing it every time.
       other.add(current.value);
-      current = current.next;
     }
     return other;
   }

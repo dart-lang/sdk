@@ -7,18 +7,13 @@ library dart2js.enqueue;
 import 'dart:collection' show Queue;
 
 import 'common.dart';
-import 'common/codegen.dart';
 import 'common/elements.dart' show ElementEnvironment;
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
 import 'constants/values.dart';
-import 'compiler.dart' show Compiler;
 import 'elements/entities.dart';
 import 'elements/types.dart';
-import 'inferrer/types.dart';
 import 'js_backend/annotations.dart';
-import 'js_backend/backend.dart' show CodegenInputs;
-import 'js_backend/enqueuer.dart';
 import 'universe/member_usage.dart';
 import 'universe/resolution_world_builder.dart';
 import 'universe/use.dart'
@@ -32,51 +27,6 @@ import 'universe/use.dart'
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactVisitor;
 import 'util/enumset.dart';
 import 'util/util.dart' show Setlet;
-import 'world.dart' show JClosedWorld;
-
-class EnqueueTask extends CompilerTask {
-  ResolutionEnqueuer resolutionEnqueuerForTesting;
-  bool _resolutionEnqueuerCreated = false;
-  CodegenEnqueuer codegenEnqueuerForTesting;
-  final Compiler compiler;
-
-  @override
-  String get name => 'Enqueue';
-
-  EnqueueTask(Compiler compiler)
-      : this.compiler = compiler,
-        super(compiler.measurer);
-
-  ResolutionEnqueuer createResolutionEnqueuer() {
-    assert(!_resolutionEnqueuerCreated);
-    _resolutionEnqueuerCreated = true;
-    ResolutionEnqueuer enqueuer = compiler.frontendStrategy
-        .createResolutionEnqueuer(this, compiler)
-      ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
-    if (retainDataForTesting) {
-      resolutionEnqueuerForTesting = enqueuer;
-    }
-    return enqueuer;
-  }
-
-  CodegenEnqueuer createCodegenEnqueuer(
-      JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults,
-      CodegenInputs codegenInputs,
-      CodegenResults codegenResults) {
-    CodegenEnqueuer enqueuer = compiler.backendStrategy.createCodegenEnqueuer(
-        this,
-        closedWorld,
-        globalInferenceResults,
-        codegenInputs,
-        codegenResults)
-      ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;
-    if (retainDataForTesting) {
-      codegenEnqueuerForTesting = enqueuer;
-    }
-    return enqueuer;
-  }
-}
 
 abstract class EnqueuerListener {
   /// Called to instruct to the backend that [type] has been instantiated.
@@ -147,9 +97,6 @@ abstract class Enqueuer {
 
   WorldImpactVisitor get impactVisitor;
 
-  /// Returns [:true:] if this enqueuer is the resolution enqueuer.
-  bool get isResolutionQueue;
-
   bool queueIsClosed;
 
   bool get queueIsEmpty;
@@ -170,8 +117,6 @@ abstract class Enqueuer {
   void logSummary(void log(String message));
 
   Iterable<MemberEntity> get processedEntities;
-
-  Iterable<ClassEntity> get processedClasses;
 
   Iterable<ClassEntity> get directlyInstantiatedClasses;
 
@@ -253,9 +198,6 @@ class ResolutionEnqueuer extends Enqueuer {
       failedAt(_queue.first.element, "$name queue is not empty.");
     }
   }
-
-  @override
-  Iterable<ClassEntity> get processedClasses => worldBuilder.processedClasses;
 
   void _registerInstantiatedType(InterfaceType type,
       {ConstructorEntity constructor,
@@ -453,9 +395,6 @@ class ResolutionEnqueuer extends Enqueuer {
 
   @override
   Iterable<MemberEntity> get processedEntities => worldBuilder.processedMembers;
-
-  @override
-  bool get isResolutionQueue => true;
 
   @override
   void close() {

@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.32.9
+  1.32.10
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -236,6 +236,10 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.32.10</h4>
+<ul>
+  <li>The <tt>MOVE_FILE</tt> refactor now supports moving/renaming folders.</li>
+</ul>
 <h4>1.32.8</h4>
 <ul>
   <li>Added <tt>server.cancelRequest</tt> to allow clients to request cancellation
@@ -6067,10 +6071,15 @@ a:focus, a:hover {
         </p>
       </dd></dl></dd><dt class="refactoring">MOVE_FILE</dt><dd>
     <p>
-      Move the given file and update all of the references to that file
-      and from it. The move operation is supported in general case - for
-      renaming a file in the same folder, moving it to a different folder
-      or both.
+      Move the given file or folder and update all of the references to
+      and from it. The move operation is supported in general case -
+      for renaming an item in the same folder, moving it to a different
+      folder or both.
+
+      Moving or renaming large folders may take time and clients should
+      consider showing an indicator to the user with the ability to
+      cancel the request (which can be done using
+      <tt>server.cancelRequest</tt>).
     </p>
     <p>
       The refactoring must be activated before an actual file moving

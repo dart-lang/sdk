@@ -9,8 +9,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/use.dart' show ConstantUse, StaticUse;
-import '../universe/world_impact.dart'
-    show WorldImpact, StagedWorldImpactBuilder;
+import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import 'backend_usage.dart' show BackendUsageBuilder;
 import 'native_data.dart';
 
@@ -154,8 +153,6 @@ class CustomElementsAnalysisJoin {
 
   final bool forResolution;
 
-  final StagedWorldImpactBuilder impactBuilder = StagedWorldImpactBuilder();
-
   // Classes that are candidates for needing constructors.  Classes are moved to
   // [activeClasses] when we know they need constructors.
   final Set<ClassEntity> instantiatedClasses = {};
@@ -180,6 +177,7 @@ class CustomElementsAnalysisJoin {
 
   WorldImpact flush() {
     if (!demanded) return const WorldImpact();
+    final impactBuilder = WorldImpactBuilderImpl();
     var newActiveClasses = Set<ClassEntity>();
     for (ClassEntity cls in instantiatedClasses) {
       bool isNative = _nativeData.isNativeClass(cls);
@@ -208,7 +206,7 @@ class CustomElementsAnalysisJoin {
     }
     activeClasses.addAll(newActiveClasses);
     instantiatedClasses.removeAll(newActiveClasses);
-    return impactBuilder.flush();
+    return impactBuilder;
   }
 
   TypeConstantValue _makeTypeConstant(ClassEntity cls) {

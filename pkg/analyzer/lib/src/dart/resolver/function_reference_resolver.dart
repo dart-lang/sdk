@@ -453,22 +453,26 @@ class FunctionReferenceResolver {
       return;
     }
 
-    var functionType = _resolveTypeProperty(
+    var propertyType = _resolveTypeProperty(
       receiver: function.prefix,
       name: function.identifier,
       nameErrorEntity: function,
     );
 
-    if (functionType != null) {
-      if (functionType is FunctionType) {
-        function.staticType = functionType;
-        _resolve(
-          node: node,
-          rawType: functionType,
-          name: functionName,
-        );
-        return;
-      }
+    var callMethod = _getCallMethod(node, propertyType);
+    if (callMethod is MethodElement) {
+      _resolveAsImplicitCallReference(node, callMethod);
+      return;
+    }
+
+    if (propertyType is FunctionType) {
+      function.staticType = propertyType;
+      _resolve(
+        node: node,
+        rawType: propertyType,
+        name: functionName,
+      );
+      return;
     }
 
     function.accept(_resolver);
@@ -823,17 +827,13 @@ class FunctionReferenceResolver {
       if (receiverElement is ClassElement) {
         var element = _resolveStaticElement(receiverElement, name);
         name.staticElement = element;
-        // TODO(srawlins): Should this use referenceType? E.g. if `element`
-        // is a function-typed static getter.
-        return element?.type;
+        return element?.referenceType;
       } else if (receiverElement is TypeAliasElement) {
         var aliasedType = receiverElement.aliasedType;
         if (aliasedType is InterfaceType) {
           var element = _resolveStaticElement(aliasedType.element, name);
           name.staticElement = element;
-          // TODO(srawlins): Should this use referenceType? E.g. if `element`
-          // is a function-typed static getter.
-          return element?.type;
+          return element?.referenceType;
         } else {
           return null;
         }
