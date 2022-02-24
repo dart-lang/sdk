@@ -444,7 +444,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       _checkForConflictingClassMembers();
-      _constructorFieldsVerifier.enterClass(node);
+      _constructorFieldsVerifier.enterClass(node, element);
       _checkForFinalNotInitializedInClass(members);
       _checkForBadFunctionUse(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
@@ -597,7 +597,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkClassInheritance(node, null, withClause, implementsClause);
       }
 
-      _constructorFieldsVerifier.enterEnum(node);
+      _constructorFieldsVerifier.enterEnum(node, element);
       _checkForFinalNotInitializedInClass(node.members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction(node.name);
@@ -610,6 +610,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       super.visitEnumDeclaration(node);
     } finally {
+      _constructorFieldsVerifier.leaveClass();
       _enclosingClass = outerClass;
     }
   }

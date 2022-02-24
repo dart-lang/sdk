@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class FinalNotInitializedConstructorTest extends PubPackageResolutionTest {
-  test_1() async {
+  test_class_1() async {
     await assertErrorsInCode('''
 class A {
   final int x;
@@ -26,7 +26,7 @@ class A {
     ]);
   }
 
-  test_2() async {
+  test_class_2() async {
     await assertErrorsInCode('''
 class A {
   final int a;
@@ -38,21 +38,22 @@ class A {
     ]);
   }
 
-  test_3Plus() async {
+  test_class_3Plus() async {
     await assertErrorsInCode('''
-class A {
+enum E {
+  v;
   final int a;
   final int b;
   final int c;
-  A() {}
+  const E();
 }
 ''', [
       error(
-          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS, 57, 1),
+          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS, 67, 1),
     ]);
   }
 
-  Future<void> test_redirecting_error() async {
+  Future<void> test_class_redirecting_error() async {
     await assertErrorsInCode('''
 class A {
   final int x;
@@ -64,7 +65,7 @@ class A {
     ]);
   }
 
-  Future<void> test_redirecting_no_error() async {
+  Future<void> test_class_redirecting_no_error() async {
     await assertNoErrorsInCode('''
 class A {
   final int x;
@@ -74,12 +75,72 @@ class A {
 ''');
   }
 
-  Future<void> test_two_constructors_no_errors() async {
+  Future<void> test_class_two_constructors_no_errors() async {
     await assertNoErrorsInCode('''
 class A {
   final int x;
   A.zero() : x = 0;
   A.one() : x = 1;
+}
+''');
+  }
+
+  test_enum_1() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  final int x;
+  const E();
+}
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 37, 1),
+    ]);
+  }
+
+  test_enum_2() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  final int a;
+  final int b;
+  const E();
+}
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2, 52, 1),
+    ]);
+  }
+
+  Future<void> test_enum_redirecting_error() async {
+    await assertErrorsInCode('''
+enum E {
+  v1, v2._();
+  final int x;
+  const E() : this._();
+  const E._();
+}
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 70, 1),
+    ]);
+  }
+
+  Future<void> test_enum_redirecting_no_error() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v1, v2._();
+  final int x;
+  const E() : this._();
+  const E._() : x = 0;
+}
+''');
+  }
+
+  Future<void> test_enum_two_constructors_no_errors() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v1.zero(), v2.one();
+  final int x;
+  const E.zero() : x = 0;
+  const E.one() : x = 1;
 }
 ''');
   }

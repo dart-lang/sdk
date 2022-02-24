@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class FinalInitializedInDeclarationAndConstructorTest
     extends PubPackageResolutionTest {
-  test_initializingFormal() async {
+  test_class_fieldFormalParameter() async {
     await assertErrorsInCode('''
 class A {
   final x = 0;
@@ -26,6 +26,22 @@ class A {
       error(
           CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
           34,
+          1),
+    ]);
+  }
+
+  test_enum_fieldFormalParameter() async {
+    await assertErrorsInCode('''
+enum E {
+  v(0);
+  final x = 0;
+  const E(this.x);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 4),
+      error(
+          CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+          47,
           1),
     ]);
   }
