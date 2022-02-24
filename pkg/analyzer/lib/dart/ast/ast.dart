@@ -808,9 +808,6 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   /// Return the 'abstract' keyword, or `null` if the keyword was absent.
   Token? get abstractKeyword;
 
-  /// Return the 'augment' keyword, or `null` if the keyword was absent.
-  Token? get augmentKeyword;
-
   /// Return the token representing the 'class' keyword.
   Token get classKeyword;
 
@@ -820,9 +817,6 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
 
   /// Return `true` if this class is declared to be an abstract class.
   bool get isAbstract;
-
-  /// Return the 'macro' keyword, or `null` if the keyword was absent.
-  Token? get macroKeyword;
 
   /// Return the native clause for this class, or `null` if the class does not
   /// have a native clause.
@@ -898,10 +892,6 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// defining an abstract class.
   Token? get abstractKeyword;
 
-  /// The token for the 'augment' keyword, or `null` if this is not defining an
-  /// augmentation class.
-  Token? get augmentKeyword;
-
   @override
   ClassElement? get declaredElement;
 
@@ -914,10 +904,6 @@ abstract class ClassTypeAlias implements TypeAlias {
 
   /// Return `true` if this class is declared to be an abstract class.
   bool get isAbstract;
-
-  /// Return the token for the 'macro' keyword, or `null` if this is not
-  /// defining a macro class.
-  Token? get macroKeyword;
 
   @override
   SimpleIdentifier get name;
@@ -1926,9 +1912,6 @@ abstract class FieldDeclaration implements ClassMember {
   /// The `abstract` keyword, or `null` if the keyword was not used.
   Token? get abstractKeyword;
 
-  /// The 'augment' keyword, or `null` if the keyword was not used.
-  Token? get augmentKeyword;
-
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   Token? get covariantKeyword;
 
@@ -2341,10 +2324,6 @@ abstract class FunctionBody implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionDeclaration implements NamedCompilationUnitMember {
-  /// The token representing the 'augment' keyword, or `null` if this is not an
-  /// function augmentation.
-  Token? get augmentKeyword;
-
   @override
   ExecutableElement? get declaredElement;
 
@@ -3350,9 +3329,6 @@ abstract class MethodReferenceExpression implements Expression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinDeclaration implements ClassOrMixinDeclaration {
-  /// Return the 'augment' keyword, or `null` if the keyword was absent.
-  Token? get augmentKeyword;
-
   /// Return the token representing the 'mixin' keyword.
   Token get mixinKeyword;
 

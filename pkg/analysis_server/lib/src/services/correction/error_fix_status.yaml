@@ -1,0 +1,2260 @@
+# This file contains a map. The key of each top-level entry is the unique name
+# of either an error code or a lint name. The value of each top-level entry is
+# a map describing the status of fixes related to that diagnostic.
+#
+# In every second-level map, the first key is `status` and the corresponding
+# value is one of the following:
+# - needsEvaluation, if the diagnostic has not been evaluated in terms of fixes.
+# - hasFix, if the diagnostic has one or more fixes.
+# - noFix, if no fix seems appropriate for the diagnostic. There should be a
+#   second key named `reason` whose value is text explaining why there is no
+#   appropriate fix.
+# - needsFix, if the diagnostic needs a fix, with a possible issue link. If an
+#   issue has been opened, there should be a second key named `issue` whose
+#   value is the URL of the issue.
+#
+# Stats:
+# - 809 "needsEvaluation"
+# -  19 "needsFix"
+# - 253 "hasFix"
+# -   3 "noFix"
+
+AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
+  status: noFix
+AnalysisOptionsErrorCode.PARSE_ERROR:
+  status: noFix
+AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED:
+  status: needsEvaluation
+AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
+  status: needsEvaluation
+AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.INVALID_OPTION:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.SPEC_MODE_REMOVED:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.UNSUPPORTED_VALUE:
+  status: needsEvaluation
+CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER:
+  status: needsEvaluation
+CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER:
+  status: needsEvaluation
+CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE:
+  status: needsEvaluation
+CompileTimeErrorCode.AMBIGUOUS_EXPORT:
+  status: needsEvaluation
+CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
+  status: needsEvaluation
+CompileTimeErrorCode.AMBIGUOUS_IMPORT:
+  status: needsEvaluation
+CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH:
+  status: needsEvaluation
+CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER:
+  status: needsEvaluation
+CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.ASSIGNMENT_TO_CONST:
+  status: needsEvaluation
+CompileTimeErrorCode.ASSIGNMENT_TO_FINAL:
+  status: hasFix
+CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL:
+  status: hasFix
+CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER:
+  status: needsEvaluation
+CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION:
+  status: needsEvaluation
+CompileTimeErrorCode.ASSIGNMENT_TO_METHOD:
+  status: needsEvaluation
+CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
+  status: hasFix
+CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
+  status: needsEvaluation
+CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT:
+  status: hasFix
+CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY:
+  status: hasFix
+CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER:
+  status: needsEvaluation
+CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME:
+  status: needsEvaluation
+CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME:
+  status: needsEvaluation
+CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME:
+  status: needsEvaluation
+CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME:
+  status: needsEvaluation
+CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME:
+  status: needsEvaluation
+CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED:
+  status: needsEvaluation
+CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
+  status: needsEvaluation
+CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.CAST_TO_NON_TYPE:
+  status: hasFix
+CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER:
+  status: needsEvaluation
+  since: 2.15
+CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER:
+  status: needsEvaluation
+  since: 2.15
+CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER:
+  status: needsEvaluation
+  since: in 2.15
+CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER:
+  status: hasFix
+CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD:
+  status: needsEvaluation
+CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER:
+  status: needsEvaluation
+  since: 2.15
+CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD:
+  status: needsEvaluation
+CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER:
+  status: needsEvaluation
+  since: 2.15
+CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD:
+  status: needsEvaluation
+CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES:
+  status: needsEvaluation
+CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD:
+  status: needsEvaluation
+CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE:
+  status: needsEvaluation
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
+  status: needsEvaluation
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
+  status: needsEvaluation
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN:
+  status: needsEvaluation
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_DEFERRED_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:
+  status: hasFix
+CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_INSTANCE_FIELD:
+  status: hasFix
+CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_NOT_INITIALIZED:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_WITH_NON_CONST:
+  status: hasFix
+CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_WITH_NON_TYPE:
+  status: hasFix
+CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF:
+  status: needsEvaluation
+  since: 2.15
+CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF:
+  status: needsEvaluation
+  since: 2.15
+CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
+  status: needsEvaluation
+CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH:
+  status: needsEvaluation
+CompileTimeErrorCode.COULD_NOT_INFER:
+  status: needsEvaluation
+CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR:
+  status: hasFix
+CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER:
+  status: needsEvaluation
+CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION:
+  status: needsEvaluation
+CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
+  status: needsFix
+  since: 2.15
+CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
+  status: needsEvaluation
+CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME:
+  status: needsEvaluation
+CompileTimeErrorCode.DUPLICATE_DEFINITION:
+  status: needsEvaluation
+CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER:
+  status: needsEvaluation
+CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT:
+  status: needsEvaluation
+CompileTimeErrorCode.DUPLICATE_PART:
+  status: needsEvaluation
+CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
+  status: needsEvaluation
+CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR: 
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET:
+  status: needsEvaluation
+CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP:
+  status: needsEvaluation
+CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS:
+  status: needsEvaluation
+CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS:
+  status: needsEvaluation
+CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS:
+  status: needsEvaluation
+CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL:
+  status: needsEvaluation
+CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.EXPRESSION_IN_MAP:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTENDS_NON_CLASS:
+  status: hasFix
+CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTENSION_AS_EXPRESSION:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER:
+  status: hasFix
+CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER:
+  status: needsEvaluation
+CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS:
+  status: hasFix
+CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED:
+  status: hasFix
+CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS:
+  status: needsEvaluation
+CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION:
+  status: needsEvaluation
+CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER:
+  status: needsEvaluation
+CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.FINAL_NOT_INITIALIZED:
+  status: hasFix
+CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1:
+  status: hasFix
+CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2:
+  status: hasFix
+CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS:
+  status: hasFix
+CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND:
+  status: needsEvaluation
+CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT:
+  status: needsEvaluation
+CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC:
+  status: needsFix
+  since: 2.15
+CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES:
+  status: needsEvaluation
+CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES:
+  status: needsEvaluation
+CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE:
+  status: hasFix
+CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE:
+  status: hasFix
+CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.ILLEGAL_NON_ABSTRACT_ENUM_INDEX:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
+  status: hasFix
+CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.IMPLEMENTS_NON_CLASS:
+  status: hasFix
+CompileTimeErrorCode.IMPLEMENTS_REPEATED:
+  status: needsEvaluation
+CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+  status: needsEvaluation
+CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER:
+  status: needsEvaluation
+CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
+  status: hasFix
+CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES:
+  status: needsEvaluation
+CompileTimeErrorCode.INCONSISTENT_INHERITANCE:
+  status: needsEvaluation
+CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
+  status: needsEvaluation
+CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
+  status: needsEvaluation
+CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD:
+  status: needsEvaluation
+CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD:
+  status: needsEvaluation
+CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD:
+  status: hasFix
+CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER:
+  status: hasFix
+CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION:
+  status: needsEvaluation
+CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY:
+  status: needsEvaluation
+CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC:
+  status: needsEvaluation
+CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.INSTANTIATE_ENUM:
+  status: needsEvaluation
+CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+  status: needsEvaluation
+CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE:
+  status: hasFix
+CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_ANNOTATION:
+  status: hasFix
+CompileTimeErrorCode.INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_ASSIGNMENT:
+  status: hasFix
+CompileTimeErrorCode.INVALID_CAST_FUNCTION:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_CAST_LITERAL:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_CAST_LITERAL_SET:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_CAST_METHOD:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_CAST_NEW_EXPR:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_CONSTANT:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_OVERRIDE:
+  status: hasFix
+CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION:
+  status: needsFix
+  since: 2.17
+CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_URI: needsEvaluation
+CompileTimeErrorCode.INVALID_USE_OF_COVARIANT:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE:
+  status: needsEvaluation
+CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL:
+  status: needsEvaluation
+CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION:
+  status: needsEvaluation
+CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION:
+  status: hasFix
+CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE:
+  status: needsEvaluation
+CompileTimeErrorCode.LABEL_UNDEFINED:
+  status: needsEvaluation
+CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
+  status: needsEvaluation
+CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS:
+  status: needsEvaluation
+CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS:
+  status: needsEvaluation
+CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION:
+  status: needsEvaluation
+CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP:
+  status: needsEvaluation
+CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
+  status: needsEvaluation
+CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
+  status: needsEvaluation
+CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
+  status: needsEvaluation
+CompileTimeErrorCode.MISSING_DART_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER:
+  status: hasFix
+CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
+  status: hasFix
+CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT:
+  status: hasFix
+CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE:
+  status: hasFix
+CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_DEFERRED_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_INSTANTIATE:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_OF_NON_CLASS:
+  status: hasFix
+CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXINS_SUPER_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS:
+  status: needsEvaluation
+CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS:
+  status: needsEvaluation
+CompileTimeErrorCode.NEW_WITH_NON_TYPE:
+  status: hasFix
+CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR:
+  status: hasFix
+CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
+  status: hasFix
+CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS:
+  status: needsEvaluation
+CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE:
+  status: needsEvaluation
+CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT:
+  status: hasFix
+CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT:
+  status: hasFix
+CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
+  status: hasFix
+CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR:
+  status: hasFix
+CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE:
+  status: hasFix
+CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE:
+  status: hasFix
+CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO:
+  status: hasFix
+CompileTimeErrorCode.NON_BOOL_CONDITION:
+  status: hasFix
+CompileTimeErrorCode.NON_BOOL_EXPRESSION:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_BOOL_OPERAND:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_SYNC_FACTORY:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT:
+  status: hasFix
+CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE:
+  status: hasFix
+CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER:
+  status: needsEvaluation
+CompileTimeErrorCode.NOT_A_TYPE:
+  status: hasFix
+CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.NOT_BINARY_OPERATOR:
+  status: needsEvaluation
+CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS:
+  status: hasFix
+CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD:
+  status: hasFix
+CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.NOT_INSTANTIATED_BOUND:
+  status: needsEvaluation
+CompileTimeErrorCode.NOT_ITERABLE_SPREAD:
+  status: needsEvaluation
+CompileTimeErrorCode.NOT_MAP_SPREAD:
+  status: needsEvaluation
+CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD:
+  status: needsEvaluation
+CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE:
+  status: hasFix
+CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE:
+  status: hasFix
+CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE:
+  status: hasFix
+CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE:
+  status: hasFix
+CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS:
+  status: noFix
+CompileTimeErrorCode.ON_REPEATED:
+  status: needsEvaluation
+CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR:
+  status: needsEvaluation
+CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.PART_OF_NON_PART:
+  status: needsEvaluation
+CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
+  status: needsFix
+  since: 2.17
+CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER:
+  status: needsEvaluation
+CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT:
+  status: needsEvaluation
+CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION:
+  status: needsEvaluation
+CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION:
+  status: needsEvaluation
+CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER:
+  status: needsEvaluation
+CompileTimeErrorCode.PRIVATE_SETTER:
+  status: needsEvaluation
+CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
+  status: needsEvaluation
+CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT:
+  status: needsEvaluation
+CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT:
+  status: needsEvaluation
+CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT:
+  status: needsEvaluation
+CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE:
+  status: needsEvaluation
+CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS:
+  status: needsEvaluation
+CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS:
+  status: needsEvaluation
+CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON:
+  status: needsEvaluation
+CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH:
+  status: needsEvaluation
+CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.REDIRECT_TO_NON_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+  status: needsEvaluation
+CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION:
+  status: needsEvaluation
+CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH:
+  status: needsEvaluation
+CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.RETURN_IN_GENERATOR:
+  status: needsEvaluation
+CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE:
+  status: needsEvaluation
+CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION:
+  status: hasFix
+CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD:
+  status: hasFix
+CompileTimeErrorCode.RETURN_WITHOUT_VALUE:
+  status: needsEvaluation
+CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.SHARED_DEFERRED_PREFIX:
+  status: needsEvaluation
+CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER:
+  status: needsEvaluation
+CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
+  status: needsFix
+  since: 2.17
+CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL:
+  status: needsFix
+  issue: https://github.com/dart-lang/sdk/issues/48359
+CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.SUPER_IN_EXTENSION:
+  status: needsEvaluation
+CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT:
+  status: needsEvaluation
+CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT:
+  status: needsEvaluation
+CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST:
+  status: needsEvaluation
+CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY:
+  status: hasFix
+CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE:
+  status: needsEvaluation
+CompileTimeErrorCode.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS:
+  status: needsEvaluation
+  since: 2.15
+CompileTimeErrorCode.THROW_OF_INVALID_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.TOP_LEVEL_CYCLE:
+  status: needsEvaluation
+CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF:
+  status: needsEvaluation
+CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS:
+  status: needsEvaluation
+CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC:
+  status: needsEvaluation
+CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND:
+  status: needsEvaluation
+CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME:
+  status: hasFix
+CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE:
+  status: hasFix
+CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE:
+  status: hasFix
+CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE:
+  status: hasFix
+CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE:
+  status: hasFix
+CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION:
+  status: hasFix
+CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR:
+  status: hasFix
+CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD:
+  status: hasFix
+CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_ANNOTATION:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_CLASS:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER:
+  status: needsEvaluation
+CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT:
+  status: needsEvaluation
+CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR:
+  status: needsEvaluation
+CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_FUNCTION:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_GETTER:
+  status: has_fix(es)
+CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE:
+  status: needsFix
+  since: 2.15
+CompileTimeErrorCode.UNDEFINED_IDENTIFIER:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_METHOD:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE:
+  status: needsFix
+  since: 2.15
+CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_OPERATOR:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_SETTER:
+  status: hasFix
+CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE:
+  status: needsFix
+  since: 2.15
+CompileTimeErrorCode.UNDEFINED_SUPER_GETTER:
+  status: needsEvaluation
+CompileTimeErrorCode.UNDEFINED_SUPER_METHOD:
+  status: needsEvaluation
+CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR:
+  status: needsEvaluation
+CompileTimeErrorCode.UNDEFINED_SUPER_SETTER:
+  status: needsEvaluation
+CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER:
+  status: hasFix
+CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE:
+  status: hasFix
+CompileTimeErrorCode.URI_DOES_NOT_EXIST:
+  status: hasFix
+CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED:
+  status: needsEvaluation
+CompileTimeErrorCode.URI_WITH_INTERPOLATION:
+  status: needsEvaluation
+CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION:
+  status: needsEvaluation
+  since: ~2.15
+CompileTimeErrorCode.USE_OF_VOID_RESULT:
+  status: needsEvaluation
+CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH:
+  status: needsEvaluation
+CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
+  status: needsEvaluation
+CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR:
+  status: needsEvaluation
+CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
+  status: needsEvaluation
+CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
+  status: needsEvaluation
+CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS:
+  status: hasFix
+CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
+  status: needsFix
+  since: 2.15
+CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR:
+  status: hasFix
+CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
+  status: needsEvaluation
+  since: 2.17
+CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION:
+  status: hasFix
+CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION:
+  status: needsFix
+  since: ~2.15
+CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD:
+  status: hasFix
+CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
+  status: needsEvaluation
+CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION:
+  status: needsEvaluation
+CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR:
+  status: needsEvaluation
+CompileTimeErrorCode.YIELD_IN_NON_GENERATOR:
+  status: needsEvaluation
+CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE:
+  status: needsEvaluation
+CompileTimeErrorCode.YIELD_OF_INVALID_TYPE:
+  status: hasFix
+FfiCode.ABI_SPECIFIC_INTEGER_INVALID:
+  status: needsEvaluation
+  since: ~2.16
+FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA:
+  status: needsEvaluation
+  since: ~2.16
+FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING:
+  status: needsEvaluation
+  since: ~2.16
+FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED:
+  status: needsEvaluation
+  since: ~2.16
+FfiCode.ANNOTATION_ON_POINTER_FIELD:
+  status: needsEvaluation
+FfiCode.ARGUMENT_MUST_BE_A_CONSTANT:
+  status: needsEvaluation
+FfiCode.CREATION_OF_STRUCT_OR_UNION:
+  status: needsEvaluation
+  since: ~2.15
+FfiCode.EMPTY_STRUCT:
+  status: needsEvaluation
+FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD:
+  status: needsEvaluation
+FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY:
+  status: needsEvaluation
+FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL:
+  status: needsEvaluation
+  since: ~2.15
+FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
+  status: needsEvaluation
+  since: ~2.15
+FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
+  status: needsEvaluation
+  since: ~2.15
+FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
+  status: needsEvaluation
+  since: ~2.15
+FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER:
+  status: needsEvaluation
+FfiCode.FIELD_INITIALIZER_IN_STRUCT:
+  status: needsEvaluation
+FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT:
+  status: needsEvaluation
+  since: ~2.15
+FfiCode.GENERIC_STRUCT_SUBCLASS:
+  status: needsEvaluation
+FfiCode.INVALID_EXCEPTION_VALUE:
+  status: needsEvaluation
+FfiCode.INVALID_FIELD_TYPE_IN_STRUCT:
+  status: needsEvaluation
+FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE:
+  status: needsEvaluation
+FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE:
+  status: needsEvaluation
+FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD:
+  status: needsEvaluation
+FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD:
+  status: needsEvaluation
+FfiCode.MISSING_EXCEPTION_VALUE:
+  status: needsEvaluation
+FfiCode.MISSING_FIELD_TYPE_IN_STRUCT:
+  status: needsEvaluation
+FfiCode.MISSING_SIZE_ANNOTATION_CARRAY:
+  status: needsEvaluation
+FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE:
+  status: needsEvaluation
+FfiCode.MUST_BE_A_SUBTYPE:
+  status: needsEvaluation
+FfiCode.NON_CONSTANT_TYPE_ARGUMENT:
+  status: needsEvaluation
+FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
+  status: needsEvaluation
+FfiCode.NON_POSITIVE_ARRAY_DIMENSION:
+  status: needsEvaluation
+FfiCode.NON_SIZED_TYPE_ARGUMENT:
+  status: needsEvaluation
+FfiCode.PACKED_ANNOTATION:
+  status: needsEvaluation
+FfiCode.PACKED_ANNOTATION_ALIGNMENT:
+  status: needsEvaluation
+FfiCode.PACKED_NESTING_NON_PACKED:
+  status: needsEvaluation
+FfiCode.SIZE_ANNOTATION_DIMENSIONS:
+  status: needsEvaluation
+FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
+  status: needsEvaluation
+FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
+  status: needsEvaluation
+FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH:
+  status: needsEvaluation
+FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
+  status: needsEvaluation
+FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
+  status: needsEvaluation
+FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
+  status: needsEvaluation
+HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
+  status: hasFix
+HintCode.ASSIGNMENT_OF_DO_NOT_STORE:
+  status: needsEvaluation
+HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
+  status: hasFix
+HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
+  status: hasFix
+HintCode.DEAD_CODE:
+  status: hasFix
+HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
+  status: hasFix
+HintCode.DEAD_CODE_ON_CATCH_SUBTYPE:
+  status: hasFix
+HintCode.DEPRECATED_EXTENDS_FUNCTION:
+  status: needsEvaluation
+HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION:
+  status: needsEvaluation
+HintCode.DEPRECATED_IMPLEMENTS_FUNCTION:
+  status: needsEvaluation
+HintCode.DEPRECATED_MEMBER_USE:
+  status: hasFix
+HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE:
+  status: needsEvaluation
+HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE:
+  status: needsEvaluation
+HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE:
+  status: hasFix
+HintCode.DEPRECATED_MIXIN_FUNCTION:
+  status: needsEvaluation
+HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
+  status: hasFix
+HintCode.DIVISION_OPTIMIZATION:
+  status: hasFix
+HintCode.DUPLICATE_HIDDEN_NAME:
+  status: hasFix
+HintCode.DUPLICATE_IGNORE:
+  status: needsEvaluation
+HintCode.DUPLICATE_IMPORT:
+  status: hasFix
+HintCode.DUPLICATE_SHOWN_NAME:
+  status: hasFix
+HintCode.EQUAL_ELEMENTS_IN_SET:
+  status: needsEvaluation
+HintCode.EQUAL_KEYS_IN_MAP:
+  status: needsEvaluation
+HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE:
+  status: needsEvaluation
+HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE:
+  status: needsEvaluation
+HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
+  status: needsEvaluation
+HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
+  status: needsEvaluation
+HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
+  status: needsEvaluation
+HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
+  status: needsEvaluation
+HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
+  status: needsEvaluation
+HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
+  status: needsEvaluation
+HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION:
+  status: needsEvaluation
+HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
+  status: needsEvaluation
+HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
+  status: needsEvaluation
+HintCode.INVALID_ANNOTATION_TARGET:
+  status: needsEvaluation
+HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
+  status: needsEvaluation
+HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
+  status: needsEvaluation
+HintCode.INVALID_FACTORY_ANNOTATION:
+  status: hasFix
+HintCode.INVALID_FACTORY_METHOD_DECL:
+  status: needsEvaluation
+HintCode.INVALID_FACTORY_METHOD_IMPL:
+  status: needsEvaluation
+HintCode.INVALID_IMMUTABLE_ANNOTATION:
+  status: hasFix
+HintCode.INVALID_INTERNAL_ANNOTATION:
+  status: needsEvaluation
+HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
+  status: needsEvaluation
+HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
+  status: needsEvaluation
+HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
+  status: needsEvaluation
+HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
+  status: needsEvaluation
+HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
+  status: needsEvaluation
+HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
+  status: needsEvaluation
+HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
+  status: needsEvaluation
+HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
+  status: needsEvaluation
+HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
+  status: needsEvaluation
+HintCode.INVALID_LITERAL_ANNOTATION:
+  status: hasFix
+HintCode.INVALID_NON_VIRTUAL_ANNOTATION:
+  status: needsEvaluation
+HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
+  status: needsEvaluation
+HintCode.INVALID_REQUIRED_NAMED_PARAM:
+  status: hasFix
+HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
+  status: hasFix
+HintCode.INVALID_REQUIRED_POSITIONAL_PARAM:
+  status: hasFix
+HintCode.INVALID_SEALED_ANNOTATION:
+  status: hasFix
+HintCode.INVALID_USE_OF_INTERNAL_MEMBER:
+  status: needsEvaluation
+HintCode.INVALID_USE_OF_PROTECTED_MEMBER:
+  status: needsEvaluation
+HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
+  status: needsEvaluation
+  since: ~2.15
+HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
+  status: needsEvaluation
+HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
+  status: needsEvaluation
+HintCode.INVALID_VISIBILITY_ANNOTATION:
+  status: needsEvaluation
+HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
+  status: needsFix
+  since: ~2.15
+HintCode.MISSING_REQUIRED_PARAM:
+  status: hasFix
+HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
+  status: hasFix
+HintCode.MISSING_RETURN:
+  status: needsEvaluation
+HintCode.MIXIN_ON_SEALED_CLASS:
+  status: needsEvaluation
+HintCode.MUST_BE_IMMUTABLE:
+  status: needsEvaluation
+HintCode.MUST_CALL_SUPER:
+  status: needsFix
+  issue: https://github.com/dart-lang/sdk/issues/33985
+HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
+  status: needsEvaluation
+HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
+  status: needsEvaluation
+HintCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:
+  status: needsEvaluation
+  since: ~2.15
+HintCode.NULL_AWARE_BEFORE_OPERATOR:
+  status: needsEvaluation
+HintCode.NULL_AWARE_IN_CONDITION:
+  status: needsEvaluation
+HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR:
+  status: needsEvaluation
+HintCode.NULL_CHECK_ALWAYS_FAILS:
+  status: needsEvaluation
+HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
+  status: hasFix
+HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
+  status: hasFix
+HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
+  status: hasFix
+HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
+  status: hasFix
+HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
+  status: hasFix
+HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT:
+  status: needsEvaluation
+HintCode.RECEIVER_OF_TYPE_NEVER:
+  status: needsEvaluation
+HintCode.RETURN_OF_DO_NOT_STORE:
+  status: needsEvaluation
+HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
+  status: needsEvaluation
+HintCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
+  status: needsEvaluation
+HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
+  status: hasFix
+HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
+  status: hasFix
+HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT:
+  status: hasFix
+HintCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS:
+  status: needsFix
+  since: 2.15
+HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT:
+  status: hasFix
+HintCode.SDK_VERSION_EXTENSION_METHODS:
+  status: hasFix
+HintCode.SDK_VERSION_GT_GT_GT_OPERATOR:
+  status: hasFix
+HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT:
+  status: hasFix
+HintCode.SDK_VERSION_NEVER:
+  status: needsEvaluation
+HintCode.SDK_VERSION_SET_LITERAL:
+  status: hasFix
+HintCode.SDK_VERSION_UI_AS_CODE:
+  status: hasFix
+HintCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
+  status: needsEvaluation
+HintCode.STRICT_RAW_TYPE:
+  status: needsEvaluation
+HintCode.SUBTYPE_OF_SEALED_CLASS:
+  status: needsEvaluation
+HintCode.TYPE_CHECK_IS_NOT_NULL:
+  status: hasFix
+HintCode.TYPE_CHECK_IS_NULL:
+  status: hasFix
+HintCode.UNDEFINED_HIDDEN_NAME:
+  status: hasFix
+HintCode.UNDEFINED_REFERENCED_PARAMETER:
+  status: hasFix
+HintCode.UNDEFINED_SHOWN_NAME:
+  status: needsEvaluation
+HintCode.UNIGNORABLE_IGNORE:
+  status: needsEvaluation
+HintCode.UNNECESSARY_CAST:
+  status: hasFix
+HintCode.UNNECESSARY_IGNORE:
+  status: needsEvaluation
+HintCode.UNNECESSARY_IMPORT:
+  status: hasFix
+HintCode.UNNECESSARY_NO_SUCH_METHOD:
+  status: needsEvaluation
+HintCode.UNNECESSARY_NULL_COMPARISON_FALSE:
+  status: hasFix
+HintCode.UNNECESSARY_NULL_COMPARISON_TRUE:
+  status: hasFix
+HintCode.UNNECESSARY_QUESTION_MARK:
+  status: needsEvaluation
+HintCode.UNNECESSARY_TYPE_CHECK_FALSE:
+  status: needsFix
+  issue: https://github.com/dart-lang/sdk/issues/47793
+HintCode.UNNECESSARY_TYPE_CHECK_TRUE:
+  status: needsFix
+  issue: https://github.com/dart-lang/sdk/issues/47793
+HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
+  status: needsFix
+  since: ~2.16
+HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
+  status: needsFix
+  since: ~2.16
+HintCode.UNUSED_CATCH_CLAUSE:
+  status: hasFix
+HintCode.UNUSED_CATCH_STACK:
+  status: hasFix
+HintCode.UNUSED_ELEMENT:
+  status: hasFix
+HintCode.UNUSED_ELEMENT_PARAMETER:
+  status: needsEvaluation
+HintCode.UNUSED_FIELD:
+  status: hasFix
+HintCode.UNUSED_IMPORT:
+  status: hasFix
+HintCode.UNUSED_LABEL:
+  status: hasFix
+HintCode.UNUSED_LOCAL_VARIABLE:
+  status: hasFix
+HintCode.UNUSED_RESULT:
+  status: needsEvaluation
+HintCode.UNUSED_RESULT_WITH_MESSAGE:
+  status: needsEvaluation
+HintCode.UNUSED_SHOWN_NAME:
+  status: hasFix
+LanguageCode.IMPLICIT_DYNAMIC_FIELD:
+  status: needsEvaluation
+LanguageCode.IMPLICIT_DYNAMIC_FUNCTION:
+  status: needsEvaluation
+LanguageCode.IMPLICIT_DYNAMIC_INVOKE:
+  status: needsEvaluation
+LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL:
+  status: needsEvaluation
+LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL:
+  status: needsEvaluation
+LanguageCode.IMPLICIT_DYNAMIC_METHOD:
+  status: needsEvaluation
+LanguageCode.IMPLICIT_DYNAMIC_PARAMETER:
+  status: needsEvaluation
+LanguageCode.IMPLICIT_DYNAMIC_RETURN:
+  status: needsEvaluation
+LanguageCode.IMPLICIT_DYNAMIC_TYPE:
+  status: needsEvaluation
+LanguageCode.IMPLICIT_DYNAMIC_VARIABLE:
+  status: needsEvaluation
+LintNames.always_declare_return_types:
+  status: hasFix
+LintNames.always_put_control_body_on_new_line:
+  status: needsEvaluation
+LintNames.always_put_required_named_parameters_first:
+  status: needsEvaluation
+LintNames.always_require_non_null_named_parameters:
+  status: hasFix
+LintNames.always_specify_types:
+  status: hasFix
+LintNames.always_use_package_imports:
+  status: hasFix
+LintNames.annotate_overrides:
+  status: hasFix
+LintNames.avoid_annotating_with_dynamic:
+  status: hasFix
+LintNames.avoid_as:
+  status: needsEvaluation
+LintNames.avoid_bool_literals_in_conditional_expressions:
+  status: needsEvaluation
+LintNames.avoid_catches_without_on_clauses:
+  status: needsEvaluation
+LintNames.avoid_catching_errors:
+  status: needsEvaluation
+LintNames.avoid_classes_with_only_static_members:
+  status: needsEvaluation
+LintNames.avoid_double_and_int_checks:
+  status: needsEvaluation
+LintNames.avoid_dynamic_calls:
+  status: needsEvaluation
+LintNames.avoid_empty_else:
+  status: hasFix
+LintNames.avoid_equals_and_hash_code_on_mutable_classes:
+  status: needsEvaluation
+LintNames.avoid_escaping_inner_quotes:
+  status: hasFix
+LintNames.avoid_field_initializers_in_const_classes:
+  status: needsEvaluation
+LintNames.avoid_final_parameters:
+  status: needsEvaluation
+LintNames.avoid_function_literals_in_foreach_calls:
+  status: hasFix
+LintNames.avoid_implementing_value_types:
+  status: needsEvaluation
+LintNames.avoid_init_to_null:
+  status: hasFix
+LintNames.avoid_js_rounded_ints:
+  status: needsEvaluation
+LintNames.avoid_multiple_declarations_per_line:
+  status: needsEvaluation
+LintNames.avoid_null_checks_in_equality_operators:
+  status: hasFix
+LintNames.avoid_positional_boolean_parameters:
+  status: needsEvaluation
+LintNames.avoid_print:
+  status: hasFix
+LintNames.avoid_private_typedef_functions:
+  status: hasFix
+LintNames.avoid_redundant_argument_values:
+  status: hasFix
+LintNames.avoid_relative_lib_imports:
+  status: hasFix
+LintNames.avoid_renaming_method_parameters:
+  status: needsEvaluation
+LintNames.avoid_return_types_on_setters:
+  status: hasFix
+LintNames.avoid_returning_null:
+  status: needsEvaluation
+LintNames.avoid_returning_null_for_future:
+  status: hasFix
+LintNames.avoid_returning_null_for_void:
+  status: hasFix
+LintNames.avoid_returning_this:
+  status: needsEvaluation
+LintNames.avoid_setters_without_getters:
+  status: needsEvaluation
+LintNames.avoid_shadowing_type_parameters:
+  status: needsEvaluation
+LintNames.avoid_single_cascade_in_expression_statements:
+  status: hasFix
+LintNames.avoid_slow_async_io:
+  status: needsEvaluation
+LintNames.avoid_type_to_string:
+  status: needsEvaluation
+LintNames.avoid_types_as_parameter_names:
+  status: hasFix
+LintNames.avoid_types_on_closure_parameters:
+  status: hasFix
+LintNames.avoid_unnecessary_containers:
+  status: hasFix
+LintNames.avoid_unused_constructor_parameters:
+  status: hasFix
+LintNames.avoid_void_async:
+  status: needsEvaluation
+LintNames.avoid_web_libraries_in_flutter:
+  status: needsEvaluation
+LintNames.await_only_futures:
+  status: hasFix
+LintNames.camel_case_extensions:
+  status: needsEvaluation
+LintNames.camel_case_types:
+  status: needsEvaluation
+LintNames.cancel_subscriptions:
+  status: needsEvaluation
+LintNames.cascade_invocations:
+  status: needsEvaluation
+LintNames.cast_nullable_to_non_nullable:
+  status: needsEvaluation
+LintNames.close_sinks:
+  status: needsEvaluation
+LintNames.comment_references:
+  status: needsEvaluation
+LintNames.conditional_uri_does_not_exist:
+  status: needsEvaluation
+LintNames.constant_identifier_names:
+  status: needsEvaluation
+LintNames.control_flow_in_finally:
+  status: needsEvaluation
+LintNames.curly_braces_in_flow_control_structures:
+  status: hasFix
+LintNames.depend_on_referenced_packages:
+  status: needsEvaluation
+LintNames.deprecated_consistency:
+  status: needsEvaluation
+LintNames.diagnostic_describe_all_properties:
+  status: hasFix
+LintNames.directives_ordering:
+  status: hasFix
+LintNames.do_not_use_environment:
+  status: needsEvaluation
+LintNames.empty_catches:
+  status: hasFix
+LintNames.empty_constructor_bodies:
+  status: hasFix
+LintNames.empty_statements:
+  status: hasFix
+LintNames.eol_at_end_of_file:
+  status: hasFix
+LintNames.exhaustive_cases:
+  status: hasFix
+LintNames.file_names:
+  status: needsEvaluation
+LintNames.flutter_style_todos:
+  status: needsEvaluation
+LintNames.hash_and_equals:
+  status: hasFix
+LintNames.implementation_imports:
+  status: needsEvaluation
+LintNames.invariant_booleans:
+  status: needsEvaluation
+LintNames.iterable_contains_unrelated_type:
+  status: needsEvaluation
+LintNames.join_return_with_assignment:
+  status: needsEvaluation
+LintNames.leading_newlines_in_multiline_strings:
+  status: hasFix
+LintNames.library_names:
+  status: needsEvaluation
+LintNames.library_prefixes:
+  status: needsEvaluation
+LintNames.library_private_types_in_public_api:
+  status: needsEvaluation
+LintNames.lines_longer_than_80_chars:
+  status: needsEvaluation
+LintNames.list_remove_unrelated_type:
+  status: needsEvaluation
+LintNames.literal_only_boolean_expressions:
+  status: needsEvaluation
+LintNames.missing_whitespace_between_adjacent_strings:
+  status: needsEvaluation
+LintNames.no_adjacent_strings_in_list:
+  status: needsEvaluation
+LintNames.no_default_cases:
+  status: needsEvaluation
+LintNames.no_duplicate_case_values:
+  status: hasFix
+LintNames.no_leading_underscores_for_library_prefixes:
+  status: needsEvaluation
+LintNames.no_leading_underscores_for_local_identifiers:
+  status: needsEvaluation
+LintNames.no_logic_in_create_state:
+  status: needsEvaluation
+LintNames.no_runtimeType_toString:
+  status: needsEvaluation
+LintNames.non_constant_identifier_names:
+  status: hasFix
+LintNames.noop_primitive_operations:
+  status: needsEvaluation
+LintNames.null_check_on_nullable_type_parameter:
+  status: needsEvaluation
+LintNames.null_closures:
+  status: hasFix
+LintNames.omit_local_variable_types:
+  status: hasFix
+LintNames.one_member_abstracts:
+  status: needsEvaluation
+LintNames.only_throw_errors:
+  status: needsEvaluation
+LintNames.overridden_fields:
+  status: needsEvaluation
+LintNames.package_api_docs:
+  status: needsEvaluation
+LintNames.package_prefixed_library_names:
+  status: needsEvaluation
+LintNames.parameter_assignments:
+  status: needsEvaluation
+LintNames.prefer_adjacent_string_concatenation:
+  status: hasFix
+LintNames.prefer_asserts_in_initializer_lists:
+  status: needsEvaluation
+LintNames.prefer_asserts_with_message:
+  status: needsEvaluation
+LintNames.prefer_bool_in_asserts:
+  status: needsEvaluation
+LintNames.prefer_collection_literals:
+  status: hasFix
+LintNames.prefer_conditional_assignment:
+  status: hasFix
+LintNames.prefer_const_constructors:
+  status: hasFix
+LintNames.prefer_const_constructors_in_immutables:
+  status: hasFix
+LintNames.prefer_const_declarations:
+  status: hasFix
+LintNames.prefer_const_literals_to_create_immutables:
+  status: hasFix
+LintNames.prefer_constructors_over_static_methods:
+  status: needsEvaluation
+LintNames.prefer_contains:
+  status: hasFix
+LintNames.prefer_double_quotes:
+  status: hasFix
+LintNames.prefer_equal_for_default_values:
+  status: hasFix
+LintNames.prefer_expression_function_bodies:
+  status: hasFix
+LintNames.prefer_final_fields:
+  status: hasFix
+LintNames.prefer_final_in_for_each:
+  status: hasFix
+LintNames.prefer_final_locals:
+  status: hasFix
+LintNames.prefer_final_parameters:
+  status: hasFix
+LintNames.prefer_for_elements_to_map_fromIterable:
+  status: hasFix
+LintNames.prefer_foreach:
+  status: needsEvaluation
+LintNames.prefer_function_declarations_over_variables:
+  status: needsEvaluation
+LintNames.prefer_generic_function_type_aliases:
+  status: hasFix
+LintNames.prefer_if_elements_to_conditional_expressions:
+  status: hasFix
+LintNames.prefer_if_null_operators:
+  status: hasFix
+LintNames.prefer_initializing_formals:
+  status: hasFix
+LintNames.prefer_inlined_adds:
+  status: hasFix
+LintNames.prefer_int_literals:
+  status: hasFix
+LintNames.prefer_interpolation_to_compose_strings:
+  status: hasFix
+LintNames.prefer_is_empty:
+  status: hasFix
+LintNames.prefer_is_not_empty:
+  status: hasFix
+LintNames.prefer_is_not_operator:
+  status: hasFix
+LintNames.prefer_iterable_whereType:
+  status: hasFix
+LintNames.prefer_mixin:
+  status: needsEvaluation
+LintNames.prefer_null_aware_method_calls:
+  status: needsEvaluation
+LintNames.prefer_null_aware_operators:
+  status: hasFix
+LintNames.prefer_relative_imports:
+  status: hasFix
+LintNames.prefer_single_quotes:
+  status: hasFix
+LintNames.prefer_spread_collections:
+  status: hasFix
+LintNames.prefer_typing_uninitialized_variables:
+  status: hasFix
+LintNames.prefer_void_to_null:
+  status: hasFix
+LintNames.provide_deprecation_message:
+  status: needsEvaluation
+LintNames.pub/package_names:
+  status: needsEvaluation
+LintNames.pub/secure_pubspec_urls:
+  status: needsEvaluation
+LintNames.pub/sort_pub_dependencies:
+  status: needsEvaluation
+LintNames.public_member_api_docs:
+  status: needsEvaluation
+LintNames.recursive_getters:
+  status: needsEvaluation
+LintNames.require_trailing_commas:
+  status: hasFix
+LintNames.sized_box_for_whitespace:
+  status: hasFix
+LintNames.sized_box_shrink_expand:
+  status: needsEvaluation
+LintNames.slash_for_doc_comments:
+  status: hasFix
+LintNames.sort_child_properties_last:
+  status: hasFix
+LintNames.sort_constructors_first:
+  status: needsFix
+  issue: https://github.com/dart-lang/sdk/issues/47953
+LintNames.sort_unnamed_constructors_first:
+  status: needsEvaluation
+LintNames.super_goes_last:
+  status: needsEvaluation
+LintNames.test_types_in_equals:
+  status: needsEvaluation
+LintNames.throw_in_finally:
+  status: needsEvaluation
+LintNames.tighten_type_of_initializing_formals:
+  status: needsEvaluation
+LintNames.type_annotate_public_apis:
+  status: hasFix
+LintNames.type_init_formals:
+  status: hasFix
+LintNames.unawaited_futures:
+  status: hasFix
+LintNames.unnecessary_await_in_return:
+  status: needsEvaluation
+LintNames.unnecessary_brace_in_string_interps:
+  status: hasFix
+LintNames.unnecessary_const:
+  status: hasFix
+LintNames.unnecessary_constructor_name:
+  status: hasFix
+LintNames.unnecessary_final:
+  status: hasFix
+LintNames.unnecessary_getters_setters:
+  status: hasFix
+LintNames.unnecessary_lambdas:
+  status: hasFix
+LintNames.unnecessary_late:
+  status: needsEvaluation
+LintNames.unnecessary_new:
+  status: hasFix
+LintNames.unnecessary_null_aware_assignments:
+  status: needsEvaluation
+LintNames.unnecessary_null_checks:
+  status: needsEvaluation
+LintNames.unnecessary_null_in_if_null_operators:
+  status: hasFix
+LintNames.unnecessary_nullable_for_final_variable_declarations:
+  status: hasFix
+LintNames.unnecessary_overrides:
+  status: hasFix
+LintNames.unnecessary_parenthesis:
+  status: hasFix
+LintNames.unnecessary_raw_strings:
+  status: hasFix
+LintNames.unnecessary_statements:
+  status: needsEvaluation
+LintNames.unnecessary_string_escapes:
+  status: hasFix
+LintNames.unnecessary_string_interpolations:
+  status: hasFix
+LintNames.unnecessary_this:
+  status: hasFix
+LintNames.unrelated_type_equality_checks:
+  status: needsEvaluation
+LintNames.unsafe_html:
+  status: needsEvaluation
+LintNames.use_build_context_synchronously:
+  status: needsEvaluation
+LintNames.use_decorated_box:
+  status: needsEvaluation
+LintNames.use_full_hex_values_for_flutter_colors:
+  status: hasFix
+LintNames.use_function_type_syntax_for_parameters:
+  status: hasFix
+LintNames.use_if_null_to_convert_nulls_to_bools:
+  status: needsEvaluation
+LintNames.use_is_even_rather_than_modulo:
+  status: needsEvaluation
+LintNames.use_key_in_widget_constructors:
+  status: hasFix
+LintNames.use_late_for_private_fields_and_variables:
+  status: needsEvaluation
+LintNames.use_named_constants:
+  status: needsEvaluation
+LintNames.use_raw_strings:
+  status: needsEvaluation
+LintNames.use_rethrow_when_possible:
+  status: hasFix
+LintNames.use_setters_to_change_properties:
+  status: needsEvaluation
+LintNames.use_string_buffers:
+  status: needsEvaluation
+LintNames.use_test_throws_matchers:
+  status: needsEvaluation
+LintNames.use_to_and_as_if_applicable:
+  status: needsEvaluation
+LintNames.valid_regexps:
+  status: needsEvaluation
+LintNames.void_checks:
+  status: needsEvaluation
+ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE:
+  status: needsEvaluation
+ManifestWarningCode.NO_TOUCHSCREEN_FEATURE:
+  status: needsEvaluation
+ManifestWarningCode.NON_RESIZABLE_ACTIVITY:
+  status: needsEvaluation
+ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE:
+  status: needsEvaluation
+ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY:
+  status: needsEvaluation
+ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE:
+  status: needsEvaluation
+ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE:
+  status: needsEvaluation
+ParserErrorCode.ABSTRACT_CLASS_MEMBER:
+  status: hasFix
+ParserErrorCode.ABSTRACT_ENUM:
+  status: needsEvaluation
+ParserErrorCode.ABSTRACT_EXTERNAL_FIELD:
+  status: needsEvaluation
+ParserErrorCode.ABSTRACT_LATE_FIELD:
+  status: needsEvaluation
+ParserErrorCode.ABSTRACT_STATIC_FIELD:
+  status: needsEvaluation
+ParserErrorCode.ABSTRACT_STATIC_METHOD:
+  status: needsEvaluation
+ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION:
+  status: needsEvaluation
+ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE:
+  status: needsEvaluation
+ParserErrorCode.ABSTRACT_TYPEDEF:
+  status: needsEvaluation
+ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT:
+  status: needsEvaluation
+ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS:
+  status: needsEvaluation
+ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED:
+  status: needsEvaluation
+ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER:
+  status: needsEvaluation
+ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT:
+  status: needsEvaluation
+ParserErrorCode.BREAK_OUTSIDE_OF_LOOP:
+  status: needsEvaluation
+ParserErrorCode.CATCH_SYNTAX:
+  status: needsEvaluation
+ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS:
+  status: needsEvaluation
+ParserErrorCode.CLASS_IN_CLASS:
+  status: needsEvaluation
+ParserErrorCode.COLON_IN_PLACE_OF_IN:
+  status: needsEvaluation
+ParserErrorCode.CONFLICTING_MODIFIERS:
+  status: needsEvaluation
+ParserErrorCode.CONST_AND_FINAL:
+  status: needsEvaluation
+ParserErrorCode.CONST_CLASS:
+  status: needsEvaluation
+ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY:
+  status: needsEvaluation
+ParserErrorCode.CONST_ENUM:
+  status: needsEvaluation
+ParserErrorCode.CONST_FACTORY:
+  status: needsEvaluation
+ParserErrorCode.CONST_METHOD:
+  status: needsEvaluation
+ParserErrorCode.CONST_TYPEDEF:
+  status: needsEvaluation
+ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE:
+  status: needsEvaluation
+ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS:
+  status: needsEvaluation
+  since: ~2.15
+ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP:
+  status: needsEvaluation
+ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE:
+  status: needsEvaluation
+ParserErrorCode.COVARIANT_AND_STATIC:
+  status: needsEvaluation
+ParserErrorCode.COVARIANT_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.COVARIANT_MEMBER:
+  status: needsEvaluation
+ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION:
+  status: needsEvaluation
+ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE:
+  status: needsEvaluation
+ParserErrorCode.DEFERRED_AFTER_PREFIX:
+  status: needsEvaluation
+ParserErrorCode.DIRECTIVE_AFTER_DECLARATION:
+  status: needsEvaluation
+ParserErrorCode.DUPLICATE_DEFERRED:
+  status: needsEvaluation
+ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT:
+  status: needsEvaluation
+ParserErrorCode.DUPLICATE_PREFIX:
+  status: needsEvaluation
+ParserErrorCode.DUPLICATED_MODIFIER:
+  status: needsEvaluation
+ParserErrorCode.EMPTY_ENUM_BODY:
+  status: needsEvaluation
+ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS:
+  status: needsEvaluation
+  since: 2.17
+ParserErrorCode.ENUM_IN_CLASS:
+  status: needsEvaluation
+ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
+  status: needsEvaluation
+ParserErrorCode.EXPECTED_BODY:
+  status: needsEvaluation
+ParserErrorCode.EXPECTED_CASE_OR_DEFAULT:
+  status: needsEvaluation
+ParserErrorCode.EXPECTED_CLASS_MEMBER:
+  status: needsEvaluation
+ParserErrorCode.EXPECTED_ELSE_OR_COMMA:
+  status: needsEvaluation
+ParserErrorCode.EXPECTED_EXECUTABLE:
+  status: needsEvaluation
+ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD:
+  status: needsEvaluation
+ParserErrorCode.EXPECTED_INSTEAD:
+  status: needsEvaluation
+ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL:
+  status: needsEvaluation
+ParserErrorCode.EXPECTED_STRING_LITERAL:
+  status: needsEvaluation
+ParserErrorCode.EXPECTED_TOKEN:
+  status: hasFix
+ParserErrorCode.EXPECTED_TYPE_NAME:
+  status: needsEvaluation
+ParserErrorCode.EXPERIMENT_NOT_ENABLED:
+  status: needsEvaluation
+ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
+  status: needsEvaluation
+ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER:
+  status: needsEvaluation
+ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_CLASS:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_ENUM:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_FACTORY_REDIRECTION:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_FIELD:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_GETTER_WITH_BODY:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_LATE_FIELD:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_METHOD_WITH_BODY:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_SETTER_WITH_BODY:
+  status: needsEvaluation
+ParserErrorCode.EXTERNAL_TYPEDEF:
+  status: needsEvaluation
+ParserErrorCode.EXTRANEOUS_MODIFIER:
+  status: needsEvaluation
+ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION:
+  status: needsEvaluation
+ParserErrorCode.FACTORY_WITH_INITIALIZERS:
+  status: needsEvaluation
+ParserErrorCode.FACTORY_WITHOUT_BODY:
+  status: needsEvaluation
+ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS:
+  status: needsEvaluation
+ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.FINAL_AND_COVARIANT:
+  status: needsEvaluation
+ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER:
+  status: needsEvaluation
+ParserErrorCode.FINAL_AND_VAR:
+  status: needsEvaluation
+ParserErrorCode.FINAL_CLASS:
+  status: needsEvaluation
+ParserErrorCode.FINAL_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.FINAL_ENUM:
+  status: needsEvaluation
+ParserErrorCode.FINAL_METHOD:
+  status: needsEvaluation
+ParserErrorCode.FINAL_TYPEDEF:
+  status: needsEvaluation
+ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR:
+  status: needsEvaluation
+ParserErrorCode.GETTER_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.GETTER_IN_FUNCTION:
+  status: needsEvaluation
+ParserErrorCode.GETTER_WITH_PARAMETERS:
+  status: hasFix
+ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE:
+  status: needsEvaluation
+ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS:
+  status: needsEvaluation
+ParserErrorCode.IMPLEMENTS_BEFORE_ON:
+  status: needsEvaluation
+ParserErrorCode.IMPLEMENTS_BEFORE_WITH:
+  status: needsEvaluation
+ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
+  status: needsEvaluation
+ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH:
+  status: needsEvaluation
+ParserErrorCode.INVALID_AWAIT_IN_FOR:
+  status: needsEvaluation
+ParserErrorCode.INVALID_CODE_POINT:
+  status: needsEvaluation
+ParserErrorCode.INVALID_COMMENT_REFERENCE:
+  status: needsEvaluation
+ParserErrorCode.INVALID_CONSTRUCTOR_NAME:
+  status: needsEvaluation
+ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE:
+  status: needsEvaluation
+ParserErrorCode.INVALID_HEX_ESCAPE:
+  status: needsEvaluation
+ParserErrorCode.INVALID_INITIALIZER:
+  status: needsEvaluation
+ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION:
+  status: needsEvaluation
+ParserErrorCode.INVALID_OPERATOR:
+  status: needsEvaluation
+ParserErrorCode.INVALID_OPERATOR_FOR_SUPER:
+  status: needsEvaluation
+ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER:
+  status: needsEvaluation
+ParserErrorCode.INVALID_STAR_AFTER_ASYNC:
+  status: needsEvaluation
+ParserErrorCode.INVALID_SUPER_IN_INITIALIZER:
+  status: needsEvaluation
+ParserErrorCode.INVALID_SYNC:
+  status: needsEvaluation
+ParserErrorCode.INVALID_THIS_IN_INITIALIZER:
+  status: needsEvaluation
+ParserErrorCode.INVALID_UNICODE_ESCAPE:
+  status: needsEvaluation
+ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION:
+  status: needsEvaluation
+ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST:
+  status: needsEvaluation
+ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW:
+  status: needsEvaluation
+ParserErrorCode.LITERAL_WITH_CLASS:
+  status: needsEvaluation
+ParserErrorCode.LITERAL_WITH_NEW:
+  status: needsEvaluation
+ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER:
+  status: needsEvaluation
+ParserErrorCode.MEMBER_WITH_CLASS_NAME:
+  status: needsEvaluation
+ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR:
+  status: needsEvaluation
+ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER:
+  status: needsEvaluation
+ParserErrorCode.MISSING_CATCH_OR_FINALLY:
+  status: needsEvaluation
+ParserErrorCode.MISSING_CLOSING_PARENTHESIS:
+  status: needsEvaluation
+ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE:
+  status: hasFix
+ParserErrorCode.MISSING_ENUM_BODY:
+  status: needsEvaluation
+ParserErrorCode.MISSING_EXPRESSION_IN_INITIALIZER:
+  status: needsEvaluation
+ParserErrorCode.MISSING_EXPRESSION_IN_THROW:
+  status: needsEvaluation
+ParserErrorCode.MISSING_FUNCTION_BODY:
+  status: hasFix
+ParserErrorCode.MISSING_FUNCTION_KEYWORD:
+  status: needsEvaluation
+ParserErrorCode.MISSING_FUNCTION_PARAMETERS:
+  status: needsEvaluation
+ParserErrorCode.MISSING_GET:
+  status: needsEvaluation
+ParserErrorCode.MISSING_IDENTIFIER:
+  status: needsEvaluation
+ParserErrorCode.MISSING_INITIALIZER:
+  status: needsEvaluation
+ParserErrorCode.MISSING_KEYWORD_OPERATOR:
+  status: needsEvaluation
+ParserErrorCode.MISSING_METHOD_PARAMETERS:
+  status: needsEvaluation
+ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER:
+  status: needsEvaluation
+ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE:
+  status: needsEvaluation
+ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE:
+  status: needsEvaluation
+ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT:
+  status: needsEvaluation
+ParserErrorCode.MISSING_STAR_AFTER_SYNC:
+  status: needsEvaluation
+ParserErrorCode.MISSING_STATEMENT:
+  status: needsEvaluation
+ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
+  status: needsEvaluation
+ParserErrorCode.MISSING_TYPEDEF_PARAMETERS:
+  status: needsEvaluation
+ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH:
+  status: needsEvaluation
+ParserErrorCode.MIXED_PARAMETER_GROUPS:
+  status: needsEvaluation
+ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.MODIFIER_OUT_OF_ORDER:
+  status: needsEvaluation
+ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES:
+  status: needsEvaluation
+ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES:
+  status: needsEvaluation
+ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES:
+  status: needsEvaluation
+ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS:
+  status: needsEvaluation
+ParserErrorCode.MULTIPLE_ON_CLAUSES:
+  status: needsEvaluation
+ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES:
+  status: needsEvaluation
+ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
+  status: needsEvaluation
+ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH:
+  status: needsEvaluation
+ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS:
+  status: needsEvaluation
+ParserErrorCode.MULTIPLE_WITH_CLAUSES:
+  status: needsEvaluation
+ParserErrorCode.NAMED_FUNCTION_EXPRESSION:
+  status: needsEvaluation
+ParserErrorCode.NAMED_FUNCTION_TYPE:
+  status: needsEvaluation
+ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP:
+  status: needsEvaluation
+ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE:
+  status: needsEvaluation
+ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION:
+  status: needsEvaluation
+ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE:
+  status: needsEvaluation
+ParserErrorCode.NON_CONSTRUCTOR_FACTORY:
+  status: needsEvaluation
+ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME:
+  status: needsEvaluation
+ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART:
+  status: needsEvaluation
+ParserErrorCode.NON_STRING_LITERAL_AS_URI:
+  status: needsEvaluation
+ParserErrorCode.NON_USER_DEFINABLE_OPERATOR:
+  status: needsEvaluation
+ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS:
+  status: needsEvaluation
+ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER:
+  status: needsEvaluation
+ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
+  status: needsEvaluation
+ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP:
+  status: needsEvaluation
+ParserErrorCode.PREFIX_AFTER_COMBINATOR:
+  status: needsEvaluation
+ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY:
+  status: needsEvaluation
+ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.SETTER_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.SETTER_IN_FUNCTION:
+  status: needsEvaluation
+ParserErrorCode.STACK_OVERFLOW:
+  status: needsEvaluation
+ParserErrorCode.STATIC_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.STATIC_GETTER_WITHOUT_BODY:
+  status: needsEvaluation
+ParserErrorCode.STATIC_OPERATOR:
+  status: needsEvaluation
+ParserErrorCode.STATIC_SETTER_WITHOUT_BODY:
+  status: needsEvaluation
+ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION:
+  status: needsEvaluation
+ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE:
+  status: needsEvaluation
+ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES:
+  status: needsEvaluation
+ParserErrorCode.TOP_LEVEL_OPERATOR:
+  status: needsEvaluation
+ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE:
+  status: needsEvaluation
+ParserErrorCode.TYPE_BEFORE_FACTORY:
+  status: needsEvaluation
+ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR:
+  status: needsEvaluation
+ParserErrorCode.TYPEDEF_IN_CLASS:
+  status: needsEvaluation
+ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
+  status: needsEvaluation
+ParserErrorCode.UNEXPECTED_TOKEN:
+  status: needsEvaluation
+ParserErrorCode.VAR_AND_TYPE:
+  status: needsEvaluation
+ParserErrorCode.VAR_AS_TYPE_NAME:
+  status: hasFix
+ParserErrorCode.VAR_CLASS:
+  status: needsEvaluation
+ParserErrorCode.VAR_ENUM:
+  status: needsEvaluation
+ParserErrorCode.VAR_RETURN_TYPE:
+  status: needsEvaluation
+ParserErrorCode.VAR_TYPEDEF:
+  status: needsEvaluation
+ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS:
+  status: needsEvaluation
+ParserErrorCode.WITH_BEFORE_EXTENDS:
+  status: needsEvaluation
+ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
+  status: needsEvaluation
+ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
+  status: needsEvaluation
+PubspecWarningCode.ASSET_DOES_NOT_EXIST:
+  status: needsEvaluation
+  since: ~2.15
+PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST:
+  status: needsEvaluation
+  since: ~2.15
+PubspecWarningCode.ASSET_FIELD_NOT_LIST:
+  status: needsEvaluation
+  since: ~2.15
+PubspecWarningCode.ASSET_NOT_STRING:
+  status: needsEvaluation
+  since: ~2.15
+PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP:
+  status: needsEvaluation
+  since: ~2.15
+PubspecWarningCode.DEPRECATED_FIELD:
+  status: needsEvaluation
+  since: ~2.15
+PubspecWarningCode.FLUTTER_FIELD_NOT_MAP:
+  status: needsEvaluation
+  since: ~2.15
+PubspecWarningCode.INVALID_DEPENDENCY:
+  status: needsEvaluation
+PubspecWarningCode.MISSING_NAME:
+  status: needsEvaluation
+  since: ~2.15
+PubspecWarningCode.NAME_NOT_STRING:
+  status: needsEvaluation
+  since: ~2.15
+PubspecWarningCode.PATH_DOES_NOT_EXIST:
+  status: needsEvaluation
+PubspecWarningCode.PATH_NOT_POSIX:
+  status: needsEvaluation
+  since: ~2.15
+PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST:
+  status: needsEvaluation
+PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY:
+  status: needsEvaluation
+  since: ~2.15
+ScannerErrorCode.EXPECTED_TOKEN:
+  status: needsEvaluation
+ScannerErrorCode.ILLEGAL_CHARACTER:
+  status: needsEvaluation
+ScannerErrorCode.MISSING_DIGIT:
+  status: needsEvaluation
+ScannerErrorCode.MISSING_HEX_DIGIT:
+  status: needsEvaluation
+ScannerErrorCode.MISSING_IDENTIFIER:
+  status: needsEvaluation
+ScannerErrorCode.MISSING_QUOTE:
+  status: needsEvaluation
+ScannerErrorCode.UNABLE_GET_CONTENT:
+  status: needsEvaluation
+ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING:
+  status: needsEvaluation
+ScannerErrorCode.UNSUPPORTED_OPERATOR:
+  status: needsEvaluation
+ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT:
+  status: needsEvaluation
+ScannerErrorCode.UNTERMINATED_STRING_LITERAL:
+  status: needsEvaluation
+StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION:
+  status: hasFix
+StaticWarningCode.INVALID_NULL_AWARE_OPERATOR:
+  status: hasFix
+StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
+  status: hasFix
+StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED:
+  status: needsEvaluation
+StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL:
+  status: needsEvaluation
+StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH:
+  status: hasFix
+StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:
+  status: hasFix
