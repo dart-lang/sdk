@@ -24,12 +24,16 @@ class AnnotateOverridesTest extends LintRuleTest {
 
   test_field() async {
     await assertDiagnostics(r'''
-enum A {
+class O {
+  int get x => 0;
+}
+    
+enum A implements O {
   a,b,c;
-  int get hashCode => 0;
+  int get x => 0;
 }
 ''', [
-      lint('annotate_overrides', 28, 8),
+      lint('annotate_overrides', 76, 1),
     ]);
   }
 
@@ -47,10 +51,14 @@ enum A {
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3093')
   test_ok() async {
     await assertNoDiagnostics(r'''
-enum A {
+class O {
+  int get x => 0;
+}
+    
+enum A implements O {    
   a,b,c;
   @override
-  int get hashCode => 0;
+  int get x => 0;
   @override
   String toString() => '';
 }

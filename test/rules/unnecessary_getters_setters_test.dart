@@ -22,7 +22,6 @@ class UnnecessaryGettersSettersTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_getters_setters';
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3200')
   test_enum() async {
     await assertDiagnostics(r'''
 enum A {

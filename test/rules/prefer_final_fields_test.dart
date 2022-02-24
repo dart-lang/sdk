@@ -22,7 +22,6 @@ class PreferFinalFieldsTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_final_fields';
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3198')
   test_enum() async {
     await assertDiagnostics(r'''
 enum A {
