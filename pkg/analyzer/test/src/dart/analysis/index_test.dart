@@ -1747,6 +1747,36 @@ class X extends dynamic {
     expect(index.subtypes, isEmpty);
   }
 
+  test_subtypes_enum_implements() async {
+    String libP = 'package:test/test.dart;package:test/test.dart';
+    await _indexTestUnit('''
+class A {}
+
+enum E implements A {
+  v;
+  void foo() {}
+}
+''');
+
+    expect(index.subtypes, hasLength(1));
+    _assertSubtype(0, '$libP;A', 'E', ['foo']);
+  }
+
+  test_subtypes_enum_with() async {
+    String libP = 'package:test/test.dart;package:test/test.dart';
+    await _indexTestUnit('''
+mixin M {}
+
+enum E with M {
+  v;
+  void foo() {}
+}
+''');
+
+    expect(index.subtypes, hasLength(1));
+    _assertSubtype(0, '$libP;M', 'E', ['foo']);
+  }
+
   test_subtypes_mixinDeclaration() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
     newFile('$testPackageLibPath/lib.dart', content: '''

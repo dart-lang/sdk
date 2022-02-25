@@ -2287,7 +2287,7 @@ mixin B implements T {} // B
     await _verifyReferences(element, expected);
   }
 
-  test_subtypes() async {
+  test_subtypes_class() async {
     await resolveTestCode('''
 class A {}
 
@@ -2342,7 +2342,7 @@ class F {}
     }
   }
 
-  test_subtypes_discover() async {
+  test_subtypes_class_discover() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
     var bbbPackageRootPath = '$packagesRootPath/bbb';
 
@@ -2412,7 +2412,7 @@ class A {
     expect(b.members, ['method1']);
   }
 
-  test_subTypes_discover() async {
+  test_subTypes_class_discover() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
     var bbbPackageRootPath = '$packagesRootPath/bbb';
     var cccPackageRootPath = '$packagesRootPath/ccc';
@@ -2453,7 +2453,7 @@ class A {
     assertHasResult(cccFilePath, 'C', not: true);
   }
 
-  test_subtypes_files() async {
+  test_subtypes_class_files() async {
     String pathB = convertPath('$testPackageLibPath/b.dart');
     String pathC = convertPath('$testPackageLibPath/c.dart');
     newFile(pathB, content: r'''
@@ -2480,6 +2480,59 @@ class A {}
 
     expect(b.id, endsWith('b.dart;B'));
     expect(c.id, endsWith('c.dart;C'));
+  }
+
+  test_subtypes_class_partWithoutLibrary() async {
+    await resolveTestCode('''
+part of lib;
+
+class A {}
+class B extends A {}
+''');
+    var a = findElement.class_('A');
+
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: a);
+    expect(subtypes, hasLength(1));
+
+    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
+    expect(b.libraryUri, testUriStr);
+    expect(b.id, '$testUriStr;$testUriStr;B');
+  }
+
+  test_subtypes_enum() async {
+    await resolveTestCode('''
+class A {}
+
+enum E1 implements A {
+  v;
+  void methodE1() {}
+}
+
+enum E2 with A {
+  v;
+  void methodE2() {}
+}
+
+class B {}
+''');
+
+    var subtypes = await driver.search.subtypes(
+      SearchedFiles(),
+      type: findElement.class_('A'),
+    );
+    expect(subtypes, hasLength(2));
+
+    var resultE1 = subtypes.singleWhere((r) => r.name == 'E1');
+    var resultE2 = subtypes.singleWhere((r) => r.name == 'E2');
+
+    expect(resultE1.libraryUri, testUriStr);
+    expect(resultE1.id, '$testUriStr;$testUriStr;E1');
+    expect(resultE1.members, ['methodE1']);
+
+    expect(resultE2.libraryUri, testUriStr);
+    expect(resultE2.id, '$testUriStr;$testUriStr;E2');
+    expect(resultE2.members, ['methodE2']);
   }
 
   test_subtypes_mixin_superclassConstraints() async {
@@ -2519,24 +2572,6 @@ mixin M on A, B {
       expect(m.id, '$testUriStr;$testUriStr;M');
       expect(m.members, ['methodA', 'methodM']);
     }
-  }
-
-  test_subtypes_partWithoutLibrary() async {
-    await resolveTestCode('''
-part of lib;
-
-class A {}
-class B extends A {}
-''');
-    var a = findElement.class_('A');
-
-    List<SubtypeResult> subtypes =
-        await driver.search.subtypes(SearchedFiles(), type: a);
-    expect(subtypes, hasLength(1));
-
-    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
-    expect(b.libraryUri, testUriStr);
-    expect(b.id, '$testUriStr;$testUriStr;B');
   }
 
   test_topLevelElements() async {

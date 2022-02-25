@@ -473,7 +473,7 @@ part 'not-a2.dart';
     );
   }
 
-  test_getFilesSubtypingName() {
+  test_getFilesSubtypingName_class() {
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
 
@@ -507,6 +507,75 @@ class D implements C {}
     expect(
       fileSystemState.getFilesSubtypingName('C'),
       unorderedEquals([bFile]),
+    );
+  }
+
+  test_getFilesSubtypingName_enum_implements() {
+    String a = convertPath('/a.dart');
+    String b = convertPath('/b.dart');
+
+    newFile(a, content: r'''
+class A {}
+enum E1 implements A {
+  v
+}
+''');
+    newFile(b, content: r'''
+class A {}
+enum E2 implements A {
+  v
+}
+''');
+
+    FileState aFile = fileSystemState.getFileForPath(a);
+    FileState bFile = fileSystemState.getFileForPath(b);
+
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile, bFile]),
+    );
+
+    // Change b.dart so that it does not subtype A.
+    newFile(b, content: r'''
+class C {}
+enum E2 implements C {
+  v
+}
+''');
+    bFile.refresh();
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile]),
+    );
+    expect(
+      fileSystemState.getFilesSubtypingName('C'),
+      unorderedEquals([bFile]),
+    );
+  }
+
+  test_getFilesSubtypingName_enum_with() {
+    String a = convertPath('/a.dart');
+    String b = convertPath('/b.dart');
+
+    newFile(a, content: r'''
+mixin M {}
+enum E1 with M {
+  v
+}
+''');
+    newFile(b, content: r'''
+mixin M {}
+enum E2 with M {
+  v
+}
+''');
+
+    FileState aFile = fileSystemState.getFileForPath(a);
+    FileState bFile = fileSystemState.getFileForPath(b);
+
+    expect(
+      fileSystemState.getFilesSubtypingName('M'),
+      unorderedEquals([aFile, bFile]),
     );
   }
 

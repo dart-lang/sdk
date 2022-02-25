@@ -150,7 +150,7 @@ class B extends A {}
     assertHasImplementedClass('A {');
   }
 
-  Future<void> test_class_implemented() async {
+  Future<void> test_class_implementedBy_class() async {
     addTestFile('''
 class A {}
 class B implements A {}
@@ -159,7 +159,67 @@ class B implements A {}
     assertHasImplementedClass('A {');
   }
 
-  Future<void> test_class_inMixin() async {
+  Future<void> test_class_implementedBy_enum() async {
+    addTestFile('''
+class A {}
+
+enum E implements A {
+  v
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('A {');
+  }
+
+  Future<void> test_class_implementedBy_enum_getterByGetter() async {
+    addTestFile('''
+class A {
+  int get foo => 0; // A
+}
+
+enum E implements A {
+  v;
+  int get foo => 0; // E
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('foo => 0; // A');
+    assertNoImplementedMember('foo => 0; // E');
+  }
+
+  Future<void> test_class_implementedBy_enum_methodByMethod() async {
+    addTestFile('''
+class A {
+  void foo() {} // A
+}
+
+enum E implements A {
+  v;
+  void foo() {} // E
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('foo() {} // A');
+    assertNoImplementedMember('foo() {} // E');
+  }
+
+  Future<void> test_class_implementedBy_enum_setterBySetter() async {
+    addTestFile('''
+class A {
+  set foo(int _) {} // A
+}
+
+enum E implements A {
+  v;
+  set foo(int _) {} // E
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('foo(int _) {} // A');
+    assertNoImplementedMember('foo(int _) {} // E');
+  }
+
+  Future<void> test_class_implementedBy_mixin() async {
     addTestFile('''
 class A {} // ref
 class B {} // ref
@@ -174,13 +234,40 @@ mixin M on A, B implements C, D {}
     assertHasImplementedClass('D {} // ref');
   }
 
-  Future<void> test_class_mixed() async {
+  Future<void> test_class_mixedBy_class() async {
     addTestFile('''
 class A {}
 class B = Object with A;
 ''');
     await prepareImplementedElements();
     assertHasImplementedClass('A {');
+  }
+
+  Future<void> test_class_mixedBy_enum() async {
+    addTestFile('''
+mixin M {}
+enum E with M {
+  v
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('M {}');
+  }
+
+  Future<void> test_class_mixedBy_enum_methodByMethod() async {
+    addTestFile('''
+class M {
+  void foo() {} // M
+}
+
+enum E with M {
+  v;
+  void foo() {} // E
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('foo() {} // M');
+    assertNoImplementedMember('foo() {} // E');
   }
 
   Future<void> test_field_withField() async {

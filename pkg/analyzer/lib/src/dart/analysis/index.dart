@@ -672,6 +672,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    _addSubtype(
+      node.name.name,
+      withClause: node.withClause,
+      implementsClause: node.implementsClause,
+      memberNodes: node.members,
+    );
+
+    var declaredElement = node.declaredElement!;
+    recordIsAncestorOf(declaredElement);
+    super.visitEnumDeclaration(node);
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     ExportElement? element = node.element;
     recordUriReference(element?.exportedLibrary, node.uri);
