@@ -951,6 +951,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove unnecessary interpolation braces everywhere in file',
   );
+  static const REMOVE_LEADING_UNDERSCORE = FixKind(
+    'dart.fix.remove.leadingUnderscore',
+    DartFixKindPriority.DEFAULT,
+    'Remove leading underscore',
+  );
+  static const REMOVE_LEADING_UNDERSCORE_MULTI = FixKind(
+    'dart.fix.remove.leadingUnderscore.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove leading underscores in file',
+  );
   static const REMOVE_METHOD_DECLARATION = FixKind(
     'dart.fix.remove.methodDeclaration',
     DartFixKindPriority.DEFAULT,
