@@ -27,23 +27,9 @@ class DartUnitOverridesComputer {
   List<proto.Override> compute() {
     for (var unitMember in _unit.declarations) {
       if (unitMember is ClassOrMixinDeclaration) {
-        for (var classMember in unitMember.members) {
-          if (classMember is MethodDeclaration) {
-            if (classMember.isStatic) {
-              continue;
-            }
-            _addOverride(classMember.name);
-          }
-          if (classMember is FieldDeclaration) {
-            if (classMember.isStatic) {
-              continue;
-            }
-            List<VariableDeclaration> fields = classMember.fields.variables;
-            for (var field in fields) {
-              _addOverride(field.name);
-            }
-          }
-        }
+        _classMembers(unitMember.members);
+      } else if (unitMember is EnumDeclaration) {
+        _classMembers(unitMember.members);
       }
     }
     return _overrides;
@@ -73,6 +59,26 @@ class DartUnitOverridesComputer {
       }
     }
   }
+
+  void _classMembers(List<ClassMember> members) {
+    for (var classMember in members) {
+      if (classMember is MethodDeclaration) {
+        if (classMember.isStatic) {
+          continue;
+        }
+        _addOverride(classMember.name);
+      }
+      if (classMember is FieldDeclaration) {
+        if (classMember.isStatic) {
+          continue;
+        }
+        List<VariableDeclaration> fields = classMember.fields.variables;
+        for (var field in fields) {
+          _addOverride(field.name);
+        }
+      }
+    }
+  }
 }
 
 /// The container with elements that a class member overrides.
@@ -92,26 +98,6 @@ class OverriddenElements {
 }
 
 class _OverriddenElementsFinder {
-  static const List<ElementKind> FIELD_KINDS = <ElementKind>[
-    ElementKind.FIELD,
-    ElementKind.GETTER,
-    ElementKind.SETTER
-  ];
-
-  static const List<ElementKind> GETTER_KINDS = <ElementKind>[
-    ElementKind.FIELD,
-    ElementKind.GETTER
-  ];
-
-  static const List<ElementKind> METHOD_KINDS = <ElementKind>[
-    ElementKind.METHOD
-  ];
-
-  static const List<ElementKind> SETTER_KINDS = <ElementKind>[
-    ElementKind.FIELD,
-    ElementKind.SETTER
-  ];
-
   Element _seed;
   LibraryElement _library;
   ClassElement _class;
@@ -127,12 +113,19 @@ class _OverriddenElementsFinder {
     var library = class_.library;
     var name = seed.displayName;
     List<ElementKind> kinds;
-    if (seed is MethodElement) {
-      kinds = METHOD_KINDS;
+    if (seed is FieldElement) {
+      kinds = [
+        ElementKind.GETTER,
+        if (!seed.isFinal) ElementKind.SETTER,
+      ];
+    } else if (seed is MethodElement) {
+      kinds = const [ElementKind.METHOD];
     } else if (seed is PropertyAccessorElement) {
-      kinds = seed.isGetter ? GETTER_KINDS : SETTER_KINDS;
+      kinds = seed.isGetter
+          ? const [ElementKind.GETTER]
+          : const [ElementKind.SETTER];
     } else {
-      kinds = FIELD_KINDS;
+      kinds = const [];
     }
     return _OverriddenElementsFinder._(seed, library, class_, name, kinds);
   }
