@@ -7477,6 +7477,37 @@ const MessageCode messageMoreThanOneSuperInitializer = const MessageCode(
     problemMessage: r"""Can't have more than one 'super' initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateMultipleClauses = const Template<
+        Message Function(String string, String string2)>(
+    problemMessageTemplate:
+        r"""Each '#string' definition can have at most one '#string2' clause.""",
+    correctionMessageTemplate:
+        r"""Try combining all of the '#string2' clauses into a single clause.""",
+    withArguments: _withArgumentsMultipleClauses);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeMultipleClauses =
+    const Code<Message Function(String string, String string2)>(
+        "MultipleClauses",
+        index: 121);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMultipleClauses(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeMultipleClauses,
+      problemMessage:
+          """Each '${string}' definition can have at most one '${string2}' clause.""",
+      correctionMessage: """Try combining all of the '${string2}' clauses into a single clause.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleExtends = messageMultipleExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8368,6 +8399,37 @@ const MessageCode messageOperatorWithTypeParameters = const MessageCode(
     problemMessage:
         r"""Types parameters aren't allowed when defining an operator.""",
     correctionMessage: r"""Try removing the type parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateOutOfOrderClauses = const Template<
+        Message Function(String string, String string2)>(
+    problemMessageTemplate:
+        r"""The '#string' clause must come before the '#string2' clause.""",
+    correctionMessageTemplate:
+        r"""Try moving the '#string' clause before the '#string2' clause.""",
+    withArguments: _withArgumentsOutOfOrderClauses);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeOutOfOrderClauses =
+    const Code<Message Function(String string, String string2)>(
+        "OutOfOrderClauses",
+        index: 122);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOutOfOrderClauses(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeOutOfOrderClauses,
+      problemMessage:
+          """The '${string}' clause must come before the '${string2}' clause.""",
+      correctionMessage: """Try moving the '${string}' clause before the '${string2}' clause.""",
+      arguments: {'string': string, 'string2': string2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateOverriddenMethodCause =
@@ -10322,6 +10384,15 @@ Message _withArgumentsUnexpectedToken(Token token) {
       problemMessage: """Unexpected token '${lexeme}'.""",
       arguments: {'lexeme': token});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnexpectedTokens = messageUnexpectedTokens;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnexpectedTokens = const MessageCode(
+    "UnexpectedTokens",
+    index: 123,
+    problemMessage: r"""Unexpected tokens.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, Token token)>

@@ -547,6 +547,34 @@ class TestParser extends Parser {
   }
 
   @override
+  Token? recoveryEnumWith(Token token, codes.Message message) {
+    doPrint('recoveryEnumWith(' '$token, ' '$message)');
+    indent++;
+    var result = super.recoveryEnumWith(token, message);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token? recoveryEnumImplements(Token token, codes.Message message) {
+    doPrint('recoveryEnumImplements(' '$token, ' '$message)');
+    indent++;
+    var result = super.recoveryEnumImplements(token, message);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token? recoverySmallLookAheadSkipTokens(
+      final Token token, Iterable<String> lookFor) {
+    doPrint('recoverySmallLookAheadSkipTokens(' '$token, ' '$lookFor)');
+    indent++;
+    var result = super.recoverySmallLookAheadSkipTokens(token, lookFor);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseEnumElement(Token token) {
     doPrint('parseEnumElement(' '$token)');
     indent++;

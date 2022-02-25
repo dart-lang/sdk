@@ -29,7 +29,6 @@ class EnumDeclarationTest2 extends AbstractCompletionDriverTest
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48371')
   Future<void> test_afterName_w() async {
     var response = await getTestCodeSuggestions('''
 enum E w^ {

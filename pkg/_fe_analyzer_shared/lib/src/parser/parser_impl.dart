@@ -76,6 +76,9 @@ import 'identifier_context.dart'
         looksLikeExpressionStart,
         okNextValueInFormalParameter;
 
+import 'identifier_context_impl.dart'
+    show looksLikeStartOfNextTopLevelDeclaration;
+
 import 'listener.dart' show Listener;
 
 import 'literal_entry_info.dart'
@@ -2005,9 +2008,138 @@ class Parser {
     token = computeTypeParamOrArg(
             token, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(token, this);
+    List<String> lookForNext = const ['{', 'with', 'implements'];
+    if (!isOneOf(token.next!, lookForNext)) {
+      // Recovery: Possible unexpected tokens before any clauses.
+      Token? skipToken = recoverySmallLookAheadSkipTokens(token, lookForNext);
+      if (skipToken != null) {
+        token = skipToken;
+      }
+    }
+
+    Token beforeWith = token;
     token = parseEnumWithClauseOpt(token);
+
+    while (!isOneOf(token.next!, const ['{', 'implements'])) {
+      // Recovery: Skip unexpected tokens and more with clauses.
+      // Note that if we find a "with" we've seen one already (otherwise the
+      // parseEnumWithClauseOpt call above would have found this 'with').
+      Token? skipToken = recoveryEnumWith(token,
+              codes.templateMultipleClauses.withArguments("enum", "with")) ??
+          recoverySmallLookAheadSkipTokens(token, lookForNext);
+
+      if (skipToken != null) {
+        // Skipped tokens.
+        token = skipToken;
+      } else {
+        break;
+      }
+    }
+
     token = parseClassOrMixinOrEnumImplementsOpt(token);
+
+    bool? hasWithClauses;
+    while (!optional('{', token.next!)) {
+      if (hasWithClauses == null) {
+        hasWithClauses = optional('with', beforeWith.next!);
+      }
+
+      // Recovery: Skip unexpected tokens and more with/implements clauses.
+      Token? skipToken = recoveryEnumWith(
+          token,
+          hasWithClauses
+              ? codes.templateMultipleClauses.withArguments("enum", "with")
+              : codes.templateOutOfOrderClauses
+                  .withArguments("with", "implements"));
+      if (skipToken != null) {
+        hasWithClauses = true;
+      }
+      if (skipToken == null) {
+        // Note that if we find a "implements" we've seen one already (otherwise
+        // the parseClassOrMixinOrEnumImplementsOpt call above would have found
+        // this 'implements').
+        skipToken = recoveryEnumImplements(token,
+            codes.templateMultipleClauses.withArguments("enum", "implements"));
+      }
+      if (skipToken == null) {
+        skipToken = recoverySmallLookAheadSkipTokens(token, lookForNext);
+      }
+
+      if (skipToken != null) {
+        // Skipped tokens.
+        token = skipToken;
+      } else {
+        break;
+      }
+    }
+
     return token;
+  }
+
+  Token? recoveryEnumWith(Token token, codes.Message message) {
+    if (optional('with', token.next!)) {
+      reportRecoverableError(token.next!, message);
+      Listener originalListener = listener;
+      listener = new NullListener();
+      token = parseEnumWithClauseOpt(token);
+      listener = originalListener;
+      return token;
+    }
+    return null;
+  }
+
+  Token? recoveryEnumImplements(Token token, codes.Message message) {
+    if (optional('implements', token.next!)) {
+      reportRecoverableError(token.next!, message);
+      Listener originalListener = listener;
+      listener = new NullListener();
+      token = parseClassOrMixinOrEnumImplementsOpt(token);
+      listener = originalListener;
+      return token;
+    }
+    return null;
+  }
+
+  /// Allow a small lookahead (currently up to 3 tokens) trying to find any in
+  /// [lookFor].
+  ///
+  /// If any wanted token is found an error is issued about unexpected tokens,
+  /// and the last skipped token is returned.
+  /// Otherwise null is returned.
+  Token? recoverySmallLookAheadSkipTokens(
+      final Token token, Iterable<String> lookFor) {
+    // Recovery: Allow a small lookahead for '{'. E.g. the user might be in
+    // the middle of writing 'with' or 'implements'.
+    Token skipToken = token.next!;
+    bool foundWanted = false;
+
+    if (looksLikeStartOfNextTopLevelDeclaration(skipToken)) return null;
+
+    int skipped = 0;
+    while (skipped < 3) {
+      skipped++;
+      if (isOneOf(skipToken.next!, lookFor)) {
+        foundWanted = true;
+        break;
+      }
+
+      skipToken = skipToken.next!;
+      if (looksLikeStartOfNextTopLevelDeclaration(skipToken)) return null;
+    }
+
+    if (foundWanted) {
+      // Give error and skip the tokens.
+      if (skipped == 1) {
+        reportRecoverableError(
+            skipToken, codes.templateUnexpectedToken.withArguments(skipToken));
+      } else {
+        reportRecoverableErrorWithEnd(
+            token.next!, skipToken, codes.messageUnexpectedTokens);
+      }
+      return skipToken;
+    }
+
+    return null;
   }
 
   Token parseEnumElement(Token token) {
