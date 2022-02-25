@@ -17,9 +17,10 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/builder/field_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/kernel/macro.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
+import 'package:front_end/src/macro_serializer.dart';
+import 'package:front_end/src/temp_dir_macro_serializer.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
@@ -36,8 +37,8 @@ Future<void> main(List<String> args) async {
   bool generateExpectations = args.contains('-g');
   enableMacros = true;
 
-  Directory tempDirectory =
-      await Directory.systemTemp.createTemp('macro_application');
+  MacroSerializer macroSerializer =
+      new TempDirMacroSerializer('macro_application');
   try {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('data/tests'));
@@ -46,23 +47,22 @@ Future<void> main(List<String> args) async {
         createUriForFileName: createUriForFileName,
         onFailure: onFailure,
         runTest: runTestFor(const MacroDataComputer(), [
-          new MacroTestConfig(dataDir, tempDirectory,
+          new MacroTestConfig(dataDir, macroSerializer,
               generateExpectations: generateExpectations)
         ]),
         preserveWhitespaceInAnnotations: true);
   } finally {
-    await tempDirectory.delete(recursive: true);
+    await macroSerializer.close();
   }
 }
 
 class MacroTestConfig extends TestConfig {
   final Directory dataDir;
-  final Directory tempDirectory;
+  final MacroSerializer macroSerializer;
   final bool generateExpectations;
-  int precompiledCount = 0;
   final Map<MacroClass, Uri> precompiledMacroUris = {};
 
-  MacroTestConfig(this.dataDir, this.tempDirectory,
+  MacroTestConfig(this.dataDir, this.macroSerializer,
       {required this.generateExpectations})
       : super(cfeMarker, 'cfe',
             explicitExperimentalFlags: {ExperimentalFlag.macros: true},
@@ -76,12 +76,7 @@ class MacroTestConfig extends TestConfig {
     };
     options.precompiledMacroUris = precompiledMacroUris;
     options.macroTarget = new VmTarget(new TargetFlags());
-    options.macroSerializer = (Component component) async {
-      Uri uri = tempDirectory.absolute.uri
-          .resolve('macros${precompiledCount++}.dill');
-      await writeComponentToFile(component, uri);
-      return uri;
-    };
+    options.macroSerializer = macroSerializer;
   }
 
   @override

@@ -13,6 +13,8 @@
 ///
 library kernel;
 
+import 'dart:typed_data';
+
 import 'ast.dart';
 import 'binary/ast_to_binary.dart';
 import 'binary/ast_from_binary.dart';
@@ -61,7 +63,7 @@ Future writeComponentToBinary(Component component, String path) {
   return future;
 }
 
-List<int> writeComponentToBytes(Component component) {
+Uint8List writeComponentToBytes(Component component) {
   BytesSink sink = new BytesSink();
   new BinaryPrinter(sink).writeComponentFile(component);
   return sink.builder.toBytes();
