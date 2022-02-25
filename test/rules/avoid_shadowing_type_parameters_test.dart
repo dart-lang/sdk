@@ -8,8 +8,31 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AvoidShadowingTypeParametersEnumTest);
     defineReflectiveTests(AvoidShadowingTypeParametersTest);
   });
+}
+
+@reflectiveTest
+class AvoidShadowingTypeParametersEnumTest extends LintRuleTest {
+  @override
+  List<String> get experiments => [
+        EnableString.enhanced_enums,
+      ];
+
+  @override
+  String get lintRule => 'avoid_shadowing_type_parameters';
+
+  test_enum() async {
+    await assertDiagnostics(r'''
+enum E<T> {
+  a, b, c;
+  void fn<T>() {}
+}
+''', [
+      lint('avoid_shadowing_type_parameters', 33, 1),
+    ]);
+  }
 }
 
 @reflectiveTest
