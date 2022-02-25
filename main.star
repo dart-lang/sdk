@@ -279,6 +279,11 @@ cron.weekly_builder(
     channels = [],
     execution_timeout = 12 * time.hour,
 )
+cron.weekly_builder(
+    "dart2wasm-linux-x64-d8",
+    channels = [],
+    execution_timeout = 12 * time.hour,
+)
 
 # flutter
 dart.ci_sandbox_builder(
