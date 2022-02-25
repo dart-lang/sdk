@@ -8,12 +8,40 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LibraryPrivateTypesInPublicApiTest);
+    defineReflectiveTests(LibraryPrivateTypesInPublicApiEnumTest);
+    defineReflectiveTests(LibraryPrivateTypesInPublicApiSuperParamTest);
   });
 }
 
 @reflectiveTest
-class LibraryPrivateTypesInPublicApiTest extends LintRuleTest {
+class LibraryPrivateTypesInPublicApiEnumTest extends LintRuleTest {
+  @override
+  List<String> get experiments => [
+        EnableString.enhanced_enums,
+      ];
+
+  @override
+  String get lintRule => 'library_private_types_in_public_api';
+
+  test_enum() async {
+    await assertDiagnostics(r'''
+class _O {}
+enum E {
+  a, b, c;
+  final _O o = _O();
+  void oo(_O o) { }
+  _O get ooo => o;
+}
+''', [
+      lint('library_private_types_in_public_api', 40, 2),
+      lint('library_private_types_in_public_api', 63, 2),
+      lint('library_private_types_in_public_api', 75, 2),
+    ]);
+  }
+}
+
+@reflectiveTest
+class LibraryPrivateTypesInPublicApiSuperParamTest extends LintRuleTest {
   @override
   List<String> get experiments => [
         EnableString.super_parameters,

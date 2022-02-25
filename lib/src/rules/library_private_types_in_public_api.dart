@@ -71,6 +71,15 @@ class Validator extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    if (Identifier.isPrivateName(node.name.name)) {
+      return;
+    }
+    node.typeParameters?.accept(this);
+    node.members.accept(this);
+  }
+
+  @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     if (Identifier.isPrivateName(node.name.name)) {
       return;
