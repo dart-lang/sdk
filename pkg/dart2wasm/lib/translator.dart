@@ -85,6 +85,8 @@ class Translator {
   late final Class typedListClass;
   late final Class typedListViewClass;
   late final Class byteDataViewClass;
+  late final Class stackTraceClass;
+  late final Procedure stackTraceCurrent;
   late final Procedure stringEquals;
   late final Procedure stringInterpolate;
   late final Procedure mapFactory;
@@ -110,6 +112,7 @@ class Translator {
   late final w.Module m;
   late final w.DefinedFunction initFunction;
   late final w.ValueType voidMarker;
+  late final w.Tag exceptionTag = createExceptionTag();
 
   // Caches for when identical source constructs need a common representation.
   final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
@@ -121,6 +124,7 @@ class Translator {
 
   ClassInfo get topInfo => classes[0];
   ClassInfo get objectInfo => classInfo[coreTypes.objectClass]!;
+  ClassInfo get stackTraceInfo => classInfo[stackTraceClass]!;
 
   Translator(this.component, this.coreTypes, this.typeEnvironment, this.options)
       : libraries = component.libraries,
@@ -172,10 +176,13 @@ class Translator {
     oneByteStringClass = lookupCore("_OneByteString");
     twoByteStringClass = lookupCore("_TwoByteString");
     typeClass = lookupCore("_Type");
+    stackTraceClass = lookupCore("StackTrace");
     typedListBaseClass = lookupTypedData("_TypedListBase");
     typedListClass = lookupTypedData("_TypedList");
     typedListViewClass = lookupTypedData("_TypedListView");
     byteDataViewClass = lookupTypedData("_ByteDataView");
+    stackTraceCurrent =
+        stackTraceClass.procedures.firstWhere((p) => p.name.text == "current");
     stringEquals =
         stringBaseClass.procedures.firstWhere((p) => p.name.text == "==");
     stringInterpolate = stringBaseClass.procedures
@@ -338,6 +345,17 @@ class Translator {
         : type is TypeParameterType
             ? classForType(type.bound)
             : coreTypes.objectClass;
+  }
+
+  /// Creates a [Tag] for a void [FunctionType] with two parameters,
+  /// a [topInfo.nonNullableType] parameter to hold an exception, and a
+  /// [stackTraceInfo.nonNullableType] to hold a stack trace. This single
+  /// exception tag is used to throw and catch all Dart exceptions.
+  w.Tag createExceptionTag() {
+    w.FunctionType functionType = m.addFunctionType(
+        [topInfo.nonNullableType, stackTraceInfo.nonNullableType], const []);
+    w.Tag tag = m.addTag(functionType);
+    return tag;
   }
 
   w.ValueType translateType(DartType type) {

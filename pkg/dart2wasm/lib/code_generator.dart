@@ -49,6 +49,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.Local? preciseThisLocal;
   final Map<TypeParameter, w.Local> typeLocals = {};
   final List<Statement> finalizers = [];
+  final List<w.Label> tryLabels = [];
   final Map<LabeledStatement, w.Label> labels = {};
   final Map<SwitchCase, w.Label> switchLabels = {};
 
@@ -537,8 +538,86 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitTryCatch(TryCatch node) {
-    // TODO(joshualitt): Include catches
+    // It is not valid dart to have a try without a catch.
+    assert(node.catches.isNotEmpty);
+
+    // We lower a [TryCatch] to a wasm try block. If there are any [Catch]
+    // nodes, we generate a single wasm catch instruction, and dispatch at
+    // runtime based on the type of the caught exception.
+    w.Label try_ = b.try_();
     node.body.accept(this);
+    b.br(try_);
+
+    // Insert a catch instruction which will catch any thrown Dart
+    // exceptions.
+    // Note: We must wait to add the try block to the [tryLabels] stack until
+    // after we have visited the body of the try. This is to handle the case of
+    // a rethrow nested within a try nested within a catch, that is we need the
+    // rethrow to target the last try block with a catch.
+    tryLabels.add(try_);
+    b.catch_(translator.exceptionTag);
+
+    // Stash the original exception in a local so we can push it back onto the
+    // stack after each type test. Also, store the stack trace in a local.
+    w.RefType stackTrace = translator.stackTraceInfo.nonNullableType;
+    w.Local thrownStackTrace = addLocal(stackTrace);
+    b.local_set(thrownStackTrace);
+
+    w.RefType exception = translator.topInfo.nonNullableType;
+    w.Local thrownException = addLocal(exception);
+    b.local_set(thrownException);
+
+    // For each catch node:
+    //   1) Create a block for the catch.
+    //   2) Push the caught exception onto the stack.
+    //   3) Add a type test based on the guard of the catch.
+    //   4) If the test fails, we jump to the next catch. Otherwise, we
+    //      execute the body of the catch.
+    for (Catch catch_ in node.catches) {
+      w.Label catchBlock = b.block();
+      DartType guard = catch_.guard;
+
+      // Only emit the type test if the guard is not [Object].
+      if (guard != translator.coreTypes.objectNonNullableRawType) {
+        b.local_get(thrownException);
+        emitTypeTest(
+            guard, translator.coreTypes.objectNonNullableRawType, node);
+        b.i32_eqz();
+        b.br_if(catchBlock);
+      }
+
+      // If there is an exception declaration, create a local corresponding to
+      // the catch's exception [VariableDeclaration] node.
+      VariableDeclaration? exceptionDeclaration = catch_.exception;
+      if (exceptionDeclaration != null) {
+        w.Local guardedException = addLocal(exception);
+        locals[exceptionDeclaration] = guardedException;
+        b.local_get(thrownException);
+        b.local_set(guardedException);
+      }
+
+      // If there is a stack trace declaration, then create a local
+      // corresponding to the catch's stack trace [VariableDeclaration] node.
+      VariableDeclaration? stackTraceDeclaration = catch_.stackTrace;
+      if (stackTraceDeclaration != null) {
+        w.Local guardedStackTrace = addLocal(stackTrace);
+        locals[stackTraceDeclaration] = guardedStackTrace;
+        b.local_get(thrownStackTrace);
+        b.local_set(guardedStackTrace);
+      }
+      catch_.body.accept(this);
+
+      // Jump out of the try entirely if we enter any catch block.
+      b.br(try_);
+      b.end(); // end catchBlock.
+    }
+
+    // We insert a rethrow just before the end of the try block to handle the
+    // case where none of the catch blocks catch the type of the thrown
+    // exception.
+    b.rethrow_(try_);
+    tryLabels.removeLast();
+    b.end(); // end try_.
   }
 
   @override
@@ -1639,13 +1718,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitThrow(Throw node, w.ValueType expectedType) {
-    wrap(node.expression, translator.topInfo.nullableType);
-    // TODO(joshualitt): Throw exception
-    b.comment(node.toStringInternal());
-    b.drop();
-    b.block(const [], [if (expectedType != voidMarker) expectedType]);
-    b.unreachable();
-    b.end();
+    wrap(node.expression, translator.topInfo.nonNullableType);
+    _call(translator.stackTraceCurrent.reference);
+
+    // At this point, we have the exception and the current stack trace on the
+    // stack, so just throw them using the exception tag.
+    b.throw_(translator.exceptionTag);
+    return expectedType;
+  }
+
+  @override
+  w.ValueType visitRethrow(Rethrow node, w.ValueType expectedType) {
+    b.rethrow_(tryLabels.last);
     return expectedType;
   }
 

@@ -72,6 +72,15 @@ class If extends Label {
   List<ValueType> get targetTypes => outputs;
 }
 
+class Try extends Label {
+  bool hasCatch = false;
+
+  Try(List<ValueType> inputs, List<ValueType> outputs)
+      : super._(inputs, outputs);
+
+  List<ValueType> get targetTypes => outputs;
+}
+
 /// A sequence of Wasm instructions.
 ///
 /// Instructions can be added to the sequence by calling the corresponding
@@ -350,6 +359,42 @@ class Instructions with SerializerMixin {
     writeByte(0x05);
   }
 
+  /// Emit a `try` instruction.
+  Label try_(
+      [List<ValueType> inputs = const [], List<ValueType> outputs = const []]) {
+    return _beginBlock(0x06, Try(inputs, outputs), trace: const ['try']);
+  }
+
+  /// Emit a `catch` instruction.
+  void catch_(Tag tag) {
+    assert(_topOfLabelStack is Try ||
+        _reportError("Unexpected 'catch' (not in 'try' block"));
+    final Try try_ = _topOfLabelStack as Try;
+    assert(_verifyEndOfBlock(tag.type.inputs,
+        trace: ['catch', tag], reachableAfter: try_.reachable, reindent: true));
+    try_.hasCatch = true;
+    _reachable = try_.reachable;
+    writeByte(0x07);
+    _writeTag(tag);
+  }
+
+  /// Emit a `throw` instruction.
+  void throw_(Tag tag) {
+    assert(_verifyTypes(tag.type.inputs, const [], trace: ['throw', tag]));
+    _reachable = false;
+    writeByte(0x08);
+    writeUnsigned(tag.index);
+  }
+
+  /// Emit a `rethrow` instruction.
+  void rethrow_(Label label) {
+    assert(label is Try && label.hasCatch);
+    assert(_verifyTypes(const [], const [], trace: ['rethrow', label]));
+    _reachable = false;
+    writeByte(0x09);
+    _writeLabel(label);
+  }
+
   /// Emit an `end` instruction.
   void end() {
     assert(_verifyEndOfBlock(_topOfLabelStack.outputs,
@@ -369,6 +414,10 @@ class Instructions with SerializerMixin {
 
   void _writeLabel(Label label) {
     writeUnsigned(_labelIndex(label));
+  }
+
+  void _writeTag(Tag tag) {
+    writeUnsigned(tag.index);
   }
 
   /// Emit a `br` instruction.

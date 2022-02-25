@@ -14,7 +14,8 @@ export 'src/module.dart'
         Local,
         Memory,
         Module,
-        Table;
+        Table,
+        Tag;
 export 'src/types.dart'
     show
         ArrayType,

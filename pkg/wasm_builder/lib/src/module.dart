@@ -20,6 +20,7 @@ class Module with SerializerMixin {
   final List<BaseFunction> functions = [];
   final List<Table> tables = [];
   final List<Memory> memories = [];
+  final List<Tag> tags = [];
   final List<DataSegment> dataSegments = [];
   final List<Global> globals = [];
   final List<Export> exports = [];
@@ -124,6 +125,13 @@ class Module with SerializerMixin {
     return memory;
   }
 
+  /// Add a new tag to the module.
+  Tag addTag(FunctionType type) {
+    final tag = Tag(tags.length, type);
+    tags.add(tag);
+    return tag;
+  }
+
   /// Add a new data segment to the module.
   ///
   /// Either [memory] and [offset] must be both specified or both omitted. If
@@ -213,6 +221,7 @@ class Module with SerializerMixin {
     FunctionSection(this).serialize(this);
     TableSection(this).serialize(this);
     MemorySection(this).serialize(this);
+    TagSection(this).serialize(this);
     if (dataReferencedFromGlobalInitializer) {
       DataCountSection(this).serialize(this);
     }
@@ -390,6 +399,23 @@ class Memory implements Serializable {
       s.writeUnsigned(maxSize!);
     }
   }
+}
+
+/// A tag in a module.
+class Tag implements Serializable {
+  final int index;
+  final FunctionType type;
+
+  Tag(this.index, this.type);
+
+  @override
+  void serialize(Serializer s) {
+    // 0 byte for exception.
+    s.writeByte(0x00);
+    s.write(type);
+  }
+
+  String toString() => "#$index";
 }
 
 /// A data segment in a module.
@@ -639,6 +665,21 @@ class MemorySection extends Section {
   @override
   void serializeContents() {
     writeList(module.memories);
+  }
+}
+
+class TagSection extends Section {
+  TagSection(Module module) : super(module);
+
+  @override
+  int get id => 13;
+
+  @override
+  bool get isNotEmpty => module.tags.isNotEmpty;
+
+  @override
+  void serializeContents() {
+    writeList(module.tags);
   }
 }
 

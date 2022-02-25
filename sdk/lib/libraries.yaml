@@ -196,6 +196,7 @@ wasm:
       - _internal/vm/lib/null_patch.dart
       - _internal/vm/lib/map_patch.dart
       - _internal/wasm/lib/object_patch.dart
+      - _internal/wasm/lib/stack_trace_patch.dart
       - _internal/wasm/lib/string_buffer_patch.dart
       - _internal/wasm/lib/string_patch.dart
       - _internal/wasm/lib/type.dart
