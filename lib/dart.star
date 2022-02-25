@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 """
-Defines rules that can be used to define nightly and weekly builders.
+Defines rules that can be used to define dart builders.
 """
 
 load("//lib/accounts.star", "accounts")
