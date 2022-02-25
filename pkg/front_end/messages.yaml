@@ -482,6 +482,24 @@ MultipleImplements:
   analyzerCode: MULTIPLE_IMPLEMENTS_CLAUSES
   script: "class A implements B implements C, D {}"
 
+MultipleClauses:
+  problemMessage: "Each '#string' definition can have at most one '#string2' clause."
+  correctionMessage: "Try combining all of the '#string2' clauses into a single clause."
+  experiments: enhanced-enums
+  analyzerCode: ParserErrorCode.MULTIPLE_CLAUSES
+  index: 121
+  script:
+    - "class B {} enum A implements B implements C, D { v; }"
+    - "class B {} enum A with B with C, D { v; }"
+
+OutOfOrderClauses:
+  problemMessage: "The '#string' clause must come before the '#string2' clause."
+  correctionMessage: "Try moving the '#string' clause before the '#string2' clause."
+  experiments: enhanced-enums
+  analyzerCode: ParserErrorCode.OUT_OF_ORDER_CLAUSES
+  index: 122
+  script: "class B {} class D {} enum A implements B with D { v; }"
+
 MultipleOnClauses:
   index: 26
   problemMessage: "Each mixin definition can have at most one on clause."
@@ -1320,6 +1338,12 @@ UnexpectedToken:
   analyzerCode: UNEXPECTED_TOKEN
   script:
     - "import 'b.dart' d as b;"
+
+UnexpectedTokens:
+  problemMessage: "Unexpected tokens."
+  analyzerCode: ParserErrorCode.UNEXPECTED_TOKENS
+  index: 123
+  script: "enum E w Foo { v; }"
 
 LiteralWithClassAndNew:
   problemMessage: "A #string literal can't be prefixed by 'new #lexeme'."

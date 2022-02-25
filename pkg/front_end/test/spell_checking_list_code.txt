@@ -719,6 +719,7 @@ lm
 locationd
 logged
 logically
+lookahead
 lots
 lp
 lparen

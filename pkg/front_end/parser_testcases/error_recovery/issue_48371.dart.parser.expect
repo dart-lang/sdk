@@ -1,0 +1,135 @@
+NOTICE: Stream was rewritten by parser!
+
+enum E w {
+v
+}
+
+enum E w implements Foo {
+v
+}
+
+enum E implements Foo with Bar {
+v
+}
+
+enum E implements Foo implements Bar implements Bar2 {
+v
+}
+
+enum E w Foo {
+v
+}
+
+enum E implemen {
+v
+}
+
+enum E implements Foo w {
+v
+}
+
+enum E with *synthetic*{
+v
+}
+
+enum E impl implements Foo {
+v
+}
+
+
+enum E with Foo implements Bar {
+v
+}
+
+
+enum E implements Bar with Foo {
+v
+}
+
+
+enum E gunk1 with Foo gunk2 implements Bar {
+v
+}
+
+
+enum E gunk1 implements Bar gunk2 with Foo {
+v
+}
+
+
+enum E with Foo with Foo2 implements Bar implements Bar2 with Foo3 implements Bar3 {
+v
+}
+
+
+enum E implements Bar implements Bar2 with Foo with Foo2 implements Bar3 with Foo3 {
+v
+}
+
+
+enum[KeywordToken] E[StringToken] w[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+enum[KeywordToken] E[StringToken] w[StringToken] implements[KeywordToken] Foo[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+enum[KeywordToken] E[StringToken] implements[KeywordToken] Foo[StringToken] with[KeywordToken] Bar[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+enum[KeywordToken] E[StringToken] implements[KeywordToken] Foo[StringToken] implements[KeywordToken] Bar[StringToken] implements[KeywordToken] Bar2[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+enum[KeywordToken] E[StringToken] w[StringToken] Foo[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+enum[KeywordToken] E[StringToken] implemen[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+enum[KeywordToken] E[StringToken] implements[KeywordToken] Foo[StringToken] w[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+enum[KeywordToken] E[StringToken] with[KeywordToken] [SyntheticStringToken]{[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+enum[KeywordToken] E[StringToken] impl[StringToken] implements[KeywordToken] Foo[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+
+enum[KeywordToken] E[StringToken] with[KeywordToken] Foo[StringToken] implements[KeywordToken] Bar[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+
+enum[KeywordToken] E[StringToken] implements[KeywordToken] Bar[StringToken] with[KeywordToken] Foo[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+
+enum[KeywordToken] E[StringToken] gunk1[StringToken] with[KeywordToken] Foo[StringToken] gunk2[StringToken] implements[KeywordToken] Bar[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+
+enum[KeywordToken] E[StringToken] gunk1[StringToken] implements[KeywordToken] Bar[StringToken] gunk2[StringToken] with[KeywordToken] Foo[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+
+enum[KeywordToken] E[StringToken] with[KeywordToken] Foo[StringToken] with[KeywordToken] Foo2[StringToken] implements[KeywordToken] Bar[StringToken] implements[KeywordToken] Bar2[StringToken] with[KeywordToken] Foo3[StringToken] implements[KeywordToken] Bar3[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+
+
+enum[KeywordToken] E[StringToken] implements[KeywordToken] Bar[StringToken] implements[KeywordToken] Bar2[StringToken] with[KeywordToken] Foo[StringToken] with[KeywordToken] Foo2[StringToken] implements[KeywordToken] Bar3[StringToken] with[KeywordToken] Foo3[StringToken] {[BeginToken]
+v[StringToken]
+}[SimpleToken]
+[SimpleToken]
