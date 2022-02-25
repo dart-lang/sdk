@@ -29,75 +29,179 @@ class MemberReferencesTest extends AbstractSearchDomainTest {
     return waitForSearchResults();
   }
 
-  Future<void> test_fields_explicit() async {
+  Future<void> test_class_fields_explicit() async {
     addTestFile('''
 class A {
   var foo;
 }
+
 class B {
   var foo;
 }
-mainResolved(A a, B b) {
+
+void whenResolved(A a, B b) {
   a.foo = 1;
   b.foo = 2;
-  print(a.foo); // resolved A
-  print(b.foo); // resolved B
+  a.foo; // resolved A
+  b.foo; // resolved B
 }
-mainUnresolved(a, b) {
+
+void whenUnresolved(a, b) {
   a.foo = 10;
   b.foo = 20;
-  print(a.foo); // unresolved A
-  print(b.foo); // unresolved B
+  a.foo; // unresolved A
+  b.foo; // unresolved B
 }
 ''');
     await findMemberReferences('foo');
     assertNoResult(SearchResultKind.WRITE, 'foo = 1;');
     assertNoResult(SearchResultKind.WRITE, 'foo = 2;');
-    assertNoResult(SearchResultKind.READ, 'foo); // resolved A');
-    assertNoResult(SearchResultKind.READ, 'foo); // resolved B');
+    assertNoResult(SearchResultKind.READ, 'foo; // resolved A');
+    assertNoResult(SearchResultKind.READ, 'foo; // resolved B');
     assertHasRef(SearchResultKind.WRITE, 'foo = 10;', true);
     assertHasRef(SearchResultKind.WRITE, 'foo = 20;', true);
-    assertHasRef(SearchResultKind.READ, 'foo); // unresolved A', true);
-    assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
+    assertHasRef(SearchResultKind.READ, 'foo; // unresolved A', true);
+    assertHasRef(SearchResultKind.READ, 'foo; // unresolved B', true);
   }
 
-  Future<void> test_fields_implicit() async {
+  Future<void> test_class_fields_implicit() async {
     addTestFile('''
 class A {
-  get foo => null;
+  int get foo => 0;
 }
+
 class B {
-  get foo => null;
+  int get foo => 0;
 }
-mainResolved(A a, B b) {
-  print(a.foo); // resolved A
-  print(b.foo); // resolved B
+
+void whenResolved(A a, B b) {
+  a.foo; // resolved A
+  b.foo; // resolved B
 }
-mainUnresolved(a, b) {
-  print(a.foo); // unresolved A
-  print(b.foo); // unresolved B
+
+void whenUnresolved(a, b) {
+  a.foo; // unresolved A
+  b.foo; // unresolved B
 }
 ''');
     await findMemberReferences('foo');
-    assertNoResult(SearchResultKind.READ, 'foo); // resolved A');
-    assertNoResult(SearchResultKind.READ, 'foo); // resolved B');
-    assertHasRef(SearchResultKind.READ, 'foo); // unresolved A', true);
-    assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
+    assertNoResult(SearchResultKind.READ, 'foo; // resolved A');
+    assertNoResult(SearchResultKind.READ, 'foo; // resolved B');
+    assertHasRef(SearchResultKind.READ, 'foo; // unresolved A', true);
+    assertHasRef(SearchResultKind.READ, 'foo; // unresolved B', true);
   }
 
-  Future<void> test_methods() async {
+  Future<void> test_class_methods() async {
     addTestFile('''
 class A {
-  foo() {}
+  void foo() {}
 }
+
 class B {
-  foo() {}
+  void foo() {}
 }
-mainResolved(A a, B b) {
+
+void whenResolved(A a, B b) {
   a.foo(1);
   b.foo(2);
 }
-mainUnresolved(a, b) {
+
+void whenUnresolved(a, b) {
+  a.foo(10);
+  b.foo(20);
+}
+''');
+    await findMemberReferences('foo');
+    assertNoResult(SearchResultKind.INVOCATION, 'foo(1)');
+    assertNoResult(SearchResultKind.INVOCATION, 'foo(2)');
+    assertHasRef(SearchResultKind.INVOCATION, 'foo(10)', true);
+    assertHasRef(SearchResultKind.INVOCATION, 'foo(20)', true);
+  }
+
+  Future<void> test_enum_fields_explicit() async {
+    addTestFile('''
+enum A {
+  v;
+  final foo = 0;
+}
+
+enum B {
+  v;
+  final foo = 0;
+}
+
+void whenResolved(A a, B b) {
+  a.foo = 1;
+  b.foo = 2;
+  a.foo; // resolved A
+  b.foo; // resolved B
+}
+
+whenUnresolved(a, b) {
+  a.foo = 10;
+  b.foo = 20;
+  a.foo; // unresolved A
+  b.foo; // unresolved B
+}
+''');
+    await findMemberReferences('foo');
+    assertNoResult(SearchResultKind.WRITE, 'foo = 1;');
+    assertNoResult(SearchResultKind.WRITE, 'foo = 2;');
+    assertNoResult(SearchResultKind.READ, 'foo; // resolved A');
+    assertNoResult(SearchResultKind.READ, 'foo; // resolved B');
+    assertHasRef(SearchResultKind.WRITE, 'foo = 10;', true);
+    assertHasRef(SearchResultKind.WRITE, 'foo = 20;', true);
+    assertHasRef(SearchResultKind.READ, 'foo; // unresolved A', true);
+    assertHasRef(SearchResultKind.READ, 'foo; // unresolved B', true);
+  }
+
+  Future<void> test_enum_fields_implicit() async {
+    addTestFile('''
+enum A {
+  v;
+  int get foo => 0;
+}
+
+enum B {
+  v;
+  int get foo => 0;
+}
+
+void whenResolved(A a, B b) {
+  a.foo; // resolved A
+  b.foo; // resolved B
+}
+
+void whenUnresolved(a, b) {
+  a.foo; // unresolved A
+  b.foo; // unresolved B
+}
+''');
+    await findMemberReferences('foo');
+    assertNoResult(SearchResultKind.READ, 'foo; // resolved A');
+    assertNoResult(SearchResultKind.READ, 'foo; // resolved B');
+    assertHasRef(SearchResultKind.READ, 'foo; // unresolved A', true);
+    assertHasRef(SearchResultKind.READ, 'foo; // unresolved B', true);
+  }
+
+  Future<void> test_enum_methods() async {
+    addTestFile('''
+enum A {
+  v;
+  void foo() {}
+}
+
+enum B {
+  v;
+  void foo() {}
+}
+
+void whenResolved(A a, B b) {
+  a.foo(1);
+  b.foo(2);
+}
+
+void whenUnresolved(a, b) {
   a.foo(10);
   b.foo(20);
 }

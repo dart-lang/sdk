@@ -60,11 +60,11 @@ class A {
 enum E {
   v;
   final int x;
-  const E.named();
+  const E.named() : x = 0;
   const E() : this.named(), x = 42;
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 76,
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 84,
           6),
     ]);
   }
@@ -74,11 +74,11 @@ enum E {
 enum E {
   v;
   final int x;
-  const E.named();
+  const E.named() : x = 0;
   const E() : x = 42, this.named();
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 62,
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 70,
           6),
     ]);
   }
@@ -88,11 +88,11 @@ enum E {
 enum E {
   v(0);
   final int x;
-  const E.named();
+  const E.named() : x = 0;
   const E(this.x) : this.named();
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 61,
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 69,
           6),
     ]);
   }

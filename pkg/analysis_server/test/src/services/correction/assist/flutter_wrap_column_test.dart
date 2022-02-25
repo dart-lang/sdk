@@ -154,4 +154,36 @@ class FakeFlutter {
 }
 ''');
   }
+
+  Future<void> test_selectedWidgetName() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return Container(
+      child: Text('aaa'),
+    );
+  }
+}
+''');
+    await assertHasAssistAt(
+        'Text(',
+        '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return Container(
+      child: Column(
+        children: [
+          Text('aaa'),
+        ],
+      ),
+    );
+  }
+}
+''',
+        length: 4);
+  }
 }

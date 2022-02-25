@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class FieldInitializerNotAssignableTest extends PubPackageResolutionTest {
-  test_implicitCallReference() async {
+  test_class_implicitCallReference() async {
     await assertNoErrorsInCode('''
 class C {
   void call(int p) {}
@@ -30,7 +30,7 @@ class A {
 ''');
   }
 
-  test_implicitCallReference_genericFunctionInstantiation() async {
+  test_class_implicitCallReference_genericFunctionInstantiation() async {
     await assertNoErrorsInCode('''
 class C {
   void call<T>(T p) {}
@@ -42,7 +42,7 @@ class A {
 ''');
   }
 
-  test_unrelated() async {
+  test_class_unrelated() async {
     await assertErrorsInCode('''
 class A {
   int x;
@@ -50,6 +50,20 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 31, 2),
+    ]);
+  }
+
+  test_enum_unrelated() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  final int x;
+  const E() : x = '';
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH, 11, 1),
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 47, 2),
+      error(CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE, 47, 2),
     ]);
   }
 }

@@ -658,6 +658,53 @@ enum E {
     assertHasRegionTarget('new()', 'E();', targetLength: 0);
   }
 
+  Future<void> test_enum_field() async {
+    addTestFile('''
+enum E {
+  v;
+  final int foo = 0;
+  void bar() {
+    foo;
+    foo = 1;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int foo');
+    assertHasRegionTarget('foo;', 'foo = 0;');
+    assertHasRegionTarget('foo = 1;', 'foo = 0;');
+  }
+
+  Future<void> test_enum_getter() async {
+    addTestFile('''
+enum E {
+  v;
+  int get foo => 0;
+  void bar() {
+    foo;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int get');
+    assertHasRegionTarget('foo;', 'foo =>');
+  }
+
+  Future<void> test_enum_implements() async {
+    addTestFile('''
+class A {}
+
+enum E implements A { // ref
+  v
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('A { // ref', 'A {}');
+  }
+
   Future<void> test_enum_index() async {
     addTestFile('''
 enum E { a, b }
@@ -668,6 +715,34 @@ void f() {
     await prepareNavigation();
     assertHasRegion('index');
     assertHasTargetInDartCore('index;');
+  }
+
+  Future<void> test_enum_method() async {
+    addTestFile('''
+enum E {
+  v;
+  void foo(int a) {}
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int ');
+  }
+
+  Future<void> test_enum_setter() async {
+    addTestFile('''
+enum E {
+  v;
+  set foo(int _) {}
+  void bar() {
+    foo = 0;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int _');
+    assertHasRegionTarget('foo = 0;', 'foo(');
   }
 
   Future<void> test_enum_typeParameter() async {
@@ -691,6 +766,19 @@ void f() {
     await prepareNavigation();
     assertHasRegion('values');
     assertHasTarget('E');
+  }
+
+  Future<void> test_enum_with() async {
+    addTestFile('''
+mixin M {}
+
+enum E with M { // ref
+  v
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('M { // ref', 'M {}');
   }
 
   Future<void> test_extension_on() async {

@@ -228,6 +228,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var name = constant.name.name;
       var field = ConstFieldElementImpl(name, constant.name.offset)
         ..hasImplicitType = true
+        ..hasInitializer = true
         ..isConst = true
         ..isEnumConstant = true
         ..isStatic = true

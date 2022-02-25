@@ -121,6 +121,19 @@ enum E {
     ]);
   }
 
+  test_index_field_notInitializer() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int index;
+  const E();
+}
+''', [
+      error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 26, 5),
+    ]);
+  }
+
   test_index_getter() async {
     await assertErrorsInCode(r'''
 enum E {

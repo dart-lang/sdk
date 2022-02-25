@@ -200,6 +200,40 @@ class B {
         unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']));
   }
 
+  test_definedClassMemberNames_enum() {
+    String path = convertPath('/aaa/lib/a.dart');
+    newFile(path, content: r'''
+enum E1 {
+  v1;
+  int field1, field2;
+  const E1();
+  const E1.namedConstructor();
+  void method() {}
+  get getter => 0;
+  set setter(_) {}
+}
+
+enum E2 {
+  v2;
+  get getter2 => 0;
+}
+''');
+    FileState file = fileSystemState.getFileForPath(path);
+    expect(
+      file.definedClassMemberNames,
+      unorderedEquals([
+        'v1',
+        'field1',
+        'field2',
+        'method',
+        'getter',
+        'setter',
+        'v2',
+        'getter2',
+      ]),
+    );
+  }
+
   test_definedTopLevelNames() {
     String path = convertPath('/aaa/lib/a.dart');
     newFile(path, content: r'''

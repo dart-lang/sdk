@@ -53,6 +53,31 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
+  Future<void> test_enum_startEndPattern() async {
+    addTestFile('''
+enum A {
+  v
+}
+
+enum A2 {
+  v
+}
+
+enum B {
+  v
+}
+
+enum D {
+  v
+}
+''');
+    await findTopLevelDeclarations('^[A-C]\$');
+    assertHasDeclaration(ElementKind.ENUM, 'A');
+    assertHasDeclaration(ElementKind.ENUM, 'B');
+    assertNoDeclaration(ElementKind.ENUM, 'A2');
+    assertNoDeclaration(ElementKind.ENUM, 'D');
+  }
+
   Future<void> test_extensionDeclaration() async {
     addTestFile('''
 extension MyExtension on int {}

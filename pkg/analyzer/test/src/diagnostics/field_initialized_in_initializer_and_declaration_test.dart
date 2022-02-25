@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class FieldInitializedInInitializerAndDeclarationTest
     extends PubPackageResolutionTest {
-  test_both() async {
+  test_class_both() async {
     await assertErrorsInCode('''
 class A {
   final int x = 0;
@@ -26,6 +26,22 @@ class A {
       error(
           CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
           37,
+          1),
+    ]);
+  }
+
+  test_enum_both() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  final int x = 0;
+  const E() : x = 1;
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 1),
+      error(
+          CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+          47,
           1),
     ]);
   }
