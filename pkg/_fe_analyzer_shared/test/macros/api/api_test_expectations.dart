@@ -5,8 +5,10 @@
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 const Map<String, ClassData> expectedClassData = {
-  'Class1': ClassData(),
-  'Class2': ClassData(isAbstract: true),
+  'Class1': ClassData(superclassOf: 'Object'),
+  'Class2': ClassData(isAbstract: true, superclassOf: 'Object'),
+  'Class3': ClassData(superclassOf: 'Class2', superSuperclassOf: 'Object'),
+  'Class4': ClassData(superclassOf: 'Class1', superSuperclassOf: 'Object'),
 };
 
 const Map<String, FunctionData> expectedFunctionData = {
@@ -61,12 +63,25 @@ void checkParameterDeclaration(
   checkTypeAnnotation(expected.type, declaration.type, '$context.type');
 }
 
-void checkClassDeclaration(ClassDeclaration declaration) {
+Future<void> checkClassDeclaration(ClassDeclaration declaration,
+    {ClassIntrospector? classIntrospector}) async {
   String name = declaration.identifier.name;
   ClassData? expected = expectedClassData[name];
   if (expected != null) {
     expect(expected.isAbstract, declaration.isAbstract, '$name.isAbstract');
     expect(expected.isExternal, declaration.isExternal, '$name.isExternal');
+    if (classIntrospector != null) {
+      ClassDeclaration? superclassOf =
+          await classIntrospector.superclassOf(declaration);
+      expect(expected.superclassOf, superclassOf?.identifier.name,
+          '$name.superclassOf');
+      if (superclassOf != null) {
+        ClassDeclaration? superSuperclassOf =
+            await classIntrospector.superclassOf(superclassOf);
+        expect(expected.superSuperclassOf, superSuperclassOf?.identifier.name,
+            '$name.superSuperclassOf');
+      }
+    }
     // TODO(johnniwinther): Test more properties when there are supported.
   } else {
     throw 'Unexpected class declaration "${name}"';
@@ -109,8 +124,14 @@ void checkFunctionDeclaration(FunctionDeclaration actual) {
 class ClassData {
   final bool isAbstract;
   final bool isExternal;
+  final String superclassOf;
+  final String? superSuperclassOf;
 
-  const ClassData({this.isAbstract: false, this.isExternal: false});
+  const ClassData(
+      {this.isAbstract: false,
+      this.isExternal: false,
+      required this.superclassOf,
+      this.superSuperclassOf});
 }
 
 class FunctionData {

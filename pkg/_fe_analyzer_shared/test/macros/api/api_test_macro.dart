@@ -13,18 +13,18 @@ macro class ClassMacro
   const ClassMacro();
 
   FutureOr<void> buildTypesForClass(
-      ClassDeclaration clazz, TypeBuilder builder) {
-    checkClassDeclaration(clazz);
+      ClassDeclaration clazz, TypeBuilder builder) async {
+    await checkClassDeclaration(clazz);
   }
 
   FutureOr<void> buildDeclarationsForClass(
-      ClassDeclaration clazz, ClassMemberDeclarationBuilder builder) {
-    checkClassDeclaration(clazz);
+      ClassDeclaration clazz, ClassMemberDeclarationBuilder builder) async {
+    await checkClassDeclaration(clazz, classIntrospector: builder);
   }
 
   FutureOr<void> buildDefinitionForClass(
-      ClassDeclaration clazz, ClassDefinitionBuilder builder) {
-    checkClassDeclaration(clazz);
+      ClassDeclaration clazz, ClassDefinitionBuilder builder) async {
+    await checkClassDeclaration(clazz, classIntrospector: builder);
   }
 }
 
