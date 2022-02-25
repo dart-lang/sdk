@@ -45,6 +45,10 @@ class TestProject {
 
   String get dirPath => dir.path;
 
+  String get pubCachePath => path.join(dirPath, 'pub_cache');
+
+  String get pubCacheBinPath => path.join(pubCachePath, 'bin');
+
   String get mainPath => path.join(dirPath, relativeFilePath);
 
   final String name;
@@ -129,7 +133,10 @@ dev_dependencies:
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,
-        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
+        environment: {
+          if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true',
+          'PUB_CACHE': pubCachePath,
+        });
     final proc = _process!;
     final stdoutContents = proc.stdout.transform(utf8.decoder).join();
     final stderrContents = proc.stderr.transform(utf8.decoder).join();
@@ -153,7 +160,10 @@ dev_dependencies:
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,
-        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'})
+        environment: {
+          if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true',
+          'PUB_CACHE': pubCachePath,
+        })
       ..then((p) => _process = p);
   }
 
