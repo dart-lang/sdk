@@ -55,12 +55,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  void check(NodeList<ClassMember> classMembers) {
-    // Sort members by offset.
-    var members = classMembers.toList()
-      ..sort((ClassMember m1, ClassMember m2) => m1.offset - m2.offset);
-
+  void check(NodeList<ClassMember> members) {
     var seenConstructor = false;
+    // Members are sorted by source position in the AST.
     for (var member in members) {
       if (member is ConstructorDeclaration) {
         if (member.name == null) {
