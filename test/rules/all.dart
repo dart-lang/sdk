@@ -57,6 +57,8 @@ import 'prefer_generic_function_type_aliases_test.dart'
 import 'prefer_spread_collections_test.dart' as prefer_spread_collections;
 import 'public_member_api_docs_test.dart' as public_member_api_docs;
 import 'sort_constructors_first.dart' as sort_constructors_first;
+import 'sort_unnamed_constructors_first.dart'
+    as sort_unnamed_constructors_first;
 import 'super_goes_last_test.dart' as super_goes_last;
 import 'tighten_type_of_initializing_formals_test.dart'
     as tighten_type_of_initializing_formals;
@@ -106,6 +108,7 @@ void main() {
   prefer_spread_collections.main();
   public_member_api_docs.main();
   sort_constructors_first.main();
+  sort_unnamed_constructors_first.main();
   super_goes_last.main();
   tighten_type_of_initializing_formals.main();
   type_init_formals.main();

@@ -46,6 +46,7 @@ class SortUnnamedConstructorsFirst extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
+    registry.addEnumDeclaration(this, visitor);
   }
 }
 
@@ -54,10 +55,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void check(NodeList<ClassMember> classMembers) {
     // Sort members by offset.
-    var members = node.members.toList()
+    var members = classMembers.toList()
       ..sort((ClassMember m1, ClassMember m2) => m1.offset - m2.offset);
 
     var seenConstructor = false;
@@ -72,5 +72,15 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       }
     }
+  }
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    check(node.members);
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    check(node.members);
   }
 }
