@@ -386,6 +386,35 @@ class MyWidget extends StatelessWidget {
     expect(container.codeLength, 15);
   }
 
+  Future<void> test_enum() async {
+    var unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+enum E {
+  v;
+  Widget build(BuildContext context) {
+    return const Text('A');
+  }
+}
+''');
+
+    expect(_toText(unitOutline), r'''
+(D) E
+  (D) v
+  (D) build
+    Text
+''');
+    var E = unitOutline.children![0];
+    var build = E.children![1];
+    {
+      var textOutline = build.children![0];
+      var text = "const Text('A')";
+      var offset = testCode.indexOf(text);
+      expect(textOutline.offset, offset);
+      expect(textOutline.length, text.length);
+    }
+  }
+
   Future<void> test_genericLabel_invocation() async {
     var unitOutline = await _computeOutline(r'''
 import 'package:flutter/widgets.dart';
