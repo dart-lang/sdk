@@ -59,6 +59,8 @@ class LintNames {
   static const String leading_newlines_in_multiline_strings =
       'leading_newlines_in_multiline_strings';
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
+  static const String no_leading_underscores_for_local_identifiers =
+      'no_leading_underscores_for_local_identifiers';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
   static const String null_closures = 'null_closures';

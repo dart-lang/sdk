@@ -309,7 +309,7 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   INVOKE_PASS(ConstantPropagation);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(WidenSmiToInt32);
-  INVOKE_PASS(SelectRepresentations);
+  INVOKE_PASS(SelectRepresentations_Final);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(TryCatchOptimization);
   INVOKE_PASS(EliminateEnvironments);
@@ -380,7 +380,7 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(EliminateDeadPhis);
   INVOKE_PASS(DCE);
   INVOKE_PASS(TypePropagation);
-  INVOKE_PASS(SelectRepresentations);
+  INVOKE_PASS(SelectRepresentations_Final);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(UseTableDispatch);
   INVOKE_PASS(EliminateStackOverflowChecks);
@@ -467,6 +467,13 @@ COMPILER_PASS(SelectRepresentations, {
   // interference from phis merging double values and tagged
   // values coming from dead paths.
   flow_graph->SelectRepresentations();
+});
+
+COMPILER_PASS(SelectRepresentations_Final, {
+  // Final selection of representations. After this pass
+  // representations of inputs/outputs should match.
+  flow_graph->SelectRepresentations();
+  flow_graph->disallow_unmatched_representations();
 });
 
 COMPILER_PASS(UseTableDispatch, {

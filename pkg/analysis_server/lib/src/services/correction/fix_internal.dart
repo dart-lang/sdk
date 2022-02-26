@@ -118,6 +118,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_statem
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_non_null_assertion.dart';
@@ -451,6 +452,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.no_duplicate_case_values: [
       RemoveDuplicateCase.newInstance,
+    ],
+    LintNames.no_leading_underscores_for_local_identifiers: [
+      RemoveLeadingUnderscore.newInstance,
     ],
     LintNames.non_constant_identifier_names: [
       RenameToCamelCase.newInstance,

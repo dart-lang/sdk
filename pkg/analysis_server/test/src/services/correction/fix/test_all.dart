@@ -144,6 +144,7 @@ import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
+import 'remove_leading_underscore_test.dart' as remove_leading_underscore;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
 import 'remove_non_null_assertion_test.dart' as remove_non_null_assertion_test;
@@ -346,6 +347,7 @@ void main() {
     remove_if_null_operator.main();
     remove_initializer.main();
     remove_interpolation_braces.main();
+    remove_leading_underscore.main();
     remove_method_declaration.main();
     remove_name_from_combinator.main();
     remove_non_null_assertion_test.main();

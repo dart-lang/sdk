@@ -19,6 +19,7 @@ import 'package:kernel/target/targets.dart' show Target;
 import '../base/nnbd_mode.dart';
 
 import '../fasta/kernel/macro.dart';
+import '../macro_serializer.dart';
 import 'experimental_flags.dart'
     show
         AllowedExperimentalFlags,
@@ -137,7 +138,7 @@ class CompilerOptions {
   /// by the macro executor provided by [macroExecutorProvider].
   ///
   /// This is part of the experimental macro feature.
-  Future<Uri> Function(Component)? macroSerializer;
+  MacroSerializer? macroSerializer;
 
   /// Whether to generate code for the SDK.
   ///

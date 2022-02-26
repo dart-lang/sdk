@@ -46,6 +46,19 @@ var dart2wasm = {
         setTimeout(function() {
             inst.exports.$call0(closure);
         }, milliseconds);
+    },
+    getCurrentStackTrace: function() {
+        // [Error] should be supported in most browsers.
+        // A possible future optimization we could do is to just save the
+        // `Error` object here, and stringify the stack trace when it is
+        // actually used.
+        let stackString = new Error().stack.toString();
+
+        // We remove the last three lines of the stack trace to prevent including
+        // `Error`, `getCurrentStackTrace`, and `StackTrace.current` in the
+        // stack trace.
+        let userStackString = stackString.split('\n').slice(3).join('\n');
+        return stringToDartString(userStackString);
     }
 };
 

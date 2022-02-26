@@ -61,7 +61,7 @@ class SearchEngineImplTest extends PubPackageResolutionTest {
     return SearchEngineImpl(allDrivers);
   }
 
-  Future<void> test_membersOfSubtypes_hasMembers() async {
+  Future<void> test_membersOfSubtypes_classByClass_hasMembers() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   void a() {}
@@ -89,6 +89,40 @@ class C extends A {
 
     var members = await searchEngine.membersOfSubtypes(A);
     expect(members, unorderedEquals(['a', 'b']));
+  }
+
+  Future<void> test_membersOfSubtypes_enum_implements_hasMembers() async {
+    await resolveTestCode('''
+class A {
+  void foo() {}
+}
+
+enum E implements A {
+  v;
+  void foo() {}
+}
+''');
+
+    var A = findElement.class_('A');
+    var members = await searchEngine.membersOfSubtypes(A);
+    expect(members, unorderedEquals(['foo']));
+  }
+
+  Future<void> test_membersOfSubtypes_enum_with_hasMembers() async {
+    await resolveTestCode('''
+mixin M {
+  void foo() {}
+}
+
+enum E with M {
+  v;
+  void foo() {}
+}
+''');
+
+    var M = findElement.mixin('M');
+    var members = await searchEngine.membersOfSubtypes(M);
+    expect(members, unorderedEquals(['foo']));
   }
 
   Future<void> test_membersOfSubtypes_noMembers() async {

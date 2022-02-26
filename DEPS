@@ -93,7 +93,7 @@ vars = {
   "collection_rev": "a4c941ab94044d118b2086a3f261c30377604127",
   "convert_rev": "e063fdca4bebffecbb5e6aa5525995120982d9ce",
   "crypto_rev": "b5024e4de2b1c474dd558bef593ddbf0bfade152",
-  "csslib_rev": "f746368a0a53cf8f68fd71b218239034e88841d5",
+  "csslib_rev": "518761b166974537f334dbf264e7f56cb157a96a",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
@@ -109,7 +109,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_rev": "6f894c0ca33686122be9085f06e5b9bf6ad55262",
 
-  "dartdoc_rev" : "b3927dd89d6ff9c78dc88ab2901e63b6a3bf29b7",
+  "dartdoc_rev" : "a39f378f8100b907e6285ac825967d764fd664ad",
   "devtools_rev" : "b9f2039239cc72ac8b26f8a5fe46123f34d53ce1",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
   "fixnum_rev": "848341f061359ef7ddc0cad472c2ecbb036b28ac",

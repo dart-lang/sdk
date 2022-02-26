@@ -303,8 +303,8 @@ Future<void> _compileMacros(NeededPrecompilations neededPrecompilations,
   precompilationOptions..fileSystem = new HybridFileSystem(fs);
   CompilerResult? compilerResult =
       await kernelForProgramInternal(uri, precompilationOptions);
-  Uri precompiledUri =
-      await options.macroSerializer!(compilerResult!.component!);
+  Uri precompiledUri = await options.macroSerializer!
+      .createUriForComponent(compilerResult!.component!);
   Map<MacroClass, Uri> precompiledMacroUris =
       options.precompiledMacroUris ??= {};
   neededPrecompilations.macroDeclarations

@@ -8,7 +8,6 @@
 
 import 'dart:io' show Platform;
 import 'dart:isolate' show Isolate, ReceivePort;
-import 'dart:typed_data' show Uint8List;
 
 import "package:expect/expect.dart";
 import 'package:front_end/src/api_unstable/vm.dart'
@@ -33,7 +32,7 @@ main() async {
     };
   final Component component =
       (await kernelForProgram(sourceUri, options))!.component!;
-  final kernelBlob = writeComponentToBytes(component) as Uint8List;
+  final kernelBlob = writeComponentToBytes(component);
 
   final kernelBlobUri =
       (Isolate.current as dynamic).createUriForKernelBlob(kernelBlob);

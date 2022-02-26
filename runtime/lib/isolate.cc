@@ -658,7 +658,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
     auto initialize_callback = Isolate::InitializeCallback();
     if (initialize_callback == nullptr) {
       FailedSpawn(
-          "Lightweight isolate spawn is not supported by this Dart embedder\n");
+          "Lightweight isolate spawn is not supported by this Dart embedder\n",
+          /*has_current_isolate=*/false);
       return;
     }
 

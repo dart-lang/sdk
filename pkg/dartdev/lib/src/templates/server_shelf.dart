@@ -11,7 +11,7 @@ class ServerShelfGenerator extends DefaultGenerator {
       : super(
           'server-shelf',
           'Server app',
-          'A server app using `package:shelf`',
+          'A server app using package:shelf.',
           categories: const ['dart', 'server'],
         ) {
     addFile('.gitignore', common.gitignore);
@@ -127,7 +127,7 @@ Response _rootHandler(Request req) {
 }
 
 Response _echoHandler(Request request) {
-  final message = params(request, 'message');
+  final message = request.params['message'];
   return Response.ok('$message\n');
 }
 

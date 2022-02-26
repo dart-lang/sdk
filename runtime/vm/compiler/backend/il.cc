@@ -3460,7 +3460,11 @@ Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
       flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
       return replacement;
     } else {
-      if (!left_type->is_nullable() && !right_type->is_nullable()) {
+      // Null-aware EqualityCompare takes boxed inputs, so make sure
+      // unmatched representations are still allowed when converting
+      // EqualityCompare to the unboxed instruction.
+      if (!left_type->is_nullable() && !right_type->is_nullable() &&
+          flow_graph->unmatched_representations_allowed()) {
         set_null_aware(false);
       }
     }

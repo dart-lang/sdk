@@ -397,6 +397,17 @@ class FlowGraph : public ZoneAllocated {
   // after this point.
   void disallow_licm() { licm_allowed_ = false; }
 
+  // Returns true if mismatch in input/output representations is allowed.
+  bool unmatched_representations_allowed() const {
+    return unmatched_representations_allowed_;
+  }
+
+  // After the last SelectRepresentations pass all further transformations
+  // should maintain matching input/output representations.
+  void disallow_unmatched_representations() {
+    unmatched_representations_allowed_ = false;
+  }
+
   PrologueInfo prologue_info() const { return prologue_info_; }
 
   // Computes the loop hierarchy of the flow graph on demand.
@@ -623,6 +634,7 @@ class FlowGraph : public ZoneAllocated {
   ConstantInstr* constant_dead_;
 
   bool licm_allowed_;
+  bool unmatched_representations_allowed_ = true;
 
   const PrologueInfo prologue_info_;
 

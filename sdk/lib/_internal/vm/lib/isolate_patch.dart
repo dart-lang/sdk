@@ -366,7 +366,11 @@ class Isolate {
       throw new UnsupportedError("Isolate.spawn");
     }
     if (script.isScheme("package")) {
-      script = await Isolate.resolvePackageUri(script);
+      if (Isolate._packageSupported()) {
+        // resolving script uri is not really neccessary, but can be useful
+        // for better failed-to-lookup-function-in-a-script spawn errors.
+        script = await Isolate.resolvePackageUri(script);
+      }
     }
 
     final RawReceivePort readyPort =

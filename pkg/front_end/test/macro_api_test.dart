@@ -2,29 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Directory, Platform;
+import 'dart:io' show Platform;
 
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
     as isolatedExecutor;
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/kernel/macro.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/isolate_macro_serializer.dart';
+import 'package:front_end/src/macro_serializer.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
-import 'package:kernel/ast.dart' hide Arguments;
-import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/vm.dart';
 
 Future<void> main(List<String> args) async {
   enableMacros = true;
 
-  Directory tempDirectory =
-      await Directory.systemTemp.createTemp('macro_api_test');
-  int precompiledCount = 0;
+  MacroSerializer macroSerializer = new IsolateMacroSerializer();
   try {
     CompilerOptions options = new CompilerOptions();
     options.sdkRoot = computePlatformBinariesLocation();
@@ -37,12 +34,7 @@ Future<void> main(List<String> args) async {
     };
     options.precompiledMacroUris = {};
     options.target = options.macroTarget = new VmTarget(new TargetFlags());
-    options.macroSerializer = (Component component) async {
-      Uri uri = tempDirectory.absolute.uri
-          .resolve('macros${precompiledCount++}.dill');
-      await writeComponentToFile(component, uri);
-      return uri;
-    };
+    options.macroSerializer = macroSerializer;
 
     InternalCompilerResult result = await kernelForProgramInternal(
         Platform.script.resolve(
@@ -51,6 +43,6 @@ Future<void> main(List<String> args) async {
         retainDataForTesting: true) as InternalCompilerResult;
     Expect.isFalse(result.kernelTargetForTesting!.loader.hasSeenError);
   } finally {
-    await tempDirectory.delete(recursive: true);
+    await macroSerializer.close();
   }
 }
