@@ -51,25 +51,62 @@ class JS {
     libFolder.getChildAssumingFile('meta.dart').writeAsStringSync(r'''
 library meta;
 
-const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
-const _DoNotStore doNotStore = _DoNotStore();
-const _Factory factory = const _Factory();
-const Immutable immutable = const Immutable();
-const _Internal internal = const Internal();
-const _Literal literal = const _Literal();
-const _MustCallSuper mustCallSuper = const _MustCallSuper();
-const _NonVirtual nonVirtual = const _NonVirtual();
-const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
-const _Protected protected = const _Protected();
-const Required required = const Required();
-const _Sealed sealed = const _Sealed();
-const UseResult useResult = UseResult();
-const _VisibleForOverriding visibleForOverriding = _VisibleForOverriding();
-const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
+import 'meta_meta.dart';
 
-class _AlwaysThrows {
-  const _AlwaysThrows();
+const _AlwaysThrows alwaysThrows = _AlwaysThrows();
+
+@Deprecated('Use the `covariant` modifier instead')
+const _Checked checked = _Checked();
+
+const _DoNotStore doNotStore = _DoNotStore();
+
+const _Experimental experimental = _Experimental();
+
+const _Factory factory = _Factory();
+
+const Immutable immutable = Immutable();
+
+const _Internal internal = _Internal();
+
+const _IsTest isTest = _IsTest();
+
+const _IsTestGroup isTestGroup = _IsTestGroup();
+
+const _Literal literal = _Literal();
+
+const _MustCallSuper mustCallSuper = _MustCallSuper();
+
+const _NonVirtual nonVirtual = _NonVirtual();
+
+const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
+
+const _Protected protected = _Protected();
+
+const Required required = Required();
+
+const _Sealed sealed = _Sealed();
+
+const UseResult useResult = UseResult();
+
+@Deprecated('No longer has meaning')
+const _Virtual virtual = _Virtual();
+
+const _VisibleForOverriding visibleForOverriding = _VisibleForOverriding();
+
+const _VisibleForTesting visibleForTesting = _VisibleForTesting();
+
+class Immutable {
+  final String reason;
+
+  const Immutable([this.reason = '']);
 }
+
+class Required {
+  final String reason;
+
+  const Required([this.reason = '']);
+}
+
 @Target({
   TargetKind.field,
   TargetKind.function,
@@ -77,50 +114,91 @@ class _AlwaysThrows {
   TargetKind.method,
   TargetKind.topLevelVariable,
 })
+class UseResult {
+  final String reason;
+
+  final String? parameterDefined;
+
+  const UseResult([this.reason = '']) : parameterDefined = null;
+
+  const UseResult.unless({required this.parameterDefined, this.reason = ''});
+}
+
+class _AlwaysThrows {
+  const _AlwaysThrows();
+}
+
+class _Checked {
+  const _Checked();
+}
+
+@Target({
+  TargetKind.classType,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.library,
+  TargetKind.method,
+})
 class _DoNotStore {
   const _DoNotStore();
 }
+
+class _Experimental {
+  const _Experimental();
+}
+
 class _Factory {
   const _Factory();
 }
-class Immutable {
-  final String reason;
-  const Immutable([this.reason]);
-}
+
 class _Internal {
-  const Internal();
+  const _Internal();
 }
+
+class _IsTest {
+  const _IsTest();
+}
+
+class _IsTestGroup {
+  const _IsTestGroup();
+}
+
 class _Literal {
   const _Literal();
 }
+
 class _MustCallSuper {
   const _MustCallSuper();
 }
+
 class _NonVirtual {
   const _NonVirtual();
 }
+
+@Target({
+  TargetKind.classType,
+  TargetKind.extension,
+  TargetKind.function,
+  TargetKind.method,
+  TargetKind.mixinType,
+  TargetKind.typedefType,
+})
 class _OptionalTypeArgs {
   const _OptionalTypeArgs();
 }
+
 class _Protected {
   const _Protected();
 }
-class Required {
-  final String reason;
-  const Required([this.reason]);
-}
+
 class _Sealed {
   const _Sealed();
 }
-class UseResult {
-  final String? parameterDefined;
-  final String reason;
-  const UseResult([this.reason = '']);
-  const UseResult.unless({required this.parameterDefined, this.reason = ''});
-}
+
 class _VisibleForOverriding {
   const _VisibleForOverriding();
 }
+
 class _VisibleForTesting {
   const _VisibleForTesting();
 }
@@ -128,10 +206,12 @@ class _VisibleForTesting {
     libFolder.getChildAssumingFile('meta_meta.dart').writeAsStringSync(r'''
 library meta_meta;
 
+@Target({TargetKind.classType})
 class Target {
   final Set<TargetKind> kinds;
   const Target(this.kinds);
 }
+
 enum TargetKind {
   classType,
   enumType,
