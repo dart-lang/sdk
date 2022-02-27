@@ -11346,7 +11346,7 @@ isn't a constant value.
 
 #### Example
 
-The following code produces this diagnostic beause `a` isn't a constant:
+The following code produces this diagnostic because `a` isn't a constant:
 
 {% prettify dart tag=pre+code %}
 var a = 'a';
@@ -13062,7 +13062,7 @@ If the library should be using a different file as a part, then change the
 URI in the part directive to be the URI of the other file.
 
 If the [part file][] should be a part of this library, then update the URI
-(orlibrary name) in the part-of directive to be the URI (or name) of the
+(or library name) in the part-of directive to be the URI (or name) of the
 correct library.
 
 ### part_of_non_part
@@ -13229,7 +13229,7 @@ If the path is intended to be the root of a package, then add a
 name: local_package
 ```
 
-If the path is wrong, then replace it with a the correct path.
+If the path is wrong, then replace it with the correct path.
 
 ### prefix_collides_with_top_level_member
 
