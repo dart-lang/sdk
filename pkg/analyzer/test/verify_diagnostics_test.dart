@@ -423,6 +423,9 @@ class _SnippetTest extends PubPackageResolutionTest {
   }
 
   @override
+  String get testPackageRootPath => '$workspaceRootPath/docTest';
+
+  @override
   void setUp() {
     super.setUp();
     _createAuxiliaryFiles(snippet.auxiliaryFiles);

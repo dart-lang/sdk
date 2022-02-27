@@ -191,6 +191,19 @@ class DocumentationGenerator {
 The analyzer produces the following diagnostics for code that
 doesn't conform to the language specification or
 that might work in unexpected ways.
+
+[meta-doNotStore]: https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html
+[meta-factory]: https://pub.dev/documentation/meta/latest/meta/factory-constant.html
+[meta-immutable]: https://pub.dev/documentation/meta/latest/meta/immutable-constant.html
+[meta-internal]: https://pub.dev/documentation/meta/latest/meta/internal-constant.html
+[meta-literal]: https://pub.dev/documentation/meta/latest/meta/literal-constant.html
+[meta-mustCallSuper]: https://pub.dev/documentation/meta/latest/meta/mustCallSuper-constant.html
+[meta-optionalTypeArgs]: https://pub.dev/documentation/meta/latest/meta/optionalTypeArgs-constant.html
+[meta-sealed]: https://pub.dev/documentation/meta/latest/meta/sealed-constant.html
+[meta-useResult]: https://pub.dev/documentation/meta/latest/meta/useResult-constant.html
+[meta-UseResult]: https://pub.dev/documentation/meta/latest/meta/UseResult-class.html
+[meta-visibleForOverriding]: https://pub.dev/documentation/meta/latest/meta/visibleForOverriding-constant.html
+[meta-visibleForTesting]: https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html
 ''');
     List<String> errorCodes = infoByName.keys.toList();
     errorCodes.sort();
@@ -215,13 +228,17 @@ This page uses the following terms:
 * [definite assignment][]
 * [mixin application][]
 * [override inference][]
+* [part file][]
 * [potentially non-nullable][]
+* [public library][]
 
 [constant context]: #constant-context
 [definite assignment]: #definite-assignment
 [mixin application]: #mixin-application
 [override inference]: #override-inference
+[part file]: #part-file
 [potentially non-nullable]: #potentially-non-nullable
+[public library]: #public-library
 
 ### Constant context
 
@@ -442,6 +459,10 @@ The result is the same as declaring the method in `C` as `int m(num n) => 1;`.
 It is an error if none of the overridden methods has a function type that is a
 supertype of all the other overridden methods.
 
+### Part file
+
+A part file is a Dart source file that contains a `part of` directive.
+
 ### Potentially non-nullable
 
 A type is _potentially non-nullable_ if it's either explicitly non-nullable or
@@ -457,6 +478,11 @@ Type parameters are potentially non-nullable because the actual runtime type
 (the type specified as a type argument) might be non-nullable. For example,
 given a declaration of `class C<T> {}`, the type `C` could be used with a
 non-nullable type argument as in `C<int>`.
+
+### Public library
+
+A public library is a library that is located inside the package's `lib`
+directory but not inside the `lib/src` directory.
 ''');
   }
 
