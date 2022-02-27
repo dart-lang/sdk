@@ -83,7 +83,7 @@
 - **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
   The standalone `dartdoc` tool has been removed as
   previously announced. Its replacement is the `dart doc` command.
-  
+
 - The template names used in the `dart create` command have been simplified,
   and the current template names are now the set shown below. (Note: for
   backwards compatibility the former template names can still be used.)
