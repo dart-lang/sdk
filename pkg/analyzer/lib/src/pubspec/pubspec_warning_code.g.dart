@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
 import "package:analyzer/error/error.dart";
 
@@ -514,7 +514,7 @@ class PubspecWarningCode extends ErrorCode {
   // name: local_package
   // ```
   //
-  // If the path is wrong, then replace it with a the correct path.
+  // If the path is wrong, then replace it with the correct path.
   static const PubspecWarningCode PATH_PUBSPEC_DOES_NOT_EXIST =
       PubspecWarningCode(
     'PATH_PUBSPEC_DOES_NOT_EXIST',

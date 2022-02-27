@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
@@ -10528,7 +10528,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic beause `a` isn't a constant:
+  // The following code produces this diagnostic because `a` isn't a constant:
   //
   // ```dart
   // var a = 'a';
@@ -12030,7 +12030,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // URI in the part directive to be the URI of the other file.
   //
   // If the [part file][] should be a part of this library, then update the URI
-  // (orlibrary name) in the part-of directive to be the URI (or name) of the
+  // (or library name) in the part-of directive to be the URI (or name) of the
   // correct library.
   static const CompileTimeErrorCode PART_OF_DIFFERENT_LIBRARY =
       CompileTimeErrorCode(
