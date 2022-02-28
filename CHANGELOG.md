@@ -84,6 +84,16 @@
   The standalone `dartdoc` tool has been removed as
   previously announced. Its replacement is the `dart doc` command.
 
+- The template names used in the `dart create` command have been simplified,
+  and the current template names are now the set shown below. (Note: for
+  backwards compatibility the former template names can still be used.)
+```
+          [console] (default)    A command-line application.
+          [package]              A package containing shared Dart libraries.
+          [server-shelf]         A server app using package:shelf.
+          [web]                  A web app that uses only core Dart libraries.
+```
+
 ## 2.16.1 - 2022-02-09
 
 This is a patch release that fixes an AOT precompiler crash when building some
