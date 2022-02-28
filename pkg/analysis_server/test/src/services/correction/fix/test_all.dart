@@ -187,6 +187,7 @@ import 'replace_container_with_sized_box_test.dart'
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
 import 'replace_final_with_var_test.dart' as replace_final_with_var;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
+import 'replace_null_check_with_cast_test.dart' as replace_null_check_with_cast;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
 import 'replace_return_type_iterable_test.dart' as replace_return_type_iterable;
@@ -382,6 +383,7 @@ void main() {
     replace_final_with_const.main();
     replace_final_with_var.main();
     replace_new_with_const.main();
+    replace_null_check_with_cast.main();
     replace_null_with_closure.main();
     replace_null_with_void.main();
     replace_return_type.main();

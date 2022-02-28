@@ -152,6 +152,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_container_w
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_null_check_with_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_future.dart';
@@ -458,6 +459,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.non_constant_identifier_names: [
       RenameToCamelCase.newInstance,
+    ],
+    LintNames.null_check_on_nullable_type_parameter: [
+      ReplaceNullCheckWithCast.newInstance,
     ],
     LintNames.null_closures: [
       ReplaceNullWithClosure.newInstance,
