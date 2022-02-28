@@ -23,7 +23,7 @@ VM_UNIT_TEST_CASE(IsolateCurrent) {
 // Test to ensure that an exception is thrown if no isolate creation
 // callback has been set by the embedder when an isolate is spawned.
 void IsolateSpawn(const char* platform_script_value) {
-  const char* kScriptChars = OS::SCreate(
+  char* scriptChars = OS::SCreate(
       nullptr,
       "import 'dart:isolate';\n"
       // Ignores printed lines.
@@ -40,7 +40,9 @@ void IsolateSpawn(const char* platform_script_value) {
       "}\n",
       platform_script_value);
 
-  Dart_Handle test_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle test_lib = TestCase::LoadTestScript(scriptChars, NULL);
+
+  free(scriptChars);
 
   // Setup the internal library's 'internalPrint' function.
   // Necessary because asynchronous errors use "print" to print their
