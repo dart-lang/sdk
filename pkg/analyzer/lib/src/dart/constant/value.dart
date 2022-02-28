@@ -167,16 +167,14 @@ class DartObjectImpl implements DartObject {
     TypeSystemImpl typeSystem,
     DartType type,
   ) {
-    if (type.element!.library!.isDartCore) {
-      if (type.isDartCoreBool) {
-        return DartObjectImpl(typeSystem, type, BoolState.UNKNOWN_VALUE);
-      } else if (type.isDartCoreDouble) {
-        return DartObjectImpl(typeSystem, type, DoubleState.UNKNOWN_VALUE);
-      } else if (type.isDartCoreInt) {
-        return DartObjectImpl(typeSystem, type, IntState.UNKNOWN_VALUE);
-      } else if (type.isDartCoreString) {
-        return DartObjectImpl(typeSystem, type, StringState.UNKNOWN_VALUE);
-      }
+    if (type.isDartCoreBool) {
+      return DartObjectImpl(typeSystem, type, BoolState.UNKNOWN_VALUE);
+    } else if (type.isDartCoreDouble) {
+      return DartObjectImpl(typeSystem, type, DoubleState.UNKNOWN_VALUE);
+    } else if (type.isDartCoreInt) {
+      return DartObjectImpl(typeSystem, type, IntState.UNKNOWN_VALUE);
+    } else if (type.isDartCoreString) {
+      return DartObjectImpl(typeSystem, type, StringState.UNKNOWN_VALUE);
     }
     return DartObjectImpl(typeSystem, type, GenericState.UNKNOWN_VALUE);
   }
