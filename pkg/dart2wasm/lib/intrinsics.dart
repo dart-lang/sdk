@@ -355,6 +355,40 @@ class Intrinsifier {
       }
     }
 
+    // Wasm(I32|I64|F32|F64) conversions
+    if (node.interfaceTarget.enclosingClass?.superclass?.superclass ==
+        translator.wasmTypesBaseClass) {
+      w.StorageType receiverType =
+          translator.builtinTypes[node.interfaceTarget.enclosingClass]!;
+      switch (receiverType) {
+        case w.NumType.i32:
+          assert(name == "toIntSigned" || name == "toIntUnsigned");
+          codeGen.wrap(receiver, w.NumType.i32);
+          switch (name) {
+            case "toIntSigned":
+              b.i64_extend_i32_s();
+              break;
+            case "toIntUnsigned":
+              b.i64_extend_i32_u();
+              break;
+          }
+          return w.NumType.i64;
+        case w.NumType.i64:
+          assert(name == "toInt");
+          codeGen.wrap(receiver, w.NumType.i64);
+          return w.NumType.i64;
+        case w.NumType.f32:
+          assert(name == "toDouble");
+          codeGen.wrap(receiver, w.NumType.f32);
+          b.f64_promote_f32();
+          return w.NumType.f64;
+        case w.NumType.f64:
+          assert(name == "toDouble");
+          codeGen.wrap(receiver, w.NumType.f64);
+          return w.NumType.f64;
+      }
+    }
+
     // List.[] on list constants
     if (receiver is ConstantExpression &&
         receiver.constant is ListConstant &&
@@ -613,6 +647,30 @@ class Intrinsifier {
       b.i32_wrap_i64();
       translator.array_new_default(b, arrayType);
       return w.RefType.def(arrayType, nullable: false);
+    }
+
+    // Wasm(I32|I64|F32|F64) constructors
+    if (node.target.enclosingClass?.superclass?.superclass ==
+        translator.wasmTypesBaseClass) {
+      Expression value = node.arguments.positional[0];
+      w.StorageType targetType =
+          translator.builtinTypes[node.target.enclosingClass]!;
+      switch (targetType) {
+        case w.NumType.i32:
+          codeGen.wrap(value, w.NumType.i64);
+          b.i32_wrap_i64();
+          return w.NumType.i32;
+        case w.NumType.i64:
+          codeGen.wrap(value, w.NumType.i64);
+          return w.NumType.i64;
+        case w.NumType.f32:
+          codeGen.wrap(value, w.NumType.f64);
+          b.f32_demote_f64();
+          return w.NumType.f32;
+        case w.NumType.f64:
+          codeGen.wrap(value, w.NumType.f64);
+          return w.NumType.f64;
+      }
     }
 
     return null;
