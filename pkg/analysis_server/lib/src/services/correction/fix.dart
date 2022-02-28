@@ -1258,6 +1258,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Replace 'new' with 'const' where possible in file",
   );
+  static const REPLACE_NULL_CHECK_WITH_CAST = FixKind(
+    'dart.fix.replace.nullCheckWithCast',
+    DartFixKindPriority.DEFAULT,
+    'Replace null check with a cast',
+  );
+  static const REPLACE_NULL_CHECK_WITH_CAST_MULTI = FixKind(
+    'dart.fix.replace.nullCheckWithCast.multi',
+    DartFixKindPriority.IN_FILE,
+    'Replace null checks with casts in file',
+  );
   static const REPLACE_NULL_WITH_CLOSURE = FixKind(
     'dart.fix.replace.nullWithClosure',
     DartFixKindPriority.DEFAULT,

@@ -113,6 +113,7 @@ class HintCode extends AnalyzerErrorCode {
     "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
         "top-level variable.",
     correctionMessage: "Try removing the assignment.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -571,6 +572,7 @@ class HintCode extends AnalyzerErrorCode {
     'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
     "Using the 'new' keyword in a comment reference is deprecated.",
     correctionMessage: "Try referring to a constructor by its name.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1027,6 +1029,7 @@ class HintCode extends AnalyzerErrorCode {
     "The library '{0}' is legacy, and shouldn't be imported into a null safe "
         "library.",
     correctionMessage: "Try migrating the imported library.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1132,6 +1135,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_ANNOTATION_TARGET = HintCode(
     'INVALID_ANNOTATION_TARGET',
     "The annotation '{0}' can only be used on {1}.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1177,6 +1181,7 @@ class HintCode extends AnalyzerErrorCode {
     'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
     "The member '{0}' can't be exported as a part of a package's public API.",
     correctionMessage: "Try using a hide clause to hide '{0}'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1226,6 +1231,7 @@ class HintCode extends AnalyzerErrorCode {
     "The member '{0}' can't be exported as a part of a package's public API, "
         "but is indirectly exported as part of the signature of '{1}'.",
     correctionMessage: "Try using a hide clause to hide '{0}'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1280,6 +1286,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_FACTORY_METHOD_DECL = HintCode(
     'INVALID_FACTORY_METHOD_DECL',
     "Factory method '{0}' must have a return type.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1327,6 +1334,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_FACTORY_METHOD_IMPL = HintCode(
     'INVALID_FACTORY_METHOD_IMPL',
     "Factory method '{0}' doesn't return a newly allocated object.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1396,6 +1404,7 @@ class HintCode extends AnalyzerErrorCode {
     'INVALID_INTERNAL_ANNOTATION',
     "Only public elements in a package's private API can be annotated as being "
         "internal.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1432,6 +1441,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
   );
 
@@ -1445,6 +1455,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
   );
 
@@ -1453,6 +1464,7 @@ class HintCode extends AnalyzerErrorCode {
     "The language version override can't specify a version greater than the "
         "latest known language version: {0}.{1}.",
     correctionMessage: "Try removing the language version override.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
   );
 
@@ -1462,6 +1474,7 @@ class HintCode extends AnalyzerErrorCode {
         "directive.",
     correctionMessage:
         "Try moving the language version override to the top of the file.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
   );
 
@@ -1475,6 +1488,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
   );
 
@@ -1488,6 +1502,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
   );
 
@@ -1501,6 +1516,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
   );
 
@@ -1515,6 +1531,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
   );
 
@@ -1529,6 +1546,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
   );
 
@@ -1712,6 +1730,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_USE_OF_INTERNAL_MEMBER = HintCode(
     'INVALID_USE_OF_INTERNAL_MEMBER',
     "The member '{0}' can only be used within its package.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -2391,6 +2410,7 @@ class HintCode extends AnalyzerErrorCode {
     'NULL_CHECK_ALWAYS_FAILS',
     "This null-check will always throw an exception because the expression "
         "will always evaluate to 'null'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -2575,6 +2595,7 @@ class HintCode extends AnalyzerErrorCode {
     "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
         "'{1}' is also annotated.",
     correctionMessage: "Annotate '{1}' with 'doNotStore'.",
+    hasPublishedDocs: true,
   );
 
   /**

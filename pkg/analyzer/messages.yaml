@@ -2781,6 +2781,7 @@ CompileTimeErrorCode:
       0: the name of the type
   CONTINUE_LABEL_ON_SWITCH:
     problemMessage: A `continue` label resolves to a `switch` statement, but the label must be on a loop or a switch member.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -3122,6 +3123,7 @@ CompileTimeErrorCode:
     problemMessage: Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
     correctionMessage: Try removing the type arguments, or instantiating the type(s) of a generic type, generic function, generic instance method, or generic constructor.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -3413,6 +3415,7 @@ CompileTimeErrorCode:
   ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
     problemMessage: "The name of the enum constant can't be the same as the enum's name."
     correctionMessage: Try renaming the constant.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -4109,6 +4112,7 @@ CompileTimeErrorCode:
     sharedName: EXTERNAL_WITH_INITIALIZER
     problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the field initializer or the 'external' keyword from the field declaration."
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -4157,10 +4161,12 @@ CompileTimeErrorCode:
     sharedName: EXTERNAL_WITH_INITIALIZER
     problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
+    hasPublishedDocs: true
   EXTERNAL_VARIABLE_INITIALIZER:
     sharedName: EXTERNAL_WITH_INITIALIZER
     problemMessage: External variables can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
+    hasPublishedDocs: true
   EXTRA_POSITIONAL_ARGUMENTS:
     problemMessage: "Too many positional arguments: {0} expected, but {1} found."
     correctionMessage: Try removing the extra arguments.
@@ -4493,6 +4499,7 @@ CompileTimeErrorCode:
     correctionMessage: Try using a normal parameter.
     comment: |-
       No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -5467,6 +5474,7 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the uri pointing to a non-library declaration
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -5581,6 +5589,7 @@ CompileTimeErrorCode:
     problemMessage: Parts must have exactly the same language version override as the library.
     comment: |-
       No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -8181,6 +8190,7 @@ CompileTimeErrorCode:
     correctionMessage: Try removing all but one of the redirections.
     comment: |-
       No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -9119,6 +9129,7 @@ CompileTimeErrorCode:
       0: the name of the superclass
       1: the name of the current class
       2: the implicitly called factory constructor of the superclass
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -9911,6 +9922,7 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the subclass
       1: the name of the superclass
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -10426,6 +10438,7 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the prefix being shadowed
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -10557,6 +10570,7 @@ CompileTimeErrorCode:
   PRIVATE_SETTER:
     problemMessage: "The setter '{0}' is private and can't be accessed outside the library that declares it."
     correctionMessage: Try making it public.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -10601,6 +10615,7 @@ CompileTimeErrorCode:
   READ_POTENTIALLY_UNASSIGNED_FINAL:
     problemMessage: "The final variable '{0}' can't be read because it's potentially unassigned at this point."
     correctionMessage: Ensure that it is assigned on necessary execution paths.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -10943,6 +10958,7 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the redirecting constructor
       1: the name of the abstract class defining the constructor being redirected to
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11119,6 +11135,7 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the constructor
       1: the name of the class containing the constructor
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -12122,6 +12139,7 @@ CompileTimeErrorCode:
     correctionMessage: "Try adding 'break', 'return', or 'throw'."
     comment: |-
       No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14541,6 +14559,7 @@ FfiCode:
     problemMessage: "Fields in a struct class whose type is 'Pointer' shouldn't have any annotations."
     correctionMessage: Try removing the annotation.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14582,6 +14601,7 @@ FfiCode:
     comment: |-
       Parameters:
       0: the name of the argument
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14637,6 +14657,7 @@ FfiCode:
     problemMessage: "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor."
     correctionMessage: "Try allocating it via allocation, or load from a 'Pointer'."
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14691,6 +14712,7 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the superclass
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14743,6 +14765,7 @@ FfiCode:
     problemMessage: Fields in a struct class must have exactly one annotation indicating the native type.
     correctionMessage: Try removing the extra annotation.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14782,6 +14805,7 @@ FfiCode:
     problemMessage: "'Array's must have exactly one 'Array' annotation."
     correctionMessage: Try removing the extra annotation.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14844,6 +14868,7 @@ FfiCode:
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
     correctionMessage: Try removing the field initializer and marking the field as external.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14888,6 +14913,7 @@ FfiCode:
     problemMessage: "Fields in subclasses of 'Struct' and 'Union' can't have initializers."
     correctionMessage: Try removing the initializer and marking the field as external.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14926,6 +14952,7 @@ FfiCode:
     problemMessage: "Fields of 'Struct' and 'Union' subclasses must be marked external."
     correctionMessage: "Try adding the 'external' modifier."
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14966,6 +14993,7 @@ FfiCode:
     comment: |-
       Parameters:
       0: the name of the struct class
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15002,6 +15030,7 @@ FfiCode:
     problemMessage: "The method 'Pointer.fromFunction' can't have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'."
     correctionMessage: Try removing the exceptional return value.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15050,6 +15079,7 @@ FfiCode:
     comment: |-
       Parameters:
       0: the type of the field
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15095,6 +15125,7 @@ FfiCode:
     problemMessage: "FFI leaf call can't return a 'Handle'."
     correctionMessage: Try changing the return type to primitive or struct.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15151,6 +15182,7 @@ FfiCode:
     problemMessage: "FFI leaf call can't take arguments of type 'Handle'."
     correctionMessage: Try changing the argument type to primitive or struct.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15201,6 +15233,7 @@ FfiCode:
     problemMessage: "The annotation doesn't match the declared type of the field."
     correctionMessage: Try using a different annotation or changing the declared type to match.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15250,6 +15283,7 @@ FfiCode:
     problemMessage: "Fields in a struct class must either have the type 'Pointer' or an annotation indicating the native type."
     correctionMessage: Try adding an annotation.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15290,6 +15324,7 @@ FfiCode:
     problemMessage: "The method 'Pointer.fromFunction' must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'."
     correctionMessage: Try adding an exceptional return value.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15335,6 +15370,7 @@ FfiCode:
     comment: |-
       Parameters:
       0: the type of the field
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15380,6 +15416,7 @@ FfiCode:
     problemMessage: "Fields of type 'Array' must have exactly one 'Array' annotation."
     correctionMessage: "Try adding an 'Array' annotation, or removing all but one of the annotations."
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15421,6 +15458,7 @@ FfiCode:
       Parameters:
       0: the type that should be a valid dart:ffi native type.
       1: the name of the function whose invocation depends on this relationship
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15471,6 +15509,7 @@ FfiCode:
       0: the type that should be a subtype
       1: the supertype that the subtype is compared to
       2: the name of the function whose invocation depends on this relationship
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15536,6 +15575,7 @@ FfiCode:
     comment: |-
       Parameters:
       0: the name of the function, method, or constructor having type arguments
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15583,6 +15623,7 @@ FfiCode:
     comment: |-
       Parameters:
       0: the type that should be a valid dart:ffi native type.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15631,6 +15672,7 @@ FfiCode:
     problemMessage: Array dimensions must be positive numbers.
     correctionMessage: Try changing the input to a positive number.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15671,6 +15713,7 @@ FfiCode:
     comment: |-
       Parameters:
       0: the type of the field
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15711,6 +15754,7 @@ FfiCode:
     problemMessage: "Structs must have at most one 'Packed' annotation."
     correctionMessage: "Try removing extra 'Packed' annotations."
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15750,6 +15794,7 @@ FfiCode:
     problemMessage: Only packing to 1, 2, 4, 8, and 16 bytes is supported.
     correctionMessage: "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16."
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15791,6 +15836,7 @@ FfiCode:
       Parameters:
       0: the name of the outer struct
       1: the name of the struct being nested
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15872,6 +15918,7 @@ FfiCode:
     problemMessage: "'Array's must have an 'Array' annotation that matches the dimensions."
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation."
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15928,6 +15975,7 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15977,6 +16025,7 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
   SUBTYPE_OF_FFI_CLASS_IN_WITH:
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't mix in '{1}'."
@@ -15985,6 +16034,7 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
   SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
     problemMessage: "The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
@@ -15993,6 +16043,7 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -16046,6 +16097,7 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
   SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
     problemMessage: "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
@@ -16054,6 +16106,7 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
 HintCode:
   ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
     problemMessage: "The argument type '{0}' can't be assigned to the parameter type '{1} Function(Object)' or '{1} Function(Object, StackTrace)'."
@@ -16119,6 +16172,7 @@ HintCode:
     problemMessage: "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable."
     correctionMessage: Try removing the assignment.
     comment: Users should not assign values marked `@doNotStore`.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -16443,6 +16497,7 @@ HintCode:
     problemMessage: "Using the 'new' keyword in a comment reference is deprecated."
     correctionMessage: Try referring to a constructor by its name.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -16899,6 +16954,7 @@ HintCode:
       No parameters.
 
       https://github.com/dart-lang/sdk/issues/44063
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -16985,6 +17041,7 @@ HintCode:
       Parameters:
       0: the name of the annotation
       1: the list of valid targets
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17012,6 +17069,7 @@ HintCode:
     comment: |-
       Parameters:
       0: the name of the element
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17054,6 +17112,7 @@ HintCode:
     comment: |-
       Parameters:
       0: the name of the element
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17102,6 +17161,7 @@ HintCode:
     comment: |-
       Parameters:
       0: The name of the method
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17144,6 +17204,7 @@ HintCode:
     comment: |-
       Parameters:
       0: the name of the method
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17192,6 +17253,7 @@ HintCode:
     problemMessage: "Only public elements in a package's private API can be annotated as being internal."
     comment: |-
       No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17248,12 +17310,14 @@ HintCode:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The language version override can't specify a version greater than the latest known language version: {0}.{1}."
     correctionMessage: Try removing the language version override.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override number must begin with '@dart'."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
       No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17284,42 +17348,49 @@ HintCode:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: The language version override must be specified before any declaration or directive.
     correctionMessage: Try moving the language version override to the top of the file.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override comment must be specified with the word 'dart' in all lower case."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
       No parameters.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override comment must be specified with a version number, like '2.0', after the '=' character."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
       No parameters.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override number can't be prefixed with a letter."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
       No parameters.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override comment can't be followed by any non-whitespace characters."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
       No parameters.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: The Dart language version override comment must be specified with exactly two slashes.
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
       No parameters.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override comment must be specified with an '=' character."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
       No parameters.
+    hasPublishedDocs: true
   INVALID_LITERAL_ANNOTATION:
     problemMessage: Only const constructors can have the `@literal` annotation.
     hasPublishedDocs: true
@@ -17500,6 +17571,7 @@ HintCode:
     comment: |-
       Parameters:
       0: the name of the member
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -18084,6 +18156,7 @@ HintCode:
     problemMessage: "This null-check will always throw an exception because the expression will always evaluate to 'null'."
     comment: |-
       No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -18220,6 +18293,7 @@ HintCode:
       Parameters:
       0: the name of the annotated function being invoked
       1: the name of the function containing the return
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

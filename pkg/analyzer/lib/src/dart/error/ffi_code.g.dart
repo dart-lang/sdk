@@ -103,6 +103,7 @@ class FfiCode extends AnalyzerErrorCode {
     "Fields in a struct class whose type is 'Pointer' shouldn't have any "
         "annotations.",
     correctionMessage: "Try removing the annotation.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -163,6 +164,7 @@ class FfiCode extends AnalyzerErrorCode {
     'ARGUMENT_MUST_BE_A_CONSTANT',
     "Argument '{0}' must be a constant.",
     correctionMessage: "Try replacing the value with a literal or const.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -220,6 +222,7 @@ class FfiCode extends AnalyzerErrorCode {
         "be instantiated by a generative constructor.",
     correctionMessage:
         "Try allocating it via allocation, or load from a 'Pointer'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -279,6 +282,7 @@ class FfiCode extends AnalyzerErrorCode {
     "The class '{0}' can't be empty because it's a subclass of '{1}'.",
     correctionMessage:
         "Try adding a field to '{0}' or use a different superclass.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -323,6 +327,7 @@ class FfiCode extends AnalyzerErrorCode {
     "Fields in a struct class must have exactly one annotation indicating the "
         "native type.",
     correctionMessage: "Try removing the extra annotation.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -367,6 +372,7 @@ class FfiCode extends AnalyzerErrorCode {
     'EXTRA_SIZE_ANNOTATION_CARRAY',
     "'Array's must have exactly one 'Array' annotation.",
     correctionMessage: "Try removing the extra annotation.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -465,6 +471,7 @@ class FfiCode extends AnalyzerErrorCode {
         "initializers.",
     correctionMessage:
         "Try removing the field initializer and marking the field as external.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -508,6 +515,7 @@ class FfiCode extends AnalyzerErrorCode {
     "Fields in subclasses of 'Struct' and 'Union' can't have initializers.",
     correctionMessage:
         "Try removing the initializer and marking the field as external.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -550,6 +558,7 @@ class FfiCode extends AnalyzerErrorCode {
     'FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
     "Fields of 'Struct' and 'Union' subclasses must be marked external.",
     correctionMessage: "Try adding the 'external' modifier.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -592,6 +601,7 @@ class FfiCode extends AnalyzerErrorCode {
     "The class '{0}' can't extend 'Struct' or 'Union' because '{0}' is "
         "generic.",
     correctionMessage: "Try removing the type parameters from '{0}'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -644,6 +654,7 @@ class FfiCode extends AnalyzerErrorCode {
         "(the second argument) when the return type of the function is either "
         "'void', 'Handle' or 'Pointer'.",
     correctionMessage: "Try removing the exceptional return value.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -698,6 +709,7 @@ class FfiCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try using 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' "
         "or 'Union'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -758,6 +770,7 @@ class FfiCode extends AnalyzerErrorCode {
     'LEAF_CALL_MUST_NOT_RETURN_HANDLE',
     "FFI leaf call can't return a 'Handle'.",
     correctionMessage: "Try changing the return type to primitive or struct.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -812,6 +825,7 @@ class FfiCode extends AnalyzerErrorCode {
     'LEAF_CALL_MUST_NOT_TAKE_HANDLE',
     "FFI leaf call can't take arguments of type 'Handle'.",
     correctionMessage: "Try changing the argument type to primitive or struct.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -867,6 +881,7 @@ class FfiCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try using a different annotation or changing the declared type to "
         "match.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -912,6 +927,7 @@ class FfiCode extends AnalyzerErrorCode {
     "Fields in a struct class must either have the type 'Pointer' or an "
         "annotation indicating the native type.",
     correctionMessage: "Try adding an annotation.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -961,6 +977,7 @@ class FfiCode extends AnalyzerErrorCode {
         "(the second argument) when the return type of the function is neither "
         "'void', 'Handle', nor 'Pointer'.",
     correctionMessage: "Try adding an exceptional return value.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1012,6 +1029,7 @@ class FfiCode extends AnalyzerErrorCode {
     "Fields in struct classes must have an explicitly declared type of 'int', "
         "'double' or 'Pointer'.",
     correctionMessage: "Try using 'int', 'double' or 'Pointer'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1056,6 +1074,7 @@ class FfiCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try adding an 'Array' annotation, or removing all but one of the "
         "annotations.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1110,6 +1129,7 @@ class FfiCode extends AnalyzerErrorCode {
         "type.",
     correctionMessage:
         "Try changing the type to only use members for 'dart:ffi'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1180,6 +1200,7 @@ class FfiCode extends AnalyzerErrorCode {
     'MUST_BE_A_SUBTYPE',
     "The type '{0}' must be a subtype of '{1}' for '{2}'.",
     correctionMessage: "Try changing one or both of the type arguments.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1231,6 +1252,7 @@ class FfiCode extends AnalyzerErrorCode {
     "The type arguments to '{0}' must be known at compile time, so they can't "
         "be type parameters.",
     correctionMessage: "Try changing the type argument to be a constant type.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1287,6 +1309,7 @@ class FfiCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try changing the function argument in 'NativeFunction' to only use "
         "NativeTypes.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1329,6 +1352,7 @@ class FfiCode extends AnalyzerErrorCode {
     'NON_POSITIVE_ARRAY_DIMENSION',
     "Array dimensions must be positive numbers.",
     correctionMessage: "Try changing the input to a positive number.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1378,6 +1402,7 @@ class FfiCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try using a native integer, 'Float', 'Double', 'Pointer', or subtype "
         "of 'Struct', 'Union', or 'AbiSpecificInteger'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1421,6 +1446,7 @@ class FfiCode extends AnalyzerErrorCode {
     'PACKED_ANNOTATION',
     "Structs must have at most one 'Packed' annotation.",
     correctionMessage: "Try removing extra 'Packed' annotations.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1464,6 +1490,7 @@ class FfiCode extends AnalyzerErrorCode {
     "Only packing to 1, 2, 4, 8, and 16 bytes is supported.",
     correctionMessage:
         "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1554,6 +1581,7 @@ class FfiCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try packing the nested struct or packing the nested struct more "
         "tightly.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1610,6 +1638,7 @@ class FfiCode extends AnalyzerErrorCode {
     'SIZE_ANNOTATION_DIMENSIONS',
     "'Array's must have an 'Array' annotation that matches the dimensions.",
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1661,6 +1690,7 @@ class FfiCode extends AnalyzerErrorCode {
     'SUBTYPE_OF_FFI_CLASS',
     "The class '{0}' can't extend '{1}'.",
     correctionMessage: "Try extending 'Struct' or 'Union'.",
+    hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_EXTENDS',
   );
 
@@ -1673,6 +1703,7 @@ class FfiCode extends AnalyzerErrorCode {
     'SUBTYPE_OF_FFI_CLASS',
     "The class '{0}' can't implement '{1}'.",
     correctionMessage: "Try implementing 'Allocator' or 'Finalizable'.",
+    hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS',
   );
 
@@ -1685,6 +1716,7 @@ class FfiCode extends AnalyzerErrorCode {
     'SUBTYPE_OF_FFI_CLASS',
     "The class '{0}' can't mix in '{1}'.",
     correctionMessage: "Try extending 'Struct' or 'Union'.",
+    hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_WITH',
   );
 
@@ -1743,6 +1775,7 @@ class FfiCode extends AnalyzerErrorCode {
         "'Struct', 'Union', or 'AbiSpecificInteger'.",
     correctionMessage:
         "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
+    hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
   );
 
@@ -1757,6 +1790,7 @@ class FfiCode extends AnalyzerErrorCode {
         "'Struct', 'Union', or 'AbiSpecificInteger'.",
     correctionMessage:
         "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
+    hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
   );
 
@@ -1771,6 +1805,7 @@ class FfiCode extends AnalyzerErrorCode {
         "'Struct', 'Union', or 'AbiSpecificInteger'.",
     correctionMessage:
         "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
+    hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
   );
 

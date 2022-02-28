@@ -1730,6 +1730,7 @@ FieldInitializerOutsideConstructor:
   problemMessage: "Field formal parameters can only be used in a constructor."
   correctionMessage: "Try removing 'this.'."
   analyzerCode: ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+  hasPublishedDocs: true
   script:
     - "class C { void m(this.x); }"
 
