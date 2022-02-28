@@ -190,6 +190,7 @@ import 'rules/unnecessary_this.dart';
 import 'rules/unrelated_type_equality_checks.dart';
 import 'rules/unsafe_html.dart';
 import 'rules/use_build_context_synchronously.dart';
+import 'rules/use_colored_box.dart';
 import 'rules/use_decorated_box.dart';
 import 'rules/use_full_hex_values_for_flutter_colors.dart';
 import 'rules/use_function_type_syntax_for_parameters.dart';
@@ -399,6 +400,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(UnrelatedTypeEqualityChecks())
     ..register(UnsafeHtml())
     ..register(UseBuildContextSynchronously(inTestMode: inTestMode))
+    ..register(UseColoredBox())
     ..register(UseDecoratedBox())
     ..register(UseFullHexValuesForFlutterColors())
     ..register(UseFunctionTypeSyntaxForParameters())
