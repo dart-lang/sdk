@@ -450,7 +450,13 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           // Add in any snippets.
           final snippetsEnabled =
               server.clientConfiguration.forResource(unit.path).enableSnippets;
-          if (capabilities.completionSnippets && snippetsEnabled) {
+          // We can only produce edits with edit builders for files inside
+          // the root, so skip snippets entirely if not.
+          final isEditableFile =
+              unit.session.analysisContext.contextRoot.isAnalyzed(unit.path);
+          if (capabilities.completionSnippets &&
+              snippetsEnabled &&
+              isEditableFile) {
             results.addAll(await _getDartSnippetItems(
               clientCapabilities: capabilities,
               unit: unit,

@@ -184,5 +184,10 @@ abstract class SnippetProducer {
 
   Future<Snippet> compute();
 
-  Future<bool> isValid();
+  Future<bool> isValid() async {
+    // File edit builders will not produce edits for files outside of the
+    // analysis roots so we should not try to produce any snippets.
+    final analysisContext = request.analysisSession.analysisContext;
+    return analysisContext.contextRoot.isAnalyzed(request.filePath);
+  }
 }

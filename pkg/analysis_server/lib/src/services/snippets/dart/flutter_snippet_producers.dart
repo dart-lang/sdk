@@ -29,7 +29,7 @@ abstract class FlutterSnippetProducer extends SnippetProducer {
       return false;
     }
 
-    return true;
+    return super.isValid();
   }
 
   Future<ClassElement?> _getClass(String name) =>
@@ -152,7 +152,7 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
     return Snippet(
       prefix,
       label,
-      'Insert a StatelessWidget',
+      'Insert a StatefulWidget',
       builder.sourceChange,
     );
   }

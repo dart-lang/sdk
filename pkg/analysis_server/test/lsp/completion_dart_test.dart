@@ -2622,6 +2622,19 @@ class A {
       FlutterStatelessWidgetSnippetProducer.prefix,
     );
   }
+
+  Future<void> test_snippets_flutterStateless_outsideAnalysisRoot() async {
+    final content = '''
+stle^
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final otherFileUri = Uri.file('/other/file.dart');
+    await openFile(otherFileUri, withoutMarkers(content));
+    final res = await getCompletion(otherFileUri, positionFromMarker(content));
+    final snippetItems = res.where((c) => c.kind == CompletionItemKind.Snippet);
+    expect(snippetItems, hasLength(0));
+  }
 }
 
 @reflectiveTest
