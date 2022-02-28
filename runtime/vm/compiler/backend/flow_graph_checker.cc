@@ -333,6 +333,9 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
       }
     }
   }
+  ASSERT1(flow_graph_->unmatched_representations_allowed() ||
+              !instruction->HasUnmatchedInputRepresentations(),
+          instruction);
 
   // Check all regular inputs.
   for (intptr_t i = 0, n = instruction->InputCount(); i < n; ++i) {

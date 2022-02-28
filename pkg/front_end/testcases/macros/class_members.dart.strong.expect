@@ -1,0 +1,111 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/macros/class_members_lib.dart:9:8: Error: Member 'existingMethod' conflicts with an existing member of the same name in the augmented class.
+// Try changing the name to an existing member or adding an 'augment' modifier.
+//   void existingMethod() {
+//        ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/macros/class_members.dart:8:8: Context: This is the existing member.
+//   void existingMethod() {
+//        ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/class_members_lib.dart:15:16: Error: Augmentation member 'orphanedMethod' doesn't match a member in the augmented class.
+// Try changing the name to an existing member or removing the 'augment' modifier.
+//   augment void orphanedMethod() {
+//                ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/class_members_lib.dart:21:12: Error: Member 'existingSetter' conflicts with an existing member of the same name in the augmented class.
+// Try changing the name to an existing member or adding an 'augment' modifier.
+//   void set existingSetter(_) {
+//            ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/macros/class_members.dart:14:12: Context: This is the existing member.
+//   void set existingSetter(_) {
+//            ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/class_members_lib.dart:27:20: Error: Augmentation member 'orphanedSetter' doesn't match a member in the augmented class.
+// Try changing the name to an existing member or removing the 'augment' modifier.
+//   augment void set orphanedSetter(_) {
+//                    ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/class_members.dart:22:5: Error: The method 'orphanedMethod' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/class_members.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'orphanedMethod'.
+//   c.orphanedMethod();
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/class_members.dart:23:5: Error: The setter 'orphanedSetter' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/class_members.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'orphanedSetter'.
+//   c.orphanedSetter = 0;
+//     ^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///class_members.dart";
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method existingMethod() → void {
+    core::print("existingMethod-origin");
+  }
+  method /* from org-dartlang-testcase:///class_members_lib.dart */ augmentedMethod() → void {
+    core::print("augmentedMethod");
+  }
+  set existingSetter(dynamic _) → void {
+    core::print("existingSetter-origin");
+  }
+  set /* from org-dartlang-testcase:///class_members_lib.dart */ augmentedSetter(dynamic _) → void {
+    core::print("augmentedSetter");
+  }
+  method /* from org-dartlang-testcase:///class_members_lib.dart */ injectedMethod() → void {
+    core::print("injectedMethod");
+  }
+  method /* from org-dartlang-testcase:///class_members_lib.dart */ orphanedMethod() → void {
+    core::print("orphanedMethod");
+  }
+  set /* from org-dartlang-testcase:///class_members_lib.dart */ injectedSetter(dynamic _) → void {
+    core::print("injectedSetter");
+  }
+  set /* from org-dartlang-testcase:///class_members_lib.dart */ orphanedSetter(dynamic _) → void {
+    core::print("orphanedSetter");
+  }
+}
+static method test(self::Class c) → dynamic {
+  invalid-expression "pkg/front_end/testcases/macros/class_members.dart:22:5: Error: The method 'orphanedMethod' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/class_members.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'orphanedMethod'.
+  c.orphanedMethod();
+    ^^^^^^^^^^^^^^" in c{<unresolved>}.orphanedMethod();
+  invalid-expression "pkg/front_end/testcases/macros/class_members.dart:23:5: Error: The setter 'orphanedSetter' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/class_members.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'orphanedSetter'.
+  c.orphanedSetter = 0;
+    ^^^^^^^^^^^^^^" in c{<unresolved>}.orphanedSetter = 0;
+}
+static method main() → dynamic {
+  self::Class c = new self::Class::•();
+  c.{self::Class::augmentedMethod}(){() → void};
+  c.{self::Class::injectedMethod}(){() → void};
+  c.{self::Class::existingMethod}(){() → void};
+  c.{self::Class::augmentedSetter} = 0;
+  c.{self::Class::injectedSetter} = 0;
+  c.{self::Class::existingSetter} = 0;
+  self::injectedMethod(c);
+}
+static method /* from org-dartlang-testcase:///class_members_lib.dart */ augmentTest(self::Class c) → void {
+  c.{self::Class::orphanedMethod}(){() → void};
+  c.{self::Class::orphanedMethod}(){() → void};
+  c.{self::Class::orphanedSetter} = 0;
+}
+static method /* from org-dartlang-testcase:///class_members_lib.dart */ injectedMethod(self::Class c) → void {
+  c.{self::Class::augmentedMethod}(){() → void};
+  c.{self::Class::injectedMethod}(){() → void};
+  c.{self::Class::existingMethod}(){() → void};
+  c.{self::Class::augmentedSetter} = 0;
+  c.{self::Class::injectedSetter} = 0;
+  c.{self::Class::existingSetter} = 0;
+}

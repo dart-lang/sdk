@@ -676,6 +676,13 @@ void FlowGraphCompiler::VisitBlocks() {
       Instruction* instr = it.Current();
       set_current_instruction(instr);
       StatsBegin(instr);
+      // Unoptimized code always stores boxed values on the expression stack.
+      // However, unboxed representation is allowed for instruction inputs and
+      // outputs of certain types (e.g. for doubles).
+      // Unboxed inputs/outputs are handled in the instruction prologue
+      // and epilogue, but flagged as a mismatch on the IL level.
+      RELEASE_ASSERT(!is_optimizing() ||
+                     !instr->HasUnmatchedInputRepresentations());
 
       if (FLAG_code_comments || FLAG_disassemble ||
           FLAG_disassemble_optimized) {

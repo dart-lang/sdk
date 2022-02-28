@@ -644,6 +644,8 @@ NonAgnosticConstant/analyzerCode: Fail
 NonAgnosticConstant/example: Fail
 NonAsciiIdentifier/expression: Fail
 NonAsciiIdentifier/part_wrapped_expression: Fail
+NonAugmentationClassMemberConflict/analyzerCode: Fail
+NonAugmentationClassMemberConflict/example: Fail
 NonConstConstructor/example: Fail
 NonConstFactory/example: Fail
 NonInstanceTypeVariableUse/example: Fail
@@ -849,6 +851,8 @@ UndefinedExtensionSetter/analyzerCode: Fail
 UndefinedExtensionSetter/example: Fail
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
+UnmatchedAugmentationClassMember/analyzerCode: Fail
+UnmatchedAugmentationClassMember/example: Fail
 UnmatchedToken/part_wrapped_script1: Fail
 UnmatchedToken/part_wrapped_script3: Fail
 UnmatchedToken/script1: Fail

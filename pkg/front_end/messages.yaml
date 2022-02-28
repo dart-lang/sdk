@@ -5507,3 +5507,15 @@ EnumImplementerContainsValuesDeclaration:
 MacroClassNotDeclaredMacro:
   problemMessage: "Non-abstract class '#name' implements 'Macro' but isn't declared as a macro class."
   correctionMessage: "Try adding the 'macro' class modifier."
+
+UnmatchedAugmentationClassMember:
+  problemMessage: "Augmentation member '#name' doesn't match a member in the augmented class."
+  correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
+
+NonAugmentationClassMemberConflict:
+  problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented class."
+  correctionMessage: "Try changing the name to an existing member or adding an 'augment' modifier."
+
+NonAugmentationClassMemberConflictCause:
+  problemMessage: "This is the existing member."
+  severity: CONTEXT

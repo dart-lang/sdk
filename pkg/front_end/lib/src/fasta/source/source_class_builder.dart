@@ -158,15 +158,17 @@ class SourceClassBuilder extends ClassBuilderImpl
     void buildBuilders(String name, Builder? declaration) {
       while (declaration != null) {
         if (declaration.parent != this) {
-          if (fileUri != declaration.parent?.fileUri) {
-            unexpected("$fileUri", "${declaration.parent?.fileUri}", charOffset,
-                fileUri);
-          } else {
-            unexpected(
-                fullNameForErrors,
-                declaration.parent?.fullNameForErrors ?? '',
-                charOffset,
-                fileUri);
+          if (declaration.parent?.origin != this) {
+            if (fileUri != declaration.parent?.fileUri) {
+              unexpected("$fileUri", "${declaration.parent?.fileUri}",
+                  charOffset, fileUri);
+            } else {
+              unexpected(
+                  fullNameForErrors,
+                  declaration.parent?.fullNameForErrors ?? '',
+                  charOffset,
+                  fileUri);
+            }
           }
         } else if (declaration is SourceMemberBuilder) {
           SourceMemberBuilder memberBuilder = declaration;
@@ -175,7 +177,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             member.parent = cls;
             if (!memberBuilder.isPatch &&
                 !memberBuilder.isDuplicate &&
-                !memberBuilder.isConflictingSetter) {
+                !memberBuilder.isConflictingSetter &&
+                !memberBuilder.isConflictingAugmentationMember) {
               if (member is Procedure) {
                 cls.addProcedure(member);
               } else if (member is Field) {
@@ -602,21 +605,71 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (patch is SourceClassBuilder) {
       patch.actualOrigin = this;
       (_patches ??= []).add(patch);
-      // TODO(ahe): Complain if `patch.supertype` isn't null.
-      scope.forEachLocalMember((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: false);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+
+      void applyAugmentation(String name, SourceMemberBuilder patchMember,
+          {required bool setter}) {
+        Builder? originMember = scope.lookupLocalMember(name, setter: setter);
+        if (patch.isAugmentation) {
+          if (originMember != null) {
+            if (patchMember.isAugmentation) {
+              originMember.applyPatch(patchMember);
+            } else {
+              patchMember.isConflictingAugmentationMember = true;
+              library.addProblem(
+                  templateNonAugmentationClassMemberConflict
+                      .withArguments(name),
+                  patchMember.charOffset,
+                  name.length,
+                  patchMember.fileUri,
+                  context: [
+                    messageNonAugmentationClassMemberConflictCause.withLocation(
+                        originMember.fileUri!,
+                        originMember.charOffset,
+                        name.length)
+                  ]);
+            }
+          } else {
+            if (patchMember.isAugmentation) {
+              library.addProblem(
+                  templateUnmatchedAugmentationClassMember.withArguments(name),
+                  patchMember.charOffset,
+                  name.length,
+                  patchMember.fileUri);
+            } else {
+              scope.addLocalMember(name, patchMember, setter: setter);
+            }
+          }
+        } else {
+          if (originMember != null) {
+            // Patch class implicitly assume matching members are patch
+            // members.
+            originMember.applyPatch(patchMember);
+          } else {
+            // Members injected into patch are not part of the origin scope.
+          }
+        }
+      }
+
+      patch.scope.forEachLocalMember((String name, Builder patchMember) {
+        if (patchMember is SourceMemberBuilder) {
+          applyAugmentation(name, patchMember, setter: false);
+        } else {
+          assert(false,
+              "Unexpected member ${patchMember} (${patchMember.runtimeType})");
         }
       });
-      scope.forEachLocalSetter((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: true);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+
+      patch.scope.forEachLocalSetter((String name, Builder patchMember) {
+        if (patchMember is SourceMemberBuilder) {
+          applyAugmentation(name, patchMember, setter: true);
+        } else {
+          assert(false,
+              "Unexpected member ${patchMember} (${patchMember.runtimeType})");
         }
       });
+
+      // TODO(johnniwinther): Should we support constructor augmentation?
+      // Currently the syntax doesn't allow it.
       constructors.local.forEach((String name, Builder member) {
         Builder? memberPatch = patch.constructors.local[name];
         if (memberPatch != null) {

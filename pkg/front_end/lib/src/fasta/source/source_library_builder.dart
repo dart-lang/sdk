@@ -798,7 +798,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     } else {
       resolvedUri = resolve(this.importUri, uri, uriOffset);
-      builder = loader.read(resolvedUri, uriOffset, accessor: this);
+      builder = loader.read(resolvedUri, uriOffset,
+          origin: isAugmentationImport ? this : null,
+          accessor: this,
+          isAugmentation: isAugmentationImport);
     }
 
     imports.add(new Import(

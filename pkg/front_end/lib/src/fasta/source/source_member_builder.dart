@@ -14,6 +14,7 @@ import '../builder/declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../kernel/kernel_helper.dart';
+import '../modifier.dart';
 import '../problems.dart' show unsupported;
 import '../source/source_library_builder.dart';
 import '../type_inference/type_inference_engine.dart'
@@ -42,6 +43,14 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   /// Checks the signature types of this member.
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment);
+
+  /// Returns `true` if this member is an augmentation.
+  bool get isAugmentation;
+
+  /// Returns `true` if this member is a member declared in an augmentation
+  /// library that conflicts with a member in the origin library.
+  bool get isConflictingAugmentationMember;
+  void set isConflictingAugmentationMember(bool value);
 }
 
 mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
@@ -53,6 +62,18 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
   void buildMembers(
       SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     assert(false, "Unexpected call to $runtimeType.buildMembers.");
+  }
+
+  @override
+  bool get isAugmentation => false;
+
+  @override
+  bool get isConflictingAugmentationMember => false;
+
+  @override
+  void set isConflictingAugmentationMember(bool value) {
+    assert(false,
+        "Unexpected call to $runtimeType.isConflictingAugmentationMember=");
   }
 }
 
@@ -68,6 +89,9 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
 
   bool get isRedirectingGenerativeConstructor => false;
 
+  @override
+  bool get isAugmentation => modifiers & augmentMask != 0;
+
   bool? _isConflictingSetter;
 
   @override
@@ -79,6 +103,20 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
     assert(_isConflictingSetter == null,
         '$this.isConflictingSetter has already been fixed.');
     _isConflictingSetter = value;
+  }
+
+  bool? _isConflictingAugmentationMember;
+
+  @override
+  bool get isConflictingAugmentationMember {
+    return _isConflictingAugmentationMember ??= false;
+  }
+
+  @override
+  void set isConflictingAugmentationMember(bool value) {
+    assert(_isConflictingAugmentationMember == null,
+        '$this.isConflictingAugmentationMember has already been fixed.');
+    _isConflictingAugmentationMember = value;
   }
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
