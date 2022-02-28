@@ -3104,6 +3104,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'CONTINUE_LABEL_ON_SWITCH',
     "A `continue` label resolves to a `switch` statement, but the label must "
         "be on a loop or a switch member.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -3440,6 +3441,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try removing the type arguments, or instantiating the type(s) of a "
         "generic type, generic function, generic instance method, or generic "
         "constructor.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -3762,6 +3764,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
     "The name of the enum constant can't be the same as the enum's name.",
     correctionMessage: "Try renaming the constant.",
+    hasPublishedDocs: true,
   );
 
   static const CompileTimeErrorCode ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR =
@@ -4738,6 +4741,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the field initializer or the 'external' keyword from the "
         "field declaration.",
+    hasPublishedDocs: true,
     uniqueName: 'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
   );
 
@@ -4747,6 +4751,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "External fields can't have initializers.",
     correctionMessage:
         "Try removing the initializer or the 'external' keyword.",
+    hasPublishedDocs: true,
     uniqueName: 'EXTERNAL_FIELD_INITIALIZER',
   );
 
@@ -4756,6 +4761,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "External variables can't have initializers.",
     correctionMessage:
         "Try removing the initializer or the 'external' keyword.",
+    hasPublishedDocs: true,
     uniqueName: 'EXTERNAL_VARIABLE_INITIALIZER',
   );
 
@@ -5153,6 +5159,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
     "Initializing formal parameters can only be used in constructors.",
     correctionMessage: "Try using a normal parameter.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -6339,6 +6346,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'IMPORT_OF_NON_LIBRARY',
     "The imported library '{0}' can't have a part-of directive.",
     correctionMessage: "Try importing the library that the part is a part of.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -6483,6 +6491,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
     "Parts must have exactly the same language version override as the "
         "library.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -9549,6 +9558,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
     "Constructors can have only one 'this' redirection, at most.",
     correctionMessage: "Try removing all but one of the redirections.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -10825,6 +10835,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try adding an explicit constructor that has a different "
         "superinitializer or changing the superclass constructor '{2}' to not "
         "be a factory constructor.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -11728,6 +11739,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try implementing the class instead, adding a generative (not factory) "
         "constructor to the superclass '{1}', or a factory constructor to the "
         "subclass.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -12306,6 +12318,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "declaration.",
     correctionMessage:
         "Try renaming either the prefix or the local declaration.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -12446,6 +12459,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The setter '{0}' is private and can't be accessed outside the library "
         "that declares it.",
     correctionMessage: "Try making it public.",
+    hasPublishedDocs: true,
   );
 
   // #### Description
@@ -12490,6 +12504,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "unassigned at this point.",
     correctionMessage:
         "Ensure that it is assigned on necessary execution paths.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -12889,6 +12904,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The redirecting constructor '{0}' can't redirect to a constructor of the "
         "abstract class '{1}'.",
     correctionMessage: "Try redirecting to a constructor of a different class.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -13093,6 +13109,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try redirecting to a different constructor, or define the constructor "
         "named '{0}'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -14047,6 +14064,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'SWITCH_CASE_COMPLETES_NORMALLY',
     "The 'case' shouldn't complete normally.",
     correctionMessage: "Try adding 'break', 'return', or 'throw'.",
+    hasPublishedDocs: true,
   );
 
   /**

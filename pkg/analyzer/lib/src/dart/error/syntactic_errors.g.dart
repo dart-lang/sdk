@@ -791,6 +791,7 @@ class ParserErrorCode extends ErrorCode {
     'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
     "Field formal parameters can only be used in a constructor.",
     correctionMessage: "Try removing 'this.'.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode FINAL_AND_COVARIANT = ParserErrorCode(
