@@ -759,16 +759,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addImport(
-      List<MetadataBuilder>? metadata,
-      String uri,
-      List<Configuration>? configurations,
-      String? prefix,
-      List<CombinatorBuilder>? combinators,
-      bool deferred,
-      int charOffset,
-      int prefixCharOffset,
-      int uriOffset,
-      int importIndex) {
+      {required List<MetadataBuilder>? metadata,
+      required bool isAugmentationImport,
+      required String uri,
+      required List<Configuration>? configurations,
+      required String? prefix,
+      required List<CombinatorBuilder>? combinators,
+      required bool deferred,
+      required int charOffset,
+      required int prefixCharOffset,
+      required int uriOffset,
+      required int importIndex}) {
     if (configurations != null) {
       for (Configuration config in configurations) {
         if (loader.getLibrarySupportValue(config.dottedName) ==
@@ -800,8 +801,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       builder = loader.read(resolvedUri, uriOffset, accessor: this);
     }
 
-    imports.add(new Import(this, builder, deferred, prefix, combinators,
-        configurations, charOffset, prefixCharOffset, importIndex,
+    imports.add(new Import(
+        this,
+        builder,
+        isAugmentationImport,
+        deferred,
+        prefix,
+        combinators,
+        configurations,
+        charOffset,
+        prefixCharOffset,
+        importIndex,
         nativeImportPath: nativePath));
   }
 

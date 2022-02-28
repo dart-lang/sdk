@@ -6269,6 +6269,10 @@ class ImplicitCallReferenceImpl extends ExpressionImpl
 //         [Combinator]* ';'
 class ImportDirectiveImpl extends NamespaceDirectiveImpl
     implements ImportDirective {
+  /// The token representing the 'augment' keyword, or `null` if the import is
+  /// not a library augmentation import.
+  Token? augmentKeyword;
+
   /// The token representing the 'deferred' keyword, or `null` if the imported
   /// is not deferred.
   @override
@@ -6293,6 +6297,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
       CommentImpl? comment,
       List<Annotation>? metadata,
       Token keyword,
+      this.augmentKeyword,
       StringLiteralImpl libraryUri,
       List<Configuration>? configurations,
       this.deferredKeyword,
@@ -6323,6 +6328,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('keyword', keyword)
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addNode('uri', uri)
     ..addToken('deferredKeyword', deferredKeyword)
     ..addToken('asKeyword', asKeyword)

@@ -1052,9 +1052,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     ImportEnd data = new ImportEnd(ParserAstType.END,
-        importKeyword: importKeyword, semicolon: semicolon);
+        importKeyword: importKeyword,
+        augmentToken: augmentToken,
+        semicolon: semicolon);
     seen(data);
   }
 
@@ -1321,6 +1323,7 @@ abstract class AbstractParserAstListener implements Listener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1329,6 +1332,7 @@ abstract class AbstractParserAstListener implements Listener {
       Token name) {
     MethodBegin data = new MethodBegin(ParserAstType.BEGIN,
         declarationKind: declarationKind,
+        augmentToken: augmentToken,
         externalToken: externalToken,
         staticToken: staticToken,
         covariantToken: covariantToken,
@@ -4453,14 +4457,17 @@ class ImportPrefixHandle extends ParserAstNode {
 
 class ImportEnd extends ParserAstNode {
   final Token importKeyword;
+  final Token? augmentToken;
   final Token? semicolon;
 
-  ImportEnd(ParserAstType type, {required this.importKeyword, this.semicolon})
+  ImportEnd(ParserAstType type,
+      {required this.importKeyword, this.augmentToken, this.semicolon})
       : super("Import", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "importKeyword": importKeyword,
+        "augmentToken": augmentToken,
         "semicolon": semicolon,
       };
 }
@@ -4932,6 +4939,7 @@ class MemberEnd extends ParserAstNode {
 
 class MethodBegin extends ParserAstNode {
   final DeclarationKind declarationKind;
+  final Token? augmentToken;
   final Token? externalToken;
   final Token? staticToken;
   final Token? covariantToken;
@@ -4941,6 +4949,7 @@ class MethodBegin extends ParserAstNode {
 
   MethodBegin(ParserAstType type,
       {required this.declarationKind,
+      this.augmentToken,
       this.externalToken,
       this.staticToken,
       this.covariantToken,
@@ -4952,6 +4961,7 @@ class MethodBegin extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "declarationKind": declarationKind,
+        "augmentToken": augmentToken,
         "externalToken": externalToken,
         "staticToken": staticToken,
         "covariantToken": covariantToken,

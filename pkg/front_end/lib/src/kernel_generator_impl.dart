@@ -62,60 +62,65 @@ Future<CompilerResult> generateKernelInternal(
 
   SourceLoader? sourceLoader;
   return withCrashReporting<CompilerResult>(() async {
-    // TODO(johnniwinther): How much can we reuse between iterations?
-    UriTranslator uriTranslator = await options.getUriTranslator();
+    while (true) {
+      // TODO(johnniwinther): How much can we reuse between iterations?
+      UriTranslator uriTranslator = await options.getUriTranslator();
 
-    DillTarget dillTarget =
-        new DillTarget(options.ticker, uriTranslator, options.target);
+      DillTarget dillTarget =
+          new DillTarget(options.ticker, uriTranslator, options.target);
 
-    List<Component> loadedComponents = <Component>[];
+      List<Component> loadedComponents = <Component>[];
 
-    Component? sdkSummary = await options.loadSdkSummary(null);
-    // By using the nameRoot of the summary, we enable sharing the
-    // sdkSummary between multiple invocations.
-    CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
-    if (sdkSummary != null) {
-      dillTarget.loader.appendLibraries(sdkSummary);
-    }
-
-    for (Component additionalDill
-        in await options.loadAdditionalDills(nameRoot)) {
-      loadedComponents.add(additionalDill);
-      dillTarget.loader.appendLibraries(additionalDill);
-    }
-
-    dillTarget.buildOutlines();
-
-    KernelTarget kernelTarget =
-        new KernelTarget(fs, false, dillTarget, uriTranslator);
-    sourceLoader = kernelTarget.loader;
-    kernelTarget.setEntryPoints(options.inputs);
-    NeededPrecompilations? neededPrecompilations =
-        await kernelTarget.computeNeededPrecompilations();
-    if (neededPrecompilations != null) {
-      if (enableMacros) {
-        // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
-        // the compiler options for the precompilation.
-        if (options.rawOptionsForTesting.macroTarget != null) {
-          await _compileMacros(
-              neededPrecompilations, options.rawOptionsForTesting);
-        }
-      } else {
-        throw new UnsupportedError('Macro precompilation is not supported');
+      Component? sdkSummary = await options.loadSdkSummary(null);
+      // By using the nameRoot of the summary, we enable sharing the
+      // sdkSummary between multiple invocations.
+      CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
+      if (sdkSummary != null) {
+        dillTarget.loader.appendLibraries(sdkSummary);
       }
+
+      for (Component additionalDill
+          in await options.loadAdditionalDills(nameRoot)) {
+        loadedComponents.add(additionalDill);
+        dillTarget.loader.appendLibraries(additionalDill);
+      }
+
+      dillTarget.buildOutlines();
+
+      KernelTarget kernelTarget =
+          new KernelTarget(fs, false, dillTarget, uriTranslator);
+      sourceLoader = kernelTarget.loader;
+      kernelTarget.setEntryPoints(options.inputs);
+      NeededPrecompilations? neededPrecompilations =
+          await kernelTarget.computeNeededPrecompilations();
+      if (neededPrecompilations != null) {
+        if (enableMacros) {
+          // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
+          // the compiler options for the precompilation.
+          if (options.rawOptionsForTesting.macroTarget != null) {
+            await _compileMacros(
+                neededPrecompilations, options.rawOptionsForTesting);
+            // TODO(johnniwinther): Assert that some works has been done.
+            // TODO(johnniwinther): Stop in case of compile-time errors.
+            continue;
+          }
+        } else {
+          throw new UnsupportedError('Macro precompilation is not supported');
+        }
+      }
+      return _buildInternal(
+          options: options,
+          kernelTarget: kernelTarget,
+          nameRoot: nameRoot,
+          sdkSummary: sdkSummary,
+          loadedComponents: loadedComponents,
+          buildSummary: buildSummary,
+          truncateSummary: truncateSummary,
+          buildComponent: buildComponent,
+          includeOffsets: includeOffsets,
+          includeHierarchyAndCoreTypes: includeHierarchyAndCoreTypes,
+          retainDataForTesting: retainDataForTesting);
     }
-    return _buildInternal(
-        options: options,
-        kernelTarget: kernelTarget,
-        nameRoot: nameRoot,
-        sdkSummary: sdkSummary,
-        loadedComponents: loadedComponents,
-        buildSummary: buildSummary,
-        truncateSummary: truncateSummary,
-        buildComponent: buildComponent,
-        includeOffsets: includeOffsets,
-        includeHierarchyAndCoreTypes: includeHierarchyAndCoreTypes,
-        retainDataForTesting: retainDataForTesting);
   }, () => sourceLoader?.currentUriForCrashReporting ?? options.inputs.first);
 }
 

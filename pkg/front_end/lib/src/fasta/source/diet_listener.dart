@@ -521,7 +521,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     debugEvent("Import");
     Object? name = pop(NullValue.Prefix);
 
@@ -531,7 +531,7 @@ class DietListener extends StackListenerImpl {
 
     // Native imports must be skipped because they aren't assigned corresponding
     // LibraryDependency nodes.
-    Token importUriToken = importKeyword.next!;
+    Token importUriToken = augmentToken?.next ?? importKeyword.next!;
     String importUri =
         unescapeString(importUriToken.lexeme, importUriToken, this);
     if (importUri.startsWith("dart-ext:")) return;

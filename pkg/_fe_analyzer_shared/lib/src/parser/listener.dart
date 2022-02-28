@@ -833,7 +833,7 @@ class Listener implements UnescapeErrorListener {
   /// - conditional uris
   /// - prefix identifier
   /// - combinators
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     logEvent("Import");
   }
 
@@ -1009,6 +1009,7 @@ class Listener implements UnescapeErrorListener {
   /// [endMixinMethod].
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,

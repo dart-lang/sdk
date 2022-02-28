@@ -319,14 +319,15 @@ class ForwardingListener implements Listener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
       Token name) {
-    listener?.beginMethod(declarationKind, externalToken, staticToken,
-        covariantToken, varFinalOrConst, getOrSet, name);
+    listener?.beginMethod(declarationKind, augmentToken, externalToken,
+        staticToken, covariantToken, varFinalOrConst, getOrSet, name);
   }
 
   @override
@@ -892,8 +893,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
-    listener?.endImport(importKeyword, semicolon);
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+    listener?.endImport(importKeyword, augmentToken, semicolon);
   }
 
   @override

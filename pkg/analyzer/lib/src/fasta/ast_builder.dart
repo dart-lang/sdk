@@ -364,6 +364,7 @@ class AstBuilder extends StackListener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -371,6 +372,10 @@ class AstBuilder extends StackListener {
       Token? getOrSet,
       Token name) {
     _Modifiers modifiers = _Modifiers();
+    if (augmentToken != null) {
+      assert(augmentToken.isModifier);
+      modifiers.augmentKeyword = augmentToken;
+    }
     if (externalToken != null) {
       assert(externalToken.isModifier);
       modifiers.externalKeyword = externalToken;
@@ -1801,7 +1806,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     assert(optional('import', importKeyword));
     assert(optionalOrNull(';', semicolon));
     debugEvent("Import");
@@ -1815,6 +1820,21 @@ class AstBuilder extends StackListener {
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, importKeyword);
 
+    if (!enableMacros) {
+      if (augmentToken != null) {
+        var feature = ExperimentalFeatures.macros;
+        handleRecoverableError(
+            templateExperimentNotEnabled.withArguments(
+              feature.enableString,
+              _versionAsString(ExperimentStatus.currentVersion),
+            ),
+            augmentToken,
+            augmentToken);
+        // Pretend that 'augment' didn't occur while this feature is incomplete.
+        augmentToken = null;
+      }
+    }
+
     directives.add(ast.importDirective(
         comment,
         metadata,
@@ -1825,7 +1845,8 @@ class AstBuilder extends StackListener {
         asKeyword,
         prefix,
         combinators,
-        semicolon ?? Tokens.semicolon()));
+        semicolon ?? Tokens.semicolon(),
+        augmentKeyword: augmentToken));
   }
 
   @override

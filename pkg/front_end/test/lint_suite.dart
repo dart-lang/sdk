@@ -307,7 +307,7 @@ class ImportsTwiceLintListener extends LintListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     Token importUriToken = importKeyword.next!;
     String importUri = importUriToken.lexeme;
     if (importUri.startsWith("r")) {

@@ -855,20 +855,32 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
         }
 
         dartDocTestLibrary.addImport(
-            null,
-            dependency.importedLibraryReference.asLibrary.importUri.toString(),
-            null,
-            dependency.name,
-            combinators,
-            dependency.isDeferred,
-            -1,
-            -1,
-            -1,
-            -1);
+            metadata: null,
+            isAugmentationImport: false,
+            uri: dependency.importedLibraryReference.asLibrary.importUri
+                .toString(),
+            configurations: null,
+            prefix: dependency.name,
+            combinators: combinators,
+            deferred: dependency.isDeferred,
+            charOffset: -1,
+            prefixCharOffset: -1,
+            uriOffset: -1,
+            importIndex: -1);
       }
 
-      dartDocTestLibrary.addImport(null, libraryBuilder.importUri.toString(),
-          null, null, null, false, -1, -1, -1, -1);
+      dartDocTestLibrary.addImport(
+          metadata: null,
+          isAugmentationImport: false,
+          uri: libraryBuilder.importUri.toString(),
+          configurations: null,
+          prefix: null,
+          combinators: null,
+          deferred: false,
+          charOffset: -1,
+          prefixCharOffset: -1,
+          uriOffset: -1,
+          importIndex: -1);
 
       dartDocTestLibrary.addImportsToScope();
     } else {

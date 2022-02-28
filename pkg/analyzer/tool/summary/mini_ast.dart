@@ -325,7 +325,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     debugEvent("Import");
     pop(NullValue.Prefix); // Prefix identifier
     pop(); // URI

@@ -47,19 +47,32 @@ class WasmI16 extends _WasmInt {}
 
 /// The Wasm `i32` type.
 @pragma("wasm:entry-point")
-class WasmI32 extends _WasmInt {}
+class WasmI32 extends _WasmInt {
+  external factory WasmI32.fromInt(int value);
+  external int toIntSigned();
+  external int toIntUnsigned();
+}
 
 /// The Wasm `i64` type.
 @pragma("wasm:entry-point")
-class WasmI64 extends _WasmInt {}
+class WasmI64 extends _WasmInt {
+  external factory WasmI64.fromInt(int value);
+  external int toInt();
+}
 
 /// The Wasm `f32` type.
 @pragma("wasm:entry-point")
-class WasmF32 extends _WasmFloat {}
+class WasmF32 extends _WasmFloat {
+  external factory WasmF32.fromDouble(double value);
+  external double toDouble();
+}
 
 /// The Wasm `f64` type.
 @pragma("wasm:entry-point")
-class WasmF64 extends _WasmFloat {}
+class WasmF64 extends _WasmFloat {
+  external factory WasmF64.fromDouble(double value);
+  external double toDouble();
+}
 
 /// A Wasm array with integer element type.
 @pragma("wasm:entry-point")
@@ -87,4 +100,14 @@ class WasmObjectArray<T extends Object?> extends _WasmArray {
 
   external T read(int index);
   external void write(int index, T value);
+}
+
+extension IntToWasmInt on int {
+  WasmI32 toWasmI32() => WasmI32.fromInt(this);
+  WasmI64 toWasmI64() => WasmI64.fromInt(this);
+}
+
+extension DoubleToWasmFloat on double {
+  WasmF32 toWasmF32() => WasmF32.fromDouble(this);
+  WasmF64 toWasmF64() => WasmF64.fromDouble(this);
 }

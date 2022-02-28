@@ -863,7 +863,7 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     // ignore: unnecessary_null_comparison
     if (importKeyword != null && semicolon != null) {
       importExportsStartToChunk[importKeyword] = new _ImportChunk(

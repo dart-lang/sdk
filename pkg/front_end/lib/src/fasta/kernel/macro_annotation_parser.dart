@@ -580,6 +580,7 @@ class _MacroListener implements Listener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1078,7 +1079,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     _unexpected();
   }
 

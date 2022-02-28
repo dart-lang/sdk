@@ -27,6 +27,8 @@ class Import {
 
   final PrefixBuilder? prefixBuilder;
 
+  final bool isAugmentationImport;
+
   final bool deferred;
 
   final String? prefix;
@@ -46,6 +48,7 @@ class Import {
   Import(
       this.importer,
       this.imported,
+      this.isAugmentationImport,
       this.deferred,
       this.prefix,
       this.combinators,

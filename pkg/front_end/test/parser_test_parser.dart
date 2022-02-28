@@ -1182,6 +1182,7 @@ class TestParser extends Parser {
   Token parseMethod(
       Token beforeStart,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1197,6 +1198,7 @@ class TestParser extends Parser {
     doPrint('parseMethod('
         '$beforeStart, '
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -1213,6 +1215,7 @@ class TestParser extends Parser {
     var result = super.parseMethod(
         beforeStart,
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -2241,6 +2244,7 @@ class TestParser extends Parser {
   Token parseInvalidOperatorDeclaration(
       Token beforeStart,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2252,6 +2256,7 @@ class TestParser extends Parser {
     doPrint('parseInvalidOperatorDeclaration('
         '$beforeStart, '
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -2264,6 +2269,7 @@ class TestParser extends Parser {
     var result = super.parseInvalidOperatorDeclaration(
         beforeStart,
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,

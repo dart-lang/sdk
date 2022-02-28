@@ -368,13 +368,14 @@ class ForwardingTestListener extends ForwardingListener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
       Token name) {
-    super.beginMethod(declarationKind, externalToken, staticToken,
+    super.beginMethod(declarationKind, augmentToken, externalToken, staticToken,
         covariantToken, varFinalOrConst, getOrSet, name);
     begin('Method');
   }
@@ -975,9 +976,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     end('Import');
-    super.endImport(importKeyword, semicolon);
+    super.endImport(importKeyword, augmentToken, semicolon);
   }
 
   @override
