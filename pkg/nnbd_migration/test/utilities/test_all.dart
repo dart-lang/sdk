@@ -9,6 +9,8 @@ import 'scoped_set_test.dart' as scoped_set_test;
 import 'source_edit_diff_formatter_test.dart'
     as source_edit_diff_formatter_test;
 import 'subprocess_launcher_test.dart' as subprocess_launcher_test;
+import 'where_not_null_transformer_test.dart'
+    as where_not_null_transformer_test;
 import 'where_or_null_transformer_test.dart' as where_or_null_transformer_test;
 
 main() {
@@ -17,6 +19,7 @@ main() {
     scoped_set_test.main();
     source_edit_diff_formatter_test.main();
     subprocess_launcher_test.main();
+    where_not_null_transformer_test.main();
     where_or_null_transformer_test.main();
   });
 }

@@ -1433,7 +1433,7 @@ _f(Iterable<int> x) => x.firstWhere((n) => n.isEven, orElse: () => null);
       // Behavior of the null literal doesn't matter because it's being dropped.
       findNode.nullLiteral('null'): anything
     });
-    expect(fixBuilder.needsIterableExtension, true);
+    expect(fixBuilder.neededCollectionPackageExtensions, {'IterableExtension'});
   }
 
   Future<void> test_functionExpressionInvocation_dynamic() async {
@@ -3812,13 +3812,29 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     });
   }
 
+  Future<void> test_where_transform() async {
+    await analyze('''
+Iterable<int> _f(Iterable<int/*?*/> x) => x.where((e) => e != null);
+''');
+    var methodInvocation = findNode.methodInvocation('where');
+    var functionExpression = findNode.functionExpression('(e) => e != null');
+    var fixBuilder =
+        visitSubexpression(methodInvocation, 'Iterable<int>', changes: {
+      methodInvocation.methodName: isMethodNameChange('whereNotNull'),
+      methodInvocation.argumentList:
+          isDropArgument({functionExpression: anything}),
+    });
+    expect(fixBuilder.neededCollectionPackageExtensions,
+        {'IterableNullableExtension'});
+  }
+
   void visitAll(
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
       bool injectNeedsIterableExtension = false}) {
     var fixBuilder = _createFixBuilder(testUnit!);
     if (injectNeedsIterableExtension) {
-      fixBuilder.needsIterableExtension = true;
+      fixBuilder.neededCollectionPackageExtensions.add('IterableExtension');
     }
     fixBuilder.visitAll();
     expect(scopedChanges(fixBuilder, testUnit), changes);
