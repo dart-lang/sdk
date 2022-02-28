@@ -3930,16 +3930,16 @@ extension _NodeChangeForExpressionExtension<T extends NodeChangeForExpression>
           .having((c) => c.expressionChangeInfos.single,
               'expressionChangeInfos.single', infoMatcher);
 
-  TypeMatcher<T> havingNullCheckWithInfo(dynamic matcher) =>
-      havingExpressionChange(TypeMatcher<NullCheckChange>(), matcher);
-
-  TypeMatcher<T> havingNoValidMigrationWithInfo(dynamic matcher) =>
-      havingExpressionChange(TypeMatcher<NoValidMigrationChange>(), matcher);
-
   TypeMatcher<T> havingIndroduceAsWithInfo(
           dynamic typeStringMatcher, dynamic infoMatcher) =>
       havingExpressionChange(
           TypeMatcher<IntroduceAsChange>().having(
               (c) => c.type.toString(), 'type (string)', typeStringMatcher),
           infoMatcher);
+
+  TypeMatcher<T> havingNoValidMigrationWithInfo(dynamic matcher) =>
+      havingExpressionChange(TypeMatcher<NoValidMigrationChange>(), matcher);
+
+  TypeMatcher<T> havingNullCheckWithInfo(dynamic matcher) =>
+      havingExpressionChange(TypeMatcher<NullCheckChange>(), matcher);
 }
