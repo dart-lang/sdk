@@ -23,6 +23,7 @@ load(
     "mac",
     "no_android",
     "pinned_xcode",
+    "slow_shards",
     "windows",
 )
 load("//lib/paths.star", "paths")
@@ -283,6 +284,7 @@ cron.weekly_builder(
     "dart2wasm-linux-x64-d8",
     channels = [],
     execution_timeout = 12 * time.hour,
+    properties = slow_shards,
 )
 
 # flutter
