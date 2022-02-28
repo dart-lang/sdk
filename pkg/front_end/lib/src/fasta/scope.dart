@@ -810,6 +810,15 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   bool get isConflictingSetter => false;
 
   @override
+  bool get isConflictingAugmentationMember => false;
+
+  @override
+  void set isConflictingAugmentationMember(bool value) {
+    throw new UnsupportedError(
+        'AmbiguousMemberBuilder.isConflictingAugmentationMember=');
+  }
+
+  @override
   void set parent(Builder? value) {
     throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
   }
@@ -860,6 +869,11 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
+  }
+
+  @override
+  bool get isAugmentation {
+    throw new UnsupportedError('AmbiguousMemberBuilder.isAugmentation');
   }
 }
 

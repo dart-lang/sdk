@@ -1374,7 +1374,7 @@ class ClassMembersNodeBuilder {
         if (classBuilder is SourceClassBuilder && !declaredMember.isStatic) {
           assert(
               declaredMember.isSourceDeclaration &&
-                  declaredMember.classBuilder == classBuilder,
+                  declaredMember.classBuilder.origin == classBuilder,
               "Only declared members can override: ${declaredMember}");
           hasDeclaredMembers = true;
           if (declaredMember.isProperty) {

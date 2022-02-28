@@ -1,0 +1,61 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/macros/class_members_lib.dart:9:8: Error: Member 'existingMethod' conflicts with an existing member of the same name in the augmented class.
+// Try changing the name to an existing member or adding an 'augment' modifier.
+//   void existingMethod() {
+//        ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/macros/class_members.dart:8:8: Context: This is the existing member.
+//   void existingMethod() {
+//        ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/class_members_lib.dart:15:16: Error: Augmentation member 'orphanedMethod' doesn't match a member in the augmented class.
+// Try changing the name to an existing member or removing the 'augment' modifier.
+//   augment void orphanedMethod() {
+//                ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/class_members_lib.dart:21:12: Error: Member 'existingSetter' conflicts with an existing member of the same name in the augmented class.
+// Try changing the name to an existing member or adding an 'augment' modifier.
+//   void set existingSetter(_) {
+//            ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/macros/class_members.dart:14:12: Context: This is the existing member.
+//   void set existingSetter(_) {
+//            ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/macros/class_members_lib.dart:27:20: Error: Augmentation member 'orphanedSetter' doesn't match a member in the augmented class.
+// Try changing the name to an existing member or removing the 'augment' modifier.
+//   augment void set orphanedSetter(_) {
+//                    ^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///class_members.dart";
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  method existingMethod() → void
+    ;
+  external method augmentedMethod() → void;
+  set existingSetter(dynamic _) → void
+    ;
+  external set augmentedSetter(dynamic _) → void;
+  method /* from org-dartlang-testcase:///class_members_lib.dart */ injectedMethod() → void
+    ;
+  method /* from org-dartlang-testcase:///class_members_lib.dart */ orphanedMethod() → void
+    ;
+  set /* from org-dartlang-testcase:///class_members_lib.dart */ injectedSetter(dynamic _) → void
+    ;
+  set /* from org-dartlang-testcase:///class_members_lib.dart */ orphanedSetter(dynamic _) → void
+    ;
+}
+static method test(self::Class c) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///class_members_lib.dart */ augmentTest(self::Class c) → void
+  ;
+static method /* from org-dartlang-testcase:///class_members_lib.dart */ injectedMethod(self::Class c) → void
+  ;

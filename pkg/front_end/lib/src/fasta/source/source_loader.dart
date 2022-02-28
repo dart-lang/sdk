@@ -321,7 +321,8 @@ class SourceLoader extends Loader {
       required LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder? origin,
       Library? referencesFrom,
-      bool? referenceIsPartOwner}) {
+      bool? referenceIsPartOwner,
+      bool isAugmentation: false}) {
     return new SourceLibraryBuilder(
         importUri: importUri,
         fileUri: fileUri,
@@ -334,7 +335,7 @@ class SourceLoader extends Loader {
         isUnsupported: origin?.library.isUnsupported ??
             importUri.isScheme('dart') &&
                 !target.uriTranslator.isLibrarySupported(importUri.path),
-        isAugmentation: false);
+        isAugmentation: isAugmentation);
   }
 
   /// Return `"true"` if the [dottedName] is a 'dart.library.*' qualifier for a
@@ -364,7 +365,8 @@ class SourceLoader extends Loader {
       Uri? fileUri,
       SourceLibraryBuilder? origin,
       Library? referencesFrom,
-      bool? referenceIsPartOwner) {
+      bool? referenceIsPartOwner,
+      bool isAugmentation) {
     if (fileUri != null &&
         (fileUri.isScheme("dart") ||
             fileUri.isScheme("package") ||
@@ -444,7 +446,8 @@ class SourceLoader extends Loader {
         packageLanguageVersion: packageLanguageVersion,
         origin: origin,
         referencesFrom: referencesFrom,
-        referenceIsPartOwner: referenceIsPartOwner);
+        referenceIsPartOwner: referenceIsPartOwner,
+        isAugmentation: isAugmentation);
     if (packageLanguageVersionProblem != null) {
       libraryBuilder.addPostponedProblem(
           packageLanguageVersionProblem, 0, noLength, libraryBuilder.fileUri);
@@ -556,12 +559,14 @@ class SourceLoader extends Loader {
       required LibraryBuilder accessor,
       LibraryBuilder? origin,
       Library? referencesFrom,
-      bool? referenceIsPartOwner}) {
+      bool? referenceIsPartOwner,
+      bool isAugmentation: false}) {
     LibraryBuilder libraryBuilder = _read(uri,
         fileUri: fileUri,
         origin: origin,
         referencesFrom: referencesFrom,
-        referenceIsPartOwner: referenceIsPartOwner);
+        referenceIsPartOwner: referenceIsPartOwner,
+        isAugmentation: isAugmentation);
     libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
     if (!_hasLibraryAccess(imported: uri, importer: accessor.importUri) &&
         !accessor.isPatch) {
@@ -617,7 +622,8 @@ class SourceLoader extends Loader {
       {Uri? fileUri,
       LibraryBuilder? origin,
       Library? referencesFrom,
-      bool? referenceIsPartOwner}) {
+      bool? referenceIsPartOwner,
+      bool isAugmentation: false}) {
     LibraryBuilder? libraryBuilder = _builders[uri];
     if (libraryBuilder == null) {
       if (target.dillTarget.isLoaded) {
@@ -629,7 +635,8 @@ class SourceLoader extends Loader {
             fileUri,
             origin as SourceLibraryBuilder?,
             referencesFrom,
-            referenceIsPartOwner);
+            referenceIsPartOwner,
+            isAugmentation);
       }
       _builders[uri] = libraryBuilder;
     }

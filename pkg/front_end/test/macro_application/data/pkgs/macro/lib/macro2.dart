@@ -15,8 +15,10 @@ class Macro2 implements ClassDeclarationsMacro {
   @override
   FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) {
-    builder.declareInClass(new DeclarationCode.fromString('''
+    if (isMacro) {
+      builder.declareInClass(new DeclarationCode.fromString('''
   hasMacro() => true;
 '''));
+    }
   }
 }

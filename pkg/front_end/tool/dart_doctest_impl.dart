@@ -918,7 +918,8 @@ class DocTestSourceLoader extends SourceLoader {
       required LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder? origin,
       kernel.Library? referencesFrom,
-      bool? referenceIsPartOwner}) {
+      bool? referenceIsPartOwner,
+      bool isAugmentation: false}) {
     if (importUri == DocTestIncrementalCompiler.dartDocTestUri) {
       HybridFileSystem hfs = target.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;
@@ -935,6 +936,7 @@ class DocTestSourceLoader extends SourceLoader {
         packageLanguageVersion: packageLanguageVersion,
         origin: origin,
         referencesFrom: referencesFrom,
-        referenceIsPartOwner: referenceIsPartOwner);
+        referenceIsPartOwner: referenceIsPartOwner,
+        isAugmentation: isAugmentation);
   }
 }

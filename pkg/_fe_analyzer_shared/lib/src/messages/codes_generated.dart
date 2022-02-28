@@ -7815,6 +7815,46 @@ Message _withArgumentsNonAsciiWhitespace(int codePoint) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonAugmentationClassMemberConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Member '#name' conflicts with an existing member of the same name in the augmented class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing member or adding an 'augment' modifier.""",
+    withArguments: _withArgumentsNonAugmentationClassMemberConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeNonAugmentationClassMemberConflict =
+    const Code<Message Function(String name)>(
+  "NonAugmentationClassMemberConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAugmentationClassMemberConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonAugmentationClassMemberConflict,
+      problemMessage:
+          """Member '${name}' conflicts with an existing member of the same name in the augmented class.""",
+      correctionMessage: """Try changing the name to an existing member or adding an 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAugmentationClassMemberConflictCause =
+    messageNonAugmentationClassMemberConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAugmentationClassMemberConflictCause =
+    const MessageCode("NonAugmentationClassMemberConflictCause",
+        severity: Severity.context,
+        problemMessage: r"""This is the existing member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonConstConstructor = messageNonConstConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10393,6 +10433,35 @@ const MessageCode messageUnexpectedTokens = const MessageCode(
     "UnexpectedTokens",
     index: 123,
     problemMessage: r"""Unexpected tokens.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedAugmentationClassMember = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Augmentation member '#name' doesn't match a member in the augmented class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing member or removing the 'augment' modifier.""",
+    withArguments: _withArgumentsUnmatchedAugmentationClassMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedAugmentationClassMember =
+    const Code<Message Function(String name)>(
+  "UnmatchedAugmentationClassMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedAugmentationClassMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedAugmentationClassMember,
+      problemMessage:
+          """Augmentation member '${name}' doesn't match a member in the augmented class.""",
+      correctionMessage: """Try changing the name to an existing member or removing the 'augment' modifier.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, Token token)>
