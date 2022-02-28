@@ -679,17 +679,22 @@ class Parser {
     assert(optional('import', importKeyword));
     listener.beginUncategorizedTopLevelDeclaration(importKeyword);
     listener.beginImport(importKeyword);
-    Token token = ensureLiteralString(importKeyword);
+    Token start = importKeyword;
+    Token? augmentToken;
+    if (start.next!.isIdentifier && start.next!.lexeme == 'augment') {
+      start = augmentToken = start.next!;
+    }
+    Token token = ensureLiteralString(start);
     Token uri = token;
     token = parseConditionalUriStar(token);
     token = parseImportPrefixOpt(token);
     token = parseCombinatorStar(token).next!;
     if (optional(';', token)) {
-      listener.endImport(importKeyword, token);
+      listener.endImport(importKeyword, augmentToken, token);
       return token;
     } else {
       // Recovery
-      listener.endImport(importKeyword, /* semicolon = */ null);
+      listener.endImport(importKeyword, augmentToken, /* semicolon = */ null);
       return parseImportRecovery(uri);
     }
   }
@@ -3984,6 +3989,7 @@ class Parser {
           token = parseMethod(
               beforeStart,
               abstractToken,
+              augmentToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -4007,6 +4013,7 @@ class Parser {
           return parseInvalidOperatorDeclaration(
               beforeStart,
               abstractToken,
+              augmentToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -4020,6 +4027,7 @@ class Parser {
           token = parseMethod(
               beforeStart,
               abstractToken,
+              augmentToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -4072,6 +4080,7 @@ class Parser {
           return parseInvalidOperatorDeclaration(
               beforeStart,
               abstractToken,
+              augmentToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -4107,6 +4116,7 @@ class Parser {
       token = parseMethod(
           beforeStart,
           abstractToken,
+          augmentToken,
           externalToken,
           staticToken,
           covariantToken,
@@ -4147,6 +4157,7 @@ class Parser {
   Token parseMethod(
       Token beforeStart,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -4220,8 +4231,8 @@ class Parser {
 
     // TODO(danrubel): Consider parsing the name before calling beginMethod
     // rather than passing the name token into beginMethod.
-    listener.beginMethod(kind, externalToken, staticToken, covariantToken,
-        varFinalOrConst, getOrSet, name);
+    listener.beginMethod(kind, augmentToken, externalToken, staticToken,
+        covariantToken, varFinalOrConst, getOrSet, name);
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == (getOrSet ?? name) ||
@@ -8036,6 +8047,7 @@ class Parser {
   Token parseInvalidOperatorDeclaration(
       Token beforeStart,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -8084,6 +8096,7 @@ class Parser {
     Token token = parseMethod(
         beforeStart,
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -8131,6 +8144,7 @@ class Parser {
       return parseInvalidOperatorDeclaration(
           beforeStart,
           abstractToken,
+          augmentToken,
           externalToken,
           staticToken,
           covariantToken,
@@ -8148,6 +8162,7 @@ class Parser {
       token = parseMethod(
           beforeStart,
           abstractToken,
+          augmentToken,
           externalToken,
           staticToken,
           covariantToken,

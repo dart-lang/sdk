@@ -43,6 +43,7 @@ import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart';
 import '../modifier.dart'
     show
+        Augment,
         Const,
         Covariant,
         External,
@@ -528,7 +529,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     debugEvent("EndImport");
     List<CombinatorBuilder>? combinators = pop() as List<CombinatorBuilder>?;
     bool isDeferred = pop() as bool;
@@ -541,17 +542,33 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(importKeyword.charOffset);
     if (prefix is ParserRecovery) return;
+
+    if (!libraryBuilder.enableMacrosInLibrary) {
+      if (augmentToken != null) {
+        // TODO(johnniwinther): We should emit a different message when the
+        // experiment is not released yet. The current message indicates that
+        // changing the sdk version can solve the problem.
+        addProblem(
+            templateExperimentNotEnabled.withArguments(
+                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
+            augmentToken.next!.charOffset,
+            augmentToken.next!.length);
+        augmentToken = null;
+      }
+    }
+    bool isAugmentationImport = augmentToken != null;
     libraryBuilder.addImport(
-        metadata,
-        uri,
-        configurations,
-        prefix as String?,
-        combinators,
-        isDeferred,
-        importKeyword.charOffset,
-        prefixOffset,
-        uriOffset,
-        importIndex++);
+        metadata: metadata,
+        isAugmentationImport: isAugmentationImport,
+        uri: uri,
+        configurations: configurations,
+        prefix: prefix as String?,
+        combinators: combinators,
+        deferred: isDeferred,
+        charOffset: importKeyword.charOffset,
+        prefixCharOffset: prefixOffset,
+        uriOffset: uriOffset,
+        importIndex: importIndex++);
   }
 
   @override
@@ -1513,6 +1530,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1570,6 +1588,10 @@ class OutlineBuilder extends StackListenerImpl {
     pushDeclarationContext(declarationContext);
 
     List<Modifier>? modifiers;
+    if (augmentToken != null) {
+      modifiers ??= <Modifier>[];
+      modifiers.add(Augment);
+    }
     if (externalToken != null) {
       modifiers ??= <Modifier>[];
       modifiers.add(External);

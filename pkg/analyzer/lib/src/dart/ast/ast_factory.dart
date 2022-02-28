@@ -870,11 +870,13 @@ class AstFactoryImpl extends AstFactory {
           Token? asKeyword,
           SimpleIdentifier? prefix,
           List<Combinator>? combinators,
-          Token semicolon) =>
+          Token semicolon,
+          {Token? augmentKeyword}) =>
       ImportDirectiveImpl(
           comment as CommentImpl?,
           metadata,
           keyword,
+          augmentKeyword,
           libraryUri as StringLiteralImpl,
           configurations,
           deferredKeyword,

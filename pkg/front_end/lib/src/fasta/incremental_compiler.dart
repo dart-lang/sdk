@@ -1780,16 +1780,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
 
           debugLibrary.addImport(
-              null,
-              dependency.importedLibraryReference.canonicalName!.name,
-              null,
-              dependency.name,
-              combinators,
-              dependency.isDeferred,
-              -1,
-              -1,
-              -1,
-              -1);
+              metadata: null,
+              isAugmentationImport: false,
+              uri: dependency.importedLibraryReference.canonicalName!.name,
+              configurations: null,
+              prefix: dependency.name,
+              combinators: combinators,
+              deferred: dependency.isDeferred,
+              charOffset: -1,
+              prefixCharOffset: -1,
+              uriOffset: -1,
+              importIndex: -1);
         }
 
         debugLibrary.addImportsToScope();

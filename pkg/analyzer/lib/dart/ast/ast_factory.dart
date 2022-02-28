@@ -626,8 +626,8 @@ abstract class AstFactory {
     required List<DartType> typeArgumentTypes,
   });
 
-  /// Returns a newly created import directive. Either or both of the
-  /// [comment] and [metadata] can be `null` if the function does not have the
+  /// Returns a newly created import directive. Either or both of the [comment]
+  /// and [metadata] can be `null` if the function does not have the
   /// corresponding attribute. The [deferredKeyword] can be `null` if the import
   /// is not deferred. The [asKeyword] and [prefix] can be `null` if the import
   /// does not specify a prefix. The list of [combinators] can be `null` if

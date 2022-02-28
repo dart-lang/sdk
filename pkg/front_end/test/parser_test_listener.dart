@@ -1168,11 +1168,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     indent--;
     seen(importKeyword);
+    seen(augmentToken);
     seen(semicolon);
-    doPrint('endImport(' '$importKeyword, ' '$semicolon)');
+    doPrint('endImport(' '$importKeyword, ' '$augmentToken, ' '$semicolon)');
   }
 
   @override
@@ -1427,12 +1428,14 @@ class ParserTestListener implements Listener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
       Token name) {
+    seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
@@ -1441,6 +1444,7 @@ class ParserTestListener implements Listener {
     seen(name);
     doPrint('beginMethod('
         '$declarationKind, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
