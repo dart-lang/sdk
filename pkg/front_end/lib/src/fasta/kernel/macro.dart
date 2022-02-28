@@ -77,6 +77,12 @@ class MacroApplication {
   MacroApplication(this.classBuilder, this.constructorName);
 
   late macro.MacroInstanceIdentifier instanceIdentifier;
+
+  @override
+  String toString() {
+    return '${classBuilder.name}.'
+        '${constructorName.isEmpty ? 'new' : constructorName}()';
+  }
 }
 
 class MacroApplicationDataForTesting {
@@ -144,16 +150,26 @@ class MacroApplications {
               application.classBuilder.library.importUri,
               application.classBuilder.name);
           Uri? precompiledMacroUri = precompiledMacroUris[macroClass];
-          macro.MacroClassIdentifier macroClassIdentifier =
-              classIdCache[application.classBuilder] ??= await macroExecutor
-                  .loadMacro(macroClass.importUri, macroClass.className,
-                      precompiledKernelUri: precompiledMacroUri);
-          application.instanceIdentifier = instanceIdCache[application] ??=
-              await macroExecutor.instantiateMacro(
-                  macroClassIdentifier,
-                  application.constructorName,
-                  // TODO(johnniwinther): Support macro arguments.
-                  new macro.Arguments([], {}));
+          try {
+            macro.MacroClassIdentifier macroClassIdentifier =
+                classIdCache[application.classBuilder] ??= await macroExecutor
+                    .loadMacro(macroClass.importUri, macroClass.className,
+                        precompiledKernelUri: precompiledMacroUri);
+            try {
+              application.instanceIdentifier = instanceIdCache[application] ??=
+                  await macroExecutor.instantiateMacro(
+                      macroClassIdentifier,
+                      application.constructorName,
+                      // TODO(johnniwinther): Support macro arguments.
+                      new macro.Arguments([], {}));
+            } catch (e) {
+              throw "Error instantiating macro `${application}`: $e";
+            }
+          } catch (e) {
+            throw "Error loading macro class "
+                "'${application.classBuilder.name}' from "
+                "'${application.classBuilder.library.importUri}': $e";
+          }
         }
       }
     }
