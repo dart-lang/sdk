@@ -74,7 +74,9 @@ class ArgListContributor extends DartCompletionContributor {
           // If there's a replacement length and the preference is to replace,
           // we should not include colons/commas.
           appendColon: appendColon && !willReplace,
-          appendComma: appendComma && !willReplace,
+          // Commas should always be suppressed when we're not inserting colons:
+          //     ke^: Key()
+          appendComma: appendComma && appendColon && !willReplace,
           replacementLength: replacementLength);
     }
   }
