@@ -48,9 +48,6 @@ class RemoveLeadingUnderscore extends CorrectionProducer {
       }
     } else if (element is ParameterElement) {
       if (!element.isNamed) {
-        print(node.parent.runtimeType);
-        print(node.parent?.parent.runtimeType);
-        print(node.parent?.parent?.parent.runtimeType);
         var root = node
             .thisOrAncestorMatching((node) =>
                 node.parent is FunctionDeclaration ||

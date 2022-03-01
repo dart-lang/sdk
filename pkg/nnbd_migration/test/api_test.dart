@@ -9425,6 +9425,58 @@ int f(int x, int? y) {
 ''';
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
+
+  Future<void> test_whereNotNull() async {
+    var content = '''
+Iterable<String> f(Iterable<String/*?*/> it) => it.where((s) => s != null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableNullableExtension;
+
+Iterable<String> f(Iterable<String?> it) => it.whereNotNull();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_whereNotNull_and_firstWhereOrNull() async {
+    var content = '''
+Iterable<String> f(Iterable<String/*?*/> it) => it.where((s) => s != null);
+int g(Iterable<int> it) => it.firstWhere((i) => i != 0, orElse: () => null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableExtension, IterableNullableExtension;
+
+Iterable<String> f(Iterable<String?> it) => it.whereNotNull();
+int? g(Iterable<int> it) => it.firstWhereOrNull((i) => i != 0);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_whereNotNull_complexType() async {
+    var content = '''
+Iterable<Map<String, int>> f(Iterable<Map<String/*?*/, int>/*?*/> it)
+    => it.where((m) => m != null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableNullableExtension;
+
+Iterable<Map<String?, int>> f(Iterable<Map<String?, int>?> it)
+    => it.whereNotNull();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_whereNotNull_noContext() async {
+    var content = '''
+f(Iterable<String/*?*/> it) => it.where((s) => s != null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableNullableExtension;
+
+f(Iterable<String?> it) => it.whereNotNull();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
 }
 
 @reflectiveTest

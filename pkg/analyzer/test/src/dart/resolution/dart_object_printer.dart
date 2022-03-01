@@ -16,7 +16,14 @@ class DartObjectPrinter {
   void write(DartObjectImpl? object, String indent) {
     if (object != null) {
       var type = object.type;
-      if (type.isDartCoreDouble) {
+      if (object.isUnknown) {
+        sink.write(
+          type.getDisplayString(
+            withNullability: true,
+          ),
+        );
+        sink.writeln(' <unknown>');
+      } else if (type.isDartCoreDouble) {
         sink.write('double ');
         sink.writeln(object.toDoubleValue());
       } else if (type.isDartCoreInt) {

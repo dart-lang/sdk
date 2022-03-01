@@ -31,8 +31,8 @@ String relativePath(String filePath, Directory dir) {
 }
 
 /// String utility to trim some suffix from the end of a [String].
-String? trimEnd(String? s, String? suffix) {
-  if (s != null && suffix != null && suffix.isNotEmpty && s.endsWith(suffix)) {
+String trimEnd(String s, String? suffix) {
+  if (suffix != null && suffix.isNotEmpty && s.endsWith(suffix)) {
     return s.substring(0, s.length - suffix.length);
   }
   return s;

@@ -84,7 +84,7 @@ class AnalysisServer {
 
   Future<void> start({bool setAnalysisRoots = true}) async {
     preAnalysisServerStart?.call(commandName, analysisRoots, argResults);
-    final List<String> command = <String>[
+    final command = [
       sdk.analysisServerSnapshot,
       '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
       '--${Driver.CLIENT_ID}=dart-$commandName',
@@ -121,14 +121,15 @@ class AnalysisServer {
     // protocol throws an error (INVALID_FILE_PATH_FORMAT) if there is a
     // trailing slash.
     //
-    // The call to absolute.resolveSymbolicLinksSync() canonicalizes the path to
-    // be passed to the analysis server.
-    List<String> analysisRootPaths = analysisRoots.map((root) {
-      return trimEnd(
-          root.absolute.resolveSymbolicLinksSync(), path.context.separator)!;
-    }).toList();
+    // The call to `absolute.resolveSymbolicLinksSync()` canonicalizes the path
+    // to be passed to the analysis server.
+    final analysisRootPaths = [
+      for (final root in analysisRoots)
+        trimEnd(
+            root.absolute.resolveSymbolicLinksSync(), path.context.separator),
+    ];
 
-    onAnalyzing.listen((bool isAnalyzing) {
+    onAnalyzing.listen((isAnalyzing) {
       if (isAnalyzing && _analysisFinished.isCompleted) {
         // Start a new completer, to be completed when we receive the
         // corresponding analysis complete event.
@@ -139,9 +140,9 @@ class AnalysisServer {
     });
 
     if (setAnalysisRoots) {
-      await _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
+      await _sendCommand('analysis.setAnalysisRoots', params: {
         'included': analysisRootPaths,
-        'excluded': <String>[]
+        'excluded': [],
       });
     }
   }

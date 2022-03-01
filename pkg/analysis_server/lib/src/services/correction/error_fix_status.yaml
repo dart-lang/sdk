@@ -125,46 +125,81 @@ CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER:
   status: needsEvaluation
   since: in 2.15
 CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
+  notes: |-
+    We could potentially offer a fix that would remove all of the types in the
+    class header that are or implement `Enum`, but I think it would be more
+    likely that the user needed to restructure the super interfaces so that
+    `Enum` wasn't included but the rest of the interfaces could be.
 CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER:
   status: hasFix
 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER:
-  status: needsEvaluation
+  status: noFix
   since: 2.15
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER:
-  status: needsEvaluation
+  status: noFix
   since: 2.15
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES:
   status: needsEvaluation
 CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
@@ -267,17 +302,22 @@ CompileTimeErrorCode.DUPLICATE_PART:
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   status: needsEvaluation
 CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR: 
-  status: needsEvaluation
+  status: noFix
   since: 2.17
 CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
 CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
+  notes: |-
+    We could potentially offer a fix that would remove the mixin, but I think it
+    would be more likely that the user needed to restructure the mixin so that
+    part of it could be included here.
 CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER:
-  status: needsEvaluation
+  status: needsFix
   since: 2.17
+  issue: https://github.com/dart-lang/sdk/issues/48478
 CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET:
   status: needsEvaluation
 CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP:
@@ -378,17 +418,28 @@ CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE:
 CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE:
   status: hasFix
 CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
+  notes: |-
+    While we could have a fix to remove the declaration, it seems more likely
+    that the user would want to rename it.
 CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
 CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
+  notes: |-
+    We could potentially offer to remove the override, or to update it to the
+    lowest legal value, but it isn't clear that either of these is the right
+    fix without knowing why the language override was added.
 CompileTimeErrorCode.ILLEGAL_NON_ABSTRACT_ENUM_INDEX:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
+  notes: |-
+    We could potentially offer to remove the member, but the user probably needs
+    to think about what they were trying to do and it seems more likely that the
+    right fix is to rename the member.
 CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
   status: hasFix
 CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS:
@@ -484,7 +535,7 @@ CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER:
 CompileTimeErrorCode.INVALID_OVERRIDE:
   status: hasFix
 CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
 CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS:
   status: needsEvaluation
@@ -617,8 +668,9 @@ CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION:
 CompileTimeErrorCode.NON_BOOL_OPERAND:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
   since: 2.17
+  issue: https://github.com/dart-lang/sdk/issues/48479
 CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR:
@@ -786,14 +838,19 @@ CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
   status: needsFix
   since: 2.17
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
-  status: needsEvaluation
+  status: needsFix
   since: 2.17
+  issue: https://github.com/dart-lang/sdk/issues/48480
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL:
   status: needsFix
   issue: https://github.com/dart-lang/sdk/issues/48359
 CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
+  notes: |-
+    We could potentially offer a fix to remove the super invocation, but the
+    user really needs to think about what constructor they were trying to invoke
+    and why in order to really fix the issue.
 CompileTimeErrorCode.SUPER_IN_EXTENSION:
   status: needsEvaluation
 CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT:
@@ -858,11 +915,13 @@ CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT:
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT:
   status: needsEvaluation
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED:
-  status: needsEvaluation
+  status: needsFix
   since: 2.17
+  issue: https://github.com/dart-lang/sdk/issues/48481
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED:
-  status: needsEvaluation
+  status: needsFix
   since: 2.17
+  issue: https://github.com/dart-lang/sdk/issues/48481
 CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD:
@@ -922,8 +981,12 @@ CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION:
 CompileTimeErrorCode.USE_OF_VOID_RESULT:
   status: needsEvaluation
 CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
+  notes: |-
+    We could potentially offer to remove the member, but the user probably needs
+    to think about what they were trying to do and it seems more likely that the
+    right fix is to rename the member.
 CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH:
   status: needsEvaluation
 CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
@@ -942,8 +1005,12 @@ CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR:
   status: hasFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
+  notes: |-
+    We can't know which type arguments to add or remove. (We do have a fix to
+    remove all type arguments that would work here, it just isn't a very good
+    fix to suggest.)
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION:
   status: hasFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION:
@@ -1855,10 +1922,17 @@ ParserErrorCode.DUPLICATE_PREFIX:
 ParserErrorCode.DUPLICATED_MODIFIER:
   status: needsEvaluation
 ParserErrorCode.EMPTY_ENUM_BODY:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We can't guess at the names or number of the enum constants that should be
+    added.
 ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS:
-  status: needsEvaluation
+  status: noFix
   since: 2.17
+  notes: |-
+    We could potentially add `()`, but we generally don't have fixes for parse
+    errors because we assume the user is still typing and will soon fix the
+    problem.
 ParserErrorCode.ENUM_IN_CLASS:
   status: needsEvaluation
 ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:

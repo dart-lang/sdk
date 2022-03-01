@@ -126,7 +126,7 @@ dev_dependencies:
     List<String> arguments, {
     String? workingDir,
   }) async {
-    _process = await Process.start(
+    final process = await Process.start(
         Platform.resolvedExecutable,
         [
           '--no-analytics',
@@ -137,12 +137,12 @@ dev_dependencies:
           if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true',
           'PUB_CACHE': pubCachePath,
         });
-    final proc = _process!;
-    final stdoutContents = proc.stdout.transform(utf8.decoder).join();
-    final stderrContents = proc.stderr.transform(utf8.decoder).join();
-    final code = await proc.exitCode;
+    _process = process;
+    final stdoutContents = process.stdout.transform(utf8.decoder).join();
+    final stderrContents = process.stderr.transform(utf8.decoder).join();
+    final code = await process.exitCode;
     return ProcessResult(
-      proc.pid,
+      process.pid,
       code,
       await stdoutContents,
       await stderrContents,

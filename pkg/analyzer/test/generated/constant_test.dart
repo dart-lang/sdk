@@ -7,6 +7,7 @@ library analyzer.test.constant_test;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -47,6 +48,25 @@ class ConstantEvaluatorTest extends PubPackageResolutionTest {
 
   test_bitXor_int_int() async {
     await _assertValueInt(74 ^ 42, "74 ^ 42");
+  }
+
+  test_conditionalExpression_unknownCondition_dynamic() async {
+    await assertErrorsInCode('''
+const bool kIsWeb = identical(0, 0.0);
+const x = kIsWeb ? a : b;
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 58,
+          1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 58, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 62,
+          1),
+    ]);
+
+    var x_result = findElement.topVar('x').evaluationResult;
+    assertDartObjectText(x_result.value, r'''
+dynamic <unknown>
+''');
   }
 
   test_constructorInvocation_fieldInitializer() async {
