@@ -34,11 +34,21 @@ class CodeReference {
         location.columnNumber, _computeEnclosingName(node));
   }
 
-  factory CodeReference.fromElement(
-      Element element, LineInfo Function(String) getLineInfo) {
-    var path = element.source!.fullName;
+  factory CodeReference.fromElement(Element element) {
+    var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
+    if (unitElement == null) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is LibraryElement) {
+        unitElement = enclosingElement.definingCompilationUnit;
+      } else {
+        throw StateError('Unexpected element: $element');
+      }
+    }
+
+    var path = unitElement.source.fullName;
     var offset = element.nameOffset;
-    var location = getLineInfo(path).getLocation(offset);
+
+    var location = unitElement.lineInfo!.getLocation(offset);
     return CodeReference(path, offset, location.lineNumber,
         location.columnNumber, _computeElementFullName(element));
   }

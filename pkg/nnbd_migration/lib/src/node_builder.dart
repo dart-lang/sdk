@@ -42,8 +42,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   final Source? source;
 
-  final LineInfo Function(String) _getLineInfo;
-
   /// If the parameters of a function or method are being visited, the
   /// [DecoratedType]s of the function's named parameters that have been seen so
   /// far.  Otherwise `null`.
@@ -72,7 +70,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   bool _visitingExternalDeclaration = false;
 
   NodeBuilder(this._variables, this.source, this.listener, this._graph,
-      this._typeProvider, this._getLineInfo,
+      this._typeProvider,
       {this.instrumentation});
 
   NullabilityNodeTarget get safeTarget {
@@ -95,7 +93,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var exceptionElement = node.exceptionParameter?.staticElement;
     var target = exceptionElement == null
         ? NullabilityNodeTarget.text('exception type')
-        : NullabilityNodeTarget.element(exceptionElement, _getLineInfo);
+        : NullabilityNodeTarget.element(exceptionElement);
     DecoratedType? exceptionType = _pushNullabilityNodeTarget(
         target, () => node.exceptionType?.accept(this));
     if (node.exceptionParameter != null) {
@@ -167,8 +165,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       assert(constructorElement.isSynthetic);
       var decoratedReturnType =
           _createDecoratedTypeForClass(classElement, node);
-      var target =
-          NullabilityNodeTarget.element(constructorElement, _getLineInfo);
+      var target = NullabilityNodeTarget.element(constructorElement);
       var functionType = DecoratedType.forImplicitFunction(
           _typeProvider, constructorElement.type, _graph.never, _graph, target,
           returnType: decoratedReturnType);
@@ -217,7 +214,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType? visitDeclaredIdentifier(DeclaredIdentifier node) {
     node.metadata.accept(this);
     var declaredElement = node.declaredElement!;
-    var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
+    var target = NullabilityNodeTarget.element(declaredElement);
     DecoratedType? type =
         _pushNullabilityNodeTarget(target, () => node.type?.accept(this));
     if (type == null) {
@@ -267,13 +264,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     for (var item in node.constants) {
       var declaredElement = item.declaredElement!;
-      var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
+      var target = NullabilityNodeTarget.element(declaredElement);
       _variables!.recordDecoratedElementType(declaredElement,
           DecoratedType(classElement.thisType, makeNonNullNode(target, item)));
     }
     final valuesGetter = classElement.getGetter('values')!;
-    var valuesTarget =
-        NullabilityNodeTarget.element(valuesGetter, _getLineInfo);
+    var valuesTarget = NullabilityNodeTarget.element(valuesGetter);
     _variables!.recordDecoratedElementType(
         valuesGetter,
         DecoratedType(valuesGetter.type, makeNonNullNode(valuesTarget),
@@ -363,7 +359,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var functionType = functionElement.type;
     var returnType = node.returnType;
     DecoratedType? decoratedReturnType;
-    var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
+    var target = NullabilityNodeTarget.element(declaredElement);
     if (returnType != null) {
       _pushNullabilityNodeTarget(target.returnType(), () {
         decoratedReturnType = returnType.accept(this);
@@ -410,8 +406,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     DecoratedType? decoratedFunctionType;
     node.typeParameters?.accept(this);
-    var target =
-        NullabilityNodeTarget.element(node.declaredElement!, _getLineInfo);
+    var target = NullabilityNodeTarget.element(node.declaredElement!);
     _pushNullabilityNodeTarget(target, () {
       decoratedFunctionType = node.functionType!.accept(this);
     });
@@ -647,8 +642,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     var typeAnnotation = node.type;
     var declaredType = _pushNullabilityNodeTarget(
-        NullabilityNodeTarget.element(
-            node.variables.first.declaredElement!, _getLineInfo),
+        NullabilityNodeTarget.element(node.variables.first.declaredElement!),
         () => typeAnnotation?.accept(this));
     var hint = getPrefixHint(node.firstTokenAfterCommentAndMetadata);
     if (hint != null && hint.kind == HintCommentKind.late_) {
@@ -663,8 +657,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var declaredElement = variable.declaredElement;
       var type = declaredType;
       if (type == null) {
-        var target =
-            NullabilityNodeTarget.element(declaredElement!, _getLineInfo);
+        var target = NullabilityNodeTarget.element(declaredElement!);
         type = DecoratedType.forImplicitType(
             _typeProvider, declaredElement.type, _graph, target);
         instrumentation?.implicitType(source, node, type);
@@ -747,7 +740,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       var functionType = declaredElement.type;
       DecoratedType? decoratedReturnType;
-      var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
+      var target = NullabilityNodeTarget.element(declaredElement);
       if (returnType != null) {
         _pushNullabilityNodeTarget(target.returnType(), () {
           decoratedReturnType = returnType.accept(this);
@@ -931,8 +924,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     var decoratedSupertypes = <ClassElement, DecoratedType?>{};
     _pushNullabilityNodeTarget(
-        NullabilityNodeTarget.element(declaredElement, _getLineInfo).supertype,
-        () {
+        NullabilityNodeTarget.element(declaredElement).supertype, () {
       for (var supertype in supertypes) {
         DecoratedType? decoratedSupertype;
         if (supertype == null) {

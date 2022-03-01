@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -164,9 +163,6 @@ export 'package:test_core/test_core.dart';
   AnalysisDriver getDriver(String path) {
     return _getContext(path).driver;
   }
-
-  LineInfo getLineInfo(String path) =>
-      (session.getFile(path) as FileResult).lineInfo;
 
   void setUp() {
     setupResourceProvider();

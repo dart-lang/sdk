@@ -321,7 +321,6 @@ abstract class NullabilityMigration {
   /// should be warned about or removed (in the way specified by
   /// [removeViaComments]).
   factory NullabilityMigration(NullabilityMigrationListener? listener,
-      LineInfo Function(String) getLineInfo,
       {bool? permissive,
       NullabilityMigrationInstrumentation? instrumentation,
       bool? removeViaComments,
