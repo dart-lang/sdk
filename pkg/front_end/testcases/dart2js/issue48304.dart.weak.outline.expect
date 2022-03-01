@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+  abstract method call<T extends core::Object? = dynamic>() → dynamic;
+}
+class C extends core::Object implements self::B {
+  synthetic constructor •() → self::C
+    ;
+  method call<T extends core::Object? = dynamic>() → dynamic
+    ;
+  static method _#new#tearOff() → self::C
+    return new self::C::•();
+}
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class Wrapper extends core::Object {
+  final field self::B b;
+  final field self::B call;
+  constructor •(self::B b, self::B call) → self::Wrapper
+    ;
+  static method _#new#tearOff(self::B b, self::B call) → self::Wrapper
+    return new self::Wrapper::•(b, call);
+}
+static method main() → void
+  ;

@@ -3697,10 +3697,18 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Fills [typeArguments] with the type arguments needed for [selector] and
   /// returns the selector corresponding to the passed type arguments.
+  ///
+  /// If [isImplicitCall] is `true`, the target of the invocation can be either
+  /// the target of the [selector] or of the corresponding `.call` selector. In
+  /// this case we need to check both selectors to see if we need to pass type
+  /// arguments. This occurs for field/getter invocations.
   Selector _fillDynamicTypeArguments(
-      Selector selector, ir.Arguments arguments, List<DartType> typeArguments) {
+      Selector selector, ir.Arguments arguments, List<DartType> typeArguments,
+      {bool isImplicitCall = false}) {
     if (selector.typeArgumentCount > 0) {
-      if (_rtiNeed.selectorNeedsTypeArguments(selector)) {
+      if (_rtiNeed.selectorNeedsTypeArguments(selector) ||
+          (isImplicitCall &&
+              _rtiNeed.selectorNeedsTypeArguments(selector.toCallSelector()))) {
         typeArguments.addAll(arguments.types.map(_elementMap.getDartType));
       } else {
         return selector.toNonGeneric();
@@ -5216,12 +5224,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   void _handleMethodInvocation(
-      ir.Expression node, ir.Expression receiver, ir.Arguments arguments) {
+      ir.Expression node, ir.Expression receiver, ir.Arguments arguments,
+      {bool isImplicitCall = false}) {
     receiver.accept(this);
     HInstruction receiverInstruction = pop();
     Selector selector = _elementMap.getSelector(node);
     List<DartType> typeArguments = [];
-    selector = _fillDynamicTypeArguments(selector, arguments, typeArguments);
+    selector = _fillDynamicTypeArguments(selector, arguments, typeArguments,
+        isImplicitCall: isImplicitCall);
     _pushDynamicInvocation(
         node,
         _getStaticType(receiver),
@@ -5242,7 +5252,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   void visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) {
-    _handleMethodInvocation(node, node.receiver, node.arguments);
+    _handleMethodInvocation(node, node.receiver, node.arguments,
+        isImplicitCall: true);
   }
 
   @override
