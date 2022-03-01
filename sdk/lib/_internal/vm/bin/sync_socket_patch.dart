@@ -307,9 +307,9 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   @pragma("vm:external-name", "SynchronousSocket_CloseSync")
   external _nativeCloseSync();
   @pragma("vm:external-name", "SynchronousSocket_GetPort")
-  external int _nativeGetPort();
+  external _nativeGetPort();
   @pragma("vm:external-name", "SynchronousSocket_GetRemotePeer")
-  external List _nativeGetRemotePeer();
+  external _nativeGetRemotePeer();
   @pragma("vm:external-name", "SynchronousSocket_Read")
   external _nativeRead(int len);
   @pragma("vm:external-name", "SynchronousSocket_ReadList")
