@@ -228,8 +228,10 @@ class MacroApplications {
   macro.ResolvedIdentifier _resolveIdentifier(macro.Identifier identifier) {
     if (identifier is _IdentifierImpl) {
       MemberBuilder? memberBuilder = identifier.memberBuilder;
-      TypeBuilder? typeBuilder = identifier.typeBuilder;
       FormalParameterBuilder? parameterBuilder = identifier.parameterBuilder;
+      TypeDeclarationBuilder? typeDeclarationBuilder =
+          identifier.typeDeclarationBuilder ??
+              identifier.typeBuilder?.declaration;
       if (memberBuilder != null) {
         Uri? uri;
         String? staticScope;
@@ -250,9 +252,7 @@ class MacroApplications {
             name: identifier.name,
             staticScope: staticScope,
             uri: uri);
-      } else if (typeBuilder != null) {
-        TypeDeclarationBuilder typeDeclarationBuilder =
-            typeBuilder.declaration!;
+      } else if (typeDeclarationBuilder != null) {
         Uri? uri;
         if (typeDeclarationBuilder is ClassBuilder) {
           uri = typeDeclarationBuilder.library.importUri;
