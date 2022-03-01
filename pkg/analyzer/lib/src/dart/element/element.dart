@@ -269,11 +269,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    if (typeArguments.length != typeParameters.length) {
-      var ta = 'typeArguments.length (${typeArguments.length})';
-      var tp = 'typeParameters.length (${typeParameters.length})';
-      throw ArgumentError('$ta != $tp');
-    }
     return InterfaceTypeImpl(
       element: this,
       typeArguments: typeArguments,

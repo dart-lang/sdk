@@ -454,10 +454,19 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required this.typeArguments,
     required this.nullabilitySuffix,
     InstantiatedTypeAliasElement? alias,
-  }) : super(
-          element,
-          alias: alias,
-        );
+  }) : super(element, alias: alias) {
+    var typeParameters = element.typeParameters;
+    if (typeArguments.length != typeParameters.length) {
+      throw ArgumentError(
+        '[typeParameters.length: ${typeParameters.length}]'
+        '[typeArguments.length: ${typeArguments.length}]'
+        '[element: $element]'
+        '[reference: ${element is ClassElementImpl ? element.reference : null}]'
+        '[typeParameters: $typeParameters]'
+        '[typeArguments: $typeArguments]',
+      );
+    }
+  }
 
   @override
   List<PropertyAccessorElement> get accessors {
