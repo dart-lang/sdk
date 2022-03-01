@@ -1,0 +1,15 @@
+class Bad {
+  method() {}
+}
+
+class C {
+  operator []=(
+    x,
+    y,
+  ) {}
+}
+
+main() {}
+var c = new C();
+var x = 42;
+var y = 42;

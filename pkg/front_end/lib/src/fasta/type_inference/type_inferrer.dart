@@ -2577,7 +2577,8 @@ class TypeInferrerImpl implements TypeInferrer {
             argMessage.charOffset,
             argMessage.length,
             helper!,
-            isInapplicable: true);
+            isInapplicable: true,
+            hoistedArguments: localHoistedExpressions);
       } else {
         // Argument counts and names match. Compare types.
         int positionalShift = isImplicitExtensionMember ? 1 : 0;
@@ -5066,6 +5067,16 @@ abstract class InvocationInferenceResult {
   /// Returns `true` if the arguments of the call where not applicable to the
   /// target.
   bool get isInapplicable;
+
+  static Expression _insertHoistedExpressions(
+      Expression expression, List<VariableDeclaration> hoistedExpressions) {
+    if (hoistedExpressions.isNotEmpty) {
+      for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
+        expression = createLet(hoistedExpressions[index], expression);
+      }
+    }
+    return expression;
+  }
 }
 
 class SuccessfulInferenceResult implements InvocationInferenceResult {
@@ -5080,7 +5091,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
   final DartType? inferredReceiverType;
 
   SuccessfulInferenceResult(this.inferredType, this.functionType,
-      {this.hoistedArguments, this.inferredReceiverType});
+      {required this.hoistedArguments, this.inferredReceiverType});
 
   @override
   Expression applyResult(Expression expression) {
@@ -5090,17 +5101,23 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
     } else {
       assert(expression is InvocationExpression);
       if (expression is FactoryConstructorInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is TypeAliasedConstructorInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is TypeAliasedFactoryInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is ConstructorInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is DynamicInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is FunctionInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is InstanceGetterInvocation) {
         // The hoisting of InstanceGetterInvocation is performed elsewhere.
         return expression;
@@ -5109,28 +5126,23 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
             expression.receiver, inferredReceiverType ?? const DynamicType());
         expression.receiver = createVariableGet(receiver)..parent = expression;
         return createLet(
-            receiver, _insertHoistedExpressions(expression, hoistedArguments));
+            receiver,
+            InvocationInferenceResult._insertHoistedExpressions(
+                expression, hoistedArguments));
       } else if (expression is LocalFunctionInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is StaticInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is SuperMethodInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else {
         throw new StateError(
             "Unhandled invocation kind '${expression.runtimeType}'.");
       }
     }
-  }
-
-  static Expression _insertHoistedExpressions(
-      Expression expression, List<VariableDeclaration> hoistedExpressions) {
-    if (hoistedExpressions.isNotEmpty) {
-      for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
-        expression = createLet(hoistedExpressions[index], expression);
-      }
-    }
-    return expression;
   }
 
   @override
@@ -5155,15 +5167,24 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   @override
   final bool isInapplicable;
 
+  final List<VariableDeclaration>? hoistedArguments;
+
   WrapInProblemInferenceResult(this.inferredType, this.functionType,
       this.message, this.fileOffset, this.length, this.helper,
-      {required this.isInapplicable})
+      {required this.isInapplicable, required this.hoistedArguments})
       // ignore: unnecessary_null_comparison
       : assert(isInapplicable != null);
 
   @override
   Expression applyResult(Expression expression) {
-    return helper.wrapInProblem(expression, message, fileOffset, length);
+    expression = helper.wrapInProblem(expression, message, fileOffset, length);
+    List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
+    if (hoistedArguments == null || hoistedArguments.isEmpty) {
+      return expression;
+    } else {
+      return InvocationInferenceResult._insertHoistedExpressions(
+          expression, hoistedArguments);
+    }
   }
 }
 

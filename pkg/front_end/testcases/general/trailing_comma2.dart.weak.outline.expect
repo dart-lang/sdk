@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  operator []=(dynamic x, dynamic y) → void
+    ;
+}
+class Bad extends core::Object {
+  synthetic constructor •() → self::Bad
+    ;
+  method method() → dynamic
+    ;
+}
+static field self::C c;
+static field core::int x;
+static field core::int y;
+static method main() → dynamic
+  ;
