@@ -23,8 +23,8 @@ class ClassMemberParserTest extends FastaParserTestCase
     implements AbstractParserViaProxyTestCase {
   void test_parse_member_called_late() {
     var unit = parseCompilationUnit(
-        'class C { void late() { new C().late(); } }',
-        featureSet: nonNullable);
+      'class C { void late() { new C().late(); } }',
+    );
     var declaration = unit.declarations[0] as ClassDeclaration;
     var method = declaration.members[0] as MethodDeclaration;
 
@@ -380,7 +380,6 @@ Function(int, String) v;
   void test_parseClassMember_finalAndCovariantLateWithInitializer() {
     createParser(
       'covariant late final int f = 0;',
-      featureSet: nonNullable,
     );
     parser.parseClassMember('C');
     assertErrors(errors: [
@@ -1438,7 +1437,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_abstract() {
-    createParser('abstract int i;', featureSet: nonNullable);
+    createParser('abstract int i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertNoErrors();
@@ -1448,7 +1447,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_abstract_external() {
-    createParser('abstract external int i;', featureSet: nonNullable);
+    createParser('abstract external int i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(errors: [
@@ -1461,7 +1460,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_abstract_late() {
-    createParser('abstract late int? i;', featureSet: nonNullable);
+    createParser('abstract late int? i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(errors: [
@@ -1473,7 +1472,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_abstract_late_final() {
-    createParser('abstract late final int? i;', featureSet: nonNullable);
+    createParser('abstract late final int? i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(errors: [
@@ -1485,7 +1484,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_abstract_static() {
-    createParser('abstract static int? i;', featureSet: nonNullable);
+    createParser('abstract static int? i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(errors: [
@@ -1497,7 +1496,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_const_late() {
-    createParser('const late T f = 0;', featureSet: nonNullable);
+    createParser('const late T f = 0;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(errors: [
@@ -1523,7 +1522,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_external() {
-    createParser('external int i;', featureSet: nonNullable);
+    createParser('external int i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertNoErrors();
@@ -1533,7 +1532,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_external_abstract() {
-    createParser('external abstract int i;', featureSet: nonNullable);
+    createParser('external abstract int i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(errors: [
@@ -1546,7 +1545,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_external_late() {
-    createParser('external late int? i;', featureSet: nonNullable);
+    createParser('external late int? i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(errors: [
@@ -1558,7 +1557,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_external_late_final() {
-    createParser('external late final int? i;', featureSet: nonNullable);
+    createParser('external late final int? i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(errors: [
@@ -1570,7 +1569,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_external_static() {
-    createParser('external static int? i;', featureSet: nonNullable);
+    createParser('external static int? i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertNoErrors();
@@ -1580,7 +1579,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_final_late() {
-    createParser('final late T f;', featureSet: nonNullable);
+    createParser('final late T f;');
     ClassMember member = parser.parseClassMember('C');
     assertErrors(errors: [
       expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4),
@@ -1606,7 +1605,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_late() {
-    createParser('late T f;', featureSet: nonNullable);
+    createParser('late T f;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertNoErrors();
@@ -1630,7 +1629,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_late_const() {
-    createParser('late const T f = 0;', featureSet: nonNullable);
+    createParser('late const T f = 0;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(errors: [
@@ -1656,7 +1655,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_late_final() {
-    createParser('late final T f;', featureSet: nonNullable);
+    createParser('late final T f;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertNoErrors();
@@ -1680,7 +1679,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_late_var() {
-    createParser('late var f;', featureSet: nonNullable);
+    createParser('late var f;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     expect(member, isFieldDeclaration);
@@ -1703,7 +1702,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_non_abstract() {
-    createParser('int i;', featureSet: nonNullable);
+    createParser('int i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertNoErrors();
@@ -1713,7 +1712,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_non_external() {
-    createParser('int i;', featureSet: nonNullable);
+    createParser('int i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertNoErrors();
@@ -1723,7 +1722,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseField_var_late() {
-    createParser('var late f;', featureSet: nonNullable);
+    createParser('var late f;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(errors: [

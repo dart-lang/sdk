@@ -4,14 +4,12 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show AbstractScanner;
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show InstanceCreationExpressionImpl;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,11 +25,6 @@ main() {
 /// Tests of the fasta parser based on [ExpressionParserTestMixin].
 @reflectiveTest
 class ExpressionParserTest extends FastaParserTestCase {
-  final beforeUiAsCode = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.2.0'),
-    flags: [],
-  );
-
   void test_binaryExpression_allOperators() {
     // https://github.com/dart-lang/sdk/issues/36255
     for (TokenType type in TokenType.all) {

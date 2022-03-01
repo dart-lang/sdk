@@ -14,7 +14,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' show CompilationUnitImpl;
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -28,6 +27,7 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 
+import '../util/feature_sets.dart';
 import 'parser_fasta_listener.dart';
 import 'test_support.dart';
 
@@ -220,25 +220,6 @@ class FastaParserTestCase
     with ParserTestHelpers
     implements AbstractParserTestCase {
   static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
-
-  final constructorTearoffs = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: ExperimentStatus.currentVersion,
-    flags: [EnableString.constructor_tearoffs],
-  );
-
-  final controlFlow = FeatureSet.latestLanguageVersion();
-
-  final spread = FeatureSet.latestLanguageVersion();
-
-  final nonNullable = FeatureSet.latestLanguageVersion();
-
-  final preConstructorTearoffs = FeatureSet.fromEnableFlags2(
-      sdkLanguageVersion: Version.parse('2.13.0'), flags: []);
-
-  final preNonNullable = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.9.0'),
-    flags: [],
-  );
 
   late ParserProxy parserProxy;
 
@@ -1171,13 +1152,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     analyzer.Parser parser = analyzer.Parser(
       source,
       listener,
-      featureSet: FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: [
-          Feature.enhanced_enums.enableString,
-          Feature.super_parameters.enableString,
-        ],
-      ),
+      featureSet: FeatureSets.latestWithExperiments,
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(result.tokens);

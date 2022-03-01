@@ -10,9 +10,10 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../../util/feature_sets.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -91,10 +92,7 @@ void main() => print('Hello, world!')
     String content = '''
 int? f() => 1;
 ''';
-    var featureSet = FeatureSet.fromEnableFlags2(
-      sdkLanguageVersion: Version.parse('2.9.0'),
-      flags: [],
-    );
+    var featureSet = FeatureSets.language_2_9;
     expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
     ParseStringResult result = _withMemoryFile(
         content,
@@ -180,10 +178,7 @@ void main() => print('Hello, world!')
     String content = '''
 int? f() => 1;
 ''';
-    var featureSet = FeatureSet.fromEnableFlags2(
-      sdkLanguageVersion: Version.parse('2.9.0'),
-      flags: [],
-    );
+    var featureSet = FeatureSets.language_2_9;
     expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
     ParseStringResult result = parseString(
         content: content, throwIfDiagnostics: false, featureSet: featureSet);

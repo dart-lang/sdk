@@ -2139,34 +2139,29 @@ mixin A {
   }
 
   void test_parseTopLevelVariable_external() {
-    var unit = parseCompilationUnit('external int i;', featureSet: nonNullable);
+    var unit = parseCompilationUnit('external int i;');
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     expect(declaration.externalKeyword, isNotNull);
   }
 
   void test_parseTopLevelVariable_external_late() {
-    var unit = parseCompilationUnit('external late int? i;',
-        featureSet: nonNullable,
-        errors: [
-          expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
-        ]);
+    var unit = parseCompilationUnit('external late int? i;', errors: [
+      expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
+    ]);
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     expect(declaration.externalKeyword, isNotNull);
   }
 
   void test_parseTopLevelVariable_external_late_final() {
-    var unit = parseCompilationUnit('external late final int? i;',
-        featureSet: nonNullable,
-        errors: [
-          expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
-        ]);
+    var unit = parseCompilationUnit('external late final int? i;', errors: [
+      expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
+    ]);
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     expect(declaration.externalKeyword, isNotNull);
   }
 
   void test_parseTopLevelVariable_final_late() {
     var unit = parseCompilationUnit('final late a;',
-        featureSet: nonNullable,
         errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4)]);
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
@@ -2176,11 +2171,9 @@ mixin A {
   }
 
   void test_parseTopLevelVariable_late() {
-    var unit = parseCompilationUnit('late a;',
-        featureSet: nonNullable,
-        errors: [
-          expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
-        ]);
+    var unit = parseCompilationUnit('late a;', errors: [
+      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
+    ]);
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
     expect(declarationList.keyword, isNull);
@@ -2189,7 +2182,7 @@ mixin A {
   }
 
   void test_parseTopLevelVariable_late_final() {
-    var unit = parseCompilationUnit('late final a;', featureSet: nonNullable);
+    var unit = parseCompilationUnit('late final a;');
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
     expect(declarationList.keyword!.lexeme, 'final');
@@ -2198,11 +2191,9 @@ mixin A {
   }
 
   void test_parseTopLevelVariable_late_init() {
-    var unit = parseCompilationUnit('late a = 0;',
-        featureSet: nonNullable,
-        errors: [
-          expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
-        ]);
+    var unit = parseCompilationUnit('late a = 0;', errors: [
+      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
+    ]);
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
     expect(declarationList.keyword, isNull);
@@ -2211,7 +2202,7 @@ mixin A {
   }
 
   void test_parseTopLevelVariable_late_type() {
-    var unit = parseCompilationUnit('late A a;', featureSet: nonNullable);
+    var unit = parseCompilationUnit('late A a;');
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
     expect(declarationList.lateKeyword, isNotNull);
@@ -2221,7 +2212,7 @@ mixin A {
   }
 
   void test_parseTopLevelVariable_non_external() {
-    var unit = parseCompilationUnit('int i;', featureSet: nonNullable);
+    var unit = parseCompilationUnit('int i;');
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     expect(declaration.externalKeyword, isNull);
   }
