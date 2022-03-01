@@ -1,0 +1,13 @@
+var c = new C();
+var z = 42;
+
+class C {
+  void instance1({z}) {}
+  void instance2(a, {z}) {}
+}
+
+main() {}
+
+class Bad {
+  method() {}
+}

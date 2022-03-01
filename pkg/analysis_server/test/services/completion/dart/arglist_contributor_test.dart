@@ -168,6 +168,27 @@ build() => new Row(
     });
   }
 
+  Future<void> test_flutter_InstanceCreationExpression_3() async {
+    // Ensure a trailing comma is not added when only replacing the name.
+    writeTestPackageConfig(flutter: true);
+
+    addTestSource('''
+import 'package:flutter/material.dart';
+
+build() => new Row(
+    ke^: null,
+  );
+''');
+
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).containsMatch((suggestion) {
+      suggestion
+        ..completion.isEqualTo('key')
+        ..defaultArgumentListString.isNull
+        ..hasSelection(offset: 3);
+    });
+  }
+
   Future<void>
       test_flutter_InstanceCreationExpression_children_dynamic() async {
     // Ensure we don't generate unneeded <dynamic> param if a future API doesn't

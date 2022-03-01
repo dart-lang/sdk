@@ -668,12 +668,21 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       });
 
-      // TODO(johnniwinther): Should we support constructor augmentation?
-      // Currently the syntax doesn't allow it.
-      constructors.local.forEach((String name, Builder member) {
-        Builder? memberPatch = patch.constructors.local[name];
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+      patch.constructors.local
+          .forEach((String name, MemberBuilder patchConstructor) {
+        MemberBuilder? originConstructor = constructors.local[name];
+        if (patch.isAugmentation) {
+          if (originConstructor != null) {
+            // TODO(johnniwinther): Should we support constructor augmentation?
+            // Currently the syntax doesn't allow it.
+            originConstructor.applyPatch(patchConstructor);
+          } else {
+            constructorScopeBuilder.addMember(name, patchConstructor);
+          }
+        } else {
+          if (originConstructor != null) {
+            originConstructor.applyPatch(patchConstructor);
+          }
         }
       });
 

@@ -1,0 +1,64 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/trailing_comma1.dart:17:21: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//     c.instance1(z:z,,);
+//                     ^
+//
+// pkg/front_end/testcases/general/trailing_comma1.dart:17:21: Error: Expected named argument.
+//     c.instance1(z:z,,);
+//                     ^
+//
+// pkg/front_end/testcases/general/trailing_comma1.dart:18:21: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//     c.instance2(z:z,,);
+//                     ^
+//
+// pkg/front_end/testcases/general/trailing_comma1.dart:18:21: Error: Expected named argument.
+//     c.instance2(z:z,,);
+//                     ^
+//
+// pkg/front_end/testcases/general/trailing_comma1.dart:17:16: Error: No named parameter with the name '#1'.
+//     c.instance1(z:z,,);
+//                ^^
+//
+// pkg/front_end/testcases/general/trailing_comma1.dart:18:16: Error: Too few positional arguments: 1 required, 0 given.
+//     c.instance2(z:z,,);
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method instance1({dynamic z = #C1}) → void {}
+  method instance2(dynamic a, {dynamic z = #C1}) → void {}
+}
+class Bad extends core::Object {
+  synthetic constructor •() → self::Bad
+    : super core::Object::•()
+    ;
+  method method() → dynamic {
+    invalid-expression "pkg/front_end/testcases/general/trailing_comma1.dart:17:16: Error: No named parameter with the name '#1'.
+    c.instance1(z:z,,);
+               ^^" in self::c.{self::C::instance1}{<inapplicable>}.(z: self::z, #1: invalid-expression "pkg/front_end/testcases/general/trailing_comma1.dart:17:21: Error: Expected named argument.
+    c.instance1(z:z,,);
+                    ^"){({z: invalid-type, #1: invalid-type}) → invalid-type};
+    invalid-expression "pkg/front_end/testcases/general/trailing_comma1.dart:18:16: Error: Too few positional arguments: 1 required, 0 given.
+    c.instance2(z:z,,);
+               ^" in self::c.{self::C::instance2}{<inapplicable>}.(z: self::z, #1: invalid-expression "pkg/front_end/testcases/general/trailing_comma1.dart:18:21: Error: Expected named argument.
+    c.instance2(z:z,,);
+                    ^"){({z: invalid-type, #1: invalid-type}) → invalid-type};
+  }
+}
+static field self::C c = new self::C::•();
+static field core::int z = 42;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

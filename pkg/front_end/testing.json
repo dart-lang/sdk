@@ -14,35 +14,6 @@
       "exclude": []
     },
     {
-      "name": "scanner",
-      "kind": "Chain",
-      "source": "test/fasta/scanner/scanner_suite.dart",
-      "path": "../../",
-      "status": "test/fasta/scanner/scanner.status",
-      "pattern": [
-        "\\.dart$"
-      ],
-      "exclude": []
-    },
-    {
-      "name": "parser",
-      "kind": "Chain",
-      "source": "test/fasta/parser/parser_suite.dart",
-      "path": "../../",
-      "status": "test/fasta/parser/parser.status",
-      "pattern": [
-        "\\.dart$"
-      ],
-      "exclude": [
-        "README.dart",
-        "/sdk/xcodebuild/",
-        "/sdk/out/",
-        "/sdk/build/",
-        "/sdk/tools/sdks/",
-        "/sdk/generated/"
-      ]
-    },
-    {
       "name": "textual_outline",
       "kind": "Chain",
       "source": "test/fasta/textual_outline_suite.dart",
