@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../util/ast_type_matchers.dart';
+import '../util/feature_sets.dart';
 import 'parser_test_base.dart';
 
 main() {
@@ -2431,7 +2432,7 @@ class Wrong<T> {
   }
 
   void test_positionalAfterNamedArgument() {
-    createParser('(x: 1, 2)');
+    createParser('(x: 1, 2)', featureSet: FeatureSets.language_2_16);
     ArgumentList list = parser.parseArgumentList();
     expectNotNullIfNoErrors(list);
     listener.assertErrors(
