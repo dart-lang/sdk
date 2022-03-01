@@ -21,7 +21,6 @@ import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:analyzer_utilities/package_root.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -331,11 +330,9 @@ class PubPackageResolutionTest extends ContextResolutionTest {
       languageVersion: languageVersion ?? testPackageLanguageVersion,
     );
 
-    var mockPackages = MockPackages(packageRoot);
-
     if (ffi) {
       var ffiPath = '/packages/ffi';
-      mockPackages.addFfiPackageFiles(
+      MockPackages.addFfiPackageFiles(
         getFolder(ffiPath),
       );
       config.add(name: 'ffi', rootPath: ffiPath);
@@ -343,7 +340,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
     if (js) {
       var jsPath = '/packages/js';
-      mockPackages.addJsPackageFiles(
+      MockPackages.addJsPackageFiles(
         getFolder(jsPath),
       );
       config.add(name: 'js', rootPath: jsPath);
@@ -351,7 +348,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
     if (meta) {
       var metaPath = '/packages/meta';
-      mockPackages.addMetaPackageFiles(
+      MockPackages.addMetaPackageFiles(
         getFolder(metaPath),
       );
       config.add(name: 'meta', rootPath: metaPath);

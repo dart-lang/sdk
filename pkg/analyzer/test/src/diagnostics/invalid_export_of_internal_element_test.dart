@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
-import 'package:analyzer_utilities/package_root.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,7 +33,7 @@ class InvalidExportOfInternalElement_BazelPackageTest
   void setUp() async {
     super.setUp();
     var metaPath = '$workspaceThirdPartyDartPath/meta';
-    MockPackages(packageRoot).addMetaPackageFiles(
+    MockPackages.addMetaPackageFiles(
       getFolder(metaPath),
     );
     newFile('$testPackageBazelBinPath/my.packages');

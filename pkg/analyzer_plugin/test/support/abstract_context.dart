@@ -16,7 +16,6 @@ import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer_utilities/package_root.dart';
 
 /// Finds an [Element] with the given [name].
 Element? findChildElement(Element root, String name, [ElementKind? kind]) {
@@ -140,7 +139,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
     if (meta) {
       var metaPath = '/packages/meta';
-      MockPackages(packageRoot).addMetaPackageFiles(
+      MockPackages.addMetaPackageFiles(
         getFolder(metaPath),
       );
       config.add(name: 'meta', rootPath: metaPath);
