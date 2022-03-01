@@ -9,9 +9,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 class AnnotationTracker extends RecursiveAstVisitor<void> {
   final Set<Annotation> _nodes = {};
 
-  @override
-  void visitAnnotation(Annotation node) {
-    _nodes.add(node);
+  void finalize() {
+    assert(_nodes.isEmpty, 'Annotation nodes not visited: $_nodes');
   }
 
   void nodeVisited(Annotation node) {
@@ -20,7 +19,8 @@ class AnnotationTracker extends RecursiveAstVisitor<void> {
     }
   }
 
-  void finalize() {
-    assert(_nodes.isEmpty, 'Annotation nodes not visited: $_nodes');
+  @override
+  void visitAnnotation(Annotation node) {
+    _nodes.add(node);
   }
 }
