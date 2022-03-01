@@ -55,9 +55,11 @@ class RenameToCamelCase extends CorrectionProducer {
       }
     } else if (element is ParameterElement) {
       if (!element.isNamed) {
-        var root = node.thisOrAncestorMatching((node) =>
-            node.parent is ClassOrMixinDeclaration ||
-            node.parent is CompilationUnit);
+        var root = node
+            .thisOrAncestorMatching((node) =>
+                node.parent is FunctionDeclaration ||
+                node.parent is MethodDeclaration)
+            ?.parent;
         if (root != null) {
           references = findLocalElementReferences(root, element);
         }
