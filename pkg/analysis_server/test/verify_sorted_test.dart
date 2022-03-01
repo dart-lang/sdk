@@ -27,6 +27,10 @@ void main() {
   group('analyzer_plugin', () {
     buildTestsForAnalyzerPlugin();
   });
+
+  group('nnbd_migration', () {
+    buildTestsForNnbdMigration();
+  });
 }
 
 void buildTests({
@@ -114,6 +118,12 @@ void buildTestsForAnalyzerPlugin() {
     packagePath: 'analyzer_plugin',
     excludedPaths: excludedPaths,
   );
+}
+
+void buildTestsForNnbdMigration() {
+  buildTests(
+      packagePath: 'nnbd_migration',
+      excludedPaths: ['lib/src/front_end/resources/resources.g.dart']);
 }
 
 void buildTestsIn(AnalysisSession session, String testDirPath,

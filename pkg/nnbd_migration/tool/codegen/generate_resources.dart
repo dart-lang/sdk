@@ -54,17 +54,6 @@ Run with '--verify' to validate that the web resource have been regenerated.
   }
 }
 
-/// Returns the dart2jsPath, either from [argResults] or the Platform.
-String? dart2jsPath(ArgResults argResults) {
-  if (argResults.wasParsed('dart2js_path')) {
-    return argResults['dart2js_path'] as String?;
-  } else {
-    var sdkBinDir = path.dirname(Platform.resolvedExecutable);
-    var dart2jsBinary = Platform.isWindows ? 'dart2js.bat' : 'dart2js';
-    return path.join(sdkBinDir, dart2jsBinary);
-  }
-}
-
 final File dartSources = File(path.join('pkg', 'nnbd_migration', 'lib', 'src',
     'front_end', 'web', 'migration.dart'));
 
@@ -129,6 +118,17 @@ void createResourcesGDart() {
 
   // write the content
   resourcesFile.writeAsStringSync(content);
+}
+
+/// Returns the dart2jsPath, either from [argResults] or the Platform.
+String? dart2jsPath(ArgResults argResults) {
+  if (argResults.wasParsed('dart2js_path')) {
+    return argResults['dart2js_path'] as String?;
+  } else {
+    var sdkBinDir = path.dirname(Platform.resolvedExecutable);
+    var dart2jsBinary = Platform.isWindows ? 'dart2js.bat' : 'dart2js';
+    return path.join(sdkBinDir, dart2jsBinary);
+  }
 }
 
 void fail(String message) {

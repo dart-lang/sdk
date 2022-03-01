@@ -81,13 +81,13 @@ class MigrationInfo {
   String absolutePathFromRoot(String? path) =>
       pathContext.join(includedRoot!, path);
 
-  /// Returns the relative path of [path] from [includedRoot].
-  String relativePathFromRoot(String path) =>
-      pathContext.relative(path, from: includedRoot);
-
   /// Return the path to [unit] from [includedRoot], to be used as a display
   /// name for a library.
   String computeName(UnitInfo unit) => relativePathFromRoot(unit.path!);
+
+  /// Returns the relative path of [path] from [includedRoot].
+  String relativePathFromRoot(String path) =>
+      pathContext.relative(path, from: includedRoot);
 
   List<UnitLink> unitLinks() {
     var links = <UnitLink>[];

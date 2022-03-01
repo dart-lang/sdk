@@ -1713,6 +1713,26 @@ extension AtomicEditList on List<AtomicEdit> {
 /// [AtomicEdit]s.  This data structure is used by [EditPlan]s to accumulate
 /// source file changes.
 extension AtomicEditMap on Map<int?, List<AtomicEdit>>? {
+  /// Destructively combines two change representations.  If one or the other
+  /// input is null, the other input is returned unchanged for efficiency.
+  Map<int?, List<AtomicEdit>>? operator +(
+      Map<int?, List<AtomicEdit>>? newChanges) {
+    if (newChanges == null) return this;
+    if (this == null) {
+      return newChanges;
+    } else {
+      for (var entry in newChanges.entries) {
+        var currentValue = this![entry.key];
+        if (currentValue == null) {
+          this![entry.key] = entry.value;
+        } else {
+          currentValue.addAll(entry.value);
+        }
+      }
+      return this;
+    }
+  }
+
   /// Applies the changes to source file text.
   ///
   /// If [includeInformative] is `true`, informative edits are included;
@@ -1733,26 +1753,6 @@ extension AtomicEditMap on Map<int?, List<AtomicEdit>>? {
         this![offset]!
             .toSourceEdit(offset!, includeInformative: includeInformative)
     ];
-  }
-
-  /// Destructively combines two change representations.  If one or the other
-  /// input is null, the other input is returned unchanged for efficiency.
-  Map<int?, List<AtomicEdit>>? operator +(
-      Map<int?, List<AtomicEdit>>? newChanges) {
-    if (newChanges == null) return this;
-    if (this == null) {
-      return newChanges;
-    } else {
-      for (var entry in newChanges.entries) {
-        var currentValue = this![entry.key];
-        if (currentValue == null) {
-          this![entry.key] = entry.value;
-        } else {
-          currentValue.addAll(entry.value);
-        }
-      }
-      return this;
-    }
   }
 }
 

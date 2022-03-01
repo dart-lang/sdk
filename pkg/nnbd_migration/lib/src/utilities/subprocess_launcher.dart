@@ -9,7 +9,6 @@
 /// This is a modified version of dartdoc's
 /// SubprocessLauncher from test/src/utils.dart, for use with the
 /// nnbd_migration script.
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -33,20 +32,6 @@ final RegExp quotables = RegExp(r'[ "\r\n\$]');
 class SubprocessLauncher {
   final String context;
   final Map<String, String> environmentDefaults;
-
-  /// From flutter:dev/tools/dartdoc.dart, modified.
-  static Future<void> _printStream(Stream<List<int>> stream, Stdout output,
-      {String prefix = '', Iterable<String> Function(String line)? filter}) {
-    filter ??= (line) => [line];
-    return stream
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .expand(filter)
-        .listen((String line) {
-      output.write('$prefix$line'.trim());
-      output.write('\n');
-    }).asFuture();
-  }
 
   SubprocessLauncher(this.context, [Map<String, String>? environment])
       : environmentDefaults = environment ?? <String, String>{};
@@ -191,5 +176,19 @@ class SubprocessLauncher {
           'SubprocessLauncher got non-zero exitCode: $exitCode', exitCode);
     }
     return jsonObjects;
+  }
+
+  /// From flutter:dev/tools/dartdoc.dart, modified.
+  static Future<void> _printStream(Stream<List<int>> stream, Stdout output,
+      {String prefix = '', Iterable<String> Function(String line)? filter}) {
+    filter ??= (line) => [line];
+    return stream
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .expand(filter)
+        .listen((String line) {
+      output.write('$prefix$line'.trim());
+      output.write('\n');
+    }).asFuture();
   }
 }

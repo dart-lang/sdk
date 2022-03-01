@@ -330,11 +330,11 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
 }
 
 extension<T extends NavigationTreeNode> on TypeMatcher<T> {
-  TypeMatcher<T> named(dynamic matcher) =>
-      having((node) => node.name, 'name', matcher);
-
   TypeMatcher<T> havingMigrationStatus(dynamic matcher) =>
       having((node) => node.migrationStatus, 'migrationStatus', matcher);
+
+  TypeMatcher<T> named(dynamic matcher) =>
+      having((node) => node.name, 'name', matcher);
 }
 
 extension on TypeMatcher<NavigationTreeDirectoryNode> {
