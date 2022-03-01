@@ -3709,7 +3709,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           count += computeDefaultTypesForVariables(declaration.typeVariables,
               inErrorRecovery: issues.isNotEmpty);
 
-          declaration.constructors.forEach((String name, Builder member) {
+          declaration.constructorScope.forEach((String name, Builder member) {
             List<FormalParameterBuilder>? formals;
             if (member is SourceFactoryBuilder) {
               assert(member.isFactory,
@@ -3908,9 +3908,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // import it into the patch library. This ensures that the origin
         // library is in scope of the patch library.
         if (isSetter) {
-          scopeBuilder.addSetter(name, member as MemberBuilder);
+          scope.addLocalMember(name, member as MemberBuilder, setter: true);
         } else {
-          scopeBuilder.addMember(name, member);
+          scope.addLocalMember(name, member, setter: false);
         }
       }
     }
@@ -3954,10 +3954,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void injectMemberFromPatch(String name, Builder member) {
     if (member.isSetter) {
       assert(scope.lookupLocalMember(name, setter: true) == null);
-      scopeBuilder.addSetter(name, member as MemberBuilder);
+      scope.addLocalMember(name, member as MemberBuilder, setter: true);
     } else {
       assert(scope.lookupLocalMember(name, setter: false) == null);
-      scopeBuilder.addMember(name, member);
+      scope.addLocalMember(name, member, setter: false);
     }
   }
 

@@ -51,9 +51,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// The types in the `on` clause of an extension or mixin declaration.
   List<TypeBuilder>? get onTypes;
 
-  ConstructorScope get constructors;
-
-  ConstructorScopeBuilder get constructorScopeBuilder;
+  ConstructorScope get constructorScope;
 
   @override
   Uri get fileUri;
@@ -144,10 +142,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   List<TypeBuilder>? onTypes;
 
   @override
-  final ConstructorScope constructors;
-
-  @override
-  final ConstructorScopeBuilder constructorScopeBuilder;
+  final ConstructorScope constructorScope;
 
   @override
   bool isNullClass = false;
@@ -166,11 +161,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       this.interfaceBuilders,
       this.onTypes,
       Scope scope,
-      this.constructors,
+      this.constructorScope,
       LibraryBuilder parent,
       int charOffset)
-      : constructorScopeBuilder = new ConstructorScopeBuilder(constructors),
-        super(metadata, modifiers, name, parent, charOffset, scope);
+      : super(metadata, modifiers, name, parent, charOffset, scope);
 
   @override
   String get debugName => "ClassBuilder";
@@ -227,7 +221,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       return null;
     }
     MemberBuilder? declaration =
-        constructors.lookup(name == 'new' ? '' : name, charOffset, uri);
+        constructorScope.lookup(name == 'new' ? '' : name, charOffset, uri);
     if (declaration == null && isPatch) {
       return origin.findConstructorOrFactory(
           name, charOffset, uri, accessingLibrary);

@@ -3985,13 +3985,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     enterLocalScope('FunctionTypeScope',
         scope.createNestedScope("function-type scope", isModifiable: true));
     if (typeVariables != null) {
-      ScopeBuilder scopeBuilder = new ScopeBuilder(scope);
       for (TypeVariableBuilder builder in typeVariables) {
         String name = builder.name;
-        TypeVariableBuilder? existing =
-            scopeBuilder[name] as TypeVariableBuilder?;
+        TypeVariableBuilder? existing = scope.lookupLocalMember(name,
+            setter: false) as TypeVariableBuilder?;
         if (existing == null) {
-          scopeBuilder.addMember(name, builder);
+          scope.addLocalMember(name, builder, setter: false);
         } else {
           reportDuplicatedDeclaration(existing, name, builder.charOffset);
         }

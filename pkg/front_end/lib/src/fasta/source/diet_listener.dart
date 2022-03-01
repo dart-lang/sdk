@@ -1131,7 +1131,7 @@ class DietListener extends StackListenerImpl {
     } else if (getOrSet != null && optional("set", getOrSet)) {
       declaration = libraryBuilder.scope.lookupLocalMember(name, setter: true);
     } else {
-      declaration = libraryBuilder.scopeBuilder[name];
+      declaration = libraryBuilder.scope.lookupLocalMember(name, setter: false);
     }
     declaration = handleDuplicatedName(declaration, token);
     checkBuilder(token, declaration, name);
@@ -1152,7 +1152,7 @@ class DietListener extends StackListenerImpl {
     if (libraryBuilder.enableConstructorTearOffsInLibrary) {
       suffix = suffix == "new" ? "" : suffix;
     }
-    declaration = currentClass!.constructors.local[suffix];
+    declaration = currentClass!.constructorScope.local[suffix];
     declaration = handleDuplicatedName(declaration, token);
     checkBuilder(token, declaration, nameOrQualified);
     return declaration;
