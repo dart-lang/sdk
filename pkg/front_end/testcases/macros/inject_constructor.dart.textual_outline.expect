@@ -1,0 +1,3 @@
+import augment 'inject_constructor_lib.dart';
+class Class {}
+main() {}
