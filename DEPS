@@ -698,6 +698,12 @@ deps_os = {
 
 hooks = [
   {
+    # Generate the .dart_tool/package_confg.json file.
+    'name': 'Generate .dart_tool/package_confg.json',
+    'pattern': '.',
+    'action': ['python3', 'sdk/tools/generate_package_config.py'],
+  },
+  {
     # Pull Debian sysroot for i386 Linux
     'name': 'sysroot_i386',
     'pattern': '.',
