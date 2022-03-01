@@ -1,0 +1,825 @@
+{
+  "copyright": [
+    "Copyright (c) 2022, the Dart project authors. Please see the AUTHORS ",
+    "file for details. All rights reserved. Use of this source code is ",
+    "governed by a BSD-style license that can be found in the LICENSE file."
+  ],
+  "comment": [
+    "Package configuration for all packages in /pkg, and checked out by DEPS",
+    "into /third_party/pkg and /third_party/pkg_tested.",
+    "If you add a package to DEPS or /pkg or change a package's SDK",
+    "constraint, update this by running tools/generate_package_config.dart."
+  ],
+  "configVersion": 2,
+  "generator": "tools/generate_package_config.dart",
+  "packages": [
+    {
+      "name": "_fe_analyzer_shared",
+      "rootUri": "../pkg/_fe_analyzer_shared",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "_fe_analyzer_shared_assigned_variables",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_definite_assignment",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_definite_unassignment",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/definite_unassignment",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_inheritance",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/inheritance",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_nullability",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/nullability",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_reachability",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/reachability",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_type_promotion",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_why_not_promoted",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/why_not_promoted",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_js_interop_checks",
+      "rootUri": "../pkg/_js_interop_checks",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "analysis_server",
+      "rootUri": "../pkg/analysis_server",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "analysis_server_client",
+      "rootUri": "../pkg/analysis_server_client",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "analyzer",
+      "rootUri": "../pkg/analyzer",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "analyzer_cli",
+      "rootUri": "../pkg/analyzer_cli",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "analyzer_plugin",
+      "rootUri": "../pkg/analyzer_plugin",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "analyzer_utilities",
+      "rootUri": "../pkg/analyzer_utilities",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "args",
+      "rootUri": "../third_party/pkg/args",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "async",
+      "rootUri": "../third_party/pkg/async",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "async_helper",
+      "rootUri": "../pkg/async_helper",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "bazel_worker",
+      "rootUri": "../third_party/pkg/bazel_worker",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "benchmark_harness",
+      "rootUri": "../third_party/pkg/benchmark_harness",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "boolean_selector",
+      "rootUri": "../third_party/pkg/boolean_selector",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "browser_launcher",
+      "rootUri": "../third_party/pkg/browser_launcher",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "build_integration",
+      "rootUri": "../pkg/build_integration",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "characters",
+      "rootUri": "../third_party/pkg/characters",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "charcode",
+      "rootUri": "../third_party/pkg/charcode",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "cli_util",
+      "rootUri": "../third_party/pkg/cli_util",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "clock",
+      "rootUri": "../third_party/pkg/clock",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "collection",
+      "rootUri": "../third_party/pkg/collection",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "compiler",
+      "rootUri": "../pkg/compiler",
+      "packageUri": "lib/",
+      "languageVersion": "2.6"
+    },
+    {
+      "name": "convert",
+      "rootUri": "../third_party/pkg/convert",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "crypto",
+      "rootUri": "../third_party/pkg/crypto",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "csslib",
+      "rootUri": "../third_party/pkg/csslib",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "dart2js_info",
+      "rootUri": "../pkg/dart2js_info",
+      "packageUri": "lib/",
+      "languageVersion": "2.11"
+    },
+    {
+      "name": "dart2js_runtime_metrics",
+      "rootUri": "../pkg/dart2js_runtime_metrics",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "dart2js_tools",
+      "rootUri": "../pkg/dart2js_tools",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "dart2native",
+      "rootUri": "../pkg/dart2native",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "dart2wasm",
+      "rootUri": "../pkg/dart2wasm",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "dart_internal",
+      "rootUri": "../pkg/dart_internal",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "dart_style",
+      "rootUri": "../third_party/pkg_tested/dart_style",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "dartdev",
+      "rootUri": "../pkg/dartdev",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "dartdoc",
+      "rootUri": "../third_party/pkg/dartdoc",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "dds",
+      "rootUri": "../pkg/dds",
+      "packageUri": "lib/",
+      "languageVersion": "2.13"
+    },
+    {
+      "name": "dds_service_extensions",
+      "rootUri": "../pkg/dds_service_extensions",
+      "packageUri": "lib/",
+      "languageVersion": "2.13"
+    },
+    {
+      "name": "dev_compiler",
+      "rootUri": "../pkg/dev_compiler",
+      "packageUri": "lib/",
+      "languageVersion": "2.15"
+    },
+    {
+      "name": "devtools_shared",
+      "rootUri": "../third_party/devtools/devtools_shared",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "expect",
+      "rootUri": "../pkg/expect",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "ffi",
+      "rootUri": "../third_party/pkg/ffi",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "file",
+      "rootUri": "../third_party/pkg/file/packages/file",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "file_testing",
+      "rootUri": "../third_party/pkg/file/packages/file_testing",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "fixnum",
+      "rootUri": "../third_party/pkg/fixnum",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "front_end",
+      "rootUri": "../pkg/front_end",
+      "packageUri": "lib/",
+      "languageVersion": "2.13"
+    },
+    {
+      "name": "front_end_testcases",
+      "rootUri": "../pkg/front_end/testcases",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "frontend_server",
+      "rootUri": "../pkg/frontend_server",
+      "packageUri": "lib/",
+      "languageVersion": "2.7"
+    },
+    {
+      "name": "frontend_server_client",
+      "rootUri": "../third_party/pkg/webdev/frontend_server_client",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "glob",
+      "rootUri": "../third_party/pkg/glob",
+      "packageUri": "lib/",
+      "languageVersion": "2.15"
+    },
+    {
+      "name": "html",
+      "rootUri": "../third_party/pkg/html",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "http",
+      "rootUri": "../third_party/pkg/http",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "http_io",
+      "rootUri": "../third_party/pkg_tested/http_io",
+      "packageUri": "lib/",
+      "languageVersion": "2.5"
+    },
+    {
+      "name": "http_multi_server",
+      "rootUri": "../third_party/pkg/http_multi_server",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "http_parser",
+      "rootUri": "../third_party/pkg/http_parser",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "intl",
+      "rootUri": "../third_party/pkg/intl",
+      "packageUri": "lib/",
+      "languageVersion": "2.11"
+    },
+    {
+      "name": "js",
+      "rootUri": "../pkg/js",
+      "packageUri": "lib/",
+      "languageVersion": "2.16"
+    },
+    {
+      "name": "js_ast",
+      "rootUri": "../pkg/js_ast",
+      "packageUri": "lib/",
+      "languageVersion": "2.10"
+    },
+    {
+      "name": "js_runtime",
+      "rootUri": "../pkg/js_runtime",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "json_rpc_2",
+      "rootUri": "../third_party/pkg/json_rpc_2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "kernel",
+      "rootUri": "../pkg/kernel",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "language_versioning_2.7_test",
+      "rootUri": "../pkg/language_versioning_2.7_test",
+      "languageVersion": "2.7"
+    },
+    {
+      "name": "linter",
+      "rootUri": "../third_party/pkg/linter",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "lints",
+      "rootUri": "../third_party/pkg/lints",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "logging",
+      "rootUri": "../third_party/pkg/logging",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "markdown",
+      "rootUri": "../third_party/pkg/markdown",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "matcher",
+      "rootUri": "../third_party/pkg/matcher",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "meta",
+      "rootUri": "../pkg/meta",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "mime",
+      "rootUri": "../third_party/pkg/mime",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "mockito",
+      "rootUri": "../third_party/pkg/mockito",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
+    },
+    {
+      "name": "modular_test",
+      "rootUri": "../pkg/modular_test",
+      "packageUri": "lib/",
+      "languageVersion": "2.2"
+    },
+    {
+      "name": "native_stack_traces",
+      "rootUri": "../pkg/native_stack_traces",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "nnbd_migration",
+      "rootUri": "../pkg/nnbd_migration",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "oauth2",
+      "rootUri": "../third_party/pkg/oauth2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "observatory",
+      "rootUri": "../runtime/observatory",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "observatory_2",
+      "rootUri": "../runtime/observatory_2",
+      "packageUri": "lib/",
+      "languageVersion": "2.6"
+    },
+    {
+      "name": "observatory_test_package",
+      "rootUri": "../runtime/observatory/tests/service/observatory_test_package",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "observatory_test_package_2",
+      "rootUri": "../runtime/observatory_2/tests/service_2/observatory_test_package_2",
+      "languageVersion": "2.7"
+    },
+    {
+      "name": "package_config",
+      "rootUri": "../third_party/pkg_tested/package_config",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "package_deps",
+      "rootUri": "../tools/package_deps",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "path",
+      "rootUri": "../third_party/pkg/path",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "pedantic",
+      "rootUri": "../third_party/pkg/pedantic",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "platform",
+      "rootUri": "../third_party/pkg/platform",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "pool",
+      "rootUri": "../third_party/pkg/pool",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "process",
+      "rootUri": "../third_party/pkg/process",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "protobuf",
+      "rootUri": "../third_party/pkg/protobuf/protobuf",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "pub",
+      "rootUri": "../third_party/pkg/pub",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "pub_semver",
+      "rootUri": "../third_party/pkg/pub_semver",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "scrape",
+      "rootUri": "../pkg/scrape",
+      "packageUri": "lib/",
+      "languageVersion": "2.13"
+    },
+    {
+      "name": "sdk_library_metadata",
+      "rootUri": "../sdk/lib/_internal/sdk_library_metadata",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "shelf",
+      "rootUri": "../third_party/pkg/shelf",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "shelf_packages_handler",
+      "rootUri": "../third_party/pkg/shelf_packages_handler",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "shelf_proxy",
+      "rootUri": "../third_party/pkg/shelf_proxy",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "shelf_static",
+      "rootUri": "../third_party/pkg/shelf_static",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "shelf_web_socket",
+      "rootUri": "../third_party/pkg/shelf_web_socket",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "smith",
+      "rootUri": "../pkg/smith",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "source_map_stack_trace",
+      "rootUri": "../third_party/pkg/source_map_stack_trace",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "source_maps",
+      "rootUri": "../third_party/pkg/source_maps",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "source_span",
+      "rootUri": "../third_party/pkg/source_span",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "sourcemap_testing",
+      "rootUri": "../pkg/sourcemap_testing",
+      "packageUri": "lib/",
+      "languageVersion": "2.1"
+    },
+    {
+      "name": "sse",
+      "rootUri": "../third_party/pkg/sse",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "stack_trace",
+      "rootUri": "../third_party/pkg/stack_trace",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "status_file",
+      "rootUri": "../pkg/status_file",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "stream_channel",
+      "rootUri": "../third_party/pkg/stream_channel",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "string_scanner",
+      "rootUri": "../third_party/pkg/string_scanner",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "sync_http",
+      "rootUri": "../third_party/pkg/sync_http",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "telemetry",
+      "rootUri": "../pkg/telemetry",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "term_glyph",
+      "rootUri": "../third_party/pkg/term_glyph",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "test",
+      "rootUri": "../third_party/pkg/test/pkgs/test",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "test_api",
+      "rootUri": "../third_party/pkg/test/pkgs/test_api",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "test_core",
+      "rootUri": "../third_party/pkg/test/pkgs/test_core",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "test_descriptor",
+      "rootUri": "../third_party/pkg/test_descriptor",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "test_package",
+      "rootUri": "../pkg/vm_service/test/test_package",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "test_process",
+      "rootUri": "../third_party/pkg/test_process",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "test_reflective_loader",
+      "rootUri": "../third_party/pkg/test_reflective_loader",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "test_runner",
+      "rootUri": "../pkg/test_runner",
+      "packageUri": "lib/",
+      "languageVersion": "2.3"
+    },
+    {
+      "name": "testing",
+      "rootUri": "../pkg/testing",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "typed_data",
+      "rootUri": "../third_party/pkg/typed_data",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "usage",
+      "rootUri": "../third_party/pkg/usage",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "vector_math",
+      "rootUri": "../third_party/pkg/vector_math",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "vm",
+      "rootUri": "../pkg/vm",
+      "packageUri": "lib/",
+      "languageVersion": "2.15"
+    },
+    {
+      "name": "vm_service",
+      "rootUri": "../pkg/vm_service",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "vm_snapshot_analysis",
+      "rootUri": "../pkg/vm_snapshot_analysis",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "wasm_builder",
+      "rootUri": "../pkg/wasm_builder",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "watcher",
+      "rootUri": "../third_party/pkg/watcher",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "web_components",
+      "rootUri": "../third_party/pkg/web_components",
+      "packageUri": "lib/",
+      "languageVersion": "1.9"
+    },
+    {
+      "name": "web_socket_channel",
+      "rootUri": "../third_party/pkg/web_socket_channel",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "webdriver",
+      "rootUri": "../third_party/pkg/webdriver",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "webkit_inspection_protocol",
+      "rootUri": "../third_party/pkg/webkit_inspection_protocol",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "yaml",
+      "rootUri": "../third_party/pkg/yaml",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "yaml_edit",
+      "rootUri": "../third_party/pkg/yaml_edit",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    }
+  ]
+}
