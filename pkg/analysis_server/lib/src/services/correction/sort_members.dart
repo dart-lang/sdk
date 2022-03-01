@@ -95,6 +95,8 @@ class MemberSorter {
     for (var unitMember in unit.declarations) {
       if (unitMember is ClassOrMixinDeclaration) {
         _sortClassMembers(unitMember.members);
+      } else if (unitMember is EnumDeclaration) {
+        _sortClassMembers(unitMember.members);
       } else if (unitMember is ExtensionDeclaration) {
         _sortClassMembers(unitMember.members);
       }
