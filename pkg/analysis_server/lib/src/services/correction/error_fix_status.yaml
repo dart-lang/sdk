@@ -1536,7 +1536,7 @@ LintNames.control_flow_in_finally:
 LintNames.curly_braces_in_flow_control_structures:
   status: hasFix
 LintNames.depend_on_referenced_packages:
-  status: needsEvaluation
+  status: needsFix
 LintNames.deprecated_consistency:
   status: needsEvaluation
 LintNames.diagnostic_describe_all_properties:
@@ -1592,9 +1592,9 @@ LintNames.no_default_cases:
 LintNames.no_duplicate_case_values:
   status: hasFix
 LintNames.no_leading_underscores_for_library_prefixes:
-  status: needsEvaluation
+  status: needsFix
 LintNames.no_leading_underscores_for_local_identifiers:
-  status: needsEvaluation
+  status: hasFix
 LintNames.no_logic_in_create_state:
   status: needsEvaluation
 LintNames.no_runtimeType_toString:
@@ -1604,7 +1604,14 @@ LintNames.non_constant_identifier_names:
 LintNames.noop_primitive_operations:
   status: needsEvaluation
 LintNames.null_check_on_nullable_type_parameter:
-  status: needsEvaluation
+  status: hasFix
+  notes: |-
+    A second fix is possible, in which we make the type parameter not
+    potentially nullable, something like changing `T foo<T>()` to
+    `T foo<T extends Object>()` and `T foo<T extends num?>()` to
+    `T foo<T extends num>()`. This is particularly valuable in the first
+    case, where the choice to implicitly bound the type to `dynamic` may not
+    have been intentional.
 LintNames.null_closures:
   status: hasFix
 LintNames.omit_local_variable_types:
@@ -1759,11 +1766,11 @@ LintNames.unnecessary_getters_setters:
 LintNames.unnecessary_lambdas:
   status: hasFix
 LintNames.unnecessary_late:
-  status: needsEvaluation
+  status: needsFix
 LintNames.unnecessary_new:
   status: hasFix
 LintNames.unnecessary_null_aware_assignments:
-  status: needsEvaluation
+  status: needsFix
 LintNames.unnecessary_null_checks:
   status: needsEvaluation
 LintNames.unnecessary_null_in_if_null_operators:
