@@ -1,4 +1,3 @@
-// @dart = 2.9
 main() {}
 
 class DeltaBlue {
@@ -45,7 +44,7 @@ abstract class Constraint {
   void execute();
   void recalculate();
   void addConstraint() {}
-  Constraint satisfy(mark) {}
+  Constraint? satisfy(mark) {}
   void destroyConstraint() {}
   bool isInput() => false;
 }
@@ -118,7 +117,7 @@ class EqualityConstraint extends BinaryConstraint {
 
 class Variable {
   List<Constraint> constraints = <Constraint>[];
-  Constraint determinedBy;
+  Constraint? determinedBy;
   int mark = 0;
   Strength walkStrength = WEAKEST;
   bool stay = true;
@@ -151,4 +150,4 @@ class Plan {
 void chainTest(int n) {}
 void projectionTest(int n) {}
 void change(Variable v, int newValue) {}
-Planner planner;
+late Planner planner;

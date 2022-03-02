@@ -1,4 +1,3 @@
-// @dart = 2.9
 part "duplicated_declarations_part.dart";
 import 'duplicated_declarations_lib.dart' as Typedef;
 import 'duplicated_declarations_lib.dart' as Typedef;

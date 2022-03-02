@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/circularity-via-initializing-formal.dart:15:3: Error: Can't infer the type of 'C._circular': circularity found during type inference.
+// pkg/front_end/testcases/general/circularity-via-initializing-formal.dart:17:3: Error: Can't infer the type of 'C._circular': circularity found during type inference.
 // Specify the type explicitly.
 //   C._circular(this.f);
 //   ^^^^^^^^^^^

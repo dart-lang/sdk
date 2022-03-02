@@ -82,6 +82,7 @@ general/constants/number_folds: FormatterCrash
 general/constants/number_folds_opt_out: FormatterCrash
 general/constants/various: FormatterCrash
 general/constructor_initializer_invalid: FormatterCrash
+general/covariant_generic2: FormatterCrash
 general/duplicated_declarations: FormatterCrash
 general/error_recovery/annotations: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_general.crash: FormatterCrash

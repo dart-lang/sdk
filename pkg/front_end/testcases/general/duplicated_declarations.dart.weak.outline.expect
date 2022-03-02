@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -310,39 +310,19 @@ import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
 import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
 
 part duplicated_declarations_part.dart;
-typedef Typedef = () →* void;
-typedef OldTypedef = () →* void;
+typedef Typedef = () → void;
+typedef OldTypedef = () → void;
 class C#4 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  constructor _() → self::C#4*
+  constructor _() → self::C#4
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C#3 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  constructor _() → self::C#3*
+  constructor _() → self::C#3
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C#2 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  field core::String* field;
-  constructor •(dynamic a) → self::C#2*
+  field core::String field;
+  constructor •(dynamic a) → self::C#2
     ;
   method m() → dynamic
     ;
@@ -350,34 +330,14 @@ class C#2 extends core::Object { // from org-dartlang-testcase:///duplicated_dec
     ;
   static method f() → dynamic
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C#1 extends core::Object {
-  constructor _() → self::C#1*
+  constructor _() → self::C#1
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C extends core::Object {
-  field core::String* field;
-  constructor •(dynamic a) → self::C*
+  field core::String field;
+  constructor •(dynamic a) → self::C
     ;
   method m() → dynamic
     ;
@@ -385,165 +345,80 @@ class C extends core::Object {
     ;
   static method f() → dynamic
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Sub extends core::Object {
-  constructor •() → self::Sub*
+  constructor •() → self::Sub
     ;
   method m() → dynamic
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Enum#4 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  static const field core::List<self::Enum#4*>* values = const <self::Enum#4*>[self::Enum#4::a];
-  static const field self::Enum#4* a = const self::Enum#4::•(0, "a");
-  const constructor •(core::int* index, core::String* name) → self::Enum#4*
+  static const field core::List<self::Enum#4> values = const <self::Enum#4>[self::Enum#4::a];
+  static const field self::Enum#4 a = const self::Enum#4::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::Enum#4
     : super core::_Enum::•(index, name)
     ;
-  method toString() → core::String*
+  method toString() → core::String
     return "Enum#4.${this.{core::_Enum::_name}{core::String}}";
-  abstract member-signature get index() → core::int*; -> core::_Enum::index
-  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Enum#3 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  static const field core::List<self::Enum#3*>* values = const <self::Enum#3*>[self::Enum#3::a, self::Enum#3::b, self::Enum#3::c];
-  static const field self::Enum#3* a = const self::Enum#3::•(0, "a");
-  static const field self::Enum#3* b = const self::Enum#3::•(1, "b");
-  static const field self::Enum#3* c = const self::Enum#3::•(2, "c");
-  const constructor •(core::int* index, core::String* name) → self::Enum#3*
+  static const field core::List<self::Enum#3> values = const <self::Enum#3>[self::Enum#3::a, self::Enum#3::b, self::Enum#3::c];
+  static const field self::Enum#3 a = const self::Enum#3::•(0, "a");
+  static const field self::Enum#3 b = const self::Enum#3::•(1, "b");
+  static const field self::Enum#3 c = const self::Enum#3::•(2, "c");
+  const constructor •(core::int index, core::String name) → self::Enum#3
     : super core::_Enum::•(index, name)
     ;
-  method toString() → core::String*
+  method toString() → core::String
     return "Enum#3.${this.{core::_Enum::_name}{core::String}}";
-  abstract member-signature get index() → core::int*; -> core::_Enum::index
-  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Enum#2 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  static const field core::List<self::Enum#2*>* values = const <self::Enum#2*>[self::Enum#2::Enum, self::Enum#2::a, self::Enum#2::b];
-  static const field self::Enum#2* Enum = const self::Enum#2::•(0, "Enum");
-  static const field self::Enum#2* a = const self::Enum#2::•(1, "a");
-  static const field self::Enum#2* b = const self::Enum#2::•(2, "b");
-  const constructor •(core::int* index, core::String* name) → self::Enum#2*
+  static const field core::List<self::Enum#2> values = const <self::Enum#2>[self::Enum#2::Enum, self::Enum#2::a, self::Enum#2::b];
+  static const field self::Enum#2 Enum = const self::Enum#2::•(0, "Enum");
+  static const field self::Enum#2 a = const self::Enum#2::•(1, "a");
+  static const field self::Enum#2 b = const self::Enum#2::•(2, "b");
+  const constructor •(core::int index, core::String name) → self::Enum#2
     : super core::_Enum::•(index, name)
     ;
-  method toString() → core::String*
+  method toString() → core::String
     return "Enum#2.${this.{core::_Enum::_name}{core::String}}";
-  abstract member-signature get index() → core::int*; -> core::_Enum::index
-  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Enum#1 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::Enum#1*>* values = const <self::Enum#1*>[self::Enum#1::a, self::Enum#1::b, self::Enum#1::c];
-  static const field self::Enum#1* a = const self::Enum#1::•(0, "a");
-  static const field self::Enum#1* b = const self::Enum#1::•(1, "b");
-  static const field self::Enum#1* c = const self::Enum#1::•(2, "c");
-  const constructor •(core::int* index, core::String* name) → self::Enum#1*
+  static const field core::List<self::Enum#1> values = const <self::Enum#1>[self::Enum#1::a, self::Enum#1::b, self::Enum#1::c];
+  static const field self::Enum#1 a = const self::Enum#1::•(0, "a");
+  static const field self::Enum#1 b = const self::Enum#1::•(1, "b");
+  static const field self::Enum#1 c = const self::Enum#1::•(2, "c");
+  const constructor •(core::int index, core::String name) → self::Enum#1
     : super core::_Enum::•(index, name)
     ;
-  method toString() → core::String*
+  method toString() → core::String
     return "Enum#1.${this.{core::_Enum::_name}{core::String}}";
-  abstract member-signature get index() → core::int*; -> core::_Enum::index
-  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Enum extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::Enum*>* values = const <self::Enum*>[self::Enum::Enum, self::Enum::a, self::Enum::b];
-  static const field self::Enum* Enum = const self::Enum::•(0, "Enum");
-  static const field self::Enum* a = const self::Enum::•(1, "a");
-  static const field self::Enum* b = const self::Enum::•(2, "b");
-  const constructor •(core::int* index, core::String* name) → self::Enum*
+  static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::Enum, self::Enum::a, self::Enum::b];
+  static const field self::Enum Enum = const self::Enum::•(0, "Enum");
+  static const field self::Enum a = const self::Enum::•(1, "a");
+  static const field self::Enum b = const self::Enum::•(2, "b");
+  const constructor •(core::int index, core::String name) → self::Enum
     : super core::_Enum::•(index, name)
     ;
-  method toString() → core::String*
+  method toString() → core::String
     return "Enum.${this.{core::_Enum::_name}{core::String}}";
-  abstract member-signature get index() → core::int*; -> core::_Enum::index
-  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class AnotherEnum extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::AnotherEnum*>* values = const <self::AnotherEnum*>[self::AnotherEnum::a, self::AnotherEnum::b, self::AnotherEnum::c, self::AnotherEnum::_name, self::AnotherEnum::index];
-  static const field self::AnotherEnum* a = const self::AnotherEnum::•(0, "a");
-  static const field self::AnotherEnum* b = const self::AnotherEnum::•(1, "b");
-  static const field self::AnotherEnum* c = const self::AnotherEnum::•(2, "c");
-  static const field self::AnotherEnum* _name = const self::AnotherEnum::•(3, "_name");
-  static const field self::AnotherEnum* index = const self::AnotherEnum::•(4, "index");
-  const constructor •(core::int* index, core::String* name) → self::AnotherEnum*
+  static const field core::List<self::AnotherEnum> values = const <self::AnotherEnum>[self::AnotherEnum::a, self::AnotherEnum::b, self::AnotherEnum::c, self::AnotherEnum::_name, self::AnotherEnum::index];
+  static const field self::AnotherEnum a = const self::AnotherEnum::•(0, "a");
+  static const field self::AnotherEnum b = const self::AnotherEnum::•(1, "b");
+  static const field self::AnotherEnum c = const self::AnotherEnum::•(2, "c");
+  static const field self::AnotherEnum _name = const self::AnotherEnum::•(3, "_name");
+  static const field self::AnotherEnum index = const self::AnotherEnum::•(4, "index");
+  const constructor •(core::int index, core::String name) → self::AnotherEnum
     : super core::_Enum::•(index, name)
     ;
-  method toString() → core::String*
+  method toString() → core::String
     return "AnotherEnum.${this.{core::_Enum::_name}{core::String}}";
-  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field core::String* field;
+static field core::String field;
 static method main() → dynamic
   ;
 static method foo() → dynamic
@@ -551,7 +426,7 @@ static method foo() → dynamic
 static method useAnotherEnum() → dynamic
   ;
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;
 
 

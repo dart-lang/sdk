@@ -52,6 +52,7 @@ general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
 general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError
+general/covariant_generic2: RuntimeError
 general/crashes/crash_02/main: Crash
 general/crashes/crash_06/main: Crash
 general/duplicated_declarations: TypeCheckError
