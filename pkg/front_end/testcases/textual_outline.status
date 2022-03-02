@@ -30,6 +30,7 @@ dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
 enhanced_enums/conflicting_elements: FormatterCrash
 enhanced_enums/constructor_calls: FormatterCrash
+enhanced_enums/constructor_not_found: FormatterCrash
 enhanced_enums/declared_values: FormatterCrash
 enhanced_enums/entries_with_type_arguments: FormatterCrash
 enhanced_enums/enum_as_supertype: FormatterCrash
@@ -113,6 +114,8 @@ general/issue47495: FormatterCrash
 general/issue47728_2: FormatterCrash
 general/issue47728_3: FormatterCrash
 general/issue47922: FormatterCrash
+general/issue48487: FormatterCrash
+general/issue48487b: FormatterCrash
 general/issue_46886: FormatterCrash
 general/macro_class: FormatterCrash
 general/many_errors: FormatterCrash
