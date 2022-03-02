@@ -1,4 +1,3 @@
-// @dart = 2.9
 bar(B b) {}
 
 class A<X> {

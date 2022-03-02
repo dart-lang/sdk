@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A {
   dynamic call(dynamic a, dynamic b) {}
 }

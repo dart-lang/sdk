@@ -1,3 +1,2 @@
-// @dart = 2.9
 export 'hello.dart' show main;
 export 'map.dart' show main;

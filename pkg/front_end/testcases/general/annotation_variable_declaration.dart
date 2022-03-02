@@ -1,7 +1,7 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 const int foo = 42;
 
 class Bar {
@@ -12,7 +12,7 @@ class Bar {
 class Baz {
   Baz(@foo constructorFormal);
 
-  factory Baz.bazFactory(@foo factoryFormal) => null;
+  factory Baz.bazFactory(@foo factoryFormal) => throw '';
 
   fisk(@foo formal1, @Bar() formal2, @Bar.named(foo) formal3,
       @foo @Bar.named(foo) formal4,

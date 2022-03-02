@@ -1,4 +1,3 @@
-// @dart = 2.9
 @a
 @A(1)
 library test;
@@ -21,7 +20,7 @@ typedef void F1();
 typedef F2 = void Function();
 @a
 @A(3)
-int f1, f2;
+int? f1, f2;
 @a
 @A(4)
 void main() {}

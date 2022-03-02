@@ -1,4 +1,3 @@
-// @dart = 2.9
 import 'dart:mirrors';
 
 const _FailingTest failingTest = const _FailingTest();
