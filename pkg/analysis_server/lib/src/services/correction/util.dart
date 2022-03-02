@@ -241,6 +241,9 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
     if (node is CompilationUnit) {
       return member;
     }
+    if (node is EnumDeclaration) {
+      return member;
+    }
     member = node;
   }
   return null;
