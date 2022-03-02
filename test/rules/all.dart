@@ -67,6 +67,7 @@ import 'unawaited_futures_test.dart' as unawaited_futures;
 import 'unnecessary_getters_setters_test.dart' as unnecessary_getters_setters;
 import 'unnecessary_null_checks_test.dart' as unnecessary_null_checks;
 import 'unnecessary_overrides_test.dart' as unnecessary_overrides;
+import 'use_enums_test.dart' as use_enums;
 import 'use_is_even_rather_than_modulo_test.dart'
     as use_is_even_rather_than_modulo;
 import 'void_checks_test.dart' as void_checks;
@@ -116,6 +117,7 @@ void main() {
   unnecessary_getters_setters.main();
   unnecessary_null_checks.main();
   unnecessary_overrides.main();
+  use_enums.main();
   use_is_even_rather_than_modulo.main();
   void_checks.main();
 }

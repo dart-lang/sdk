@@ -74,16 +74,7 @@ class DartTypeUtilities {
     }
 
     // And no subclasses in the defining library.
-    var compilationUnit = classElement.library.definingCompilationUnit;
-    for (var cls in compilationUnit.classes) {
-      InterfaceType? classType = cls.thisType;
-      do {
-        classType = classType?.superclass;
-        if (classType == type) {
-          return null;
-        }
-      } while (classType != null && !classType.isDartCoreObject);
-    }
+    if (hasSubclassInDefiningCompilationUnit(classElement)) return null;
 
     return EnumLikeClassDescription(enumConstants);
   }
@@ -221,6 +212,20 @@ class DartTypeUtilities {
 
   static bool hasInheritedMethod(MethodDeclaration node) =>
       lookUpInheritedMethod(node) != null;
+
+  static bool hasSubclassInDefiningCompilationUnit(ClassElement classElement) {
+    var compilationUnit = classElement.library.definingCompilationUnit;
+    for (var cls in compilationUnit.classes) {
+      InterfaceType? classType = cls.thisType;
+      do {
+        classType = classType?.superclass;
+        if (classType == classElement.thisType) {
+          return true;
+        }
+      } while (classType != null && !classType.isDartCoreObject);
+    }
+    return false;
+  }
 
   static bool implementsAnyInterface(
       DartType type, Iterable<InterfaceTypeDefinition> definitions) {

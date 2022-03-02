@@ -109,10 +109,10 @@ bool isFinalOrConst(Token token) =>
     isKeyword(token, Keyword.FINAL) || isKeyword(token, Keyword.CONST);
 
 /// Returns `true` if this element is a `hashCode` method or field declaration.
-bool isHashCode(ClassMember element) =>
-    (element is MethodDeclaration && element.name.name == 'hashCode') ||
-    (element is FieldDeclaration &&
-        getFieldIdentifier(element, 'hashCode') != null);
+bool isHashCode(ClassMember element) => _hasFieldOrMethod(element, 'hashCode');
+
+/// Returns `true` if this element is an `index` method or field declaration.
+bool isIndex(ClassMember element) => _hasFieldOrMethod(element, 'index');
 
 /// Return true if this compilation unit [node] is declared within the given
 /// [package]'s `lib/` directory tree.
@@ -233,6 +233,9 @@ bool isSimpleSetter(MethodDeclaration setter) {
 
 /// Returns `true` if the given [id] is a valid Dart identifier.
 bool isValidDartIdentifier(String id) => !isKeyWord(id) && isIdentifier(id);
+
+/// Returns `true` if this element is a `values` method or field declaration.
+bool isValues(ClassMember element) => _hasFieldOrMethod(element, 'values');
 
 /// Returns `true` if the keyword associated with this token is `var`.
 bool isVar(Token token) => isKeyword(token, Keyword.VAR);
@@ -408,6 +411,10 @@ Element? _getWriteElement(AstNode node) {
 
   return null;
 }
+
+bool _hasFieldOrMethod(ClassMember element, String name) =>
+    (element is MethodDeclaration && element.name.name == name) ||
+    (element is FieldDeclaration && getFieldIdentifier(element, name) != null);
 
 /// An [Element] processor function type.
 /// If `true` is returned, children of [element] will be visited.
