@@ -71,10 +71,10 @@ class B implements A {
 enum E {
   v;
   @override
-  int? foo;
+  final int foo = 0;
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 33, 3),
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 38, 3),
     ]);
   }
 
@@ -83,19 +83,15 @@ enum E {
 class A {
   int get a => 0;
   void set b(int _) {}
-  int c = 0;
 }
 
 enum E implements A {
   v;
   @override
-  final int a = 1;
+  int get a => 0;
 
   @override
-  int b = 0;
-
-  @override
-  int c = 0;
+  void set b(int _) {}
 }
 ''');
   }
@@ -110,10 +106,10 @@ mixin M {
 enum E with M {
   v;
   @override
-  final int a = 1;
+  int get a => 0;
 
   @override
-  int b = 0;
+  void set b(int _) {}
 }
 ''');
   }

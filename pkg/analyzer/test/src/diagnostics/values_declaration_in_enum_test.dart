@@ -29,10 +29,10 @@ enum E {
     await assertErrorsInCode(r'''
 enum E {
   v;
-  int values = 0;
+  final int values = 0;
 }
 ''', [
-      error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 20, 6),
+      error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 26, 6),
     ]);
   }
 

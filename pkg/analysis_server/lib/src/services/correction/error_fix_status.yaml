@@ -711,6 +711,8 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: needsEvaluation
+CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM:
+  status: needsEvaluation
 CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR:

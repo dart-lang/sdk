@@ -10702,6 +10702,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode NON_FINAL_FIELD_IN_ENUM =
+      CompileTimeErrorCode(
+    'NON_FINAL_FIELD_IN_ENUM',
+    "Enum can only declare final fields.",
+    correctionMessage: "Try making the field final.",
+  );
+
+  /**
    * Parameters:
    * 0: the non-generative constructor
    */

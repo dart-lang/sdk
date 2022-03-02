@@ -677,6 +677,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForNotInitializedNonNullableStaticField(node);
       _checkForWrongTypeParameterVarianceInField(node);
       _checkForLateFinalFieldWithConstConstructor(node);
+      _checkForNonFinalFieldInEnum(node);
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;
@@ -3704,6 +3705,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     /// TODO(srawlins): Add any tests showing this is reported.
     errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, literal);
+  }
+
+  void _checkForNonFinalFieldInEnum(FieldDeclaration node) {
+    if (node.isStatic) return;
+
+    var variableList = node.fields;
+    if (variableList.isFinal) return;
+
+    var enclosingClass = _enclosingClass;
+    if (enclosingClass == null || !enclosingClass.isEnum) {
+      return;
+    }
+
+    errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM,
+      variableList.variables.first.name,
+    );
   }
 
   /// Verify that the given method [declaration] of operator `[]=`, has `void`
