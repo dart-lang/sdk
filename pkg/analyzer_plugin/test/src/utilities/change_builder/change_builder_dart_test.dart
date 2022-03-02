@@ -678,9 +678,10 @@ import 'bar.dart';
     expect(edit.replacement, equalsIgnoringWhitespace('Foo'));
   }
 
-  Future<void> test_writeImportedName_needsImport() async {
+  Future<void> test_writeImportedName_needsImport_insertion() async {
     var path = convertPath('/home/test/lib/test.dart');
-    addSource(path, '');
+    var content = '';
+    addSource(path, content);
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -693,9 +694,40 @@ import 'bar.dart';
     });
     var edits = getEdits(builder);
     expect(edits, hasLength(2));
-    expect(edits[0].replacement,
+    expect(edits[0].replacement, equalsIgnoringWhitespace('Foo'));
+    expect(edits[1].replacement,
         equalsIgnoringWhitespace("import 'package:test/foo.dart';\n"));
-    expect(edits[1].replacement, equalsIgnoringWhitespace('Foo'));
+    var result = SourceEdit.applySequence(content, edits);
+    expect(result, '''
+import 'package:test/foo.dart';
+
+Foo''');
+  }
+
+  Future<void> test_writeImportedName_needsImport_replacement() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'test';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addReplacement(SourceRange(0, 4), (builder) {
+        builder.writeImportedName([
+          Uri.parse('package:test/foo.dart'),
+          Uri.parse('package:test/bar.dart')
+        ], 'Foo');
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    expect(edits[0].replacement, equalsIgnoringWhitespace('Foo'));
+    expect(edits[1].replacement,
+        equalsIgnoringWhitespace("import 'package:test/foo.dart';\n"));
+    var result = SourceEdit.applySequence(content, edits);
+    expect(result, '''
+import 'package:test/foo.dart';
+
+Foo''');
   }
 
   Future<void> test_writeLocalVariableDeclaration_noType_initializer() async {
@@ -1257,14 +1289,19 @@ import 'a.dart' as p;
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
-      builder.addInsertion(content.length - 1, (builder) {
+      builder.addInsertion(0, (builder) {
         builder.writeReference(aElement);
       });
     });
     var edits = getEdits(builder);
     expect(edits, hasLength(2));
-    expect(edits[0].replacement, equalsIgnoringWhitespace("import 'a.dart';"));
-    expect(edits[1].replacement, equalsIgnoringWhitespace('a'));
+    expect(edits[0].replacement, equalsIgnoringWhitespace('a'));
+    expect(edits[1].replacement, equalsIgnoringWhitespace("import 'a.dart';"));
+    var result = SourceEdit.applySequence(content, edits);
+    expect(result, '''
+import 'a.dart';
+
+a''');
   }
 
   Future<void> test_writeSetterDeclaration_bodyWriter() async {
@@ -1528,7 +1565,7 @@ class B {}
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
-      builder.addInsertion(content.length - 1, (builder) {
+      builder.addInsertion(0, (builder) {
         builder.writeType(a1.instantiate(
           typeArguments: [],
           nullabilitySuffix: NullabilitySuffix.star,
@@ -1552,12 +1589,19 @@ class B {}
     expect(edits, hasLength(2));
     expect(
         edits[0].replacement,
-        equalsIgnoringWhitespace("import 'package:test/a.dart' as _prefix0; "
-            "import 'package:test/b.dart' as _prefix1;"));
-    expect(
-        edits[1].replacement,
         equalsIgnoringWhitespace(
             '_prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;'));
+    expect(
+        edits[1].replacement,
+        equalsIgnoringWhitespace("import 'package:test/a.dart' as _prefix0; "
+            "import 'package:test/b.dart' as _prefix1;"));
+
+    var resultCode = SourceEdit.applySequence(content, edits);
+    expect(resultCode, r'''
+import 'package:test/a.dart' as _prefix0;
+import 'package:test/b.dart' as _prefix1;
+
+_prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
   }
 
   Future<void> test_writeType_required_dynamic() async {

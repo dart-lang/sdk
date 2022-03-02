@@ -983,10 +983,12 @@ lsp.CompletionItem snippetToCompletionItem(
   );
 
   // For LSP, we need to provide the main edit and other edits separately. The
-  // main edit must include the location that completion was invoked. If we
-  // fail to find exactly one, this is an error.
+  // main edit must include the location that completion was invoked. If we find
+  // more than one, take the first one since imports are usually added as later
+  // edits (so when applied sequentially they will be inserted at the start of
+  // the file after the other edits).
   final mainEdit = mainFileEdits
-      .singleWhere((edit) => edit.range.start.line == position.line);
+      .firstWhere((edit) => edit.range.start.line == position.line);
   final nonMainEdits = mainFileEdits.where((edit) => edit != mainEdit).toList();
 
   return lsp.CompletionItem(
@@ -1481,12 +1483,16 @@ List<lsp.SnippetTextEdit> toSnippetTextEdits(
 }) {
   final snippetEdits = <lsp.SnippetTextEdit>[];
 
-  // Edit groups offsets are based on after the edits are applied, so we
-  // must track the offset delta to ensure we track the offset within the
-  // edits. This also requires the edits are sorted earliest-to-latest.
+  // Edit groups offsets are based on the document after the edits are applied.
+  // This means we must compute an offset delta for each edit that takes into
+  // account all edits that might be made before it in the document (which are
+  // after it in the edits). To do this, reverse the list when computing the
+  // offsets, but reverse them back to the original list order when returning so
+  // that we do not apply them incorrectly in tests (where we will apply them
+  // in-sequence).
+
   var offsetDelta = 0;
-  change.edits.sortBy<num>((edit) => edit.offset);
-  for (final edit in change.edits) {
+  for (final edit in change.edits.reversed) {
     snippetEdits.add(snippetTextEditFromEditGroups(
       filePath,
       lineInfo,
@@ -1499,7 +1505,7 @@ List<lsp.SnippetTextEdit> toSnippetTextEdits(
     offsetDelta += edit.replacement.length - edit.length;
   }
 
-  return snippetEdits;
+  return snippetEdits.reversed.toList();
 }
 
 ErrorOr<server.SourceRange> toSourceRange(

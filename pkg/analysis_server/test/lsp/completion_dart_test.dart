@@ -2607,6 +2607,60 @@ class B {}
 ''');
   }
 
+  Future<void> test_snippets_flutterStateless_addsImports_onlyPrefix() async {
+    final content = '''
+stless^
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
+      label: FlutterStatelessWidgetSnippetProducer.label,
+    );
+
+    expect(updated, '''
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';
+
+class \${1:MyWidget} extends StatelessWidget {
+  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    \$0
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_flutterStateless_addsImports_zeroOffset() async {
+    final content = '''
+^
+'''; // Deliberate trailing newline to ensure imports aren't inserted at "end".
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
+      label: FlutterStatelessWidgetSnippetProducer.label,
+    );
+
+    expect(updated, '''
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';
+
+class \${1:MyWidget} extends StatelessWidget {
+  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    \$0
+  }
+}
+''');
+  }
+
   Future<void> test_snippets_flutterStateless_notAvailable_notTopLevel() async {
     final content = '''
 class A {
