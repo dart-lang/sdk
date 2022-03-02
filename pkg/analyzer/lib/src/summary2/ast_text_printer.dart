@@ -242,6 +242,12 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    _token(node.period);
+    node.name.accept(this);
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     _token(node.continueKeyword);
     node.label?.accept(this);
@@ -296,9 +302,17 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEnumConstantArguments(EnumConstantArguments node) {
+    node.typeArguments?.accept(this);
+    node.constructorSelector?.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _declaration(node);
     node.name.accept(this);
+    node.arguments?.accept(this);
   }
 
   @override
@@ -306,8 +320,13 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _compilationUnitMember(node);
     _token(node.enumKeyword);
     node.name.accept(this);
+    node.typeParameters?.accept(this);
+    node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
     _token(node.leftBracket);
-    _nodeList(node.constants, node.rightBracket);
+    _nodeList(node.constants, node.semicolon ?? node.rightBracket);
+    _token(node.semicolon);
+    node.members.accept(this);
     _token(node.rightBracket);
   }
 
@@ -874,6 +893,18 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitSuperExpression(SuperExpression node) {
     _token(node.superKeyword);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _normalFormalParameter(node);
+    _token(node.keyword);
+    node.type?.accept(this);
+    _token(node.superKeyword);
+    _token(node.period);
+    node.identifier.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
   }
 
   @override
