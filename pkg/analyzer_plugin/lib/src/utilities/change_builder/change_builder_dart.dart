@@ -1507,15 +1507,18 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // Prepare information about existing imports.
     LibraryDirective? libraryDirective;
     var importDirectives = <ImportDirective>[];
-    PartDirective? partDirective;
+    ExportDirective? firstExportDirective;
+    PartDirective? firstPartDirective;
     var unit = resolvedUnit.unit;
     for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
         libraryDirective = directive;
       } else if (directive is ImportDirective) {
         importDirectives.add(directive);
+      } else if (directive is ExportDirective) {
+        firstExportDirective ??= directive;
       } else if (directive is PartDirective) {
-        partDirective = directive;
+        firstPartDirective ??= directive;
       }
     }
 
@@ -1634,7 +1637,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
                 builder.writeln();
               }
             } else {
-              if (isLastExistingDart || isLastExistingPackage) {
+              if (!isDart && (isLastExistingDart || isLastExistingPackage)) {
                 builder.writeln();
               }
             }
@@ -1662,9 +1665,22 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return;
     }
 
-    // Insert imports: before a part directive.
-    if (partDirective != null) {
-      addInsertion(partDirective.offset, (EditBuilder builder) {
+    // Insert imports: before any export directives.
+    if (firstExportDirective != null) {
+      addInsertion(firstExportDirective.offset, (EditBuilder builder) {
+        for (var i = 0; i < importList.length; i++) {
+          var import = importList[i];
+          writeImport(builder, import);
+          builder.writeln();
+        }
+        builder.writeln();
+      });
+      return;
+    }
+
+    // Insert imports: before any part directives.
+    if (firstPartDirective != null) {
+      addInsertion(firstPartDirective.offset, (EditBuilder builder) {
         for (var i = 0; i < importList.length; i++) {
           var import = importList[i];
           writeImport(builder, import);
