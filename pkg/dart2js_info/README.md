@@ -51,8 +51,7 @@ below.
 
 ## Format
 
-There are several formats of info files. Dart2js today produces a JSON format,
-but very soon will switch to produce a binary format by default.
+Dart2js info files are produced in either a binary or JSON format.
 
 ## Info API
 
@@ -502,7 +501,7 @@ application size. This means that if you somehow can remove your dependency on
 `myMethodName`, you will save at least that 13.97%, and possibly some more from
 the reachable size, but how much of that we are not certain.
 
-### Coverage tools
+### Coverage Server Analysis
 
 Coverage information requires a bit more setup and work to get them running. The
 steps are as follows:
@@ -537,6 +536,42 @@ $ dart2js_info coverage_server main.dart.js
 
 ```console
 $ dart2js_info coverage_analysis main.dart.info.data main.dart.coverage.json
+```
+
+### Runtime Code Analysis
+
+Runtime code analysis requires both an info file and a runtime data file. 
+
+The info file is emitted by compiling a dart2js app with `--dump-info`:
+
+```console
+$ dart2js --dump-info main.dart
+```
+
+Enable the collection of runtime data by compiling a dart2js app with an
+experimental flag:
+
+```console
+$ dart2js --experimental-track-allocations main.dart
+```
+
+After using your app (manually or via integration tests), dump the top-level
+window object below to a text file:
+
+```javascript
+JSON.stringify($__dart_deferred_initializers__.allocations)
+```
+
+Finally run this tool:
+
+```console
+$ dart2js_info runtime_coverage main.dart.info.data main.runtime.data.txt
+```
+
+And with the following to view package-level information:
+
+```console
+$ dart2js_info runtime_coverage --show-packages main.dart.info.data main.runtime.data.txt
 ```
 
 ## Code location, features and bugs
