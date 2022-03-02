@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class B extends A {
   void foo([a]);
 }

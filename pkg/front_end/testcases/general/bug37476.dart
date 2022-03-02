@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 /*@testedFeatures=checks*/
 
 class A<T extends num> {
@@ -23,13 +23,13 @@ B<num> b = new B<int>();
 
 main() {
   try {
-    a.foo /*@ checkReturn=<S extends num* = dynamic>(S*) ->* void */ ();
+    a.foo /*@checkReturn=<S extends num = dynamic>(S) -> void*/ ();
     throw 'Expected TypeError';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    b.foo /*@ checkReturn=(num*) ->* void */ ();
+    b.foo /*@checkReturn=(num) -> void*/ ();
     throw 'Expected TypeError';
   } on TypeError catch (e) {
     print(e);

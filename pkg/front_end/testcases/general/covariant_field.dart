@@ -1,10 +1,10 @@
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class A {
-  num invariantField;
-  covariant num covariantField;
+  num invariantField = 0;
+  covariant num covariantField = 0;
 }
 
 abstract class B implements A {

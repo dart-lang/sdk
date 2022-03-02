@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A {
   A.foo() : this.bar();
   A.bar() : this.foo();

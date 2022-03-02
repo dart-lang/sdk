@@ -1,159 +1,129 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class DeltaBlue extends core::Object {
-  synthetic constructor •() → self::DeltaBlue*
+  synthetic constructor •() → self::DeltaBlue
     ;
   method run() → void
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Strength extends core::Object /*hasConstConstructor*/  {
-  final field core::int* value;
-  final field core::String* name;
-  const constructor •(core::int* value, core::String* name) → self::Strength*
+  final field core::int value;
+  final field core::String name;
+  const constructor •(core::int value, core::String name) → self::Strength
     : self::Strength::value = value, self::Strength::name = name, super core::Object::•()
     ;
-  method nextWeaker() → self::Strength*
+  method nextWeaker() → self::Strength
     ;
-  static method stronger(self::Strength* s1, self::Strength* s2) → core::bool*
+  static method stronger(self::Strength s1, self::Strength s2) → core::bool
     ;
-  static method weaker(self::Strength* s1, self::Strength* s2) → core::bool*
+  static method weaker(self::Strength s1, self::Strength s2) → core::bool
     ;
-  static method weakest(self::Strength* s1, self::Strength* s2) → self::Strength*
+  static method weakest(self::Strength s1, self::Strength s2) → self::Strength
     ;
-  static method strongest(self::Strength* s1, self::Strength* s2) → self::Strength*
+  static method strongest(self::Strength s1, self::Strength s2) → self::Strength
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class Constraint extends core::Object /*hasConstConstructor*/  {
-  final field self::Strength* strength;
-  const constructor •(self::Strength* strength) → self::Constraint*
+  final field self::Strength strength;
+  const constructor •(self::Strength strength) → self::Constraint
     : self::Constraint::strength = strength, super core::Object::•()
     ;
-  abstract method isSatisfied() → core::bool*;
+  abstract method isSatisfied() → core::bool;
   abstract method markUnsatisfied() → void;
   abstract method addToGraph() → void;
   abstract method removeFromGraph() → void;
-  abstract method chooseMethod(core::int* mark) → void;
-  abstract method markInputs(core::int* mark) → void;
-  abstract method inputsKnown(core::int* mark) → core::bool*;
-  abstract method output() → self::Variable*;
+  abstract method chooseMethod(core::int mark) → void;
+  abstract method markInputs(core::int mark) → void;
+  abstract method inputsKnown(core::int mark) → core::bool;
+  abstract method output() → self::Variable;
   abstract method execute() → void;
   abstract method recalculate() → void;
   method addConstraint() → void
     ;
-  method satisfy(dynamic mark) → self::Constraint*
+  method satisfy(dynamic mark) → self::Constraint?
     ;
   method destroyConstraint() → void
     ;
-  method isInput() → core::bool*
+  method isInput() → core::bool
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class UnaryConstraint extends self::Constraint {
-  final field self::Variable* myOutput;
-  field core::bool* satisfied;
-  constructor •(self::Variable* myOutput, self::Strength* strength) → self::UnaryConstraint*
+  final field self::Variable myOutput;
+  field core::bool satisfied;
+  constructor •(self::Variable myOutput, self::Strength strength) → self::UnaryConstraint
     ;
   method addToGraph() → void
     ;
-  method chooseMethod(core::int* mark) → void
+  method chooseMethod(core::int mark) → void
     ;
-  method isSatisfied() → core::bool*
+  method isSatisfied() → core::bool
     ;
-  method markInputs(core::int* mark) → void
+  method markInputs(core::int mark) → void
     ;
-  method output() → self::Variable*
+  method output() → self::Variable
     ;
   method recalculate() → void
     ;
   method markUnsatisfied() → void
     ;
-  method inputsKnown(core::int* mark) → core::bool*
+  method inputsKnown(core::int mark) → core::bool
     ;
   method removeFromGraph() → void
     ;
 }
 class StayConstraint extends self::UnaryConstraint {
-  constructor •(self::Variable* v, self::Strength* str) → self::StayConstraint*
+  constructor •(self::Variable v, self::Strength str) → self::StayConstraint
     ;
   method execute() → void
     ;
 }
 class EditConstraint extends self::UnaryConstraint {
-  constructor •(self::Variable* v, self::Strength* str) → self::EditConstraint*
+  constructor •(self::Variable v, self::Strength str) → self::EditConstraint
     ;
-  method isInput() → core::bool*
+  method isInput() → core::bool
     ;
   method execute() → void
     ;
 }
 abstract class BinaryConstraint extends self::Constraint {
-  field self::Variable* v1;
-  field self::Variable* v2;
-  field core::int* direction;
-  constructor •(self::Variable* v1, self::Variable* v2, self::Strength* strength) → self::BinaryConstraint*
+  field self::Variable v1;
+  field self::Variable v2;
+  field core::int direction;
+  constructor •(self::Variable v1, self::Variable v2, self::Strength strength) → self::BinaryConstraint
     ;
-  method chooseMethod(core::int* mark) → void
+  method chooseMethod(core::int mark) → void
     ;
   method addToGraph() → void
     ;
-  method isSatisfied() → core::bool*
+  method isSatisfied() → core::bool
     ;
-  method markInputs(core::int* mark) → void
+  method markInputs(core::int mark) → void
     ;
-  method input() → self::Variable*
+  method input() → self::Variable
     ;
-  method output() → self::Variable*
+  method output() → self::Variable
     ;
   method recalculate() → void
     ;
   method markUnsatisfied() → void
     ;
-  method inputsKnown(core::int* mark) → core::bool*
+  method inputsKnown(core::int mark) → core::bool
     ;
   method removeFromGraph() → void
     ;
 }
 class ScaleConstraint extends self::BinaryConstraint {
-  final field self::Variable* scale;
-  final field self::Variable* offset;
-  constructor •(self::Variable* src, self::Variable* scale, self::Variable* offset, self::Variable* dest, self::Strength* strength) → self::ScaleConstraint*
+  final field self::Variable scale;
+  final field self::Variable offset;
+  constructor •(self::Variable src, self::Variable scale, self::Variable offset, self::Variable dest, self::Strength strength) → self::ScaleConstraint
     ;
   method addToGraph() → void
     ;
   method removeFromGraph() → void
     ;
-  method markInputs(core::int* mark) → void
+  method markInputs(core::int mark) → void
     ;
   method execute() → void
     ;
@@ -161,106 +131,76 @@ class ScaleConstraint extends self::BinaryConstraint {
     ;
 }
 class EqualityConstraint extends self::BinaryConstraint {
-  constructor •(self::Variable* v1, self::Variable* v2, self::Strength* strength) → self::EqualityConstraint*
+  constructor •(self::Variable v1, self::Variable v2, self::Strength strength) → self::EqualityConstraint
     ;
   method execute() → void
     ;
 }
 class Variable extends core::Object {
-  field core::List<self::Constraint*>* constraints;
-  field self::Constraint* determinedBy;
-  field core::int* mark;
-  field self::Strength* walkStrength;
-  field core::bool* stay;
-  field core::int* value;
-  final field core::String* name;
-  constructor •(core::String* name, core::int* value) → self::Variable*
+  field core::List<self::Constraint> constraints;
+  field self::Constraint? determinedBy;
+  field core::int mark;
+  field self::Strength walkStrength;
+  field core::bool stay;
+  field core::int value;
+  final field core::String name;
+  constructor •(core::String name, core::int value) → self::Variable
     ;
-  method addConstraint(self::Constraint* c) → void
+  method addConstraint(self::Constraint c) → void
     ;
-  method removeConstraint(self::Constraint* c) → void
+  method removeConstraint(self::Constraint c) → void
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Planner extends core::Object {
-  field core::int* currentMark;
-  synthetic constructor •() → self::Planner*
+  field core::int currentMark;
+  synthetic constructor •() → self::Planner
     ;
-  method incrementalAdd(self::Constraint* c) → void
+  method incrementalAdd(self::Constraint c) → void
     ;
-  method incrementalRemove(self::Constraint* c) → void
+  method incrementalRemove(self::Constraint c) → void
     ;
-  method newMark() → core::int*
+  method newMark() → core::int
     ;
-  method makePlan(core::List<self::Constraint*>* sources) → self::Plan*
+  method makePlan(core::List<self::Constraint> sources) → self::Plan
     ;
-  method extractPlanFromConstraints(core::List<self::Constraint*>* constraints) → self::Plan*
+  method extractPlanFromConstraints(core::List<self::Constraint> constraints) → self::Plan
     ;
-  method addPropagate(self::Constraint* c, core::int* mark) → core::bool*
+  method addPropagate(self::Constraint c, core::int mark) → core::bool
     ;
-  method removePropagateFrom(self::Variable* out) → core::List<self::Constraint*>*
+  method removePropagateFrom(self::Variable out) → core::List<self::Constraint>
     ;
-  method addConstraintsConsumingTo(self::Variable* v, core::List<self::Constraint*>* coll) → void
+  method addConstraintsConsumingTo(self::Variable v, core::List<self::Constraint> coll) → void
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Plan extends core::Object {
-  field core::List<self::Constraint*>* list;
-  synthetic constructor •() → self::Plan*
+  field core::List<self::Constraint> list;
+  synthetic constructor •() → self::Plan
     ;
-  method addConstraint(self::Constraint* c) → void
+  method addConstraint(self::Constraint c) → void
     ;
-  method size() → core::int*
+  method size() → core::int
     ;
   method execute() → void
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static const field self::Strength* REQUIRED = const self::Strength::•(0, "required");
-static const field self::Strength* STRONG_PREFERRED = const self::Strength::•(1, "strongPreferred");
-static const field self::Strength* PREFERRED = const self::Strength::•(2, "preferred");
-static const field self::Strength* STRONG_DEFAULT = const self::Strength::•(3, "strongDefault");
-static const field self::Strength* NORMAL = const self::Strength::•(4, "normal");
-static const field self::Strength* WEAK_DEFAULT = const self::Strength::•(5, "weakDefault");
-static const field self::Strength* WEAKEST = const self::Strength::•(6, "weakest");
-static const field core::int* NONE = 1;
-static const field core::int* FORWARD = 2;
-static const field core::int* BACKWARD = 0;
-static field self::Planner* planner;
+static const field self::Strength REQUIRED = const self::Strength::•(0, "required");
+static const field self::Strength STRONG_PREFERRED = const self::Strength::•(1, "strongPreferred");
+static const field self::Strength PREFERRED = const self::Strength::•(2, "preferred");
+static const field self::Strength STRONG_DEFAULT = const self::Strength::•(3, "strongDefault");
+static const field self::Strength NORMAL = const self::Strength::•(4, "normal");
+static const field self::Strength WEAK_DEFAULT = const self::Strength::•(5, "weakDefault");
+static const field self::Strength WEAKEST = const self::Strength::•(6, "weakest");
+static const field core::int NONE = 1;
+static const field core::int FORWARD = 2;
+static const field core::int BACKWARD = 0;
+late static field self::Planner planner;
 static method main() → dynamic
   ;
-static method chainTest(core::int* n) → void
+static method chainTest(core::int n) → void
   ;
-static method projectionTest(core::int* n) → void
+static method projectionTest(core::int n) → void
   ;
-static method change(self::Variable* v, core::int* newValue) → void
+static method change(self::Variable v, core::int newValue) → void
   ;
 
 

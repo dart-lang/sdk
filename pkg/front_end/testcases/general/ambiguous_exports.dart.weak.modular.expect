@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -12,9 +12,9 @@ import "dart:core" as core;
 export "org-dartlang-testcase:///hello.dart" show main;
 export "org-dartlang-testcase:///map.dart" show main;
 
-static const field dynamic _exports# = #C1;
+static const field dynamic _exports# = #C1 /*isLegacy*/;
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
@@ -22,7 +22,7 @@ static method main() → dynamic {
   core::print("Hello, World!");
 }
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self3;
 import "dart:core" as core;
 

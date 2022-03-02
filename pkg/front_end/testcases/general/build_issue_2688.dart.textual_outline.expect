@@ -1,4 +1,3 @@
-// @dart = 2.9
 mixin M0 {
   int get property;
 }

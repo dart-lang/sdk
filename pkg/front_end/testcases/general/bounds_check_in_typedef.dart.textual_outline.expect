@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A<X extends String> {}
 
 typedef F = Function<Z extends A<Y>>() Function<Y extends num>();

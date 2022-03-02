@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -44,7 +44,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A*
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   set a(dynamic #synthetic) → void {
@@ -63,19 +63,9 @@ class A extends core::Object {
       ;
     }
   }
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class B extends core::Object {
-  synthetic constructor •() → self::B*
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   set a(dynamic #synthetic) → void {
@@ -94,16 +84,6 @@ abstract class B extends core::Object {
       ;
     }
   }
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static set b(dynamic #synthetic) → void {
   invalid-expression "pkg/front_end/testcases/general/bad_setter_abstract.dart:5:6: Error: A setter should have exactly one formal parameter.
@@ -122,13 +102,13 @@ set c(x, y);
   }
 }
 static method main() → dynamic {
-  core::bool* threw;
+  core::bool threw = false;
   try {
     threw = true;
     new self::A::•().{self::A::a} = null;
     threw = false;
   }
-  on dynamic catch(final dynamic e) {
+  on core::Object catch(final core::Object e) {
   }
   if(!threw) {
     throw "Expected an error above.";
@@ -138,7 +118,7 @@ static method main() → dynamic {
     new self::A::•().{self::A::d} = null;
     threw = false;
   }
-  on dynamic catch(final dynamic e) {
+  on core::Object catch(final core::Object e) {
   }
   if(!threw) {
     throw "Expected an error above.";
@@ -148,7 +128,7 @@ static method main() → dynamic {
     self::b = null;
     threw = false;
   }
-  on dynamic catch(final dynamic e) {
+  on core::Object catch(final core::Object e) {
   }
   if(!threw) {
     throw "Expected an error above.";
@@ -161,7 +141,7 @@ static method main() → dynamic {
     self::c = null;
     threw = false;
   }
-  on dynamic catch(final dynamic e) {
+  on core::Object catch(final core::Object e) {
   }
   if(!threw) {
     throw "Expected an error above.";
@@ -171,7 +151,7 @@ static method main() → dynamic {
     throw new core::AbstractClassInstantiationError::•("B");
     threw = false;
   }
-  on core::AbstractClassInstantiationError* catch(final core::AbstractClassInstantiationError* _) {
+  on core::AbstractClassInstantiationError catch(final core::AbstractClassInstantiationError _) {
   }
   if(!threw) {
     throw "Expected an error above.";

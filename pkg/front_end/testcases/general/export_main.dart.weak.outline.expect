@@ -6,7 +6,7 @@ additionalExports = (hel::main)
 export "org-dartlang-testcase:///hello.dart" show main;
 
 
-library;
+library /*isNonNullableByDefault*/;
 import self as hel;
 
 static method main() → dynamic

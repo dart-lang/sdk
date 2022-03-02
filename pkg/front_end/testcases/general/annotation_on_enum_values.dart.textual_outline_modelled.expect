@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Fisk<T> {
   const Fisk.fisk(this.x);
   final T x;

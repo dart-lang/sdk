@@ -1,7 +1,8 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
-static method test() → dynamic
+static method test(core::Object x, core::Function f) → dynamic
   ;
 static method main() → dynamic
   ;

@@ -1,14 +1,13 @@
-// @dart = 2.9
 class C1 {
-  int f;
+  var f;
   C1() : =;
 }
 class C2 {
-  int f;
+  var f;
   C2() : f=;
 }
 class C3 {
-  int f;
+  var f;
   C3() : =f++;
 }
 main() {}

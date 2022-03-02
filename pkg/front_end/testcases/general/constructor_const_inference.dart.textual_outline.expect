@@ -1,4 +1,3 @@
-// @dart = 2.9
 class _Y<T> {
   const _Y();
 }

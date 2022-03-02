@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 // This test was adapted from language_2/await_test
 
 import 'dart:async';
@@ -115,7 +115,7 @@ conditionals() async {
 }
 
 asserts() async {
-  for (final FutureOr<T> Function<T>(T) func in <Function>[id, future]) {
+  for (final FutureOr<T> Function<T>(T) func in [id, future]) {
     assert(await func(true));
     assert(id(true), await func("message"));
     assert(await func(true), await (func("message")));
@@ -129,7 +129,7 @@ asserts() async {
 }
 
 controlFlow() async {
-  for (final FutureOr<T> Function<T>(T) func in <Function>[id, future]) {
+  for (final FutureOr<T> Function<T>(T) func in [id, future]) {
     // For.
     var c = 0;
     for (var i = await (func(0)); await func(i < 5); await func(i++)) {
