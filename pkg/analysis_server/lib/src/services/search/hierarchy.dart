@@ -95,8 +95,10 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   // method, field, etc
   if (enclosingElement is ClassElement) {
     var name = member.displayName;
-    var searchClasses = getSuperClasses(enclosingElement);
-    searchClasses.add(enclosingElement);
+    var searchClasses = [
+      ...enclosingElement.allSupertypes.map((e) => e.element),
+      enclosingElement,
+    ];
     for (var superClass in searchClasses) {
       // ignore if super- class does not declare member
       if (getClassMembers(superClass, name).isEmpty) {
@@ -152,47 +154,15 @@ Future<List<ParameterElement>> getHierarchyNamedParameters(
 ///
 /// Excludes: constructors and synthetic elements.
 List<Element> getMembers(ClassElement clazz) {
+  var classElements = [
+    ...clazz.allSupertypes.map((e) => e.element),
+    clazz,
+  ];
   var members = <Element>[];
-  members.addAll(getClassMembers(clazz));
-  var superClasses = getSuperClasses(clazz);
-  for (var superClass in superClasses) {
+  for (var superClass in classElements) {
     members.addAll(getClassMembers(superClass));
   }
   return members;
-}
-
-/// Returns a [Set] with all direct and indirect superclasses of [seed].
-Set<ClassElement> getSuperClasses(ClassElement seed) {
-  Set<ClassElement> result = HashSet<ClassElement>();
-  // prepare queue
-  var queue = <ClassElement>[];
-  queue.add(seed);
-  // process queue
-  while (queue.isNotEmpty) {
-    var current = queue.removeLast();
-    // add if not checked already
-    if (!result.add(current)) {
-      continue;
-    }
-    // append supertype
-    {
-      var superType = current.supertype;
-      if (superType != null) {
-        queue.add(superType.element);
-      }
-    }
-    // append superclass constraints
-    for (var interface in current.superclassConstraints) {
-      queue.add(interface.element);
-    }
-    // append interfaces
-    for (var interface in current.interfaces) {
-      queue.add(interface.element);
-    }
-  }
-  // we don't need "seed" itself
-  result.remove(seed);
-  return result;
 }
 
 /// If the given [element] is a synthetic [PropertyAccessorElement] returns

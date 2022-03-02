@@ -160,9 +160,9 @@ class _BaseClassMemberValidator {
 
   Future<void> _checkHierarchy({
     required bool isRename,
-    required Set<ClassElement> superClasses,
     required Set<ClassElement> subClasses,
   }) async {
+    var superClasses = elementClass.allSupertypes.map((e) => e.element).toSet();
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
@@ -212,7 +212,6 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
   Future<RefactoringStatus> validate() async {
     _checkClassAlreadyDeclares();
     // do chained computations
-    var superClasses = getSuperClasses(elementClass);
     var subClasses = await searchEngine.searchAllSubtypes(elementClass);
     // check shadowing of class names
     if (elementClass.name == name) {
@@ -224,7 +223,6 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
     // check shadowing in the hierarchy
     await _checkHierarchy(
       isRename: false,
-      superClasses: superClasses,
       subClasses: subClasses,
     );
     // done
@@ -272,7 +270,6 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   Future<RefactoringStatus> validate() async {
     _checkClassAlreadyDeclares();
     // do chained computations
-    var superClasses = getSuperClasses(elementClass);
     await _prepareReferences();
     var subClasses = await searchEngine.searchAllSubtypes(elementClass);
     // check shadowing of class names
@@ -306,7 +303,6 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     // check shadowing in the hierarchy
     await _checkHierarchy(
       isRename: true,
-      superClasses: superClasses,
       subClasses: subClasses,
     );
     // visibility
