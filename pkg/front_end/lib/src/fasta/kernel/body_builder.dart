@@ -84,7 +84,6 @@ import '../problems.dart'
     show internalProblem, unexpected, unhandled, unsupported;
 import '../scope.dart';
 import '../source/diet_parser.dart';
-import '../source/scope_listener.dart' show JumpTargetKind, ScopeListener;
 import '../source/source_class_builder.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
@@ -93,7 +92,8 @@ import '../source/source_field_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_procedure_builder.dart';
-import '../source/stack_listener_impl.dart' show offsetForToken;
+import '../source/stack_listener_impl.dart'
+    show StackListenerImpl, offsetForToken;
 import '../source/value_kinds.dart';
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody, InitializerInferenceResult;
@@ -125,7 +125,13 @@ const int noLocation = TreeNode.noOffset;
 // has been enabled by default.
 const Object invalidCollectionElement = const Object();
 
-class BodyBuilder extends ScopeListener<JumpTarget>
+enum JumpTargetKind {
+  Break,
+  Continue,
+  Goto, // Continue label in switch.
+}
+
+class BodyBuilder extends StackListenerImpl
     implements ExpressionGeneratorHelper, EnsureLoaded, DelayedActionPerformer {
   @override
   final Forest forest;
@@ -336,6 +342,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   final List<TypeParameter>? extensionTypeParameters;
 
+  Scope scope;
+
+  JumpTarget? breakTarget;
+
+  JumpTarget? continueTarget;
+
   BodyBuilder(
       {required this.libraryBuilder,
       required this.member,
@@ -365,7 +377,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             declarationBuilder is SourceClassBuilder &&
                 coreTypes.objectClass != declarationBuilder.cls,
         benchmarker = libraryBuilder.loader.target.benchmarker,
-        super(enclosingScope) {
+        this.scope = enclosingScope {
     formalParameterScope?.forEach((String name, Builder builder) {
       if (builder is VariableBuilder) {
         typeInferrer.assignedVariables.declare(builder.variable!);
@@ -420,6 +432,147 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             typeInferrer: library.loader.typeInferenceEngine
                 .createLocalTypeInferrer(
                     fileUri, declarationBuilder?.thisType, library, null));
+
+  JumpTarget createBreakTarget(int charOffset) {
+    return createJumpTarget(JumpTargetKind.Break, charOffset);
+  }
+
+  JumpTarget createContinueTarget(int charOffset) {
+    return createJumpTarget(JumpTargetKind.Continue, charOffset);
+  }
+
+  JumpTarget createGotoTarget(int charOffset) {
+    return createJumpTarget(JumpTargetKind.Goto, charOffset);
+  }
+
+  void enterLocalScope(String debugName, [Scope? newScope]) {
+    push(scope);
+    scope = newScope ?? scope.createNestedScope(debugName);
+    assert(checkState(null, [
+      ValueKinds.Scope,
+    ]));
+  }
+
+  @override
+  void exitLocalScope() {
+    assert(checkState(null, [
+      ValueKinds.Scope,
+    ]));
+    scope = pop() as Scope;
+    // ignore: unnecessary_null_comparison
+    assert(scope != null);
+  }
+
+  void enterBreakTarget(int charOffset, [JumpTarget? target]) {
+    push(breakTarget ?? NullValue.BreakTarget);
+    breakTarget = target ?? createBreakTarget(charOffset);
+  }
+
+  void enterContinueTarget(int charOffset, [JumpTarget? target]) {
+    push(continueTarget ?? NullValue.ContinueTarget);
+    continueTarget = target ?? createContinueTarget(charOffset);
+  }
+
+  JumpTarget? exitBreakTarget() {
+    JumpTarget? current = breakTarget;
+    breakTarget = pop() as JumpTarget?;
+    return current;
+  }
+
+  JumpTarget? exitContinueTarget() {
+    JumpTarget? current = continueTarget;
+    continueTarget = pop() as JumpTarget?;
+    return current;
+  }
+
+  @override
+  void beginBlockFunctionBody(Token begin) {
+    debugEvent("beginBlockFunctionBody");
+    enterLocalScope("block function body");
+  }
+
+  @override
+  void beginForStatement(Token token) {
+    debugEvent("beginForStatement");
+    enterLoop(token.charOffset);
+    enterLocalScope("for statement");
+  }
+
+  @override
+  void beginForControlFlow(Token? awaitToken, Token forToken) {
+    debugEvent("beginForControlFlow");
+    enterLocalScope("for in a collection");
+  }
+
+  @override
+  void beginDoWhileStatementBody(Token token) {
+    debugEvent("beginDoWhileStatementBody");
+    enterLocalScope("do-while statement body");
+  }
+
+  @override
+  void endDoWhileStatementBody(Token token) {
+    debugEvent("endDoWhileStatementBody");
+    Object? body = pop();
+    exitLocalScope();
+    push(body);
+  }
+
+  @override
+  void beginWhileStatementBody(Token token) {
+    debugEvent("beginWhileStatementBody");
+    enterLocalScope("while statement body");
+  }
+
+  @override
+  void endWhileStatementBody(Token token) {
+    debugEvent("endWhileStatementBody");
+    Object? body = pop();
+    exitLocalScope();
+    push(body);
+  }
+
+  @override
+  void beginForStatementBody(Token token) {
+    debugEvent("beginForStatementBody");
+    enterLocalScope("for statement body");
+  }
+
+  @override
+  void endForStatementBody(Token token) {
+    debugEvent("endForStatementBody");
+    Object? body = pop();
+    exitLocalScope();
+    push(body);
+  }
+
+  @override
+  void beginForInBody(Token token) {
+    debugEvent("beginForInBody");
+    enterLocalScope("for-in body");
+  }
+
+  @override
+  void endForInBody(Token token) {
+    debugEvent("endForInBody");
+    Object? body = pop();
+    exitLocalScope();
+    push(body);
+  }
+
+  @override
+  void beginElseStatement(Token token) {
+    debugEvent("beginElseStatement");
+    enterLocalScope("else");
+  }
+
+  @override
+  void endElseStatement(Token token) {
+    debugEvent("endElseStatement");
+    Object? body = pop();
+    exitLocalScope();
+    push(body);
+  }
 
   bool get inConstructor {
     return functionNestingLevel == 0 && member is ConstructorBuilder;
@@ -640,7 +793,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
-  @override
   JumpTarget createJumpTarget(JumpTargetKind kind, int charOffset) {
     return new JumpTarget(
         kind, functionNestingLevel, member as MemberBuilder, charOffset);
@@ -2995,17 +3147,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void beginThenStatement(Token token) {
+    debugEvent("beginThenStatement");
     Expression condition = popForValue();
     // This is matched by the call to [deferNode] in
     // [endThenStatement].
     typeInferrer.assignedVariables.beginNode();
     push(condition);
-    super.beginThenStatement(token);
+    enterLocalScope("then");
   }
 
   @override
   void endThenStatement(Token token) {
-    super.endThenStatement(token);
+    debugEvent("endThenStatement");
+    Object? body = pop();
+    exitLocalScope();
+    push(body);
     // This is matched by the call to [beginNode] in
     // [beginThenStatement] and by the call to [storeInfo] in
     // [endIfStatement].
@@ -3281,7 +3437,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       tryStatementInfoStack = tryStatementInfoStack
           .prepend(typeInferrer.assignedVariables.deferNode());
     }
-    super.beginBlock(token, blockKind);
+    debugEvent("beginBlock");
+    enterLocalScope("block");
   }
 
   @override
@@ -3331,7 +3488,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
-  @override
   void enterLoop(int charOffset) {
     if (peek() is LabelTarget) {
       LabelTarget target = peek() as LabelTarget;
@@ -3985,13 +4141,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     enterLocalScope('FunctionTypeScope',
         scope.createNestedScope("function-type scope", isModifiable: true));
     if (typeVariables != null) {
-      ScopeBuilder scopeBuilder = new ScopeBuilder(scope);
       for (TypeVariableBuilder builder in typeVariables) {
         String name = builder.name;
-        TypeVariableBuilder? existing =
-            scopeBuilder[name] as TypeVariableBuilder?;
+        TypeVariableBuilder? existing = scope.lookupLocalMember(name,
+            setter: false) as TypeVariableBuilder?;
         if (existing == null) {
-          scopeBuilder.addMember(name, builder);
+          scope.addLocalMember(name, builder, setter: false);
         } else {
           reportDuplicatedDeclaration(existing, name, builder.charOffset);
         }
@@ -5869,9 +6024,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void beginDoWhileStatement(Token token) {
+    debugEvent("beginDoWhileStatement");
     // This is matched by the [endNode] call in [endDoWhileStatement].
     typeInferrer.assignedVariables.beginNode();
-    super.beginDoWhileStatement(token);
+    enterLoop(token.charOffset);
   }
 
   @override
@@ -6198,9 +6354,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void beginWhileStatement(Token token) {
+    debugEvent("beginWhileStatement");
     // This is matched by the [endNode] call in [endWhileStatement].
     typeInferrer.assignedVariables.beginNode();
-    super.beginWhileStatement(token);
+    enterLoop(token.charOffset);
   }
 
   @override

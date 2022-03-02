@@ -1,80 +1,136 @@
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+#!/usr/bin/env dart
 
 /// Generates the repo's ".dart_tool/package_config.json" file.
 import 'dart:convert';
 import 'dart:io';
 
-// Important! Do not add package: imports to this file.
-// Do not add relative deps for libraries that themselves use package deps.
-// This tool runs before the .dart_tool/package_config.json file is created, so
-// can not itself use package references.
+import 'package:args/args.dart';
+import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
+import 'package:yaml/yaml.dart';
 
-final repoRoot = dirname(dirname(fromUri(Platform.script)));
+bool _parseOptions(List<String> args) {
+  const usage = "Usage: dart generate_package_config.dart [flags...]";
+
+  var parser = ArgParser();
+
+  parser.addFlag("help", abbr: "h");
+
+  parser.addFlag("check",
+      abbr: "c",
+      help: "Return with a non-zero exit code if not up-to-date",
+      negatable: false);
+
+  var results = parser.parse(args);
+
+  if (results["help"] as bool) {
+    print("Regenerate the .dart_tool/package_config.json file.");
+    print("");
+    print(usage);
+    print("");
+    print(parser.usage);
+    exit(0);
+  }
+
+  return results["check"] as bool;
+}
+
+final repoRoot = p.dirname(p.dirname(p.fromUri(Platform.script)));
+final configFilePath = p.join(repoRoot, '.dart_tool/package_config.json');
 
 void main(List<String> args) {
+  bool checkOnly = _parseOptions(args);
+
   var packageDirs = [
-    ...listSubdirectories(platform('pkg')),
-    ...listSubdirectories(platform('third_party/pkg_tested')),
-    ...listSubdirectories(platform('third_party/pkg')),
-    ...listSubdirectories(platform('third_party/pkg/file/packages')),
-    ...listSubdirectories(platform('third_party/pkg/test/pkgs')),
-    platform('pkg/vm_service/test/test_package'),
-    platform('runtime/observatory_2'),
-    platform(
+    ...listSubdirectories('pkg'),
+    ...listSubdirectories('third_party/pkg'),
+    ...listSubdirectories('third_party/pkg_tested'),
+    ...listSubdirectories('third_party/pkg/file/packages'),
+    ...listSubdirectories('third_party/pkg/test/pkgs'),
+    packageDirectory('runtime/observatory'),
+    packageDirectory(
+        'runtime/observatory/tests/service/observatory_test_package'),
+    packageDirectory('runtime/observatory_2'),
+    packageDirectory(
         'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
-    platform('runtime/observatory'),
-    platform('runtime/observatory/tests/service/observatory_test_package'),
-    platform('sdk/lib/_internal/sdk_library_metadata'),
-    platform('third_party/devtools/devtools_shared'),
-    platform('third_party/pkg/protobuf/protobuf'),
-    platform('third_party/pkg/webdev/frontend_server_client'),
-    platform('tools/package_deps'),
+    packageDirectory('pkg/vm_service/test/test_package'),
+    packageDirectory('sdk/lib/_internal/sdk_library_metadata'),
+    packageDirectory('third_party/devtools/devtools_shared'),
+    packageDirectory('third_party/pkg/protobuf/protobuf'),
+    packageDirectory('third_party/pkg/webdev/frontend_server_client'),
+    packageDirectory('tools/package_deps'),
   ];
 
   var cfePackageDirs = [
-    platform('pkg/front_end/testcases'),
+    packageDirectory('pkg/front_end/testcases/'),
   ];
 
   var feAnalyzerSharedPackageDirs = [
-    platform('pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables'),
-    platform('pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment'),
-    platform(
-        'pkg/_fe_analyzer_shared/test/flow_analysis/definite_unassignment'),
-    platform('pkg/_fe_analyzer_shared/test/flow_analysis/nullability'),
-    platform('pkg/_fe_analyzer_shared/test/flow_analysis/reachability'),
-    platform('pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion'),
-    platform('pkg/_fe_analyzer_shared/test/flow_analysis/why_not_promoted'),
-    platform('pkg/_fe_analyzer_shared/test/inheritance'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables/'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment/'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/definite_unassignment/'),
+    packageDirectory('pkg/_fe_analyzer_shared/test/flow_analysis/nullability/'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/reachability/'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion/'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/why_not_promoted//'),
+    packageDirectory('pkg/_fe_analyzer_shared/test/inheritance/'),
   ];
 
-  var packages = <Package>[
+  var packages = [
     ...makePackageConfigs(packageDirs),
     ...makeCfePackageConfigs(cfePackageDirs),
     ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs)
   ];
-  packages.sort((a, b) => a.name.compareTo(b.name));
+  packages.sort((a, b) => a['name']!.compareTo(b['name']!));
 
-  var configFile = File(join(repoRoot, '.dart_tool', 'package_config.json'));
-  var packageConfig = PackageConfig(
-    packages,
-    extraData: {
-      'copyright': [
-        'Copyright (c) 2020, the Dart project authors. Please see the AUTHORS ',
-        'file for details. All rights reserved. Use of this source code is ',
-        'governed by a BSD-style license that can be found in the LICENSE file.',
-      ],
-      'comment': [
-        'Package configuration for all packages in pkg/, third_party/pkg/, and',
-        'third_party/pkg_tested/',
-      ],
-    },
-  );
-  writeIfDifferent(configFile, packageConfig.generateJson('..'));
+  var configFile = File(p.join(repoRoot, '.dart_tool', 'package_config.json'));
+  var json = jsonDecode(configFile.readAsStringSync()) as Map<dynamic, dynamic>;
+  var oldPackages = json['packages'] as List<dynamic>;
 
-  // Also generate the repo's .packages file.
-  var packagesFile = File(join(repoRoot, '.packages'));
+  if (checkOnly) {
+    // Validate the packages entry only, to avoid spurious failures from changes
+    // in the dates embedded in the other entries.
+    if (jsonEncode(packages) == jsonEncode(oldPackages)) {
+      print("Package config up to date.");
+      exit(0);
+    } else {
+      print("Package config out of date.");
+      print("Run `gclient sync -D && dart tools/generate_package_config.dart` "
+          "to update.");
+      exit(1);
+    }
+  }
+
+  var year = DateTime.now().year;
+  var config = <String, dynamic>{
+    'copyright': [
+      'Copyright (c) $year, the Dart project authors. Please see the AUTHORS ',
+      'file for details. All rights reserved. Use of this source code is ',
+      'governed by a BSD-style license that can be found in the LICENSE file.'
+    ],
+    'comment': [
+      'Package configuration for all packages in /pkg, and checked out by DEPS',
+      'into /third_party/pkg and /third_party/pkg_tested.',
+      'If you add a package to DEPS or /pkg or change a package\'s SDK',
+      'constraint, update this by running tools/generate_package_config.dart.'
+    ],
+    'configVersion': 2,
+    'generator': 'tools/generate_package_config.dart',
+    'packages': packages,
+  };
+
+  // TODO(rnystrom): Consider using package_config_v2 to generate this instead.
+  var jsonString = JsonEncoder.withIndent('  ').convert(config);
+  configFile.writeAsStringSync('$jsonString\n');
+
+  // Also generate the reop's .packages file.
+  var packagesFile = File(p.join(repoRoot, '.packages'));
   var buffer = StringBuffer('''
 # Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -85,190 +141,114 @@ void main(List<String> args) {
 
 ''');
   for (var package in packages) {
-    final name = package.name;
-    final rootUri = package.rootUri;
-    final packageUri = package.packageUri;
-
+    final name = package['name'];
+    var path = package['rootUri']!;
+    if (path.startsWith('../')) {
+      path = path.substring('../'.length);
+    }
+    var packageUri = package['packageUri'];
+    if (packageUri != null && packageUri.endsWith('/')) {
+      packageUri = packageUri.substring(0, packageUri.length - 1);
+    }
     if (packageUri != null && packageUri != '.nonexisting') {
-      buffer.writeln('$name:${posix(rootUri)}/${posix(packageUri)}');
+      buffer.writeln('$name:$path/$packageUri');
     }
   }
-  writeIfDifferent(packagesFile, buffer.toString());
-}
-
-/// Writes the given [contents] string to [file] if the contents are different
-/// than what's currently in the file.
-///
-/// This updates the file to the given contents, while preserving the file
-/// timestamp if there are no changes.
-void writeIfDifferent(File file, String contents) {
-  if (!file.existsSync() || file.readAsStringSync() != contents) {
-    file.writeAsStringSync(contents);
-  }
+  packagesFile.writeAsStringSync(buffer.toString());
 }
 
 /// Generates package configurations for each package in [packageDirs].
-Iterable<Package> makePackageConfigs(List<String> packageDirs) sync* {
+Iterable<Map<String, String>> makePackageConfigs(
+    List<String> packageDirs) sync* {
   for (var packageDir in packageDirs) {
     var version = pubspecLanguageVersion(packageDir);
-    var hasLibDirectory =
-        Directory(join(repoRoot, packageDir, 'lib')).existsSync();
+    var hasLibDirectory = Directory(p.join(packageDir, 'lib')).existsSync();
 
-    yield Package(
-      name: basename(packageDir),
-      rootUri: packageDir,
-      packageUri: hasLibDirectory ? 'lib/' : null,
-      languageVersion: version,
-    );
-  }
-}
-
-/// Generates package configurations for the special pseudo-packages used by the
-/// CFE unit tests (`pkg/front_end/test/unit_test_suites.dart`).
-Iterable<Package> makeCfePackageConfigs(List<String> packageDirs) sync* {
-  // TODO: Remove the use of '.nonexisting/'.
-  for (var packageDir in packageDirs) {
-    yield Package(
-      name: 'front_end_${basename(packageDir)}',
-      rootUri: packageDir,
-      packageUri: '.nonexisting/',
-    );
-  }
-}
-
-/// Generates package configurations for the special pseudo-packages used by the
-/// _fe_analyzer_shared id tests.
-Iterable<Package> makeFeAnalyzerSharedPackageConfigs(
-    List<String> packageDirs) sync* {
-  // TODO: Remove the use of '.nonexisting/'.
-  for (var packageDir in packageDirs) {
-    yield Package(
-      name: '_fe_analyzer_shared_${basename(packageDir)}',
-      rootUri: packageDir,
-      packageUri: '.nonexisting/',
-    );
-  }
-}
-
-/// Finds the paths of the immediate subdirectories of [dir] that
-/// contain pubspecs.
-Iterable<String> listSubdirectories(String dir) sync* {
-  for (var entry in Directory(join(repoRoot, dir)).listSync()) {
-    if (entry is! Directory) continue;
-    if (!File(join(entry.path, 'pubspec.yaml')).existsSync()) continue;
-    yield join(dir, basename(entry.path));
-  }
-}
-
-final versionRE = RegExp(r"(?:\^|>=)(\d+\.\d+)");
-
-/// Infers the language version from the SDK constraint in the pubspec for
-/// [packageDir].
-///
-/// The version is returned in the form `major.minor`.
-String? pubspecLanguageVersion(String packageDir) {
-  var pubspecFile = File(join(repoRoot, packageDir, 'pubspec.yaml'));
-
-  if (!pubspecFile.existsSync()) {
-    print("Error: Missing pubspec for $packageDir.");
-    exit(1);
-  }
-
-  var contents = pubspecFile.readAsLinesSync();
-  if (!contents.any((line) => line.contains('sdk: '))) {
-    print("Error: Pubspec for $packageDir has no SDK constraint.");
-    exit(1);
-  }
-
-  // Handle either "sdk: >=2.14.0 <3.0.0" or "sdk: ^2.3.0".
-  var sdkConstraint = contents.firstWhere((line) => line.contains('sdk: '));
-  sdkConstraint = sdkConstraint.trim().substring('sdk:'.length).trim();
-  if (sdkConstraint.startsWith('"') || sdkConstraint.startsWith("'")) {
-    sdkConstraint = sdkConstraint.substring(1, sdkConstraint.length - 2);
-  }
-
-  var match = versionRE.firstMatch(sdkConstraint);
-  if (match == null) {
-    print("Error: unknown version range for $packageDir: '$sdkConstraint'.");
-    exit(1);
-  }
-  return match[1]!;
-}
-
-class Package {
-  final String name;
-  final String rootUri;
-  final String? packageUri;
-  final String? languageVersion;
-
-  Package({
-    required this.name,
-    required this.rootUri,
-    this.packageUri,
-    this.languageVersion,
-  });
-
-  Map<String, Object?> toMap(String relativeTo) {
-    return {
-      'name': name,
-      'rootUri': posix(join(relativeTo, rootUri)),
-      if (packageUri != null) 'packageUri': posix(packageUri!),
-      if (languageVersion != null) 'languageVersion': languageVersion,
+    yield {
+      'name': p.basename(packageDir),
+      'rootUri': p
+          .toUri(p.relative(packageDir, from: p.dirname(configFilePath)))
+          .toString(),
+      if (hasLibDirectory) 'packageUri': 'lib/',
+      'languageVersion': '${version.major}.${version.minor}'
     };
   }
 }
 
-class PackageConfig {
-  final List<Package> packages;
-  final Map<String, Object?>? extraData;
-
-  PackageConfig(this.packages, {this.extraData});
-
-  String generateJson(String relativeTo) {
-    var config = <String, Object?>{};
-    if (extraData != null) {
-      for (var key in extraData!.keys) {
-        config[key] = extraData![key];
-      }
-    }
-    config['configVersion'] = 2;
-    config['generator'] = 'tools/generate_package_config.dart';
-    config['packages'] =
-        packages.map((package) => package.toMap(relativeTo)).toList();
-    var jsonString = JsonEncoder.withIndent('  ').convert(config);
-    return '$jsonString\n';
+/// Generates package configurations for the special pseudo-packages used by
+/// the CFE unit tests (`pkg/front_end/test/unit_test_suites.dart`).
+Iterable<Map<String, String>> makeCfePackageConfigs(
+    List<String> packageDirs) sync* {
+  for (var packageDir in packageDirs) {
+    yield {
+      'name': 'front_end_${p.basename(packageDir)}',
+      'rootUri': p
+          .toUri(p.relative(packageDir, from: p.dirname(configFilePath)))
+          .toString(),
+      'packageUri': '.nonexisting/',
+    };
   }
 }
 
-// Below are some (very simplified) versions of the package:path functions.
-
-final String _separator = Platform.pathSeparator;
-
-String dirname(String s) {
-  return s.substring(0, s.lastIndexOf(_separator));
-}
-
-String join(String s1, String s2, [String? s3]) {
-  if (s3 != null) {
-    return join(join(s1, s2), s3);
-  } else {
-    return s1.endsWith(_separator) ? '$s1$s2' : '$s1$_separator$s2';
+/// Generates package configurations for the special pseudo-packages used by
+/// the _fe_analyzer_shared id tests.
+Iterable<Map<String, String>> makeFeAnalyzerSharedPackageConfigs(
+    List<String> packageDirs) sync* {
+  for (var packageDir in packageDirs) {
+    yield {
+      'name': '_fe_analyzer_shared_${p.basename(packageDir)}',
+      'rootUri': p
+          .toUri(p.relative(packageDir, from: p.dirname(configFilePath)))
+          .toString(),
+      'packageUri': '.nonexisting/',
+    };
   }
 }
 
-String basename(String s) {
-  while (s.endsWith(_separator)) {
-    s = s.substring(0, s.length - 1);
+/// Generates a path to [relativePath] within the repo.
+String packageDirectory(String relativePath) => p.join(repoRoot, relativePath);
+
+/// Finds the paths of the immediate subdirectories of [packagesDir] that
+/// contain pubspecs.
+Iterable<String> listSubdirectories(String packagesDir) sync* {
+  for (var entry in Directory(p.join(repoRoot, packagesDir)).listSync()) {
+    if (entry is! Directory) continue;
+    if (!File(p.join(entry.path, 'pubspec.yaml')).existsSync()) continue;
+    yield entry.path;
   }
-  return s.substring(s.lastIndexOf(_separator) + 1);
 }
 
-String fromUri(Uri uri) => uri.toFilePath();
+/// Infers the language version from the SDK constraint in the pubspec for
+/// [packageDir].
+Version pubspecLanguageVersion(String packageDir) {
+  final dartVersion2 = Version.parse('2.0.0');
 
-/// Given a platform path, return a posix one.
-String posix(String s) =>
-    Platform.isWindows ? s.replaceAll(_separator, '/') : s;
+  var pubspecFile = File(p.join(packageDir, 'pubspec.yaml'));
+  var relative = p.relative(packageDir, from: repoRoot);
 
-/// Given a posix path, return a platform one.
-String platform(String s) =>
-    Platform.isWindows ? s.replaceAll('/', _separator) : s;
+  if (!pubspecFile.existsSync()) {
+    print("Error: Missing pubspec for $relative.");
+    exit(1);
+  }
+
+  var pubspec =
+      loadYaml(pubspecFile.readAsStringSync()) as Map<dynamic, dynamic>;
+  if (!pubspec.containsKey('environment')) {
+    print("Error: Pubspec for $relative has no SDK constraint.");
+    exit(1);
+  }
+
+  var environment = pubspec['environment'] as Map<dynamic, dynamic>;
+  if (!environment.containsKey('sdk')) {
+    print("Error: Pubspec for $relative has no SDK constraint.");
+    exit(1);
+  }
+
+  var sdkConstraint = VersionConstraint.parse(environment['sdk'] as String);
+  if (sdkConstraint is VersionRange) {
+    return sdkConstraint.min ?? dartVersion2;
+  }
+
+  print("Error: SDK constraint $relative is not a version range.");
+  exit(1);
+}

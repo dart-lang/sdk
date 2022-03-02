@@ -1672,8 +1672,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Class? cls;
       if (className != null) {
-        ClassBuilder? classBuilder =
-            libraryBuilder.scopeBuilder[className] as ClassBuilder?;
+        ClassBuilder? classBuilder = libraryBuilder.scope
+            .lookupLocalMember(className, setter: false) as ClassBuilder?;
         cls = classBuilder?.cls;
         if (cls == null) return null;
       }
@@ -1684,11 +1684,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (indexOfDot >= 0) {
           String beforeDot = methodName.substring(0, indexOfDot);
           String afterDot = methodName.substring(indexOfDot + 1);
-          Builder? builder = libraryBuilder.scopeBuilder[beforeDot];
+          Builder? builder =
+              libraryBuilder.scope.lookupLocalMember(beforeDot, setter: false);
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
             extension = builder.extension;
-            Builder? subBuilder = builder.scopeBuilder[afterDot];
+            Builder? subBuilder =
+                builder.lookupLocalMember(afterDot, setter: false);
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionInstanceMember) {
                 isStatic = false;

@@ -1990,8 +1990,8 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_final_late() {
-    var statement = parseStatement('final late a;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('final late a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertErrors(
         errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4)]);
@@ -2001,8 +2001,7 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late() {
-    var statement = parseStatement('late a;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement = parseStatement('late a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertErrors(errors: [
       expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
@@ -2013,8 +2012,8 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late_final() {
-    var statement = parseStatement('late final a;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('late final a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertNoErrors();
     expect(declarationList.keyword!.lexeme, 'final');
@@ -2023,8 +2022,8 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late_init() {
-    var statement = parseStatement('late a = 0;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('late a = 0;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertErrors(errors: [
       expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
@@ -2035,8 +2034,7 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late_type() {
-    var statement = parseStatement('late A a;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement = parseStatement('late A a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertNoErrors();
     expect(declarationList.lateKeyword, isNotNull);
@@ -2046,8 +2044,8 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late_var() {
-    var statement = parseStatement('late var a;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('late var a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertNoErrors();
     expect(declarationList.lateKeyword, isNotNull);
@@ -2057,8 +2055,8 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late_var_init() {
-    var statement = parseStatement('late var a = 0;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('late var a = 0;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertNoErrors();
     expect(declarationList.lateKeyword, isNotNull);

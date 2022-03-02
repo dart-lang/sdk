@@ -8,17 +8,16 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../util/feature_sets.dart';
 import 'element_text.dart';
 
 /// Abstract base class for resynthesizing and comparing elements.
@@ -83,27 +82,6 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 
   Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors = false});
-}
-
-class FeatureSets {
-  static final FeatureSet language_2_9 = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.9.0'),
-    flags: [],
-  );
-
-  static final FeatureSet language_2_12 = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.12.0'),
-    flags: [],
-  );
-
-  static final FeatureSet latestWithExperiments = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.16.0'),
-    flags: [
-      EnableString.constructor_tearoffs,
-      EnableString.enhanced_enums,
-      EnableString.super_parameters,
-    ],
-  );
 }
 
 /// Mixin containing test cases exercising summary resynthesis.  Intended to be

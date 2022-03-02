@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 
 import '../../generated/test_support.dart';
+import '../../util/feature_sets.dart';
 import '../summary/resolved_ast_printer.dart';
 
 class ParserDiagnosticsTest {
@@ -54,13 +53,7 @@ class ParserDiagnosticsTest {
   ParseStringResult parseStringWithErrors(String content) {
     return parseString(
       content: content,
-      featureSet: FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: [
-          Feature.enhanced_enums.enableString,
-          Feature.super_parameters.enableString,
-        ],
-      ),
+      featureSet: FeatureSets.latestWithExperiments,
       throwIfDiagnostics: false,
     );
   }

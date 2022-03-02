@@ -1554,7 +1554,7 @@ severity: $severity
             Map<String, List<String>>? constructorMap;
             for (ClassBuilder macroClass in macroClasses) {
               List<String> constructors =
-                  macroClass.constructors.local.keys.toList();
+                  macroClass.constructorScope.local.keys.toList();
               if (constructors.isNotEmpty) {
                 // TODO(johnniwinther): If there is no constructor here, it
                 // means the macro had no _explicit_ constructors. Since macro
@@ -1878,7 +1878,7 @@ severity: $severity
 
   void _checkConstructorsForMixin(
       SourceClassBuilder cls, ClassBuilder builder) {
-    for (Builder constructor in builder.constructors.local.values) {
+    for (Builder constructor in builder.constructorScope.local.values) {
       if (constructor.isConstructor && !constructor.isSynthetic) {
         cls.addProblem(
             templateIllegalMixinDueToConstructors

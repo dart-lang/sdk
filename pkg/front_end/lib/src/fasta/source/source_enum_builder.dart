@@ -626,7 +626,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           String constructorName =
               enumConstantInfo.constructorReferenceBuilder?.suffix ?? "";
           MemberBuilder? constructorBuilder =
-              constructorScopeBuilder[constructorName];
+              constructorScope.lookupLocalMember(constructorName);
 
           ArgumentsImpl arguments;
           List<Expression> enumSyntheticArguments = <Expression>[

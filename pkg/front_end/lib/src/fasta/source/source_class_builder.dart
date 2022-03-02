@@ -202,7 +202,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     scope.forEach(buildBuilders);
-    constructors.forEach(buildBuilders);
+    constructorScope.forEach(buildBuilders);
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
@@ -276,8 +276,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    constructors.forEach((String name, Builder constructor) {
-      Builder? member = scopeBuilder[name];
+    constructorScope.forEach((String name, Builder constructor) {
+      Builder? member = scope.lookupLocalMember(name, setter: false);
       if (member == null) return;
       if (!member.isStatic) return;
       // TODO(ahe): Revisit these messages. It seems like the last two should
@@ -299,7 +299,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     });
 
     scope.forEachLocalSetter((String name, Builder setter) {
-      Builder? constructor = constructorScopeBuilder[name];
+      Builder? constructor = constructorScope.lookupLocalMember(name);
       if (constructor == null || !setter.isStatic) return;
       addProblem(templateConflictsWithConstructor.withArguments(name),
           setter.charOffset, noLength);
@@ -350,7 +350,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    constructors.forEach(build);
+    constructorScope.forEach(build);
     scope.forEach(build);
   }
 
@@ -378,11 +378,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (isPatch) {
       actualOrigin!.forEachConstructor(f);
     } else {
-      constructors.forEach(f);
+      constructorScope.forEach(f);
       List<SourceClassBuilder>? patchClasses = _patches;
       if (patchClasses != null) {
         for (SourceClassBuilder patchClass in patchClasses) {
-          patchClass.constructors.forEach((String name, MemberBuilder builder) {
+          patchClass.constructorScope
+              .forEach((String name, MemberBuilder builder) {
             if (!builder.isPatch) {
               f(name, builder);
             }
@@ -445,10 +446,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     List<SourceClassBuilder>? patchClasses = _patches;
     if (patchClasses != null) {
       for (SourceClassBuilder patchClass in patchClasses) {
-        patchClass.constructors.forEach(callbackFilteringFieldBuilders);
+        patchClass.constructorScope.forEach(callbackFilteringFieldBuilders);
       }
     }
-    constructors.forEach(callbackFilteringFieldBuilders);
+    constructorScope.forEach(callbackFilteringFieldBuilders);
   }
 
   /// Looks up the constructor by [name] on the class built by this class
@@ -668,16 +669,16 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       });
 
-      patch.constructors.local
+      patch.constructorScope.local
           .forEach((String name, MemberBuilder patchConstructor) {
-        MemberBuilder? originConstructor = constructors.local[name];
+        MemberBuilder? originConstructor = constructorScope.local[name];
         if (patch.isAugmentation) {
           if (originConstructor != null) {
             // TODO(johnniwinther): Should we support constructor augmentation?
             // Currently the syntax doesn't allow it.
             originConstructor.applyPatch(patchConstructor);
           } else {
-            constructorScopeBuilder.addMember(name, patchConstructor);
+            constructorScope.addLocalMember(name, patchConstructor);
           }
         } else {
           if (originConstructor != null) {
@@ -1131,7 +1132,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    Map<String, MemberBuilder> constructors = this.constructors.local;
+    Map<String, MemberBuilder> constructors = this.constructorScope.local;
     for (Builder? constructor in constructors.values) {
       do {
         if (constructor is RedirectingFactoryBuilder) {
@@ -1416,8 +1417,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   void addSyntheticConstructor(
       SyntheticSourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
-    constructorBuilder.next = constructorScopeBuilder[name];
-    constructorScopeBuilder.addMember(name, constructorBuilder);
+    constructorBuilder.next = constructorScope.lookupLocalMember(name);
+    constructorScope.addLocalMember(name, constructorBuilder);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
     cls.addConstructor(constructorBuilder.invokeTarget);
@@ -1442,7 +1443,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     scope.forEach((String name, Builder declaration) {
       count += declaration.finishPatch();
     });
-    constructors.forEach((String name, Builder declaration) {
+    constructorScope.forEach((String name, Builder declaration) {
       count += declaration.finishPatch();
     });
     return count;
@@ -1788,7 +1789,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     int count = constructorReferences!.length;
     if (count != 0) {
-      Map<String, MemberBuilder> constructors = this.constructors.local;
+      Map<String, MemberBuilder> constructors = this.constructorScope.local;
       // Copy keys to avoid concurrent modification error.
       for (MapEntry<String, MemberBuilder> entry in constructors.entries) {
         Builder? declaration = entry.value;

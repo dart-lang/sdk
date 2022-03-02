@@ -15,8 +15,6 @@ import 'type_declaration_builder.dart';
 abstract class DeclarationBuilder implements TypeDeclarationBuilder {
   Scope get scope;
 
-  ScopeBuilder get scopeBuilder;
-
   LibraryBuilder get library;
 
   /// Lookup a member accessed statically through this declaration.
@@ -48,15 +46,11 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   final Scope scope;
 
   @override
-  final ScopeBuilder scopeBuilder;
-
-  @override
   final Uri fileUri;
 
   DeclarationBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
       String name, LibraryBuilder parent, int charOffset, this.scope)
-      : scopeBuilder = new ScopeBuilder(scope),
-        fileUri = parent.fileUri,
+      : fileUri = parent.fileUri,
         super(metadata, modifiers, name, parent, charOffset);
 
   @override

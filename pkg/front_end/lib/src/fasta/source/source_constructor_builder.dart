@@ -288,7 +288,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         initializers.last is SuperInitializer) {
       superTarget = (initializers.last as SuperInitializer).target;
     } else {
-      MemberBuilder? memberBuilder = superclassBuilder.constructors
+      MemberBuilder? memberBuilder = superclassBuilder.constructorScope
           .lookup("", charOffset, library.fileUri);
       if (memberBuilder is ConstructorBuilder) {
         superTarget = memberBuilder.constructor;

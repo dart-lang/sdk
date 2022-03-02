@@ -237,6 +237,31 @@ def _CheckStatusFiles(input_api, output_api):
     return []
 
 
+def _CheckPackageConfigUpToDate(input_api, output_api):
+    """Checks that .dart_tool/package_config.json is up to date."""
+    # Run only if DEPS file or package_config.json have been modified.
+    if not any(p == 'DEPS' or p == '.dart_tool/package_config.json' or
+               p.endswith('pubspec.yaml') for p in input_api.LocalPaths()):
+        return []
+    local_root = input_api.change.RepositoryRoot()
+    utils = imp.load_source('utils',
+                            os.path.join(local_root, 'tools', 'utils.py'))
+
+    dart = utils.CheckedInSdkExecutable()
+    generate = os.path.join(local_root, 'tools', 'generate_package_config.dart')
+    cmd = [dart, generate, '--check']
+    result = subprocess.run(cmd, shell=utils.IsWindows())
+    if result.returncode != 0:
+        return [
+            output_api.PresubmitError(
+                'File .dart_tool/package_config.json is out of date.\n'
+                'Fix these issues with:\n'
+                'gclient sync -D && %s tools/generate_package_config.dart' %
+                (dart))
+        ]
+    return []
+
+
 def _CheckValidHostsInDEPS(input_api, output_api):
     """Checks that DEPS file deps are from allowed_hosts."""
     # Run only if DEPS file has been modified to annoy fewer bystanders.
@@ -357,6 +382,7 @@ def _CommonChecks(input_api, output_api):
     results.extend(_CheckLayering(input_api, output_api))
     results.extend(_CheckClangTidy(input_api, output_api))
     results.extend(_CheckTestMatrixValid(input_api, output_api))
+    results.extend(_CheckPackageConfigUpToDate(input_api, output_api))
     results.extend(
         input_api.canned_checks.CheckPatchFormatted(input_api, output_api))
     return results

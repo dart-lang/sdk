@@ -68,7 +68,7 @@ CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH:
 CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER:
   status: needsEvaluation
 CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.ASSIGNMENT_TO_CONST:
@@ -318,6 +318,11 @@ CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER:
   status: needsFix
   since: 2.17
   issue: https://github.com/dart-lang/sdk/issues/48478
+CompileTimeErrorCode.ENUM_WITH_NAME_VALUES:
+  status: noFix
+  since: 2.17
+  notes: |-
+    Requires a rename.
 CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET:
   status: needsEvaluation
 CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP:
@@ -417,6 +422,20 @@ CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE:
   status: hasFix
 CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE:
   status: hasFix
+CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION:
+  status: noFix
+  since: 2.17
+  notes: |-
+    We could potentially offer to remove the member, but the user probably needs
+    to think about what they were trying to do and it seems more likely that the
+    right fix is to rename the member.
+CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE:
+  status: noFix
+  since: 2.17
+  notes: |-
+    We could potentially offer to remove the member, but the user probably needs
+    to think about what they were trying to do and it seems more likely that the
+    right fix is to rename the member.
 CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION:
   status: noFix
   since: 2.17
@@ -433,13 +452,6 @@ CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
     We could potentially offer to remove the override, or to update it to the
     lowest legal value, but it isn't clear that either of these is the right
     fix without knowing why the language override was added.
-CompileTimeErrorCode.ILLEGAL_NON_ABSTRACT_ENUM_INDEX:
-  status: noFix
-  since: 2.17
-  notes: |-
-    We could potentially offer to remove the member, but the user probably needs
-    to think about what they were trying to do and it seems more likely that the
-    right fix is to rename the member.
 CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
   status: hasFix
 CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS:
@@ -933,7 +945,7 @@ CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER:
 CompileTimeErrorCode.UNDEFINED_FUNCTION:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_GETTER:
-  status: has_fix(es)
+  status: hasFix
 CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE:
   status: needsFix
   since: 2.15
@@ -1127,7 +1139,7 @@ FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
   status: needsEvaluation
 HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
-  status: hasFix
+  status: needsEvaluation
 HintCode.ASSIGNMENT_OF_DO_NOT_STORE:
   status: needsEvaluation
 HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
@@ -1263,7 +1275,7 @@ HintCode.MISSING_REQUIRED_PARAM:
 HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
   status: hasFix
 HintCode.MISSING_RETURN:
-  status: needsEvaluation
+  status: hasFix
 HintCode.MIXIN_ON_SEALED_CLASS:
   status: needsEvaluation
 HintCode.MUST_BE_IMMUTABLE:
@@ -1342,9 +1354,9 @@ HintCode.TYPE_CHECK_IS_NULL:
 HintCode.UNDEFINED_HIDDEN_NAME:
   status: hasFix
 HintCode.UNDEFINED_REFERENCED_PARAMETER:
-  status: hasFix
-HintCode.UNDEFINED_SHOWN_NAME:
   status: needsEvaluation
+HintCode.UNDEFINED_SHOWN_NAME:
+  status: hasFix
 HintCode.UNIGNORABLE_IGNORE:
   status: needsEvaluation
 HintCode.UNNECESSARY_CAST:
@@ -1415,195 +1427,195 @@ LanguageCode.IMPLICIT_DYNAMIC_TYPE:
   status: needsEvaluation
 LanguageCode.IMPLICIT_DYNAMIC_VARIABLE:
   status: needsEvaluation
-LintNames.always_declare_return_types:
+LintCode.always_declare_return_types:
   status: hasFix
-LintNames.always_put_control_body_on_new_line:
+LintCode.always_put_control_body_on_new_line:
   status: needsEvaluation
-LintNames.always_put_required_named_parameters_first:
+LintCode.always_put_required_named_parameters_first:
   status: needsEvaluation
-LintNames.always_require_non_null_named_parameters:
+LintCode.always_require_non_null_named_parameters:
   status: hasFix
-LintNames.always_specify_types:
+LintCode.always_specify_types:
   status: hasFix
-LintNames.always_use_package_imports:
+LintCode.always_use_package_imports:
   status: hasFix
-LintNames.annotate_overrides:
+LintCode.annotate_overrides:
   status: hasFix
-LintNames.avoid_annotating_with_dynamic:
+LintCode.avoid_annotating_with_dynamic:
   status: hasFix
-LintNames.avoid_as:
+LintCode.avoid_as:
   status: needsEvaluation
-LintNames.avoid_bool_literals_in_conditional_expressions:
+LintCode.avoid_bool_literals_in_conditional_expressions:
   status: needsEvaluation
-LintNames.avoid_catches_without_on_clauses:
+LintCode.avoid_catches_without_on_clauses:
   status: needsEvaluation
-LintNames.avoid_catching_errors:
+LintCode.avoid_catching_errors:
   status: needsEvaluation
-LintNames.avoid_classes_with_only_static_members:
+LintCode.avoid_classes_with_only_static_members:
   status: needsEvaluation
-LintNames.avoid_double_and_int_checks:
+LintCode.avoid_double_and_int_checks:
   status: needsEvaluation
-LintNames.avoid_dynamic_calls:
+LintCode.avoid_dynamic_calls:
   status: needsEvaluation
-LintNames.avoid_empty_else:
+LintCode.avoid_empty_else:
   status: hasFix
-LintNames.avoid_equals_and_hash_code_on_mutable_classes:
+LintCode.avoid_equals_and_hash_code_on_mutable_classes:
   status: needsEvaluation
-LintNames.avoid_escaping_inner_quotes:
+LintCode.avoid_escaping_inner_quotes:
   status: hasFix
-LintNames.avoid_field_initializers_in_const_classes:
+LintCode.avoid_field_initializers_in_const_classes:
   status: needsEvaluation
-LintNames.avoid_final_parameters:
+LintCode.avoid_final_parameters:
   status: needsEvaluation
-LintNames.avoid_function_literals_in_foreach_calls:
+LintCode.avoid_function_literals_in_foreach_calls:
   status: hasFix
-LintNames.avoid_implementing_value_types:
+LintCode.avoid_implementing_value_types:
   status: needsEvaluation
-LintNames.avoid_init_to_null:
+LintCode.avoid_init_to_null:
   status: hasFix
-LintNames.avoid_js_rounded_ints:
+LintCode.avoid_js_rounded_ints:
   status: needsEvaluation
-LintNames.avoid_multiple_declarations_per_line:
+LintCode.avoid_multiple_declarations_per_line:
   status: needsEvaluation
-LintNames.avoid_null_checks_in_equality_operators:
+LintCode.avoid_null_checks_in_equality_operators:
   status: hasFix
-LintNames.avoid_positional_boolean_parameters:
+LintCode.avoid_positional_boolean_parameters:
   status: needsEvaluation
-LintNames.avoid_print:
+LintCode.avoid_print:
   status: hasFix
-LintNames.avoid_private_typedef_functions:
+LintCode.avoid_private_typedef_functions:
   status: hasFix
-LintNames.avoid_redundant_argument_values:
+LintCode.avoid_redundant_argument_values:
   status: hasFix
-LintNames.avoid_relative_lib_imports:
+LintCode.avoid_relative_lib_imports:
   status: hasFix
-LintNames.avoid_renaming_method_parameters:
+LintCode.avoid_renaming_method_parameters:
   status: needsEvaluation
-LintNames.avoid_return_types_on_setters:
+LintCode.avoid_return_types_on_setters:
   status: hasFix
-LintNames.avoid_returning_null:
+LintCode.avoid_returning_null:
   status: needsEvaluation
-LintNames.avoid_returning_null_for_future:
+LintCode.avoid_returning_null_for_future:
   status: hasFix
-LintNames.avoid_returning_null_for_void:
+LintCode.avoid_returning_null_for_void:
   status: hasFix
-LintNames.avoid_returning_this:
+LintCode.avoid_returning_this:
   status: needsEvaluation
-LintNames.avoid_setters_without_getters:
+LintCode.avoid_setters_without_getters:
   status: needsEvaluation
-LintNames.avoid_shadowing_type_parameters:
+LintCode.avoid_shadowing_type_parameters:
   status: needsEvaluation
-LintNames.avoid_single_cascade_in_expression_statements:
+LintCode.avoid_single_cascade_in_expression_statements:
   status: hasFix
-LintNames.avoid_slow_async_io:
+LintCode.avoid_slow_async_io:
   status: needsEvaluation
-LintNames.avoid_type_to_string:
+LintCode.avoid_type_to_string:
   status: needsEvaluation
-LintNames.avoid_types_as_parameter_names:
+LintCode.avoid_types_as_parameter_names:
   status: hasFix
-LintNames.avoid_types_on_closure_parameters:
+LintCode.avoid_types_on_closure_parameters:
   status: hasFix
-LintNames.avoid_unnecessary_containers:
+LintCode.avoid_unnecessary_containers:
   status: hasFix
-LintNames.avoid_unused_constructor_parameters:
+LintCode.avoid_unused_constructor_parameters:
   status: hasFix
-LintNames.avoid_void_async:
-  status: needsEvaluation
-LintNames.avoid_web_libraries_in_flutter:
-  status: needsEvaluation
-LintNames.await_only_futures:
+LintCode.avoid_void_async:
   status: hasFix
-LintNames.camel_case_extensions:
+LintCode.avoid_web_libraries_in_flutter:
   status: needsEvaluation
-LintNames.camel_case_types:
-  status: needsEvaluation
-LintNames.cancel_subscriptions:
-  status: needsEvaluation
-LintNames.cascade_invocations:
-  status: needsEvaluation
-LintNames.cast_nullable_to_non_nullable:
-  status: needsEvaluation
-LintNames.close_sinks:
-  status: needsEvaluation
-LintNames.comment_references:
-  status: needsEvaluation
-LintNames.conditional_uri_does_not_exist:
-  status: needsEvaluation
-LintNames.constant_identifier_names:
-  status: needsEvaluation
-LintNames.control_flow_in_finally:
-  status: needsEvaluation
-LintNames.curly_braces_in_flow_control_structures:
+LintCode.await_only_futures:
   status: hasFix
-LintNames.depend_on_referenced_packages:
+LintCode.camel_case_extensions:
+  status: needsEvaluation
+LintCode.camel_case_types:
+  status: needsEvaluation
+LintCode.cancel_subscriptions:
+  status: needsEvaluation
+LintCode.cascade_invocations:
+  status: needsEvaluation
+LintCode.cast_nullable_to_non_nullable:
+  status: needsEvaluation
+LintCode.close_sinks:
+  status: needsEvaluation
+LintCode.comment_references:
+  status: needsEvaluation
+LintCode.conditional_uri_does_not_exist:
+  status: needsEvaluation
+LintCode.constant_identifier_names:
+  status: needsEvaluation
+LintCode.control_flow_in_finally:
+  status: needsEvaluation
+LintCode.curly_braces_in_flow_control_structures:
+  status: hasFix
+LintCode.depend_on_referenced_packages:
   status: needsFix
-LintNames.deprecated_consistency:
+LintCode.deprecated_consistency:
   status: needsEvaluation
-LintNames.diagnostic_describe_all_properties:
+LintCode.diagnostic_describe_all_properties:
   status: hasFix
-LintNames.directives_ordering:
+LintCode.directives_ordering:
   status: hasFix
-LintNames.do_not_use_environment:
+LintCode.do_not_use_environment:
   status: needsEvaluation
-LintNames.empty_catches:
+LintCode.empty_catches:
   status: hasFix
-LintNames.empty_constructor_bodies:
+LintCode.empty_constructor_bodies:
   status: hasFix
-LintNames.empty_statements:
+LintCode.empty_statements:
   status: hasFix
-LintNames.eol_at_end_of_file:
+LintCode.eol_at_end_of_file:
   status: hasFix
-LintNames.exhaustive_cases:
+LintCode.exhaustive_cases:
   status: hasFix
-LintNames.file_names:
+LintCode.file_names:
   status: needsEvaluation
-LintNames.flutter_style_todos:
+LintCode.flutter_style_todos:
   status: needsEvaluation
-LintNames.hash_and_equals:
+LintCode.hash_and_equals:
   status: hasFix
-LintNames.implementation_imports:
+LintCode.implementation_imports:
   status: needsEvaluation
-LintNames.invariant_booleans:
+LintCode.invariant_booleans:
   status: needsEvaluation
-LintNames.iterable_contains_unrelated_type:
+LintCode.iterable_contains_unrelated_type:
   status: needsEvaluation
-LintNames.join_return_with_assignment:
+LintCode.join_return_with_assignment:
   status: needsEvaluation
-LintNames.leading_newlines_in_multiline_strings:
+LintCode.leading_newlines_in_multiline_strings:
   status: hasFix
-LintNames.library_names:
+LintCode.library_names:
   status: needsEvaluation
-LintNames.library_prefixes:
+LintCode.library_prefixes:
   status: needsEvaluation
-LintNames.library_private_types_in_public_api:
+LintCode.library_private_types_in_public_api:
   status: needsEvaluation
-LintNames.lines_longer_than_80_chars:
+LintCode.lines_longer_than_80_chars:
   status: needsEvaluation
-LintNames.list_remove_unrelated_type:
+LintCode.list_remove_unrelated_type:
   status: needsEvaluation
-LintNames.literal_only_boolean_expressions:
+LintCode.literal_only_boolean_expressions:
   status: needsEvaluation
-LintNames.missing_whitespace_between_adjacent_strings:
+LintCode.missing_whitespace_between_adjacent_strings:
   status: needsEvaluation
-LintNames.no_adjacent_strings_in_list:
+LintCode.no_adjacent_strings_in_list:
   status: needsEvaluation
-LintNames.no_default_cases:
+LintCode.no_default_cases:
   status: needsEvaluation
-LintNames.no_duplicate_case_values:
+LintCode.no_duplicate_case_values:
   status: hasFix
-LintNames.no_leading_underscores_for_library_prefixes:
+LintCode.no_leading_underscores_for_library_prefixes:
   status: needsFix
-LintNames.no_leading_underscores_for_local_identifiers:
+LintCode.no_leading_underscores_for_local_identifiers:
   status: hasFix
-LintNames.no_logic_in_create_state:
+LintCode.no_logic_in_create_state:
   status: needsEvaluation
-LintNames.no_runtimeType_toString:
+LintCode.no_runtimeType_toString:
   status: needsEvaluation
-LintNames.non_constant_identifier_names:
+LintCode.non_constant_identifier_names:
   status: hasFix
-LintNames.noop_primitive_operations:
+LintCode.noop_primitive_operations:
   status: needsEvaluation
-LintNames.null_check_on_nullable_type_parameter:
+LintCode.null_check_on_nullable_type_parameter:
   status: hasFix
   notes: |-
     A second fix is possible, in which we make the type parameter not
@@ -1612,222 +1624,225 @@ LintNames.null_check_on_nullable_type_parameter:
     `T foo<T extends num>()`. This is particularly valuable in the first
     case, where the choice to implicitly bound the type to `dynamic` may not
     have been intentional.
-LintNames.null_closures:
+LintCode.null_closures:
   status: hasFix
-LintNames.omit_local_variable_types:
+LintCode.omit_local_variable_types:
   status: hasFix
-LintNames.one_member_abstracts:
+LintCode.one_member_abstracts:
   status: needsEvaluation
-LintNames.only_throw_errors:
+LintCode.only_throw_errors:
   status: needsEvaluation
-LintNames.overridden_fields:
+LintCode.overridden_fields:
   status: needsEvaluation
-LintNames.package_api_docs:
+LintCode.package_api_docs:
   status: needsEvaluation
-LintNames.package_prefixed_library_names:
+LintCode.package_names:
   status: needsEvaluation
-LintNames.parameter_assignments:
+LintCode.package_prefixed_library_names:
   status: needsEvaluation
-LintNames.prefer_adjacent_string_concatenation:
-  status: hasFix
-LintNames.prefer_asserts_in_initializer_lists:
+LintCode.parameter_assignments:
   status: needsEvaluation
-LintNames.prefer_asserts_with_message:
+LintCode.prefer_adjacent_string_concatenation:
+  status: hasFix
+LintCode.prefer_asserts_in_initializer_lists:
   status: needsEvaluation
-LintNames.prefer_bool_in_asserts:
+LintCode.prefer_asserts_with_message:
   status: needsEvaluation
-LintNames.prefer_collection_literals:
-  status: hasFix
-LintNames.prefer_conditional_assignment:
-  status: hasFix
-LintNames.prefer_const_constructors:
-  status: hasFix
-LintNames.prefer_const_constructors_in_immutables:
-  status: hasFix
-LintNames.prefer_const_declarations:
-  status: hasFix
-LintNames.prefer_const_literals_to_create_immutables:
-  status: hasFix
-LintNames.prefer_constructors_over_static_methods:
+LintCode.prefer_bool_in_asserts:
   status: needsEvaluation
-LintNames.prefer_contains:
+LintCode.prefer_collection_literals:
   status: hasFix
-LintNames.prefer_double_quotes:
+LintCode.prefer_conditional_assignment:
   status: hasFix
-LintNames.prefer_equal_for_default_values:
+LintCode.prefer_const_constructors:
   status: hasFix
-LintNames.prefer_expression_function_bodies:
+LintCode.prefer_const_constructors_in_immutables:
   status: hasFix
-LintNames.prefer_final_fields:
+LintCode.prefer_const_declarations:
   status: hasFix
-LintNames.prefer_final_in_for_each:
+LintCode.prefer_const_literals_to_create_immutables:
   status: hasFix
-LintNames.prefer_final_locals:
-  status: hasFix
-LintNames.prefer_final_parameters:
-  status: hasFix
-LintNames.prefer_for_elements_to_map_fromIterable:
-  status: hasFix
-LintNames.prefer_foreach:
+LintCode.prefer_constructors_over_static_methods:
   status: needsEvaluation
-LintNames.prefer_function_declarations_over_variables:
+LintCode.prefer_contains:
+  status: hasFix
+LintCode.prefer_double_quotes:
+  status: hasFix
+LintCode.prefer_equal_for_default_values:
+  status: hasFix
+LintCode.prefer_expression_function_bodies:
+  status: hasFix
+LintCode.prefer_final_fields:
+  status: hasFix
+LintCode.prefer_final_in_for_each:
+  status: hasFix
+LintCode.prefer_final_locals:
+  status: hasFix
+LintCode.prefer_final_parameters:
+  status: hasFix
+LintCode.prefer_for_elements_to_map_fromIterable:
+  status: hasFix
+LintCode.prefer_foreach:
   status: needsEvaluation
-LintNames.prefer_generic_function_type_aliases:
-  status: hasFix
-LintNames.prefer_if_elements_to_conditional_expressions:
-  status: hasFix
-LintNames.prefer_if_null_operators:
-  status: hasFix
-LintNames.prefer_initializing_formals:
-  status: hasFix
-LintNames.prefer_inlined_adds:
-  status: hasFix
-LintNames.prefer_int_literals:
-  status: hasFix
-LintNames.prefer_interpolation_to_compose_strings:
-  status: hasFix
-LintNames.prefer_is_empty:
-  status: hasFix
-LintNames.prefer_is_not_empty:
-  status: hasFix
-LintNames.prefer_is_not_operator:
-  status: hasFix
-LintNames.prefer_iterable_whereType:
-  status: hasFix
-LintNames.prefer_mixin:
+LintCode.prefer_function_declarations_over_variables:
   status: needsEvaluation
-LintNames.prefer_null_aware_method_calls:
+LintCode.prefer_generic_function_type_aliases:
+  status: hasFix
+LintCode.prefer_if_elements_to_conditional_expressions:
+  status: hasFix
+LintCode.prefer_if_null_operators:
+  status: hasFix
+LintCode.prefer_initializing_formals:
+  status: hasFix
+LintCode.prefer_inlined_adds:
+  status: hasFix
+LintCode.prefer_int_literals:
+  status: hasFix
+LintCode.prefer_interpolation_to_compose_strings:
+  status: hasFix
+LintCode.prefer_is_empty:
+  status: hasFix
+LintCode.prefer_is_not_empty:
+  status: hasFix
+LintCode.prefer_is_not_operator:
+  status: hasFix
+LintCode.prefer_iterable_whereType:
+  status: hasFix
+LintCode.prefer_mixin:
   status: needsEvaluation
-LintNames.prefer_null_aware_operators:
-  status: hasFix
-LintNames.prefer_relative_imports:
-  status: hasFix
-LintNames.prefer_single_quotes:
-  status: hasFix
-LintNames.prefer_spread_collections:
-  status: hasFix
-LintNames.prefer_typing_uninitialized_variables:
-  status: hasFix
-LintNames.prefer_void_to_null:
-  status: hasFix
-LintNames.provide_deprecation_message:
+LintCode.prefer_null_aware_method_calls:
   status: needsEvaluation
-LintNames.pub/package_names:
-  status: needsEvaluation
-LintNames.pub/secure_pubspec_urls:
-  status: needsEvaluation
-LintNames.pub/sort_pub_dependencies:
-  status: needsEvaluation
-LintNames.public_member_api_docs:
-  status: needsEvaluation
-LintNames.recursive_getters:
-  status: needsEvaluation
-LintNames.require_trailing_commas:
+LintCode.prefer_null_aware_operators:
   status: hasFix
-LintNames.sized_box_for_whitespace:
+LintCode.prefer_relative_imports:
   status: hasFix
-LintNames.sized_box_shrink_expand:
+LintCode.prefer_single_quotes:
+  status: hasFix
+LintCode.prefer_spread_collections:
+  status: hasFix
+LintCode.prefer_typing_uninitialized_variables:
+  status: hasFix
+LintCode.prefer_void_to_null:
+  status: hasFix
+LintCode.provide_deprecation_message:
   status: needsEvaluation
-LintNames.slash_for_doc_comments:
+LintCode.public_member_api_docs:
+  status: needsEvaluation
+LintCode.recursive_getters:
+  status: needsEvaluation
+LintCode.require_trailing_commas:
   status: hasFix
-LintNames.sort_child_properties_last:
+LintCode.secure_pubspec_urls:
+  status: needsEvaluation
+LintCode.sized_box_for_whitespace:
   status: hasFix
-LintNames.sort_constructors_first:
+LintCode.sized_box_shrink_expand:
+  status: needsEvaluation
+LintCode.slash_for_doc_comments:
+  status: hasFix
+LintCode.sort_child_properties_last:
+  status: hasFix
+LintCode.sort_constructors_first:
+  status: hasFix
+LintCode.sort_pub_dependencies:
+  status: needsEvaluation
+LintCode.sort_unnamed_constructors_first:
+  status: hasFix
+LintCode.super_goes_last:
+  status: needsEvaluation
+LintCode.test_types_in_equals:
+  status: needsEvaluation
+LintCode.throw_in_finally:
+  status: needsEvaluation
+LintCode.tighten_type_of_initializing_formals:
+  status: needsEvaluation
+LintCode.type_annotate_public_apis:
+  status: hasFix
+LintCode.type_init_formals:
+  status: hasFix
+LintCode.unawaited_futures:
+  status: hasFix
+LintCode.unnecessary_await_in_return:
+  status: needsEvaluation
+LintCode.unnecessary_brace_in_string_interps:
+  status: hasFix
+LintCode.unnecessary_const:
+  status: hasFix
+LintCode.unnecessary_constructor_name:
+  status: hasFix
+LintCode.unnecessary_final:
+  status: hasFix
+LintCode.unnecessary_getters_setters:
+  status: hasFix
+LintCode.unnecessary_lambdas:
+  status: hasFix
+LintCode.unnecessary_late:
   status: needsFix
-  issue: https://github.com/dart-lang/sdk/issues/47953
-LintNames.sort_unnamed_constructors_first:
-  status: needsEvaluation
-LintNames.super_goes_last:
-  status: needsEvaluation
-LintNames.test_types_in_equals:
-  status: needsEvaluation
-LintNames.throw_in_finally:
-  status: needsEvaluation
-LintNames.tighten_type_of_initializing_formals:
-  status: needsEvaluation
-LintNames.type_annotate_public_apis:
+LintCode.unnecessary_new:
   status: hasFix
-LintNames.type_init_formals:
-  status: hasFix
-LintNames.unawaited_futures:
-  status: hasFix
-LintNames.unnecessary_await_in_return:
-  status: needsEvaluation
-LintNames.unnecessary_brace_in_string_interps:
-  status: hasFix
-LintNames.unnecessary_const:
-  status: hasFix
-LintNames.unnecessary_constructor_name:
-  status: hasFix
-LintNames.unnecessary_final:
-  status: hasFix
-LintNames.unnecessary_getters_setters:
-  status: hasFix
-LintNames.unnecessary_lambdas:
-  status: hasFix
-LintNames.unnecessary_late:
+LintCode.unnecessary_null_aware_assignments:
   status: needsFix
-LintNames.unnecessary_new:
+LintCode.unnecessary_null_checks:
+  status: needsEvaluation
+LintCode.unnecessary_null_in_if_null_operators:
   status: hasFix
-LintNames.unnecessary_null_aware_assignments:
-  status: needsFix
-LintNames.unnecessary_null_checks:
-  status: needsEvaluation
-LintNames.unnecessary_null_in_if_null_operators:
+LintCode.unnecessary_nullable_for_final_variable_declarations:
   status: hasFix
-LintNames.unnecessary_nullable_for_final_variable_declarations:
+LintCode.unnecessary_overrides:
   status: hasFix
-LintNames.unnecessary_overrides:
+LintCode.unnecessary_parenthesis:
   status: hasFix
-LintNames.unnecessary_parenthesis:
+LintCode.unnecessary_raw_strings:
   status: hasFix
-LintNames.unnecessary_raw_strings:
+LintCode.unnecessary_statements:
+  status: needsEvaluation
+LintCode.unnecessary_string_escapes:
   status: hasFix
-LintNames.unnecessary_statements:
-  status: needsEvaluation
-LintNames.unnecessary_string_escapes:
+LintCode.unnecessary_string_interpolations:
   status: hasFix
-LintNames.unnecessary_string_interpolations:
+LintCode.unnecessary_this:
   status: hasFix
-LintNames.unnecessary_this:
+LintCode.unrelated_type_equality_checks:
+  status: needsEvaluation
+LintCode.unsafe_html_attribute:
+  status: needsEvaluation
+LintCode.unsafe_html_method:
+  status: needsEvaluation
+LintCode.unsafe_html_constructor:
+  status: needsEvaluation
+LintCode.use_build_context_synchronously:
+  status: needsEvaluation
+LintCode.use_decorated_box:
+  status: needsEvaluation
+LintCode.use_full_hex_values_for_flutter_colors:
   status: hasFix
-LintNames.unrelated_type_equality_checks:
-  status: needsEvaluation
-LintNames.unsafe_html:
-  status: needsEvaluation
-LintNames.use_build_context_synchronously:
-  status: needsEvaluation
-LintNames.use_decorated_box:
-  status: needsEvaluation
-LintNames.use_full_hex_values_for_flutter_colors:
+LintCode.use_function_type_syntax_for_parameters:
   status: hasFix
-LintNames.use_function_type_syntax_for_parameters:
+LintCode.use_if_null_to_convert_nulls_to_bools:
+  status: needsEvaluation
+LintCode.use_is_even_rather_than_modulo:
+  status: needsEvaluation
+LintCode.use_key_in_widget_constructors:
   status: hasFix
-LintNames.use_if_null_to_convert_nulls_to_bools:
+LintCode.use_late_for_private_fields_and_variables:
   status: needsEvaluation
-LintNames.use_is_even_rather_than_modulo:
+LintCode.use_named_constants:
   status: needsEvaluation
-LintNames.use_key_in_widget_constructors:
+LintCode.use_raw_strings:
   status: hasFix
-LintNames.use_late_for_private_fields_and_variables:
-  status: needsEvaluation
-LintNames.use_named_constants:
-  status: needsEvaluation
-LintNames.use_raw_strings:
-  status: needsEvaluation
-LintNames.use_rethrow_when_possible:
+LintCode.use_rethrow_when_possible:
   status: hasFix
-LintNames.use_setters_to_change_properties:
+LintCode.use_setters_to_change_properties:
   status: needsEvaluation
-LintNames.use_string_buffers:
+LintCode.use_string_buffers:
   status: needsEvaluation
-LintNames.use_test_throws_matchers:
+LintCode.use_test_throws_matchers:
   status: needsEvaluation
-LintNames.use_to_and_as_if_applicable:
+LintCode.use_to_and_as_if_applicable:
   status: needsEvaluation
-LintNames.valid_regexps:
+LintCode.valid_regexps:
   status: needsEvaluation
-LintNames.void_checks:
+LintCode.void_checks:
   status: needsEvaluation
 ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE:
   status: needsEvaluation
@@ -2152,6 +2167,8 @@ ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR:
   status: needsEvaluation
 ParserErrorCode.MODIFIER_OUT_OF_ORDER:
   status: needsEvaluation
+ParserErrorCode.MULTIPLE_CLAUSES:
+  status: needsEvaluation
 ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES:
   status: needsEvaluation
 ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES:
@@ -2198,6 +2215,8 @@ ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS:
   status: needsEvaluation
 ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER:
   status: needsEvaluation
+ParserErrorCode.OUT_OF_ORDER_CLAUSES:
+  status: needsEvaluation
 ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
   status: needsEvaluation
 ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP:
@@ -2243,6 +2262,8 @@ ParserErrorCode.TYPEDEF_IN_CLASS:
 ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
   status: needsEvaluation
 ParserErrorCode.UNEXPECTED_TOKEN:
+  status: needsEvaluation
+ParserErrorCode.UNEXPECTED_TOKENS:
   status: needsEvaluation
 ParserErrorCode.VAR_AND_TYPE:
   status: needsEvaluation

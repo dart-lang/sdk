@@ -256,7 +256,6 @@ main() {
     var forStatement = parseStatement(
       'await for (element in list) {}',
       inAsync: true,
-      featureSet: controlFlow,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNotNull);
@@ -273,7 +272,6 @@ main() {
   void test_parseForStatement_each_finalExternal() {
     var forStatement = parseStatement(
       'for (final external in list) {}',
-      featureSet: controlFlow,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -290,7 +288,6 @@ main() {
   void test_parseForStatement_each_finalRequired() {
     var forStatement = parseStatement(
       'for (final required in list) {}',
-      featureSet: controlFlow,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -325,7 +322,6 @@ main() {
   void test_parseForStatement_each_genericFunctionType2() {
     var forStatement = parseStatement(
       'for (void Function<T>(T) element in list) {}',
-      featureSet: controlFlow,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -359,7 +355,6 @@ main() {
   void test_parseForStatement_each_identifier2() {
     var forStatement = parseStatement(
       'for (element in list) {}',
-      featureSet: controlFlow,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -394,7 +389,6 @@ main() {
   void test_parseForStatement_each_noType_metadata2() {
     var forStatement = parseStatement(
       'for (@A var element in list) {}',
-      featureSet: controlFlow,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -429,7 +423,6 @@ main() {
   void test_parseForStatement_each_type2() {
     var forStatement = parseStatement(
       'for (A element in list) {}',
-      featureSet: controlFlow,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -463,7 +456,6 @@ main() {
   void test_parseForStatement_each_var2() {
     var forStatement = parseStatement(
       'for (var element in list) {}',
-      featureSet: controlFlow,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -497,7 +489,6 @@ main() {
   void test_parseForStatement_loop_c2() {
     var forStatement = parseStatement(
       'for (; i < count;) {}',
-      featureSet: controlFlow,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -533,7 +524,6 @@ main() {
   void test_parseForStatement_loop_cu2() {
     var forStatement = parseStatement(
       'for (; i < count; i++) {}',
-      featureSet: controlFlow,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -569,7 +559,6 @@ main() {
   void test_parseForStatement_loop_ecu2() {
     var forStatement = parseStatement(
       'for (i--; i < count; i++) {}',
-      featureSet: spread,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -607,7 +596,6 @@ main() {
   void test_parseForStatement_loop_i2() {
     var forStatement = parseStatement(
       'for (var i = 0;;) {}',
-      featureSet: spread,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -649,7 +637,6 @@ main() {
   void test_parseForStatement_loop_i_withMetadata2() {
     var forStatement = parseStatement(
       'for (@A var i = 0;;) {}',
-      featureSet: spread,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -690,7 +677,6 @@ main() {
   void test_parseForStatement_loop_ic2() {
     var forStatement = parseStatement(
       'for (var i = 0; i < count;) {}',
-      featureSet: spread,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -730,7 +716,6 @@ main() {
   void test_parseForStatement_loop_icu2() {
     var forStatement = parseStatement(
       'for (var i = 0; i < count; i++) {}',
-      featureSet: spread,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -771,7 +756,6 @@ main() {
   void test_parseForStatement_loop_iicuu2() {
     var forStatement = parseStatement(
       'for (int i = 0, j = count; i < j; i++, j--) {}',
-      featureSet: spread,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -811,7 +795,6 @@ main() {
   void test_parseForStatement_loop_iu2() {
     var forStatement = parseStatement(
       'for (var i = 0;; i++) {}',
-      featureSet: spread,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -848,7 +831,6 @@ main() {
   void test_parseForStatement_loop_u2() {
     var forStatement = parseStatement(
       'for (;; i++) {}',
-      featureSet: spread,
     ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -949,7 +931,7 @@ main() {
   }
 
   void test_parseLocalVariable_external() {
-    parseStatement('external int i;', featureSet: nonNullable);
+    parseStatement('external int i;');
     assertErrors(errors: [
       expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8),
     ]);

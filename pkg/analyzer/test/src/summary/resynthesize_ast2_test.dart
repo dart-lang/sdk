@@ -22,6 +22,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../util/feature_sets.dart';
 import 'element_text.dart';
 import 'resynthesize_common.dart';
 import 'test_strategies.dart';

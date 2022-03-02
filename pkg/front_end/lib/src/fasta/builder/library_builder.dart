@@ -42,10 +42,6 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   Scope get exportScope;
 
-  ScopeBuilder get scopeBuilder;
-
-  ScopeBuilder get exportScopeBuilder;
-
   List<Export> get exporters;
 
   abstract LibraryBuilder? partOfLibrary;
@@ -164,12 +160,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   final Scope exportScope;
 
   @override
-  final ScopeBuilder scopeBuilder;
-
-  @override
-  final ScopeBuilder exportScopeBuilder;
-
-  @override
   final List<Export> exporters = <Export>[];
 
   @override
@@ -182,9 +172,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   bool mayImplementRestrictedTypes = false;
 
   LibraryBuilderImpl(this.fileUri, this.scope, this.exportScope)
-      : scopeBuilder = new ScopeBuilder(scope),
-        exportScopeBuilder = new ScopeBuilder(exportScope),
-        super(null, -1);
+      : super(null, -1);
 
   @override
   bool get isSynthetic => false;

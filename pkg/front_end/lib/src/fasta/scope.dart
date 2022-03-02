@@ -615,6 +615,14 @@ class ConstructorScope {
     }
   }
 
+  MemberBuilder? lookupLocalMember(String name) {
+    return local[name];
+  }
+
+  void addLocalMember(String name, MemberBuilder builder) {
+    local[name] = builder;
+  }
+
   @override
   String toString() => "ConstructorScope($className, ${local.keys})";
 }
@@ -649,38 +657,6 @@ abstract class LazyScope extends Scope {
     ensureScope();
     return super._extensions;
   }
-}
-
-class ScopeBuilder {
-  final Scope scope;
-
-  ScopeBuilder(this.scope);
-
-  void addMember(String name, Builder builder) {
-    scope._local[name] = builder;
-  }
-
-  void addSetter(String name, MemberBuilder builder) {
-    scope._setters[name] = builder;
-  }
-
-  void addExtension(ExtensionBuilder builder) {
-    scope.addExtension(builder);
-  }
-
-  Builder? operator [](String name) => scope._local[name];
-}
-
-class ConstructorScopeBuilder {
-  final ConstructorScope scope;
-
-  ConstructorScopeBuilder(this.scope);
-
-  void addMember(String name, MemberBuilder builder) {
-    scope.local[name] = builder;
-  }
-
-  MemberBuilder? operator [](String name) => scope.local[name];
 }
 
 abstract class ProblemBuilder extends BuilderImpl {

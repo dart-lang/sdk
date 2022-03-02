@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -353,7 +352,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
     expect(decoratedSupertypes, hasLength(2));
     // TODO(scheglov) Use location matcher.
     withElement.checkObject(decoratedSupertypes[0],
-        withElement.checkExplicitlyNonNullable, 'Future (async.dart:1:79)');
+        withElement.checkExplicitlyNonNullable, 'Future (async.dart:7:16)');
     // Since Future<T> is a subtype of FutureOr<T>, we consider FutureOr<T> to
     // be an immediate supertype, even though the class declaration for Future
     // doesn't mention FutureOr.
@@ -363,7 +362,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
         withElement.checkExplicitlyNonNullable,
         (t, displayName) => withElement.checkTypeParameter(
             t!, withElement.checkExplicitlyNonNullable, typeParam, displayName),
-        'Future (async.dart:1:79)');
+        'Future (async.dart:7:16)');
   }
 
   Future<void> test_getImmediateSupertypes_generic() async {
@@ -492,8 +491,7 @@ class _ContextWithElement with EdgeTester {
   NullabilityNode get always => graph.always;
 
   AlreadyMigratedCodeDecorator get decorator {
-    return AlreadyMigratedCodeDecorator(
-        graph, typeProvider, (_) => LineInfo([0]));
+    return AlreadyMigratedCodeDecorator(graph, typeProvider);
   }
 
   NullabilityNode get never => graph.never;

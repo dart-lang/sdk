@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../util/ast_type_matchers.dart';
+import '../util/feature_sets.dart';
 import 'parser_test_base.dart';
 import 'test_support.dart';
 
@@ -201,7 +202,7 @@ main() {
   void test_enableNonNullable_false() {
     parseCompilationUnit('main() { x is String? ? (x + y) : z; }',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 20, 1)],
-        featureSet: preNonNullable);
+        featureSet: FeatureSets.language_2_9);
   }
 
   void test_for() {
@@ -227,7 +228,7 @@ main() {
   void test_functionTypedFormalParameter_nullable_disabled() {
     parseCompilationUnit('void f(void p()?) {}',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
-        featureSet: preNonNullable);
+        featureSet: FeatureSets.language_2_9);
   }
 
   test_fuzz_38113() async {
@@ -301,7 +302,7 @@ main() { a?[7]; }''',
   void test_indexExpression_nullable_disabled() {
     parseCompilationUnit('main(a) { a?[0]; }',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 1)],
-        featureSet: preNonNullable);
+        featureSet: FeatureSets.language_2_9);
   }
 
   void test_is_nullable() {
@@ -357,7 +358,7 @@ void f(C c) {
 main() {
   f(new C());
 }
-''', featureSet: preNonNullable);
+''', featureSet: FeatureSets.language_2_9);
   }
 
   void test_late_as_identifier_optOut() {
@@ -547,7 +548,7 @@ class Foo {
           expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
           expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
         ],
-        featureSet: preNonNullable);
+        featureSet: FeatureSets.language_2_9);
     var function = unit.declarations[0] as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as VariableDeclarationStatement;
@@ -609,7 +610,7 @@ class Foo {
           expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
           expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
         ],
-        featureSet: preNonNullable);
+        featureSet: FeatureSets.language_2_9);
   }
 
   void test_nullCheckMethodResult() {
@@ -746,7 +747,7 @@ class Foo {
   void test_nullCheckOnLiteral_disabled() {
     parseCompilationUnit('f() { var x = 0!; }',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
-        featureSet: preNonNullable);
+        featureSet: FeatureSets.language_2_9);
   }
 
   void test_nullCheckOnLiteralDouble() {
@@ -825,7 +826,7 @@ class Foo {
   void test_nullCheckOnValue_disabled() {
     parseCompilationUnit('f(Point p) { var x = p.y! + 7; }',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 24, 1)],
-        featureSet: preNonNullable);
+        featureSet: FeatureSets.language_2_9);
   }
 
   void test_nullCheckParenthesizedExpression() {
@@ -871,6 +872,6 @@ class Foo {
   void test_typeName_nullable_disabled() {
     parseCompilationUnit('int? x;',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 3, 1)],
-        featureSet: preNonNullable);
+        featureSet: FeatureSets.language_2_9);
   }
 }

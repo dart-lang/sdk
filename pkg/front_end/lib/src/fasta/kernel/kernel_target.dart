@@ -1322,7 +1322,7 @@ class KernelTarget extends TargetImplementation {
           patchConstructorNames.add(name);
         }
       });
-      builder.constructors.forEach((String name, Builder builder) {
+      builder.constructorScope.forEach((String name, Builder builder) {
         if (builder is ConstructorBuilder) {
           patchConstructorNames.remove(name);
         }

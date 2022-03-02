@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -22,10 +21,7 @@ class AlreadyMigratedCodeDecorator {
 
   final TypeProvider _typeProvider;
 
-  final LineInfo Function(String) _getLineInfo;
-
-  AlreadyMigratedCodeDecorator(
-      this._graph, this._typeProvider, this._getLineInfo);
+  AlreadyMigratedCodeDecorator(this._graph, this._typeProvider);
 
   /// Transforms [type], which should have come from code that has already been
   /// migrated to NNBD, into the corresponding [DecoratedType].
@@ -118,7 +114,7 @@ class AlreadyMigratedCodeDecorator {
     }
     return [
       for (var t in allSupertypes)
-        decorate(t, class_, NullabilityNodeTarget.element(class_, _getLineInfo))
+        decorate(t, class_, NullabilityNodeTarget.element(class_))
     ];
   }
 }

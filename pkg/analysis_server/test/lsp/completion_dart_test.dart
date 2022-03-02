@@ -2629,7 +2629,7 @@ stle^
 ''';
 
     await initializeWithSnippetSupportAndPreviewFlag();
-    final otherFileUri = Uri.file('/other/file.dart');
+    final otherFileUri = Uri.file(convertPath('/other/file.dart'));
     await openFile(otherFileUri, withoutMarkers(content));
     final res = await getCompletion(otherFileUri, positionFromMarker(content));
     final snippetItems = res.where((c) => c.kind == CompletionItemKind.Snippet);

@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart' as mock_sdk;
 import 'package:args/args.dart';
@@ -63,17 +62,13 @@ class _ExceptionGeneratingInstrumentationListener
 /// Specialization of [NonNullableFix] that generates artificial exceptions, so
 /// that we can test they are properly propagated to top level.
 class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
-  _ExceptionGeneratingNonNullableFix(
-      DartFixListener listener,
-      ResourceProvider resourceProvider,
-      LineInfo Function(String) getLineInfo,
-      Object? bindAddress,
-      Logger logger,
+  _ExceptionGeneratingNonNullableFix(DartFixListener listener,
+      ResourceProvider resourceProvider, Object? bindAddress, Logger logger,
       {List<String> included = const <String>[],
       int? preferredPort,
       String? summaryPath,
       required String sdkPath})
-      : super(listener, resourceProvider, getLineInfo, bindAddress, logger,
+      : super(listener, resourceProvider, bindAddress, logger,
             (String? path) => true,
             included: included,
             preferredPort: preferredPort,
@@ -141,25 +136,21 @@ class _MigrationCliRunner extends MigrationCliRunner {
       _sortPaths(super.computePathsToProcess(context));
 
   @override
-  NonNullableFix createNonNullableFix(
-      DartFixListener listener,
-      ResourceProvider resourceProvider,
-      LineInfo Function(String path) getLineInfo,
-      Object? bindAddress,
+  NonNullableFix createNonNullableFix(DartFixListener listener,
+      ResourceProvider resourceProvider, Object? bindAddress,
       {List<String> included = const <String>[],
       int? preferredPort,
       String? summaryPath,
       required String sdkPath}) {
     if (cli._test.injectArtificialException) {
       return _ExceptionGeneratingNonNullableFix(
-          listener, resourceProvider, getLineInfo, bindAddress, logger,
+          listener, resourceProvider, bindAddress, logger,
           included: included,
           preferredPort: preferredPort,
           summaryPath: summaryPath,
           sdkPath: sdkPath);
     } else {
-      return super.createNonNullableFix(
-          listener, resourceProvider, getLineInfo, bindAddress,
+      return super.createNonNullableFix(listener, resourceProvider, bindAddress,
           included: included,
           preferredPort: preferredPort,
           summaryPath: summaryPath,
