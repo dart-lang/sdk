@@ -216,9 +216,10 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
     // check shadowing of class names
     if (elementClass.name == name) {
       result.addError(
-          format("Created {0} has the same name as the declaring class '{1}'.",
-              elementKind.displayName, name),
-          newLocation_fromElement(elementClass));
+        'Created ${elementKind.displayName} has the same name as the '
+        "declaring ${elementClass.kind.displayName} '$name'.",
+        newLocation_fromElement(elementClass),
+      );
     }
     // check shadowing in the hierarchy
     await _checkHierarchy(
@@ -277,11 +278,8 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement && enclosingElement.name == name) {
         result.addError(
-          format(
-            "Renamed {0} has the same name as the declaring class '{1}'.",
-            elementKind.displayName,
-            name,
-          ),
+          'Renamed ${elementKind.displayName} has the same name as the '
+          "declaring ${enclosingElement.kind.displayName} '$name'.",
           newLocation_fromElement(element),
         );
       }
