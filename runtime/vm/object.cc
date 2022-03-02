@@ -18569,11 +18569,18 @@ const char* UnhandledException::ToErrorCString() const {
     }
   }
   const Instance& stack = Instance::Handle(stacktrace());
-  strtmp = DartLibraryCalls::ToString(stack);
-  const char* stack_str =
-      "<Received error while converting stack trace to string>";
-  if (!strtmp.IsError()) {
-    stack_str = strtmp.ToCString();
+  const char* stack_str;
+  if (stack.IsNull()) {
+    stack_str = "null";
+  } else if (stack.IsStackTrace()) {
+    stack_str = StackTrace::Cast(stack).ToCString();
+  } else {
+    strtmp = DartLibraryCalls::ToString(stack);
+    if (!strtmp.IsError()) {
+      stack_str = strtmp.ToCString();
+    } else {
+      stack_str = "<Received error while converting stack trace to string>";
+    }
   }
   return OS::SCreate(thread->zone(), "Unhandled exception:\n%s\n%s", exc_str,
                      stack_str);

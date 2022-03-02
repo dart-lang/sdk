@@ -45,6 +45,10 @@ class ServiceIsolate : public AllStatic {
   static void Run();
   static bool SendIsolateStartupMessage();
   static bool SendIsolateShutdownMessage();
+  static bool SendServiceControlMessage(Thread* thread,
+                                        Dart_Port port_id,
+                                        intptr_t code,
+                                        const char* name);
   static void SendServiceExitMessage();
   static void Shutdown();
 
