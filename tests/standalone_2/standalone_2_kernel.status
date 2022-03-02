@@ -99,7 +99,6 @@ io/raw_socket_test: Crash
 io/secure_multiple_client_server_test: Skip # Flaky.
 io/secure_server_closing_test: Skip # Flaky.
 io/secure_server_socket_test: Skip # Flaky.
-io/secure_socket_renegotiate_test: Crash
 io/socket_many_connections_test: Skip # Flaky
 io/web_socket_error_test: Skip # Flaky
 io/web_socket_ping_test: Skip # Flaky.

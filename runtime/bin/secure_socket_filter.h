@@ -85,9 +85,6 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
   void MarkAsTrusted(Dart_NativeArguments args);
   int Handshake(Dart_Port reply_port);
   void GetSelectedProtocol(Dart_NativeArguments args);
-  void Renegotiate(bool use_session_cache,
-                   bool request_client_certificate,
-                   bool require_client_certificate);
   void RegisterHandshakeCompleteCallback(Dart_Handle handshake_complete);
   void RegisterBadCertificateCallback(Dart_Handle callback);
   void RegisterKeyLogPort(Dart_Port key_log_port);
