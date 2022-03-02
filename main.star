@@ -688,6 +688,13 @@ luci.console_view_entry(
 )
 
 luci.console_view_entry(
+    builder = "flutter-engine-ios",
+    short_name = "ios",
+    category = "flutter",
+    console_view = "flutter-hhh",
+)
+
+luci.console_view_entry(
     builder = "flutter-engine-linux-web_tests",
     short_name = "web",
     category = "flutter",
