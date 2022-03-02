@@ -1356,9 +1356,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void addInsertion(
-          int offset, void Function(DartEditBuilder builder) buildEdit) =>
+          int offset, void Function(DartEditBuilder builder) buildEdit,
+          {bool insertBeforeExisting = false}) =>
       super.addInsertion(
-          offset, (builder) => buildEdit(builder as DartEditBuilder));
+          offset, (builder) => buildEdit(builder as DartEditBuilder),
+          insertBeforeExisting: insertBeforeExisting);
 
   @override
   void addReplacement(SourceRange range,
@@ -1679,19 +1681,36 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (unit.declarations.isNotEmpty) {
       offset = unit.declarations.first.offset;
       insertEmptyLineAfter = true;
+    } else if (fileEdit.edits.isNotEmpty) {
+      // If this file has edits (besides the imports) the imports should go
+      // at the same offset as those edits and _not_ at `unit.end`. This is
+      // because if the document is non-zero length, `unit.end` could be after
+      // where the new edits will be inserted, but imports should go before
+      // generated non-import code.
+
+      // Edits are always sorted such that the first one has the lowest offset.
+      offset = fileEdit.edits.first.offset;
+
+      // Also ensure there's a blank line between the imports and the other
+      // code.
+      insertEmptyLineAfter = fileEdit.edits.isNotEmpty;
     } else {
       offset = unit.end;
     }
-    addInsertion(offset, (EditBuilder builder) {
-      for (var i = 0; i < importList.length; i++) {
-        var import = importList[i];
-        writeImport(builder, import);
-        builder.writeln();
-        if (i == importList.length - 1 && insertEmptyLineAfter) {
+    addInsertion(
+      offset,
+      (EditBuilder builder) {
+        for (var i = 0; i < importList.length; i++) {
+          var import = importList[i];
+          writeImport(builder, import);
           builder.writeln();
+          if (i == importList.length - 1 && insertEmptyLineAfter) {
+            builder.writeln();
+          }
         }
-      }
-    });
+      },
+      insertBeforeExisting: true,
+    );
   }
 
   /// Return the import element used to import the given [element] into the

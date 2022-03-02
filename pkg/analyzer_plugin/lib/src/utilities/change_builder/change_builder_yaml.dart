@@ -48,9 +48,11 @@ class YamlFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void addInsertion(
-          int offset, void Function(YamlEditBuilder builder) buildEdit) =>
+          int offset, void Function(YamlEditBuilder builder) buildEdit,
+          {bool insertBeforeExisting = false}) =>
       super.addInsertion(
-          offset, (builder) => buildEdit(builder as YamlEditBuilder));
+          offset, (builder) => buildEdit(builder as YamlEditBuilder),
+          insertBeforeExisting: insertBeforeExisting);
 
   @override
   void addReplacement(SourceRange range,

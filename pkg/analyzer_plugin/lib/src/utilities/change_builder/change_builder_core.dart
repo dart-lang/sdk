@@ -458,12 +458,13 @@ class FileEditBuilderImpl implements FileEditBuilder {
   }
 
   @override
-  void addInsertion(int offset, void Function(EditBuilder builder) buildEdit) {
+  void addInsertion(int offset, void Function(EditBuilder builder) buildEdit,
+      {bool insertBeforeExisting = false}) {
     var builder = createEditBuilder(offset, 0);
     try {
       buildEdit(builder);
     } finally {
-      _addEditBuilder(builder);
+      _addEditBuilder(builder, insertBeforeExisting: insertBeforeExisting);
     }
   }
 
@@ -542,8 +543,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
 
   /// Add the edit from the given [edit] to the edits associated with the
   /// current file.
-  void _addEdit(SourceEdit edit) {
-    fileEdit.add(edit);
+  void _addEdit(SourceEdit edit, {bool insertBeforeExisting = false}) {
+    fileEdit.add(edit, insertBeforeExisting: insertBeforeExisting);
     var delta = _editDelta(edit);
     changeBuilder._updatePositions(edit.offset, delta);
     changeBuilder._lockedPositions.clear();
@@ -551,9 +552,14 @@ class FileEditBuilderImpl implements FileEditBuilder {
 
   /// Add the edit from the given [builder] to the edits associated with the
   /// current file.
-  void _addEditBuilder(EditBuilderImpl builder) {
+  ///
+  /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+  /// other edits will be inserted such that they appear before them in the
+  /// resulting document.
+  void _addEditBuilder(EditBuilderImpl builder,
+      {bool insertBeforeExisting = false}) {
     var edit = builder.sourceEdit;
-    _addEdit(edit);
+    _addEdit(edit, insertBeforeExisting: insertBeforeExisting);
     _captureSelection(builder, edit);
   }
 

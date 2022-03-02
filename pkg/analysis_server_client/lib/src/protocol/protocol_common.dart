@@ -4373,8 +4373,14 @@ class SourceChange implements HasToJson {
   }
 
   /// Adds [edit] to the [FileEdit] for the given [file].
-  void addEdit(String file, int fileStamp, SourceEdit edit) =>
-      addEditToSourceChange(this, file, fileStamp, edit);
+  ///
+  /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+  /// other edits will be inserted such that they appear before them in the
+  /// resulting document.
+  void addEdit(String file, int fileStamp, SourceEdit edit,
+          {bool insertBeforeExisting = false}) =>
+      addEditToSourceChange(this, file, fileStamp, edit,
+          insertBeforeExisting: insertBeforeExisting);
 
   /// Adds the given [FileEdit].
   void addFileEdit(SourceFileEdit edit) {
@@ -4597,10 +4603,22 @@ class SourceFileEdit implements HasToJson {
   }
 
   /// Adds the given [Edit] to the list.
-  void add(SourceEdit edit) => addEditForSource(this, edit);
+  ///
+  /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+  /// other edits will be inserted such that they appear before them in the
+  /// resulting document.
+  void add(SourceEdit edit, {bool insertBeforeExisting = false}) =>
+      addEditForSource(this, edit, insertBeforeExisting: insertBeforeExisting);
 
   /// Adds the given [Edit]s.
-  void addAll(Iterable<SourceEdit> edits) => addAllEditsForSource(this, edits);
+  ///
+  /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+  /// other edits will be inserted such that they appear before them in the
+  /// resulting document.
+  void addAll(Iterable<SourceEdit> edits,
+          {bool insertBeforeExisting = false}) =>
+      addAllEditsForSource(this, edits,
+          insertBeforeExisting: insertBeforeExisting);
 
   @override
   String toString() => json.encode(toJson());
