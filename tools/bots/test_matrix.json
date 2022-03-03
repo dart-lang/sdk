@@ -2948,7 +2948,7 @@
             "language",
             "corelib"
           ],
-          "shards": 12,
+          "shards": 30,
           "fileset": "dart2wasm_hostasserts"
         }
       ]

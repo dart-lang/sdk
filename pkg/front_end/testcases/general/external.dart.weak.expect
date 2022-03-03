@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:isolate" as iso;
@@ -12,10 +12,10 @@ static method onData(dynamic x) → void {
   self::subscription{dynamic}.cancel();
 }
 static method main() → dynamic {
-  core::String* string = core::String::fromCharCode(65);
-  iso::ReceivePort* port = iso::ReceivePort::•();
-  self::subscription = port.{iso::ReceivePort::listen}(#C1){((dynamic) →* void, {cancelOnError: core::bool*, onDone: () →* void, onError: core::Function*}) →* asy::StreamSubscription<dynamic>*};
-  port.{iso::ReceivePort::sendPort}{iso::SendPort*}.{iso::SendPort::send}(string){(core::Object*) →* void};
+  core::String string = core::String::fromCharCode(65);
+  iso::ReceivePort port = iso::ReceivePort::•();
+  self::subscription = port.{iso::ReceivePort::listen}(#C1){((dynamic) →? void, {cancelOnError: core::bool?, onDone: () →? void, onError: core::Function?}) → asy::StreamSubscription<dynamic>};
+  port.{iso::ReceivePort::sendPort}{iso::SendPort}.{iso::SendPort::send}(string){(core::Object?) → void};
 }
 
 constants  {

@@ -1,4 +1,3 @@
-// @dart = 2.9
 import "implicit_new.dart" as prefix;
 
 class Foo {

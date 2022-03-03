@@ -63,6 +63,10 @@
 - Deprecate `SecureSocket.renegotiate` and `RawSecureSocket.renegotiate`,
   which were no-ops.
 
+#### `dart:isolate`
+
+- Add `Isolate.run` to run a function in a new isolate.
+
 ### Tools
 
 #### Dart command line

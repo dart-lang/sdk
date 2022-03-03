@@ -1,7 +1,7 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class Operators1 {
   operator ==() => true;
   operator <() => true;
@@ -46,7 +46,7 @@ class Operators2 {
 }
 
 class Operators3 {
-  operator ==([a]) => true;
+  operator ==([a = 0]) => true;
   operator <([a]) => true;
   operator >([a]) => true;
   operator <=([a]) => true;

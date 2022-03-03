@@ -1,6 +1,6 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method main(core::List<core::String*>* arguments) → dynamic
+static method main(core::List<core::String> arguments) → dynamic
   ;

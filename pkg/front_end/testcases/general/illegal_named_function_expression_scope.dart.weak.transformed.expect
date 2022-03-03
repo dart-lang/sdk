@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -11,5 +11,5 @@ import "dart:core" as core;
 
 static method main() → dynamic {
   function f() → void {}
-  core::print(let final () →* Null f = () → Null {} in f);
+  core::print(let final () → Null f = () → Null {} in f);
 }

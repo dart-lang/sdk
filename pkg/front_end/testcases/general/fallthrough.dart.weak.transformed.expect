@@ -2,11 +2,11 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/fallthrough.dart:8:5: Error: Switch case may fall through to the next case.
+// pkg/front_end/testcases/general/fallthrough.dart:10:5: Error: Switch case may fall through to the next case.
 //     case 3:
 //     ^
 //
-// pkg/front_end/testcases/general/fallthrough.dart:12:5: Error: Switch case may fall through to the next case.
+// pkg/front_end/testcases/general/fallthrough.dart:14:5: Error: Switch case may fall through to the next case.
 //     case 6:
 //     ^
 //
@@ -21,7 +21,7 @@ static method main(core::List<core::String*>* args) → void {
     case #C1:
       {
         x = 4;
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///fallthrough.dart", 8);
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///fallthrough.dart", 10);
       }
     #L3:
     case #C2:
@@ -38,7 +38,7 @@ static method main(core::List<core::String*>* args) → void {
         else {
           return;
         }
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///fallthrough.dart", 12);
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///fallthrough.dart", 14);
       }
     #L5:
     case #C5:

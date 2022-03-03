@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -57,13 +57,13 @@ static method main() → dynamic {
   ^"{<invalid>}.y{<invalid>}.z{dynamic}.print("Hello, World!");
   1.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:13:7: Error: This expression has type 'void' and can't be used.
       print(\"Hello, World!\") +
-      ^" in core::print("Hello, World!")){(core::num*) →* core::num*}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:14:7: Error: Method not found: 'z'.
+      ^" in core::print("Hello, World!")){(core::num) → core::num}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:14:7: Error: Method not found: 'z'.
       z(\"Hello, World!\") +
-      ^"){(core::num*) →* core::num*}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:15:7: Error: Undefined name 'z'.
+      ^"){(core::num) → core::double}.{core::double::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:15:7: Error: Undefined name 'z'.
       z.print(\"Hello, World!\") +
-      ^"{dynamic}.print("Hello, World!") as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:16:7: Error: Undefined name 'y'.
+      ^"{dynamic}.print("Hello, World!") as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::double}.{core::double::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:16:7: Error: Undefined name 'y'.
       y.z.print(\"Hello, World!\") +
-      ^"{<invalid>}.z{dynamic}.print("Hello, World!") as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:17:7: Error: Undefined name 'x'.
+      ^"{<invalid>}.z{dynamic}.print("Hello, World!") as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::double}.{core::double::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:17:7: Error: Undefined name 'x'.
       x.y.z.print(\"Hello, World!\");
-      ^"{<invalid>}.y{<invalid>}.z{dynamic}.print("Hello, World!") as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+      ^"{<invalid>}.y{<invalid>}.z{dynamic}.print("Hello, World!") as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::double};
 }

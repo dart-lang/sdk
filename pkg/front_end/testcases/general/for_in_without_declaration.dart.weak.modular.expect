@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -70,65 +70,55 @@ import self as self;
 import "dart:core" as core;
 
 class Super extends core::Object {
-  field core::int* superInstanceField = null;
+  field core::int superInstanceField = 0;
   field dynamic untypedSuperInstanceField = null;
-  synthetic constructor •() → self::Super*
+  synthetic constructor •() → self::Super
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C extends self::Super {
-  field core::int* instanceField = null;
+  field core::int instanceField = 0;
   field dynamic untypedInstanceField = null;
-  static field core::double* staticField = null;
+  static field core::double staticField = 0.0;
   static field dynamic untypedStaticField = null;
-  synthetic constructor •() → self::C*
+  synthetic constructor •() → self::C
     : super self::Super::•()
     ;
   method m() → dynamic {
-    core::String* local;
+    core::String local;
     dynamic untypedLocal;
-    for (final core::String* #t1 in <core::String*>[]) {
+    for (final core::String #t1 in <core::String>[]) {
       local = #t1;
     }
     for (final dynamic #t2 in <dynamic>[]) {
       untypedLocal = #t2;
     }
-    for (final core::int* #t3 in <core::int*>[]) {
+    for (final core::int #t3 in <core::int>[]) {
       this.{self::C::instanceField} = #t3;
     }
     for (final dynamic #t4 in <dynamic>[]) {
       this.{self::C::untypedInstanceField} = #t4;
     }
-    for (final core::double* #t5 in <core::double*>[]) {
+    for (final core::double #t5 in <core::double>[]) {
       self::C::staticField = #t5;
     }
     for (final dynamic #t6 in <dynamic>[]) {
       self::C::untypedStaticField = #t6;
     }
-    for (final core::bool* #t7 in <core::bool*>[]) {
+    for (final core::bool #t7 in <core::bool>[]) {
       self::topLevelField = #t7;
     }
     for (final dynamic #t8 in <dynamic>[]) {
       self::untypedTopLevelField = #t8;
     }
-    for (final core::int* #t9 in <core::int*>[]) {
+    for (final core::int #t9 in <core::int>[]) {
       super.{self::Super::superInstanceField} = #t9;
     }
     for (final dynamic #t10 in <dynamic>[]) {
       super.{self::Super::untypedSuperInstanceField} = #t10;
     }
-    self::C* c = new self::C::•();
-    for (final core::int* #t11 in <core::int*>[]) {
+    self::C c = new self::C::•();
+    for (final core::int #t11 in <core::int>[]) {
       c.{self::C::instanceField} = #t11;
     }
     for (final dynamic #t12 in <dynamic>[]) {
@@ -178,7 +168,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
       invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:41:10: Error: A for-in loop can't have more than one loop variable.
     for (var x, y in <int>[]) {
          ^^^";
-      for (final core::int* #t17 in <core::int*>[]) {
+      for (final core::int #t17 in <core::int>[]) {
         invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:41:10: Error: A for-in loop can't have more than one loop variable.
     for (var x, y in <int>[]) {
          ^^^";
@@ -195,6 +185,6 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     }
   }
 }
-static field core::bool* topLevelField;
+static field core::bool topLevelField = true;
 static field dynamic untypedTopLevelField;
 static method main() → dynamic {}

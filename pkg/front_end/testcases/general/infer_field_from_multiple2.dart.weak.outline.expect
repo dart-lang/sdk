@@ -1,0 +1,321 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:53:7: Error: Can't infer a type for 'field2' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field2; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:7:7: Context: This is one of the overridden members.
+//   var field2 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:30:7: Context: This is one of the overridden members.
+//   var field2 = '';
+//       ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:55:7: Error: Can't infer a type for 'field4' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field4 = 0; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:9:7: Context: This is one of the overridden members.
+//   var field4 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:32:7: Context: This is one of the overridden members.
+//   var field4 = '';
+//       ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:57:7: Error: Can't infer a type for 'field6' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field6; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:11:8: Context: This is one of the overridden members.
+//   int? field6;
+//        ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:34:11: Context: This is one of the overridden members.
+//   String? field6;
+//           ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:59:7: Error: Can't infer a type for 'field8' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field8 = 0; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:13:8: Context: This is one of the overridden members.
+//   int? field8;
+//        ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:36:11: Context: This is one of the overridden members.
+//   String? field8;
+//           ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:62:7: Error: Can't infer a type for 'field11' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field11; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:16:5: Context: This is one of the overridden members.
+//   T field11;
+//     ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:39:5: Context: This is one of the overridden members.
+//   S field11;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:66:7: Error: Can't infer a type for 'field15' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field15;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:20:7: Context: This is one of the overridden members.
+//   var field15 = 0;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:43:8: Context: This is one of the overridden members.
+//   int? field15;
+//        ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:67:7: Error: Can't infer a type for 'field16' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field16;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:21:8: Context: This is one of the overridden members.
+//   int? field16;
+//        ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:44:7: Context: This is one of the overridden members.
+//   var field16 = 0;
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:68:7: Error: Can't infer a type for 'field17' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field17; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:22:7: Context: This is one of the overridden members.
+//   var field17 = 0;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:45:11: Context: This is one of the overridden members.
+//   String? field17;
+//           ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:69:7: Error: Can't infer a type for 'field18' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field18; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:23:8: Context: This is one of the overridden members.
+//   int? field18;
+//        ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:46:7: Context: This is one of the overridden members.
+//   var field18 = '';
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:94:7: Error: Can't infer a type for 'field2' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field2; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:7:7: Context: This is one of the overridden members.
+//   var field2 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:30:7: Context: This is one of the overridden members.
+//   var field2 = '';
+//       ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:96:7: Error: Can't infer a type for 'field4' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field4 = 0; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:9:7: Context: This is one of the overridden members.
+//   var field4 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:32:7: Context: This is one of the overridden members.
+//   var field4 = '';
+//       ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:98:7: Error: Can't infer a type for 'field6' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field6; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:11:8: Context: This is one of the overridden members.
+//   int? field6;
+//        ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:34:11: Context: This is one of the overridden members.
+//   String? field6;
+//           ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:100:7: Error: Can't infer a type for 'field8' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field8 = 0; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:13:8: Context: This is one of the overridden members.
+//   int? field8;
+//        ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:36:11: Context: This is one of the overridden members.
+//   String? field8;
+//           ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:107:7: Error: Can't infer a type for 'field15' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field15;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:20:7: Context: This is one of the overridden members.
+//   var field15 = 0;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:43:8: Context: This is one of the overridden members.
+//   int? field15;
+//        ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:108:7: Error: Can't infer a type for 'field16' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field16;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:21:8: Context: This is one of the overridden members.
+//   int? field16;
+//        ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:44:7: Context: This is one of the overridden members.
+//   var field16 = 0;
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:109:7: Error: Can't infer a type for 'field17' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field17; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:22:7: Context: This is one of the overridden members.
+//   var field17 = 0;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:45:11: Context: This is one of the overridden members.
+//   String? field17;
+//           ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:110:7: Error: Can't infer a type for 'field18' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field18; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:23:8: Context: This is one of the overridden members.
+//   int? field18;
+//        ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:46:7: Context: This is one of the overridden members.
+//   var field18 = '';
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:63:8: Error: The return type of the method 'C.field12' is 'int?', which does not match the return type, 'int', of the overridden method, 'A.field12'.
+// Change to a subtype of 'int'.
+//   int? field12;
+//        ^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:17:5: Context: This is the overridden method ('field12').
+//   T field12;
+//     ^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:63:8: Error: The return type of the method 'C.field12' is 'int?', which does not match the return type, 'int', of the overridden method, 'B.field12'.
+// Change to a subtype of 'int'.
+//   int? field12;
+//        ^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:40:5: Context: This is the overridden method ('field12').
+//   T field12;
+//     ^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:65:8: Error: The return type of the method 'C.field14' is 'int?', which does not match the return type, 'int', of the overridden method, 'A.field14'.
+// Change to a subtype of 'int'.
+//   int? field14; // error
+//        ^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:19:5: Context: This is the overridden method ('field14').
+//   T field14;
+//     ^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:65:8: Error: The return type of the method 'C.field14' is 'int?', which does not match the return type, 'String', of the overridden method, 'B.field14'.
+// Change to a subtype of 'String'.
+//   int? field14; // error
+//        ^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:42:5: Context: This is the overridden method ('field14').
+//   S field14;
+//     ^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:65:8: Error: The field 'C.field14' has type 'int?', which does not match the corresponding type, 'String', in the overridden setter, 'B.field14'.
+//   int? field14; // error
+//        ^
+// pkg/front_end/testcases/general/infer_field_from_multiple2.dart:42:5: Context: This is the overridden method ('field14').
+//   S field14;
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  field core::int field1;
+  field core::int field2;
+  field core::int field3;
+  field core::int field4;
+  field core::int? field5;
+  field core::int? field6;
+  field core::int? field7;
+  field core::int? field8;
+  field dynamic field9;
+  covariant-by-class field self::A::T% field10;
+  covariant-by-class field self::A::T% field11;
+  covariant-by-class field self::A::T% field12;
+  covariant-by-class field self::A::T% field13;
+  covariant-by-class field self::A::T% field14;
+  field core::int field15;
+  field core::int? field16;
+  field core::int field17;
+  field core::int? field18;
+  constructor •(self::A::T% field10, self::A::T% field11, self::A::T% field12, self::A::T% field13, self::A::T% field14) → self::A<self::A::T%>
+    ;
+}
+class B<T extends core::Object? = dynamic, S extends core::Object? = dynamic> extends core::Object {
+  field core::int field1;
+  field core::String field2;
+  field core::int field3;
+  field core::String field4;
+  field core::int? field5;
+  field core::String? field6;
+  field core::int? field7;
+  field core::String? field8;
+  field dynamic field9;
+  covariant-by-class field self::B::T% field10;
+  covariant-by-class field self::B::S% field11;
+  covariant-by-class field self::B::T% field12;
+  covariant-by-class field self::B::T% field13;
+  covariant-by-class field self::B::S% field14;
+  field core::int? field15;
+  field core::int field16;
+  field core::String? field17;
+  field core::String field18;
+  constructor •(self::B::T% field10, self::B::S% field11, self::B::T% field12, self::B::T% field13, self::B::S% field14) → self::B<self::B::T%, self::B::S%>
+    ;
+}
+class C extends core::Object implements self::A<core::int>, self::B<core::int, core::String> {
+  field core::int field1;
+  field invalid-type field2;
+  field core::int field3;
+  field invalid-type field4;
+  field core::int? field5;
+  field invalid-type field6;
+  field core::int? field7;
+  field invalid-type field8;
+  field dynamic field9;
+  covariant-by-class field core::int field10;
+  covariant-by-class field invalid-type field11;
+  covariant-by-class field core::int? field12;
+  covariant-by-class field core::int field13;
+  covariant-by-class field core::int? field14;
+  field invalid-type field15;
+  field invalid-type field16;
+  field invalid-type field17;
+  field invalid-type field18;
+  constructor •(core::int field1, invalid-type field2, core::int field3, invalid-type field4, core::int? field5, invalid-type field6, core::int? field7, invalid-type field8, dynamic field9, core::int field10, invalid-type field11, core::int? field12, core::int field13, core::int? field14, invalid-type field15, invalid-type field16, invalid-type field17, invalid-type field18) → self::C
+    ;
+}
+class D<T extends core::Object? = dynamic> extends core::Object implements self::A<self::D::T%>, self::B<self::D::T%, self::D::T%> {
+  field core::int field1;
+  field invalid-type field2;
+  field core::int field3;
+  field invalid-type field4;
+  field core::int? field5;
+  field invalid-type field6;
+  field core::int? field7;
+  field invalid-type field8;
+  field dynamic field9;
+  covariant-by-class field self::D::T% field10;
+  covariant-by-class field self::D::T% field11;
+  covariant-by-class field self::D::T% field12;
+  covariant-by-class field self::D::T% field13;
+  covariant-by-class field self::D::T% field14;
+  field invalid-type field15;
+  field invalid-type field16;
+  field invalid-type field17;
+  field invalid-type field18;
+  constructor •(core::int field1, invalid-type field2, core::int field3, invalid-type field4, core::int? field5, invalid-type field6, core::int? field7, invalid-type field8, dynamic field9, self::D::T% field10, self::D::T% field11, self::D::T% field12, self::D::T% field13, self::D::T% field14, invalid-type field15, invalid-type field16, invalid-type field17, invalid-type field18) → self::D<self::D::T%>
+    ;
+}

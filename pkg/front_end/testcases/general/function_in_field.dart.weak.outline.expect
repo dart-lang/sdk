@@ -1,7 +1,7 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static field () →* core::int* x;
+static field () → core::int x;
 static method main() → dynamic
   ;

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 
 import "org-dartlang-testcase:///import_conflicting_getters_lib1.dart";
@@ -9,16 +9,16 @@ static method main() → dynamic
 static method errors() → dynamic
   ;
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
-static get foo() → core::int*
+static get foo() → core::int
   ;
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self3;
 import "dart:core" as core;
 
-static get foo() → core::int*
+static get foo() → core::int
   ;

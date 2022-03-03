@@ -1,21 +1,21 @@
 @#C2
 @#C4
 @#C6
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/external_import.dart:7:1: Error: Dart native extensions are no longer supported.
+// pkg/front_end/testcases/general/external_import.dart:5:1: Error: Dart native extensions are no longer supported.
 // Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)
 // import 'dart-ext:here';
 // ^
 //
-// pkg/front_end/testcases/general/external_import.dart:8:1: Error: Dart native extensions are no longer supported.
+// pkg/front_end/testcases/general/external_import.dart:6:1: Error: Dart native extensions are no longer supported.
 // Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)
 // import 'dart-ext:foo/../there';
 // ^
 //
-// pkg/front_end/testcases/general/external_import.dart:9:1: Error: Dart native extensions are no longer supported.
+// pkg/front_end/testcases/general/external_import.dart:7:1: Error: Dart native extensions are no longer supported.
 // Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)
 // import 'dart-ext:/usr/local/somewhere';
 // ^
