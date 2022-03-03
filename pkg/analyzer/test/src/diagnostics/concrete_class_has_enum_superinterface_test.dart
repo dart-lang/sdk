@@ -59,12 +59,10 @@ class B = Object with M implements A;
   }
 
   test_enum() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 enum E implements Enum {
   v
 }
-''', [
-      error(CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE, 18, 4),
-    ]);
+''');
   }
 }

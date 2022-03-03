@@ -387,7 +387,7 @@ class _ClassVerifier {
 
     if (interfaceElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
-      if (classElement.isAbstract) {
+      if (classElement.isAbstract || classElement.isEnum) {
         return false;
       }
       reporter.reportErrorForNode(
