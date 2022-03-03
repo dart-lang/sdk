@@ -83,6 +83,7 @@ class Heap {
   void FreedExternal(intptr_t size, Space space);
   // Move external size from new to old space. Does not by itself trigger GC.
   void PromotedExternal(intptr_t size);
+  void CheckExternalGC(Thread* thread);
 
   // Heap contains the specified address.
   bool Contains(uword addr) const;

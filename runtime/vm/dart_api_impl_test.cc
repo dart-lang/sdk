@@ -2808,6 +2808,34 @@ TEST_CASE(DartAPI_ByteDataDirectAccessVerified) {
   TestByteDataDirectAccess();
 }
 
+static void NopCallback(void* isolate_callback_data, void* peer) {}
+
+TEST_CASE(DartAPI_ExternalAllocationDuringNoCallbackScope) {
+  Dart_Handle bytes = Dart_NewTypedData(Dart_TypedData_kUint8, 100);
+  EXPECT_VALID(bytes);
+
+  intptr_t gc_count_before = Thread::Current()->heap()->Collections(Heap::kNew);
+
+  Dart_TypedData_Type type;
+  void* data;
+  intptr_t len;
+  Dart_Handle result = Dart_TypedDataAcquireData(bytes, &type, &data, &len);
+  EXPECT_VALID(result);
+
+  Dart_WeakPersistentHandle weak =
+      Dart_NewWeakPersistentHandle(bytes, NULL, 100 * MB, NopCallback);
+  EXPECT_VALID(reinterpret_cast<Dart_Handle>(weak));
+
+  EXPECT_EQ(gc_count_before,
+            Thread::Current()->heap()->Collections(Heap::kNew));
+
+  result = Dart_TypedDataReleaseData(bytes);
+  EXPECT_VALID(result);
+
+  EXPECT_LT(gc_count_before,
+            Thread::Current()->heap()->Collections(Heap::kNew));
+}
+
 static void ExternalTypedDataAccessTests(Dart_Handle obj,
                                          Dart_TypedData_Type expected_type,
                                          uint8_t data[],
@@ -2916,8 +2944,6 @@ TEST_CASE(DartAPI_ExternalUint8ClampedArrayAccess) {
   EXPECT_VALID(result);
   EXPECT(value);
 }
-
-static void NopCallback(void* isolate_callback_data, void* peer) {}
 
 static void UnreachedCallback(void* isolate_callback_data, void* peer) {
   UNREACHABLE();

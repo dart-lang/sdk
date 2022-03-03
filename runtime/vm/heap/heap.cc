@@ -149,30 +149,18 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
 }
 
 void Heap::AllocatedExternal(intptr_t size, Space space) {
-  ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
-    Isolate::Current()->AssertCurrentThreadIsMutator();
     new_space_.AllocatedExternal(size);
-    if (new_space_.ExternalInWords() <= (4 * new_space_.CapacityInWords())) {
-      return;
-    }
-    // Attempt to free some external allocation by a scavenge. (If the total
-    // remains above the limit, next external alloc will trigger another.)
-    CollectGarbage(GCType::kScavenge, GCReason::kExternal);
-    // Promotion may have pushed old space over its limit. Fall through for old
-    // space GC check.
   } else {
     ASSERT(space == kOld);
     old_space_.AllocatedExternal(size);
   }
 
-  if (old_space_.ReachedHardThreshold()) {
-    if (last_gc_was_old_space_) {
-      CollectNewSpaceGarbage(Thread::Current(), GCReason::kFull);
-    }
-    CollectGarbage(GCType::kMarkSweep, GCReason::kExternal);
+  Thread* thread = Thread::Current();
+  if (thread->no_callback_scope_depth() == 0) {
+    CheckExternalGC(thread);
   } else {
-    CheckStartConcurrentMarking(Thread::Current(), GCReason::kExternal);
+    // Check delayed until Dart_TypedDataRelease.
   }
 }
 
@@ -188,6 +176,27 @@ void Heap::FreedExternal(intptr_t size, Space space) {
 void Heap::PromotedExternal(intptr_t size) {
   new_space_.FreedExternal(size);
   old_space_.AllocatedExternal(size);
+}
+
+void Heap::CheckExternalGC(Thread* thread) {
+  ASSERT(thread->no_safepoint_scope_depth() == 0);
+  ASSERT(thread->no_callback_scope_depth() == 0);
+  if (new_space_.ExternalInWords() >= (4 * new_space_.CapacityInWords())) {
+    // Attempt to free some external allocation by a scavenge. (If the total
+    // remains above the limit, next external alloc will trigger another.)
+    CollectGarbage(GCType::kScavenge, GCReason::kExternal);
+    // Promotion may have pushed old space over its limit. Fall through for old
+    // space GC check.
+  }
+
+  if (old_space_.ReachedHardThreshold()) {
+    if (last_gc_was_old_space_) {
+      CollectNewSpaceGarbage(thread, GCReason::kFull);
+    }
+    CollectGarbage(GCType::kMarkSweep, GCReason::kExternal);
+  } else {
+    CheckStartConcurrentMarking(thread, GCReason::kExternal);
+  }
 }
 
 bool Heap::Contains(uword addr) const {

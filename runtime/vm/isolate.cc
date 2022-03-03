@@ -1656,11 +1656,6 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   ASSERT(isolate == Isolate::Current());
 }
-
-void BaseIsolate::AssertCurrentThreadIsMutator() const {
-  ASSERT(Isolate::Current() == this);
-  ASSERT(Thread::Current()->IsMutatorThread());
-}
 #endif  // defined(DEBUG)
 
 #if defined(DEBUG)

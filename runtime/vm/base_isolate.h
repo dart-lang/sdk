@@ -21,12 +21,6 @@ class Zone;
 class BaseIsolate {
  public:
 #if defined(DEBUG)
-  void AssertCurrentThreadIsMutator() const;
-#else
-  void AssertCurrentThreadIsMutator() const {}
-#endif  // DEBUG
-
-#if defined(DEBUG)
   static void AssertCurrent(BaseIsolate* isolate);
 #endif
 

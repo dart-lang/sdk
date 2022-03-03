@@ -334,7 +334,13 @@ class Api : AllStatic {
 #define START_NO_CALLBACK_SCOPE(thread) thread->IncrementNoCallbackScopeDepth()
 
 // End a no Dart API call backs Scope.
-#define END_NO_CALLBACK_SCOPE(thread) thread->DecrementNoCallbackScopeDepth()
+#define END_NO_CALLBACK_SCOPE(thread)                                          \
+  do {                                                                         \
+    thread->DecrementNoCallbackScopeDepth();                                   \
+    if (thread->no_callback_scope_depth() == 0) {                              \
+      thread->heap()->CheckExternalGC(thread);                                 \
+    }                                                                          \
+  } while (false)
 
 #define CHECK_CALLBACK_STATE(thread)                                           \
   if (thread->no_callback_scope_depth() != 0) {                                \
