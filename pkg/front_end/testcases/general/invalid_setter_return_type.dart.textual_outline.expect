@@ -1,4 +1,3 @@
-// @dart = 2.9
 int set setter1(_) {}
 dynamic set setter2(_) {}
 void set setter3(_) {}

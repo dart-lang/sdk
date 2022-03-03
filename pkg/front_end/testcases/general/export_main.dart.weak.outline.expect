@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "hello.dart" as hel;
 additionalExports = (hel::main)

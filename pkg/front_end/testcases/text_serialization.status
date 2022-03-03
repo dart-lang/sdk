@@ -82,9 +82,10 @@ general/implement_semi_stub: TypeCheckError
 general/implicit_super_call: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
+general/infer_field_from_multiple2: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invalid_operator_override: TypeCheckError
-general/invocations: RuntimeError
+general/invocations: TypeCheckError
 general/issue37776: RuntimeError
 general/issue38938: RuntimeError
 general/issue38944: RuntimeError

@@ -1,4 +1,3 @@
-// @dart = 2.9
 var x = () {
   var y = 42;
   return y;

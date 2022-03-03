@@ -1,4 +1,3 @@
-// @dart = 2.9
 foo({fisk}) {}
 caller(f) {}
 main() {}

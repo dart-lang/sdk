@@ -1,8 +1,8 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method fibonacci(core::int* n) → core::int*
+static method fibonacci(core::int n) → core::int
   ;
 static method main() → dynamic
   ;

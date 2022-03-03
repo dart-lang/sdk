@@ -1,15 +1,15 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  function local(({a: dynamic}) →* void f) → void {
-    f(a: "Hello, World"){({a: dynamic}) →* void};
-    f(){({a: dynamic}) →* void};
+  function local(({a: dynamic}) → void f) → void {
+    f(a: "Hello, World"){({a: dynamic}) → void};
+    f(){({a: dynamic}) → void};
   }
-  local(({dynamic a = #C1}) → Null {
+  local(({dynamic a = #C1}) → void {
     core::print(a);
-  }){(({a: dynamic}) →* void) →* void};
+  }){(({a: dynamic}) → void) → void};
 }
 
 constants  {

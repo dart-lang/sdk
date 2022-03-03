@@ -1,3 +1,2 @@
-// @dart = 2.9
 typedef F = int Function(int f(String x));
 main() {}

@@ -1,4 +1,3 @@
-// @dart = 2.9
 String x = identity;
 String y = identityObject;
 String z = identityList;

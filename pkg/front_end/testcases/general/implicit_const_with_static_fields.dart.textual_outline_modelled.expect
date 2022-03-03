@@ -1,4 +1,3 @@
-// @dart = 2.9
 class C {
   const C(x);
   static const constField = 87;

@@ -1,4 +1,3 @@
-// @dart = 2.9
 T identity<T>(T t) => t;
 T identityObject<T extends Object>(T t) => t;
 T identityList<T extends List<T>>(T t) => t;

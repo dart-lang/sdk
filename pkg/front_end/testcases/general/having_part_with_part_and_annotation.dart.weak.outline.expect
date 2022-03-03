@@ -1,8 +1,8 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/having_part_with_part_and_annotation_lib1.dart:10:6: Error: A file that's a part of a library can't have parts itself.
+// pkg/front_end/testcases/general/having_part_with_part_and_annotation_lib1.dart:8:6: Error: A file that's a part of a library can't have parts itself.
 // Try moving the 'part' declaration to the containing library.
 // part 'having_part_with_part_and_annotation_lib2.dart';
 //      ^
@@ -12,8 +12,8 @@ import self as self;
 import "dart:core" as core;
 
 part having_part_with_part_and_annotation_lib1.dart;
-static const field core::int* Foo = 42;
-static const field core::int* Bar = 43 /* from org-dartlang-testcase:///having_part_with_part_and_annotation_lib1.dart */;
+static const field core::int Foo = 42;
+static const field core::int Bar = 43 /* from org-dartlang-testcase:///having_part_with_part_and_annotation_lib1.dart */;
 static method fromMain() → void
   ;
 static method main() → dynamic
