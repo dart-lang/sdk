@@ -17,9 +17,37 @@ main() {
 class RethrowOutsideCatchTest extends PubPackageResolutionTest {
   test_insideCatch() async {
     await assertNoErrorsInCode(r'''
-class A {
-  void m() {
-    try {} catch (e) {rethrow;}
+void f() {
+  try {} catch (e) {
+    rethrow;
+  }
+}
+''');
+  }
+
+  test_insideCatch_insideClosure() async {
+    await assertErrorsInCode(r'''
+void f() {
+  try {} catch (e) {
+    () {
+      rethrow;
+    };
+  }
+}
+''', [
+      error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 47, 7),
+    ]);
+  }
+
+  test_insideCatch_insideClosure_insideCatch() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  try {} catch (e1) {
+    () {
+      try {} catch (e2) {
+        rethrow;
+      }
+    };
   }
 }
 ''');
@@ -27,11 +55,11 @@ class A {
 
   test_withoutCatch() async {
     await assertErrorsInCode(r'''
-f() {
+void f() {
   rethrow;
 }
 ''', [
-      error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 8, 7),
+      error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 13, 7),
     ]);
   }
 }

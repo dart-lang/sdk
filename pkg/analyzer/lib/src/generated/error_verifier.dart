@@ -74,6 +74,9 @@ class EnclosingExecutableContext {
   /// for the kind of the function body, e.g. not `Future` for `async`.
   bool hasLegalReturnType = true;
 
+  /// The number of enclosing [CatchClause] in this executable.
+  int catchClauseLevel = 0;
+
   EnclosingExecutableContext(this.element,
       {bool? isAsynchronous, this.catchErrorOnErrorReturnType})
       : isAsynchronous =
@@ -164,11 +167,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// The manager for the inheritance mappings.
   final InheritanceManager3 _inheritanceManager;
 
-  /// A flag indicating whether the visitor is currently within a catch clause.
-  ///
-  /// See [visitCatchClause].
-  bool _isInCatchClause = false;
-
   /// A flag indicating whether the visitor is currently within a comment.
   bool _isInComment = false;
 
@@ -250,7 +248,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
             _inheritanceManager, _currentLibrary, errorReporter) {
     _isInSystemLibrary = _currentLibrary.source.uri.isScheme('dart');
-    _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
     _intType = _typeProvider.intType;
@@ -409,13 +406,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitCatchClause(CatchClause node) {
     _duplicateDefinitionVerifier.checkCatchClause(node);
-    bool previousIsInCatchClause = _isInCatchClause;
     try {
-      _isInCatchClause = true;
+      _enclosingExecutable.catchClauseLevel++;
       _checkForTypeAnnotationDeferredClass(node.exceptionType);
       super.visitCatchClause(node);
     } finally {
-      _isInCatchClause = previousIsInCatchClause;
+      _enclosingExecutable.catchClauseLevel--;
     }
   }
 
@@ -4112,7 +4108,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH].
   void _checkForRethrowOutsideCatch(RethrowExpression expression) {
-    if (!_isInCatchClause) {
+    if (_enclosingExecutable.catchClauseLevel == 0) {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, expression);
     }
