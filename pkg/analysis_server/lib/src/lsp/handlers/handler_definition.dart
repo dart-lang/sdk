@@ -11,9 +11,15 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
+import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:collection/collection.dart';
 
@@ -47,14 +53,16 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
 
   Future<AnalysisNavigationParams> getServerResult(
       bool supportsLocationLink, String path, int offset) async {
-    final collector =
-        NavigationCollectorImpl(collectCodeLocations: supportsLocationLink);
+    final collector = NavigationCollectorImpl();
 
     final result = await server.getResolvedUnit(path);
     final unit = result?.unit;
     if (unit != null) {
       computeDartNavigation(
           server.resourceProvider, collector, unit, offset, 0);
+      if (supportsLocationLink) {
+        _updateTargetsWithCodeLocations(collector);
+      }
       collector.createRegions();
     }
 
@@ -171,6 +179,50 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
     return otherResults.isNotEmpty ? otherResults : results;
   }
 
+  /// Get the location of the code (excluding leading doc comments) for this element.
+  protocol.Location? _getCodeLocation(Element element) {
+    var codeElement = element;
+    // For synthetic getters created for fields, we need to access the associated
+    // variable to get the codeOffset/codeLength.
+    if (codeElement.isSynthetic && codeElement is PropertyAccessorElementImpl) {
+      final variable = codeElement.variable;
+      if (variable is ElementImpl) {
+        codeElement = variable as ElementImpl;
+      }
+    }
+
+    // Read the main codeOffset from the element. This may include doc comments
+    // but will give the correct end position.
+    int? codeOffset, codeLength;
+    if (codeElement is ElementImpl) {
+      codeOffset = codeElement.codeOffset;
+      codeLength = codeElement.codeLength;
+    }
+
+    if (codeOffset == null || codeLength == null) {
+      return null;
+    }
+
+    // Read the declaration so we can get the offset after the doc comments.
+    // TODO(dantup): Skip this for parts (getParsedLibrary will throw), but find
+    // a better solution.
+    final declaration = _parsedDeclaration(codeElement);
+    var node = declaration?.node;
+    if (node is VariableDeclaration) {
+      node = node.parent;
+    }
+    if (node is AnnotatedNode) {
+      var offsetAfterDocs = node.firstTokenAfterCommentAndMetadata.offset;
+
+      // Reduce the length by the difference between the end of docs and the start.
+      codeLength -= offsetAfterDocs - codeOffset;
+      codeOffset = offsetAfterDocs;
+    }
+
+    return AnalyzerConverter()
+        .locationFromElement(element, offset: codeOffset, length: codeLength);
+  }
+
   Location? _toLocation(
       AnalysisNavigationParams mergedResults, NavigationTarget target) {
     final targetFilePath = mergedResults.files[target.fileIndex];
@@ -190,5 +242,35 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
         ? navigationTargetToLocationLink(
             region, sourceLineInfo, targetFilePath, target, targetLineInfo)
         : null;
+  }
+
+  void _updateTargetsWithCodeLocations(NavigationCollectorImpl collector) {
+    for (var targetToUpdate in collector.targetsToUpdate) {
+      var codeLocation = _getCodeLocation(targetToUpdate.element);
+      if (codeLocation != null) {
+        targetToUpdate.target
+          ..codeOffset = codeLocation.offset
+          ..codeLength = codeLocation.length;
+      }
+    }
+  }
+
+  static ElementDeclarationResult? _parsedDeclaration(Element element) {
+    var session = element.session;
+    if (session == null) {
+      return null;
+    }
+
+    var libraryPath = element.library?.source.fullName;
+    if (libraryPath == null) {
+      return null;
+    }
+
+    var parsedLibrary = session.getParsedLibrary(libraryPath);
+    if (parsedLibrary is! ParsedLibraryResult) {
+      return null;
+    }
+
+    return parsedLibrary.getElementDeclaration(element);
   }
 }
