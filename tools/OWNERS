@@ -1,4 +1,4 @@
-file:/OWNERS_INFRA
+file:OWNERS_INFRA
 
 # Groups administrate themselves.
 per-file OWNERS_ANALYZER=file:OWNERS_ANALYZER
