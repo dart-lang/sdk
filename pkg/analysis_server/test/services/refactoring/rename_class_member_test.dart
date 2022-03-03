@@ -1102,7 +1102,7 @@ enum E {
     var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage:
-            "Class 'E' already declares method with name 'newName'.",
+            "Enum 'E' already declares method with name 'newName'.",
         expectedContextSearch: 'newName() {} // existing');
   }
 
