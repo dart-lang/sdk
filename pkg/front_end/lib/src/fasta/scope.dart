@@ -469,7 +469,7 @@ class Scope extends MutableScope {
     return forwardDeclaredLabels;
   }
 
-  Builder? lookupLabel(String name) {
+  JumpTarget? lookupLabel(String name) {
     return labels?[name] ?? _parent?.lookupLabel(name);
   }
 
