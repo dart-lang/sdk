@@ -1100,6 +1100,7 @@ rpc
 rs
 runnable
 s
+safer
 sandboxed
 sanitizing
 saw

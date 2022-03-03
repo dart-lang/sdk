@@ -96,6 +96,7 @@ enum RemoteInstanceKind {
   functionDeclaration,
   functionTypeAnnotation,
   identifier,
+  identifierResolver,
   namedStaticType,
   methodDeclaration,
   namedTypeAnnotation,

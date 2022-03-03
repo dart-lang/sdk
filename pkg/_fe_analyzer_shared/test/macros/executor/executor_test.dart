@@ -109,7 +109,7 @@ void main() {
             group('in the types phase', () {
               test('on functions', () async {
                 var result = await executor.executeTypesPhase(
-                    instanceId, Fixtures.myFunction);
+                    instanceId, Fixtures.myFunction, FakeIdentifierResolver());
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -118,7 +118,7 @@ void main() {
 
               test('on methods', () async {
                 var result = await executor.executeTypesPhase(
-                    instanceId, Fixtures.myMethod);
+                    instanceId, Fixtures.myMethod, FakeIdentifierResolver());
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -126,10 +126,8 @@ void main() {
               });
 
               test('on getters', () async {
-                var result = await executor.executeTypesPhase(
-                  instanceId,
-                  Fixtures.myVariableGetter,
-                );
+                var result = await executor.executeTypesPhase(instanceId,
+                    Fixtures.myVariableGetter, FakeIdentifierResolver());
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -138,10 +136,8 @@ void main() {
               });
 
               test('on setters', () async {
-                var result = await executor.executeTypesPhase(
-                  instanceId,
-                  Fixtures.myVariableSetter,
-                );
+                var result = await executor.executeTypesPhase(instanceId,
+                    Fixtures.myVariableSetter, FakeIdentifierResolver());
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -151,9 +147,7 @@ void main() {
 
               test('on variables', () async {
                 var result = await executor.executeTypesPhase(
-                  instanceId,
-                  Fixtures.myVariable,
-                );
+                    instanceId, Fixtures.myVariable, FakeIdentifierResolver());
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -162,8 +156,8 @@ void main() {
               });
 
               test('on constructors', () async {
-                var result = await executor.executeTypesPhase(
-                    instanceId, Fixtures.myConstructor);
+                var result = await executor.executeTypesPhase(instanceId,
+                    Fixtures.myConstructor, FakeIdentifierResolver());
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -173,7 +167,7 @@ void main() {
 
               test('on fields', () async {
                 var result = await executor.executeTypesPhase(
-                    instanceId, Fixtures.myField);
+                    instanceId, Fixtures.myField, FakeIdentifierResolver());
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -182,7 +176,7 @@ void main() {
 
               test('on classes', () async {
                 var result = await executor.executeTypesPhase(
-                    instanceId, Fixtures.myClass);
+                    instanceId, Fixtures.myClass, FakeIdentifierResolver());
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -196,6 +190,7 @@ void main() {
                 var result = await executor.executeDeclarationsPhase(
                     instanceId,
                     Fixtures.myFunction,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
                 expect(result.classAugmentations, isEmpty);
@@ -209,6 +204,7 @@ void main() {
                 var result = await executor.executeDeclarationsPhase(
                     instanceId,
                     Fixtures.myMethod,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
                 expect(result.classAugmentations, isEmpty);
@@ -222,6 +218,7 @@ void main() {
                 var result = await executor.executeDeclarationsPhase(
                     instanceId,
                     Fixtures.myConstructor,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
                 expect(result.classAugmentations, hasLength(1));
@@ -239,6 +236,7 @@ void main() {
                 var result = await executor.executeDeclarationsPhase(
                     instanceId,
                     Fixtures.myVariableGetter,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
                 expect(result.classAugmentations, isEmpty);
@@ -252,6 +250,7 @@ void main() {
                 var result = await executor.executeDeclarationsPhase(
                     instanceId,
                     Fixtures.myVariableSetter,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
                 expect(result.classAugmentations, isEmpty);
@@ -265,6 +264,7 @@ void main() {
                 var result = await executor.executeDeclarationsPhase(
                     instanceId,
                     Fixtures.myVariable,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
                 expect(result.classAugmentations, isEmpty);
@@ -278,6 +278,7 @@ void main() {
                 var result = await executor.executeDeclarationsPhase(
                     instanceId,
                     Fixtures.myField,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
                 expect(result.classAugmentations, hasLength(1));
@@ -295,6 +296,7 @@ void main() {
                 var result = await executor.executeDeclarationsPhase(
                     instanceId,
                     Fixtures.myClass,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector);
                 expect(result.classAugmentations, hasLength(1));
@@ -314,6 +316,7 @@ void main() {
                 var result = await executor.executeDefinitionsPhase(
                     instanceId,
                     Fixtures.myFunction,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
@@ -335,6 +338,7 @@ void main() {
                 var definitionResult = await executor.executeDefinitionsPhase(
                     instanceId,
                     Fixtures.myMethod,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
@@ -352,6 +356,7 @@ void main() {
                 var definitionResult = await executor.executeDefinitionsPhase(
                     instanceId,
                     Fixtures.myConstructor,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
@@ -368,6 +373,7 @@ void main() {
                 var result = await executor.executeDefinitionsPhase(
                     instanceId,
                     Fixtures.myVariableGetter,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
@@ -389,6 +395,7 @@ void main() {
                 var result = await executor.executeDefinitionsPhase(
                     instanceId,
                     Fixtures.myVariableSetter,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
@@ -411,6 +418,7 @@ void main() {
                 var result = await executor.executeDefinitionsPhase(
                     instanceId,
                     Fixtures.myVariable,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
@@ -441,6 +449,7 @@ void main() {
                 var definitionResult = await executor.executeDefinitionsPhase(
                     instanceId,
                     Fixtures.myField,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);
@@ -456,6 +465,7 @@ void main() {
                 var definitionResult = await executor.executeDefinitionsPhase(
                     instanceId,
                     Fixtures.myClass,
+                    FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver);

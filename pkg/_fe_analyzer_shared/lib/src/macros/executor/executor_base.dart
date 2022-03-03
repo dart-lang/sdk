@@ -64,6 +64,34 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
               }
               completer.complete(response);
               break;
+            case MessageType.resolveIdentifierRequest:
+              ResolveIdentifierRequest request =
+                  new ResolveIdentifierRequest.deserialize(
+                      deserializer, zoneId);
+              SerializableResponse response;
+              try {
+                IdentifierImpl identifier = await (request
+                            .identifierResolver.instance as IdentifierResolver)
+                        // ignore: deprecated_member_use_from_same_package
+                        .resolveIdentifier(request.library, request.name)
+                    as IdentifierImpl;
+                response = new SerializableResponse(
+                    response: identifier,
+                    requestId: request.id,
+                    responseType: MessageType.remoteInstance,
+                    serializationZoneId: zoneId);
+              } catch (error, stackTrace) {
+                response = new SerializableResponse(
+                    error: '$error',
+                    stackTrace: '$stackTrace',
+                    requestId: request.id,
+                    responseType: MessageType.error,
+                    serializationZoneId: zoneId);
+              }
+              Serializer serializer = serializerFactory();
+              response.serialize(serializer);
+              sendResult(serializer);
+              break;
             case MessageType.resolveTypeRequest:
               ResolveTypeRequest request =
                   new ResolveTypeRequest.deserialize(deserializer, zoneId);
@@ -258,11 +286,16 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
   Future<MacroExecutionResult> executeDeclarationsPhase(
           MacroInstanceIdentifier macro,
           DeclarationImpl declaration,
+          IdentifierResolver identifierResolver,
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector) =>
       _sendRequest((zoneId) => new ExecuteDeclarationsPhaseRequest(
           macro,
           declaration,
+          new RemoteInstanceImpl(
+              instance: identifierResolver,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.identifierResolver),
           new RemoteInstanceImpl(
               instance: typeResolver,
               id: RemoteInstance.uniqueId,
@@ -277,12 +310,17 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
   Future<MacroExecutionResult> executeDefinitionsPhase(
           MacroInstanceIdentifier macro,
           DeclarationImpl declaration,
+          IdentifierResolver identifierResolver,
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector,
           TypeDeclarationResolver typeDeclarationResolver) =>
       _sendRequest((zoneId) => new ExecuteDefinitionsPhaseRequest(
           macro,
           declaration,
+          new RemoteInstanceImpl(
+              instance: identifierResolver,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.identifierResolver),
           new RemoteInstanceImpl(
               instance: typeResolver,
               id: RemoteInstance.uniqueId,
@@ -298,9 +336,15 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
           serializationZoneId: zoneId));
 
   @override
-  Future<MacroExecutionResult> executeTypesPhase(
-          MacroInstanceIdentifier macro, DeclarationImpl declaration) =>
-      _sendRequest((zoneId) => new ExecuteTypesPhaseRequest(macro, declaration,
+  Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
+          DeclarationImpl declaration, IdentifierResolver identifierResolver) =>
+      _sendRequest((zoneId) => new ExecuteTypesPhaseRequest(
+          macro,
+          declaration,
+          new RemoteInstanceImpl(
+              instance: identifierResolver,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.identifierResolver),
           serializationZoneId: zoneId));
 
   @override

@@ -29,6 +29,7 @@ import '../source/source_constructor_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
+import '../source/source_loader.dart';
 import '../source/source_procedure_builder.dart';
 import 'hierarchy/hierarchy_builder.dart';
 import 'hierarchy/hierarchy_node.dart';
@@ -348,7 +349,9 @@ class MacroApplications {
           .shouldExecute(_declarationKind(declaration), macro.Phase.types)) {
         macro.MacroExecutionResult result =
             await _macroExecutor.executeTypesPhase(
-                macroApplication.instanceIdentifier, declaration);
+                macroApplication.instanceIdentifier,
+                declaration,
+                identifierResolver);
         if (result.isNotEmpty) {
           results.add(result);
         }
@@ -366,7 +369,12 @@ class MacroApplications {
     return results;
   }
 
-  Future<List<SourceLibraryBuilder>> applyTypeMacros() async {
+  late macro.IdentifierResolver identifierResolver;
+  late SourceLoader sourceLoader;
+
+  Future<List<SourceLibraryBuilder>> applyTypeMacros(
+      SourceLoader sourceLoader) async {
+    identifierResolver = new _IdentifierResolver(sourceLoader);
     List<SourceLibraryBuilder> augmentationLibraries = [];
     Map<SourceLibraryBuilder, List<macro.MacroExecutionResult>> results = {};
     for (_ApplicationData macroApplication in _applicationData) {
@@ -411,6 +419,7 @@ class MacroApplications {
             await _macroExecutor.executeDeclarationsPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
+                identifierResolver,
                 typeResolver,
                 classIntrospector);
         if (result.isNotEmpty) {
@@ -463,6 +472,7 @@ class MacroApplications {
             await _macroExecutor.executeDefinitionsPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
+                identifierResolver,
                 typeResolver,
                 classIntrospector,
                 typeDeclarationResolver);
@@ -911,6 +921,51 @@ class _StaticTypeImpl extends macro.StaticType {
   Future<bool> isSubtypeOf(covariant _StaticTypeImpl other) {
     return new Future.value(macroApplications.types
         .isSubtypeOf(type, other.type, SubtypeCheckMode.withNullabilities));
+  }
+}
+
+class _IdentifierResolver implements macro.IdentifierResolver {
+  final SourceLoader sourceLoader;
+
+  _IdentifierResolver(this.sourceLoader);
+
+  @override
+  Future<macro.Identifier> resolveIdentifier(Uri library, String name) {
+    LibraryBuilder? libraryBuilder = sourceLoader.lookupLibraryBuilder(library);
+    if (libraryBuilder == null) {
+      return new Future.error(
+          new ArgumentError('Library at uri $library could not be resolved.'),
+          StackTrace.current);
+    }
+    bool isSetter = false;
+    String memberName = name;
+    if (name.endsWith('=')) {
+      memberName = name.substring(0, name.length - 1);
+      isSetter = true;
+    }
+    Builder? builder =
+        libraryBuilder.scope.lookupLocalMember(memberName, setter: isSetter);
+    if (builder == null) {
+      return new Future.error(
+          new ArgumentError(
+              'Unable to find top level identifier "$name" in $library'),
+          StackTrace.current);
+    } else if (builder is TypeDeclarationBuilder) {
+      return new Future.value(new _IdentifierImpl.forTypeDeclarationBuilder(
+          typeDeclarationBuilder: builder,
+          libraryBuilder: libraryBuilder,
+          id: macro.RemoteInstance.uniqueId,
+          name: name));
+    } else if (builder is MemberBuilder) {
+      return new Future.value(new _IdentifierImpl.forMemberBuilder(
+          memberBuilder: builder,
+          id: macro.RemoteInstance.uniqueId,
+          name: name));
+    } else {
+      return new Future.error(
+          new UnsupportedError('Unsupported identifier kind $builder'),
+          StackTrace.current);
+    }
   }
 }
 

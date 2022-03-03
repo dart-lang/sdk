@@ -7,9 +7,9 @@ import 'package:_fe_analyzer_shared/src/macros/executor/builder_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 /// Runs [macro] in the types phase and returns a  [MacroExecutionResult].
-Future<MacroExecutionResult> executeTypesMacro(
-    Macro macro, Declaration declaration) async {
-  TypeBuilderImpl builder = new TypeBuilderImpl();
+Future<MacroExecutionResult> executeTypesMacro(Macro macro,
+    Declaration declaration, IdentifierResolver identifierResolver) async {
+  TypeBuilderImpl builder = new TypeBuilderImpl(identifierResolver);
   if (declaration is FunctionDeclaration) {
     if (macro is ConstructorTypesMacro &&
         declaration is ConstructorDeclaration) {
@@ -42,18 +42,19 @@ Future<MacroExecutionResult> executeTypesMacro(
 Future<MacroExecutionResult> executeDeclarationsMacro(
     Macro macro,
     Declaration declaration,
+    IdentifierResolver identifierResolver,
     ClassIntrospector classIntrospector,
     TypeResolver typeResolver) async {
   if (declaration is ClassDeclaration && macro is ClassDeclarationsMacro) {
     ClassMemberDeclarationBuilderImpl builder =
-        new ClassMemberDeclarationBuilderImpl(
-            declaration.identifier, classIntrospector, typeResolver);
+        new ClassMemberDeclarationBuilderImpl(declaration.identifier,
+            identifierResolver, classIntrospector, typeResolver);
     await macro.buildDeclarationsForClass(declaration, builder);
     return builder.result;
   } else if (declaration is ClassMemberDeclaration) {
     ClassMemberDeclarationBuilderImpl builder =
-        new ClassMemberDeclarationBuilderImpl(
-            declaration.definingClass, classIntrospector, typeResolver);
+        new ClassMemberDeclarationBuilderImpl(declaration.definingClass,
+            identifierResolver, classIntrospector, typeResolver);
     if (declaration is FunctionDeclaration) {
       if (macro is ConstructorDeclarationsMacro &&
           declaration is ConstructorDeclaration) {
@@ -73,16 +74,16 @@ Future<MacroExecutionResult> executeDeclarationsMacro(
         await macro.buildDeclarationsForField(declaration, builder);
         return builder.result;
       } else if (macro is VariableDeclarationsMacro) {
-        DeclarationBuilderImpl builder =
-            new DeclarationBuilderImpl(classIntrospector, typeResolver);
+        DeclarationBuilderImpl builder = new DeclarationBuilderImpl(
+            identifierResolver, classIntrospector, typeResolver);
         await macro.buildDeclarationsForVariable(
             declaration as VariableDeclaration, builder);
         return builder.result;
       }
     }
   } else {
-    DeclarationBuilderImpl builder =
-        new DeclarationBuilderImpl(classIntrospector, typeResolver);
+    DeclarationBuilderImpl builder = new DeclarationBuilderImpl(
+        identifierResolver, classIntrospector, typeResolver);
     if (declaration is FunctionDeclaration &&
         macro is FunctionDeclarationsMacro) {
       await macro.buildDeclarationsForFunction(declaration, builder);
@@ -101,6 +102,7 @@ Future<MacroExecutionResult> executeDeclarationsMacro(
 Future<MacroExecutionResult> executeDefinitionMacro(
     Macro macro,
     Declaration declaration,
+    IdentifierResolver identifierResolver,
     ClassIntrospector classIntrospector,
     TypeResolver typeResolver,
     TypeDeclarationResolver typeDeclarationResolver) async {
@@ -108,13 +110,14 @@ Future<MacroExecutionResult> executeDefinitionMacro(
     if (macro is ConstructorDefinitionMacro &&
         declaration is ConstructorDeclaration) {
       ConstructorDefinitionBuilderImpl builder =
-          new ConstructorDefinitionBuilderImpl(declaration, classIntrospector,
-              typeResolver, typeDeclarationResolver);
+          new ConstructorDefinitionBuilderImpl(declaration, identifierResolver,
+              classIntrospector, typeResolver, typeDeclarationResolver);
       await macro.buildDefinitionForConstructor(declaration, builder);
       return builder.result;
     } else {
       FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
           declaration,
+          identifierResolver,
           classIntrospector,
           typeResolver,
           typeDeclarationResolver);
@@ -128,7 +131,11 @@ Future<MacroExecutionResult> executeDefinitionMacro(
     }
   } else if (declaration is VariableDeclaration) {
     VariableDefinitionBuilderImpl builder = new VariableDefinitionBuilderImpl(
-        declaration, classIntrospector, typeResolver, typeDeclarationResolver);
+        declaration,
+        identifierResolver,
+        classIntrospector,
+        typeResolver,
+        typeDeclarationResolver);
     if (macro is FieldDefinitionMacro && declaration is FieldDeclaration) {
       await macro.buildDefinitionForField(declaration, builder);
       return builder.result;
@@ -138,7 +145,11 @@ Future<MacroExecutionResult> executeDefinitionMacro(
     }
   } else if (macro is ClassDefinitionMacro && declaration is ClassDeclaration) {
     ClassDefinitionBuilderImpl builder = new ClassDefinitionBuilderImpl(
-        declaration, classIntrospector, typeResolver, typeDeclarationResolver);
+        declaration,
+        identifierResolver,
+        classIntrospector,
+        typeResolver,
+        typeDeclarationResolver);
     await macro.buildDefinitionForClass(declaration, builder);
     return builder.result;
   }

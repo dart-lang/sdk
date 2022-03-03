@@ -308,6 +308,7 @@ class TestMacroExecutor implements MacroExecutor {
   Future<MacroExecutionResult> executeDeclarationsPhase(
       MacroInstanceIdentifier macro,
       Declaration declaration,
+      IdentifierResolver identifierResolver,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector) async {
     return new _MacroExecutionResult();
@@ -317,6 +318,7 @@ class TestMacroExecutor implements MacroExecutor {
   Future<MacroExecutionResult> executeDefinitionsPhase(
       MacroInstanceIdentifier macro,
       Declaration declaration,
+      IdentifierResolver identifierResolver,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector,
       TypeDeclarationResolver typeDeclarationResolver) async {
@@ -324,8 +326,8 @@ class TestMacroExecutor implements MacroExecutor {
   }
 
   @override
-  Future<MacroExecutionResult> executeTypesPhase(
-      MacroInstanceIdentifier macro, Declaration declaration) async {
+  Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
+      Declaration declaration, IdentifierResolver identifierResolver) async {
     return new _MacroExecutionResult();
   }
 

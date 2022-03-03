@@ -8,9 +8,23 @@ part of '../api.dart';
 /// as augment existing ones.
 abstract class Builder {}
 
+/// Allows you to resolve arbitrary [Identifier]s.
+///
+/// This class will likely disappear entirely once we have a different
+/// mechanism.
+abstract class IdentifierResolver {
+  /// Returns an [Identifier] for a top level [name] in [library].
+  ///
+  /// You should only do this for libraries that are definitely in the
+  /// transitive import graph of the library you are generating code into.
+  @Deprecated(
+      'This api should eventually be replaced with a different, safer API.')
+  Future<Identifier> resolveIdentifier(Uri library, String name);
+}
+
 /// The api used by [Macro]s to contribute new type declarations to the
 /// current library, and get [TypeAnnotation]s from runtime [Type] objects.
-abstract class TypeBuilder implements Builder {
+abstract class TypeBuilder implements Builder, IdentifierResolver {
   /// Adds a new type declaration to the surrounding library.
   ///
   /// The [name] must match the name of the new [typeDeclaration] (this does
@@ -75,7 +89,7 @@ abstract class ClassIntrospector {
 ///
 /// Can also be used to do subtype checks on types.
 abstract class DeclarationBuilder
-    implements Builder, TypeResolver, ClassIntrospector {
+    implements Builder, IdentifierResolver, TypeResolver, ClassIntrospector {
   /// Adds a new regular declaration to the surrounding library.
   ///
   /// Note that type declarations are not supported.
@@ -106,6 +120,7 @@ abstract class TypeDeclarationResolver {
 abstract class DefinitionBuilder
     implements
         Builder,
+        IdentifierResolver,
         TypeResolver,
         ClassIntrospector,
         TypeDeclarationResolver {}
