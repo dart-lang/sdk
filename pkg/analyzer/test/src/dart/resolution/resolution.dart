@@ -602,30 +602,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(node, type);
   }
 
-  void assertPrefixExpression(
-    PrefixExpression node, {
-    required Object? readElement,
-    required String? readType,
-    required Object? writeElement,
-    required String? writeType,
-    required Object? element,
-    required String type,
-  }) {
-    assertCompoundAssignment(
-      node,
-      readElement: readElement,
-      readType: readType,
-      writeElement: writeElement,
-      writeType: writeType,
-    );
-    assertElement(node.staticElement, element);
-    assertType(node, type);
-
-    if (writeElement != null) {
-      _assertUnresolvedAssignmentTarget(node.operand);
-    }
-  }
-
   void assertPropertyAccess(
     PropertyAccess access,
     Element expectedElement,
