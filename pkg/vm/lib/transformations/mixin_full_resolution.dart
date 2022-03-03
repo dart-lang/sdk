@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library kernel.transformations.mixin_full_resolution;
-
-import '../ast.dart';
-import '../class_hierarchy.dart';
-import '../clone.dart';
-import '../core_types.dart';
-import '../reference_from_index.dart';
-import '../target/targets.dart' show Target;
-import '../type_algebra.dart';
+import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/clone.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/target/targets.dart' show Target;
+import 'package:kernel/type_algebra.dart';
 
 /// Transforms the libraries in [libraries].
 /// Note that [referenceFromIndex] can be null, and is generally only needed

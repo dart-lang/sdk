@@ -9,7 +9,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/transformations/mixin_full_resolution.dart'
+import 'package:vm/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
 
 import 'package:dart2wasm/constants_backend.dart';

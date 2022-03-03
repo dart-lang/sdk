@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library kernel.transformations.continuation;
-
 import 'dart:math' as math;
 
-import '../ast.dart';
-import '../core_types.dart';
-import '../type_algebra.dart' show Substitution;
-import '../type_environment.dart';
+import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_environment.dart';
 
 import 'async.dart';
 

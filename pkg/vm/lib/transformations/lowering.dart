@@ -5,13 +5,15 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/transformations/type_casts_optimizer.dart'
-    as typeCastsOptimizer show transformAsExpression;
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
+
 import 'package:vm/transformations/specializer/factory_specializer.dart';
+
 import 'late_var_init_transformer.dart' show LateVarInitTransformer;
 import 'list_literals_lowering.dart' show ListLiteralsLowering;
+import 'type_casts_optimizer.dart' as typeCastsOptimizer
+    show transformAsExpression;
 
 /// VM-specific lowering transformations and optimizations combined into a
 /// single transformation pass.
