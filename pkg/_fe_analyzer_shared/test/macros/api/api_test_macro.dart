@@ -36,17 +36,20 @@ macro class FunctionMacro
   const FunctionMacro();
 
   FutureOr<void> buildTypesForFunction(
-      FunctionDeclaration function, TypeBuilder builder) {
+      FunctionDeclaration function, TypeBuilder builder) async {
     checkFunctionDeclaration(function);
+    await checkIdentifierResolver(builder);
   }
 
   FutureOr<void> buildDeclarationsForFunction(
-      FunctionDeclaration function, DeclarationBuilder builder) {
+      FunctionDeclaration function, DeclarationBuilder builder) async {
     checkFunctionDeclaration(function);
+    await checkIdentifierResolver(builder);
   }
 
   FutureOr<void> buildDefinitionForFunction(
-      FunctionDeclaration function, FunctionDefinitionBuilder builder) {
+      FunctionDeclaration function, FunctionDefinitionBuilder builder) async {
     checkFunctionDeclaration(function);
+    await checkIdentifierResolver(builder);
   }
 }

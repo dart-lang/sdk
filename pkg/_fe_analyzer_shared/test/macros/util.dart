@@ -62,6 +62,8 @@ class TestClassIntrospector implements ClassIntrospector {
       superclass[clazz];
 }
 
+class FakeIdentifierResolver extends Fake implements IdentifierResolver {}
+
 class FakeTypeDeclarationResolver extends Fake
     implements TypeDeclarationResolver {}
 

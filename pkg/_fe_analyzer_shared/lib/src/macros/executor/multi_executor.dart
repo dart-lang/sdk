@@ -36,25 +36,33 @@ class MultiMacroExecutor extends MacroExecutor with AugmentationLibraryBuilder {
   Future<MacroExecutionResult> executeDeclarationsPhase(
           MacroInstanceIdentifier macro,
           DeclarationImpl declaration,
+          IdentifierResolver identifierResolver,
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector) =>
-      _executors[macro]!.executeDeclarationsPhase(
-          macro, declaration, typeResolver, classIntrospector);
+      _executors[macro]!.executeDeclarationsPhase(macro, declaration,
+          identifierResolver, typeResolver, classIntrospector);
 
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
           MacroInstanceIdentifier macro,
           DeclarationImpl declaration,
+          IdentifierResolver identifierResolver,
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector,
           TypeDeclarationResolver typeDeclarationResolver) =>
-      _executors[macro]!.executeDefinitionsPhase(macro, declaration,
-          typeResolver, classIntrospector, typeDeclarationResolver);
+      _executors[macro]!.executeDefinitionsPhase(
+          macro,
+          declaration,
+          identifierResolver,
+          typeResolver,
+          classIntrospector,
+          typeDeclarationResolver);
 
   @override
-  Future<MacroExecutionResult> executeTypesPhase(
-          MacroInstanceIdentifier macro, DeclarationImpl declaration) =>
-      _executors[macro]!.executeTypesPhase(macro, declaration);
+  Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
+          DeclarationImpl declaration, IdentifierResolver identifierResolver) =>
+      _executors[macro]!
+          .executeTypesPhase(macro, declaration, identifierResolver);
 
   @override
   Future<MacroInstanceIdentifier> instantiateMacro(

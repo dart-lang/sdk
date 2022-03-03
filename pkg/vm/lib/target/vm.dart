@@ -9,15 +9,15 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/transformations/mixin_full_resolution.dart'
-    as transformMixins show transformLibraries;
-import 'package:kernel/transformations/continuation.dart' as transformAsync
-    show transformLibraries, transformProcedure;
 import 'package:kernel/type_environment.dart';
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
+import '../transformations/continuation.dart' as transformAsync
+    show transformLibraries, transformProcedure;
 import '../transformations/lowering.dart' as lowering
     show transformLibraries, transformProcedure;
+import '../transformations/mixin_full_resolution.dart' as transformMixins
+    show transformLibraries;
 import '../transformations/ffi/common.dart' as ffiHelper
     show calculateTransitiveImportsOfDartFfiIfUsed;
 import '../transformations/ffi/definitions.dart' as transformFfiDefinitions

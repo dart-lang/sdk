@@ -496,7 +496,7 @@ class KernelTarget extends TargetImplementation {
       if (macroApplications != null) {
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyTypeMacros);
         List<SourceLibraryBuilder> augmentationLibraries =
-            await macroApplications.applyTypeMacros();
+            await macroApplications.applyTypeMacros(loader);
         benchmarker
             ?.enterPhase(BenchmarkPhases.outline_buildMacroTypesForPhase1);
         await _buildForPhase1(augmentationLibraries);

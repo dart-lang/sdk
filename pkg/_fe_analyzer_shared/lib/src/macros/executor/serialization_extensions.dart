@@ -17,6 +17,7 @@ extension DeserializerExtensions on Deserializer {
     RemoteInstanceKind kind = RemoteInstanceKind.values[expectInt()];
     switch (kind) {
       case RemoteInstanceKind.classIntrospector:
+      case RemoteInstanceKind.identifierResolver:
       case RemoteInstanceKind.namedStaticType:
       case RemoteInstanceKind.staticType:
       case RemoteInstanceKind.typeDeclarationResolver:

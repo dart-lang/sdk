@@ -44,6 +44,15 @@ expect(expected, actual, property) {
   }
 }
 
+Future<void> throws(Future<void> Function() f, property) async {
+  try {
+    await f();
+  } catch (_) {
+    return;
+  }
+  throw 'Expected throws on $property';
+}
+
 void checkTypeAnnotation(
     TypeData expected, TypeAnnotation typeAnnotation, String context) {
   expect(expected.isNullable, typeAnnotation.isNullable, '$context.isNullable');
@@ -119,6 +128,37 @@ void checkFunctionDeclaration(FunctionDeclaration actual) {
   } else {
     throw 'Unexpected function declaration "${name}"';
   }
+}
+
+Future<void> checkIdentifierResolver(
+    IdentifierResolver identifierResolver) async {
+  Uri dartCore = Uri.parse('dart:core');
+  Uri macroApiData = Uri.parse('package:macro_api_test/api_test_data.dart');
+
+  Future<void> check(Uri uri, String name, {bool expectThrows: false}) async {
+    if (expectThrows) {
+      await throws(() async {
+        await identifierResolver.resolveIdentifier(uri, name);
+      }, '$name from $uri');
+    } else {
+      Identifier result = await identifierResolver.resolveIdentifier(uri, name);
+      expect(name, result.name, '$name from $uri');
+    }
+  }
+
+  await check(dartCore, 'Object');
+  await check(dartCore, 'String');
+  await check(dartCore, 'override');
+
+  await check(macroApiData, 'Class1');
+  await check(macroApiData, 'getter');
+  await check(macroApiData, 'setter=');
+  await check(macroApiData, 'field');
+
+  await check(macroApiData, 'non-existing', expectThrows: true);
+  await check(macroApiData, 'getter=', expectThrows: true);
+  await check(macroApiData, 'setter', expectThrows: true);
+  await check(macroApiData, 'field=', expectThrows: true);
 }
 
 class ClassData {

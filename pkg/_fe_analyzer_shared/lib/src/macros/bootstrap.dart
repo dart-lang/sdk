@@ -202,8 +202,13 @@ Future<SerializableResponse> _executeTypesPhase(
       throw new StateError('Unrecognized macro instance \${request.macro}\\n'
           'Known instances: \$_macroInstances)');
     }
+    var identifierResolver = ClientIdentifierResolver(
+        sendRequest,
+        remoteInstance: request.identifierResolver,
+        serializationZoneId: request.serializationZoneId);
 
-    var result = await executeTypesMacro(instance, request.declaration);
+    var result = await executeTypesMacro(
+        instance, request.declaration, identifierResolver);
     return new SerializableResponse(
         responseType: MessageType.macroExecutionResult,
         response: result,
@@ -228,6 +233,10 @@ Future<SerializableResponse> _executeDeclarationsPhase(
       throw new StateError('Unrecognized macro instance \${request.macro}\\n'
           'Known instances: \$_macroInstances)');
     }
+    var identifierResolver = ClientIdentifierResolver(
+        sendRequest,
+        remoteInstance: request.identifierResolver,
+        serializationZoneId: request.serializationZoneId);
     var classIntrospector = ClientClassIntrospector(
         sendRequest,
         remoteInstance: request.classIntrospector,
@@ -238,7 +247,8 @@ Future<SerializableResponse> _executeDeclarationsPhase(
         serializationZoneId: request.serializationZoneId);
 
     var result = await executeDeclarationsMacro(
-        instance, request.declaration, classIntrospector, typeResolver);
+        instance, request.declaration, identifierResolver, classIntrospector,
+        typeResolver);
     return new SerializableResponse(
         responseType: MessageType.macroExecutionResult,
         response: result,
@@ -263,6 +273,10 @@ Future<SerializableResponse> _executeDefinitionsPhase(
       throw new StateError('Unrecognized macro instance \${request.macro}\\n'
           'Known instances: \$_macroInstances)');
     }
+    var identifierResolver = ClientIdentifierResolver(
+        sendRequest,
+        remoteInstance: request.identifierResolver,
+        serializationZoneId: request.serializationZoneId);
     var typeResolver = ClientTypeResolver(
         sendRequest,
         remoteInstance: request.typeResolver,
@@ -277,8 +291,8 @@ Future<SerializableResponse> _executeDefinitionsPhase(
         serializationZoneId: request.serializationZoneId);
 
     var result = await executeDefinitionMacro(
-        instance, request.declaration, classIntrospector, typeResolver,
-        typeDeclarationResolver);
+        instance, request.declaration, identifierResolver, classIntrospector,
+        typeResolver, typeDeclarationResolver);
     return new SerializableResponse(
         responseType: MessageType.macroExecutionResult,
         response: result,

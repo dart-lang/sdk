@@ -6596,8 +6596,7 @@ class BodyBuilder extends StackListenerImpl
       SwitchCase current = cases[i] = pop() as SwitchCase;
       if (labels != null) {
         for (Label label in labels) {
-          JumpTarget? target =
-              switchScope!.lookupLabel(label.name) as JumpTarget?;
+          JumpTarget? target = switchScope!.lookupLabel(label.name);
           if (target != null) {
             target.resolveGotos(forest, current);
           }
@@ -6656,7 +6655,7 @@ class BodyBuilder extends StackListenerImpl
     if (hasTarget) {
       identifier = pop() as Identifier;
       name = identifier.name;
-      target = scope.lookupLabel(name) as JumpTarget?;
+      target = scope.lookupLabel(name);
     }
     if (target == null && name == null) {
       push(problemInLoopOrSwitch = buildProblemStatement(
@@ -6709,15 +6708,7 @@ class BodyBuilder extends StackListenerImpl
     if (hasTarget) {
       identifier = pop() as Identifier;
       name = identifier.name;
-      Builder? namedTarget = scope.lookupLabel(identifier.name);
-      if (namedTarget != null && namedTarget is! JumpTarget) {
-        Token labelToken = continueKeyword.next!;
-        push(problemInLoopOrSwitch = buildProblemStatement(
-            fasta.messageContinueLabelNotTarget, labelToken.charOffset,
-            length: labelToken.length));
-        return;
-      }
-      target = namedTarget as JumpTarget?;
+      target = scope.lookupLabel(identifier.name);
       if (target == null) {
         if (switchScope == null) {
           push(buildProblemStatement(
@@ -7527,23 +7518,20 @@ class Operator {
   String toString() => "operator($name)";
 }
 
-class JumpTarget extends BuilderImpl {
+class JumpTarget {
   final List<Statement> users = <Statement>[];
 
   final JumpTargetKind kind;
 
   final int functionNestingLevel;
 
-  @override
   final MemberBuilder parent;
 
-  @override
   final int charOffset;
 
   JumpTarget(
       this.kind, this.functionNestingLevel, this.parent, this.charOffset);
 
-  @override
   Uri get fileUri => parent.fileUri!;
 
   bool get isBreakTarget => kind == JumpTargetKind.Break;
@@ -7603,11 +7591,10 @@ class JumpTarget extends BuilderImpl {
     users.clear();
   }
 
-  @override
   String get fullNameForErrors => "<jump-target>";
 }
 
-class LabelTarget extends BuilderImpl implements JumpTarget {
+class LabelTarget implements JumpTarget {
   @override
   final MemberBuilder parent;
 

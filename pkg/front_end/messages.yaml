@@ -1153,10 +1153,6 @@ AnonymousContinueTargetOutsideFunction:
       }
     }
 
-ContinueLabelNotTarget:
-  problemMessage: "Target of continue must be a label."
-  analyzerCode: LABEL_UNDEFINED
-
 ContinueWithoutLabelInCase:
   index: 64
   problemMessage: "A continue statement in a switch statement must have a label as a target."

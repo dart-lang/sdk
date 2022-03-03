@@ -326,7 +326,7 @@ SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
 Procedure _createTearOffProcedure(SourceLibraryBuilder libraryBuilder,
     Name name, Uri fileUri, int fileOffset, Reference? reference) {
   return new Procedure(name, ProcedureKind.Method, new FunctionNode(null),
-      fileUri: fileUri, isStatic: true, reference: reference)
+      fileUri: fileUri, isStatic: true, isSynthetic: true, reference: reference)
     ..startFileOffset = fileOffset
     ..fileOffset = fileOffset
     ..fileEndOffset = fileOffset

@@ -6,6 +6,10 @@ import 'api_test_macro.dart';
 
 main() {}
 
+var field;
+get getter => null;
+set setter(_) => null;
+
 @ClassMacro()
 class Class1 {}
 

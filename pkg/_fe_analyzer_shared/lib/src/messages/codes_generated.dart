@@ -1902,15 +1902,6 @@ Message _withArgumentsConstructorWithWrongNameContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeContinueLabelNotTarget = messageContinueLabelNotTarget;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageContinueLabelNotTarget = const MessageCode(
-    "ContinueLabelNotTarget",
-    analyzerCodes: <String>["LABEL_UNDEFINED"],
-    problemMessage: r"""Target of continue must be a label.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
