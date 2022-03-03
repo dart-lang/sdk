@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /// A collection of factory methods which may be used to create concrete
@@ -175,13 +176,15 @@ abstract class AstFactory {
   /// `null` (or omitted) if there are no directives in the compilation unit.
   /// The list of `declarations` can be `null` (or omitted) if there are no
   /// declarations in the compilation unit.
-  CompilationUnit compilationUnit(
-      {required Token beginToken,
-      ScriptTag? scriptTag,
-      List<Directive>? directives,
-      List<CompilationUnitMember>? declarations,
-      required Token endToken,
-      required FeatureSet featureSet});
+  CompilationUnit compilationUnit({
+    required Token beginToken,
+    ScriptTag? scriptTag,
+    List<Directive>? directives,
+    List<CompilationUnitMember>? declarations,
+    required Token endToken,
+    required FeatureSet featureSet,
+    LineInfo? lineInfo,
+  });
 
   /// Returns a newly created conditional expression.
   ConditionalExpression conditionalExpression(

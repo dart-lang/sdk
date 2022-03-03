@@ -414,7 +414,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   /// file [offset], with the given [function] name.
   TypeMatcher<CodeReference> matchCodeRef(
       {required int offset, required String function}) {
-    var location = testUnit!.lineInfo!.getLocation(offset);
+    var location = testUnit!.lineInfo.getLocation(offset);
     return TypeMatcher<CodeReference>()
         .having((cr) => cr.line, 'line', location.lineNumber)
         .having((cr) => cr.column, 'column', location.columnNumber)

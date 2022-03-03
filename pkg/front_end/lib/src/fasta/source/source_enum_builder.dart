@@ -704,7 +704,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             arguments = new ArgumentsImpl(enumSyntheticArguments);
             setParents(enumSyntheticArguments, arguments);
             if (constructorBuilder == null ||
-                constructorBuilder is! SourceConstructorBuilder) {
+                constructorBuilder is! SourceConstructorBuilder ||
+                !constructorBuilder.isConst) {
               // This can only occur if there enhanced enum features are used
               // when they are not enabled.
               assert(libraryBuilder.loader.hasSeenError);

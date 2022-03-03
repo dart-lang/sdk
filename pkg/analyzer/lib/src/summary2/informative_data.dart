@@ -1051,7 +1051,7 @@ class _InformativeDataWriter {
     sink.writeUInt30(unit.offset);
     sink.writeUInt30(unit.length);
 
-    sink.writeUint30List(unit.lineInfo?.lineStarts ?? [0]);
+    sink.writeUint30List(unit.lineInfo.lineStarts);
 
     _writeLibraryName(unit);
 

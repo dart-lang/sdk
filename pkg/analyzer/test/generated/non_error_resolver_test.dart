@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:test/test.dart';
@@ -60,6 +61,20 @@ class C<T> {
 }
 const c = const C(t: 1);
 ''');
+  }
+
+  test_generic_staticParameterElement_annotation() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  const C.named({arg});
+}
+@C<bool>.named(arg: true)
+test() {}
+''');
+    var x = findNode.namedExpression('arg: true');
+    var y = x.staticParameterElement!;
+    expect(y, TypeMatcher<ParameterMember>());
+    expect(y.declaration, findElement.parameter('arg'));
   }
 
   test_inconsistentMethodInheritance_accessors_typeParameters1() async {
@@ -1365,6 +1380,107 @@ typedef int f(int);
 const app = 0;
 typedef int f(@app int app);
 ''');
+  }
+
+  test_generic_staticParameterElement_annotation_implicitTypeArg() async {
+    var required = isNullSafetyEnabled ? 'required' : '';
+    await assertNoErrorsInCode('''
+class C<T> {
+  const C.named({$required T arg});
+}
+@C.named(arg: true)
+test() {}
+''');
+    var x = findNode.namedExpression('arg: true');
+    var y = x.staticParameterElement!;
+    expect(y, TypeMatcher<ParameterMember>());
+    expect(y.declaration, findElement.parameter('arg'));
+  }
+
+  test_generic_staticParameterElement_instanceCreation_explicitNew() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C.named({arg});
+}
+test() => new C<bool>.named(arg: true);
+''');
+    var x = findNode.namedExpression('arg: true');
+    var y = x.staticParameterElement!;
+    expect(y, TypeMatcher<ParameterMember>());
+    expect(y.declaration, findElement.parameter('arg'));
+  }
+
+  test_generic_staticParameterElement_instanceCreation_explicitNew_implicitTypeArg() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C.named({arg});
+}
+C<bool> test() => new C.named(arg: true);
+''');
+    var x = findNode.namedExpression('arg: true');
+    var y = x.staticParameterElement!;
+    // Note: the staticParameterElement is synthetic; see
+    // https://github.com/dart-lang/sdk/issues/48500
+    expect(y, isNot(TypeMatcher<ParameterMember>()));
+    expect(y.enclosingElement, isNull);
+  }
+
+  test_generic_staticParameterElement_instanceCreation_implicitNew() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C.named({arg});
+}
+test() => C<bool>.named(arg: true);
+''');
+    var x = findNode.namedExpression('arg: true');
+    var y = x.staticParameterElement!;
+    expect(y, TypeMatcher<ParameterMember>());
+    expect(y.declaration, findElement.parameter('arg'));
+  }
+
+  test_generic_staticParameterElement_instanceCreation_implicitNew_implicitTypeArg() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C.named({arg});
+}
+C<bool> test() => C.named(arg: true);
+''');
+    var x = findNode.namedExpression('arg: true');
+    var y = x.staticParameterElement!;
+    // Note: the staticParameterElement is synthetic; see
+    // https://github.com/dart-lang/sdk/issues/48500
+    expect(y, isNot(TypeMatcher<ParameterMember>()));
+    expect(y.enclosingElement, isNull);
+  }
+
+  test_generic_staticParameterElement_methodCall() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  T method<T>({arg});
+}
+test(C c) => c.method<bool>(arg: true);
+''');
+    var x = findNode.namedExpression('arg: true');
+    var y = x.staticParameterElement!;
+    // Note: the staticParameterElement is synthetic; see
+    // https://github.com/dart-lang/sdk/issues/48500
+    expect(y, isNot(TypeMatcher<ParameterMember>()));
+    expect(y.enclosingElement, isNull);
+  }
+
+  test_generic_staticParameterElement_methodCall_implicitTypeArg() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  T method<T>({arg});
+}
+bool test(C c) => c.method<bool>(arg: true);
+''');
+    var x = findNode.namedExpression('arg: true');
+    var y = x.staticParameterElement!;
+    // Note: the staticParameterElement is synthetic; see
+    // https://github.com/dart-lang/sdk/issues/48500
+    expect(y, isNot(TypeMatcher<ParameterMember>()));
+    expect(y.enclosingElement, isNull);
   }
 
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {

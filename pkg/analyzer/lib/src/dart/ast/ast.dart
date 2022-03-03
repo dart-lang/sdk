@@ -2115,7 +2115,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   /// The line information for this compilation unit.
   @override
-  LineInfo? lineInfo;
+  final LineInfo lineInfo;
 
   /// The language version information.
   LibraryLanguageVersion? languageVersion;
@@ -2134,7 +2134,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
       List<Directive>? directives,
       List<CompilationUnitMember>? declarations,
       this.endToken,
-      this.featureSet) {
+      this.featureSet,
+      this.lineInfo) {
     _becomeParentOf(_scriptTag);
     _directives._initialize(this, directives);
     _declarations._initialize(this, declarations);

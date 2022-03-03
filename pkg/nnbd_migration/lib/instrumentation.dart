@@ -29,7 +29,7 @@ class CodeReference {
   factory CodeReference.fromAstNode(AstNode node) {
     var compilationUnit = node.thisOrAncestorOfType<CompilationUnit>()!;
     var source = compilationUnit.declaredElement!.source;
-    var location = compilationUnit.lineInfo!.getLocation(node.offset);
+    var location = compilationUnit.lineInfo.getLocation(node.offset);
     return CodeReference(source.fullName, node.offset, location.lineNumber,
         location.columnNumber, _computeEnclosingName(node));
   }

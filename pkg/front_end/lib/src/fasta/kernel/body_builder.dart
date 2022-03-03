@@ -1875,7 +1875,12 @@ class BodyBuilder extends StackListenerImpl
       if (initializers.last is SuperInitializer) {
         SuperInitializer superInitializer =
             initializers.last as SuperInitializer;
-        if (libraryBuilder.enableSuperParametersInLibrary) {
+        if (builder.classBuilder.isEnum) {
+          initializers[initializers.length - 1] = buildInvalidInitializer(
+              buildProblem(fasta.messageEnumConstructorSuperInitializer,
+                  superInitializer.fileOffset, noLength))
+            ..parent = constructor;
+        } else if (libraryBuilder.enableSuperParametersInLibrary) {
           Arguments arguments = superInitializer.arguments;
 
           if (positionalSuperParametersAsArguments != null) {
@@ -1901,11 +1906,6 @@ class BodyBuilder extends StackListenerImpl
             arguments.named.addAll(namedSuperParametersAsArguments);
             setParents(namedSuperParametersAsArguments, arguments);
           }
-        } else if (libraryBuilder.enableEnhancedEnumsInLibrary) {
-          initializers[initializers.length - 1] = buildInvalidInitializer(
-              buildProblem(fasta.messageEnumConstructorSuperInitializer,
-                  superInitializer.fileOffset, noLength))
-            ..parent = constructor;
         }
       } else if (initializers.last is RedirectingInitializer) {
         RedirectingInitializer redirectingInitializer =

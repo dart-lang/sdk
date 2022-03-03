@@ -267,9 +267,11 @@ class Scrape {
     scanner.configureFeatures(
         featureSet: featureSet, featureSetForOverriding: featureSet);
     var startToken = scanner.tokenize();
+    var lineInfo = LineInfo(scanner.lineStarts);
 
     // Parse it.
-    var parser = Parser(stringSource, errorListener, featureSet: featureSet);
+    var parser = Parser(stringSource, errorListener,
+        featureSet: featureSet, lineInfo: lineInfo);
     parser.enableOptionalNewAndConst = true;
     parser.enableSetLiterals = true;
 
@@ -300,8 +302,6 @@ class Scrape {
       _errorFileCount++;
       return;
     }
-
-    var lineInfo = LineInfo(scanner.lineStarts);
 
     _scrapedFileCount++;
     _scrapedLineCount += lineInfo.lineCount;

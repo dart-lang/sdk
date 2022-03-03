@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -323,7 +324,8 @@ class AstTestFactory {
           directives: directives,
           declarations: declarations,
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
-          featureSet: FeatureSet.latestLanguageVersion());
+          featureSet: FeatureSet.latestLanguageVersion(),
+          lineInfo: LineInfo.fromContent(''));
 
   static CompilationUnitImpl compilationUnit9(
           {String? scriptTag,
@@ -337,7 +339,8 @@ class AstTestFactory {
           directives: directives,
           declarations: declarations,
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
-          featureSet: featureSet);
+          featureSet: featureSet,
+          lineInfo: LineInfo.fromContent(''));
 
   static ConditionalExpressionImpl conditionalExpression(Expression condition,
           Expression thenExpression, Expression elseExpression) =>

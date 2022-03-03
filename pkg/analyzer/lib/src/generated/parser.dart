@@ -30,17 +30,20 @@ class Parser {
   final AstBuilder astBuilder;
 
   Parser(Source source, AnalysisErrorListener errorListener,
-      {required FeatureSet featureSet, bool allowNativeClause = true})
+      {required FeatureSet featureSet,
+      bool allowNativeClause = true,
+      required LineInfo lineInfo})
       : astBuilder = AstBuilder(
-            ErrorReporter(
-              errorListener,
-              source,
-              isNonNullableByDefault:
-                  featureSet.isEnabled(Feature.non_nullable),
-            ),
-            source.uri,
-            true,
-            featureSet) {
+          ErrorReporter(
+            errorListener,
+            source,
+            isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
+          ),
+          source.uri,
+          true,
+          featureSet,
+          lineInfo,
+        ) {
     fastaParser = fasta.Parser(astBuilder);
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
