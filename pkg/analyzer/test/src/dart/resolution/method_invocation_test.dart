@@ -1396,7 +1396,7 @@ main() {
   }
 
   test_error_prefixIdentifierNotFollowedByDot_deferred() async {
-    var question = typeToStringWithNullability ? '?' : '';
+    var question = isNullSafetyEnabled ? '?' : '';
     await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;
 
@@ -1588,7 +1588,7 @@ main() {
   null.foo();
 }
 ''', [
-      if (typeToStringWithNullability)
+      if (isNullSafetyEnabled)
         error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3)
       else
         error(CompileTimeErrorCode.UNDEFINED_METHOD, 16, 3),
@@ -2444,7 +2444,7 @@ typedef void F({a = b?.foo()});
   }
 
   test_namedArgument() async {
-    var question = typeToStringWithNullability ? '?' : '';
+    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
 void foo({int$question a, bool$question b}) {}
 
@@ -2636,7 +2636,7 @@ void f(void Function(int) foo) {
   }
 
   test_noReceiver_parameter_call_nullAware() async {
-    var question = typeToStringWithNullability ? '?' : '';
+    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
 double Function(int)$question foo;
 
@@ -2646,7 +2646,7 @@ main() {
     ''');
 
     var invocation = findNode.methodInvocation('call(1)');
-    if (typeToStringWithNullability) {
+    if (isNullSafetyEnabled) {
       assertType(invocation.target, 'double Function(int)?');
     } else {
       assertTypeLegacy(invocation.target);
