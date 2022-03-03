@@ -61,6 +61,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return !result.libraryElement.isNonNullableByDefault;
   }
 
+  bool get isNullSafetyEnabled => false;
+
   ClassElement get listElement => typeProvider.listElement;
 
   ClassElement get mapElement => typeProvider.mapElement;
@@ -82,9 +84,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   TypeProvider get typeProvider => result.typeProvider;
 
   TypeSystemImpl get typeSystem => result.typeSystem as TypeSystemImpl;
-
-  /// Whether `DartType.toString()` with nullability should be asked.
-  bool get typeToStringWithNullability => false;
 
   VoidType get voidType => VoidTypeImpl.instance;
 
@@ -237,7 +236,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertElementString(Element element, String expected) {
     var str = element.getDisplayString(
-      withNullability: typeToStringWithNullability,
+      withNullability: isNullSafetyEnabled,
     );
     expect(str, expected);
   }
@@ -891,7 +890,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     required List<ExpectedError> nullable,
     required List<ExpectedError> legacy,
   }) {
-    if (typeToStringWithNullability) {
+    if (isNullSafetyEnabled) {
       return nullable;
     } else {
       return legacy;
@@ -997,13 +996,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
   /// Return a textual representation of the [type] that is appropriate for
   /// tests.
   String typeString(DartType type) =>
-      type.getDisplayString(withNullability: typeToStringWithNullability);
+      type.getDisplayString(withNullability: isNullSafetyEnabled);
 
   String typeStringByNullability({
     required String nullable,
     required String legacy,
   }) {
-    if (typeToStringWithNullability) {
+    if (isNullSafetyEnabled) {
       return nullable;
     } else {
       return legacy;

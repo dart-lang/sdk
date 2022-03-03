@@ -354,7 +354,7 @@ BinaryExpression
   }
 
   test_ifNull() async {
-    var question = typeToStringWithNullability ? '?' : '';
+    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
 f(int$question a, double b) {
   a ?? b;

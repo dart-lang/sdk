@@ -222,7 +222,7 @@ import 'a.dart';
 @reflectiveTest
 class FileResolverTest extends FileResolutionTest {
   @override
-  bool typeToStringWithNullability = false;
+  bool isNullSafetyEnabled = false;
 
   test_analysisOptions_default_fromPackageUri() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
@@ -911,7 +911,7 @@ var b = a;
   }
 
   test_nullSafety_enabled() async {
-    typeToStringWithNullability = true;
+    isNullSafetyEnabled = true;
 
     newFile('/workspace/dart/test/BUILD', content: r'''
 dart_package(
@@ -934,7 +934,7 @@ void f(int? a) {
   }
 
   test_nullSafety_notEnabled() async {
-    typeToStringWithNullability = true;
+    isNullSafetyEnabled = true;
 
     await assertErrorsInCode(r'''
 void f(int? a) {}

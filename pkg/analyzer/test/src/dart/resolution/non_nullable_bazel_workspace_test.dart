@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class NonNullableBazelWorkspaceTest extends BazelWorkspaceResolutionTest {
   @override
-  bool get typeToStringWithNullability => true;
+  bool get isNullSafetyEnabled => true;
 
   test_buildFile_legacy_commentedOut() async {
     newFile('$myPackageRootPath/BUILD', content: r'''
