@@ -180,8 +180,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       // To test this, we instantiate both types with the same (unique) type
       // variables, and see if the result is equal.
       if (typeFormals.isNotEmpty) {
-        var freshVariables = FunctionTypeImpl.relateTypeFormals(
-            this, other, (t, s, _, __) => t == s);
+        var freshVariables =
+            FunctionTypeImpl.relateTypeFormals(this, other, (t, s) => t == s);
         if (freshVariables == null) {
           return false;
         }
@@ -295,9 +295,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   static List<TypeParameterType>? relateTypeFormals(
       FunctionType f1,
       FunctionType f2,
-      bool Function(DartType bound2, DartType bound1,
-              TypeParameterElement formal2, TypeParameterElement formal1)
-          relation) {
+      bool Function(DartType bound2, DartType bound1) relation) {
     List<TypeParameterElement> params1 = f1.typeFormals;
     List<TypeParameterElement> params2 = f2.typeFormals;
     return relateTypeFormals2(params1, params2, relation);
@@ -306,9 +304,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   static List<TypeParameterType>? relateTypeFormals2(
       List<TypeParameterElement> params1,
       List<TypeParameterElement> params2,
-      bool Function(DartType bound2, DartType bound1,
-              TypeParameterElement formal2, TypeParameterElement formal1)
-          relation) {
+      bool Function(DartType bound2, DartType bound1) relation) {
     int count = params1.length;
     if (params2.length != count) {
       return null;
@@ -340,7 +336,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           .substituteType(bound1);
       bound2 = Substitution.fromPairs(variables2, variablesFresh)
           .substituteType(bound2);
-      if (!relation(bound2, bound1, p2, p1)) {
+      if (!relation(bound2, bound1)) {
         return null;
       }
 
