@@ -351,8 +351,7 @@ class SubtypeHelper {
     }
 
     // The bounds of type parameters must be equal.
-    var freshTypeFormalTypes =
-        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) {
+    var freshTypeFormalTypes = FunctionTypeImpl.relateTypeFormals(f, g, (t, s) {
       return isSubtypeOf(t, s) && isSubtypeOf(s, t);
     });
     if (freshTypeFormalTypes == null) {

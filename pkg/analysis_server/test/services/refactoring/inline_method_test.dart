@@ -12,17 +12,86 @@ import 'abstract_refactoring.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(InlineMethodEnumTest);
     defineReflectiveTests(InlineMethodTest);
   });
 }
 
 @reflectiveTest
-class InlineMethodTest extends RefactoringTest {
-  @override
-  late InlineMethodRefactoringImpl refactoring;
-  bool? deleteSource;
-  bool? inlineAll;
+class InlineMethodEnumTest extends _InlineMethodTest {
+  Future<void> test_getter_classMember_instance() async {
+    await indexTestUnit(r'''
+enum E {
+  v;
+  final int f = 0;
+  int get result => f + 1;
+}
+void f(E e) {
+  print(e.result);
+}
+''');
+    _createRefactoring('result =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+enum E {
+  v;
+  final int f = 0;
+}
+void f(E e) {
+  print(e.f + 1);
+}
+''');
+  }
 
+  Future<void> test_getter_classMember_static() async {
+    await indexTestUnit(r'''
+enum E {
+  v;
+  static int get result => 1 + 2;
+}
+void f() {
+  print(E.result);
+}
+''');
+    _createRefactoring('result =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+enum E {
+  v;
+}
+void f() {
+  print(1 + 2);
+}
+''');
+  }
+
+  Future<void> test_method_singleStatement() async {
+    await indexTestUnit(r'''
+enum E {
+  v;
+  void test() {
+    print(0);
+  }
+  void foo() {
+    test();
+  }
+}
+''');
+    _createRefactoring('test() {');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+enum E {
+  v;
+  void foo() {
+    print(0);
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class InlineMethodTest extends _InlineMethodTest {
   Future<void> test_access_FunctionElement() async {
     await indexTestUnit(r'''
 test(a, b) {
@@ -1749,6 +1818,13 @@ var a = test;
 var a = 42;
 ''');
   }
+}
+
+class _InlineMethodTest extends RefactoringTest {
+  @override
+  late InlineMethodRefactoringImpl refactoring;
+  bool? deleteSource;
+  bool? inlineAll;
 
   Future _assertConditionsError(String message) async {
     var status = await refactoring.checkAllConditions();

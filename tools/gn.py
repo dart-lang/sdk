@@ -345,7 +345,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(args):
     if args.arch == 'all':
-        args.arch = 'ia32,x64,simarm,simarm64,x64c,simarm64c'
+        args.arch = 'ia32,x64,simarm,simarm64,x64c,simarm64c,simriscv32,simriscv64'
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':

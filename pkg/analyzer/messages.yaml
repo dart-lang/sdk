@@ -9073,6 +9073,10 @@ CompileTimeErrorCode:
       13.2 Expression Statements: It is a compile-time error if a non-constant
       map literal that has no explicit type arguments appears in a place where a
       statement is expected.
+  NON_FINAL_FIELD_IN_ENUM:
+    problemMessage: Enum can only declare final fields.
+    correctionMessage: Try making the field final.
+    comment: No parameters.
   NON_GENERATIVE_CONSTRUCTOR:
     problemMessage: "The generative constructor '{0}' is expected, but a factory was found."
     correctionMessage: Try calling a different constructor of the superclass, or making the called constructor not be a factory constructor.

@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/refactoring/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -149,12 +150,15 @@ class _BaseClassMemberValidator {
     // check if there is a member with "newName" in the same ClassElement
     for (var newNameMember in getChildren(elementClass, name)) {
       result.addError(
-          format(
-              "Class '{0}' already declares {1} with name '{2}'.",
-              elementClass.displayName,
-              getElementKindName(newNameMember),
-              name),
-          newLocation_fromElement(newNameMember));
+        format(
+          "{0} '{1}' already declares {2} with name '{3}'.",
+          capitalize(elementClass.kind.displayName),
+          elementClass.displayName,
+          getElementKindName(newNameMember),
+          name,
+        ),
+        newLocation_fromElement(newNameMember),
+      );
     }
   }
 

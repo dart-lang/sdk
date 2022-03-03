@@ -274,7 +274,7 @@ class GreatestLowerBoundHelper {
     // The bounds of type parameters must be equal.
     // Otherwise the result is `Never`.
     var freshTypeFormalTypes =
-        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) => t == s);
+        FunctionTypeImpl.relateTypeFormals(f, g, (t, s) => t == s);
     if (freshTypeFormalTypes == null) {
       return NeverTypeImpl.instance;
     }

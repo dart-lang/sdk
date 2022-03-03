@@ -724,7 +724,7 @@ class LeastUpperBoundHelper {
     // The bounds of type parameters must be equal.
     // Otherwise the result is `Function`.
     var freshTypeFormalTypes =
-        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) => t == s);
+        FunctionTypeImpl.relateTypeFormals(f, g, (t, s) => t == s);
     if (freshTypeFormalTypes == null) {
       return _interfaceTypeFunctionNone;
     }
