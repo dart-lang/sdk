@@ -550,11 +550,11 @@ class FileState {
       source,
       errorListener,
       featureSet: scanner.featureSet,
+      lineInfo: lineInfo,
     );
     parser.enableOptionalNewAndConst = true;
 
     var unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
     unit.languageVersion = LibraryLanguageVersion(
       package: packageLanguageVersion,
       override: scanner.overrideVersion,
@@ -636,7 +636,7 @@ class FileState {
       hasPartOfDirective: hasPartOfDirective,
       imports: imports,
       informativeBytes: writeUnitInformative(unit),
-      lineStarts: Uint32List.fromList(unit.lineInfo!.lineStarts),
+      lineStarts: Uint32List.fromList(unit.lineInfo.lineStarts),
       partOfName: null,
       partOfUri: null,
       parts: parts,

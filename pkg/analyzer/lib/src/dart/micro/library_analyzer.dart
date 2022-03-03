@@ -495,7 +495,7 @@ class LibraryAnalyzer {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     var unit = file.parse(errorListener, content);
 
-    LineInfo lineInfo = unit.lineInfo!;
+    LineInfo lineInfo = unit.lineInfo;
     _fileToLineInfo[file] = lineInfo;
     _fileToIgnoreInfo[file] = IgnoreInfo.forDart(unit, content);
 

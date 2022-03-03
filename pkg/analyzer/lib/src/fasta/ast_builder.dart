@@ -58,6 +58,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show
@@ -172,8 +173,10 @@ class AstBuilder extends StackListener {
 
   final FeatureSet _featureSet;
 
+  final LineInfo _lineInfo;
+
   AstBuilder(ErrorReporter? errorReporter, this.fileUri, this.isFullAst,
-      this._featureSet,
+      this._featureSet, this._lineInfo,
       [Uri? uri])
       : errorReporter = FastaErrorReporter(errorReporter),
         enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
@@ -1129,7 +1132,8 @@ class AstBuilder extends StackListener {
         directives: directives,
         declarations: declarations,
         endToken: endToken,
-        featureSet: _featureSet);
+        featureSet: _featureSet,
+        lineInfo: _lineInfo);
     push(unit);
   }
 

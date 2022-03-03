@@ -96,13 +96,15 @@ void collectSources(Source start, Set<Source> files) {
 
 /// Uses the diet-parser to parse only directives in [source].
 CompilationUnit parseDirectives(Source source) {
-  var token = tokenize(source);
+  var result = tokenize(source);
+  var lineInfo = LineInfo(result.lineStarts);
   var parser = new Parser(
     source,
     AnalysisErrorListener.NULL_LISTENER,
     featureSet: FeatureSet.latestLanguageVersion(),
+    lineInfo: lineInfo,
   );
-  return parser.parseDirectives(token);
+  return parser.parseDirectives(result.tokens);
 }
 
 /// Parses every file in [files] and reports the time spent doing so.
@@ -119,14 +121,16 @@ void parseFiles(Set<Source> files) {
 
 /// Parse the full body of [source] and return it's compilation unit.
 CompilationUnit parseFull(Source source) {
-  var token = tokenize(source);
+  var result = tokenize(source);
+  var lineInfo = LineInfo(result.lineStarts);
   parseTimer.start();
   var parser = new Parser(
     source,
     AnalysisErrorListener.NULL_LISTENER,
     featureSet: FeatureSet.latestLanguageVersion(),
+    lineInfo: lineInfo,
   );
-  var unit = parser.parseCompilationUnit(token);
+  var unit = parser.parseCompilationUnit(result.tokens);
   parseTimer.stop();
   return unit;
 }
@@ -218,7 +222,7 @@ void setup(String path) {
 }
 
 /// Scan [source] and return the first token produced by the scanner.
-Token tokenize(Source source) {
+ScannerResult tokenize(Source source) {
   scanTimer.start();
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
@@ -232,7 +236,7 @@ Token tokenize(Source source) {
     }
   }
   scanTimer.stop();
-  return token;
+  return result;
 }
 
 String _findSdkPath() {

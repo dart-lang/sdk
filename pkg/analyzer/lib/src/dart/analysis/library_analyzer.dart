@@ -565,7 +565,7 @@ class LibraryAnalyzer {
     String content = file.content;
     var unit = file.parse(errorListener);
 
-    _fileToLineInfo[file] = unit.lineInfo!;
+    _fileToLineInfo[file] = unit.lineInfo;
     _fileToIgnoreInfo[file] = IgnoreInfo.forDart(unit, content);
 
     return unit;

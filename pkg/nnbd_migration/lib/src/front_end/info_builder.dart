@@ -433,7 +433,7 @@ class InfoBuilder {
         var edits = info != null
             ? _computeEdits(info, sourceOffset, result)
             : <EditDetail>[];
-        var lineNumber = lineInfo!.getLocation(sourceOffset).lineNumber;
+        var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
         var traces = info == null
             ? const <TraceInfo>[]
             : _computeTraces(info.fixReasons);

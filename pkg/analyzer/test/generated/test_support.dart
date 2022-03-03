@@ -398,10 +398,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
     _errors.add(error);
   }
 
-  /// Set the line information associated with the given [source] to the given
-  /// list of [lineStarts].
-  void setLineInfo(Source source, List<int> lineStarts) {
-    _lineInfoMap[source] = LineInfo(lineStarts);
+  /// Set the line information associated with the given [source] to [lineInfo].
+  void setLineInfo(Source source, LineInfo lineInfo) {
+    _lineInfoMap[source] = lineInfo;
   }
 }
 

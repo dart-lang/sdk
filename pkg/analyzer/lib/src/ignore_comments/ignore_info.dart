@@ -77,7 +77,7 @@ class IgnoreInfo {
   /// Initialize a newly created instance of this class to represent the ignore
   /// comments in the given compilation [unit].
   IgnoreInfo.forDart(CompilationUnit unit, String content) {
-    var lineInfo = unit.lineInfo!;
+    var lineInfo = unit.lineInfo;
     for (var comment in unit.ignoreComments) {
       var lexeme = comment.lexeme;
       if (lexeme.contains('ignore:')) {

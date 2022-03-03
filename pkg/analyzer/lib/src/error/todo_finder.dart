@@ -34,7 +34,7 @@ class TodoFinder {
   ///
   /// @param unit the compilation unit containing the to-do comments
   void findIn(CompilationUnit unit) {
-    _gatherTodoComments(unit.beginToken, unit.lineInfo!);
+    _gatherTodoComments(unit.beginToken, unit.lineInfo);
   }
 
   /// Search the comment tokens reachable from the given token and create errors

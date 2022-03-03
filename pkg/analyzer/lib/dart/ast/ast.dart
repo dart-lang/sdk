@@ -1063,7 +1063,7 @@ abstract class CompilationUnit implements AstNode {
   LanguageVersionToken? get languageVersionToken;
 
   /// Return the line information for this compilation unit.
-  LineInfo? get lineInfo;
+  LineInfo get lineInfo;
 
   /// Return the script tag at the beginning of the compilation unit, or `null`
   /// if there is no script tag in this compilation unit.

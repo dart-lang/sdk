@@ -3515,7 +3515,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       buffer.write(' in "');
       buffer.write(node.toSource());
       buffer.write('" on line ');
-      buffer.write(unit.lineInfo!.getLocation(node.offset).lineNumber);
+      buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
       buffer.write(' of "');
       buffer.write(unit.declaredElement!.source.fullName);
       buffer.write('"');

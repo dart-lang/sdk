@@ -196,7 +196,7 @@ Future<TestResult<T>> runTestForConfig<T>(
         });
       } else {
         String _formatError(AnalysisError e) {
-          var locationInfo = result.unit.lineInfo!.getLocation(e.offset);
+          var locationInfo = result.unit.lineInfo.getLocation(e.offset);
           return '$locationInfo: ${e.errorCode}: ${e.message}';
         }
 

@@ -792,7 +792,7 @@ class CorrectionUtils {
     // end
     var endOffset = sourceRange.end;
     var afterEndLineOffset = endOffset;
-    var lineInfo = unit.lineInfo!;
+    var lineInfo = unit.lineInfo;
     var lineStart = lineInfo
         .getOffsetOfLine(lineInfo.getLocation(startLineOffset).lineNumber - 1);
     if (lineStart == startLineOffset) {

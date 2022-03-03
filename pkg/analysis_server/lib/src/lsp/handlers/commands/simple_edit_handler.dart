@@ -45,11 +45,6 @@ abstract class SimpleEditCommandHandler
     }
 
     final lineInfo = unit.lineInfo;
-    if (lineInfo == null) {
-      return error(ErrorCodes.InternalError,
-          'Unable to produce edits for $docIdentifier as no LineInfo was found');
-    }
-
     final workspaceEdit = toWorkspaceEdit(
       clientCapabilities,
       [FileEditInformation(docIdentifier, lineInfo, edits)],

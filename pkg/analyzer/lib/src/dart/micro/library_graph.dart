@@ -870,10 +870,10 @@ class _FileStateUnlinked {
       location.source,
       errorListener,
       featureSet: scanner.featureSet,
+      lineInfo: lineInfo,
     );
     parser.enableOptionalNewAndConst = true;
     var unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
 
     // StringToken uses a static instance of StringCanonicalizer, so we need
     // to clear it explicitly once we are done using it for this file.
@@ -961,7 +961,7 @@ class _FileStateUnlinked {
       hasPartOfDirective: hasPartOfDirective,
       imports: imports,
       informativeBytes: writeUnitInformative(unit),
-      lineStarts: Uint32List.fromList(unit.lineInfo!.lineStarts),
+      lineStarts: Uint32List.fromList(unit.lineInfo.lineStarts),
       partOfName: partOfName,
       partOfUri: partOfUriStr,
       parts: parts,

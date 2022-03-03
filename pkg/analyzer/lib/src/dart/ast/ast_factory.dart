@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -225,9 +226,14 @@ class AstFactoryImpl extends AstFactory {
           List<Directive>? directives,
           List<CompilationUnitMember>? declarations,
           required Token endToken,
-          required FeatureSet featureSet}) =>
+          required FeatureSet featureSet,
+          // TODO(dantup): LineInfo should be made required and non-nullable
+          //   when breaking API changes can be made. Callers that do not
+          //   provide lineInfos may have offsets incorrectly mapped to line/col
+          //   for LSP.
+          LineInfo? lineInfo}) =>
       CompilationUnitImpl(beginToken, scriptTag as ScriptTagImpl?, directives,
-          declarations, endToken, featureSet);
+          declarations, endToken, featureSet, lineInfo ?? LineInfo([0]));
 
   @override
   ConditionalExpressionImpl conditionalExpression(

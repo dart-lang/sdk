@@ -193,7 +193,8 @@ class LineInfoTest {
             featureSet: featureSet,
           );
     Token result = scanner.tokenize();
-    listener.setLineInfo(TestSource(), scanner.lineStarts);
+    LineInfo lineInfo = LineInfo(scanner.lineStarts);
+    listener.setLineInfo(TestSource(), lineInfo);
     return result;
   }
 }

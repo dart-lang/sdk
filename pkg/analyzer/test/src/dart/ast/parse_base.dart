@@ -33,22 +33,23 @@ class ParseBase with ResourceProviderMixin {
       );
 
     var token = scanner.tokenize();
+    var lineInfo = LineInfo(scanner.lineStarts);
     featureSet = scanner.featureSet;
 
     var parser = Parser(
       source,
       errorListener,
       featureSet: featureSet,
+      lineInfo: lineInfo,
     );
     parser.enableOptionalNewAndConst = true;
 
     var unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = LineInfo(scanner.lineStarts);
 
     return ParseResult(
       path,
       content,
-      unit.lineInfo!,
+      unit.lineInfo,
       unit,
       errorListener.errors,
     );
