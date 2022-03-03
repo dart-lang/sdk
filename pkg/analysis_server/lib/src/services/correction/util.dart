@@ -161,6 +161,14 @@ List<SimpleIdentifier> findLocalElementReferences(
   return collector.references;
 }
 
+/// Return references to the [element] inside the [root] node.
+List<SimpleIdentifier> findPrefixElementReferences(
+    AstNode root, PrefixElement element) {
+  var collector = _ElementReferenceCollector(element);
+  root.accept(collector);
+  return collector.references;
+}
+
 /// TODO(scheglov) replace with nodes once there will be
 /// [CompilationUnit.getComments].
 ///

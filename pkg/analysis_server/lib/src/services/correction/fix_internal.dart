@@ -454,6 +454,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.no_duplicate_case_values: [
       RemoveDuplicateCase.newInstance,
     ],
+    LintNames.no_leading_underscores_for_library_prefixes: [
+      RemoveLeadingUnderscore.newInstance,
+    ],
     LintNames.no_leading_underscores_for_local_identifiers: [
       RemoveLeadingUnderscore.newInstance,
     ],

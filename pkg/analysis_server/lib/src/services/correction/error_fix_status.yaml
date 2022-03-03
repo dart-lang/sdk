@@ -1606,7 +1606,7 @@ LintCode.no_default_cases:
 LintCode.no_duplicate_case_values:
   status: hasFix
 LintCode.no_leading_underscores_for_library_prefixes:
-  status: needsFix
+  status: hasFix
 LintCode.no_leading_underscores_for_local_identifiers:
   status: hasFix
 LintCode.no_logic_in_create_state:
