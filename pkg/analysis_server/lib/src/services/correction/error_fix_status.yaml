@@ -1779,7 +1779,7 @@ LintCode.unnecessary_getters_setters:
 LintCode.unnecessary_lambdas:
   status: hasFix
 LintCode.unnecessary_late:
-  status: needsFix
+  status: hasFix
 LintCode.unnecessary_new:
   status: hasFix
 LintCode.unnecessary_null_aware_assignments:
