@@ -90,11 +90,6 @@ void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
       "Secure Sockets unsupported on this platform"));
 }
 
-void FUNCTION_NAME(SecureSocket_Renegotiate)(Dart_NativeArguments args) {
-  Dart_ThrowException(DartUtils::NewDartArgumentError(
-      "Secure Sockets unsupported on this platform"));
-}
-
 void FUNCTION_NAME(SecureSocket_NewServicePort)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));

@@ -60,6 +60,9 @@
 - Add a optional `keyLog` parameter to `SecureSocket.connect` and
   `SecureSocket.startConnect`.
 
+- Deprecate `SecureSocket.renegotiate` and `RawSecureSocket.renegotiate`,
+  which were no-ops.
+
 ### Tools
 
 #### Dart command line

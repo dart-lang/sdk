@@ -1997,6 +1997,23 @@ class C extends B {}
 @reflectiveTest
 class ImportLibraryTest extends AbstractContextTest
     with DartChangeBuilderMixin {
+  Future<void> test_dart_afterDart_last() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:aaa';
+
+class A {}
+''',
+      uriList: ['dart:bbb'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:bbb';
+
+class A {}
+''',
+    );
+  }
+
   Future<void> test_dart_beforeDart() async {
     await _assertImportLibrary(
       initialCode: '''
@@ -2021,6 +2038,20 @@ import 'dart:bbb';
       expectedCode: '''
 import 'dart:aaa';
 import 'dart:bbb';
+''',
+    );
+  }
+
+  Future<void> test_dart_beforeExport() async {
+    await _assertImportLibrary(
+      initialCode: '''
+export 'dart:aaa';
+''',
+      uriList: ['dart:bbb'],
+      expectedCode: '''
+import 'dart:bbb';
+
+export 'dart:aaa';
 ''',
     );
   }
@@ -2180,6 +2211,7 @@ part 'a.dart';
     await _assertImportLibrary(
       initialCode: '''
 part 'a.dart';
+part 'b.dart';
 ''',
       uriList: ['dart:aaa', 'dart:bbb'],
       expectedCode: '''
@@ -2187,6 +2219,7 @@ import 'dart:aaa';
 import 'dart:bbb';
 
 part 'a.dart';
+part 'b.dart';
 ''',
     );
   }

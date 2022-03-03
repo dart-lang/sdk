@@ -175,17 +175,6 @@ void FUNCTION_NAME(SecureSocket_GetSelectedProtocol)(
   GetFilter(args)->GetSelectedProtocol(args);
 }
 
-void FUNCTION_NAME(SecureSocket_Renegotiate)(Dart_NativeArguments args) {
-  bool use_session_cache =
-      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
-  bool request_client_certificate =
-      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 2));
-  bool require_client_certificate =
-      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
-  GetFilter(args)->Renegotiate(use_session_cache, request_client_certificate,
-                               require_client_certificate);
-}
-
 void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
     Dart_NativeArguments args) {
   Dart_Handle handshake_complete =
@@ -660,17 +649,6 @@ void SSLFilter::GetSelectedProtocol(Dart_NativeArguments args) {
   } else {
     Dart_SetReturnValue(args, Dart_NewStringFromUTF8(protocol, length));
   }
-}
-
-void SSLFilter::Renegotiate(bool use_session_cache,
-                            bool request_client_certificate,
-                            bool require_client_certificate) {
-  // The SSL_REQUIRE_CERTIFICATE option only takes effect if the
-  // SSL_REQUEST_CERTIFICATE option is also set, so set it.
-  request_client_certificate =
-      request_client_certificate || require_client_certificate;
-  // TODO(24070, 24069): Implement setting the client certificate parameters,
-  //   and triggering rehandshake.
 }
 
 void SSLFilter::FreeResources() {

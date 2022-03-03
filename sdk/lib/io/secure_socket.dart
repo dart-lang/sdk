@@ -208,12 +208,11 @@ abstract class SecureSocket implements Socket {
   /// protocol between client and server.
   String? get selectedProtocol;
 
-  /// Renegotiates an existing secure connection.
+  /// Does nothing.
   ///
-  /// Renews the session keys and possibly changes the connection properties.
-  ///
-  /// This repeats the SSL or TLS handshake, with options that allow clearing
-  /// the session cache and requesting a client certificate.
+  /// The original intent was to allow TLS renegotiation of existing secure
+  /// connections.
+  @Deprecated("Not implemented")
   void renegotiate(
       {bool useSessionCache = true,
       bool requestClientCertificate = false,
@@ -421,11 +420,11 @@ abstract class RawSecureSocket implements RawSocket {
         supportedProtocols: supportedProtocols);
   }
 
-  /// Renegotiate an existing secure connection, renewing the session keys
-  /// and possibly changing the connection properties.
+  /// Does nothing.
   ///
-  /// This repeats the SSL or TLS handshake, with options that allow clearing
-  /// the session cache and requesting a client certificate.
+  /// The original intent was to allow TLS renegotiation of existing secure
+  /// connections.
+  @Deprecated("Not implemented")
   void renegotiate(
       {bool useSessionCache = true,
       bool requestClientCertificate = false,
@@ -924,6 +923,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
+  @Deprecated("Not implemented")
   void renegotiate(
       {bool useSessionCache = true,
       bool requestClientCertificate = false,
@@ -932,8 +932,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       throw new HandshakeException(
           "Called renegotiate on a non-connected socket");
     }
-    _secureFilter!.renegotiate(
-        useSessionCache, requestClientCertificate, requireClientCertificate);
     _status = handshakeStatus;
     _filterStatus.writeEmpty = false;
     _scheduleFilter();
@@ -1342,8 +1340,6 @@ abstract class _SecureFilter {
   Future<bool> handshake();
   String? selectedProtocol();
   void rehandshake();
-  void renegotiate(bool useSessionCache, bool requestClientCertificate,
-      bool requireClientCertificate);
   void init();
   X509Certificate? get peerCertificate;
   int processBuffer(int bufferIndex);

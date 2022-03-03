@@ -97,7 +97,10 @@ void defineCreateTests() {
                 p.pubCacheBinPath,
                 Platform.isWindows ? '${command.first}.bat' : command.first,
               ),
-              command.sublist(1),
+              [
+                ...command.sublist(1),
+                'web:0', // Allow for binding to a random available port.
+              ],
               workingDirectory: workingDir,
               environment: {
                 'PUB_CACHE': p.pubCachePath,
