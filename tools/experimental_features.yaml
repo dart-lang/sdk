@@ -122,15 +122,6 @@ features:
   const-functions:
     help: "Allow more of the Dart language to be executed in const expressions."
 
-  enhanced-enums:
-    help: "Enhanced Enums"
-
-  named-arguments-anywhere:
-    help: "Named Arguments Anywhere"
-
-  super-parameters:
-    help: "Super-Initializer Parameters"
-
   macros:
     help: "Static meta-programming"
 
@@ -225,3 +216,45 @@ features:
         c();
       }
     expired: true
+
+  enhanced-enums:
+    help: "Enhanced Enums"
+    enabledIn: '2.17.0'
+    validation: |
+      enum T {
+        t();
+        void test() {
+          print("Success");
+        }
+      }
+      void main() {
+        T.t.test();
+      }
+
+  named-arguments-anywhere:
+    help: "Named Arguments Anywhere"
+    enabledIn: '2.17.0'
+    validation: |
+      void test(String msg, {bool enabled : false}) {
+        if (enabled) {
+          print(msg);
+        }
+      }
+      void main() {
+        test(enabled : true, "Success");
+      }
+
+  super-parameters:
+    help: "Super-Initializer Parameters"
+    enabledIn: '2.17.0'
+    validation: |
+      class B {
+        final String foo;
+         B(this.foo);
+      }
+      class C extends B {
+        C(super.foo);
+      }
+      void main(){
+        print(C("Success").foo);
+      }

@@ -28,6 +28,9 @@ bool GetExperimentalFeatureDefault(ExperimentalFeature feature) {
     true,
     true,
     true,
+    true,
+    true,
+    true,
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureValues));
   return kFeatureValues[static_cast<int>(feature)];
@@ -45,6 +48,9 @@ const char* GetExperimentalFeatureName(ExperimentalFeature feature) {
     "spread-collections",
     "triple-shift",
     "constructor-tearoffs",
+    "enhanced-enums",
+    "named-arguments-anywhere",
+    "super-parameters",
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureNames));
   return kFeatureNames[static_cast<int>(feature)];
