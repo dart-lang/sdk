@@ -105,6 +105,7 @@ ObjectStore::ObjectStore()
                               EMIT_FIELD_INIT,
                               EMIT_FIELD_INIT,
                               EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
                               EMIT_FIELD_INIT)
 #undef EMIT_FIELD_INIT
       // Just to prevent a trailing comma.
@@ -140,7 +141,8 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 #define EMIT_FIELD_NAME(type, name) #name "_",
         OBJECT_STORE_FIELD_LIST(
             EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
-            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME)
+            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+            EMIT_FIELD_NAME)
 #undef EMIT_FIELD_NAME
     };
     ObjectPtr* current = from();
@@ -459,6 +461,13 @@ void ObjectStore::LazyInitAsyncMembers() {
     type ^= cls.RareType();
     non_nullable_future_rare_type_.store(type.ptr());
   }
+}
+
+void ObjectStore::LazyInitFfiMembers() {
+  auto* const thread = Thread::Current();
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
+  // TODO(http://dartbug.com/47777): Implement finalizers.
 }
 
 void ObjectStore::LazyInitIsolateMembers() {
