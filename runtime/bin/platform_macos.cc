@@ -13,7 +13,6 @@
 #if !DART_HOST_OS_IOS
 #include <crt_externs.h>  // NOLINT
 #endif                    // !DART_HOST_OS_IOS
-#include <dlfcn.h>        // NOLINT
 #include <errno.h>        // NOLINT
 #include <mach-o/dyld.h>
 #include <signal.h>        // NOLINT
@@ -252,98 +251,7 @@ intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
   return path_size;
 }
 
-void Platform::SetProcessName(const char* name) {
-  pthread_setname_np(name);
-
-#if !defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME)
-  // Attempt to set the name displayed in ActivityMonitor.
-  // https://codereview.chromium.org/659007/
-
-  class ScopedDLHandle : public ValueObject {
-   public:
-    explicit ScopedDLHandle(void* handle) : handle_(handle) {}
-    ~ScopedDLHandle() {
-      if (handle_ != NULL) dlclose(handle_);
-    }
-    void* get() const { return handle_; }
-
-   private:
-    void* handle_;
-    DISALLOW_COPY_AND_ASSIGN(ScopedDLHandle);
-  };
-
-  class ScopedCFStringRef : public ValueObject {
-   public:
-    explicit ScopedCFStringRef(const char* s)
-        : ref_(CFStringCreateWithCString(NULL, (s), kCFStringEncodingUTF8)) {}
-    ~ScopedCFStringRef() {
-      if (ref_ != NULL) CFRelease(ref_);
-    }
-    CFStringRef get() const { return ref_; }
-
-   private:
-    CFStringRef ref_;
-    DISALLOW_COPY_AND_ASSIGN(ScopedCFStringRef);
-  };
-
-  ScopedDLHandle application_services_handle(
-      dlopen("/System/Library/Frameworks/ApplicationServices.framework/"
-             "Versions/A/ApplicationServices",
-             RTLD_LAZY | RTLD_LOCAL));
-  if (application_services_handle.get() == NULL) return;
-
-  ScopedCFStringRef launch_services_bundle_name("com.apple.LaunchServices");
-  CFBundleRef launch_services_bundle =
-      CFBundleGetBundleWithIdentifier(launch_services_bundle_name.get());
-  if (launch_services_bundle == NULL) return;
-
-#define GET_FUNC(name, cstr)                                                   \
-  ScopedCFStringRef name##_id(cstr);                                           \
-  *reinterpret_cast<void**>(&name) = CFBundleGetFunctionPointerForName(        \
-      launch_services_bundle, name##_id.get());                                \
-  if (name == NULL) return;
-
-#define GET_DATA(name, cstr)                                                   \
-  ScopedCFStringRef name##_id(cstr);                                           \
-  *reinterpret_cast<void**>(&name) =                                           \
-      CFBundleGetDataPointerForName(launch_services_bundle, name##_id.get());  \
-  if (name == NULL) return;
-
-  CFTypeRef (*_LSGetCurrentApplicationASN)(void);
-  GET_FUNC(_LSGetCurrentApplicationASN, "_LSGetCurrentApplicationASN");
-
-  OSStatus (*_LSSetApplicationInformationItem)(int, CFTypeRef, CFStringRef,
-                                               CFStringRef, CFDictionaryRef*);
-  GET_FUNC(_LSSetApplicationInformationItem,
-           "_LSSetApplicationInformationItem");
-
-  CFDictionaryRef (*_LSApplicationCheckIn)(int, CFDictionaryRef);
-  GET_FUNC(_LSApplicationCheckIn, "_LSApplicationCheckIn");
-
-  void (*_LSSetApplicationLaunchServicesServerConnectionStatus)(uint64_t,
-                                                                void*);
-  GET_FUNC(_LSSetApplicationLaunchServicesServerConnectionStatus,
-           "_LSSetApplicationLaunchServicesServerConnectionStatus");
-
-  CFStringRef* _kLSDisplayNameKey;
-  GET_DATA(_kLSDisplayNameKey, "_kLSDisplayNameKey");
-  if (*_kLSDisplayNameKey == NULL) return;
-
-  _LSSetApplicationLaunchServicesServerConnectionStatus(0, NULL);
-
-  _LSApplicationCheckIn(-2, CFBundleGetInfoDictionary(CFBundleGetMainBundle()));
-
-  CFTypeRef asn;
-  asn = _LSGetCurrentApplicationASN();
-  if (asn == NULL) return;
-
-  ScopedCFStringRef cf_name(name);
-  _LSSetApplicationInformationItem(-2, asn, *_kLSDisplayNameKey, cf_name.get(),
-                                   NULL);
-#undef GET_DATA
-#undef GET_FUNC
-#endif  // !defined(DART_HOST_OS_IOS)
-}
+void Platform::SetProcessName(const char* name) {}
 
 void Platform::Exit(int exit_code) {
   Console::RestoreConfig();
