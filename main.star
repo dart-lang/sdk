@@ -582,27 +582,6 @@ dart.infra_builder(
 dart.infra_builder("chocolatey", recipe = "dart/chocolatey", dimensions = windows)
 dart.infra_builder("co19-roller", recipe = "dart/package_co19")
 dart.infra_builder(
-    "dart-ci-scripts-linux",
-    recipe = "dart/package_dart_ci",
-)
-dart.infra_builder(
-    "dart-ci-scripts-win",
-    recipe = "dart/package_dart_ci",
-    dimensions = windows,
-)
-dart.infra_builder(
-    "dart-ci-scripts-mac",
-    recipe = "dart/package_dart_ci",
-    dimensions = mac,
-    properties = pinned_xcode,
-)
-dart.infra_builder(
-    "dart-ci-scripts-mac-arm64",
-    recipe = "dart/package_dart_ci",
-    dimensions = [mac, arm64],
-    properties = pinned_xcode,
-)
-dart.infra_builder(
     "linearize-flutter",
     recipe = "dart/linearize",
     properties = {
