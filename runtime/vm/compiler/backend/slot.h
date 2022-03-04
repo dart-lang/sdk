@@ -117,6 +117,17 @@ class ParsedFunction;
   V(UnhandledException, UntaggedUnhandledException, exception, Dynamic, FINAL) \
   V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic, FINAL)
 
+// Don't use Object or Instance, use Dynamic instead. The cid here should
+// correspond to an exact type or Dynamic, not a static type.
+// If we ever get a field of which the exact type is Instance (not a subtype),
+// update the check below.
+#define FOR_EACH_NATIVE_SLOT(_, __, ___, field_type, ____)                     \
+  static_assert(k##field_type##Cid != kObjectCid);                             \
+  static_assert(k##field_type##Cid != kInstanceCid);
+NULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
+NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
+#undef FOR_EACH_NATIVE_SLOT
+
 // Only define AOT-only unboxed native slots when in the precompiler. See
 // UNBOXED_NATIVE_SLOTS_LIST for the format.
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)

@@ -43,7 +43,8 @@ class ObjectPointerVisitor;
 // LAZY_ISOLATE - needs lazy init getter for a "dart:isolate" member
 // LAZY_INTERNAL - needs lazy init getter for a "dart:_internal" member
 #define OBJECT_STORE_FIELD_LIST(R_, RW, ARW_RELAXED, ARW_AR, LAZY_CORE,        \
-                                LAZY_ASYNC, LAZY_ISOLATE, LAZY_INTERNAL)       \
+                                LAZY_ASYNC, LAZY_ISOLATE, LAZY_INTERNAL,       \
+                                LAZY_FFI)                                      \
   LAZY_CORE(Class, list_class)                                                 \
   LAZY_CORE(Type, non_nullable_list_rare_type)                                 \
   LAZY_CORE(Type, non_nullable_map_rare_type)                                  \
@@ -239,7 +240,6 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, ffi_callback_functions)                              \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
-  RW(Object, ffi_as_function_internal)                                         \
   // Please remember the last entry must be referred in the 'to' function below.
 
 #define OBJECT_STORE_STUB_CODE_LIST(DO)                                        \
@@ -426,6 +426,8 @@ class ObjectStore {
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitIsolateMembers)
 #define DECLARE_LAZY_INIT_INTERNAL_GETTER(Type, name)                          \
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitInternalMembers)
+#define DECLARE_LAZY_INIT_FFI_GETTER(Type, name)                               \
+  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitFfiMembers)
   OBJECT_STORE_FIELD_LIST(DECLARE_GETTER,
                           DECLARE_GETTER_AND_SETTER,
                           DECLARE_RELAXED_ATOMIC_GETTER_AND_SETTER,
@@ -433,7 +435,8 @@ class ObjectStore {
                           DECLARE_LAZY_INIT_CORE_GETTER,
                           DECLARE_LAZY_INIT_ASYNC_GETTER,
                           DECLARE_LAZY_INIT_ISOLATE_GETTER,
-                          DECLARE_LAZY_INIT_INTERNAL_GETTER)
+                          DECLARE_LAZY_INIT_INTERNAL_GETTER,
+                          DECLARE_LAZY_INIT_FFI_GETTER)
 #undef DECLARE_OFFSET
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
@@ -493,6 +496,7 @@ class ObjectStore {
  private:
   void LazyInitCoreMembers();
   void LazyInitAsyncMembers();
+  void LazyInitFfiMembers();
   void LazyInitIsolateMembers();
   void LazyInitInternalMembers();
 
@@ -512,12 +516,13 @@ class ObjectStore {
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
+                          DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
 #undef DECLARE_ATOMIC_OBJECT_STORE_FIELD
 #undef DECLARE_LAZY_OBJECT_STORE_FIELD
   ObjectPtr* to() {
-    return reinterpret_cast<ObjectPtr*>(&ffi_as_function_internal_);
+    return reinterpret_cast<ObjectPtr*>(&ffi_native_type_class_);
   }
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
