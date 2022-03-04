@@ -123,15 +123,20 @@ String packageName(Info info) {
   return null;
 }
 
-/// Provides the package name associated with [info], the URI scheme if
-/// available, or null otherwise.
-String packageNameOrScheme(Info info) {
+/// Provides the group name associated with [info].
+///
+/// This corresponds to the package name, a Dart core library, 'file' for loose
+/// files, or null otherwise.
+String libraryGroupName(Info info) {
   while (info.parent != null) {
     info = info.parent;
   }
   if (info is LibraryInfo) {
     if (info.uri.isScheme('package')) {
       return '${info.uri}'.split('/').first;
+    }
+    if (info.uri.isScheme('dart')) {
+      return 'dart:${info.uri.path}';
     }
     if (info.uri.hasScheme) {
       return info.uri.scheme;

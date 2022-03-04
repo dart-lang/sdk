@@ -412,10 +412,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 }
 
 IsolateGroup::~IsolateGroup() {
-  // Finalize any weak persistent handles with a non-null referent.
-  FinalizeWeakPersistentHandlesVisitor visitor(this);
-  api_state()->VisitWeakHandlesUnlocked(&visitor);
-
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(marking_stack_ == nullptr);
@@ -2658,14 +2654,20 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   if (shutdown_group) {
     KernelIsolate::NotifyAboutIsolateGroupShutdown(isolate_group);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
     if (!is_vm_isolate) {
       Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,
                                         /*bypass_safepoint=*/false);
+#if !defined(DART_PRECOMPILED_RUNTIME)
       BackgroundCompiler::Stop(isolate_group);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+      // Finalize any weak persistent handles with a non-null referent with
+      // isolate group still being available.
+      FinalizeWeakPersistentHandlesVisitor visitor(isolate_group);
+      isolate_group->api_state()->VisitWeakHandlesUnlocked(&visitor);
+
       Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
     }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
     // The "vm-isolate" does not have a thread pool.
     ASSERT(is_vm_isolate == (isolate_group->thread_pool() == nullptr));

@@ -141,9 +141,9 @@ Future<void> _reportWithPackages(
     var name = qualifiedName(i);
     var used = coverage.contains(name);
 
-    var package = packageNameOrScheme(i);
-    packageData.putIfAbsent(package, () => PackageInfo());
-    packageData[package].add(i, used: used);
+    var groupName = libraryGroupName(i);
+    packageData.putIfAbsent(groupName, () => PackageInfo());
+    packageData[groupName].add(i, used: used);
 
     if (used) {
       usedCode += i.size;

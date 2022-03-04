@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -37,16 +35,26 @@ main() {
       error(HintCode.UNUSED_IMPORT, 22, 8),
     ]);
 
-    var import = findElement.importFind('package:test/a.dart');
-
-    var invocation = findNode.methodInvocation('loadLibrary()');
-    assertImportPrefix(invocation.target, import.prefix);
-
-    assertMethodInvocation(
-      invocation,
-      import.importedLibrary.loadLibraryFunction,
-      'Future<dynamic>* Function()*',
-    );
+    var node = findNode.methodInvocation('loadLibrary()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@prefix::a
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: loadLibrary
+    staticElement: FunctionMember
+      base: loadLibrary@-1
+      isLegacy: true
+    staticType: Future<dynamic>* Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Future<dynamic>* Function()*
+  staticType: Future<dynamic>*
+''');
   }
 
   test_hasReceiver_interfaceQ_Function_call_checked() async {
@@ -56,13 +64,24 @@ void f(Function? foo) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('foo?.call()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+    var node = findNode.methodInvocation('foo?.call()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: foo@17
+    staticType: Function?
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
   }
 
   test_hasReceiver_interfaceQ_Function_call_unchecked() async {
@@ -75,13 +94,24 @@ void f(Function? foo) {
           30, 4),
     ]);
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('foo.call()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+    var node = findNode.methodInvocation('foo.call()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: foo@17
+    staticType: Function?
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
   }
 
   test_hasReceiver_interfaceQ_nullShorting() async {
@@ -96,21 +126,35 @@ void testShort(C? c) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('c?.foo()'),
-      element: findElement.method('foo'),
-      typeArgumentTypes: [],
-      invokeType: 'C Function()',
-      type: 'C',
-    );
-
-    assertMethodInvocation2(
-      findNode.methodInvocation('bar();'),
-      element: findElement.method('bar'),
-      typeArgumentTypes: [],
-      invokeType: 'C Function()',
-      type: 'C?',
-    );
+    var node = findNode.methodInvocation('bar();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: MethodInvocation
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@75
+      staticType: C?
+    operator: ?.
+    methodName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@method::foo
+      staticType: C Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: C Function()
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: bar
+    staticElement: self::@class::C::@method::bar
+    staticType: C Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: C Function()
+  staticType: C?
+''');
   }
 
   test_hasReceiver_interfaceQ_nullShorting_getter() async {
@@ -120,25 +164,36 @@ abstract class C {
 }
 
 void f(C? c) {
-  c?.foo(c); // 1
+  c?.foo(c);
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(c);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'void Function(C)');
-    assertType(invocation, 'void');
-
-    var foo = invocation.function as PropertyAccess;
-    assertType(foo, 'void Function(C)');
-    assertElement(foo.propertyName, findElement.getter('foo'));
-    assertType(foo.propertyName, 'void Function(C)');
-
-    assertSimpleIdentifier(
-      findNode.simple('c); // 1'),
-      element: findElement.parameter('c'),
-      type: 'C',
-    );
+    var node = findNode.functionExpressionInvocation('foo(c);');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@60
+      staticType: C?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@getter::foo
+      staticType: void Function(C)
+    staticType: void Function(C)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: c
+        staticElement: c@60
+        staticType: C
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function(C)
+  staticType: void
+''');
   }
 
   test_hasReceiver_interfaceType_enum() async {
@@ -153,13 +208,24 @@ void f(E e) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('e.foo()'),
-      element: findElement.method('foo', of: 'E'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('e.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: e
+    staticElement: e@42
+    staticType: E
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@enum::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_hasReceiver_interfaceType_enum_fromMixin() async {
@@ -177,13 +243,24 @@ void f(E e) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('e.foo()'),
-      element: findElement.method('foo', of: 'M'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('e.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: e
+    staticElement: e@70
+    staticType: E
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@mixin::M::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_hasReceiver_interfaceTypeQ_defined() async {
@@ -200,13 +277,24 @@ void f(A? a) {
           48, 3),
     ]);
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo()'),
-      element: findElement.method('foo', of: 'A'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@39
+    staticType: A?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_hasReceiver_interfaceTypeQ_defined_extension() async {
@@ -227,13 +315,24 @@ void f(A? a) {
           86, 3),
     ]);
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo()'),
-      element: findElement.method('foo', of: 'A'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@77
+    staticType: A?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_hasReceiver_interfaceTypeQ_defined_extensionQ() async {
@@ -251,13 +350,24 @@ void f(A? a) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo()'),
-      element: findElement.method('foo', of: 'E'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@78
+    staticType: A?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_hasReceiver_interfaceTypeQ_defined_extensionQ2() async {
@@ -271,16 +381,26 @@ void f(int? a) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo()'),
-      element: elementMatcher(
-        findElement.method('foo', of: 'E'),
-        substitution: {'T': 'int'},
-      ),
-      typeArgumentTypes: [],
-      invokeType: 'int Function()',
-      type: 'int',
-    );
+    var node = findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@60
+    staticType: int?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: self::@extension::E::@method::foo
+      substitution: {T: int}
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
   }
 
   test_hasReceiver_interfaceTypeQ_notDefined() async {
@@ -295,13 +415,24 @@ void f(A? a) {
           31, 3),
     ]);
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+    var node = findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@22
+    staticType: A?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
   }
 
   test_hasReceiver_interfaceTypeQ_notDefined_extension() async {
@@ -320,13 +451,24 @@ void f(A? a) {
           69, 3),
     ]);
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+    var node = findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@60
+    staticType: A?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
   }
 
   test_hasReceiver_interfaceTypeQ_notDefined_extensionQ() async {
@@ -342,13 +484,24 @@ void f(A? a) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo()'),
-      element: findElement.method('foo', of: 'E'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@61
+    staticType: A?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_hasReceiver_typeAlias_staticMethod() async {
@@ -364,16 +517,28 @@ void f() {
 }
 ''');
 
-    assertMethodInvocation(
-      findNode.methodInvocation('foo(0)'),
-      findElement.method('foo'),
-      'void Function(int)',
-    );
-
-    assertTypeAliasRef(
-      findNode.simple('B.foo'),
-      findElement.typeAlias('B'),
-    );
+    var node = findNode.methodInvocation('foo(0)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: B
+    staticElement: self::@typeAlias::B
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
   }
 
   test_hasReceiver_typeAlias_staticMethod_generic() async {
@@ -389,16 +554,28 @@ void f() {
 }
 ''');
 
-    assertMethodInvocation(
-      findNode.methodInvocation('foo(0)'),
-      findElement.method('foo'),
-      'void Function(int)',
-    );
-
-    assertTypeAliasRef(
-      findNode.simple('B.foo'),
-      findElement.typeAlias('B'),
-    );
+    var node = findNode.methodInvocation('foo(0)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: B
+    staticElement: self::@typeAlias::B
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
   }
 
   test_hasReceiver_typeParameter_promotedToNonNullable() async {
@@ -410,13 +587,24 @@ void f<T>(T? t) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('t.abs()'),
-      element: intElement.getMethod('abs'),
-      typeArgumentTypes: [],
-      invokeType: 'int Function()',
-      type: 'int',
-    );
+    var node = findNode.methodInvocation('t.abs()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: t
+    staticElement: t@13
+    staticType: T & int
+  operator: .
+  methodName: SimpleIdentifier
+    token: abs
+    staticElement: dart:core::@class::int::@method::abs
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
   }
 
   test_hasReceiver_typeParameter_promotedToOtherTypeParameter() async {
@@ -434,13 +622,24 @@ void f<T extends A, U extends B>(T a) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo()'),
-      element: findElement.method('foo'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@102
+    staticType: T & U
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::B::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_namedArgument_anywhere() async {
@@ -462,29 +661,94 @@ void f() {
 }
 ''');
 
-    assertMethodInvocation(
-      findNode.methodInvocation('foo(g'),
-      findElement.topFunction('foo'),
-      'void Function(A, B, {C? c, D? d})',
-    );
+    var node = findNode.methodInvocation('foo(g');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function(A, B, {C? c, D? d})
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: g1
+          staticElement: self::@function::g1
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: A Function()
+        staticType: A
+        typeArgumentTypes
+          A
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: c
+            staticElement: self::@function::foo::@parameter::c
+            staticType: null
+          colon: :
+        expression: MethodInvocation
+          methodName: SimpleIdentifier
+            token: g3
+            staticElement: self::@function::g3
+            staticType: T Function<T>()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: C? Function()
+          staticType: C?
+          typeArgumentTypes
+            C?
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: g2
+          staticElement: self::@function::g2
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: B Function()
+        staticType: B
+        typeArgumentTypes
+          B
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: d
+            staticElement: self::@function::foo::@parameter::d
+            staticType: null
+          colon: :
+        expression: MethodInvocation
+          methodName: SimpleIdentifier
+            token: g4
+            staticElement: self::@function::g4
+            staticType: T Function<T>()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: D? Function()
+          staticType: D?
+          typeArgumentTypes
+            D?
+    rightParenthesis: )
+  staticInvokeType: void Function(A, B, {C? c, D? d})
+  staticType: void
+''');
 
     var g1 = findNode.methodInvocation('g1()');
-    assertType(g1, 'A');
     assertParameterElement(g1, findElement.parameter('a'));
 
     var g2 = findNode.methodInvocation('g2()');
-    assertType(g2, 'B');
     assertParameterElement(g2, findElement.parameter('b'));
 
     var named_g3 = findNode.namedExpression('c: g3()');
-    assertType(named_g3.expression, 'C?');
     assertParameterElement(named_g3, findElement.parameter('c'));
-    assertNamedParameterRef('c:', 'c');
 
     var named_g4 = findNode.namedExpression('d: g4()');
-    assertType(named_g4.expression, 'D?');
     assertParameterElement(named_g4, findElement.parameter('d'));
-    assertNamedParameterRef('d:', 'd');
   }
 
   test_nullShorting_cascade_firstMethodInvocation() async {
@@ -499,23 +763,38 @@ void f(A? a) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('..foo()'),
-      element: findElement.method('foo'),
-      typeArgumentTypes: [],
-      invokeType: 'int Function()',
-      type: 'int',
-    );
-
-    assertMethodInvocation2(
-      findNode.methodInvocation('..bar()'),
-      element: findElement.method('bar'),
-      typeArgumentTypes: [],
-      invokeType: 'int Function()',
-      type: 'int',
-    );
-
-    assertType(findNode.cascade('a?'), 'A?');
+    var node = findNode.cascade('a?..');
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@59
+    staticType: A?
+  cascadeSections
+    MethodInvocation
+      operator: ?..
+      methodName: SimpleIdentifier
+        token: foo
+        staticElement: self::@class::A::@method::foo
+        staticType: int Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: int Function()
+      staticType: int
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: bar
+        staticElement: self::@class::A::@method::bar
+        staticType: int Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: int Function()
+      staticType: int
+  staticType: A?
+''');
   }
 
   test_nullShorting_cascade_firstPropertyAccess() async {
@@ -530,21 +809,34 @@ void f(A? a) {
 }
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('..foo'),
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertMethodInvocation2(
-      findNode.methodInvocation('..bar()'),
-      element: findElement.method('bar'),
-      typeArgumentTypes: [],
-      invokeType: 'int Function()',
-      type: 'int',
-    );
-
-    assertType(findNode.cascade('a?'), 'A?');
+    var node = findNode.cascade('a?..');
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@61
+    staticType: A?
+  cascadeSections
+    PropertyAccess
+      operator: ?..
+      propertyName: SimpleIdentifier
+        token: foo
+        staticElement: self::@class::A::@getter::foo
+        staticType: int
+      staticType: int
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: bar
+        staticElement: self::@class::A::@method::bar
+        staticType: int Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: int Function()
+      staticType: int
+  staticType: A?
+''');
   }
 
   test_nullShorting_cascade_nullAwareInside() async {
@@ -559,23 +851,47 @@ main() {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('..foo()'),
-      element: findElement.method('foo'),
-      typeArgumentTypes: [],
-      invokeType: 'int? Function()',
-      type: 'int?',
-    );
-
-    assertMethodInvocation2(
-      findNode.methodInvocation('.abs()'),
-      element: intElement.getMethod('abs'),
-      typeArgumentTypes: [],
-      invokeType: 'int Function()',
-      type: 'int',
-    );
-
-    assertType(findNode.cascade('A()'), 'A');
+    var node = findNode.cascade('A()..');
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: A
+          staticElement: self::@class::A
+          staticType: null
+        type: A
+      staticElement: self::@class::A::@constructor::•
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  cascadeSections
+    MethodInvocation
+      target: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: foo
+          staticElement: self::@class::A::@method::foo
+          staticType: int? Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: int? Function()
+        staticType: int?
+      operator: ?.
+      methodName: SimpleIdentifier
+        token: abs
+        staticElement: dart:core::@class::int::@method::abs
+        staticType: int Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: int Function()
+      staticType: int
+  staticType: A
+''');
   }
 
   test_typeArgumentTypes_generic_inferred_leftTop_dynamic() async {
@@ -587,10 +903,26 @@ void f(dynamic o) {
 }
 ''');
 
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('foo(o)'),
-      ['Object'],
-    );
+    var node = findNode.methodInvocation('foo(o)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T extends Object>(T?)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: o
+        staticElement: o@56
+        staticType: dynamic
+    rightParenthesis: )
+  staticInvokeType: void Function(Object?)
+  staticType: void
+  typeArgumentTypes
+    Object
+''');
   }
 
   test_typeArgumentTypes_generic_inferred_leftTop_void() async {
@@ -602,10 +934,26 @@ void f(List<void> o) {
 }
 ''');
 
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('foo(o)'),
-      ['Object'],
-    );
+    var node = findNode.methodInvocation('foo(o)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T extends Object>(List<T?>)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: o
+        staticElement: o@65
+        staticType: List<void>
+    rightParenthesis: )
+  staticInvokeType: void Function(List<Object?>)
+  staticType: void
+  typeArgumentTypes
+    Object
+''');
   }
 }
 
@@ -619,10 +967,118 @@ g(double a) {
 h(double x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f(),'),
-        [typeStringByNullability(nullable: 'double', legacy: 'num')]);
-    assertTypeArgumentTypes(findNode.methodInvocation('f())'),
-        [typeStringByNullability(nullable: 'double', legacy: 'num')]);
+    var node = findNode.methodInvocation('h(a');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: h
+    staticElement: self::@function::h
+    staticType: dynamic Function(double)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        target: SimpleIdentifier
+          token: a
+          staticElement: a@36
+          staticType: double
+        operator: .
+        methodName: SimpleIdentifier
+          token: clamp
+          staticElement: dart:core::@class::num::@method::clamp
+          staticType: num Function(num, num)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T Function<T>()
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: double Function()
+              staticType: double
+              typeArgumentTypes
+                double
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T Function<T>()
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: double Function()
+              staticType: double
+              typeArgumentTypes
+                double
+          rightParenthesis: )
+        staticInvokeType: num Function(num, num)
+        staticType: double
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(double)
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: h
+    staticElement: self::@function::h
+    staticType: dynamic Function(double*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        target: SimpleIdentifier
+          token: a
+          staticElement: a@36
+          staticType: double*
+        operator: .
+        methodName: SimpleIdentifier
+          token: clamp
+          staticElement: MethodMember
+            base: dart:core::@class::num::@method::clamp
+            isLegacy: true
+          staticType: num* Function(num*, num*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T* Function<T>()*
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num* Function()*
+              staticType: num*
+              typeArgumentTypes
+                num*
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T* Function<T>()*
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num* Function()*
+              staticType: num*
+              typeArgumentTypes
+                num*
+          rightParenthesis: )
+        staticInvokeType: num* Function(num*, num*)*
+        staticType: num*
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(double*)*
+  staticType: dynamic
+''');
+    }
   }
 
   test_clamp_double_context_int() async {
@@ -638,8 +1094,118 @@ h(int x) {}
           error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 17),
         ], legacy: []));
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f(),'), ['num']);
-    assertTypeArgumentTypes(findNode.methodInvocation('f())'), ['num']);
+    var node = findNode.methodInvocation('h(a');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: h
+    staticElement: self::@function::h
+    staticType: dynamic Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        target: SimpleIdentifier
+          token: a
+          staticElement: a@36
+          staticType: double
+        operator: .
+        methodName: SimpleIdentifier
+          token: clamp
+          staticElement: dart:core::@class::num::@method::clamp
+          staticType: num Function(num, num)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T Function<T>()
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num Function()
+              staticType: num
+              typeArgumentTypes
+                num
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T Function<T>()
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num Function()
+              staticType: num
+              typeArgumentTypes
+                num
+          rightParenthesis: )
+        staticInvokeType: num Function(num, num)
+        staticType: num
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(int)
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: h
+    staticElement: self::@function::h
+    staticType: dynamic Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        target: SimpleIdentifier
+          token: a
+          staticElement: a@36
+          staticType: double*
+        operator: .
+        methodName: SimpleIdentifier
+          token: clamp
+          staticElement: MethodMember
+            base: dart:core::@class::num::@method::clamp
+            isLegacy: true
+          staticType: num* Function(num*, num*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T* Function<T>()*
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num* Function()*
+              staticType: num*
+              typeArgumentTypes
+                num*
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T* Function<T>()*
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num* Function()*
+              staticType: num*
+              typeArgumentTypes
+                num*
+          rightParenthesis: )
+        staticInvokeType: num* Function(num*, num*)*
+        staticType: num*
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(int*)*
+  staticType: dynamic
+''');
+    }
   }
 
   test_clamp_double_context_none() async {
@@ -650,8 +1216,96 @@ g(double a) {
 }
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f(),'), ['num']);
-    assertTypeArgumentTypes(findNode.methodInvocation('f())'), ['num']);
+    var node = findNode.methodInvocation('a.clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@36
+    staticType: double
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: f
+          staticElement: self::@function::f
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: num Function()
+        staticType: num
+        typeArgumentTypes
+          num
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: f
+          staticElement: self::@function::f
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: num Function()
+        staticType: num
+        typeArgumentTypes
+          num
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@36
+    staticType: double*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: f
+          staticElement: self::@function::f
+          staticType: T* Function<T>()*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: num* Function()*
+        staticType: num*
+        typeArgumentTypes
+          num*
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: f
+          staticElement: self::@function::f
+          staticType: T* Function<T>()*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: num* Function()*
+        staticType: num*
+        typeArgumentTypes
+          num*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_double_double_double() async {
@@ -661,13 +1315,64 @@ f(double a, double b, double c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType:
-            typeStringByNullability(nullable: 'double', legacy: 'num'));
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@9
+    staticType: double
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@19
+        staticType: double
+      SimpleIdentifier
+        token: c
+        staticElement: c@29
+        staticType: double
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@9
+    staticType: double*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@19
+        staticType: double*
+      SimpleIdentifier
+        token: c
+        staticElement: c@29
+        staticType: double*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_double_double_int() async {
@@ -677,12 +1382,64 @@ f(double a, double b, int c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@9
+    staticType: double
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@19
+        staticType: double
+      SimpleIdentifier
+        token: c
+        staticElement: c@26
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@9
+    staticType: double*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@19
+        staticType: double*
+      SimpleIdentifier
+        token: c
+        staticElement: c@26
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_double_int_double() async {
@@ -692,12 +1449,64 @@ f(double a, int b, double c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@9
+    staticType: double
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@26
+        staticType: double
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@9
+    staticType: double*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@26
+        staticType: double*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_double_int_int() async {
@@ -707,12 +1516,64 @@ f(double a, int b, int c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@9
+    staticType: double
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@23
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@9
+    staticType: double*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@23
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_context_double() async {
@@ -728,8 +1589,118 @@ h(double x) {}
           error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 17),
         ], legacy: []));
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f(),'), ['num']);
-    assertTypeArgumentTypes(findNode.methodInvocation('f())'), ['num']);
+    var node = findNode.methodInvocation('h(a');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: h
+    staticElement: self::@function::h
+    staticType: dynamic Function(double)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        target: SimpleIdentifier
+          token: a
+          staticElement: a@33
+          staticType: int
+        operator: .
+        methodName: SimpleIdentifier
+          token: clamp
+          staticElement: dart:core::@class::num::@method::clamp
+          staticType: num Function(num, num)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T Function<T>()
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num Function()
+              staticType: num
+              typeArgumentTypes
+                num
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T Function<T>()
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num Function()
+              staticType: num
+              typeArgumentTypes
+                num
+          rightParenthesis: )
+        staticInvokeType: num Function(num, num)
+        staticType: num
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(double)
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: h
+    staticElement: self::@function::h
+    staticType: dynamic Function(double*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        target: SimpleIdentifier
+          token: a
+          staticElement: a@33
+          staticType: int*
+        operator: .
+        methodName: SimpleIdentifier
+          token: clamp
+          staticElement: MethodMember
+            base: dart:core::@class::num::@method::clamp
+            isLegacy: true
+          staticType: num* Function(num*, num*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T* Function<T>()*
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num* Function()*
+              staticType: num*
+              typeArgumentTypes
+                num*
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T* Function<T>()*
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num* Function()*
+              staticType: num*
+              typeArgumentTypes
+                num*
+          rightParenthesis: )
+        staticInvokeType: num* Function(num*, num*)*
+        staticType: num*
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(double*)*
+  staticType: dynamic
+''');
+    }
   }
 
   test_clamp_int_context_int() async {
@@ -741,10 +1712,118 @@ g(int a) {
 h(int x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f(),'),
-        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
-    assertTypeArgumentTypes(findNode.methodInvocation('f())'),
-        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
+    var node = findNode.methodInvocation('h(a');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: h
+    staticElement: self::@function::h
+    staticType: dynamic Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        target: SimpleIdentifier
+          token: a
+          staticElement: a@33
+          staticType: int
+        operator: .
+        methodName: SimpleIdentifier
+          token: clamp
+          staticElement: dart:core::@class::num::@method::clamp
+          staticType: num Function(num, num)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T Function<T>()
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: int Function()
+              staticType: int
+              typeArgumentTypes
+                int
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T Function<T>()
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: int Function()
+              staticType: int
+              typeArgumentTypes
+                int
+          rightParenthesis: )
+        staticInvokeType: num Function(num, num)
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(int)
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: h
+    staticElement: self::@function::h
+    staticType: dynamic Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        target: SimpleIdentifier
+          token: a
+          staticElement: a@33
+          staticType: int*
+        operator: .
+        methodName: SimpleIdentifier
+          token: clamp
+          staticElement: MethodMember
+            base: dart:core::@class::num::@method::clamp
+            isLegacy: true
+          staticType: num* Function(num*, num*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T* Function<T>()*
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num* Function()*
+              staticType: num*
+              typeArgumentTypes
+                num*
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T* Function<T>()*
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: num* Function()*
+              staticType: num*
+              typeArgumentTypes
+                num*
+          rightParenthesis: )
+        staticInvokeType: num* Function(num*, num*)*
+        staticType: num*
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(int*)*
+  staticType: dynamic
+''');
+    }
   }
 
   test_clamp_int_context_none() async {
@@ -755,8 +1834,96 @@ g(int a) {
 }
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f(),'), ['num']);
-    assertTypeArgumentTypes(findNode.methodInvocation('f())'), ['num']);
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@33
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: f
+          staticElement: self::@function::f
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: num Function()
+        staticType: num
+        typeArgumentTypes
+          num
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: f
+          staticElement: self::@function::f
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: num Function()
+        staticType: num
+        typeArgumentTypes
+          num
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@33
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: f
+          staticElement: self::@function::f
+          staticType: T* Function<T>()*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: num* Function()*
+        staticType: num*
+        typeArgumentTypes
+          num*
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: f
+          staticElement: self::@function::f
+          staticType: T* Function<T>()*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: num* Function()*
+        staticType: num*
+        typeArgumentTypes
+          num*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_double_double() async {
@@ -766,12 +1933,64 @@ f(int a, double b, double c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: double
+      SimpleIdentifier
+        token: c
+        staticElement: c@26
+        staticType: double
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: double*
+      SimpleIdentifier
+        token: c
+        staticElement: c@26
+        staticType: double*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_double_dynamic() async {
@@ -781,12 +2000,64 @@ f(int a, double b, dynamic c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: double
+      SimpleIdentifier
+        token: c
+        staticElement: c@27
+        staticType: dynamic
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: double*
+      SimpleIdentifier
+        token: c
+        staticElement: c@27
+        staticType: dynamic
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_double_int() async {
@@ -796,12 +2067,64 @@ f(int a, double b, int c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: double
+      SimpleIdentifier
+        token: c
+        staticElement: c@23
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: double*
+      SimpleIdentifier
+        token: c
+        staticElement: c@23
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_dynamic_double() async {
@@ -811,12 +2134,64 @@ f(int a, dynamic b, double c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@17
+        staticType: dynamic
+      SimpleIdentifier
+        token: c
+        staticElement: c@27
+        staticType: double
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@17
+        staticType: dynamic
+      SimpleIdentifier
+        token: c
+        staticElement: c@27
+        staticType: double*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_dynamic_int() async {
@@ -826,12 +2201,64 @@ f(int a, dynamic b, int c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@17
+        staticType: dynamic
+      SimpleIdentifier
+        token: c
+        staticElement: c@24
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@17
+        staticType: dynamic
+      SimpleIdentifier
+        token: c
+        staticElement: c@24
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_int_double() async {
@@ -841,12 +2268,64 @@ f(int a, int b, double c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@23
+        staticType: double
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@23
+        staticType: double*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_int_dynamic() async {
@@ -856,12 +2335,64 @@ f(int a, int b, dynamic c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@24
+        staticType: dynamic
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@24
+        staticType: dynamic
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_int_int() async {
@@ -871,12 +2402,64 @@ f(int a, int b, int c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@20
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@20
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_int_int_from_cascade() async {
@@ -890,12 +2473,56 @@ f(int a, int b, int c) {
           error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 6),
         ]));
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@20
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@20
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_int_int_via_extension_explicit() async {
@@ -908,11 +2535,84 @@ f(int a, int b, int c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp(b'),
-        elementMatcher(findElement.extension_('E').getMethod('clamp')),
-        'String Function(int, int)',
-        expectedType: 'String');
+    var node = findNode.methodInvocation('clamp(b');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@65
+          staticType: int
+      rightParenthesis: )
+    extendedType: int
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: self::@extension::E::@method::clamp
+    staticType: String Function(int, int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@72
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@79
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: String Function(int, int)
+  staticType: String
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@65
+          staticType: int*
+      rightParenthesis: )
+    extendedType: int*
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: self::@extension::E::@method::clamp
+    staticType: String* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@72
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@79
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: String* Function(int*, int*)*
+  staticType: String*
+''');
+    }
   }
 
   test_clamp_int_int_never() async {
@@ -922,12 +2622,64 @@ f(int a, int b, Never c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@22
+        staticType: Never
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@22
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_int_never_int() async {
@@ -941,12 +2693,64 @@ f(int a, Never b, int c) {
           error(HintCode.DEAD_CODE, 40, 3),
         ], legacy: []));
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'),
-        elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num, num)',
-        expectedType: 'num');
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@15
+        staticType: Never
+      SimpleIdentifier
+        token: c
+        staticElement: c@22
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num)
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::clamp
+      isLegacy: true
+    staticType: num* Function(num*, num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@15
+        staticType: Null*
+      SimpleIdentifier
+        token: c
+        staticElement: c@22
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_clamp_never_int_int() async {
@@ -963,10 +2767,62 @@ f(Never a, int b, int c) {
           error(CompileTimeErrorCode.UNDEFINED_METHOD, 31, 5),
         ]));
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp'), isNull, 'dynamic',
-        expectedType:
-            typeStringByNullability(nullable: 'Never', legacy: 'dynamic'));
+    var node = findNode.methodInvocation('clamp');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@8
+    staticType: Never
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@15
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@22
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: Never
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@8
+    staticType: Null*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@15
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@22
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_clamp_other_context_int() async {
@@ -985,8 +2841,116 @@ h(int x) {}
           error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 94, 17),
         ], legacy: []));
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f(),'), ['String']);
-    assertTypeArgumentTypes(findNode.methodInvocation('f())'), ['String']);
+    var node = findNode.methodInvocation('h(a');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: h
+    staticElement: self::@function::h
+    staticType: dynamic Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        target: SimpleIdentifier
+          token: a
+          staticElement: a@85
+          staticType: A
+        operator: .
+        methodName: SimpleIdentifier
+          token: clamp
+          staticElement: self::@class::A::@method::clamp
+          staticType: num Function(String, String)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T Function<T>()
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: String Function()
+              staticType: String
+              typeArgumentTypes
+                String
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T Function<T>()
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: String Function()
+              staticType: String
+              typeArgumentTypes
+                String
+          rightParenthesis: )
+        staticInvokeType: num Function(String, String)
+        staticType: num
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(int)
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: h
+    staticElement: self::@function::h
+    staticType: dynamic Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        target: SimpleIdentifier
+          token: a
+          staticElement: a@85
+          staticType: A*
+        operator: .
+        methodName: SimpleIdentifier
+          token: clamp
+          staticElement: self::@class::A::@method::clamp
+          staticType: num* Function(String*, String*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T* Function<T>()*
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: String* Function()*
+              staticType: String*
+              typeArgumentTypes
+                String*
+            MethodInvocation
+              methodName: SimpleIdentifier
+                token: f
+                staticElement: self::@function::f
+                staticType: T* Function<T>()*
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticInvokeType: String* Function()*
+              staticType: String*
+              typeArgumentTypes
+                String*
+          rightParenthesis: )
+        staticInvokeType: num* Function(String*, String*)*
+        staticType: num*
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(int*)*
+  staticType: dynamic
+''');
+    }
   }
 
   test_clamp_other_int_int() async {
@@ -999,11 +2963,62 @@ f(A a, int b, int c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp(b'),
-        elementMatcher(findElement.class_('A').getMethod('clamp')),
-        'String Function(int, int)',
-        expectedType: 'String');
+    var node = findNode.methodInvocation('clamp(b');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@55
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: self::@class::A::@method::clamp
+    staticType: String Function(int, int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@62
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@69
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: String Function(int, int)
+  staticType: String
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@55
+    staticType: A*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: self::@class::A::@method::clamp
+    staticType: String* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@62
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@69
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: String* Function(int*, int*)*
+  staticType: String*
+''');
+    }
   }
 
   test_clamp_other_int_int_via_extension_explicit() async {
@@ -1017,11 +3032,84 @@ f(A a, int b, int c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp(b'),
-        elementMatcher(findElement.extension_('E').getMethod('clamp')),
-        'String Function(int, int)',
-        expectedType: 'String');
+    var node = findNode.methodInvocation('clamp(b');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@72
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: self::@extension::E::@method::clamp
+    staticType: String Function(int, int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@79
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@86
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: String Function(int, int)
+  staticType: String
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@72
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: self::@extension::E::@method::clamp
+    staticType: String* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@79
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@86
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: String* Function(int*, int*)*
+  staticType: String*
+''');
+    }
   }
 
   test_clamp_other_int_int_via_extension_implicit() async {
@@ -1035,11 +3123,62 @@ f(A a, int b, int c) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('clamp(b'),
-        elementMatcher(findElement.extension_('E').getMethod('clamp')),
-        'String Function(int, int)',
-        expectedType: 'String');
+    var node = findNode.methodInvocation('clamp(b');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@72
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: self::@extension::E::@method::clamp
+    staticType: String Function(int, int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@79
+        staticType: int
+      SimpleIdentifier
+        token: c
+        staticElement: c@86
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: String Function(int, int)
+  staticType: String
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@72
+    staticType: A*
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    staticElement: self::@extension::E::@method::clamp
+    staticType: String* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@79
+        staticType: int*
+      SimpleIdentifier
+        token: c
+        staticElement: c@86
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: String* Function(int*, int*)*
+  staticType: String*
+''');
+    }
   }
 
   test_demoteType() async {
@@ -1054,10 +3193,48 @@ void f<S>(S s) {
 
 ''');
 
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('test(s)'),
-      ['S'],
-    );
+    var node = findNode.methodInvocation('test(s)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: test
+    staticElement: self::@function::test
+    staticType: void Function<T>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: s
+        staticElement: s@34
+        staticType: S & int
+    rightParenthesis: )
+  staticInvokeType: void Function(S)
+  staticType: void
+  typeArgumentTypes
+    S
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: test
+    staticElement: self::@function::test
+    staticType: void Function<T>(T*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: s
+        staticElement: s@34
+        staticType: S* & int*
+    rightParenthesis: )
+  staticInvokeType: void Function(S*)*
+  staticType: void
+  typeArgumentTypes
+    S*
+''');
+    }
   }
 
   test_error_ambiguousImport_topFunction() async {
@@ -1079,9 +3256,42 @@ main() {
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 3),
     ]);
 
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertInvokeType(invocation, 'void Function(int)');
-    assertType(invocation, 'void');
+    var node = findNode.methodInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_error_ambiguousImport_topFunction_prefixed() async {
@@ -1103,9 +3313,52 @@ main() {
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 58, 3),
     ]);
 
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertInvokeType(invocation, 'void Function(int)');
-    assertType(invocation, 'void');
+    var node = findNode.methodInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: p
+    staticElement: self::@prefix::p
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: p
+    staticElement: self::@prefix::p
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_error_instanceAccessToStaticMember_method() async {
@@ -1120,13 +3373,53 @@ void f(A a) {
 ''', [
       error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 59, 3),
     ]);
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo(0)'),
-      element: findElement.method('foo'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function(int)',
-      type: 'void',
-    );
+
+    var node = findNode.methodInvocation('a.foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@50
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@50
+    staticType: A*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_error_invocationOfNonFunction_interface_hasCall_field() async {
@@ -1142,14 +3435,36 @@ void f(C c) {
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 69, 1),
     ]);
 
-    var invocation = findNode.functionExpressionInvocation('c();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var cRef = invocation.function as SimpleIdentifier;
-    assertElement(cRef, findElement.parameter('c'));
-    assertType(cRef, 'C');
+    var node = findNode.functionExpressionInvocation('c();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: c
+    staticElement: c@62
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: c
+    staticElement: c@62
+    staticType: C*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_invocationOfNonFunction_OK_dynamicGetter_instance() async {
@@ -1163,15 +3478,50 @@ void f(C c) {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as PropertyAccess;
-    assertTypeDynamic(foo);
-    assertElement(foo.propertyName, findElement.getter('foo'));
-    assertTypeDynamic(foo.propertyName);
+    var node = findNode.functionExpressionInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@33
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@getter::foo
+      staticType: dynamic
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@33
+      staticType: C*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@getter::foo
+      staticType: dynamic
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_invocationOfNonFunction_OK_dynamicGetter_superClass() async {
@@ -1187,14 +3537,36 @@ class B extends A {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.getter('foo'));
-    assertTypeDynamic(foo);
+    var node = findNode.functionExpressionInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_invocationOfNonFunction_OK_dynamicGetter_thisClass() async {
@@ -1208,14 +3580,36 @@ class C {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.getter('foo'));
-    assertTypeDynamic(foo);
+    var node = findNode.functionExpressionInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_invocationOfNonFunction_OK_Function() async {
@@ -1225,13 +3619,50 @@ f(Function foo) {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(1, 2);');
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.parameter('foo'));
-    assertType(foo, 'Function');
+    var node = findNode.functionExpressionInvocation('foo(1, 2);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@11
+    staticType: Function
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@11
+    staticType: Function*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int*
+      IntegerLiteral
+        literal: 2
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_invocationOfNonFunction_OK_functionTypeTypeParameter() async {
@@ -1248,14 +3679,44 @@ class C<T extends MyFunction> {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'double Function(int)');
-    assertType(invocation, 'double');
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.getter('foo'));
-    assertType(foo, 'double Function(int)');
+    var node = findNode.functionExpressionInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@getter::foo
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@getter::foo
+    staticType: double* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double* Function(int*)*
+  staticType: double*
+''');
+    }
   }
 
   test_error_invocationOfNonFunction_parameter() async {
@@ -1267,14 +3728,36 @@ main(Object foo) {
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 21, 3),
     ]);
 
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.parameter('foo'));
-    assertType(foo, 'Object');
+    var node = findNode.functionExpressionInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@12
+    staticType: Object
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@12
+    staticType: Object*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_invocationOfNonFunction_parameter_dynamic() async {
@@ -1284,14 +3767,36 @@ main(var foo) {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.parameter('foo'));
-    assertTypeDynamic(foo);
+    var node = findNode.functionExpressionInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@9
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@9
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_invocationOfNonFunction_static_hasTarget() async {
@@ -1307,15 +3812,50 @@ main() {
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 46, 5),
     ]);
 
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as PropertyAccess;
-    assertType(foo, 'int');
-    assertElement(foo.propertyName, findElement.getter('foo'));
-    assertType(foo.propertyName, 'int');
+    var node = findNode.functionExpressionInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@getter::foo
+      staticType: int
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@getter::foo
+      staticType: int*
+    staticType: int*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_invocationOfNonFunction_static_noTarget() async {
@@ -1331,14 +3871,36 @@ class C {
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 48, 3),
     ]);
 
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.getter('foo'));
-    assertType(foo, 'int');
+    var node = findNode.functionExpressionInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@getter::foo
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@getter::foo
+    staticType: int*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_invocationOfNonFunction_super_getter() async {
@@ -1356,17 +3918,48 @@ class B extends A {
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 68, 9),
     ]);
 
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as PropertyAccess;
-    assertType(foo, 'int');
-    assertElement(foo.propertyName, findElement.getter('foo'));
-    assertType(foo.propertyName, 'int');
-
-    assertSuperExpression(foo.target);
+    var node = findNode.functionExpressionInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: int
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: int*
+    staticType: int*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_prefixIdentifierNotFollowedByDot() async {
@@ -1384,19 +3977,47 @@ main() {
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 6),
     ]);
 
-    var import = findElement.importFind('package:test/a.dart');
-
-    var invocation = findNode.methodInvocation('foo();');
-    assertMethodInvocation(
-      invocation,
-      import.topFunction('foo'),
-      'void Function()',
-    );
-    assertImportPrefix(invocation.target, import.prefix);
+    var node = findNode.methodInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: prefix
+    staticElement: self::@prefix::prefix
+    staticType: null
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: package:test/a.dart::@function::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: prefix
+    staticElement: self::@prefix::prefix
+    staticType: null
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: package:test/a.dart::@function::foo
+    staticType: void Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()*
+  staticType: void
+''');
+    }
   }
 
   test_error_prefixIdentifierNotFollowedByDot_deferred() async {
-    var question = isNullSafetyEnabled ? '?' : '';
     await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;
 
@@ -1408,16 +4029,46 @@ main() {
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 49, 4),
     ]);
 
-    var import = findElement.importFind('dart:math');
-
-    var invocation = findNode.methodInvocation('loadLibrary()');
-    assertMethodInvocation(
-      invocation,
-      import.importedLibrary.loadLibraryFunction,
-      'Future<dynamic> Function()',
-      expectedType: 'Future<dynamic>$question',
-    );
-    assertImportPrefix(invocation.target, import.prefix);
+    var node = findNode.methodInvocation('loadLibrary()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: math
+    staticElement: self::@prefix::math
+    staticType: null
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: loadLibrary
+    staticElement: loadLibrary@-1
+    staticType: Future<dynamic> Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Future<dynamic> Function()
+  staticType: Future<dynamic>?
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: math
+    staticElement: self::@prefix::math
+    staticType: null
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: loadLibrary
+    staticElement: FunctionMember
+      base: loadLibrary@-1
+      isLegacy: true
+    staticType: Future<dynamic>* Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Future<dynamic>* Function()*
+  staticType: Future<dynamic>*
+''');
+    }
   }
 
   test_error_prefixIdentifierNotFollowedByDot_invoke() async {
@@ -1430,11 +4081,35 @@ main() {
 ''', [
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 3),
     ]);
-    _assertInvalidInvocation(
-      'foo()',
-      findElement.import('dart:math').prefix,
-      dynamicNameType: true,
-    );
+
+    var node = findNode.methodInvocation('foo()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@prefix::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@prefix::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedFunction() async {
@@ -1445,7 +4120,43 @@ main() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 11, 3),
     ]);
-    _assertUnresolvedMethodInvocation('foo(0)');
+
+    var node = findNode.methodInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedFunction_hasTarget_importPrefix() async {
@@ -1458,7 +4169,53 @@ main() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 45, 3),
     ]);
-    _assertUnresolvedMethodInvocation('foo(0);');
+
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: math
+    staticElement: self::@prefix::math
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: math
+    staticElement: self::@prefix::math
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedIdentifier_target() async {
@@ -1469,7 +4226,53 @@ main() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 3),
     ]);
-    _assertUnresolvedMethodInvocation('foo(0);');
+
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: bar
+    staticElement: <null>
+    staticType: dynamic
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: bar
+    staticElement: <null>
+    staticType: dynamic
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedMethod_hasTarget_class() async {
@@ -1481,7 +4284,53 @@ main() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3),
     ]);
-    _assertUnresolvedMethodInvocation('foo(0);');
+
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedMethod_hasTarget_class_arguments() async {
@@ -1496,7 +4345,54 @@ main() {
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3),
     ]);
 
-    _assertUnresolvedMethodInvocation('foo(x);');
+    var node = findNode.methodInvocation('foo(x);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: x
+        staticElement: self::@getter::x
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: x
+        staticElement: self::@getter::x
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
     assertTopGetRef('x)', 'x');
   }
 
@@ -1514,7 +4410,53 @@ main() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 76, 3),
     ]);
-    _assertUnresolvedMethodInvocation('foo(0);');
+
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedMethod_hasTarget_class_typeArguments() async {
@@ -1528,11 +4470,68 @@ main() {
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3),
     ]);
 
-    _assertUnresolvedMethodInvocation(
-      'foo<int>();',
-      expectedTypeArguments: ['int'],
-    );
-    assertNamedType(findNode.namedType('int>'), intElement, 'int');
+    var node = findNode.methodInvocation('foo<int>();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+  typeArgumentTypes
+    int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int*
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+  typeArgumentTypes
+    int*
+''');
+    }
   }
 
   test_error_undefinedMethod_hasTarget_class_typeParameter() async {
@@ -1543,7 +4542,45 @@ class C<T> {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 34, 1),
     ]);
-    _assertUnresolvedMethodInvocation('C.T();');
+
+    var node = findNode.methodInvocation('C.T();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: T
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: T
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedMethod_hasTarget_instance() async {
@@ -1554,7 +4591,51 @@ main() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 14, 3),
     ]);
-    _assertUnresolvedMethodInvocation('foo(0);');
+
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 42
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 42
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedMethod_hasTarget_localVariable_function() async {
@@ -1566,7 +4647,53 @@ main() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 30, 3),
     ]);
-    _assertUnresolvedMethodInvocation('foo(0);');
+
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: v
+    staticElement: v@15
+    staticType: Null Function()
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: v
+    staticElement: v@15
+    staticType: Null* Function()*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedMethod_noTarget() async {
@@ -1579,7 +4706,43 @@ class C {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3),
     ]);
-    _assertUnresolvedMethodInvocation('foo(0);');
+
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedMethod_null() async {
@@ -1593,7 +4756,43 @@ main() {
       else
         error(CompileTimeErrorCode.UNDEFINED_METHOD, 16, 3),
     ]);
-    _assertUnresolvedMethodInvocation('foo();');
+
+    var node = findNode.methodInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: NullLiteral
+    literal: null
+    staticType: Null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: NullLiteral
+    literal: null
+    staticType: Null*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedMethod_object_call() async {
@@ -1623,7 +4822,43 @@ class B extends A {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 53, 4),
     ]);
-    _assertUnresolvedMethodInvocation('_foo(0);');
+
+    var node = findNode.methodInvocation('_foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: _foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: _foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_undefinedMethod_typeLiteral_cascadeTarget() async {
@@ -1665,8 +4900,51 @@ class B extends A {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 62, 3),
     ]);
-    _assertUnresolvedMethodInvocation('foo(0);');
-    assertSuperExpression(findNode.super_('super.foo'));
+
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_unqualifiedReferenceToNonLocalStaticMember_method() async {
@@ -1688,13 +4966,42 @@ class B extends A {
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 75, 1),
     ]);
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('foo(0)'),
-      element: findElement.method('foo'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function()*
+  staticType: void
+''');
+    }
   }
 
   /// The primary purpose of this test is to ensure that we are only getting a
@@ -1711,8 +5018,53 @@ main() {
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
     ]);
-    _assertUnresolvedMethodInvocation('foo(1);');
-    _assertUnresolvedMethodInvocation('bar(2);');
+
+    var node = findNode.methodInvocation('foo(1);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: p
+    staticElement: self::@prefix::p
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: p
+    staticElement: self::@prefix::p
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   /// The primary purpose of this test is to ensure that we are only getting a
@@ -1729,8 +5081,43 @@ main() {
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
     ]);
-    _assertUnresolvedMethodInvocation('foo(1);');
-    _assertUnresolvedMethodInvocation('bar(2);');
+
+    var node = findNode.methodInvocation('foo(1);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_useOfVoidResult_name_getter() async {
@@ -1747,15 +5134,54 @@ void f(C<void> c) {
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 61, 5),
     ]);
 
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as PropertyAccess;
-    assertType(foo, 'void');
-    assertMember(foo.propertyName, findElement.getter('foo'), {'T': 'void'});
-    assertType(foo.propertyName, 'void');
+    var node = findNode.functionExpressionInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@54
+      staticType: C<void>
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: PropertyAccessorMember
+        base: self::@class::C::@getter::foo
+        substitution: {T: void}
+      staticType: void
+    staticType: void
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@54
+      staticType: C<void>*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: PropertyAccessorMember
+        base: self::@class::C::@getter::foo
+        substitution: {T: void}
+      staticType: void
+    staticType: void
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_useOfVoidResult_name_localVariable() async {
@@ -1768,14 +5194,36 @@ main() {
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
 
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.localVar('foo'));
-    assertType(foo, 'void');
+    var node = findNode.functionExpressionInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@16
+    staticType: void
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@16
+    staticType: void
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_useOfVoidResult_name_topFunction() async {
@@ -1788,11 +5236,35 @@ main() {
 ''', [
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3),
     ]);
-    assertMethodInvocation(
-      findNode.methodInvocation('foo()()'),
-      findElement.topFunction('foo'),
-      'void Function()',
-    );
+
+    var node = findNode.methodInvocation('foo()()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()*
+  staticType: void
+''');
+    }
   }
 
   test_error_useOfVoidResult_name_topVariable() async {
@@ -1806,14 +5278,36 @@ main() {
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3),
     ]);
 
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.topGet('foo'));
-    assertType(foo, 'void');
+    var node = findNode.functionExpressionInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: void
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: void
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_useOfVoidResult_receiver() async {
@@ -1825,13 +5319,45 @@ main() {
 ''', [
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
-    assertMethodInvocation2(
-      findNode.methodInvocation('toString()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+
+    var node = findNode.methodInvocation('toString()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: foo@16
+    staticType: void
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: foo@16
+    staticType: void
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_useOfVoidResult_receiver_cascade() async {
@@ -1843,13 +5369,37 @@ main() {
 ''', [
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
-    assertMethodInvocation2(
-      findNode.methodInvocation('toString()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+
+    var node = findNode.methodInvocation('toString()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_useOfVoidResult_receiver_withNull() async {
@@ -1861,13 +5411,45 @@ main() {
 ''', [
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
-    assertMethodInvocation2(
-      findNode.methodInvocation('toString()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+
+    var node = findNode.methodInvocation('toString()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: foo@16
+    staticType: void
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: foo@16
+    staticType: void
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_01() async {
@@ -1880,11 +5462,55 @@ main() {
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 29, 5),
     ]);
-    assertMethodInvocation(
-      findNode.methodInvocation('foo<int>()'),
-      findElement.topFunction('foo'),
-      'void Function()',
-    );
+
+    var node = findNode.methodInvocation('foo<int>()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function()*
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int*
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()*
+  staticType: void
+''');
+    }
     assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
@@ -1898,12 +5524,61 @@ main() {
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 67, 5),
     ]);
-    assertMethodInvocation(
-      findNode.methodInvocation('foo<int>()'),
-      findElement.topFunction('foo'),
-      'Map<dynamic, dynamic> Function()',
-      expectedTypeArguments: ['dynamic', 'dynamic'],
-    );
+
+    var node = findNode.methodInvocation('foo<int>()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: Map<T, U> Function<T extends num, U>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Map<dynamic, dynamic> Function()
+  staticType: Map<dynamic, dynamic>
+  typeArgumentTypes
+    dynamic
+    dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: Map<T*, U*>* Function<T extends num*, U>()*
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int*
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Map<dynamic, dynamic>* Function()*
+  staticType: Map<dynamic, dynamic>*
+  typeArgumentTypes
+    dynamic
+    dynamic
+''');
+    }
     assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
@@ -1918,16 +5593,58 @@ main() {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'double Function(int)');
-    assertType(invocation, 'double');
-
-    var foo = invocation.function as PropertyAccess;
-    assertClassRef(foo.target, findElement.class_('C'));
-    assertType(foo, 'double Function(int)');
-    assertElement(foo.propertyName, findElement.getter('foo'));
-    assertType(foo.propertyName, 'double Function(int)');
+    var node = findNode.functionExpressionInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@getter::foo
+      staticType: double* Function(int*)*
+    staticType: double* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double* Function(int*)*
+  staticType: double*
+''');
+    }
   }
 
   test_hasReceiver_class_staticMethod() async {
@@ -1941,13 +5658,53 @@ main() {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0);');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo'),
-      'void Function(int)',
-    );
-    assertClassRef(invocation.target, findElement.class_('C'));
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    staticElement: self::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@method::foo
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
+    assertClassRef(node.target, findElement.class_('C'));
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary() async {
@@ -1961,16 +5718,46 @@ main() {
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
 
-    var import = findElement.importFind('dart:math');
-
-    var invocation = findNode.methodInvocation('loadLibrary()');
-    assertImportPrefix(invocation.target, import.prefix);
-
-    assertMethodInvocation(
-      invocation,
-      import.importedLibrary.loadLibraryFunction,
-      'Future<dynamic> Function()',
-    );
+    var node = findNode.methodInvocation('loadLibrary()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: math
+    staticElement: self::@prefix::math
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: loadLibrary
+    staticElement: loadLibrary@-1
+    staticType: Future<dynamic> Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Future<dynamic> Function()
+  staticType: Future<dynamic>
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: math
+    staticElement: self::@prefix::math
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: loadLibrary
+    staticElement: FunctionMember
+      base: loadLibrary@-1
+      isLegacy: true
+    staticType: Future<dynamic>* Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Future<dynamic>* Function()*
+  staticType: Future<dynamic>*
+''');
+    }
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary_extraArgument() async {
@@ -1985,18 +5772,72 @@ main() {
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 66, 5),
     ]);
 
-    var import = findElement.importFind('dart:math');
-
-    var invocation = findNode.methodInvocation('loadLibrary(1 + 2)');
-    assertImportPrefix(invocation.target, import.prefix);
-
-    assertMethodInvocation(
-      invocation,
-      import.importedLibrary.loadLibraryFunction,
-      'Future<dynamic> Function()',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    var node = findNode.methodInvocation('loadLibrary(1 + 2)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: math
+    staticElement: self::@prefix::math
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: loadLibrary
+    staticElement: loadLibrary@-1
+    staticType: Future<dynamic> Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
+          literal: 2
+          staticType: int
+        staticElement: dart:core::@class::num::@method::+
+        staticInvokeType: num Function(num)
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: Future<dynamic> Function()
+  staticType: Future<dynamic>
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: math
+    staticElement: self::@prefix::math
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: loadLibrary
+    staticElement: FunctionMember
+      base: loadLibrary@-1
+      isLegacy: true
+    staticType: Future<dynamic>* Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int*
+        operator: +
+        rightOperand: IntegerLiteral
+          literal: 2
+          staticType: int*
+        staticElement: MethodMember
+          base: dart:core::@class::num::@method::+
+          isLegacy: true
+        staticInvokeType: num* Function(num*)*
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: Future<dynamic>* Function()*
+  staticType: Future<dynamic>*
+''');
+    }
   }
 
   test_hasReceiver_dynamic_hash() async {
@@ -2005,13 +5846,59 @@ void f(dynamic a) {
   a.hash(0, 1);
 }
 ''');
-    assertMethodInvocation2(
-      findNode.methodInvocation('hash('),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+
+    var node = findNode.methodInvocation('hash(');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@15
+    staticType: dynamic
+  operator: .
+  methodName: SimpleIdentifier
+    token: hash
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+      IntegerLiteral
+        literal: 1
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@15
+    staticType: dynamic
+  operator: .
+  methodName: SimpleIdentifier
+    token: hash
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+      IntegerLiteral
+        literal: 1
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_hasReceiver_functionTyped() async {
@@ -2023,14 +5910,52 @@ main() {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('call(0)');
-    assertMethodInvocation(
-      invocation,
-      null,
-      'void Function(int)',
-    );
-    assertElement(invocation.target, findElement.topFunction('foo'));
-    assertType(invocation.target, 'void Function(int)');
+    var node = findNode.methodInvocation('call(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function(int)
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function(int*)*
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_hasReceiver_functionTyped_generic() async {
@@ -2042,15 +5967,56 @@ main() {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('call(0)');
-    assertMethodInvocation(
-      invocation,
-      null,
-      'void Function(int)',
-      expectedTypeArguments: ['int'],
-    );
-    assertElement(invocation.target, findElement.topFunction('foo'));
-    assertType(invocation.target, 'void Function<T>(T)');
+    var node = findNode.methodInvocation('call(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T>(T)
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+  typeArgumentTypes
+    int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T>(T*)*
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+  typeArgumentTypes
+    int*
+''');
+    }
   }
 
   test_hasReceiver_importPrefix_topFunction() async {
@@ -2066,16 +6032,62 @@ main() {
 }
 ''');
 
-    var import = findElement.importFind('package:test/a.dart');
-
-    var invocation = findNode.methodInvocation('foo(1, 2)');
-    assertMethodInvocation(
-      invocation,
-      import.topFunction('foo'),
-      'int Function(int, int)',
-      expectedTypeArguments: ['int'],
-    );
-    assertImportPrefix(invocation.target, import.prefix);
+    var node = findNode.methodInvocation('foo(1, 2)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: prefix
+    staticElement: self::@prefix::prefix
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: package:test/a.dart::@function::foo
+    staticType: T Function<T extends num>(T, T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int, int)
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: prefix
+    staticElement: self::@prefix::prefix
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: package:test/a.dart::@function::foo
+    staticType: T* Function<T extends num*>(T*, T*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int*
+      IntegerLiteral
+        literal: 2
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*, int*)*
+  staticType: int*
+  typeArgumentTypes
+    int*
+''');
+    }
   }
 
   test_hasReceiver_importPrefix_topGetter() async {
@@ -2091,19 +6103,70 @@ main() {
 }
 ''');
 
-    var import = findElement.importFind('package:test/a.dart');
-
-    var invocation = findNode.functionExpressionInvocation('foo(1, 2);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'int Function(int, int)');
-    assertType(invocation, 'int');
-
-    var foo = invocation.function as PrefixedIdentifier;
-    assertType(foo, 'T Function<T>(T, T)');
-    assertElement(foo.identifier, import.topGet('foo'));
-    assertType(foo.identifier, 'T Function<T>(T, T)');
-
-    assertImportPrefix(foo.prefix, import.prefix);
+    var node = findNode.functionExpressionInvocation('foo(1, 2);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/a.dart::@getter::foo
+      staticType: T Function<T>(T, T)
+    staticElement: package:test/a.dart::@getter::foo
+    staticType: T Function<T>(T, T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: int Function(int, int)
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/a.dart::@getter::foo
+      staticType: T* Function<T>(T*, T*)*
+    staticElement: package:test/a.dart::@getter::foo
+    staticType: T* Function<T>(T*, T*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int*
+      IntegerLiteral
+        literal: 2
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: int* Function(int*, int*)*
+  staticType: int*
+  typeArgumentTypes
+    int*
+''');
+    }
   }
 
   test_hasReceiver_instance_Function_call_localVariable() async {
@@ -2114,7 +6177,53 @@ void f(Function getFunction()) {
   foo.call(0);
 }
 ''');
-    _assertInvalidInvocation('call(0)', null);
+
+    var node = findNode.methodInvocation('call(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: foo@44
+    staticType: Function
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: foo@44
+    staticType: Function*
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_hasReceiver_instance_Function_call_topVariable() async {
@@ -2125,7 +6234,53 @@ void main() {
   foo.call(0);
 }
 ''');
-    _assertInvalidInvocation('call(0)', null);
+
+    var node = findNode.methodInvocation('call(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: Function
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: Function*
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_hasReceiver_instance_getter() async {
@@ -2139,15 +6294,58 @@ void f(C c) {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'double Function(int)');
-    assertType(invocation, 'double');
-
-    var foo = invocation.function as PropertyAccess;
-    assertType(foo, 'double Function(int)');
-    assertElement(foo.propertyName, findElement.getter('foo'));
-    assertType(foo.propertyName, 'double Function(int)');
+    var node = findNode.functionExpressionInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@71
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@71
+      staticType: C*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@getter::foo
+      staticType: double* Function(int*)*
+    staticType: double* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double* Function(int*)*
+  staticType: double*
+''');
+    }
   }
 
   /// It is important to use this expression as an initializer of a top-level
@@ -2168,19 +6366,44 @@ class C {
 var v = C()..foo(0) = 0;
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(0)');
-    assertFunctionExpressionInvocation(
-      invocation,
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'double Function(int)',
-      type: 'double',
-    );
-    assertSimpleIdentifier(
-      invocation.function,
-      element: findElement.getter('foo'),
-      type: 'double Function(int)',
-    );
+    var node = findNode.functionExpressionInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@getter::foo
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@getter::foo
+    staticType: double* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double* Function(int*)*
+  staticType: double*
+''');
+    }
   }
 
   test_hasReceiver_instance_getter_switchStatementExpression() async {
@@ -2197,15 +6420,50 @@ void f(C c) {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo()');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'int Function()');
-    assertType(invocation, 'int');
-
-    var foo = invocation.function as PropertyAccess;
-    assertType(foo, 'int Function()');
-    assertElement(foo.propertyName, findElement.getter('foo'));
-    assertType(foo.propertyName, 'int Function()');
+    var node = findNode.functionExpressionInvocation('foo()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@65
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@getter::foo
+      staticType: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: int Function()
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@65
+      staticType: C*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::C::@getter::foo
+      staticType: int* Function()*
+    staticType: int* Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: int* Function()*
+  staticType: int*
+''');
+    }
   }
 
   test_hasReceiver_instance_method() async {
@@ -2219,14 +6477,52 @@ void f(C c) {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0);');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo'),
-      'void Function(int)',
-      expectedMethodNameType: 'void Function(int)',
-    );
-    assertTypeArgumentTypes(invocation, []);
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: c
+    staticElement: c@43
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: c
+    staticElement: c@43
+    staticType: C*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@method::foo
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_hasReceiver_instance_method_generic() async {
@@ -2242,15 +6538,56 @@ void f(C c) {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0);');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo'),
-      'int Function(int)',
-      expectedMethodNameType: 'int Function(int)',
-      expectedTypeArguments: ['int'],
-    );
-    assertTypeArgumentTypes(invocation, ['int']);
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: c
+    staticElement: c@58
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@method::foo
+    staticType: T Function<T>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: c
+    staticElement: c@58
+    staticType: C*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@method::foo
+    staticType: T* Function<T>(T*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*)*
+  staticType: int*
+  typeArgumentTypes
+    int*
+''');
+    }
   }
 
   test_hasReceiver_instance_method_issue30552() async {
@@ -2274,12 +6611,50 @@ void f(C c) {
 }
 ''');
 
-    var invocation = findNode.methodInvocation("foo('hi')");
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo', of: 'I2'),
-      'void Function(Object)',
-    );
+    var node = findNode.methodInvocation("foo('hi')");
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: c
+    staticElement: c@182
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::I2::@method::foo
+    staticType: void Function(Object)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: 'hi'
+    rightParenthesis: )
+  staticInvokeType: void Function(Object)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: c
+    staticElement: c@182
+    staticType: C*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::I2::@method::foo
+    staticType: void Function(Object*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: 'hi'
+    rightParenthesis: )
+  staticInvokeType: void Function(Object*)*
+  staticType: void
+''');
+    }
   }
 
   test_hasReceiver_instance_typeParameter() async {
@@ -2298,12 +6673,52 @@ class C<T extends A> {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0);');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo'),
-      'void Function(int)',
-    );
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@class::C::@getter::a
+    staticType: T
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@class::C::@getter::a
+    staticType: T*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_hasReceiver_prefixed_class_staticGetter() async {
@@ -2321,21 +6736,74 @@ main() {
 }
 ''');
 
-    var import = findElement.importFind('package:test/a.dart');
-
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'double Function(int)');
-    assertType(invocation, 'double');
-
-    var foo = invocation.function as PropertyAccess;
-    assertType(foo, 'double Function(int)');
-    assertElement(foo.propertyName, import.class_('C').getGetter('foo'));
-    assertType(foo.propertyName, 'double Function(int)');
-
-    var target = foo.target as PrefixedIdentifier;
-    assertImportPrefix(target.prefix, import.prefix);
-    assertClassRef(target.identifier, import.class_('C'));
+    var node = findNode.functionExpressionInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+        staticElement: self::@prefix::prefix
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: C
+        staticElement: package:test/a.dart::@class::C
+        staticType: null
+      staticElement: package:test/a.dart::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: package:test/a.dart::@class::C::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+        staticElement: self::@prefix::prefix
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: C
+        staticElement: package:test/a.dart::@class::C
+        staticType: null
+      staticElement: package:test/a.dart::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: package:test/a.dart::@class::C::@getter::foo
+      staticType: double* Function(int*)*
+    staticType: double* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double* Function(int*)*
+  staticType: double*
+''');
+    }
   }
 
   test_hasReceiver_prefixed_class_staticMethod() async {
@@ -2353,18 +6821,68 @@ main() {
 }
 ''');
 
-    var import = findElement.importFind('package:test/a.dart');
-
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertMethodInvocation(
-      invocation,
-      import.class_('C').getMethod('foo'),
-      'void Function(int)',
-    );
-
-    var target = invocation.target as PrefixedIdentifier;
-    assertImportPrefix(target.prefix, import.prefix);
-    assertClassRef(target.identifier, import.class_('C'));
+    var node = findNode.methodInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: C
+      staticElement: package:test/a.dart::@class::C
+      staticType: null
+    staticElement: package:test/a.dart::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: package:test/a.dart::@class::C::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: C
+      staticElement: package:test/a.dart::@class::C
+      staticType: null
+    staticElement: package:test/a.dart::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: package:test/a.dart::@class::C::@method::foo
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_hasReceiver_super_getter() async {
@@ -2380,17 +6898,56 @@ class B extends A {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'double Function(int)');
-    assertType(invocation, 'double');
-
-    var foo = invocation.function as PropertyAccess;
-    assertType(foo, 'double Function(int)');
-    assertElement(foo.propertyName, findElement.getter('foo'));
-    assertType(foo.propertyName, 'double Function(int)');
-
-    assertSuperExpression(foo.target);
+    var node = findNode.functionExpressionInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: double* Function(int*)*
+    staticType: double* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double* Function(int*)*
+  staticType: double*
+''');
+    }
   }
 
   test_hasReceiver_super_method() async {
@@ -2406,13 +6963,50 @@ class B extends A {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0);');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo', of: 'A'),
-      'void Function(int)',
-    );
-    assertSuperExpression(invocation.target);
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_invalid_inDefaultValue_nullAware() async {
@@ -2420,13 +7014,44 @@ class B extends A {
 void f({a = b?.foo()}) {}
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('?.foo()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+    var node = findNode.methodInvocation('?.foo()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    staticElement: <null>
+    staticType: dynamic
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    staticElement: <null>
+    staticType: dynamic
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_invalid_inDefaultValue_nullAware2() async {
@@ -2434,13 +7059,44 @@ void f({a = b?.foo()}) {}
 typedef void F({a = b?.foo()});
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('?.foo()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+    var node = findNode.methodInvocation('?.foo()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    staticElement: <null>
+    staticType: dynamic
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    staticElement: <null>
+    staticType: dynamic
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_namedArgument() async {
@@ -2453,14 +7109,76 @@ main() {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(b:');
-    assertMethodInvocation(
-      invocation,
-      findElement.topFunction('foo'),
-      'void Function({int$question a, bool$question b})',
-    );
-    assertNamedParameterRef('b: false', 'b');
-    assertNamedParameterRef('a: 0', 'a');
+    var node = findNode.methodInvocation('foo(b:');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function({int? a, bool? b})
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: b
+            staticElement: self::@function::foo::@parameter::b
+            staticType: null
+          colon: :
+        expression: BooleanLiteral
+          literal: false
+          staticType: bool
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: a
+            staticElement: self::@function::foo::@parameter::a
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function({int? a, bool? b})
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function({int* a, bool* b})*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: b
+            staticElement: self::@function::foo::@parameter::b
+            staticType: null
+          colon: :
+        expression: BooleanLiteral
+          literal: false
+          staticType: bool*
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: a
+            staticElement: self::@function::foo::@parameter::a
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function({int* a, bool* b})*
+  staticType: void
+''');
+    }
   }
 
   test_noReceiver_getter_superClass() async {
@@ -2476,14 +7194,44 @@ class B extends A {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'double Function(int)');
-    assertType(invocation, 'double');
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.getter('foo'));
-    assertType(foo, 'double Function(int)');
+    var node = findNode.functionExpressionInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: double* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double* Function(int*)*
+  staticType: double*
+''');
+    }
   }
 
   test_noReceiver_getter_thisClass() async {
@@ -2497,14 +7245,44 @@ class C {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'double Function(int)');
-    assertType(invocation, 'double');
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.getter('foo'));
-    assertType(foo, 'double Function(int)');
+    var node = findNode.functionExpressionInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@getter::foo
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@getter::foo
+    staticType: double* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double* Function(int*)*
+  staticType: double*
+''');
+    }
   }
 
   test_noReceiver_importPrefix() async {
@@ -2517,7 +7295,35 @@ main() {
 ''', [
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 40, 4),
     ]);
-    assertElement(findNode.simple('math()'), findElement.prefix('math'));
+
+    var node = findNode.methodInvocation('math()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: math
+    staticElement: self::@prefix::math
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: math
+    staticElement: self::@prefix::math
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_noReceiver_localFunction() async {
@@ -2529,12 +7335,42 @@ main() {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertMethodInvocation(
-      invocation,
-      findElement.localFunction('foo'),
-      'void Function(int)',
-    );
+    var node = findNode.methodInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: foo@16
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: foo@16
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_noReceiver_localVariable_call() async {
@@ -2548,14 +7384,44 @@ void f(C c) {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('c(0);');
-    assertElement(invocation, findElement.method('call', of: 'C'));
-    assertInvokeType(invocation, 'void Function(int)');
-    assertType(invocation, 'void');
-
-    var cRef = invocation.function as SimpleIdentifier;
-    assertElement(cRef, findElement.parameter('c'));
-    assertType(cRef, 'C');
+    var node = findNode.functionExpressionInvocation('c(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: c
+    staticElement: c@44
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: self::@class::C::@method::call
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: c
+    staticElement: c@44
+    staticType: C*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: self::@class::C::@method::call
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_noReceiver_localVariable_promoted() async {
@@ -2568,14 +7434,44 @@ main() {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'void Function(int)');
-    assertType(invocation, 'void');
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.localVar('foo'));
-    assertType(foo, 'void Function(int)');
+    var node = findNode.functionExpressionInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@15
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@15
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_noReceiver_method_superClass() async {
@@ -2591,12 +7487,42 @@ class B extends A {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo'),
-      'void Function(int)',
-    );
+    var node = findNode.methodInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_noReceiver_method_thisClass() async {
@@ -2610,12 +7536,42 @@ class C {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo'),
-      'void Function(int)',
-    );
+    var node = findNode.methodInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::C::@method::foo
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_noReceiver_parameter() async {
@@ -2625,14 +7581,44 @@ void f(void Function(int) foo) {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'void Function(int)');
-    assertType(invocation, 'void');
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.parameter('foo'));
-    assertType(foo, 'void Function(int)');
+    var node = findNode.functionExpressionInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@26
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: foo@26
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_noReceiver_parameter_call_nullAware() async {
@@ -2645,11 +7631,51 @@ main() {
 }
     ''');
 
-    var invocation = findNode.methodInvocation('call(1)');
+    var node = findNode.methodInvocation('call(1)');
     if (isNullSafetyEnabled) {
-      assertType(invocation.target, 'double Function(int)?');
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: double Function(int)?
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: double Function(int)
+  staticType: double?
+''');
     } else {
-      assertTypeLegacy(invocation.target);
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: double* Function(int*)*
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: double* Function(int*)*
+  staticType: double*
+''');
     }
   }
 
@@ -2662,18 +7688,36 @@ void f(F a) {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('a();');
-    assertFunctionExpressionInvocation(
-      invocation,
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
-
-    var aRef = invocation.function as SimpleIdentifier;
-    assertElement(aRef, findElement.parameter('a'));
-    assertType(aRef, 'void Function()');
+    var node = findNode.functionExpressionInvocation('a();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: a
+    staticElement: a@39
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function()
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: a
+    staticElement: a@39
+    staticType: void Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function()*
+  staticType: void
+''');
+    }
   }
 
   test_noReceiver_topFunction() async {
@@ -2685,13 +7729,42 @@ main() {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertMethodInvocation(
-      invocation,
-      findElement.topFunction('foo'),
-      'void Function(int)',
-      expectedMethodNameType: 'void Function(int)',
-    );
+    var node = findNode.methodInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_noReceiver_topGetter() async {
@@ -2703,14 +7776,44 @@ main() {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'double Function(int)');
-    assertType(invocation, 'double');
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.topGet('foo'));
-    assertType(foo, 'double Function(int)');
+    var node = findNode.functionExpressionInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: double* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double* Function(int*)*
+  staticType: double*
+''');
+    }
   }
 
   test_noReceiver_topVariable() async {
@@ -2722,14 +7825,44 @@ main() {
 }
 ''');
 
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'void Function(int)');
-    assertType(invocation, 'void');
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.topGet('foo'));
-    assertType(foo, 'void Function(int)');
+    var node = findNode.functionExpressionInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_objectMethodOnDynamic_argumentsDontMatch() async {
@@ -2738,15 +7871,55 @@ void f(a, int b) {
   a.toString(b);
 }
 ''');
-    assertMethodInvocation2(
-      findNode.methodInvocation('toString(b)'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
 
-    assertType(findNode.simple('b);'), 'int');
+    var node = findNode.methodInvocation('toString(b)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@7
+    staticType: dynamic
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@14
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@7
+    staticType: dynamic
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@14
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_objectMethodOnDynamic_argumentsMatch() async {
@@ -2755,16 +7928,47 @@ void f(a) {
   a.toString();
 }
 ''');
-    assertMethodInvocation2(
-      findNode.methodInvocation('toString()'),
-      element: elementMatcher(
-        objectElement.getMethod('toString'),
-        isLegacy: isLegacyLibrary,
-      ),
-      typeArgumentTypes: [],
-      invokeType: 'String Function()',
-      type: 'String',
-    );
+
+    var node = findNode.methodInvocation('toString()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@7
+    staticType: dynamic
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: dart:core::@class::Object::@method::toString
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@7
+    staticType: dynamic
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: MethodMember
+      base: dart:core::@class::Object::@method::toString
+      isLegacy: true
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String* Function()*
+  staticType: String*
+''');
+    }
   }
 
   test_objectMethodOnFunction() async {
@@ -2776,12 +7980,46 @@ main() {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('toString();');
-    assertMethodInvocation(
-      invocation,
-      typeProvider.objectType.getMethod('toString'),
-      'String Function()',
-    );
+    var node = findNode.methodInvocation('toString();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: void Function()
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: void Function()*
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: MethodMember
+      base: dart:core::@class::Object::@method::toString
+      isLegacy: true
+    staticType: String* Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String* Function()*
+  staticType: String*
+''');
+    }
   }
 
   test_remainder_int_context_cascaded() async {
@@ -2793,7 +8031,38 @@ g(int a) {
 h(int x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    var node = findNode.methodInvocation('f()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T* Function<T>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num* Function()*
+  staticType: num*
+  typeArgumentTypes
+    num*
+''');
+    }
   }
 
   test_remainder_int_context_int() async {
@@ -2805,8 +8074,38 @@ g(int a) {
 h(int x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
+    var node = findNode.methodInvocation('f()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T* Function<T>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num* Function()*
+  staticType: num*
+  typeArgumentTypes
+    num*
+''');
+    }
   }
 
   test_remainder_int_context_int_target_rewritten() async {
@@ -2818,8 +8117,38 @@ g(int Function() a) {
 h(int x) {}
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
+    var node = findNode.methodInvocation('f()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T* Function<T>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num* Function()*
+  staticType: num*
+  typeArgumentTypes
+    num*
+''');
+    }
   }
 
   test_remainder_int_context_int_via_extension_explicit() async {
@@ -2836,7 +8165,38 @@ h(int x) {}
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 19),
     ]);
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    var node = findNode.methodInvocation('f()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T* Function<T>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num* Function()*
+  staticType: num*
+  typeArgumentTypes
+    num*
+''');
+    }
   }
 
   test_remainder_int_context_none() async {
@@ -2847,7 +8207,38 @@ g(int a) {
 }
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    var node = findNode.methodInvocation('f()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T* Function<T>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num* Function()*
+  staticType: num*
+  typeArgumentTypes
+    num*
+''');
+    }
   }
 
   test_remainder_int_double() async {
@@ -2857,13 +8248,56 @@ f(int a, double b) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('remainder'),
-        elementMatcher(numElement.getMethod('remainder'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num)',
-        expectedType:
-            typeStringByNullability(nullable: 'double', legacy: 'num'));
+    var node = findNode.methodInvocation('remainder');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: remainder
+    staticElement: dart:core::@class::num::@method::remainder
+    staticType: num Function(num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: double
+    rightParenthesis: )
+  staticInvokeType: num Function(num)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: remainder
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::remainder
+      isLegacy: true
+    staticType: num* Function(num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@16
+        staticType: double*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_remainder_int_int() async {
@@ -2873,12 +8307,56 @@ f(int a, int b) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('remainder'),
-        elementMatcher(numElement.getMethod('remainder'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num)',
-        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
+    var node = findNode.methodInvocation('remainder');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: remainder
+    staticElement: dart:core::@class::num::@method::remainder
+    staticType: num Function(num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: num Function(num)
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: remainder
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::remainder
+      isLegacy: true
+    staticType: num* Function(num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@13
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_remainder_int_int_target_rewritten() async {
@@ -2888,12 +8366,70 @@ f(int Function() a, int b) {
 }
 ''');
 
-    assertMethodInvocation(
-        findNode.methodInvocation('remainder'),
-        elementMatcher(numElement.getMethod('remainder'),
-            isLegacy: isLegacyLibrary),
-        'num Function(num)',
-        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
+    var node = findNode.methodInvocation('remainder');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: FunctionExpressionInvocation
+    function: SimpleIdentifier
+      token: a
+      staticElement: a@17
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: <null>
+    staticInvokeType: int Function()
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: remainder
+    staticElement: dart:core::@class::num::@method::remainder
+    staticType: num Function(num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@24
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: num Function(num)
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: FunctionExpressionInvocation
+    function: SimpleIdentifier
+      token: a
+      staticElement: a@17
+      staticType: int* Function()*
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: <null>
+    staticInvokeType: int* Function()*
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: remainder
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::remainder
+      isLegacy: true
+    staticType: num* Function(num*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: b
+        staticElement: b@24
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*)*
+  staticType: num*
+''');
+    }
   }
 
   test_remainder_other_context_int_via_extension_explicit() async {
@@ -2911,7 +8447,38 @@ h(int x) {}
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 19),
     ]);
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    var node = findNode.methodInvocation('f()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T* Function<T>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num* Function()*
+  staticType: num*
+  typeArgumentTypes
+    num*
+''');
+    }
   }
 
   test_remainder_other_context_int_via_extension_implicit() async {
@@ -2929,7 +8496,38 @@ h(int x) {}
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 16),
     ]);
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+    var node = findNode.methodInvocation('f()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T* Function<T>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num* Function()*
+  staticType: num*
+  typeArgumentTypes
+    num*
+''');
+    }
   }
 
   test_syntheticName() async {
@@ -2945,13 +8543,76 @@ class A {
       error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 13),
     ]);
 
-    assertMethodInvocation2(
-      findNode.methodInvocation(');'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+    var node = findNode.methodInvocation(');');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
+          literal: 2
+          staticType: int
+        staticElement: dart:core::@class::num::@method::+
+        staticInvokeType: num Function(num)
+        staticType: int
+      ListLiteral
+        leftBracket: [
+        elements
+          IntegerLiteral
+            literal: 0
+            staticType: int
+        rightBracket: ]
+        staticType: List<int>
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int*
+        operator: +
+        rightOperand: IntegerLiteral
+          literal: 2
+          staticType: int*
+        staticElement: MethodMember
+          base: dart:core::@class::num::@method::+
+          isLegacy: true
+        staticInvokeType: num* Function(num*)*
+        staticType: int*
+      ListLiteral
+        leftBracket: [
+        elements
+          IntegerLiteral
+            literal: 0
+            staticType: int*
+        rightBracket: ]
+        staticType: List<int*>*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
 
     assertType(findNode.binary('1 + 2'), 'int');
     assertType(findNode.listLiteral('[0]'), 'List<int>');
@@ -2968,8 +8629,48 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
     ]);
 
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertTypeArgumentTypes(invocation, ['int', 'bool']);
+    var node = findNode.methodInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: U Function<T, U>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: bool Function(int)
+  staticType: bool
+  typeArgumentTypes
+    int
+    bool
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: U* Function<T, U>(T*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: bool* Function(int*)*
+  staticType: bool*
+  typeArgumentTypes
+    int*
+    bool*
+''');
+    }
   }
 
   test_typeArgumentTypes_generic_instantiateToBounds() async {
@@ -2981,8 +8682,38 @@ main() {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo();');
-    assertTypeArgumentTypes(invocation, ['num']);
+    var node = findNode.methodInvocation('foo();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T extends num>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+  typeArgumentTypes
+    num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T extends num*>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()*
+  staticType: void
+  typeArgumentTypes
+    num*
+''');
+    }
   }
 
   test_typeArgumentTypes_generic_typeArguments_notBounds() async {
@@ -2995,8 +8726,59 @@ main() {
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 45, 4),
     ]);
-    var invocation = findNode.methodInvocation('foo<bool>();');
-    assertTypeArgumentTypes(invocation, ['bool']);
+
+    var node = findNode.methodInvocation('foo<bool>();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T extends num>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: bool
+          staticElement: dart:core::@class::bool
+          staticType: null
+        type: bool
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+  typeArgumentTypes
+    bool
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T extends num*>()*
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: bool
+          staticElement: dart:core::@class::bool
+          staticType: null
+        type: bool*
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()*
+  staticType: void
+  typeArgumentTypes
+    bool*
+''');
+    }
   }
 
   test_typeArgumentTypes_generic_typeArguments_wrongNumber() async {
@@ -3009,8 +8791,71 @@ main() {
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 32, 13),
     ]);
-    var invocation = findNode.methodInvocation('foo<int, double>();');
-    assertTypeArgumentTypes(invocation, ['dynamic']);
+
+    var node = findNode.methodInvocation('foo<int, double>();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+      NamedType
+        name: SimpleIdentifier
+          token: double
+          staticElement: dart:core::@class::double
+          staticType: null
+        type: double
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+  typeArgumentTypes
+    dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function<T>()*
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int*
+      NamedType
+        name: SimpleIdentifier
+          token: double
+          staticElement: dart:core::@class::double
+          staticType: null
+        type: double*
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()*
+  staticType: void
+  typeArgumentTypes
+    dynamic
+''');
+    }
   }
 
   test_typeArgumentTypes_notGeneric() async {
@@ -3022,51 +8867,42 @@ main() {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertTypeArgumentTypes(invocation, []);
-  }
-
-  void _assertInvalidInvocation(String search, Element? expectedElement,
-      {String? expectedMethodNameType,
-      String? expectedNameType,
-      List<String> expectedTypeArguments = const <String>[],
-      bool dynamicNameType = false}) {
-    var invocation = findNode.methodInvocation(search);
-    if (dynamicNameType) {
-      assertTypeDynamic(invocation.methodName);
+    var node = findNode.methodInvocation('foo(0)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
     }
-    // TODO(scheglov) I think `invokeType` should be `null`.
-    assertMethodInvocation(
-      invocation,
-      expectedElement,
-      'dynamic',
-      expectedMethodNameType: expectedMethodNameType,
-      expectedNameType: expectedNameType,
-      expectedType: 'dynamic',
-      expectedTypeArguments: expectedTypeArguments,
-    );
-    assertTypeArgumentTypes(invocation, expectedTypeArguments);
-  }
-
-  void _assertUnresolvedMethodInvocation(
-    String search, {
-    List<String> expectedTypeArguments = const <String>[],
-  }) {
-    // TODO(scheglov) clean up
-    _assertInvalidInvocation(
-      search,
-      null,
-      expectedTypeArguments: expectedTypeArguments,
-    );
-//    var invocation = findNode.methodInvocation(search);
-//    assertTypeDynamic(invocation.methodName);
-//    // TODO(scheglov) I think `invokeType` should be `null`.
-//    assertMethodInvocation(
-//      invocation,
-//      null,
-//      'dynamic',
-//      expectedType: 'dynamic',
-//    );
   }
 }
 
