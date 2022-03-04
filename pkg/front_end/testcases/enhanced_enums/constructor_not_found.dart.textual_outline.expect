@@ -1,3 +1,13 @@
-enum T { t; const T.named(); }
-enum S { s.named(); const S(); }
+enum T {
+  t;
+
+  const T.named();
+}
+
+enum S {
+  s.named();
+
+  const S();
+}
+
 void main() {}

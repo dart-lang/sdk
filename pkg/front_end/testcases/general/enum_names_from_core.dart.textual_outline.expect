@@ -15,4 +15,5 @@ enum E {
   _Enum,
   List,
 }
+
 main() {}

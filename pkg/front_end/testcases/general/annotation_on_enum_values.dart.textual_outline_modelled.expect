@@ -4,6 +4,7 @@ class Fisk<T> {
 }
 
 const int hest = 42;
+
 enum Foo {
   @hest
   bar,
@@ -11,4 +12,5 @@ enum Foo {
   baz,
   cafebabe,
 }
+
 main() {}

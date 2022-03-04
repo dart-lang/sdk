@@ -12,7 +12,9 @@ Future<int?> returnAsync6() async {}
 Future<int?> returnAsync7() async {}
 Iterable yieldSync() sync* {}
 Stream yieldAsync() async* {}
+
 enum Enum { a, b }
+
 Enum caseReturn1(Enum e) {}
 Enum caseReturn2(Enum e) {}
 localFunctions() {}

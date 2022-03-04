@@ -1,0 +1,13 @@
+enum S {
+  s.named();
+
+  const S();
+}
+
+enum T {
+  t;
+
+  const T.named();
+}
+
+void main() {}

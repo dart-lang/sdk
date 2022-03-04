@@ -150,7 +150,8 @@ abstract class ImplementsEnum implements MyEnum {
   // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
 }
 
-abstract class MixesInEnum with MyEnum { // It's not a mixin!
+// It's not a mixin!
+abstract class MixesInEnum with MyEnum {
   //           ^
   // [cfe] 'MyEnum' is an enum and can't be extended or implemented.
   // [cfe] Can't use 'MyEnum' as a mixin because it has constructors.

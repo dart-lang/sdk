@@ -1,0 +1,60 @@
+class A10 {
+  void element() {}
+}
+
+class A8 {
+  void set element(dynamic value) {}
+}
+
+class A9 {
+  int element = 42;
+}
+
+enum E1 {
+  element;
+
+  final int element = 42;
+}
+
+enum E10 with A10 { element }
+
+enum E2 {
+  element,
+  element;
+}
+
+enum E3 {
+  element;
+
+  void element() {}
+}
+
+enum E4 {
+  element;
+
+  static void element() {}
+}
+
+enum E5 {
+  element;
+
+  static int element = 42;
+}
+
+enum E6 {
+  element;
+
+  void set element(E6 value) {}
+}
+
+enum E7 {
+  element;
+
+  static void set element(E7 value) {}
+}
+
+enum E8 with A8 { element }
+
+enum E9 with A9 { element }
+
+main() {}

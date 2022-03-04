@@ -1,4 +1,11 @@
-enum E<X> { one(1), two("2"); final X field; const E(this.field); }
+enum E<X> {
+  one(1),
+  two("2");
+
+  final X field;
+  const E(this.field);
+}
+
 test() {}
 foo(E<int> ei, E<String> es) {}
 bar(E<int> ei, E<String> es) {}
