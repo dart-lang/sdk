@@ -23,7 +23,13 @@ abstract class FileStateFilter {
 
 class _AnyFilter implements FileStateFilter {
   @override
-  bool shouldInclude(FileState file) => true;
+  bool shouldInclude(FileState file) {
+    var uri = file.uriProperties;
+    if (uri.isDart) {
+      return !uri.isDartInternal;
+    }
+    return true;
+  }
 }
 
 class _PubFilter implements FileStateFilter {
@@ -66,7 +72,7 @@ class _PubFilter implements FileStateFilter {
   bool shouldInclude(FileState file) {
     var uri = file.uriProperties;
     if (uri.isDart) {
-      return true;
+      return !uri.isDartInternal;
     }
 
     // Normally only package URIs are available.
