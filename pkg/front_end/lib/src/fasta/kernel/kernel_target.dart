@@ -1086,7 +1086,8 @@ class KernelTarget extends TargetImplementation {
         superConstructor, new Arguments(positional, named: named));
     SynthesizedFunctionNode synthesizedFunctionNode =
         new SynthesizedFunctionNode(
-            substitutionMap, superConstructor.function, function);
+            substitutionMap, superConstructor.function, function,
+            libraryBuilder: classBuilder.library);
     if (!isConst) {
       // For constant constructors default values are computed and cloned part
       // of the outline expression and therefore passed to the
@@ -1144,7 +1145,7 @@ class KernelTarget extends TargetImplementation {
     for (SynthesizedFunctionNode synthesizedFunctionNode
         in synthesizedFunctionNodes) {
       if (!forOutline || synthesizedFunctionNode.isOutlineNode) {
-        synthesizedFunctionNode.cloneDefaultValues();
+        synthesizedFunctionNode.cloneDefaultValues(loader.typeEnvironment);
       }
     }
     if (!forOutline) {

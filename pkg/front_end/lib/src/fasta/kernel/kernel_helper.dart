@@ -7,6 +7,10 @@ library fasta.kernel_target;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_environment.dart';
+
+import '../builder/library_builder.dart';
+import '../messages.dart';
 
 /// Data for clone default values for synthesized function nodes once the
 /// original default values have been computed.
@@ -35,20 +39,26 @@ class SynthesizedFunctionNode {
   /// named parameters.
   final bool identicalSignatures;
 
-  final List<int>? _positionalSuperParameters;
+  final List<int?>? _positionalSuperParameters;
 
   final List<String>? _namedSuperParameters;
 
   bool isOutlineNode;
 
+  final LibraryBuilder _libraryBuilder;
+
+  CloneVisitorNotMembers? _cloner;
+
   SynthesizedFunctionNode(
       this._typeSubstitution, this._original, this._synthesized,
       {this.identicalSignatures: true,
-      List<int>? positionalSuperParameters: null,
+      List<int?>? positionalSuperParameters: null,
       List<String>? namedSuperParameters: null,
-      this.isOutlineNode: false})
+      this.isOutlineNode: false,
+      required LibraryBuilder libraryBuilder})
       : _positionalSuperParameters = positionalSuperParameters,
         _namedSuperParameters = namedSuperParameters,
+        _libraryBuilder = libraryBuilder,
         // Check that [positionalSuperParameters] and [namedSuperParameters] are
         // provided or omitted together.
         assert((positionalSuperParameters == null) ==
@@ -56,11 +66,18 @@ class SynthesizedFunctionNode {
         assert(positionalSuperParameters == null ||
             () {
               // Check that [positionalSuperParameters] is sorted if it's
-              // provided.
-              for (int i = 1; i < positionalSuperParameters.length; i++) {
-                if (positionalSuperParameters[i] <
-                    positionalSuperParameters[i - 1]) {
-                  return false;
+              // provided. The `null` values are allowed in-between the sorted
+              // values.
+              for (int i = -1, j = 0;
+                  j < positionalSuperParameters.length;
+                  j++) {
+                int? currentValue = positionalSuperParameters[j];
+                if (currentValue != null) {
+                  if (i == -1 || positionalSuperParameters[i]! < currentValue) {
+                    i = j;
+                  } else {
+                    return false;
+                  }
                 }
               }
               return true;
@@ -82,23 +99,11 @@ class SynthesizedFunctionNode {
               return superParameterIndex == namedSuperParameters.length;
             }());
 
-  void cloneDefaultValues() {
+  void cloneDefaultValues(TypeEnvironment typeEnvironment) {
     // TODO(ahe): It is unclear if it is legal to use type variables in
     // default values, but Fasta is currently allowing it, and the VM
     // accepts it. If it isn't legal, the we can speed this up by using a
     // single cloner without substitution.
-    CloneVisitorNotMembers? cloner;
-
-    void cloneInitializer(VariableDeclaration originalParameter,
-        VariableDeclaration clonedParameter) {
-      if (originalParameter.initializer != null) {
-        cloner ??=
-            new CloneVisitorNotMembers(typeSubstitution: _typeSubstitution);
-        clonedParameter.initializer = cloner!
-            .clone(originalParameter.initializer!)
-          ..parent = clonedParameter;
-      }
-    }
 
     // For mixin application constructors, the argument count is the same, but
     // for redirecting tear off lowerings, the argument count of the tear off
@@ -109,14 +114,21 @@ class SynthesizedFunctionNode {
       assert(_positionalSuperParameters != null ||
           _synthesized.positionalParameters.length ==
               _original.positionalParameters.length);
-      List<int>? positionalSuperParameters = _positionalSuperParameters;
+      List<int?>? positionalSuperParameters = _positionalSuperParameters;
       for (int i = 0; i < _original.positionalParameters.length; i++) {
         if (positionalSuperParameters == null) {
-          cloneInitializer(_original.positionalParameters[i],
+          _cloneInitializer(_original.positionalParameters[i],
               _synthesized.positionalParameters[i]);
         } else if (i < positionalSuperParameters.length) {
-          cloneInitializer(_original.positionalParameters[i],
-              _synthesized.positionalParameters[positionalSuperParameters[i]]);
+          int? superParameterIndex = positionalSuperParameters[i];
+          if (superParameterIndex != null) {
+            VariableDeclaration originalParameter =
+                _original.positionalParameters[i];
+            VariableDeclaration synthesizedParameter =
+                _synthesized.positionalParameters[superParameterIndex];
+            _cloneDefaultValueForSuperParameters(
+                originalParameter, synthesizedParameter, typeEnvironment);
+          }
         }
       }
 
@@ -131,7 +143,7 @@ class SynthesizedFunctionNode {
       }
       for (int i = 0; i < _synthesized.namedParameters.length; i++) {
         if (namedSuperParameters == null) {
-          cloneInitializer(
+          _cloneInitializer(
               _original.namedParameters[i], _synthesized.namedParameters[i]);
         } else if (superParameterNameIndex < namedSuperParameters.length &&
             namedSuperParameters[superParameterNameIndex] ==
@@ -141,9 +153,12 @@ class SynthesizedFunctionNode {
           int? originalNamedParameterIndex =
               originalNamedParameterIndices[superParameterName];
           if (originalNamedParameterIndex != null) {
-            cloneInitializer(
-                _original.namedParameters[originalNamedParameterIndex],
-                _synthesized.namedParameters[i]);
+            VariableDeclaration originalParameter =
+                _original.namedParameters[originalNamedParameterIndex];
+            VariableDeclaration synthesizedParameter =
+                _synthesized.namedParameters[i];
+            _cloneDefaultValueForSuperParameters(
+                originalParameter, synthesizedParameter, typeEnvironment);
           } else {
             // TODO(cstefantsova): Handle the erroneous case of missing names.
           }
@@ -155,7 +170,7 @@ class SynthesizedFunctionNode {
         VariableDeclaration synthesizedParameter =
             _synthesized.positionalParameters[i];
         if (i < _original.positionalParameters.length) {
-          cloneInitializer(
+          _cloneInitializer(
               _original.positionalParameters[i], synthesizedParameter);
         } else {
           // Error case: use `null` as initializer.
@@ -175,13 +190,50 @@ class SynthesizedFunctionNode {
           VariableDeclaration? originalParameter =
               originalParameters[synthesizedParameter.name!];
           if (originalParameter != null) {
-            cloneInitializer(originalParameter, synthesizedParameter);
+            _cloneInitializer(originalParameter, synthesizedParameter);
           } else {
             // Error case: use `null` as initializer.
             synthesizedParameter.initializer = new NullLiteral()
               ..parent = synthesizedParameter;
           }
         }
+      }
+    }
+  }
+
+  void _cloneInitializer(VariableDeclaration originalParameter,
+      VariableDeclaration clonedParameter) {
+    if (originalParameter.initializer != null) {
+      CloneVisitorNotMembers cloner = _cloner ??=
+          new CloneVisitorNotMembers(typeSubstitution: _typeSubstitution);
+      clonedParameter.initializer = cloner.clone(originalParameter.initializer!)
+        ..parent = clonedParameter;
+    }
+  }
+
+  void _cloneDefaultValueForSuperParameters(
+      VariableDeclaration originalParameter,
+      VariableDeclaration synthesizedParameter,
+      TypeEnvironment typeEnvironment) {
+    Member member = _synthesized.parent as Member;
+    Expression? originalParameterInitializer = originalParameter.initializer;
+    DartType? originalParameterInitializerType = originalParameterInitializer
+        ?.getStaticType(new StaticTypeContext(member, typeEnvironment));
+    DartType synthesizedParameterType = synthesizedParameter.type;
+    if (originalParameterInitializerType != null &&
+        typeEnvironment.isSubtypeOf(originalParameterInitializerType,
+            synthesizedParameterType, SubtypeCheckMode.withNullabilities)) {
+      _cloneInitializer(originalParameter, synthesizedParameter);
+    } else {
+      if (synthesizedParameterType.isPotentiallyNonNullable) {
+        _libraryBuilder.addProblem(
+            templateOptionalSuperParameterWithoutInitializer.withArguments(
+                synthesizedParameter.type,
+                synthesizedParameter.name!,
+                _libraryBuilder.isNonNullableByDefault),
+            synthesizedParameter.fileOffset,
+            synthesizedParameter.name?.length ?? 1,
+            _libraryBuilder.fileUri);
       }
     }
   }

@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
+import '../builder/library_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import 'kernel_helper.dart';
@@ -279,7 +280,8 @@ SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
     Procedure tearOff,
     Member target,
     List<DartType> typeArguments,
-    FreshTypeParameters freshTypeParameters) {
+    FreshTypeParameters freshTypeParameters,
+    LibraryBuilder libraryBuilder) {
   int fileOffset = tearOff.fileOffset;
 
   List<TypeParameter> typeParameters;
@@ -318,7 +320,7 @@ SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
   _createTearOffBody(tearOff, target, arguments);
   return new SynthesizedFunctionNode(
       substitutionMap, target.function!, tearOff.function,
-      identicalSignatures: false);
+      identicalSignatures: false, libraryBuilder: libraryBuilder);
 }
 
 /// Creates the synthesized [Procedure] node for a tear off lowering by the

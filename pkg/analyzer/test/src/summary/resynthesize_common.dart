@@ -12526,6 +12526,16 @@ library
               token: f @28
               staticElement: self::@function::f
               staticType: T Function<T>(T)
+            typeArguments: TypeArgumentList
+              leftBracket: < @29
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @30
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @33
             argumentList: ArgumentList
               leftParenthesis: ( @34
               arguments

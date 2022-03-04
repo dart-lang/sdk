@@ -279,7 +279,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           new Map<TypeParameter, DartType>.fromIterables(
               target.enclosingClass!.typeParameters, targetType.typeArguments),
           target.function!,
-          tearOff.function));
+          tearOff.function,
+          libraryBuilder: library));
     });
   }
 

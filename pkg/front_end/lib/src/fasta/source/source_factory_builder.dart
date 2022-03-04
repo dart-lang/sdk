@@ -463,7 +463,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           _factoryTearOff!,
           target!,
           typeArguments ?? [],
-          _tearOffTypeParameters!));
+          _tearOffTypeParameters!,
+          library));
     }
     if (isConst && isPatch) {
       _finishPatch();

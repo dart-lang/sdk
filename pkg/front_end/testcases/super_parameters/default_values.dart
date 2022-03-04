@@ -106,4 +106,22 @@ class S9 {
   S9([int x = 0]) : s = x - 1;
 }
 
+class Ap {
+  Ap([num x = 3.14]);
+}
+
+class Bp extends Ap {
+  Bp([int super.x]); // Error.
+  Bp.req(int super.x); // Ok.
+}
+
+class An {
+  An({num x = 3.14});
+}
+
+class Bn extends An {
+  Bn({int super.x}); // Error.
+  Bn.req({required int super.x}); // Ok.
+}
+
 main() {}

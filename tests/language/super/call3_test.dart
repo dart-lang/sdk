@@ -7,8 +7,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  A(
-    this.x
+  A(this.x
 //  ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
 //       ^
@@ -25,19 +24,17 @@ class B extends A {}
 class B2 extends A {
   B2();
 //^^
-// [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
 // [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
   B2.named() : this.x = 499;
 //^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
 // [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
   var x;
 }
 
 class C {
-  C
-  .named
-  ();
+  C.named();
   final foo = 499;
 }
 

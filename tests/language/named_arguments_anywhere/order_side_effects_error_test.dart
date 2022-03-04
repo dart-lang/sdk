@@ -5,8 +5,6 @@
 // Checks that compile-time errors in the arguments are reported when the named
 // arguments are placed before the positional.
 
-// SharedOptions=--enable-experiment=named-arguments-anywhere
-
 const a42 = const A(42);
 
 class A {

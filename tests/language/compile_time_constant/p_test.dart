@@ -5,13 +5,11 @@
 import "package:expect/expect.dart";
 
 class A {
-  const A(
-    this.x
-    //   ^
-    // [analyzer] COMPILE_TIME_ERROR.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
-    // [cfe] 'x' is a final instance variable that was initialized at the declaration.
-    //   ^
-    // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
+  const A(this.x
+      //       ^
+      // [analyzer] COMPILE_TIME_ERROR.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
+      // [cfe] 'x' is a final instance variable that was initialized at the declaration.
+      // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
       );
   final x = null;
 }
@@ -19,7 +17,7 @@ class A {
 class B extends A {
   const B();
   //    ^
-  // [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
   // [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
 }
 

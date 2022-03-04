@@ -213,6 +213,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable!.type = const UnknownType();
           needsInference = true;
+        } else if (!formal.hasDeclaredInitializer &&
+            formal.isSuperInitializingFormal) {
+          needsInference = true;
         }
       }
       if (needsInference) {
@@ -228,7 +231,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   /// Infers the types of any untyped initializing formals.
-  void inferFormalTypes(ClassHierarchy classHierarchy) {
+  void inferFormalTypes(TypeEnvironment typeEnvironment) {
     if (_hasFormalsInferred) return;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
@@ -250,7 +253,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
               doFinishConstructor: false);
         }
         finalizeSuperInitializingFormals(
-            classHierarchy, _superParameterDefaultValueCloners, initializers);
+            typeEnvironment, _superParameterDefaultValueCloners, initializers);
       }
     }
     _hasFormalsInferred = true;
@@ -305,7 +308,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   void finalizeSuperInitializingFormals(
-      ClassHierarchy classHierarchy,
+      TypeEnvironment typeEnvironment,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes,
       List<Initializer>? initializers) {
     if (formals == null) return;
@@ -348,20 +351,20 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     }
 
     if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
-      superTargetBuilder.inferFormalTypes(classHierarchy);
+      superTargetBuilder.inferFormalTypes(typeEnvironment);
     } else if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
       MemberBuilder? superTargetOriginBuilder = superTargetBuilder.actualOrigin;
       if (superTargetOriginBuilder is DeclaredSourceConstructorBuilder) {
-        superTargetOriginBuilder.inferFormalTypes(classHierarchy);
+        superTargetOriginBuilder.inferFormalTypes(typeEnvironment);
       }
     }
 
     int superInitializingFormalIndex = -1;
-    List<int>? positionalSuperParameters;
+    List<int?>? positionalSuperParameters;
     List<String>? namedSuperParameters;
 
-    Supertype? supertype = classHierarchy.getClassAsInstanceOf(
-        classBuilder.cls, superTarget.enclosingClass);
+    Supertype? supertype = typeEnvironment.hierarchy
+        .getClassAsInstanceOf(classBuilder.cls, superTarget.enclosingClass);
     assert(supertype != null);
     Map<TypeParameter, DartType> substitution =
         new Map<TypeParameter, DartType>.fromIterables(
@@ -381,8 +384,10 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
                 superFormals[superInitializingFormalIndex];
             formal.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer ||
                 correspondingSuperFormal.hasDeclaredInitializer;
-            if (!hasImmediatelyDeclaredInitializer) {
-              (positionalSuperParameters ??= <int>[]).add(formalIndex);
+            if (!hasImmediatelyDeclaredInitializer && !formal.isRequired) {
+              (positionalSuperParameters ??= <int?>[]).add(formalIndex);
+            } else {
+              (positionalSuperParameters ??= <int?>[]).add(null);
             }
           } else {
             // TODO(cstefantsova): Report an error.
@@ -398,7 +403,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           if (correspondingSuperFormal != null) {
             formal.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer ||
                 correspondingSuperFormal.hasDeclaredInitializer;
-            if (!hasImmediatelyDeclaredInitializer) {
+            if (!hasImmediatelyDeclaredInitializer && !formal.isNamedRequired) {
               (namedSuperParameters ??= <String>[]).add(formal.name);
             }
           } else {
@@ -412,8 +417,6 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             type = substitute(type, substitution);
           }
           formal.variable!.type = type ?? const DynamicType();
-        } else {
-          formal.variable!.type = const DynamicType();
         }
       }
     }
@@ -423,7 +426,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           substitution, superTarget.function, constructor.function,
           positionalSuperParameters: positionalSuperParameters ?? const <int>[],
           namedSuperParameters: namedSuperParameters ?? const <String>[],
-          isOutlineNode: true));
+          isOutlineNode: true,
+          libraryBuilder: library));
     }
   }
 
@@ -485,6 +489,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       superTargetBuilder
           .addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
     }
+
     synthesizedFunctionNodes.addAll(_superParameterDefaultValueCloners);
     _superParameterDefaultValueCloners.clear();
   }

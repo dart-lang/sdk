@@ -216,12 +216,12 @@ public interface AnalysisServer {
    *         not be analyzed.
    * @param packageRoots A mapping from source directories to package roots that should override the
    *         normal package: URI resolution mechanism. If a package root is a file, then the analyzer
-   *         will behave as though that file is a ".packages" file in the source directory. The
-   *         effect is the same as specifying the file as a "--packages" parameter to the Dart VM
-   *         when executing any Dart file inside the source directory. Files in any directories that
-   *         are not overridden by this mapping have their package: URI's resolved using the normal
-   *         pubspec.yaml mechanism. If this field is absent, or the empty map is specified, that
-   *         indicates that the normal pubspec.yaml mechanism should always be used.
+   *         will behave as though that file is a ".dart_tool/package_config.json" file in the source
+   *         directory. The effect is the same as specifying the file as a "--packages" parameter to
+   *         the Dart VM when executing any Dart file inside the source directory. Files in any
+   *         directories that are not overridden by this mapping have their package: URI's resolved
+   *         using the normal pubspec.yaml mechanism. If this field is absent, or the empty map is
+   *         specified, that indicates that the normal pubspec.yaml mechanism should always be used.
    */
   public void analysis_setAnalysisRoots(List<String> included, List<String> excluded, Map<String, String> packageRoots);
 
