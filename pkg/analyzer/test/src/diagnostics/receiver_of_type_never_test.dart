@@ -463,15 +463,20 @@ void f(Never x) {
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
     ]);
 
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.parameter('x'),
-      readType: 'Never',
-      writeElement: findElement.parameter('x'),
-      writeType: 'Never',
-      element: null,
-      type: 'Never',
-    );
+    assertResolvedNodeText(findNode.postfix('x++'), r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: null
+  operator: ++
+  readElement: x@13
+  readType: Never
+  writeElement: x@13
+  writeType: Never
+  staticElement: <null>
+  staticType: Never
+''');
   }
 
   test_postfixExpression_neverQ_plusPlus() async {
@@ -484,15 +489,20 @@ void f(Never? x) {
           22, 2),
     ]);
 
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.parameter('x'),
-      readType: 'Never?',
-      writeElement: findElement.parameter('x'),
-      writeType: 'Never?',
-      element: null,
-      type: 'Never?',
-    );
+    assertResolvedNodeText(findNode.postfix('x++'), r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: null
+  operator: ++
+  readElement: x@14
+  readType: Never?
+  writeElement: x@14
+  writeType: Never?
+  staticElement: <null>
+  staticType: Never?
+''');
   }
 
   test_prefixExpression_never_plusPlus() async {
@@ -505,15 +515,20 @@ void f(Never x) {
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
     ]);
 
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      readElement: findElement.parameter('x'),
-      readType: 'Never',
-      writeElement: findElement.parameter('x'),
-      writeType: 'Never',
-      element: null,
-      type: 'Never',
-    );
+    assertResolvedNodeText(findNode.prefix('++x'), r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: null
+  readElement: x@13
+  readType: Never
+  writeElement: x@13
+  writeType: Never
+  staticElement: <null>
+  staticType: Never
+''');
   }
 
   test_prefixExpression_neverQ_plusPlus() async {
@@ -526,15 +541,20 @@ void f(Never? x) {
           21, 2),
     ]);
 
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      readElement: findElement.parameter('x'),
-      readType: 'Never?',
-      writeElement: findElement.parameter('x'),
-      writeType: 'Never?',
-      element: null,
-      type: 'dynamic',
-    );
+    assertResolvedNodeText(findNode.prefix('++x'), r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: null
+  readElement: x@14
+  readType: Never?
+  writeElement: x@14
+  writeType: Never?
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_propertyAccess_never_read() async {

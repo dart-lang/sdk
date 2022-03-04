@@ -723,18 +723,13 @@ class LeastUpperBoundHelper {
 
     // The bounds of type parameters must be equal.
     // Otherwise the result is `Function`.
-    var freshTypeFormalTypes =
-        FunctionTypeImpl.relateTypeFormals(f, g, (t, s) => t == s);
-    if (freshTypeFormalTypes == null) {
+    var fresh = _typeSystem.relateTypeParameters(f.typeFormals, g.typeFormals);
+    if (fresh == null) {
       return _interfaceTypeFunctionNone;
     }
 
-    var typeFormals = freshTypeFormalTypes
-        .map<TypeParameterElement>((t) => t.element)
-        .toList();
-
-    f = f.instantiate(freshTypeFormalTypes);
-    g = g.instantiate(freshTypeFormalTypes);
+    f = f.instantiate(fresh.typeParameterTypes);
+    g = g.instantiate(fresh.typeParameterTypes);
 
     var fParameters = f.parameters;
     var gParameters = g.parameters;
@@ -822,7 +817,7 @@ class LeastUpperBoundHelper {
     var returnType = getLeastUpperBound(f.returnType, g.returnType);
 
     return FunctionTypeImpl(
-      typeFormals: typeFormals,
+      typeFormals: fresh.typeParameters,
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,

@@ -160,6 +160,7 @@ import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
 import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
+import 'remove_unnecessary_late_test.dart' as remove_unnecessary_late;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'remove_unnecessary_parentheses_test.dart'
     as remove_unnecessary_parentheses;
@@ -362,6 +363,7 @@ void main() {
     remove_type_arguments.main();
     remove_unnecessary_cast.main();
     remove_unnecessary_const.main();
+    remove_unnecessary_late.main();
     remove_unnecessary_new.main();
     remove_unnecessary_parentheses.main();
     remove_unnecessary_raw_string.main();

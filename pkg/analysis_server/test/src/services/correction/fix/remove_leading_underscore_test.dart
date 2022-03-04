@@ -12,7 +12,8 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveLeadingUnderscoreBulkTest);
-    defineReflectiveTests(RemoveLeadingUnderscoreTest);
+    defineReflectiveTests(RemoveLeadingUnderscoreForLibraryPrefixesTest);
+    defineReflectiveTests(RemoveLeadingUnderscoreForLocalVariablesTest);
   });
 }
 
@@ -44,7 +45,29 @@ main() {
 }
 
 @reflectiveTest
-class RemoveLeadingUnderscoreTest extends FixProcessorLintTest {
+class RemoveLeadingUnderscoreForLibraryPrefixesTest
+    extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_LEADING_UNDERSCORE;
+
+  @override
+  String get lintCode => LintNames.no_leading_underscores_for_library_prefixes;
+
+  Future<void> test_importPrefix() async {
+    await resolveTestCode('''
+import 'dart:core' as _core;
+_core.int i = 1;
+''');
+    await assertHasFix('''
+import 'dart:core' as core;
+core.int i = 1;
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveLeadingUnderscoreForLocalVariablesTest
+    extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_LEADING_UNDERSCORE;
 

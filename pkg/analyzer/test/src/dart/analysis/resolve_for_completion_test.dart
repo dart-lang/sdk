@@ -87,7 +87,7 @@ class B {
 
   void foo2() {
     print(0);
-    bar^;
+    bar^
     print(1);
   }
 
@@ -96,7 +96,7 @@ class B {
 ''');
 
     result.assertResolvedNodes([
-      'void foo2() {print(0); bar; print(1);}',
+      'void foo2() {print(0); bar print; (1);}',
     ]);
   }
 
@@ -139,7 +139,7 @@ class B {
 
   B() {
     print(0);
-    bar^;
+    bar^
     print(1);
   }
 
@@ -148,7 +148,7 @@ class B {
 ''');
 
     result.assertResolvedNodes([
-      'B() {print(0); bar; print(1);}',
+      'B() {print(0); bar print; (1);}',
     ]);
   }
 
@@ -246,7 +246,7 @@ extension E on int {
 
   void foo2() {
     print(0);
-    bar^;
+    bar^
     print(1);
   }
 
@@ -255,7 +255,7 @@ extension E on int {
 ''');
 
     result.assertResolvedNodes([
-      'void foo2() {print(0); bar; print(1);}',
+      'void foo2() {print(0); bar print; (1);}',
     ]);
   }
 
@@ -292,6 +292,24 @@ extension E on int^ {
   }
 
   test_functionDeclaration_body() async {
+    var result = _resolveTestCode(r'''
+void foo1() {}
+
+void foo2() {
+  print(0);
+  bar^
+  print(1);
+}
+
+void foo3() {}
+''');
+
+    result.assertResolvedNodes([
+      'void foo2() {print(0); bar print; (1);}',
+    ]);
+  }
+
+  test_functionDeclaration_body_withSemicolon() async {
     var result = _resolveTestCode(r'''
 void foo1() {}
 
@@ -396,7 +414,7 @@ mixin M {
 
   void foo2() {
     print(0);
-    bar^;
+    bar^
     print(1);
   }
 
@@ -405,7 +423,7 @@ mixin M {
 ''');
 
     result.assertResolvedNodes([
-      'void foo2() {print(0); bar; print(1);}',
+      'void foo2() {print(0); bar print; (1);}',
     ]);
   }
 

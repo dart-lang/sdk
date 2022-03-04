@@ -202,6 +202,18 @@ abstract class B implements A {
 ''');
   }
 
+  test_issue48468() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  void foo<T extends R, R>();
+}
+
+class B implements A {
+  void foo<T extends R, R>() {}
+}
+''');
+  }
+
   test_method_parameter_functionTyped_optOut_extends_optIn() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 abstract class A {

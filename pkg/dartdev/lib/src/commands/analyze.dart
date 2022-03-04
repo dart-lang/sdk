@@ -81,7 +81,7 @@ class AnalyzeCommand extends DartdevCommand {
   String get invocation => '${super.invocation} [<directory>]';
 
   @override
-  FutureOr<int> run() async {
+  Future<int> run() async {
     final args = argResults!;
     // Find targets from the 'rest' params.
     final List<io.FileSystemEntity> targets = [];
@@ -133,6 +133,12 @@ class AnalyzeCommand extends DartdevCommand {
       if (!analysisFinished) {
         io.exitCode = exitCode;
       }
+    });
+
+    server.onCrash.then((_) {
+      log.stderr('The analysis server shut down unexpectedly.');
+      log.stdout('Please report this at dartbug.com.');
+      io.exit(1);
     });
 
     await server.analysisFinished;

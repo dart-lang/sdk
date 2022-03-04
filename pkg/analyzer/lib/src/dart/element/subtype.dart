@@ -20,16 +20,17 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 /// https://github.com/dart-lang/language
 /// See `resources/type-system/subtyping.md`
 class SubtypeHelper {
+  final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final InterfaceTypeImpl _nullNone;
   final InterfaceTypeImpl _objectNone;
   final InterfaceTypeImpl _objectQuestion;
 
-  SubtypeHelper(TypeSystemImpl typeSystem)
-      : _typeProvider = typeSystem.typeProvider,
-        _nullNone = typeSystem.nullNone,
-        _objectNone = typeSystem.objectNone,
-        _objectQuestion = typeSystem.objectQuestion;
+  SubtypeHelper(this._typeSystem)
+      : _typeProvider = _typeSystem.typeProvider,
+        _nullNone = _typeSystem.nullNone,
+        _objectNone = _typeSystem.objectNone,
+        _objectQuestion = _typeSystem.objectQuestion;
 
   /// Return `true` if [T0_] is a subtype of [T1_].
   bool isSubtypeOf(DartType T0_, DartType T1_) {
@@ -342,24 +343,13 @@ class SubtypeHelper {
 
   /// Check that [f] is a subtype of [g].
   bool _isFunctionSubtypeOf(FunctionType f, FunctionType g) {
-    var fTypeFormals = f.typeFormals;
-    var gTypeFormals = g.typeFormals;
-
-    // The number of type parameters must be the same.
-    if (fTypeFormals.length != gTypeFormals.length) {
+    var fresh = _typeSystem.relateTypeParameters(f.typeFormals, g.typeFormals);
+    if (fresh == null) {
       return false;
     }
 
-    // The bounds of type parameters must be equal.
-    var freshTypeFormalTypes = FunctionTypeImpl.relateTypeFormals(f, g, (t, s) {
-      return isSubtypeOf(t, s) && isSubtypeOf(s, t);
-    });
-    if (freshTypeFormalTypes == null) {
-      return false;
-    }
-
-    f = f.instantiate(freshTypeFormalTypes);
-    g = g.instantiate(freshTypeFormalTypes);
+    f = f.instantiate(fresh.typeParameterTypes);
+    g = g.instantiate(fresh.typeParameterTypes);
 
     if (!isSubtypeOf(f.returnType, g.returnType)) {
       return false;

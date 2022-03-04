@@ -131,6 +131,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_this_express
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_raw_string.dart';
@@ -454,6 +455,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.no_duplicate_case_values: [
       RemoveDuplicateCase.newInstance,
     ],
+    LintNames.no_leading_underscores_for_library_prefixes: [
+      RemoveLeadingUnderscore.newInstance,
+    ],
     LintNames.no_leading_underscores_for_local_identifiers: [
       RemoveLeadingUnderscore.newInstance,
     ],
@@ -616,6 +620,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_lambdas: [
       ReplaceWithTearOff.newInstance,
+    ],
+    LintNames.unnecessary_late: [
+      RemoveUnnecessaryLate.newInstance,
     ],
     LintNames.unnecessary_new: [
       RemoveUnnecessaryNew.newInstance,

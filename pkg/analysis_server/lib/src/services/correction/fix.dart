@@ -1073,6 +1073,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove unnecessary const keywords everywhere in file',
   );
+  static const REMOVE_UNNECESSARY_LATE = FixKind(
+    'dart.fix.remove.unnecessaryLate',
+    DartFixKindPriority.DEFAULT,
+    'Remove unnecessary late keyword',
+  );
+  static const REMOVE_UNNECESSARY_LATE_MULTI = FixKind(
+    'dart.fix.remove.unnecessaryLate.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove unnecessary late keywords everywhere in file',
+  );
   static const REMOVE_UNNECESSARY_NEW = FixKind(
     'dart.fix.remove.unnecessaryNew',
     DartFixKindPriority.DEFAULT,

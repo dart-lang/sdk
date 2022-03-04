@@ -57,6 +57,11 @@ class RemoveLeadingUnderscore extends CorrectionProducer {
           references = findLocalElementReferences(root, element);
         }
       }
+    } else if (element is PrefixElement) {
+      var root = node.thisOrAncestorOfType<CompilationUnit>();
+      if (root != null) {
+        references = findPrefixElementReferences(root, element);
+      }
     }
     if (references == null) {
       return;

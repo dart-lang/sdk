@@ -1606,7 +1606,7 @@ LintCode.no_default_cases:
 LintCode.no_duplicate_case_values:
   status: hasFix
 LintCode.no_leading_underscores_for_library_prefixes:
-  status: needsFix
+  status: hasFix
 LintCode.no_leading_underscores_for_local_identifiers:
   status: hasFix
 LintCode.no_logic_in_create_state:
@@ -1779,7 +1779,7 @@ LintCode.unnecessary_getters_setters:
 LintCode.unnecessary_lambdas:
   status: hasFix
 LintCode.unnecessary_late:
-  status: needsFix
+  status: hasFix
 LintCode.unnecessary_new:
   status: hasFix
 LintCode.unnecessary_null_aware_assignments:
