@@ -13,7 +13,9 @@ Stream yieldAsync() async* {}
 String returnExplicit() {}
 String returnImplicit() {}
 String returnMixed(bool b) {}
+
 enum Enum { a, b }
+
 localFunctions() {}
 main() {}
 returnAsync5() async {}

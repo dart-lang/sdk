@@ -343,8 +343,6 @@ class Slot : public ZoneAllocated {
   Representation UnboxedRepresentation() const;
 
  private:
-  friend class FlowGraphDeserializer;  // For GetNativeSlot.
-
   Slot(Kind kind,
        int8_t bits,
        ClassIdTagType cid,

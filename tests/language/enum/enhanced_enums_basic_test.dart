@@ -104,8 +104,8 @@ void main() {
   Expect.equals(0, EnumAll.v1.instanceMethod());
   Expect.identical(EnumAll.v4, EnumAll.v3 ^ EnumAll.v2);
 
-  Expect.equals("EnumAll.v1:EnumMixin<num>:ObjectMixin:this",
-      EnumAll.v1.thisAndSuper());
+  Expect.equals(
+      "EnumAll.v1:EnumMixin<num>:ObjectMixin:this", EnumAll.v1.thisAndSuper());
 
   // Which can reference type parameters.
   Expect.isTrue(EnumAll.v2.test(2)); // does `is T` with `T` being `int`.
@@ -157,13 +157,18 @@ enum EnumPlainTrailingComma {
 // Also if using type parameters, mixins or interfaces.
 // It only matters whether there is something after the values.
 enum EnumNoSemicolon<T extends num> with ObjectMixin implements Interface {
-  v1, v2, v3
+  v1,
+  v2,
+  v3
 }
-
 
 // Allows semicolon after values, even when not needed.
 // Without trailing comma.
-enum EnumPlainSemicolon { v1, v2, v3; }
+enum EnumPlainSemicolon {
+  v1,
+  v2,
+  v3;
+}
 
 // With trailing comma.
 enum EnumPlainTrailingCommaSemicolon {
@@ -202,6 +207,7 @@ enum EnumAll<S extends num, T extends num>
   static late var sLateVarInit = v3;
   static EnumAll? sVar;
   static EnumAll sVarInit = v3;
+
   /// Static getters, setters and methods
   static EnumAll<int, int> get staticGetSet => v3;
   static set staticGetSet(EnumAll<int, int> _) {}
@@ -210,10 +216,13 @@ enum EnumAll<S extends num, T extends num>
   // Constructors.
   // Generative, non-redirecting, unnamed.
   const EnumAll({T? y})
-      : constructor = "unnamed", this.x = 0 as S, y = y ?? (0 as T);
+      : constructor = "unnamed",
+        this.x = 0 as S,
+        y = y ?? (0 as T);
   // Generative, non-redirecting, named.
   const EnumAll.named(this.x, {T? y, String? constructor})
-      : constructor = constructor ?? "named", y = y ?? (0 as T);
+      : constructor = constructor ?? "named",
+        y = y ?? (0 as T);
   // Generative, redirecting.
   const EnumAll.renamed(S x, {T? y})
       : this.named(x, y: y, constructor: "renamed");
@@ -266,6 +275,7 @@ extension EnumAllExtension on EnumAll {
     Expect.fail("Unreachable");
     return "not";
   }
+
   String get extension => "extension";
 }
 
@@ -282,6 +292,7 @@ enum EnumNoUnnamedConstructor {
 
 enum NewNamedConstructor {
   v1;
+
   const NewNamedConstructor.new();
 }
 
@@ -301,13 +312,16 @@ enum Canonical<T> {
   v1<int>(1),
   v2<num>(1),
   v3<num>(1);
+
   final T value;
   const Canonical(this.value);
 }
 
 // Both `toString` and `index` are inherited from superclass.
 enum OverrideEnum {
-  v1, v2;
+  v1,
+  v2;
+
   // Cannot override index
   int get superIndex => super.index;
   String toString() => "FakeString";
@@ -318,6 +332,7 @@ enum OverrideEnum {
 enum SelfRefEnum {
   e1(null),
   e2(e1);
+
   final SelfRefEnum? previous;
   const SelfRefEnum(this.previous);
 }
@@ -343,9 +358,7 @@ mixin GenericEnumMixin<T> on Enum {
   String toString() => "${super.toString()}:EnumMixin<$T>";
 }
 
-abstract class Interface {
-
-}
+abstract class Interface {}
 
 abstract class GenericInterface<T> {
   // Implemented by mixins.

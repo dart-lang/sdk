@@ -2,11 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -133,24 +129,6 @@ void f(int? a) {
 }
 
 mixin ExtensionOverrideTestCases on PubPackageResolutionTest {
-  late ExtensionElement extension;
-  late ExtensionOverride extensionOverride;
-
-  void findDeclarationAndOverride(
-      {required String declarationName,
-      required String overrideSearch,
-      String? declarationUri}) {
-    if (declarationUri == null) {
-      ExtensionDeclaration declaration =
-          findNode.extensionDeclaration('extension $declarationName');
-      extension = declaration.declaredElement as ExtensionElement;
-    } else {
-      extension =
-          findElement.importFind(declarationUri).extension_(declarationName);
-    }
-    extensionOverride = findNode.extensionOverride(overrideSearch);
-  }
-
   test_call_noPrefix_noTypeArguments() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -161,9 +139,65 @@ void f(A a) {
   E(a)('');
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
-    validateOverride();
-    validateCall();
+
+    var node = findNode.functionExpressionInvocation('E(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@68
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticElement: self::@extension::E::@method::call
+  staticInvokeType: int Function(String)
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@68
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticElement: self::@extension::E::@method::call
+  staticInvokeType: int* Function(String*)*
+  staticType: int*
+''');
+    }
   }
 
   test_call_noPrefix_typeArguments() async {
@@ -177,9 +211,93 @@ void f(A a) {
   E<String>(a)('');
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E<T>', overrideSearch: 'E<S');
-    validateOverride(typeArguments: [stringType]);
-    validateCall();
+
+    var node = findNode.functionExpressionInvocation('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: String
+            staticElement: dart:core::@class::String
+            staticType: null
+          type: String
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@66
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      String
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticElement: MethodMember
+    base: self::@extension::E::@method::call
+    substitution: {T: String}
+  staticInvokeType: int Function(String)
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: String
+            staticElement: dart:core::@class::String
+            staticType: null
+          type: String*
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@66
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+    typeArgumentTypes
+      String*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticElement: MethodMember
+    base: self::@extension::E::@method::call
+    substitution: {T: String*}
+  staticInvokeType: int* Function(String*)*
+  staticType: int*
+''');
+    }
   }
 
   test_call_prefix_noTypeArguments() async {
@@ -195,12 +313,81 @@ void f(p.A a) {
   p.E(a)('');
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E(a)');
-    validateOverride();
-    validateCall();
+
+    var node = findNode.functionExpressionInvocation('E(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticElement: package:test/lib.dart::@extension::E::@method::call
+  staticInvokeType: int Function(String)
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticElement: package:test/lib.dart::@extension::E::@method::call
+  staticInvokeType: int* Function(String*)*
+  staticType: int*
+''');
+    }
   }
 
   test_call_prefix_typeArguments() async {
@@ -217,12 +404,109 @@ void f(p.A a) {
   p.E<String>(a)('');
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E<S');
-    validateOverride(typeArguments: [stringType]);
-    validateCall();
+
+    var node = findNode.functionExpressionInvocation('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: String
+            staticElement: dart:core::@class::String
+            staticType: null
+          type: String
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      String
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticElement: MethodMember
+    base: package:test/lib.dart::@extension::E::@method::call
+    substitution: {T: String}
+  staticInvokeType: int Function(String)
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: String
+            staticElement: dart:core::@class::String
+            staticType: null
+          type: String*
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+    typeArgumentTypes
+      String*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticElement: MethodMember
+    base: package:test/lib.dart::@extension::E::@method::call
+    substitution: {T: String*}
+  staticInvokeType: int* Function(String*)*
+  staticType: int*
+''');
+    }
   }
 
   test_getter_noPrefix_noTypeArguments() async {
@@ -235,14 +519,59 @@ void f(A a) {
   E(a).g;
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
-    validateOverride();
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('.g'),
-      element: findElement.getter('g'),
-      type: 'int',
-    );
+    var node = findNode.propertyAccess('E(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@59
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+  operator: .
+  propertyName: SimpleIdentifier
+    token: g
+    staticElement: self::@extension::E::@getter::g
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@59
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+  operator: .
+  propertyName: SimpleIdentifier
+    token: g
+    staticElement: self::@extension::E::@getter::g
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_getter_noPrefix_noTypeArguments_functionExpressionInvocation() async {
@@ -257,17 +586,81 @@ void f(A a) {
   E(a).g(0);
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
-    validateOverride();
 
-    var invocation = findNode.functionExpressionInvocation('g(0)');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'double Function(int)');
-    assertType(invocation, 'double');
-
-    var function = invocation.function as PropertyAccess;
-    assertElement(function.propertyName, findElement.getter('g', of: 'E'));
-    assertType(function.propertyName, 'double Function(int)');
+    var node = findNode.functionExpressionInvocation('E(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@87
+            staticType: A
+        rightParenthesis: )
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: g
+      staticElement: self::@extension::E::@getter::g
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@87
+            staticType: A*
+        rightParenthesis: )
+      extendedType: A*
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: g
+      staticElement: self::@extension::E::@getter::g
+      staticType: double* Function(int*)*
+    staticType: double* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double* Function(int*)*
+  staticType: double*
+''');
+    }
   }
 
   test_getter_noPrefix_typeArguments() async {
@@ -280,17 +673,87 @@ void f(A a) {
   E<int>(a).g;
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
-    validateOverride(typeArguments: [intType]);
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('.g'),
-      element: elementMatcher(
-        findElement.getter('g'),
-        substitution: {'T': 'int'},
-      ),
-      type: 'int',
-    );
+    var node = findNode.propertyAccess('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@62
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: g
+    staticElement: PropertyAccessorMember
+      base: self::@extension::E::@getter::g
+      substitution: {T: int}
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int*
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@62
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+    typeArgumentTypes
+      int*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: g
+    staticElement: PropertyAccessorMember
+      base: self::@extension::E::@getter::g
+      substitution: {T: int*}
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_getter_prefix_noTypeArguments() async {
@@ -306,18 +769,75 @@ void f(p.A a) {
   p.E(a).g;
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E(a)');
-    validateOverride();
 
-    var importFind = findElement.importFind('package:test/lib.dart');
-    assertPropertyAccess2(
-      findNode.propertyAccess('.g'),
-      element: importFind.getter('g'),
-      type: 'int',
-    );
+    var node = findNode.propertyAccess('E(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+  operator: .
+  propertyName: SimpleIdentifier
+    token: g
+    staticElement: package:test/lib.dart::@extension::E::@getter::g
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+  operator: .
+  propertyName: SimpleIdentifier
+    token: g
+    staticElement: package:test/lib.dart::@extension::E::@getter::g
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_getter_prefix_typeArguments() async {
@@ -333,21 +853,103 @@ void f(p.A a) {
   p.E<int>(a).g;
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E<int>');
-    validateOverride(typeArguments: [intType]);
 
-    var importFind = findElement.importFind('package:test/lib.dart');
-    assertPropertyAccess2(
-      findNode.propertyAccess('.g'),
-      element: elementMatcher(
-        importFind.getter('g'),
-        substitution: {'T': 'int'},
-      ),
-      type: 'int',
-    );
+    var node = findNode.propertyAccess('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: g
+    staticElement: PropertyAccessorMember
+      base: package:test/lib.dart::@extension::E::@getter::g
+      substitution: {T: int}
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int*
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+    typeArgumentTypes
+      int*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: g
+    staticElement: PropertyAccessorMember
+      base: package:test/lib.dart::@extension::E::@getter::g
+      substitution: {T: int*}
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_method_noPrefix_noTypeArguments() async {
@@ -360,9 +962,67 @@ void f(A a) {
   E(a).m();
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
-    validateOverride();
-    validateInvocation();
+
+    var node = findNode.methodInvocation('E(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@55
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: self::@extension::E::@method::m
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@55
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: self::@extension::E::@method::m
+    staticType: void Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()*
+  staticType: void
+''');
+    }
   }
 
   test_method_noPrefix_typeArguments() async {
@@ -375,9 +1035,95 @@ void f(A a) {
   E<int>(a).m();
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
-    validateOverride(typeArguments: [intType]);
-    validateInvocation();
+
+    var node = findNode.methodInvocation('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@58
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: MethodMember
+      base: self::@extension::E::@method::m
+      substitution: {T: int}
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int*
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@58
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+    typeArgumentTypes
+      int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: MethodMember
+      base: self::@extension::E::@method::m
+      substitution: {T: int*}
+    staticType: void Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()*
+  staticType: void
+''');
+    }
   }
 
   test_method_prefix_noTypeArguments() async {
@@ -393,12 +1139,83 @@ void f(p.A a) {
   p.E(a).m();
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E(a)');
-    validateOverride();
-    validateInvocation();
+
+    var node = findNode.methodInvocation('E(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: package:test/lib.dart::@extension::E::@method::m
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: package:test/lib.dart::@extension::E::@method::m
+    staticType: void Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()*
+  staticType: void
+''');
+    }
   }
 
   test_method_prefix_typeArguments() async {
@@ -414,12 +1231,111 @@ void f(p.A a) {
   p.E<int>(a).m();
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E<int>');
-    validateOverride(typeArguments: [intType]);
-    validateInvocation();
+
+    var node = findNode.methodInvocation('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: MethodMember
+      base: package:test/lib.dart::@extension::E::@method::m
+      substitution: {T: int}
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int*
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+    typeArgumentTypes
+      int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: MethodMember
+      base: package:test/lib.dart::@extension::E::@method::m
+      substitution: {T: int*}
+    staticType: void Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()*
+  staticType: void
+''');
+    }
   }
 
   test_operator_noPrefix_noTypeArguments() async {
@@ -432,9 +1348,61 @@ void f(A a) {
   E(a) + 1;
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
-    validateOverride();
-    validateBinaryExpression();
+
+    var node = findNode.binary('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@74
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    staticType: int
+  staticElement: self::@extension::E::@method::+
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@74
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    staticType: int*
+  staticElement: self::@extension::E::@method::+
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_operator_noPrefix_typeArguments() async {
@@ -447,9 +1415,85 @@ void f(A a) {
   E<int>(a) + 1;
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
-    validateOverride(typeArguments: [intType]);
-    validateBinaryExpression();
+
+    var node = findNode.binary('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@77
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    staticType: int
+  staticElement: self::@extension::E::@method::+
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int*
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@77
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+    typeArgumentTypes
+      int*
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    staticType: int*
+  staticElement: self::@extension::E::@method::+
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_operator_onTearOff() async {
@@ -465,8 +1509,73 @@ f(){
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 45, 1),
     ]);
-    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(0)');
-    validateOverride();
+
+    var node = findNode.postfix('++;');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int
+        rightParenthesis: )
+      extendedType: int
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: v
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: self::@extension::E::@method::v
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int*
+        rightParenthesis: )
+      extendedType: int*
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: v
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: self::@extension::E::@method::v
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+    }
   }
 
   test_operator_prefix_noTypeArguments() async {
@@ -482,12 +1591,77 @@ void f(p.A a) {
   p.E(a) + 1;
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E(a)');
-    validateOverride();
-    validateBinaryExpression();
+
+    var node = findNode.binary('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    staticType: int
+  staticElement: package:test/lib.dart::@extension::E::@method::+
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    staticType: int*
+  staticElement: package:test/lib.dart::@extension::E::@method::+
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_operator_prefix_typeArguments() async {
@@ -503,12 +1677,101 @@ void f(p.A a) {
   p.E<int>(a) + 1;
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E<int>');
-    validateOverride(typeArguments: [intType]);
-    validateBinaryExpression();
+
+    var node = findNode.binary('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    staticType: int
+  staticElement: package:test/lib.dart::@extension::E::@method::+
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int*
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+    typeArgumentTypes
+      int*
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    staticType: int*
+  staticElement: package:test/lib.dart::@extension::E::@method::+
+  staticInvokeType: void Function(int*)*
+  staticType: void
+''');
+    }
   }
 
   test_setter_noPrefix_noTypeArguments() async {
@@ -521,18 +1784,81 @@ void f(A a) {
   E(a).s = 0;
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
-    validateOverride();
 
-    assertAssignment(
-      findNode.assignment('s ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('s', of: 'E'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var node = findNode.assignment('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@59
+            staticType: A
+        rightParenthesis: )
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::s
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@59
+            staticType: A*
+        rightParenthesis: )
+      extendedType: A*
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::s
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_setter_noPrefix_typeArguments() async {
@@ -545,21 +1871,109 @@ void f(A a) {
   E<int>(a).s = 0;
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
-    validateOverride(typeArguments: [intType]);
 
-    assertAssignment(
-      findNode.assignment('s ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        findElement.setter('s', of: 'E'),
-        substitution: {'T': 'int'},
-      ),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var node = findNode.assignment('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@62
+            staticType: A
+        rightParenthesis: )
+      extendedType: A
+      staticType: null
+      typeArgumentTypes
+        int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: self::@extension::E::@setter::s
+    substitution: {T: int}
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int*
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@62
+            staticType: A*
+        rightParenthesis: )
+      extendedType: A*
+      staticType: null
+      typeArgumentTypes
+        int*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: self::@extension::E::@setter::s
+    substitution: {T: int*}
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_setter_prefix_noTypeArguments() async {
@@ -575,22 +1989,97 @@ void f(p.A a) {
   p.E(a).s = 0;
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E(a)');
-    validateOverride();
 
-    var importFind = findElement.importFind('package:test/lib.dart');
-    assertAssignment(
-      findNode.assignment('s ='),
-      readElement: null,
-      readType: null,
-      writeElement: importFind.setter('s', of: 'E'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var node = findNode.assignment('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          staticElement: self::@prefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: E
+          staticElement: package:test/lib.dart::@extension::E
+          staticType: null
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@35
+            staticType: A
+        rightParenthesis: )
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: package:test/lib.dart::@extension::E::@setter::s
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          staticElement: self::@prefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: E
+          staticElement: package:test/lib.dart::@extension::E
+          staticType: null
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@35
+            staticType: A*
+        rightParenthesis: )
+      extendedType: A*
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: package:test/lib.dart::@extension::E::@setter::s
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_setter_prefix_typeArguments() async {
@@ -606,25 +2095,125 @@ void f(p.A a) {
   p.E<int>(a).s = 0;
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E<int>');
-    validateOverride(typeArguments: [intType]);
 
-    var importFind = findElement.importFind('package:test/lib.dart');
-    assertAssignment(
-      findNode.assignment('s ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        importFind.setter('s', of: 'E'),
-        substitution: {'T': 'int'},
-      ),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var node = findNode.assignment('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          staticElement: self::@prefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: E
+          staticElement: package:test/lib.dart::@extension::E
+          staticType: null
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@35
+            staticType: A
+        rightParenthesis: )
+      extendedType: A
+      staticType: null
+      typeArgumentTypes
+        int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/lib.dart::@extension::E::@setter::s
+    substitution: {T: int}
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          staticElement: self::@prefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: E
+          staticElement: package:test/lib.dart::@extension::E
+          staticType: null
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int*
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@35
+            staticType: A*
+        rightParenthesis: )
+      extendedType: A*
+      staticType: null
+      typeArgumentTypes
+        int*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/lib.dart::@extension::E::@setter::s
+    substitution: {T: int*}
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_setterAndGetter_noPrefix_noTypeArguments() async {
@@ -638,21 +2227,83 @@ void f(A a) {
   E(a).s += 0;
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
-    validateOverride();
 
-    assertAssignment(
-      findNode.assignment('s +='),
-      readElement: findElement.getter('s', of: 'E'),
-      readType: 'int',
-      writeElement: findElement.setter('s', of: 'E'),
-      writeType: 'int',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.assignment('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@77
+            staticType: A
+        rightParenthesis: )
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: self::@extension::E::@getter::s
+  readType: int
+  writeElement: self::@extension::E::@setter::s
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@77
+            staticType: A*
+        rightParenthesis: )
+      extendedType: A*
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: self::@extension::E::@getter::s
+  readType: int*
+  writeElement: self::@extension::E::@setter::s
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_setterAndGetter_noPrefix_typeArguments() async {
@@ -666,27 +2317,115 @@ void f(A a) {
   E<int>(a).s += 0;
 }
 ''');
-    findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
-    validateOverride(typeArguments: [intType]);
 
-    assertAssignment(
-      findNode.assignment('s +='),
-      readElement: elementMatcher(
-        findElement.getter('s', of: 'E'),
-        substitution: {'T': 'int'},
-      ),
-      readType: 'int',
-      writeElement: elementMatcher(
-        findElement.setter('s', of: 'E'),
-        substitution: {'T': 'int'},
-      ),
-      writeType: 'int',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.assignment('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@80
+            staticType: A
+        rightParenthesis: )
+      extendedType: A
+      staticType: null
+      typeArgumentTypes
+        int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: PropertyAccessorMember
+    base: self::@extension::E::@getter::s
+    substitution: {T: int}
+  readType: int
+  writeElement: PropertyAccessorMember
+    base: self::@extension::E::@setter::s
+    substitution: {T: int}
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int*
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@80
+            staticType: A*
+        rightParenthesis: )
+      extendedType: A*
+      staticType: null
+      typeArgumentTypes
+        int*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: PropertyAccessorMember
+    base: self::@extension::E::@getter::s
+    substitution: {T: int*}
+  readType: int*
+  writeElement: PropertyAccessorMember
+    base: self::@extension::E::@setter::s
+    substitution: {T: int*}
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_setterAndGetter_prefix_noTypeArguments() async {
@@ -703,25 +2442,99 @@ void f(p.A a) {
   p.E(a).s += 0;
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E(a)');
-    validateOverride();
 
-    var importFind = findElement.importFind('package:test/lib.dart');
-    assertAssignment(
-      findNode.assignment('s +='),
-      readElement: importFind.getter('s', of: 'E'),
-      readType: 'int',
-      writeElement: importFind.setter('s', of: 'E'),
-      writeType: 'int',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.assignment('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          staticElement: self::@prefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: E
+          staticElement: package:test/lib.dart::@extension::E
+          staticType: null
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@35
+            staticType: A
+        rightParenthesis: )
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: package:test/lib.dart::@extension::E::@getter::s
+  readType: int
+  writeElement: package:test/lib.dart::@extension::E::@setter::s
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          staticElement: self::@prefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: E
+          staticElement: package:test/lib.dart::@extension::E
+          staticType: null
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@35
+            staticType: A*
+        rightParenthesis: )
+      extendedType: A*
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: package:test/lib.dart::@extension::E::@getter::s
+  readType: int*
+  writeElement: package:test/lib.dart::@extension::E::@setter::s
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_setterAndGetter_prefix_typeArguments() async {
@@ -738,31 +2551,131 @@ void f(p.A a) {
   p.E<int>(a).s += 0;
 }
 ''');
-    findDeclarationAndOverride(
-        declarationName: 'E',
-        declarationUri: 'package:test/lib.dart',
-        overrideSearch: 'E<int>');
-    validateOverride(typeArguments: [intType]);
 
-    var importFind = findElement.importFind('package:test/lib.dart');
-    assertAssignment(
-      findNode.assignment('s +='),
-      readElement: elementMatcher(
-        importFind.getter('s', of: 'E'),
-        substitution: {'T': 'int'},
-      ),
-      readType: 'int',
-      writeElement: elementMatcher(
-        importFind.setter('s', of: 'E'),
-        substitution: {'T': 'int'},
-      ),
-      writeType: 'int',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.assignment('(a)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          staticElement: self::@prefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: E
+          staticElement: package:test/lib.dart::@extension::E
+          staticType: null
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@35
+            staticType: A
+        rightParenthesis: )
+      extendedType: A
+      staticType: null
+      typeArgumentTypes
+        int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: PropertyAccessorMember
+    base: package:test/lib.dart::@extension::E::@getter::s
+    substitution: {T: int}
+  readType: int
+  writeElement: PropertyAccessorMember
+    base: package:test/lib.dart::@extension::E::@setter::s
+    substitution: {T: int}
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          staticElement: self::@prefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: E
+          staticElement: package:test/lib.dart::@extension::E
+          staticType: null
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int*
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@35
+            staticType: A*
+        rightParenthesis: )
+      extendedType: A*
+      staticType: null
+      typeArgumentTypes
+        int*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: s
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: PropertyAccessorMember
+    base: package:test/lib.dart::@extension::E::@getter::s
+    substitution: {T: int*}
+  readType: int*
+  writeElement: PropertyAccessorMember
+    base: package:test/lib.dart::@extension::E::@setter::s
+    substitution: {T: int*}
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_tearOff() async {
@@ -775,59 +2688,59 @@ extension E on C {
 
 f(C c) => E(c).a;
 ''');
-    var identifier = findNode.simple('a;');
-    assertElement(identifier, findElement.method('a'));
-    assertType(identifier, 'void Function(int)');
-  }
 
-  void validateBinaryExpression() {
-    BinaryExpression binary = extensionOverride.parent as BinaryExpression;
-    Element? resolvedElement = binary.staticElement;
-    expect(resolvedElement, extension.getMethod('+'));
-  }
-
-  void validateCall() {
-    FunctionExpressionInvocation invocation =
-        extensionOverride.parent as FunctionExpressionInvocation;
-    Element? resolvedElement = invocation.staticElement;
-    expect(resolvedElement, extension.getMethod('call'));
-
-    NodeList<Expression> arguments = invocation.argumentList.arguments;
-    for (int i = 0; i < arguments.length; i++) {
-      expect(arguments[i].staticParameterElement, isNotNull);
-    }
-  }
-
-  void validateInvocation() {
-    MethodInvocation invocation = extensionOverride.parent as MethodInvocation;
-
-    assertMethodInvocation(
-      invocation,
-      extension.getMethod('m'),
-      'void Function()',
-    );
-
-    NodeList<Expression> arguments = invocation.argumentList.arguments;
-    for (int i = 0; i < arguments.length; i++) {
-      expect(arguments[i].staticParameterElement, isNotNull);
-    }
-  }
-
-  void validateOverride({List<DartType>? typeArguments}) {
-    expect(extensionOverride.extensionName.staticElement, extension);
-
-    expect(extensionOverride.staticType, isNull);
-    expect(extensionOverride.extensionName.staticType, isNull);
-
-    if (typeArguments == null) {
-      expect(extensionOverride.typeArguments, isNull);
+    var node = findNode.propertyAccess('E(c)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: c
+          staticElement: c@57
+          staticType: C
+      rightParenthesis: )
+    extendedType: C
+    staticType: null
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: self::@extension::E::@method::a
+    staticType: void Function(int)
+  staticType: void Function(int)
+''');
     } else {
-      expect(
-          extensionOverride.typeArguments!.arguments
-              .map((annotation) => annotation.type),
-          unorderedEquals(typeArguments));
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: c
+          staticElement: c@57
+          staticType: C*
+      rightParenthesis: )
+    extendedType: C*
+    staticType: null
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: self::@extension::E::@method::a
+    staticType: void Function(int*)*
+  staticType: void Function(int*)*
+''');
     }
-    expect(extensionOverride.argumentList.arguments, hasLength(1));
   }
 }
 

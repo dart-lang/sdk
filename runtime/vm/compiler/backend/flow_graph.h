@@ -616,7 +616,6 @@ class FlowGraph : public ZoneAllocated {
   // DiscoverBlocks computes parent_ and assigned_vars_ which are then used
   // if/when computing SSA.
   GrowableArray<intptr_t> parent_;
-  GrowableArray<BitVector*> assigned_vars_;
 
   intptr_t current_ssa_temp_index_;
   intptr_t max_block_id_;
