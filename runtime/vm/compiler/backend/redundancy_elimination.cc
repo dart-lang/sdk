@@ -1792,7 +1792,7 @@ class LoadOptimizer : public ValueObject {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->is_huge_method()) {
       return false;
     }
 
@@ -3019,7 +3019,7 @@ class StoreOptimizer : public LivenessAnalysis {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->is_huge_method()) {
       return;
     }
 

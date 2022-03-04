@@ -1105,6 +1105,7 @@ Fragment StreamingFlowGraphBuilder::BuildStatementAt(intptr_t kernel_offset) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
+  ++num_ast_nodes_;
   uint8_t payload = 0;
   Tag tag = ReadTag(&payload);  // read tag.
   switch (tag) {
@@ -1242,6 +1243,7 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStatement(TokenPosition* position) {
+  ++num_ast_nodes_;
   intptr_t offset = ReaderOffset();
   Tag tag = ReadTag();  // read tag.
   switch (tag) {

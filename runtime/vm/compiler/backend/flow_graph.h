@@ -408,6 +408,12 @@ class FlowGraph : public ZoneAllocated {
     unmatched_representations_allowed_ = false;
   }
 
+  // Returns true if this flow graph was built for a huge method
+  // and certain optimizations should be disabled.
+  bool is_huge_method() const { return huge_method_; }
+  // Mark this flow graph as huge and disable certain optimizations.
+  void mark_huge_method() { huge_method_ = true; }
+
   PrologueInfo prologue_info() const { return prologue_info_; }
 
   // Computes the loop hierarchy of the flow graph on demand.
@@ -634,6 +640,7 @@ class FlowGraph : public ZoneAllocated {
 
   bool licm_allowed_;
   bool unmatched_representations_allowed_ = true;
+  bool huge_method_ = false;
 
   const PrologueInfo prologue_info_;
 
