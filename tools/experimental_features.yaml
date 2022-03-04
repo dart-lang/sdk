@@ -224,7 +224,7 @@ features:
       enum T {
         t();
         void test() {
-          print("Success");
+          print('feature enabled');
         }
       }
       void main() {
@@ -241,7 +241,7 @@ features:
         }
       }
       void main() {
-        test(enabled : true, "Success");
+        test(enabled : true, 'feature enabled');
       }
 
   super-parameters:
@@ -256,5 +256,5 @@ features:
         C(super.foo);
       }
       void main(){
-        print(C("Success").foo);
+        print(C('feature enabled').foo);
       }
