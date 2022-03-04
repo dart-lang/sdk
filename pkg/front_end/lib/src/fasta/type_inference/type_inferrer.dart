@@ -412,7 +412,7 @@ class TypeInferrerImpl implements TypeInferrer {
     } else if ((constructor = engine.toBeInferred[target]) != null) {
       engine.toBeInferred.remove(target);
       engine.beingInferred[target] = constructor!;
-      constructor.inferFormalTypes(classHierarchy);
+      constructor.inferFormalTypes(typeSchemaEnvironment);
       engine.beingInferred.remove(target);
     }
   }

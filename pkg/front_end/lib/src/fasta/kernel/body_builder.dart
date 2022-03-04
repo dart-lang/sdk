@@ -1965,8 +1965,10 @@ class BodyBuilder extends StackListenerImpl
             constructor.function.positionalParameters[0].name == "index" &&
             constructor.function.positionalParameters[1].name == "name");
         (positionalArguments ??= <Expression>[]).insertAll(0, [
-          new VariableGet(constructor.function.positionalParameters[0]),
-          new VariableGet(constructor.function.positionalParameters[1])
+          new VariableGetImpl(constructor.function.positionalParameters[0],
+              forNullGuardedAccess: false),
+          new VariableGetImpl(constructor.function.positionalParameters[1],
+              forNullGuardedAccess: false)
         ]);
       }
       if (positionalArguments != null || namedArguments != null) {
@@ -1997,7 +1999,14 @@ class BodyBuilder extends StackListenerImpl
         initializer = buildSuperInitializer(
             true, superTarget, arguments, builder.charOffset);
       }
-      constructor.initializers.add(initializer);
+      if (libraryBuilder.enableSuperParametersInLibrary) {
+        InitializerInferenceResult inferenceResult =
+            typeInferrer.inferInitializer(this, initializer);
+        builder.addInitializer(initializer, this,
+            inferenceResult: inferenceResult);
+      } else {
+        constructor.initializers.add(initializer);
+      }
     }
     setParents(constructor.initializers, constructor);
     libraryBuilder.loader.transformListPostInference(constructor.initializers,
