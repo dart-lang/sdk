@@ -3633,6 +3633,23 @@ static Dart_PersistentHandle persistent_handle1;
 static Dart_WeakPersistentHandle weak_persistent_handle2;
 static Dart_WeakPersistentHandle weak_persistent_handle3;
 
+static void WeakPersistentHandlePeerCleanupEnsuresIGFinalizer(
+    void* isolate_callback_data,
+    void* peer) {
+  ASSERT(IsolateGroup::Current() != nullptr);
+}
+
+TEST_CASE(DartAPI_WeakPersistentHandleCleanupFinalizerAtShutdown) {
+  const char* kTestString1 = "Test String1";
+  int peer3 = 0;
+  Dart_EnterScope();
+  CHECK_API_SCOPE(thread);
+  Dart_Handle ref3 = Dart_NewStringFromCString(kTestString1);
+  weak_persistent_handle3 = Dart_NewWeakPersistentHandle(
+      ref3, &peer3, 0, WeakPersistentHandlePeerCleanupEnsuresIGFinalizer);
+  Dart_ExitScope();
+}
+
 static void WeakPersistentHandlePeerCleanupFinalizer(
     void* isolate_callback_data,
     void* peer) {
