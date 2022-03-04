@@ -8032,8 +8032,7 @@ bool Function::IsOptimizable() const {
     // Native methods don't need to be optimized.
     return false;
   }
-  if (is_optimizable() && (script() != Script::null()) &&
-      SourceSize() < FLAG_huge_method_cutoff_in_tokens) {
+  if (is_optimizable() && (script() != Script::null())) {
     // Additional check needed for implicit getters.
     return (unoptimized_code() == Object::null()) ||
            (Code::Handle(unoptimized_code()).Size() <

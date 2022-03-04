@@ -54,6 +54,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   Fragment BuildStatementAt(intptr_t kernel_offset);
 
+  intptr_t num_ast_nodes() const { return num_ast_nodes_; }
+
  private:
   Thread* thread() const { return flow_graph_builder_->thread_; }
 
@@ -436,6 +438,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
   CallSiteAttributesMetadataHelper call_site_attributes_metadata_helper_;
   Object& closure_owner_;
+  intptr_t num_ast_nodes_ = 0;
 
   friend class KernelLoader;
 

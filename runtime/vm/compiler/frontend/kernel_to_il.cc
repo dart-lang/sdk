@@ -36,6 +36,12 @@
 #include "vm/symbols.h"
 
 namespace dart {
+
+DEFINE_FLAG(bool,
+            print_huge_methods,
+            false,
+            "Print huge methods (less optimized)");
+
 namespace kernel {
 
 #define Z (zone_)
@@ -767,6 +773,23 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
   FinalizeCoverageArray();
   result->set_coverage_array(coverage_array());
+
+  if (streaming_flow_graph_builder.num_ast_nodes() >
+      FLAG_huge_method_cutoff_in_ast_nodes) {
+    if (FLAG_print_huge_methods) {
+      OS::PrintErr(
+          "Warning: \'%s\' from \'%s\' is too large. Some optimizations have "
+          "been "
+          "disabled, and the compiler might run out of memory. "
+          "Consider refactoring this code into smaller components.\n",
+          function.QualifiedUserVisibleNameCString(),
+          String::Handle(Z, Library::Handle(
+                                Z, Class::Handle(Z, function.Owner()).library())
+                                .url())
+              .ToCString());
+    }
+    result->mark_huge_method();
+  }
 
   return result;
 }
