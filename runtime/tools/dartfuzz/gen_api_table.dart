@@ -382,7 +382,7 @@ void visitCompilationUnit(CompilationUnitElement unit) {
           protoString(null, function.parameters));
     }
   }
-  for (var classElement in unit.types) {
+  for (var classElement in unit.classes) {
     if (classElement.isPublic) {
       visitClass(classElement);
     }
