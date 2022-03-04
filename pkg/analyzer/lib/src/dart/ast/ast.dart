@@ -7686,6 +7686,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
     ..addNode('target', target)
     ..addToken('operator', operator)
     ..addNode('methodName', methodName)
+    ..addNode('typeArguments', typeArguments)
     ..addNode('argumentList', argumentList);
 
   @override
