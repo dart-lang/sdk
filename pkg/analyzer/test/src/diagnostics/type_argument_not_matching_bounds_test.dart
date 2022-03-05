@@ -80,7 +80,6 @@ main() {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48509')
   test_extensionOverride_optIn_fromOptOut_Null() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 extension E<X extends int> on List<X> {

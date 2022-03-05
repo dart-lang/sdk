@@ -977,14 +977,18 @@ class FileSystemStateTestView {
 /// expensive to work with, if we do this thousand times.
 class FileUriProperties {
   static const int _isDart = 1 << 0;
-  static const int _isSrc = 1 << 1;
+  static const int _isDartInternal = 1 << 1;
+  static const int _isSrc = 1 << 2;
 
   final int _flags;
   final String? packageName;
 
   factory FileUriProperties(Uri uri) {
     if (uri.isScheme('dart')) {
-      return const FileUriProperties._dart();
+      var dartName = uri.pathSegments.firstOrNull;
+      return FileUriProperties._dart(
+        isInternal: dartName != null && dartName.startsWith('_'),
+      );
     } else if (uri.isScheme('package')) {
       var segments = uri.pathSegments;
       if (segments.length >= 2) {
@@ -997,8 +1001,9 @@ class FileUriProperties {
     return const FileUriProperties._unknown();
   }
 
-  const FileUriProperties._dart()
-      : _flags = _isDart,
+  const FileUriProperties._dart({
+    required bool isInternal,
+  })  : _flags = _isDart | (isInternal ? _isDartInternal : 0),
         packageName = null;
 
   FileUriProperties._package({
@@ -1012,6 +1017,8 @@ class FileUriProperties {
         packageName = null;
 
   bool get isDart => (_flags & _isDart) != 0;
+
+  bool get isDartInternal => (_flags & _isDartInternal) != 0;
 
   bool get isSrc => (_flags & _isSrc) != 0;
 }
