@@ -1493,15 +1493,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIndex(HIndex node) {
-    if (node.receiver.isConstantList() && node.index.isConstantInteger()) {
-      HConstant instruction = node.receiver;
-      ListConstantValue list = instruction.constant;
-      List<ConstantValue> entries = list.entries;
-      HConstant indexInstruction = node.index;
-      IntConstantValue indexConstant = indexInstruction.constant;
-      int index = indexConstant.intValue.toInt();
-      if (index >= 0 && index < entries.length) {
-        return _graph.addConstant(entries[index], _closedWorld);
+    HInstruction receiver = node.receiver;
+    if (receiver is HConstant) {
+      HInstruction index = node.index;
+      if (index is HConstant) {
+        ConstantValue foldedValue =
+            constant_system.index.fold(receiver.constant, index.constant);
+        if (foldedValue != null) {
+          return _graph.addConstant(foldedValue, _closedWorld);
+        }
       }
     }
     return node;
