@@ -275,6 +275,11 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
   const IndexSpecializer();
 
   @override
+  constant_system.BinaryOperation operation() {
+    return constant_system.index;
+  }
+
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
