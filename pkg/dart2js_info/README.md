@@ -134,6 +134,12 @@ The following tools are a available today:
     be JSON, backward-compatible JSON, binary, or protobuf schema (as defined in
     `info.proto`).
 
+  * [`runtime_coverage`][runtime_coverage]:
+    dart2js has an experimental feature to gather runtime coverage data of your
+    application. This tool correlates that with the info file and can output a
+    package-level breakdown of which files were not used during the runtime of
+    your app.
+
   * [`show`][show]: a tool that dumps info files in a readable text format.
 
 Next we describe in detail how to use each of these tools.
@@ -574,6 +580,39 @@ And with the following to view package-level information:
 $ dart2js_info runtime_coverage --show-packages main.dart.info.data main.runtime.data.txt
 ```
 
+Here's an example output snippet:
+```
+Runtime Coverage Summary
+========================================================================
+                                   bytes      %
+ Program size                   96860754 100.00%
+ Libraries (excluding statics)  94394961  97.45%
+ Code (classes + closures)      91141701  94.10%
+ Used                            3519239   3.63%
+
+                                   count      %
+ Classes + closures                15902 100.00%
+ Used                               5661  35.60%
+
+Runtime Coverage Breakdown (packages) (87622462 bytes)
+========================================================================
+ package:angular_components.material_datepicker (29881 bytes unused)
+   proportion of package used:                      43394/73275 (59.22%)
+   proportion of unused code to all code:           29881/91141701 (0.03%)
+   proportion of unused code to all unused code:    29881/87622462 (0.03%)
+   proportion of main unit code to package code:    8142/73275 (11.11%)
+   proportion of main unit code that is unused:     3088/8142 (37.93%)
+   package breakdown:
+     [-D] package:angular_components.material_datepicker/material_datepicker.dart:_ViewMaterialDatepickerComponent5: 656 bytes (0.90% of package)
+     [+D] package:angular_components.material_datepicker/calendar.dart:CalendarSelection: 645 bytes (0.88% of package)
+     [+M] package:angular_components.material_datepicker/range.dart:MonthRange: 629 bytes (0.86% of package)
+     [-M] package:angular_components.material_datepicker/range.dart:QuarterRange: 629 bytes (0.86% of package)
+...
+```
+
+A `+`/`-` indicates whether or not the element was used at runtime.
+A `M`/`D` indicates whether or not the element was in the main or deferred output unit.
+
 ## Code location, features and bugs
 
 This package is developed in [github][repo].  Please file feature requests and
@@ -592,5 +631,6 @@ bugs at the [issue tracker][tracker].
 [function_size]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/function_size_analysis.dart
 [library_size]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/library_size_split.dart
 [repo]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/
+[runtime_coverage]: https://github.com/dart-lang/sdk/blob/main/pkg/dart2js_info/bin/src/runtime_coverage_analysis.dart
 [show]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/text_print.dart
 [tracker]: https://github.com/dart-lang/sdk/issues

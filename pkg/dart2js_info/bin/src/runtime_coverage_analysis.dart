@@ -136,7 +136,7 @@ Future<void> _reportWithPackages(
   var packageData = <String, PackageInfo>{};
   var unused = PriorityQueue<Info>((a, b) => b.size.compareTo(a.size));
 
-  void tallyCode(Info i) {
+  void tallyCode(BasicInfo i) {
     totalCode += i.size;
     var name = qualifiedName(i);
     var used = coverage.contains(name);
@@ -193,14 +193,31 @@ Future<void> _reportWithPackages(
     _leftPadded('  proportion of unused code to all unused code:',
         '${packageInfo.unusedSize}/$unusedTotal ($unusedCodeRatioString%)');
 
-    _leftPadded('  package breakdown: ', '');
+    var mainUnitPackageRatioString =
+        (packageInfo.mainUnitSize / packageInfo.totalSize * 100)
+            .toStringAsFixed(2);
+    _leftPadded(
+        '  proportion of main unit code to package code:',
+        '${packageInfo.mainUnitSize}/${packageInfo.totalSize} '
+            '($mainUnitPackageRatioString%)');
+
+    var unusedMainUnitRatioString =
+        (packageInfo.unusedMainUnitSize / packageInfo.mainUnitSize * 100)
+            .toStringAsFixed(2);
+    _leftPadded(
+        '  proportion of main unit code that is unused:',
+        '${packageInfo.unusedMainUnitSize}/${packageInfo.mainUnitSize} '
+            '($unusedMainUnitRatioString%)');
+
+    print('   package breakdown:');
     for (var item in packageInfo.elements.toList()) {
       var percent =
           (item.size * 100 / packageInfo.totalSize).toStringAsFixed(2);
       var name = qualifiedName(item);
       var used = coverage.contains(name);
-      var usedNotch = used ? '+' : '-';
-      _leftPadded('    $usedNotch ${qualifiedName(item)}:',
+      var usedTick = used ? '+' : '-';
+      var mainUnitTick = item.outputUnit.name == 'main' ? 'M' : 'D';
+      _leftPadded('    [$usedTick$mainUnitTick] ${qualifiedName(item)}:',
           '${item.size} bytes ($percent% of package)');
     }
 
@@ -231,20 +248,29 @@ _leftPadded(String msg1, String msg2) {
 }
 
 class PackageInfo {
-  final elements = PriorityQueue<Info>((a, b) => b.size.compareTo(a.size));
+  final elements = PriorityQueue<BasicInfo>((a, b) => b.size.compareTo(a.size));
+
+  num mainUnitSize = 0;
   num totalSize = 0;
-  num usedSize = 0;
+  num unusedMainUnitSize = 0;
   num unusedSize = 0;
-  num usedRatio = 0.0;
+  num usedRatio = 0;
+  num usedSize = 0;
 
   PackageInfo();
 
-  void add(Info i, {bool used = true}) {
+  void add(BasicInfo i, {bool used = true}) {
     totalSize += i.size;
     if (used) {
       usedSize += i.size;
     } else {
       unusedSize += i.size;
+    }
+    if (i.outputUnit.name == 'main') {
+      mainUnitSize += i.size;
+      if (!used) {
+        unusedMainUnitSize += i.size;
+      }
     }
     elements.add(i);
     usedRatio = usedSize / totalSize;
