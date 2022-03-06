@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -97,11 +98,11 @@ class PostfixExpressionResolver {
       // We are invoking a getter and then invoking the returned function.
       //
       FunctionType propertyType = element.type;
-      return _resolver.inferenceHelper.computeInvokeReturnType(
+      return InvocationInferrer.computeInvokeReturnType(
         propertyType.returnType,
       );
     } else if (element is ExecutableElement) {
-      return _resolver.inferenceHelper.computeInvokeReturnType(element.type);
+      return InvocationInferrer.computeInvokeReturnType(element.type);
     }
     return DynamicTypeImpl.instance;
   }

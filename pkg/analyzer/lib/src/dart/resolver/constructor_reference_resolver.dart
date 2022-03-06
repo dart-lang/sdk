@@ -97,7 +97,9 @@ class ConstructorReferenceResolver {
     //
     // Otherwise we'll have a ConstructorElement, and we can skip inference
     // because there's nothing to infer in a non-generic type.
-    if (elementToInfer != null) {
+    if (elementToInfer != null &&
+        elementToInfer.typeParameters.isNotEmpty &&
+        constructorName.type.typeArguments == null) {
       // TODO(leafp): Currently, we may re-infer types here, since we
       // sometimes resolve multiple times.  We should really check that we
       // have not already inferred something.  However, the obvious ways to

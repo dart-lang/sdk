@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -323,38 +324,17 @@ class MethodInvocationResolver {
     );
   }
 
-  /// [InvocationExpression.staticInvokeType] has been set for the [node].
-  /// Use it to set context for arguments, and resolve them.
-  void _resolveArguments(
-      MethodInvocationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList,
-      {required DartType? contextType}) {
-    // TODO(scheglov) This is bad, don't write raw type, carry it
-    var callerType = _inferenceHelper.inferArgumentTypesForInvocation(
-      node,
-      node.methodName.staticType,
-      contextType: contextType,
-    );
-    _resolver.analyzeArgumentList(node.argumentList,
-        callerType is FunctionType ? callerType.parameters : null,
-        whyNotPromotedList: whyNotPromotedList,
-        methodInvocationContext: contextType);
-  }
-
   void _resolveArguments_finishInference(
       MethodInvocationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
-    _resolveArguments(node, whyNotPromotedList, contextType: contextType);
-
-    // TODO(scheglov) This is bad, don't put / get raw FunctionType this way.
-    _inferenceHelper.inferGenericInvocationExpression(
-      node,
-      node.methodName.staticType,
-      contextType: contextType,
-    );
-
-    DartType staticStaticType = _inferenceHelper.computeInvokeReturnType(
-      node.staticInvokeType,
-    );
+    var methodInvocationInferrer = MethodInvocationInferrer.forNode(node);
+    var rawType = node.methodName.staticType;
+    DartType staticStaticType = methodInvocationInferrer.resolveInvocation(
+        resolver: _resolver,
+        node: node,
+        rawType: rawType is FunctionType ? rawType : null,
+        contextType: contextType,
+        whyNotPromotedList: whyNotPromotedList);
     _inferenceHelper.recordStaticType(node, staticStaticType,
         contextType: contextType);
   }
@@ -473,29 +453,32 @@ class MethodInvocationResolver {
     var objectElement = _typeSystem.typeProvider.objectElement;
     var target = objectElement.getMethod(nameNode.name);
 
-    var hasMatchingObjectMethod = false;
+    FunctionType? rawType;
     if (target is MethodElement && !target.isStatic) {
       var arguments = node.argumentList.arguments;
-      hasMatchingObjectMethod = arguments.length == target.parameters.length &&
-          !arguments.any((e) => e is NamedExpression);
+      var hasMatchingObjectMethod =
+          arguments.length == target.parameters.length &&
+              !arguments.any((e) => e is NamedExpression);
       if (hasMatchingObjectMethod) {
         target = _resolver.toLegacyElement(target);
         nameNode.staticElement = target;
-        node.staticInvokeType = target.type;
+        rawType = target.type;
         node.staticType = target.returnType;
       }
     }
 
-    if (!hasMatchingObjectMethod) {
+    if (rawType == null) {
       nameNode.staticType = DynamicTypeImpl.instance;
-      node.staticInvokeType = DynamicTypeImpl.instance;
       node.staticType = DynamicTypeImpl.instance;
     }
 
     _setExplicitTypeArgumentTypes();
-    _resolver.analyzeArgumentList(node.argumentList, null,
+    MethodInvocationInferrer.forNode(node).resolveInvocation(
+        resolver: _resolver,
+        node: node,
+        rawType: rawType,
         whyNotPromotedList: whyNotPromotedList,
-        methodInvocationContext: contextType);
+        contextType: contextType);
   }
 
   void _resolveReceiverFunctionBounded(
@@ -563,7 +546,12 @@ class MethodInvocationResolver {
       node.staticInvokeType = _dynamicType;
       node.staticType = NeverTypeImpl.instance;
 
-      _resolveArguments(node, whyNotPromotedList, contextType: contextType);
+      MethodInvocationInferrer.forNode(node).resolveInvocation(
+          resolver: _resolver,
+          node: node,
+          rawType: null,
+          contextType: contextType,
+          whyNotPromotedList: whyNotPromotedList);
 
       _resolver.errorReporter.reportErrorForNode(
         HintCode.RECEIVER_OF_TYPE_NEVER,
@@ -577,7 +565,12 @@ class MethodInvocationResolver {
       node.staticInvokeType = _dynamicType;
       node.staticType = _dynamicType;
 
-      _resolveArguments(node, whyNotPromotedList, contextType: contextType);
+      MethodInvocationInferrer.forNode(node).resolveInvocation(
+          resolver: _resolver,
+          node: node,
+          rawType: null,
+          contextType: contextType,
+          whyNotPromotedList: whyNotPromotedList);
       return;
     }
   }

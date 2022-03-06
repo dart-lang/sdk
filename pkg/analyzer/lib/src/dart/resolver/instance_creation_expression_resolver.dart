@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/resolver/instance_creation_resolver_helper.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [InstanceCreationExpression] nodes.
@@ -14,14 +14,11 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// [InstanceCreationExpression] as a [MethodInvocation] if the parsed
 /// [ConstructorName]'s `type` resolves to a [FunctionReference] or
 /// [ConstructorReference], instead of a [NamedType].
-class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
+class InstanceCreationExpressionResolver {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
 
   InstanceCreationExpressionResolver(this._resolver);
-
-  @override
-  ResolverVisitor get resolver => _resolver;
 
   void resolve(InstanceCreationExpressionImpl node,
       {required DartType? contextType}) {
@@ -60,32 +57,20 @@ class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
     constructorName.accept(_resolver);
     // Re-assign constructorName in case the node got replaced.
     constructorName = node.constructorName;
+    _resolver.elementResolver.visitInstanceCreationExpression(node);
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       constructorName: constructorName,
       definingLibrary: _resolver.definingLibrary,
     );
-    var typeName = constructorName.type;
-    var constructorElement = constructorName.staticElement;
-    var inferenceResult = inferArgumentTypes(
-        inferenceNode: node,
-        constructorElement: constructorElement,
-        elementToInfer: elementToInfer,
-        typeArguments: typeName.typeArguments,
-        arguments: node.argumentList,
-        errorNode: constructorName,
-        isConst: node.isConst,
-        contextReturnType: contextType);
-    if (inferenceResult != null) {
-      typeName.type = inferenceResult.constructedType;
-      constructorElement =
-          constructorName.staticElement = inferenceResult.constructorElement;
-    }
-    _resolver.analyzeArgumentList(
-        node.argumentList, constructorElement?.parameters,
+    const InstanceCreationInferrer().resolveInvocation(
+        resolver: _resolver,
+        node: node,
+        rawType: elementToInfer?.asType,
+        contextType: contextType,
         whyNotPromotedList: whyNotPromotedList);
-    _resolver.elementResolver.visitInstanceCreationExpression(node);
-    _resolver.typeAnalyzer
-        .visitInstanceCreationExpression(node, contextType: contextType);
+    _resolver.inferenceHelper.recordStaticType(
+        node, node.constructorName.type.type!,
+        contextType: contextType);
     _resolver.checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }

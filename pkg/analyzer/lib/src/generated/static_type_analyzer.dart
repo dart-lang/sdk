@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -153,22 +152,6 @@ class StaticTypeAnalyzer {
   void visitFunctionReference(covariant FunctionReferenceImpl node) {
     // TODO(paulberry): implement
     node.staticType = _dynamicType;
-  }
-
-  /// The Dart Language Specification, 12.11.1: <blockquote>The static type of a new expression of
-  /// either the form <i>new T.id(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> or the form <i>new
-  /// T(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> is <i>T</i>.</blockquote>
-  ///
-  /// The Dart Language Specification, 12.11.2: <blockquote>The static type of a constant object
-  /// expression of either the form <i>const T.id(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> or the
-  /// form <i>const T(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> is <i>T</i>. </blockquote>
-  void visitInstanceCreationExpression(
-      covariant InstanceCreationExpressionImpl node,
-      {required DartType? contextType}) {
-    _inferInstanceCreationExpression(node, contextType: contextType);
-    _inferenceHelper.recordStaticType(
-        node, node.constructorName.type.typeOrThrow,
-        contextType: contextType);
   }
 
   /// <blockquote>
@@ -341,57 +324,5 @@ class StaticTypeAnalyzer {
       return _dynamicType;
     }
     return type;
-  }
-
-  /// Given an instance creation of a possibly generic type, infer the type
-  /// arguments using the current context type as well as the argument types.
-  void _inferInstanceCreationExpression(InstanceCreationExpressionImpl node,
-      {required DartType? contextType}) {
-    // TODO(leafp): Currently, we may re-infer types here, since we
-    // sometimes resolve multiple times.  We should really check that we
-    // have not already inferred something.  However, the obvious ways to
-    // check this don't work, since we may have been instantiated
-    // to bounds in an earlier phase, and we *do* want to do inference
-    // in that case.
-
-    // Get back to the uninstantiated generic constructor.
-    // TODO(jmesserly): should we store this earlier in resolution?
-    // Or look it up, instead of jumping backwards through the Member?
-    var constructorName = node.constructorName;
-    var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      constructorName: constructorName,
-      definingLibrary: _resolver.definingLibrary,
-    );
-
-    // If the constructor is not generic, we are done.
-    if (elementToInfer == null) {
-      return;
-    }
-
-    var typeName = constructorName.type;
-    var typeArguments = typeName.typeArguments;
-
-    var constructorType = elementToInfer.asType;
-    var arguments = node.argumentList;
-    var inferred = _resolver.inferenceHelper.inferGenericInvoke(
-        node, constructorType, typeArguments, arguments, constructorName,
-        isConst: node.isConst, contextReturnType: contextType);
-
-    if (inferred != null) {
-      // Fix up the parameter elements based on inferred method.
-      arguments.correspondingStaticParameters =
-          ResolverVisitor.resolveArgumentsToParameters(
-        argumentList: arguments,
-        parameters: inferred.parameters,
-      );
-      typeName.type = inferred.returnType;
-      // Update the static element as well. This is used in some cases, such as
-      // computing constant values. It is stored in two places.
-      var constructorElement = ConstructorMember.from(
-        elementToInfer.element,
-        inferred.returnType as InterfaceType,
-      );
-      constructorName.staticElement = constructorElement;
-    }
   }
 }
