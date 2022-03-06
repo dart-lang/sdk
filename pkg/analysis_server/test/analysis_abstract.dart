@@ -202,11 +202,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     server = createAnalysisServer();
     server.pluginManager = pluginManager;
     handler = analysisHandler;
-    // listen for notifications
-    var notificationStream = serverChannel.notificationController.stream;
-    notificationStream.listen((Notification notification) {
-      processNotification(notification);
-    });
+    serverChannel.notifications.listen(processNotification);
   }
 
   @mustCallSuper

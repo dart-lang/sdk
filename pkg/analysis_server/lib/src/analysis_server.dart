@@ -703,8 +703,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void applyFileRemoved(String file) {
-    sendAnalysisNotificationFlushResults(analysisServer, [file]);
-    filesToFlush.remove(file);
+    if (filesToFlush.remove(file)) {
+      sendAnalysisNotificationFlushResults(analysisServer, [file]);
+    }
   }
 
   @override

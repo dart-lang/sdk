@@ -135,10 +135,10 @@ class AnalysisServerTest with ResourceProviderMixin {
 
     // Track diagnostics that arrive.
     final errorsByFile = <String, List<AnalysisError>>{};
-    channel.notificationController.stream
+    channel.notifications
         .where((notification) => notification.event == 'analysis.errors')
-        .listen((notificaton) {
-      final params = AnalysisErrorsParams.fromNotification(notificaton);
+        .listen((notification) {
+      final params = AnalysisErrorsParams.fromNotification(notification);
       errorsByFile[params.file] = params.errors;
     });
 

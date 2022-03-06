@@ -2951,9 +2951,19 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   String get workspaceRootPath => '/home';
 
+  void deleteTestPackageAnalysisOptionsFile() {
+    deleteAnalysisOptionsYamlFile(testPackageRootPath);
+  }
+
+  void deleteTestPackageConfigJsonFile() {
+    deletePackageConfigJsonFile(testPackageRootPath);
+  }
+
   Future<Response> handleRequest(Request request) async {
     return await serverChannel.sendRequest(request);
   }
+
+  void processNotification(Notification notification) {}
 
   Future<void> setRoots({
     required List<String> included,
@@ -2987,6 +2997,8 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
         experiments: experiments,
       ),
     );
+
+    serverChannel.notifications.listen(processNotification);
 
     server = AnalysisServer(
       serverChannel,
