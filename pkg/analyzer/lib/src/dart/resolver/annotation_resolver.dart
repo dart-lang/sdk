@@ -2,35 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/resolver/instance_creation_resolver_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-class AnnotationResolver with InstanceCreationResolverMixin {
+class AnnotationResolver {
   final ResolverVisitor _resolver;
 
   AnnotationResolver(this._resolver);
 
-  @override
-  ResolverVisitor get resolver => _resolver;
-
   LibraryElement get _definingLibrary => _resolver.definingLibrary;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
-
-  bool get _genericMetadataIsEnabled =>
-      _definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
   void resolve(
       AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList) {
@@ -116,102 +105,20 @@ class AnnotationResolver with InstanceCreationResolverMixin {
     constructorElement = _resolver.toLegacyElement(constructorElement);
     constructorName?.staticElement = constructorElement;
     node.element = constructorElement;
+    var annotationInferrer =
+        AnnotationInferrer(constructorName: constructorName);
 
     if (constructorElement == null) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ANNOTATION,
         node,
       );
-      _resolver.analyzeArgumentList(argumentList, null,
+      annotationInferrer.resolveInvocation(
+          resolver: _resolver,
+          node: node,
+          rawType: null,
+          contextType: null,
           whyNotPromotedList: whyNotPromotedList);
-      return;
-    }
-
-    // If no type parameters, the elements are correct.
-    if (typeParameters.isEmpty) {
-      var typeArgumentList = node.typeArguments;
-      if (typeArgumentList != null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
-          typeArgumentList,
-          [
-            typeDisplayName,
-            typeParameters.length,
-            typeArgumentList.arguments.length,
-          ],
-        );
-      }
-      _resolveConstructorInvocationArguments(node);
-      _resolver.analyzeArgumentList(argumentList, constructorElement.parameters,
-          whyNotPromotedList: whyNotPromotedList);
-      return;
-    }
-
-    void resolveWithFixedTypeArguments(
-      List<DartType> typeArguments,
-      ConstructorElement constructorElement,
-    ) {
-      var type = instantiateElement(typeArguments);
-      constructorElement = ConstructorMember.from(constructorElement, type);
-      constructorName?.staticElement = constructorElement;
-      node.element = constructorElement;
-      _resolveConstructorInvocationArguments(node);
-
-      _resolver.analyzeArgumentList(argumentList, constructorElement.parameters,
-          whyNotPromotedList: whyNotPromotedList);
-    }
-
-    if (!_genericMetadataIsEnabled) {
-      var typeArguments = List.filled(
-        typeParameters.length,
-        DynamicTypeImpl.instance,
-      );
-      resolveWithFixedTypeArguments(typeArguments, constructorElement);
-      return;
-    }
-
-    var typeArgumentList = node.typeArguments;
-    if (typeArgumentList != null) {
-      List<DartType> typeArguments;
-      if (typeArgumentList.arguments.length == typeParameters.length) {
-        typeArguments = typeArgumentList.arguments
-            .map((element) => element.typeOrThrow)
-            .toList();
-        var substitution = Substitution.fromPairs(
-          typeParameters,
-          typeArguments,
-        );
-        for (var i = 0; i < typeParameters.length; i++) {
-          var typeParameter = typeParameters[i];
-          var bound = typeParameter.bound;
-          if (bound != null) {
-            bound = substitution.substituteType(bound);
-            var typeArgument = typeArguments[i];
-            if (!_resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-                typeArgumentList.arguments[i],
-                [typeArgument, typeParameter.name, bound],
-              );
-            }
-          }
-        }
-      } else {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
-          typeArgumentList,
-          [
-            typeDisplayName,
-            typeParameters.length,
-            typeArgumentList.arguments.length,
-          ],
-        );
-        typeArguments = List.filled(
-          typeParameters.length,
-          DynamicTypeImpl.instance,
-        );
-      }
-      resolveWithFixedTypeArguments(typeArguments, constructorElement);
       return;
     }
 
@@ -219,34 +126,14 @@ class AnnotationResolver with InstanceCreationResolverMixin {
       typeParameters,
       constructorElement,
     );
-    var inferenceResult = inferArgumentTypes(
-        inferenceNode: node,
-        constructorElement: constructorElement,
-        elementToInfer: elementToInfer,
-        typeArguments: node.typeArguments,
-        arguments: node.arguments!,
-        errorNode: node,
-        isConst: true,
-        contextReturnType: null);
-    if (inferenceResult != null) {
-      constructorElement = inferenceResult.constructorElement;
-    }
-    _resolver.analyzeArgumentList(argumentList, constructorElement.parameters,
-        whyNotPromotedList: whyNotPromotedList);
-
     var constructorRawType = elementToInfer.asType;
 
-    var inferred = _resolver.inferenceHelper.inferGenericInvoke(
-        node, constructorRawType, typeArgumentList, argumentList, node,
-        isConst: true, contextReturnType: null)!;
-
-    constructorElement = ConstructorMember.from(
-      constructorElement,
-      inferred.returnType as InterfaceType,
-    );
-    constructorName?.staticElement = constructorElement;
-    node.element = constructorElement;
-    _resolveConstructorInvocationArguments(node);
+    annotationInferrer.resolveInvocation(
+        resolver: _resolver,
+        node: node,
+        rawType: constructorRawType,
+        contextType: null,
+        whyNotPromotedList: whyNotPromotedList);
   }
 
   void _extensionGetter(
@@ -446,24 +333,6 @@ class AnnotationResolver with InstanceCreationResolverMixin {
     }
   }
 
-  void _resolveConstructorInvocationArguments(AnnotationImpl node) {
-    var argumentList = node.arguments;
-    // error will be reported in ConstantVerifier
-    if (argumentList == null) {
-      return;
-    }
-    // resolve arguments to parameters
-    var constructor = node.element;
-    if (constructor is ConstructorElement) {
-      argumentList.correspondingStaticParameters =
-          ResolverVisitor.resolveArgumentsToParameters(
-        argumentList: argumentList,
-        parameters: constructor.parameters,
-        errorReporter: _errorReporter,
-      );
-    }
-  }
-
   void _typeAliasConstructorInvocation(
     AnnotationImpl node,
     TypeAliasElement typeAliasElement,
@@ -530,7 +399,11 @@ class AnnotationResolver with InstanceCreationResolverMixin {
       AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList) {
     var arguments = node.arguments;
     if (arguments != null) {
-      _resolver.analyzeArgumentList(arguments, null,
+      AnnotationInferrer(constructorName: null).resolveInvocation(
+          resolver: _resolver,
+          node: node,
+          rawType: null,
+          contextType: null,
           whyNotPromotedList: whyNotPromotedList);
     }
   }

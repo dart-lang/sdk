@@ -43,6 +43,7 @@ import 'package:analyzer/src/dart/resolver/function_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/instance_creation_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
@@ -248,6 +249,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final AnnotationResolver _annotationResolver = AnnotationResolver(this);
 
+  final bool genericMetadataIsEnabled;
+
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// The [definingLibrary] is the element for the library containing the node
@@ -300,7 +303,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
         ),
         _featureSet = featureSet,
-        migrationResolutionHooks = migrationResolutionHooks {
+        migrationResolutionHooks = migrationResolutionHooks,
+        genericMetadataIsEnabled =
+            definingLibrary.featureSet.isEnabled(Feature.generic_metadata) {
     var analysisOptions =
         definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
 
@@ -402,73 +407,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Return `true` if NNBD is enabled for this compilation unit.
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
-
-  void analyzeArgumentList(
-      ArgumentList node, List<ParameterElement>? parameters,
-      {bool isIdentical = false,
-      List<WhyNotPromotedGetter>? whyNotPromotedList,
-      DartType? methodInvocationContext}) {
-    whyNotPromotedList ??= [];
-    NodeList<Expression> arguments = node.arguments;
-    var namedParameters = <String, ParameterElement>{};
-    DartType? targetType;
-    Element? methodElement;
-    if (parameters != null) {
-      for (var i = 0; i < parameters.length; i++) {
-        var parameter = parameters[i];
-        if (parameter.isNamed) {
-          namedParameters[parameter.name] = parameter;
-        }
-      }
-
-      var parent = node.parent;
-      if (parent is MethodInvocation) {
-        targetType = parent.realTarget?.staticType;
-        methodElement = parent.methodName.staticElement;
-      }
-    }
-    checkUnreachableNode(node);
-    int length = arguments.length;
-    var flow = flowAnalysis.flow;
-    var positionalParameterIndex = 0;
-    for (var i = 0; i < length; i++) {
-      if (isIdentical && length > 1 && i == 1) {
-        var firstArg = arguments[0];
-        flow?.equalityOp_rightBegin(firstArg, firstArg.typeOrThrow);
-      }
-      var argument = arguments[i];
-      ParameterElement? parameter;
-      if (argument is NamedExpression) {
-        parameter = namedParameters[argument.name.label.name];
-      } else if (parameters != null) {
-        while (positionalParameterIndex < parameters.length) {
-          parameter = parameters[positionalParameterIndex++];
-          if (!parameter.isNamed) {
-            break;
-          }
-        }
-      }
-      DartType? contextType;
-      if (parameter != null) {
-        var parameterType = parameter.type;
-        if (targetType != null) {
-          contextType = typeSystem.refineNumericInvocationContext(targetType,
-              methodElement, methodInvocationContext, parameterType);
-        } else {
-          contextType = parameterType;
-        }
-      }
-      analyzeExpression(argument, contextType);
-      if (flow != null) {
-        whyNotPromotedList.add(flow.whyNotPromoted(arguments[i]));
-      }
-    }
-    if (isIdentical && length > 1) {
-      var secondArg = arguments[1];
-      flow?.equalityOp_end(
-          node.parent as Expression, secondArg, secondArg.typeOrThrow);
-    }
-  }
 
   void analyzeExpression(Expression expression, DartType? contextType) {
     if (contextType != null && contextType.isDynamic) {
@@ -1042,12 +980,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitArgumentList(ArgumentList node) {
-    assert(false, 'analyzeArgumentList should be used instead');
-    analyzeArgumentList(node, null);
-  }
-
-  @override
   void visitAsExpression(AsExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -1600,21 +1532,28 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitExtensionOverride(ExtensionOverride node, {DartType? contextType}) {
+  void visitExtensionOverride(covariant ExtensionOverrideImpl node,
+      {DartType? contextType}) {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     node.extensionName.accept(this);
     node.typeArguments?.accept(this);
 
     var receiverContextType =
         ExtensionMemberResolver(this).computeOverrideReceiverContextType(node);
-    analyzeArgumentList(
-        node.argumentList,
-        receiverContextType == null
+    const ExtensionOverrideInferrer().resolveInvocation(
+        resolver: this,
+        node: node,
+        rawType: receiverContextType == null
             ? null
-            : [
-                ParameterElementImpl.synthetic(
-                    null, receiverContextType, ParameterKind.REQUIRED)
-              ],
+            : FunctionTypeImpl(
+                typeFormals: const [],
+                parameters: [
+                    ParameterElementImpl.synthetic(
+                        null, receiverContextType, ParameterKind.REQUIRED)
+                  ],
+                returnType: DynamicTypeImpl.instance,
+                nullabilitySuffix: NullabilitySuffix.none),
+        contextType: null,
         whyNotPromotedList: whyNotPromotedList);
 
     extensionResolver.resolveOverride(node, whyNotPromotedList);
@@ -2223,7 +2162,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitRedirectingConstructorInvocation(
         node as RedirectingConstructorInvocationImpl);
-    analyzeArgumentList(node.argumentList, node.staticElement?.parameters,
+    const RedirectingConstructorInvocationInferrer().resolveInvocation(
+        resolver: this,
+        node: node,
+        rawType: node.staticElement?.type,
+        contextType: null,
         whyNotPromotedList: whyNotPromotedList);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
@@ -2327,7 +2270,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitSuperConstructorInvocation(
         node as SuperConstructorInvocationImpl);
-    analyzeArgumentList(node.argumentList, node.staticElement?.parameters,
+    const SuperConstructorInvocationInferrer().resolveInvocation(
+        resolver: this,
+        node: node,
+        rawType: node.staticElement?.type,
+        contextType: null,
         whyNotPromotedList: whyNotPromotedList);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);

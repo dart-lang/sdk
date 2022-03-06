@@ -1419,10 +1419,8 @@ C<bool> test() => new C.named(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    // Note: the staticParameterElement is synthetic; see
-    // https://github.com/dart-lang/sdk/issues/48500
-    expect(y, isNot(TypeMatcher<ParameterMember>()));
-    expect(y.enclosingElement, isNull);
+    expect(y, TypeMatcher<ParameterMember>());
+    expect(y.declaration, findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_implicitNew() async {
@@ -1447,10 +1445,8 @@ C<bool> test() => C.named(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    // Note: the staticParameterElement is synthetic; see
-    // https://github.com/dart-lang/sdk/issues/48500
-    expect(y, isNot(TypeMatcher<ParameterMember>()));
-    expect(y.enclosingElement, isNull);
+    expect(y, TypeMatcher<ParameterMember>());
+    expect(y.declaration, findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_methodCall() async {

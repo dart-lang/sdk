@@ -310,6 +310,21 @@ void f(X<B> a) {}
 ''');
   }
 
+  Future<void> test_nonFunctionTypeAlias_parameter() async {
+    await assertErrorsInCode('''
+class A {}
+class B extends A {}
+class D<T> {}
+typedef Alias<T extends B> = D<T>;
+main() {
+  D d = Alias<A>();
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 104, 1),
+    ]);
+  }
+
   test_notRegularBounded_notSuperBounded_parameter_invariant() async {
     await assertErrorsInCode(r'''
 typedef A<X> = X Function(X);
