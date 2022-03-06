@@ -136,7 +136,7 @@ String libraryGroupName(Info info) {
       return '${info.uri}'.split('/').first;
     }
     if (info.uri.isScheme('dart')) {
-      return 'dart:${info.uri.path}';
+      return '${info.uri}';
     }
     if (info.uri.hasScheme) {
       return info.uri.scheme;
