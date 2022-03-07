@@ -200,6 +200,7 @@ linter:
     - use_rethrow_when_possible
     - use_setters_to_change_properties
     - use_string_buffers
+    - use_super_initializers
     - use_test_throws_matchers
     - use_to_and_as_if_applicable
     - valid_regexps

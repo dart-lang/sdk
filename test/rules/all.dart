@@ -70,6 +70,7 @@ import 'unnecessary_overrides_test.dart' as unnecessary_overrides;
 import 'use_enums_test.dart' as use_enums;
 import 'use_is_even_rather_than_modulo_test.dart'
     as use_is_even_rather_than_modulo;
+import 'use_super_initializers_test.dart' as use_super_initializers;
 import 'void_checks_test.dart' as void_checks;
 
 void main() {
@@ -119,5 +120,6 @@ void main() {
   unnecessary_overrides.main();
   use_enums.main();
   use_is_even_rather_than_modulo.main();
+  use_super_initializers.main();
   void_checks.main();
 }
