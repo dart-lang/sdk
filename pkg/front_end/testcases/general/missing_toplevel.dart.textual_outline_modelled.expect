@@ -1,6 +1,5 @@
-// @dart = 2.9
 class ClassWithIndexGet {
-  int operator [](int index) => 42;
+  int? operator [](int index) => 42;
 }
 
 class ClassWithIndexSet {
@@ -8,7 +7,7 @@ class ClassWithIndexSet {
 }
 
 class ClassWithProperty {
-  EmptyClass property;
+  EmptyClass property = new EmptyClass();
 }
 
 class EmptyClass {}

@@ -1,4 +1,3 @@
-// @dart = 2.9
 import 'nsm_covariance_lib.dart';
 
 abstract class D1 implements A<int>, B {}

@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Superclass {
   String method1(num argument1, num argument2) => "Superclass";
   String method2(num argument1, num argument2) => "Superclass";

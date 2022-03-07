@@ -1,7 +1,6 @@
-// @dart = 2.9
 class A {
-  A(int a) {}
-  int a;
+  A(int? a) {}
+  int? a;
 }
 
 main() {}

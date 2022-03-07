@@ -1,0 +1,40 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Diagnosticable extends core::Object {
+  synthetic constructor •() → self::Diagnosticable
+    ;
+}
+abstract class _SomeClass&Object&Diagnosticable = core::Object with self::Diagnosticable /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SomeClass&Object&Diagnosticable
+    : super core::Object::•()
+    ;
+}
+class SomeClass extends self::_SomeClass&Object&Diagnosticable {
+  synthetic constructor •() → self::SomeClass
+    ;
+}
+abstract class _State&Object&Diagnosticable = core::Object with self::Diagnosticable /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_State&Object&Diagnosticable
+    : super core::Object::•()
+    ;
+}
+class State<T extends core::Object? = dynamic> extends self::_State&Object&Diagnosticable {
+  synthetic constructor •() → self::State<self::State::T%>
+    ;
+}
+class StateA extends self::State<dynamic> {
+  synthetic constructor •() → self::StateA
+    ;
+}
+class StateB extends self::State<core::int> {
+  synthetic constructor •() → self::StateB
+    ;
+}
+static field self::StateA? a;
+static field self::StateB b;
+static method foo<T extends core::Object? = dynamic>(self::foo::T% x) → dynamic
+  ;
+static method main() → dynamic
+  ;

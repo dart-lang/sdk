@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A0 = S with M;
 class A0X = S with M, MX;
 class A1 = S with M1, M;

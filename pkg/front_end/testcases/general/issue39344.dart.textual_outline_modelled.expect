@@ -1,18 +1,19 @@
-// @dart = 2.9
-List<B> xs;
-List<List<B>> xss;
-
 class A {}
-
 class B extends A {}
-
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+List<B> xs;
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+List<List<B>> xss;
 class Class<T extends A> {
   void method1a(T t) {}
   void method1b(T t) {}
   void method2a(T t) {}
   void method2b(T t) {}
 }
-
 void errors() {}
 void main() {}
 void throws(void Function() f) {}

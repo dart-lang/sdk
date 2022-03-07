@@ -1,10 +1,9 @@
-// @dart = 2.9
 class A {}
 
 class B extends A {}
 
-List<B> xs;
-List<List<B>> xss;
+late List<B> xs;
+late List<List<B>> xss;
 
 class Class<T extends A> {
   void method1a(T t) {}

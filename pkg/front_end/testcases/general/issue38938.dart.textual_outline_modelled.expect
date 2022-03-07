@@ -1,7 +1,6 @@
-// @dart = 2.9
 class A {
   A(this.v);
   A.second();
-  int v;
-  int v;
+  int? v;
+  int? v;
 }

@@ -2,27 +2,27 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/many_errors.dart:8:3: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/general/many_errors.dart:10:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   const A.named1() sync* {}
 //   ^^^^^
 //
-// pkg/front_end/testcases/general/many_errors.dart:13:1: Error: An external or native method can't have a body.
+// pkg/front_end/testcases/general/many_errors.dart:15:1: Error: An external or native method can't have a body.
 // external foo(String x) {
 // ^^^^^^^^
 //
-// pkg/front_end/testcases/general/many_errors.dart:10:26: Error: New expression is not a constant expression.
+// pkg/front_end/testcases/general/many_errors.dart:12:26: Error: New expression is not a constant expression.
 //   const A.named2() : x = new Object();
 //                          ^^^
 //
-// pkg/front_end/testcases/general/many_errors.dart:10:24: Error: 'x' is a final instance variable that was initialized at the declaration.
+// pkg/front_end/testcases/general/many_errors.dart:12:24: Error: 'x' is a final instance variable that was initialized at the declaration.
 //   const A.named2() : x = new Object();
 //                        ^
-// pkg/front_end/testcases/general/many_errors.dart:6:9: Context: 'x' was initialized here.
+// pkg/front_end/testcases/general/many_errors.dart:8:9: Context: 'x' was initialized here.
 //   final x = null;
 //         ^
 //
-// pkg/front_end/testcases/general/many_errors.dart:10:24: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/general/many_errors.dart:12:24: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 //   const A.named2() : x = new Object();
 //                        ^
@@ -35,7 +35,7 @@ class A extends core::Object /*hasConstConstructor*/  {
   constructor named1() → self::A*
     ;
   const constructor named2() → self::A*
-    : final dynamic #t1 = throw invalid-expression "pkg/front_end/testcases/general/many_errors.dart:10:24: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+    : final dynamic #t1 = throw invalid-expression "pkg/front_end/testcases/general/many_errors.dart:12:24: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
   const A.named2() : x = new Object();
                        ^", super core::Object::•()

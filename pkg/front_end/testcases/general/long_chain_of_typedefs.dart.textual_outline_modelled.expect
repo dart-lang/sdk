@@ -1,4 +1,3 @@
-// @dart = 2.9
 main() {}
 typedef Foo01<X, Y, Z> = void Function(Null);
 typedef Foo02<X, Y, Z> = void Function(Foo01<X, Y, Z>);

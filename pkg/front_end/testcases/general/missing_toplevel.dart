@@ -1,13 +1,13 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class EmptyClass {}
 
 var emptyClass = new EmptyClass();
 
 class ClassWithProperty {
-  EmptyClass property;
+  EmptyClass property = new EmptyClass();
 }
 
 var classWithProperty = new ClassWithProperty();
@@ -19,7 +19,7 @@ class ClassWithIndexSet {
 var classWithIndexSet = new ClassWithIndexSet();
 
 class ClassWithIndexGet {
-  int operator [](int index) => 42;
+  int? operator [](int index) => 42;
 }
 
 var classWithIndexGet = new ClassWithIndexGet();

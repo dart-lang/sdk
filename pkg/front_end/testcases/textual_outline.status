@@ -91,7 +91,6 @@ general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
 general/issue45490: FormatterCrash
 general/issue45700.crash: FormatterCrash
-general/issue47495: FormatterCrash
 general/issue47728_2: FormatterCrash
 general/issue47728_3: FormatterCrash
 general/issue47922: FormatterCrash
@@ -100,7 +99,9 @@ general/issue48487b: FormatterCrash
 general/issue_46886: FormatterCrash
 general/macro_class: FormatterCrash
 general/many_errors: FormatterCrash
+general/many_errors2: FormatterCrash
 general/missing_prefix_name: FormatterCrash
+general/mixin_inherited_setter_for_mixed_in_field2: FormatterCrash
 general/new_as_selector: FormatterCrash
 general/null_aware_super: FormatterCrash
 general/null_safety_invalid_experiment: FormatterCrash

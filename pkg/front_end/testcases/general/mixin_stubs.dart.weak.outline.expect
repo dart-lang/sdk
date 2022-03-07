@@ -1,9 +1,9 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 abstract class Super extends core::Object {
-  synthetic constructor •() → self::Super*
+  synthetic constructor •() → self::Super
     ;
   method concreteExtendsConcreteMixin() → void
     ;
@@ -11,19 +11,9 @@ abstract class Super extends core::Object {
     ;
   abstract method abstractExtendsConcreteMixin() → void;
   abstract method abstractExtendsAbstractMixin() → void;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class MixinClass extends core::Object {
-  synthetic constructor •() → self::MixinClass*
+  synthetic constructor •() → self::MixinClass
     ;
   method concreteExtendsConcreteMixin() → void
     ;
@@ -34,16 +24,6 @@ abstract class MixinClass extends core::Object {
     ;
   abstract method abstractExtendsAbstractMixin() → void;
   abstract method abstractMixin() → void;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method concreteExtendsConcreteMixin() → void
@@ -55,19 +35,9 @@ abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
     ;
   abstract method abstractExtendsAbstractMixin() → void;
   abstract method abstractMixin() → void;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class ClassEqMixinClass = self::Super with self::MixinClass {
-  synthetic constructor •() → self::ClassEqMixinClass*
+  synthetic constructor •() → self::ClassEqMixinClass
     : super self::Super::•()
     ;
   mixin-super-stub method concreteExtendsConcreteMixin() → void
@@ -81,7 +51,7 @@ abstract class ClassEqMixinClass = self::Super with self::MixinClass {
   abstract mixin-stub method abstractMixin() → void; -> self::MixinClass::abstractMixin
 }
 abstract class _ClassExtendsMixinClass&Super&MixinClass = self::Super with self::MixinClass /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_ClassExtendsMixinClass&Super&MixinClass*
+  synthetic constructor •() → self::_ClassExtendsMixinClass&Super&MixinClass
     : super self::Super::•()
     ;
   mixin-super-stub method concreteExtendsConcreteMixin() → void
@@ -95,11 +65,11 @@ abstract class _ClassExtendsMixinClass&Super&MixinClass = self::Super with self:
   abstract mixin-stub method abstractMixin() → void; -> self::MixinClass::abstractMixin
 }
 abstract class ClassExtendsMixinClass extends self::_ClassExtendsMixinClass&Super&MixinClass {
-  synthetic constructor •() → self::ClassExtendsMixinClass*
+  synthetic constructor •() → self::ClassExtendsMixinClass
     ;
 }
 abstract class ClassEqMixin = self::Super with self::Mixin {
-  synthetic constructor •() → self::ClassEqMixin*
+  synthetic constructor •() → self::ClassEqMixin
     : super self::Super::•()
     ;
   mixin-super-stub method concreteExtendsConcreteMixin() → void
@@ -113,7 +83,7 @@ abstract class ClassEqMixin = self::Super with self::Mixin {
   abstract mixin-stub method abstractMixin() → void; -> self::Mixin::abstractMixin
 }
 abstract class _ClassExtendsMixin&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_ClassExtendsMixin&Super&Mixin*
+  synthetic constructor •() → self::_ClassExtendsMixin&Super&Mixin
     : super self::Super::•()
     ;
   mixin-super-stub method concreteExtendsConcreteMixin() → void
@@ -127,29 +97,29 @@ abstract class _ClassExtendsMixin&Super&Mixin = self::Super with self::Mixin /*i
   abstract mixin-stub method abstractMixin() → void; -> self::Mixin::abstractMixin
 }
 abstract class ClassExtendsMixin extends self::_ClassExtendsMixin&Super&Mixin {
-  synthetic constructor •() → self::ClassExtendsMixin*
+  synthetic constructor •() → self::ClassExtendsMixin
     ;
 }
 abstract class SubclassEqMixinClass extends self::ClassEqMixinClass {
-  synthetic constructor •() → self::SubclassEqMixinClass*
+  synthetic constructor •() → self::SubclassEqMixinClass
     ;
   method method() → dynamic
     ;
 }
 abstract class SubclassExtendsMixinClass extends self::ClassExtendsMixinClass {
-  synthetic constructor •() → self::SubclassExtendsMixinClass*
+  synthetic constructor •() → self::SubclassExtendsMixinClass
     ;
   method method() → dynamic
     ;
 }
 abstract class SubclassEqMixin extends self::ClassEqMixin {
-  synthetic constructor •() → self::SubclassEqMixin*
+  synthetic constructor •() → self::SubclassEqMixin
     ;
   method method() → dynamic
     ;
 }
 abstract class SubclassExtendsMixin extends self::ClassExtendsMixin {
-  synthetic constructor •() → self::SubclassExtendsMixin*
+  synthetic constructor •() → self::SubclassExtendsMixin
     ;
   method method() → dynamic
     ;

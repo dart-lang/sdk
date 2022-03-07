@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class SuperClass1 {
   SuperClass1(this.value);
   final String value;
