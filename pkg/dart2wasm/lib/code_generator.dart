@@ -47,8 +47,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   final Map<VariableDeclaration, w.Local> locals = {};
   w.Local? thisLocal;
   w.Local? preciseThisLocal;
+  w.Local? returnValueLocal;
   final Map<TypeParameter, w.Local> typeLocals = {};
-  final List<Statement> finalizers = [];
+  final List<TryBlockFinalizer> finalizers = [];
   final List<w.Label> tryLabels = [];
   final Map<LabeledStatement, w.Label> labels = {};
   final Map<SwitchCase, w.Label> switchLabels = {};
@@ -622,9 +623,39 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitTryFinally(TryFinally node) {
-    finalizers.add(node.finalizer);
+    // We lower a [TryFinally] to three nested blocks, and we emit the finalizer
+    // up to three times. Once in a catch, to handle the case where the try
+    // throws. Once outside of the catch, to handle the case where the try does
+    // not throw. Finally, if there is a return within the try block, then we
+    // emit the finalizer one more time along with logic to continue walking up
+    // the stack.
+    w.Label tryFinallyBlock = b.block();
+    w.Label finalizerBlock = b.block();
+    finalizers.add(TryBlockFinalizer(finalizerBlock));
+    w.Label tryBlock = b.try_();
     node.body.accept(this);
-    finalizers.removeLast().accept(this);
+    bool mustHandleReturn = finalizers.removeLast().mustHandleReturn;
+    b.br(tryBlock);
+    b.catch_(translator.exceptionTag);
+    node.finalizer.accept(this);
+    b.rethrow_(tryBlock);
+    b.end(); // end tryBlock.
+    node.finalizer.accept(this);
+    b.br(tryFinallyBlock);
+    b.end(); // end finalizerBlock.
+    if (mustHandleReturn) {
+      node.finalizer.accept(this);
+      if (finalizers.isNotEmpty) {
+        b.br(finalizers.last.label);
+      } else {
+        if (returnValueLocal != null) {
+          b.local_get(returnValueLocal!);
+          translator.convertType(function, returnValueLocal!.type, returnType);
+        }
+        _returnFromFunction();
+      }
+    }
+    b.end(); // end tryFinallyBlock.
   }
 
   @override
@@ -768,6 +799,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     throw "ForInStatement should have been desugared: $node";
   }
 
+  /// Handle the return from this function, either by jumping to [returnLabel]
+  /// in the case this function was inlined or just inserting a return
+  /// instruction.
+  void _returnFromFunction() {
+    if (returnLabel != null) {
+      b.br(returnLabel!);
+    } else {
+      b.return_();
+    }
+  }
+
   @override
   void visitReturnStatement(ReturnStatement node) {
     Expression? expression = node.expression;
@@ -776,13 +818,22 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     } else {
       translator.convertType(function, voidMarker, returnType);
     }
-    for (Statement finalizer in finalizers.reversed) {
-      finalizer.accept(this);
-    }
-    if (returnLabel != null) {
-      b.br(returnLabel!);
+
+    // If we are wrapped in a [TryFinally] node then we have to run finalizers
+    // as the stack unwinds. When we get to the top of the finalizer stack, we
+    // will handle the return using [returnValueLocal] if this function returns
+    // a value.
+    if (finalizers.isNotEmpty) {
+      for (TryBlockFinalizer finalizer in finalizers) {
+        finalizer.mustHandleReturn = true;
+      }
+      if (returnType != voidMarker) {
+        returnValueLocal ??= addLocal(returnType);
+        b.local_set(returnValueLocal!);
+      }
+      b.br(finalizers.last.label);
     } else {
-      b.return_();
+      _returnFromFunction();
     }
   }
 
@@ -2021,4 +2072,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // TODO(joshualitt): Emit type test and throw exception on failure
     return wrap(node.operand, expectedType);
   }
+}
+
+class TryBlockFinalizer {
+  final w.Label label;
+  bool mustHandleReturn = false;
+
+  TryBlockFinalizer(this.label);
 }
