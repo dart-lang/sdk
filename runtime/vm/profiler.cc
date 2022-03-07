@@ -666,6 +666,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
                           SampleBuffer* sample_buffer,
                           uword pc,
                           uword fp,
+                          uword lr,
                           bool allocation_sample,
                           intptr_t skip_count = 0)
       : ProfilerStackWalker((thread->isolate() != NULL)
@@ -676,7 +677,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
                             skip_count),
         thread_(thread),
         pc_(reinterpret_cast<uword*>(pc)),
-        fp_(reinterpret_cast<uword*>(fp)) {}
+        fp_(reinterpret_cast<uword*>(fp)),
+        lr_(reinterpret_cast<uword*>(lr)) {}
 
   void walk() {
     RELEASE_ASSERT(StubCode::HasBeenInitialized());
@@ -695,7 +697,6 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       // Skip exit frame.
       pc_ = CallerPC();
       fp_ = CallerFP();
-
     } else {
       if (thread_->vm_tag() == VMTag::kDartTagId) {
         // Running compiled code.
@@ -709,7 +710,12 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
     sample_->set_exit_frame_sample(has_exit_frame);
 
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     if (!has_exit_frame && (CallerPC() == EntryMarker())) {
+#else
+    if (!has_exit_frame &&
+        (StubCode::InInvocationStub(reinterpret_cast<uword>(lr_)))) {
+#endif
       // During the prologue of a function, CallerPC will return the caller's
       // caller. For most frames, the missing PC will be added during profile
       // processing. However, during this stack walk, it can cause us to fail
@@ -790,6 +796,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   Thread* const thread_;
   uword* pc_;
   uword* fp_;
+  uword* lr_;
 };
 
 // The layout of C stack frames.
@@ -1314,6 +1321,7 @@ void Profiler::SampleAllocation(Thread* thread,
   uintptr_t sp = OSThread::GetCurrentStackPointer();
   uintptr_t fp = 0;
   uintptr_t pc = OS::GetProgramCounter();
+  uintptr_t lr = 0;
 
   COPY_FP_REGISTER(fp);
 
@@ -1348,7 +1356,7 @@ void Profiler::SampleAllocation(Thread* thread,
     native_stack_walker.walk();
   } else if (exited_dart_code) {
     ProfilerDartStackWalker dart_exit_stack_walker(
-        thread, sample, isolate->current_allocation_sample_block(), pc, fp,
+        thread, sample, isolate->current_allocation_sample_block(), pc, fp, lr,
         /* allocation_sample*/ true);
     dart_exit_stack_walker.walk();
   } else {
@@ -1457,6 +1465,7 @@ void Profiler::SampleThread(Thread* thread,
   uintptr_t sp = 0;
   uintptr_t fp = state.fp;
   uintptr_t pc = state.pc;
+  uintptr_t lr = state.lr;
 #if defined(USING_SIMULATOR)
   Simulator* simulator = NULL;
 #endif
@@ -1468,6 +1477,7 @@ void Profiler::SampleThread(Thread* thread,
     sp = simulator->get_register(SPREG);
     fp = simulator->get_register(FPREG);
     pc = simulator->get_pc();
+    lr = simulator->get_lr();
 #else
     sp = state.dsp;
 #endif
@@ -1540,9 +1550,9 @@ void Profiler::SampleThread(Thread* thread,
       sample, isolate->current_sample_block(), stack_lower, stack_upper, pc, fp,
       sp);
   const bool exited_dart_code = thread->HasExitedDartCode();
-  ProfilerDartStackWalker dart_stack_walker(thread, sample,
-                                            isolate->current_sample_block(), pc,
-                                            fp, /* allocation_sample*/ false);
+  ProfilerDartStackWalker dart_stack_walker(
+      thread, sample, isolate->current_sample_block(), pc, fp, lr,
+      /* allocation_sample*/ false);
 
   // All memory access is done inside CollectSample.
   CollectSample(isolate, exited_dart_code, in_dart_code, sample,

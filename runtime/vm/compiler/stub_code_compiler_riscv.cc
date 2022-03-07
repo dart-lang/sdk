@@ -1276,7 +1276,6 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
 
-  NOT_IN_PRODUCT(__ PushRegister(RA));  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1396,7 +1395,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
-  NOT_IN_PRODUCT(__ Drop(1));  // Drop profiler marker.
   __ ret();
 }
 
