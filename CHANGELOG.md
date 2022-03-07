@@ -1,3 +1,18 @@
+# 1.19.0
+
+- new lint: `user_super_initializers`
+- new lint: `use_enums`
+- new lint: `used_colored_box`
+- performance improvements for `sort_constructors`
+- doc improvements for `always_use_package_imports`,
+  `avoid_print`, and `avoid_relative_lib_imports` 
+- update `avoid_void_async` to skip `main` functions
+- update `prefer_final_parameters` to not super on super params
+- lint updates for enhanced-enums and super-initializer language
+  features
+- updated `unnecessary_late` to report on the variable name
+- marked `null_check_on_nullable_type_parameter` stable
+
 # 1.18.0
 
 - extend `camel_case_types` to cover enums
