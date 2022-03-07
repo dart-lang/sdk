@@ -727,6 +727,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return a [ParsedLibraryResult] for the library with the given [path].
   ///
   /// The [path] must be absolute and normalized.
+  @Deprecated('Use getParsedLibrary2() instead')
   SomeParsedLibraryResult getParsedLibrary(String path) {
     if (!_isAbsolutePath(path)) {
       return InvalidPathResult();
@@ -755,7 +756,39 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return ParsedLibraryResultImpl(currentSession, units);
   }
 
+  /// Return a [ParsedLibraryResult] for the library with the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  Future<SomeParsedLibraryResult> getParsedLibrary2(String path) async {
+    if (!_isAbsolutePath(path)) {
+      return InvalidPathResult();
+    }
+
+    if (!_fsState.hasUri(path)) {
+      return NotPathOfUriResult();
+    }
+
+    FileState file = _fsState.getFileForPath(path);
+
+    if (file.isPart) {
+      return NotLibraryButPartResult();
+    }
+
+    var units = <ParsedUnitResult>[];
+    for (var unitFile in file.libraryFiles) {
+      var unitPath = unitFile.path;
+      var unitResult = await parseFile(unitPath);
+      if (unitResult is! ParsedUnitResult) {
+        return UnspecifiedInvalidResult();
+      }
+      units.add(unitResult);
+    }
+
+    return ParsedLibraryResultImpl(currentSession, units);
+  }
+
   /// Return a [ParsedLibraryResult] for the library with the given [uri].
+  @Deprecated('Use getParsedLibraryByUri2() instead')
   SomeParsedLibraryResult getParsedLibraryByUri(Uri uri) {
     var fileOr = _fsState.getFileForUri(uri);
     return fileOr.map(
@@ -767,6 +800,25 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           return NotLibraryButPartResult();
         }
         return getParsedLibrary(file.path);
+      },
+      (externalLibrary) {
+        return UriOfExternalLibraryResult();
+      },
+    );
+  }
+
+  /// Return a [ParsedLibraryResult] for the library with the given [uri].
+  Future<SomeParsedLibraryResult> getParsedLibraryByUri2(Uri uri) async {
+    var fileOr = _fsState.getFileForUri(uri);
+    return fileOr.map(
+      (file) {
+        if (file == null) {
+          return CannotResolveUriResult();
+        }
+        if (file.isPart) {
+          return NotLibraryButPartResult();
+        }
+        return getParsedLibrary2(file.path);
       },
       (externalLibrary) {
         return UriOfExternalLibraryResult();
@@ -960,6 +1012,27 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     );
   }
 
+  /// Return a [ParsedUnitResult] for the file with the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  ///
+  /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
+  ///
+  /// The parsing is performed in the method itself, and the result is not
+  /// produced through the [results] stream (just because it is not a fully
+  /// resolved unit).
+  Future<SomeParsedUnitResult> parseFile(String path) async {
+    if (!_isAbsolutePath(path)) {
+      return InvalidPathResult();
+    }
+
+    FileState file = _fileTracker.getFile(path);
+    RecordingErrorListener listener = RecordingErrorListener();
+    CompilationUnit unit = file.parse(listener);
+    return ParsedUnitResultImpl(currentSession, file.path, file.uri,
+        file.content, file.lineInfo, file.isPart, unit, listener.errors);
+  }
+
   /// Return a [Future] that completes with a [ParsedUnitResult] for the file
   /// with the given [path].
   ///
@@ -970,7 +1043,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The parsing is performed in the method itself, and the result is not
   /// produced through the [results] stream (just because it is not a fully
   /// resolved unit).
-  @Deprecated('Use parseFileSync() instead')
+  @Deprecated('Use parseFile() instead')
   Future<SomeParsedUnitResult> parseFile2(String path) async {
     return parseFileSync2(path);
   }
@@ -984,6 +1057,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The parsing is performed in the method itself, and the result is not
   /// produced through the [results] stream (just because it is not a fully
   /// resolved unit).
+  @Deprecated('Use parseFile() instead')
   SomeParsedUnitResult parseFileSync(String path) {
     if (!_isAbsolutePath(path)) {
       return InvalidPathResult();
@@ -1005,7 +1079,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The parsing is performed in the method itself, and the result is not
   /// produced through the [results] stream (just because it is not a fully
   /// resolved unit).
-  @Deprecated('Use parseFileSync() instead')
+  @Deprecated('Use parseFile() instead')
   SomeParsedUnitResult parseFileSync2(String path) {
     return parseFileSync(path);
   }

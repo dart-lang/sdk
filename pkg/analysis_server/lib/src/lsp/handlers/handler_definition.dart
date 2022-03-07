@@ -61,7 +61,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
       computeDartNavigation(
           server.resourceProvider, collector, unit, offset, 0);
       if (supportsLocationLink) {
-        _updateTargetsWithCodeLocations(collector);
+        await _updateTargetsWithCodeLocations(collector);
       }
       collector.createRegions();
     }
