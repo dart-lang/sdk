@@ -352,9 +352,9 @@ class Translator {
   /// [stackTraceInfo.nonNullableType] to hold a stack trace. This single
   /// exception tag is used to throw and catch all Dart exceptions.
   w.Tag createExceptionTag() {
-    w.FunctionType functionType = m.addFunctionType(
+    w.FunctionType tagType = functionType(
         [topInfo.nonNullableType, stackTraceInfo.nonNullableType], const []);
-    w.Tag tag = m.addTag(functionType);
+    w.Tag tag = m.addTag(tagType);
     return tag;
   }
 
