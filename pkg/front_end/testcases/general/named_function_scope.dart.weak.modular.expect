@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -50,31 +50,31 @@ library;
 //               ^
 //
 // pkg/front_end/testcases/general/named_function_scope.dart:56:7: Error: Can't declare 'T' because it was already used in this scope.
-//     T T() {}
+//     T T() => throw '';
 //       ^
 // pkg/front_end/testcases/general/named_function_scope.dart:55:5: Context: Previous use of 'T'.
 //     T t;
 //     ^
 //
 // pkg/front_end/testcases/general/named_function_scope.dart:59:7: Error: Can't declare 'T' because it was already used in this scope.
-//     T T() {}
+//     T T() => throw '';
 //       ^
 // pkg/front_end/testcases/general/named_function_scope.dart:59:5: Context: Previous use of 'T'.
-//     T T() {}
+//     T T() => throw '';
 //     ^
 //
 // pkg/front_end/testcases/general/named_function_scope.dart:63:7: Error: Can't declare 'T' because it was already used in this scope.
-//     T T(T t) {}
+//     T T(T t) => t;
 //       ^
 // pkg/front_end/testcases/general/named_function_scope.dart:62:5: Context: Previous use of 'T'.
 //     T t;
 //     ^
 //
 // pkg/front_end/testcases/general/named_function_scope.dart:66:7: Error: Can't declare 'T' because it was already used in this scope.
-//     T T(T t) {}
+//     T T(T t) => t;
 //       ^
 // pkg/front_end/testcases/general/named_function_scope.dart:66:5: Context: Previous use of 'T'.
-//     T T(T t) {}
+//     T T(T t) => t;
 //     ^
 //
 // pkg/front_end/testcases/general/named_function_scope.dart:69:12: Error: 'T' isn't a type.
@@ -85,38 +85,18 @@ import self as self;
 import "dart:core" as core;
 
 class T extends core::Object {
-  synthetic constructor •() → self::T*
+  synthetic constructor •() → self::T
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class V extends core::Object {
-  synthetic constructor •() → self::V*
+  synthetic constructor •() → self::V
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {
-  self::T* t;
-  self::V* v;
+  self::T t;
+  self::V v;
   {
     function T() → Null {}
   }
@@ -124,68 +104,72 @@ static method test() → dynamic {
     dynamic v;
   }
   {
-    self::T* t;
-    () →* Null x = let final () →* Null T = () → Null {} in T;
+    self::T t;
+    () → Null x = let final () → Null T = () → Null {} in T;
   }
   {
-    self::V* v;
+    self::V v;
     invalid-type V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:31:9: Error: Can't declare 'V' because it was already used in this scope.
     var V;
         ^";
   }
   {
-    self::V* v;
+    self::V v;
     invalid-type V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:36:9: Error: Can't declare 'V' because it was already used in this scope.
     var V = null;
         ^" in null;
   }
   {
-    () →* Null x = let final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:15: Error: Can't declare 'T' because it was already used in this scope.
+    () → Null x = let final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:15: Error: Can't declare 'T' because it was already used in this scope.
     var x = T T() {};
-              ^" in let final () →* Null T = () → Null {} in T;
+              ^" in let final () → Null T = () → Null {} in T;
   }
   {
-    self::V* V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:47:7: Error: Can't declare 'V' because it was already used in this scope.
+    self::V V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:47:7: Error: Can't declare 'V' because it was already used in this scope.
     V V;
       ^";
   }
   {
-    <T extends core::Object* = dynamic>() →* Null x = let final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: 'T' is already declared in this scope.
+    <T extends core::Object? = dynamic>() → Null x = let final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: 'T' is already declared in this scope.
     var x = T<T>() {};
-            ^" in let final <T extends core::Object* = dynamic>() →* Null T = <T extends core::Object* = dynamic>() → Null {} in T;
+            ^" in let final <T extends core::Object? = dynamic>() → Null T = <T extends core::Object? = dynamic>() → Null {} in T;
   }
   {
-    self::T* t;
+    self::T t;
     {
       invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:56:7: Error: Can't declare 'T' because it was already used in this scope.
-    T T() {}
+    T T() => throw '';
       ^";
-      function T() → self::T* {}
+      function T() → self::T
+        return throw "";
     }
   }
   {
     {
       invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:59:7: Error: Can't declare 'T' because it was already used in this scope.
-    T T() {}
+    T T() => throw '';
       ^";
-      function T() → self::T* {}
+      function T() → self::T
+        return throw "";
     }
   }
   {
-    self::T* t;
+    self::T t;
     {
       invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:63:7: Error: Can't declare 'T' because it was already used in this scope.
-    T T(T t) {}
+    T T(T t) => t;
       ^";
-      function T(self::T* t) → self::T* {}
+      function T(self::T t) → self::T
+        return t;
     }
   }
   {
     {
       invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:66:7: Error: Can't declare 'T' because it was already used in this scope.
-    T T(T t) {}
+    T T(T t) => t;
       ^";
-      function T(self::T* t) → self::T* {}
+      function T(self::T t) → self::T
+        return t;
     }
   }
   {

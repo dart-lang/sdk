@@ -1,29 +1,18 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 @self::a
 class E extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E*>* values = const <self::E*>[self::E::E1, self::E::E2, self::E::E3];
-  static const field self::E* E1 = const self::E::•(0, "E1");
-  static const field self::E* E2 = const self::E::•(1, "E2");
-  static const field self::E* E3 = const self::E::•(2, "E3");
-  const constructor •(core::int* index, core::String* name) → self::E*
+  static const field core::List<self::E> values = const <self::E>[self::E::E1, self::E::E2, self::E::E3];
+  static const field self::E E1 = const self::E::•(0, "E1");
+  static const field self::E E2 = const self::E::•(1, "E2");
+  static const field self::E E3 = const self::E::•(2, "E3");
+  const constructor •(core::int index, core::String name) → self::E
     : super core::_Enum::•(index, name)
     ;
-  method toString() → core::String*
+  method toString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
-  abstract member-signature get index() → core::int*; -> core::_Enum::index
-  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static const field dynamic a = null;
 static method main() → dynamic

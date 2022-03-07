@@ -1,7 +1,7 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 abstract class A<T> {
   void _method1(int a, int b, T c, T d);
   void _method2({int a, int b, T c, T d});

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -12,63 +12,43 @@ import "package:expect/expect.dart" as exp;
 
 import "package:expect/expect.dart";
 
-class C<T extends core::Object* = dynamic> extends core::Object {
-  field core::String* trace;
-  constructor •({dynamic a = #C1, dynamic b = #C2}) → self::C<self::C::T*>*
+class C<T extends core::Object? = dynamic> extends core::Object {
+  field core::String trace;
+  constructor •({dynamic a = #C1, dynamic b = #C2}) → self::C<self::C::T%>
     : self::C::trace = "a: ${a}, b: ${b}", super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class M extends core::Object {
-  synthetic constructor •() → self::M*
+  synthetic constructor •() → self::M
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class D = self::C<core::String*> with self::M {
-  synthetic constructor •({dynamic a = #C1, dynamic b = #C2}) → self::D*
+class D = self::C<core::String> with self::M {
+  synthetic constructor •({dynamic a = #C1, dynamic b = #C2}) → self::D
     : super self::C::•(a: a, b: b)
     ;
 }
 class E extends self::D {
-  synthetic constructor •() → self::E*
+  synthetic constructor •() → self::E
     : super self::D::•()
     ;
 }
-abstract class _F&C&M = self::C<core::int*> with self::M /*isAnonymousMixin*/  {
-  synthetic constructor •({dynamic a = #C1, dynamic b = #C2}) → self::_F&C&M*
+abstract class _F&C&M = self::C<core::int> with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •({dynamic a = #C1, dynamic b = #C2}) → self::_F&C&M
     : super self::C::•(a: a, b: b)
     ;
 }
 class F extends self::_F&C&M {
-  synthetic constructor •() → self::F*
+  synthetic constructor •() → self::F
     : super self::_F&C&M::•()
     ;
 }
 static method main() → dynamic {
-  exp::Expect::stringEquals("a: 0, b: T", new self::C::•<core::Object*>().{self::C::trace}{core::String*});
-  exp::Expect::stringEquals("a: 0, b: T", new self::C::•<dynamic>().{self::C::trace}{core::String*});
-  exp::Expect::stringEquals("a: 0, b: String", new self::D::•().{self::C::trace}{core::String*});
-  exp::Expect::stringEquals("a: 0, b: String", new self::E::•().{self::C::trace}{core::String*});
-  exp::Expect::stringEquals("a: 0, b: int", new self::F::•().{self::C::trace}{core::String*});
+  exp::Expect::stringEquals("a: 0, b: T", new self::C::•<core::Object>().{self::C::trace}{core::String});
+  exp::Expect::stringEquals("a: 0, b: T", new self::C::•<dynamic>().{self::C::trace}{core::String});
+  exp::Expect::stringEquals("a: 0, b: String", new self::D::•().{self::C::trace}{core::String});
+  exp::Expect::stringEquals("a: 0, b: String", new self::E::•().{self::C::trace}{core::String});
+  exp::Expect::stringEquals("a: 0, b: int", new self::F::•().{self::C::trace}{core::String});
 }
 
 constants  {

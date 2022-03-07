@@ -1396,7 +1396,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
-  __ NOT_IN_PRODUCT(__ Drop(1));  // Drop profiler marker.
+  NOT_IN_PRODUCT(__ Drop(1));  // Drop profiler marker.
   __ ret();
 }
 
