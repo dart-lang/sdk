@@ -83,8 +83,8 @@ mixin Handler<P, R> {
     return success(result);
   }
 
-  ErrorOr<ParsedUnitResult> requireUnresolvedUnit(String path) {
-    final result = server.getParsedUnit(path);
+  Future<ErrorOr<ParsedUnitResult>> requireUnresolvedUnit(String path) async {
+    final result = await server.getParsedUnit(path);
     if (result == null) {
       if (server.isAnalyzed(path)) {
         // If the file was being analyzed and we got a null result, that usually

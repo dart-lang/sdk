@@ -433,13 +433,13 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
   Future<ElementDeclarationResult?> getElementDeclaration(
       Element element) async {
     var libraryPath = element.library!.source.fullName;
-    var library = _getParsedLibrary(libraryPath);
+    var library = await _getParsedLibrary(libraryPath);
     return library.getElementDeclaration(element);
   }
 
-  ParsedLibraryResult _getParsedLibrary(String path) {
+  Future<ParsedLibraryResult> _getParsedLibrary(String path) async {
     var session = contextFor(path).currentSession;
-    return session.getParsedLibrary(path) as ParsedLibraryResult;
+    return await session.getParsedLibrary2(path) as ParsedLibraryResult;
   }
 }
 

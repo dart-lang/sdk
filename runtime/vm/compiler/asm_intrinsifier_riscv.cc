@@ -537,7 +537,60 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
                                             intptr_t other_cid,
                                             Label* return_true,
                                             Label* return_false) {
-  UNIMPLEMENTED();
+  __ SmiUntag(T0);
+  __ LoadCompressedSmi(
+      T1, FieldAddress(A0, target::String::length_offset()));  // this.length
+  __ SmiUntag(T1);
+  __ LoadCompressedSmi(
+      T2, FieldAddress(A1, target::String::length_offset()));  // other.length
+  __ SmiUntag(T2);
+
+  // if (other.length == 0) return true;
+  __ beqz(T2, return_true);
+
+  // if (start < 0) return false;
+  __ bltz(T0, return_false);
+
+  // if (start + other.length > this.length) return false;
+  __ add(T3, T0, T2);
+  __ bgt(T3, T1, return_false);
+
+  if (receiver_cid == kOneByteStringCid) {
+    __ add(A0, A0, T0);
+  } else {
+    ASSERT(receiver_cid == kTwoByteStringCid);
+    __ add(A0, A0, T0);
+    __ add(A0, A0, T0);
+  }
+
+  // i = 0
+  __ li(T3, 0);
+
+  // do
+  Label loop;
+  __ Bind(&loop);
+
+  // this.codeUnitAt(i + start)
+  if (receiver_cid == kOneByteStringCid) {
+    __ lbu(TMP, FieldAddress(A0, target::OneByteString::data_offset()));
+  } else {
+    __ lhu(TMP, FieldAddress(A0, target::TwoByteString::data_offset()));
+  }
+  // other.codeUnitAt(i)
+  if (other_cid == kOneByteStringCid) {
+    __ lbu(TMP2, FieldAddress(A1, target::OneByteString::data_offset()));
+  } else {
+    __ lhu(TMP2, FieldAddress(A1, target::TwoByteString::data_offset()));
+  }
+  __ bne(TMP, TMP2, return_false);
+
+  // i++, while (i < len)
+  __ addi(T3, T3, 1);
+  __ addi(A0, A0, receiver_cid == kOneByteStringCid ? 1 : 2);
+  __ addi(A1, A1, other_cid == kOneByteStringCid ? 1 : 2);
+  __ blt(T3, T2, &loop);
+
+  __ j(return_true);
 }
 
 // bool _substringMatches(int start, String other)
@@ -545,26 +598,277 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
 // OneByteString other.
 void AsmIntrinsifier::StringBaseSubstringMatches(Assembler* assembler,
                                                  Label* normal_ir_body) {
-  // TODO(riscv)
+  Label return_true, return_false, try_two_byte;
+  __ lx(A0, Address(SP, 2 * target::kWordSize));  // this
+  __ lx(T0, Address(SP, 1 * target::kWordSize));  // start
+  __ lx(A1, Address(SP, 0 * target::kWordSize));  // other
+
+  __ BranchIfNotSmi(T0, normal_ir_body);
+
+  __ CompareClassId(A1, kOneByteStringCid, TMP);
+  __ BranchIf(NE, normal_ir_body);
+
+  __ CompareClassId(A0, kOneByteStringCid, TMP);
+  __ BranchIf(NE, normal_ir_body);
+
+  GenerateSubstringMatchesSpecialization(assembler, kOneByteStringCid,
+                                         kOneByteStringCid, &return_true,
+                                         &return_false);
+
+  __ Bind(&try_two_byte);
+  __ CompareClassId(A0, kTwoByteStringCid, TMP);
+  __ BranchIf(NE, normal_ir_body);
+
+  GenerateSubstringMatchesSpecialization(assembler, kTwoByteStringCid,
+                                         kOneByteStringCid, &return_true,
+                                         &return_false);
+
+  __ Bind(&return_true);
+  __ LoadObject(A0, CastHandle<Object>(TrueObject()));
+  __ ret();
+
+  __ Bind(&return_false);
+  __ LoadObject(A0, CastHandle<Object>(FalseObject()));
+  __ ret();
+
   __ Bind(normal_ir_body);
 }
 
 void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
                                        Label* normal_ir_body) {
-  // TODO(riscv)
+  Label try_two_byte_string;
+
+  __ lx(A1, Address(SP, 0 * target::kWordSize));  // Index.
+  __ lx(A0, Address(SP, 1 * target::kWordSize));  // String.
+  __ BranchIfNotSmi(A1, normal_ir_body);          // Index is not a Smi.
+  // Range check.
+  __ lx(TMP, FieldAddress(A0, target::String::length_offset()));
+  __ bgeu(A1, TMP, normal_ir_body);  // Runtime throws exception.
+
+  __ CompareClassId(A0, kOneByteStringCid, TMP);
+  __ BranchIf(NE, &try_two_byte_string);
+  __ SmiUntag(A1);
+  __ add(A0, A0, A1);
+  __ lbu(A1, FieldAddress(A0, target::OneByteString::data_offset()));
+  __ CompareImmediate(A1, target::Symbols::kNumberOfOneCharCodeSymbols);
+  __ BranchIf(GE, normal_ir_body);
+  __ lx(A0, Address(THR, target::Thread::predefined_symbols_address_offset()));
+  __ slli(A1, A1, target::kWordSizeLog2);
+  __ add(A0, A0, A1);
+  __ lx(A0, Address(A0, target::Symbols::kNullCharCodeSymbolOffset *
+                            target::kWordSize));
+  __ ret();
+
+  __ Bind(&try_two_byte_string);
+  __ CompareClassId(A0, kTwoByteStringCid, TMP);
+  __ BranchIf(NE, normal_ir_body);
+  ASSERT(kSmiTagShift == 1);
+  __ add(A0, A0, A1);
+  __ lhu(A1, FieldAddress(A0, target::TwoByteString::data_offset()));
+  __ CompareImmediate(A1, target::Symbols::kNumberOfOneCharCodeSymbols);
+  __ BranchIf(GE, normal_ir_body);
+  __ lx(A0, Address(THR, target::Thread::predefined_symbols_address_offset()));
+  __ slli(A1, A1, target::kWordSizeLog2);
+  __ add(A0, A0, A1);
+  __ lx(A0, Address(A0, target::Symbols::kNullCharCodeSymbolOffset *
+                            target::kWordSize));
+  __ ret();
+
   __ Bind(normal_ir_body);
 }
 
 void AsmIntrinsifier::StringBaseIsEmpty(Assembler* assembler,
                                         Label* normal_ir_body) {
-  // TODO(riscv)
-  __ Bind(normal_ir_body);
+  Label is_true;
+  __ lx(A0, Address(SP, 0 * target::kWordSize));
+  __ lx(A0, FieldAddress(A0, target::String::length_offset()));
+  __ beqz(A0, &is_true, Assembler::kNearJump);
+  __ LoadObject(A0, CastHandle<Object>(FalseObject()));
+  __ ret();
+  __ Bind(&is_true);
+  __ LoadObject(A0, CastHandle<Object>(TrueObject()));
+  __ ret();
 }
 
 void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  // TODO(riscv)
-  __ Bind(normal_ir_body);
+  Label compute_hash;
+  __ lx(A1, Address(SP, 0 * target::kWordSize));  // OneByteString object.
+#if XLEN == 32
+  __ lw(A0, FieldAddress(A1, target::String::hash_offset()));
+#else
+  __ lwu(A0, FieldAddress(A1, target::String::hash_offset()));
+  __ SmiTag(A0);
+#endif
+  __ beqz(A0, &compute_hash);
+  __ ret();  // Return if already computed.
+
+  __ Bind(&compute_hash);
+  __ lx(T0, FieldAddress(A1, target::String::length_offset()));
+  __ SmiUntag(T0);
+
+  Label set_to_one, done;
+  // If the string is empty, set the hash to 1, and return.
+  __ beqz(T0, &set_to_one);
+
+  __ mv(T1, ZR);
+  __ addi(T2, A1, target::OneByteString::data_offset() - kHeapObjectTag);
+  // A1: Instance of OneByteString.
+  // T0: String length, untagged integer.
+  // T1: Loop counter, untagged integer.
+  // T2: String data.
+  // A0: Hash code, untagged integer.
+
+  Label loop;
+  // Add to hash code: (hash_ is uint32)
+  // hash_ += ch;
+  // hash_ += hash_ << 10;
+  // hash_ ^= hash_ >> 6;
+  // Get one characters (ch).
+  __ Bind(&loop);
+  __ lbu(T3, Address(T2, 0));
+  __ addi(T2, T2, 1);
+  // T3: ch.
+  __ addi(T1, T1, 1);
+#if XLEN == 32
+  __ add(A0, A0, T3);
+  __ slli(TMP, A0, 10);
+  __ add(A0, A0, TMP);
+  __ srli(TMP, A0, 6);
+#else
+  __ addw(A0, A0, T3);
+  __ slliw(TMP, A0, 10);
+  __ addw(A0, A0, TMP);
+  __ srliw(TMP, A0, 6);
+#endif
+  __ xor_(A0, A0, TMP);
+  __ bne(T1, T0, &loop);
+
+  // Finalize.
+  // hash_ += hash_ << 3;
+  // hash_ ^= hash_ >> 11;
+  // hash_ += hash_ << 15;
+#if XLEN == 32
+  __ slli(TMP, A0, 3);
+  __ add(A0, A0, TMP);
+  __ srli(TMP, A0, 11);
+  __ xor_(A0, A0, TMP);
+  __ slli(TMP, A0, 15);
+  __ add(A0, A0, TMP);
+#else
+  __ slliw(TMP, A0, 3);
+  __ addw(A0, A0, TMP);
+  __ srliw(TMP, A0, 11);
+  __ xor_(A0, A0, TMP);
+  __ slliw(TMP, A0, 15);
+  __ addw(A0, A0, TMP);
+#endif
+  // hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
+  __ AndImmediate(A0, A0,
+                  (static_cast<intptr_t>(1) << target::String::kHashBits) - 1);
+  // return hash_ == 0 ? 1 : hash_;
+  __ bnez(A0, &done, Assembler::kNearJump);
+  __ Bind(&set_to_one);
+  __ li(A0, 1);
+  __ Bind(&done);
+
+#if XLEN == 32
+  __ SmiTag(A0);
+  __ sx(A0, FieldAddress(A1, target::String::hash_offset()));
+  __ ret();
+#else
+  // A1: Untagged address of header word (lr/sc do not support offsets).
+  __ subi(A1, A1, kHeapObjectTag);
+  __ slli(A0, A0, target::UntaggedObject::kHashTagPos);
+  Label retry;
+  __ Bind(&retry);
+  __ lr(T0, Address(A1, 0));
+  __ or_(T0, T0, A0);
+  __ sc(TMP, T0, Address(A1, 0));
+  __ bnez(TMP, &retry);
+
+  __ srli(A0, A0, target::UntaggedObject::kHashTagPos);
+  __ SmiTag(A0);
+  __ ret();
+#endif
+}
+
+// Allocates a _OneByteString or _TwoByteString. The content is not initialized.
+// 'length-reg' (A1) contains the desired length as a _Smi or _Mint.
+// Returns new string as tagged pointer in A0.
+static void TryAllocateString(Assembler* assembler,
+                              classid_t cid,
+                              Label* ok,
+                              Label* failure) {
+  ASSERT(cid == kOneByteStringCid || cid == kTwoByteStringCid);
+  const Register length_reg = A1;
+  // _Mint length: call to runtime to produce error.
+  __ BranchIfNotSmi(length_reg, failure);
+  // negative length: call to runtime to produce error.
+  __ bltz(length_reg, failure);
+
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, TMP, failure));
+  __ mv(T0, length_reg);  // Save the length register.
+  if (cid == kOneByteStringCid) {
+    // Untag length.
+    __ SmiUntag(length_reg);
+  } else {
+    // Untag length and multiply by element size -> no-op.
+    ASSERT(kSmiTagSize == 1);
+  }
+  const intptr_t fixed_size_plus_alignment_padding =
+      target::String::InstanceSize() +
+      target::ObjectAlignment::kObjectAlignment - 1;
+  __ addi(length_reg, length_reg, fixed_size_plus_alignment_padding);
+  __ andi(length_reg, length_reg,
+          ~(target::ObjectAlignment::kObjectAlignment - 1));
+
+  __ lx(A0, Address(THR, target::Thread::top_offset()));
+
+  // length_reg: allocation size.
+  __ add(T1, A0, length_reg);
+  __ bltu(T1, A0, failure);  // Fail on unsigned overflow.
+
+  // Check if the allocation fits into the remaining space.
+  // A0: potential new object start.
+  // T1: potential next object start.
+  // A1: allocation size.
+  __ lx(TMP, Address(THR, target::Thread::end_offset()));
+  __ bgtu(T1, TMP, failure);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ sx(T1, Address(THR, target::Thread::top_offset()));
+  __ AddImmediate(A0, kHeapObjectTag);
+
+  // Initialize the tags.
+  // A0: new object start as a tagged pointer.
+  // T1: new object end address.
+  // A1: allocation size.
+  {
+    const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
+                           target::ObjectAlignment::kObjectAlignmentLog2;
+
+    __ CompareImmediate(A1, target::UntaggedObject::kSizeTagMaxSizeTag);
+    Label dont_zero_tag;
+    __ BranchIf(UNSIGNED_LESS_EQUAL, &dont_zero_tag);
+    __ li(A1, 0);
+    __ Bind(&dont_zero_tag);
+    __ slli(A1, A1, shift);
+
+    // Get the class index and insert it into the tags.
+    // A1: size and bit tags.
+    // This also clears the hash, which is in the high word of the tags.
+    const uword tags =
+        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+    __ OrImmediate(A1, A1, tags);
+    __ sx(A1, FieldAddress(A0, target::Object::tags_offset()));  // Store tags.
+  }
+
+  // Set the length field using the saved length (T0).
+  __ StoreIntoObjectNoBarrier(
+      A0, FieldAddress(A0, target::String::length_offset()), T0);
+  __ j(ok);
 }
 
 // Arg0: OneByteString (receiver).
@@ -573,7 +877,53 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 // The indexes must be valid.
 void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
                                                        Label* normal_ir_body) {
-  // TODO(riscv)
+  const intptr_t kStringOffset = 2 * target::kWordSize;
+  const intptr_t kStartIndexOffset = 1 * target::kWordSize;
+  const intptr_t kEndIndexOffset = 0 * target::kWordSize;
+  Label ok;
+
+  __ lx(T0, Address(SP, kEndIndexOffset));
+  __ lx(TMP, Address(SP, kStartIndexOffset));
+  __ or_(T1, T0, TMP);
+  __ BranchIfNotSmi(T1, normal_ir_body);  // 'start', 'end' not Smi.
+
+  __ sub(A1, T0, TMP);
+  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
+  __ Bind(&ok);
+  // A0: new string as tagged pointer.
+  // Copy string.
+  __ lx(T1, Address(SP, kStringOffset));
+  __ lx(T2, Address(SP, kStartIndexOffset));
+  __ SmiUntag(T2);
+  // Calculate start address.
+  __ add(T1, T1, T2);
+
+  // T1: Start address to copy from.
+  // T2: Untagged start index.
+  __ lx(T0, Address(SP, kEndIndexOffset));
+  __ SmiUntag(T0);
+  __ sub(T0, T0, T2);
+
+  // T1: Start address to copy from (untagged).
+  // T0: Untagged number of bytes to copy.
+  // A0: Tagged result string.
+  // T3: Pointer into T1.
+  // T4: Pointer into A0.
+  // T2: Scratch register.
+  Label loop, done;
+  __ blez(T0, &done, Assembler::kNearJump);
+  __ mv(T3, T1);
+  __ mv(T4, A0);
+  __ Bind(&loop);
+  __ subi(T0, T0, 1);
+  __ lbu(T2, FieldAddress(T3, target::OneByteString::data_offset()));
+  __ addi(T3, T3, 1);
+  __ sb(T2, FieldAddress(T4, target::OneByteString::data_offset()));
+  __ addi(T4, T4, 1);
+  __ bgtz(T0, &loop);
+
+  __ Bind(&done);
+  __ ret();
   __ Bind(normal_ir_body);
 }
 
@@ -603,13 +953,27 @@ void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
 
 void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
-  // TODO(riscv)
+  Label ok;
+
+  __ lx(A1, Address(SP, 0 * target::kWordSize));  // Length.
+  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
+
+  __ Bind(&ok);
+  __ ret();
+
   __ Bind(normal_ir_body);
 }
 
 void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
-  // TODO(riscv)
+  Label ok;
+
+  __ lx(A1, Address(SP, 0 * target::kWordSize));  // Length.
+  TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body);
+
+  __ Bind(&ok);
+  __ ret();
+
   __ Bind(normal_ir_body);
 }
 
@@ -617,7 +981,52 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
 static void StringEquality(Assembler* assembler,
                            Label* normal_ir_body,
                            intptr_t string_cid) {
-  // TODO(riscv)
+  Label is_true, is_false, loop;
+  __ lx(A0, Address(SP, 1 * target::kWordSize));  // This.
+  __ lx(A1, Address(SP, 0 * target::kWordSize));  // Other.
+
+  // Are identical?
+  __ beq(A0, A1, &is_true, Assembler::kNearJump);
+
+  // Is other OneByteString?
+  __ BranchIfSmi(A1, normal_ir_body, Assembler::kNearJump);
+  __ CompareClassId(A1, string_cid, TMP);
+  __ BranchIf(NE, normal_ir_body, Assembler::kNearJump);
+
+  // Have same length?
+  __ lx(T2, FieldAddress(A0, target::String::length_offset()));
+  __ lx(T3, FieldAddress(A1, target::String::length_offset()));
+  __ bne(T2, T3, &is_false, Assembler::kNearJump);
+
+  // Check contents, no fall-through possible.
+  __ SmiUntag(T2);
+  __ Bind(&loop);
+  __ AddImmediate(T2, -1);
+  __ bltz(T2, &is_true, Assembler::kNearJump);
+  if (string_cid == kOneByteStringCid) {
+    __ lbu(TMP, FieldAddress(A0, target::OneByteString::data_offset()));
+    __ lbu(TMP2, FieldAddress(A1, target::OneByteString::data_offset()));
+    __ addi(A0, A0, 1);
+    __ addi(A1, A1, 1);
+  } else if (string_cid == kTwoByteStringCid) {
+    __ lhu(TMP, FieldAddress(A0, target::TwoByteString::data_offset()));
+    __ lhu(TMP2, FieldAddress(A1, target::TwoByteString::data_offset()));
+    __ addi(A0, A0, 2);
+    __ addi(A1, A1, 2);
+  } else {
+    UNIMPLEMENTED();
+  }
+  __ bne(TMP, TMP2, &is_false, Assembler::kNearJump);
+  __ j(&loop);
+
+  __ Bind(&is_true);
+  __ LoadObject(A0, CastHandle<Object>(TrueObject()));
+  __ ret();
+
+  __ Bind(&is_false);
+  __ LoadObject(A0, CastHandle<Object>(FalseObject()));
+  __ ret();
+
   __ Bind(normal_ir_body);
 }
 
@@ -645,7 +1054,7 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   // S4: Arguments descriptor. (Will be preserved.)
   // S5: Unknown. (Must be GC safe on tail call.)
 
-  // Load the specialized function pointer into R0. Leverage the fact the
+  // Load the specialized function pointer into T0. Leverage the fact the
   // string CIDs as well as stored function pointers are in sequence.
   __ lx(T2, Address(SP, kRegExpParamOffset));
   __ lx(T1, Address(SP, kStringParamOffset));
@@ -657,7 +1066,7 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
                                                              sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
-  // in R0, the argument descriptor in R4, and IC-Data in R5.
+  // in T0, the argument descriptor in S4, and IC-Data in S5.
   __ li(S5, 0);
 
   // Tail-call the function.

@@ -189,10 +189,10 @@ abstract class ErrorFormatter {
   /// Call to write any batched up errors from [formatErrors].
   void flush();
 
-  void formatError(
+  Future<void> formatError(
       Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error);
 
-  void formatErrors(List<ErrorsResult> results) {
+  Future<void> formatErrors(List<ErrorsResult> results) async {
     stats.unfilteredCount += results.length;
 
     var errors = <AnalysisError>[];
@@ -207,7 +207,7 @@ abstract class ErrorFormatter {
     }
 
     for (var error in errors) {
-      formatError(errorToLine, error);
+      await formatError(errorToLine, error);
     }
   }
 
@@ -276,8 +276,8 @@ class HumanErrorFormatter extends ErrorFormatter {
   }
 
   @override
-  void formatError(
-      Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) {
+  Future<void> formatError(
+      Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) async {
     var source = error.source;
     var result = errorToLine[error]!;
     var location = result.lineInfo.getLocation(error.offset);
@@ -308,9 +308,10 @@ class HumanErrorFormatter extends ErrorFormatter {
     }
     var contextMessages = <ContextMessage>[];
     for (var message in error.contextMessages) {
+      // TODO(scheglov) We should add `LineInfo` to `DiagnosticMessage`.
       var session = result.session.analysisContext;
       if (session is DriverBasedAnalysisContext) {
-        var fileResult = session.driver.getFileSync(message.filePath);
+        var fileResult = await session.driver.getFile(message.filePath);
         if (fileResult is FileResult) {
           var lineInfo = fileResult.lineInfo;
           var location = lineInfo.getLocation(message.offset);
@@ -348,13 +349,13 @@ class JsonErrorFormatter extends ErrorFormatter {
   void flush() {}
 
   @override
-  void formatError(
-      Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) {
+  Future<void> formatError(
+      Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) async {
     throw UnsupportedError('Cannot format a single error');
   }
 
   @override
-  void formatErrors(List<ErrorsResult> results) {
+  Future<void> formatErrors(List<ErrorsResult> results) async {
     Map<String, dynamic> range(
             Map<String, dynamic> start, Map<String, dynamic> end) =>
         {
@@ -435,8 +436,8 @@ class MachineErrorFormatter extends ErrorFormatter {
   void flush() {}
 
   @override
-  void formatError(
-      Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) {
+  Future<void> formatError(
+      Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) async {
     // Ensure we don't over-report (#36062).
     if (!_seenErrors.add(error)) {
       return;

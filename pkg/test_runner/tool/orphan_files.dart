@@ -15,12 +15,9 @@ import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-
 import 'package:test_runner/src/path.dart';
 
-AnalysisContext _analysisContext;
-
-void main(List<String> arguments) {
+Future<void> main(List<String> arguments) async {
   _initAnalysisContext();
 
   var suites = Directory('tests').listSync();
@@ -29,21 +26,14 @@ void main(List<String> arguments) {
   for (var entry in suites) {
     // Skip the co19 tests since they don't use '_test.dart'.
     if (entry is Directory && !entry.path.contains('co19')) {
-      _checkTestDirectory(entry);
+      await _checkTestDirectory(entry);
     }
   }
 }
 
-void _initAnalysisContext() {
-  var roots = ContextLocator().locateRoots(includedPaths: ['test']);
-  if (roots.length != 1) {
-    throw StateError('Expected to find exactly one context root, got $roots');
-  }
+AnalysisContext _analysisContext;
 
-  _analysisContext = ContextBuilder().createContext(contextRoot: roots[0]);
-}
-
-void _checkTestDirectory(Directory directory) {
+Future<void> _checkTestDirectory(Directory directory) async {
   print('-- ${directory.path} --');
   var paths = directory
       .listSync(recursive: true)
@@ -56,7 +46,7 @@ void _checkTestDirectory(Directory directory) {
   print('Finding referenced files...');
   var importedPaths = <String>{};
   for (var path in paths) {
-    _parseReferences(importedPaths, path);
+    await _parseReferences(importedPaths, path);
   }
 
   // Find the ".dart" files that don't end in "_test.dart" but also aren't used
@@ -72,9 +62,20 @@ void _checkTestDirectory(Directory directory) {
   if (!hasOrphan) print('No orphans :)');
 }
 
-void _parseReferences(Set<String> importedPaths, String filePath) {
+void _initAnalysisContext() {
+  var roots = ContextLocator().locateRoots(includedPaths: ['test']);
+  if (roots.length != 1) {
+    throw StateError('Expected to find exactly one context root, got $roots');
+  }
+
+  _analysisContext = ContextBuilder().createContext(contextRoot: roots[0]);
+}
+
+Future<void> _parseReferences(
+    Set<String> importedPaths, String filePath) async {
   var absolute = Path(filePath).absolute.toNativePath();
-  var parseResult = _analysisContext.currentSession.getParsedUnit(absolute);
+  var analysisSession = _analysisContext.currentSession;
+  var parseResult = await analysisSession.getParsedUnit2(absolute);
   var unit = (parseResult as ParsedUnitResult).unit;
 
   void add(String importPath) {

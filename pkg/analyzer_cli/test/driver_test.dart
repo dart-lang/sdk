@@ -464,7 +464,7 @@ class OptionsTest extends BaseTest {
     ]);
     expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
     expect(bulletToDash(outSink),
-        contains("error - The body might complete normally"));
+        contains('error - The body might complete normally'));
     expect(outSink.toString(), contains('1 error and 1 warning found.'));
   }
 

@@ -44,27 +44,27 @@ void main() {
         reporter = HumanErrorFormatter(out, options, stats);
       });
 
-      test('error', () {
+      test('error', () async {
         var error = mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
-        reporter.formatErrors([error]);
+        await reporter.formatErrors([error]);
         reporter.flush();
 
         expect(out.toString().trim(),
             'error • MSG • /foo/bar/baz.dart:3:3 • mock_code');
       });
 
-      test('hint', () {
+      test('hint', () async {
         var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
-        reporter.formatErrors([error]);
+        await reporter.formatErrors([error]);
         reporter.flush();
 
         expect(out.toString().trim(),
             'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code');
       });
 
-      test('stats', () {
+      test('stats', () async {
         var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
-        reporter.formatErrors([error]);
+        await reporter.formatErrors([error]);
         reporter.flush();
         stats.print(out);
         expect(
@@ -79,9 +79,9 @@ void main() {
         reporter = JsonErrorFormatter(out, options, stats);
       });
 
-      test('error', () {
+      test('error', () async {
         var error = mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
-        reporter.formatErrors([error]);
+        await reporter.formatErrors([error]);
         reporter.flush();
 
         expect(
@@ -108,11 +108,11 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
   var source = MockSource(path, package_path.toUri(path));
   var error = MockAnalysisError(source, code, 20, 'MSG');
 
-  return ErrorsResultImpl(_MockAnslysisSession(), source.fullName,
+  return ErrorsResultImpl(_MockAnalysisSession(), source.fullName,
       Uri.file('/'), lineInfo, false, [error]);
 }
 
-class _MockAnslysisSession implements AnalysisSession {
+class _MockAnalysisSession implements AnalysisSession {
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

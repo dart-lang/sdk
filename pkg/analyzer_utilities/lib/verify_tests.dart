@@ -87,7 +87,7 @@ class VerifyTests {
       }
     }
     var relativePath = path.relative(directory.path, from: testDirPath);
-    test(relativePath, () {
+    test(relativePath, () async {
       if (testFileNames.isEmpty) {
         return;
       }
@@ -103,7 +103,7 @@ class VerifyTests {
       if (isOkForTestAllToBeMissing(directory)) {
         fail('Found "test_all.dart" in $relativePath but did not expect one');
       }
-      var result = session.getParsedUnit(testAllFile.path);
+      var result = await session.getParsedUnit2(testAllFile.path);
       if (result is! ParsedUnitResult) {
         fail('Could not parse ${testAllFile.path}');
       }

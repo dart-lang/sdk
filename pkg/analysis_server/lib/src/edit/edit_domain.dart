@@ -518,7 +518,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
 
     // Prepare the file information.
-    var result = server.getParsedUnit(file);
+    var result = await server.getParsedUnit(file);
     if (result == null) {
       server.sendResponse(Response.fileNotAnalyzed(request, file));
       return;

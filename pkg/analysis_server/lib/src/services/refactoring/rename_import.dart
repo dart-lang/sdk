@@ -57,7 +57,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         if (prefix == null) {
           return;
         }
-        var node = _findNode();
+        var node = await _findNode();
         if (node != null) {
           var uriEnd = node.uri.end;
           var prefixEnd = prefix.nameOffset + prefix.nameLength;
@@ -66,7 +66,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         }
       } else {
         if (prefix == null) {
-          var node = _findNode();
+          var node = await _findNode();
           if (node != null) {
             var uriEnd = node.uri.end;
             edit = newSourceEdit_range(SourceRange(uriEnd, 0), ' as $newName');
@@ -88,15 +88,13 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       if (newName.isEmpty) {
         reference.addEdit(change, '');
       } else {
-        var interpolationIdentifier = _getInterpolationIdentifier(reference);
-        if (interpolationIdentifier != null) {
+        var identifier = await _getInterpolationIdentifier(reference);
+        if (identifier != null) {
           doSourceChange_addElementEdit(
               change,
               reference.element,
-              SourceEdit(
-                  interpolationIdentifier.offset,
-                  interpolationIdentifier.length,
-                  '{$newName.${interpolationIdentifier.name}}'));
+              SourceEdit(identifier.offset, identifier.length,
+                  '{$newName.${identifier.name}}'));
         } else {
           reference.addEdit(change, '$newName.');
         }
@@ -105,10 +103,10 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   }
 
   /// Return the [ImportDirective] node that corresponds to the [element].
-  ImportDirective? _findNode() {
+  Future<ImportDirective?> _findNode() async {
     var library = element.library;
     var path = library.source.fullName;
-    var unitResult = session.getParsedUnit(path);
+    var unitResult = await session.getParsedUnit2(path);
     if (unitResult is! ParsedUnitResult) {
       return null;
     }
@@ -120,9 +118,11 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   /// If the given [reference] is before an interpolated [SimpleIdentifier] in
   /// an [InterpolationExpression] without surrounding curly brackets, return
   /// it. Otherwise return `null`.
-  SimpleIdentifier? _getInterpolationIdentifier(SourceReference reference) {
+  Future<SimpleIdentifier?> _getInterpolationIdentifier(
+    SourceReference reference,
+  ) async {
     var source = reference.element.source!;
-    var unitResult = session.getParsedUnit(source.fullName);
+    var unitResult = await session.getParsedUnit2(source.fullName);
     if (unitResult is! ParsedUnitResult) {
       return null;
     }

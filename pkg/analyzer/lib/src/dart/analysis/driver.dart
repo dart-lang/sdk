@@ -588,6 +588,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return getErrors(path);
   }
 
+  /// Return the [FileResult] for the Dart file with the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  Future<SomeFileResult> getFile(String path) async {
+    if (!_isAbsolutePath(path)) {
+      return InvalidPathResult();
+    }
+
+    FileState file = _fileTracker.getFile(path);
+    return FileResultImpl(
+        currentSession, path, file.uri, file.lineInfo, file.isPart);
+  }
+
   /// Return a [Future] that completes with the list of added files that
   /// define a class member with the given [name].
   Future<List<String>> getFilesDefiningClassMemberName(String name) {
@@ -611,6 +624,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the [FileResult] for the Dart file with the given [path].
   ///
   /// The [path] must be absolute and normalized.
+  @Deprecated('Use getFile() instead')
   SomeFileResult getFileSync(String path) {
     if (!_isAbsolutePath(path)) {
       return InvalidPathResult();
@@ -624,7 +638,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the [FileResult] for the Dart file with the given [path].
   ///
   /// The [path] must be absolute and normalized.
-  @Deprecated('Use getFileSync() instead')
+  @Deprecated('Use getFile() instead')
   SomeFileResult getFileSync2(String path) {
     return getFileSync(path);
   }
