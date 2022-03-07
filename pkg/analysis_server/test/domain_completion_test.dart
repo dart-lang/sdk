@@ -249,7 +249,7 @@ void f() {
       libraryUri,
     ).toRequest('0');
 
-    var response = await _handleSuccessfulRequest(request);
+    var response = await handleSuccessfulRequest(request);
     return CompletionGetSuggestionDetails2Result.fromResponse(response);
   }
 
@@ -328,7 +328,7 @@ class CompletionDomainHandlerGetSuggestions2Test
     var request = _sendTestCompletionRequest('0', 0);
 
     // Simulate typing in the IDE.
-    await _handleSuccessfulRequest(
+    await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFilePathPlatform: AddContentOverlay('void f() {}'),
       }).toRequest('1'),
@@ -1973,7 +1973,7 @@ void f() {
       maxResults,
     ).toRequest('0');
 
-    var response = await _handleSuccessfulRequest(request);
+    var response = await handleSuccessfulRequest(request);
     var result = CompletionGetSuggestions2Result.fromResponse(response);
     return CompletionResponseForTesting(
       requestOffset: completionOffset,
@@ -2963,6 +2963,13 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     return await serverChannel.sendRequest(request);
   }
 
+  /// Validates that the given [request] is handled successfully.
+  Future<Response> handleSuccessfulRequest(Request request) async {
+    var response = await handleRequest(request);
+    expect(response, isResponseSuccess(request.id));
+    return response;
+  }
+
   void processNotification(Notification notification) {}
 
   Future<void> setRoots({
@@ -2971,7 +2978,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
   }) async {
     var includedConverted = included.map(convertPath).toList();
     var excludedConverted = excluded.map(convertPath).toList();
-    await _handleSuccessfulRequest(
+    await handleSuccessfulRequest(
       AnalysisSetAnalysisRootsParams(
         includedConverted,
         excludedConverted,
@@ -3052,13 +3059,6 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
   Future<void> _configureWithWorkspaceRoot() async {
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
-  }
-
-  /// Validates that the given [request] is handled successfully.
-  Future<Response> _handleSuccessfulRequest(Request request) async {
-    var response = await handleRequest(request);
-    expect(response, isResponseSuccess(request.id));
-    return response;
   }
 }
 
