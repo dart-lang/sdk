@@ -388,8 +388,9 @@ abstract class InvocationInferrer<Node extends AstNodeImpl> {
         parameter = namedParameters[argument.name.label.name];
       } else if (parameters != null) {
         while (positionalParameterIndex < parameters.length) {
-          parameter = parameters[positionalParameterIndex++];
-          if (!parameter.isNamed) {
+          var candidate = parameters[positionalParameterIndex++];
+          if (!candidate.isNamed) {
+            parameter = candidate;
             break;
           }
         }
