@@ -30,7 +30,7 @@ class FoldingHandler
       final partialResults = <List<FoldingRegion>>[];
       LineInfo? lineInfo;
 
-      final unit = server.getParsedUnit(path);
+      final unit = await server.getParsedUnit(path);
       if (unit != null) {
         lineInfo = unit.lineInfo;
 

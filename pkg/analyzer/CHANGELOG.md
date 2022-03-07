@@ -1,3 +1,8 @@
+## 3.4.0-dev
+* Deprecated synchronous `getFile`, `getParsedLibrary`, `getParsedLibraryByElement`,
+  `getParsedUnit` from `AnalysisSession`. Use corresponding `getXyz2` asynchronous
+  methods instead. This change is necessary for the future work on macros.
+
 ## 3.3.1
 * Report HintCode.OVERRIDE_ON_NON_OVERRIDING_xyz on enum.
 

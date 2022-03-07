@@ -16,17 +16,17 @@ import 'package:test/test.dart';
 void main() {
   /// Ensure server lint name representations correspond w/ actual lint rules.
   /// See, e.g., https://dart-review.googlesource.com/c/sdk/+/95743.
-  group('lint_names', () {
+  test('lint_names', () async {
     var pkgRootPath = path.normalize(packageRoot);
     var fixFilePath = path.join(pkgRootPath, 'analysis_server', 'lib', 'src',
         'services', 'linter', 'lint_names.dart');
     var contextCollection = AnalysisContextCollection(
       includedPaths: [fixFilePath],
     );
-    var parseResult = contextCollection
+    var parseResult = await contextCollection
         .contextFor(fixFilePath)
         .currentSession
-        .getParsedUnit(fixFilePath) as ParsedUnitResult;
+        .getParsedUnit2(fixFilePath) as ParsedUnitResult;
 
     if (parseResult.errors.isNotEmpty) {
       throw Exception(parseResult.errors);
@@ -38,9 +38,7 @@ void main() {
     var collector = _FixCollector();
     lintNamesClass.accept(collector);
     for (var name in collector.lintNames) {
-      test(name, () {
-        expect(registeredLintNames, contains(name));
-      });
+      expect(registeredLintNames, contains(name));
     }
   });
 }

@@ -39,7 +39,7 @@ class SelectionRangeHandler
         return success(null);
       }
 
-      final unit = requireUnresolvedUnit(path);
+      final unit = await requireUnresolvedUnit(path);
       final positions = params.positions;
       final offsets = await unit.mapResult((unit) =>
           ErrorOr.all(positions.map((pos) => toOffset(unit.lineInfo, pos))));

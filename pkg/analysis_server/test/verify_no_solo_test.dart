@@ -45,9 +45,9 @@ void buildTests({required String packagePath}) {
     fail('The directory $testsPath contains multiple analysis contexts.');
   }
 
-  test('no @soloTest', () {
+  test('no @soloTest', () async {
     var failures = <String>[];
-    buildTestsIn(contexts[0].currentSession, testsPath,
+    await buildTestsIn(contexts[0].currentSession, testsPath,
         provider.getFolder(testsPath), failures);
 
     if (failures.isNotEmpty) {
@@ -56,19 +56,19 @@ void buildTests({required String packagePath}) {
   });
 }
 
-void buildTestsIn(AnalysisSession session, String testDirPath, Folder directory,
-    List<String> failures) {
+Future<void> buildTestsIn(AnalysisSession session, String testDirPath,
+    Folder directory, List<String> failures) async {
   var pathContext = session.resourceProvider.pathContext;
   var children = directory.getChildren();
   children.sort((first, second) => first.shortName.compareTo(second.shortName));
   for (var child in children) {
     if (child is Folder) {
-      buildTestsIn(session, testDirPath, child, failures);
+      await buildTestsIn(session, testDirPath, child, failures);
     } else if (child is File && child.shortName.endsWith('_test.dart')) {
       var path = child.path;
       var relativePath = pathContext.relative(path, from: testDirPath);
 
-      var result = session.getParsedUnit(path);
+      var result = await session.getParsedUnit2(path);
       if (result is! ParsedUnitResult) {
         fail('Could not parse $path');
       }

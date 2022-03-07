@@ -390,13 +390,13 @@ abstract class AbstractAnalysisServer {
   }
 
   /// Return the unresolved unit for the file with the given [path].
-  ParsedUnitResult? getParsedUnit(String path) {
+  Future<ParsedUnitResult?> getParsedUnit(String path) async {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
 
     var session = getAnalysisDriver(path)?.currentSession;
-    var result = session?.getParsedUnit(path);
+    var result = await session?.getParsedUnit2(path);
     return result is ParsedUnitResult ? result : null;
   }
 
