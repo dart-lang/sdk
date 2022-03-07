@@ -116,7 +116,7 @@ class MockErrorCode implements ErrorCode {
   }
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockLineInfo implements LineInfo {
@@ -163,5 +163,5 @@ class MockSource implements Source {
   MockSource(this.fullName, this.uri);
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

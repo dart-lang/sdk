@@ -108,11 +108,11 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
   var source = MockSource(path, package_path.toUri(path));
   var error = MockAnalysisError(source, code, 20, 'MSG');
 
-  return ErrorsResultImpl(_MockAnslysisSession(), source.fullName,
+  return ErrorsResultImpl(_MockAnalysisSession(), source.fullName,
       Uri.file('/'), lineInfo, false, [error]);
 }
 
-class _MockAnslysisSession implements AnalysisSession {
+class _MockAnalysisSession implements AnalysisSession {
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
