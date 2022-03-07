@@ -969,7 +969,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   const intptr_t kArgumentsOffset = 5 * target::kWordSize;
   const intptr_t kThreadOffset = 6 * target::kWordSize;
 
-  __ pushl(Address(ESP, 0));  // Marker for the profiler.
+  NOT_IN_PRODUCT(__ pushl(Address(ESP, 0)));  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1084,7 +1084,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
-  __ popl(ECX);
+  NOT_IN_PRODUCT(__ popl(ECX));  // Drop profiler marker.
 
   __ ret();
 }

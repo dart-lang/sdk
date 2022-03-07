@@ -84,10 +84,7 @@ class CompletionDriver with ExpectMixin {
     required this.supportsAvailableSuggestions,
     required this.server,
   }) {
-    server.serverChannel.notificationController.stream
-        .listen((Notification notification) {
-      processNotification(notification);
-    });
+    server.serverChannel.notifications.listen(processNotification);
   }
 
   void addTestFile(String content, {int? offset}) {

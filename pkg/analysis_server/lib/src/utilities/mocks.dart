@@ -23,7 +23,7 @@ class MockServerChannel implements ServerCommunicationChannel {
   StreamController<Response> responseController =
       StreamController<Response>.broadcast();
   StreamController<Notification> notificationController =
-      StreamController<Notification>(sync: true);
+      StreamController<Notification>.broadcast(sync: true);
   Completer<Response>? errorCompleter;
 
   List<Response> responsesReceived = [];
@@ -34,6 +34,11 @@ class MockServerChannel implements ServerCommunicationChannel {
   String? name;
 
   MockServerChannel();
+
+  /// Return the broadcast stream of notifications.
+  Stream<Notification> get notifications {
+    return notificationController.stream;
+  }
 
   @override
   Stream<Request> get requests => requestController.stream;

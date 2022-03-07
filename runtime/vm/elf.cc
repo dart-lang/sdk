@@ -1373,7 +1373,7 @@ void Elf::FinalizeEhFrame() {
 
   // Multiplier which will be used to scale operands of DW_CFA_offset and
   // DW_CFA_val_offset.
-  const intptr_t kDataAlignment = compiler::target::kWordSize;
+  const intptr_t kDataAlignment = -compiler::target::kWordSize;
 
   static const uint8_t DW_EH_PE_pcrel = 0x10;
   static const uint8_t DW_EH_PE_sdata4 = 0x0b;
@@ -1395,11 +1395,19 @@ void Elf::FinalizeEhFrame() {
         ConcreteRegister(LINK_REGISTER));  // Return address register
     dwarf_stream.uleb128(1);               // Augmentation size
     dwarf_stream.u1(DW_EH_PE_pcrel | DW_EH_PE_sdata4);  // FDE encoding.
-    // CFA is FP+0
+    // CFA is caller's SP (FP+kCallerSpSlotFromFp*kWordSize)
     dwarf_stream.u1(Dwarf::DW_CFA_def_cfa);
     dwarf_stream.uleb128(FP);
-    dwarf_stream.uleb128(0);
+    dwarf_stream.uleb128(kCallerSpSlotFromFp * compiler::target::kWordSize);
   });
+
+  // Emit rule defining that |reg| value is stored at CFA+offset.
+  const auto cfa_offset = [&](Register reg, intptr_t offset) {
+    const intptr_t scaled_offset = offset / kDataAlignment;
+    RELEASE_ASSERT(scaled_offset >= 0);
+    dwarf_stream.u1(Dwarf::DW_CFA_offset | reg);
+    dwarf_stream.uleb128(scaled_offset);
+  };
 
   // Emit an FDE covering each .text section.
   for (const auto& portion : text_section->portions()) {
@@ -1413,27 +1421,17 @@ void Elf::FinalizeEhFrame() {
       dwarf_stream.u4(portion.size);           // Size.
       dwarf_stream.u1(0);                      // Augmentation Data length.
 
-      // FP at FP+kSavedCallerPcSlotFromFp*kWordSize
-      COMPILE_ASSERT(kSavedCallerFpSlotFromFp >= 0);
-      dwarf_stream.u1(Dwarf::DW_CFA_offset | FP);
-      dwarf_stream.uleb128(kSavedCallerFpSlotFromFp);
+      // Caller FP at FP+kSavedCallerPcSlotFromFp*kWordSize,
+      // where FP is CFA - kCallerSpSlotFromFp*kWordSize.
+      COMPILE_ASSERT((kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) <= 0);
+      cfa_offset(FP,
+                 (kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) * kWordSize);
 
-      // LR at FP+kSavedCallerPcSlotFromFp*kWordSize
-      COMPILE_ASSERT(kSavedCallerPcSlotFromFp >= 0);
-      dwarf_stream.u1(Dwarf::DW_CFA_offset | ConcreteRegister(LINK_REGISTER));
-      dwarf_stream.uleb128(kSavedCallerPcSlotFromFp);
-
-      // SP is FP+kCallerSpSlotFromFp*kWordSize
-      COMPILE_ASSERT(kCallerSpSlotFromFp >= 0);
-      dwarf_stream.u1(Dwarf::DW_CFA_val_offset);
-#if defined(TARGET_ARCH_ARM64)
-      dwarf_stream.uleb128(ConcreteRegister(CSP));
-#elif defined(TARGET_ARCH_ARM)
-      dwarf_stream.uleb128(SP);
-#else
-#error "Unsupported .eh_frame architecture"
-#endif
-      dwarf_stream.uleb128(kCallerSpSlotFromFp);
+      // Caller LR at FP+kSavedCallerPcSlotFromFp*kWordSize,
+      // where FP is CFA - kCallerSpSlotFromFp*kWordSize
+      COMPILE_ASSERT((kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) <= 0);
+      cfa_offset(ConcreteRegister(LINK_REGISTER),
+                 (kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) * kWordSize);
     });
   }
 

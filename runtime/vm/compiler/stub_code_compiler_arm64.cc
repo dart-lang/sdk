@@ -1365,7 +1365,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // from over-writing Dart frames.
   __ mov(SP, CSP);
   __ SetupCSPFromThread(R3);
-  READS_RETURN_ADDRESS_FROM_LR(__ Push(LR));  // Marker for the profiler.
+  // Marker for the profiler.
+  NOT_IN_PRODUCT(READS_RETURN_ADDRESS_FROM_LR(__ Push(LR)));
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1488,7 +1489,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
-  __ Drop(1);
+  NOT_IN_PRODUCT(__ Drop(1));  // Drop profiler marker.
   __ RestoreCSP();
   __ ret();
 }
