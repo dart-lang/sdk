@@ -248,7 +248,7 @@ class Driver implements CommandLineStarter {
             analysisDriver.sourceFactory,
             analysisDriver.currentSession.analysisContext.contextRoot.root.path,
           );
-          formatter.formatErrors([
+          await formatter.formatErrors([
             ErrorsResultImpl(analysisDriver.currentSession, path,
                 pathContext.toUri(path), lineInfo, false, errors)
           ]);
@@ -304,7 +304,7 @@ class Driver implements CommandLineStarter {
                 allResult = allResult.max(severity);
               }
               var lineInfo = LineInfo.fromContent(content);
-              formatter.formatErrors([
+              await formatter.formatErrors([
                 ErrorsResultImpl(analysisDriver.currentSession, path,
                     pathContext.toUri(path), lineInfo, false, errors)
               ]);
@@ -320,7 +320,7 @@ class Driver implements CommandLineStarter {
             var lineInfo = LineInfo.fromContent(content);
             var errors = validator.validate(
                 content, analysisDriver.analysisOptions.chromeOsManifestChecks);
-            formatter.formatErrors([
+            await formatter.formatErrors([
               ErrorsResultImpl(analysisDriver.currentSession, path,
                   pathContext.toUri(path), lineInfo, false, errors)
             ]);

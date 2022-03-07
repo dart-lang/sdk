@@ -461,7 +461,7 @@ mixin M on foo^ {}
     newFile(testFilePath, content: 'class A {}');
 
     // Read the file.
-    testDriver.getFileSync(testFilePathPlatform);
+    await testDriver.getFile(testFilePathPlatform);
 
     // Should call `changeFile()`, and the driver must re-read the file.
     var result = _resolveTestCode(r'''

@@ -70,7 +70,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   Future<SomeFileResult> getFile2(String path) async {
     _checkConsistency();
-    return _driver.getFileSync(path);
+    return _driver.getFile(path);
   }
 
   @override

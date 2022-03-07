@@ -44,27 +44,27 @@ void main() {
         reporter = HumanErrorFormatter(out, options, stats);
       });
 
-      test('error', () {
+      test('error', () async {
         var error = mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
-        reporter.formatErrors([error]);
+        await reporter.formatErrors([error]);
         reporter.flush();
 
         expect(out.toString().trim(),
             'error • MSG • /foo/bar/baz.dart:3:3 • mock_code');
       });
 
-      test('hint', () {
+      test('hint', () async {
         var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
-        reporter.formatErrors([error]);
+        await reporter.formatErrors([error]);
         reporter.flush();
 
         expect(out.toString().trim(),
             'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code');
       });
 
-      test('stats', () {
+      test('stats', () async {
         var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
-        reporter.formatErrors([error]);
+        await reporter.formatErrors([error]);
         reporter.flush();
         stats.print(out);
         expect(
@@ -79,9 +79,9 @@ void main() {
         reporter = JsonErrorFormatter(out, options, stats);
       });
 
-      test('error', () {
+      test('error', () async {
         var error = mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
-        reporter.formatErrors([error]);
+        await reporter.formatErrors([error]);
         reporter.flush();
 
         expect(

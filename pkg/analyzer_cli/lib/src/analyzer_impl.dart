@@ -148,7 +148,7 @@ class AnalyzerImpl {
 
     // Print errors and performance numbers.
     if (printMode == 1) {
-      formatter.formatErrors(errorsResults);
+      await formatter.formatErrors(errorsResults);
     } else if (printMode == 2) {
       _printColdPerf();
     }
