@@ -663,7 +663,7 @@ class _FileStateLocation {
 
     var siblings = <Resource>[];
     try {
-      siblings = resource.parent2.getChildren();
+      siblings = resource.parent.getChildren();
     } catch (_) {}
 
     for (var sibling in siblings) {

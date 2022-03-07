@@ -447,7 +447,7 @@ class BazelWorkspace extends Workspace
     var context = provider.pathContext;
     var startFolder = provider.getFolder(filePath);
     for (var folder in startFolder.withAncestors) {
-      var parent = folder.parent2;
+      var parent = folder.parent;
 
       // Found the READONLY folder, might be a git-based workspace.
       Folder readonlyFolder = parent.getChildAssumingFolder(_READONLY);

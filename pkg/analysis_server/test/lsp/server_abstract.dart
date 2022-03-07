@@ -583,28 +583,28 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
 
     if (meta || flutter) {
       var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent2.path);
+      config.add(name: 'meta', rootPath: libFolder.parent.path);
     }
 
     if (flutter) {
       {
         var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent2.path);
+        config.add(name: 'ui', rootPath: libFolder.parent.path);
       }
       {
         var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent2.path);
+        config.add(name: 'flutter', rootPath: libFolder.parent.path);
       }
     }
 
     if (pedantic) {
       var libFolder = MockPackages.instance.addPedantic(resourceProvider);
-      config.add(name: 'pedantic', rootPath: libFolder.parent2.path);
+      config.add(name: 'pedantic', rootPath: libFolder.parent.path);
     }
 
     if (vector_math) {
       var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
-      config.add(name: 'vector_math', rootPath: libFolder.parent2.path);
+      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
     }
 
     var path = '$projectFolderPath/.dart_tool/package_config.json';

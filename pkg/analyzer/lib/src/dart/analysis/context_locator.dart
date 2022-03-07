@@ -125,7 +125,7 @@ class ContextLocatorImpl implements ContextLocator {
     }
 
     for (File file in includedFiles) {
-      Folder parent = file.parent2;
+      Folder parent = file.parent;
 
       var location = _contextRootLocation(
         parent,
@@ -186,7 +186,7 @@ class ContextLocatorImpl implements ContextLocator {
       optionsFile = defaultOptionsFile;
     } else {
       optionsFile = _findOptionsFile(parent);
-      optionsFolderToChooseRoot = optionsFile?.parent2;
+      optionsFolderToChooseRoot = optionsFile?.parent;
     }
 
     File? packagesFile;
@@ -478,7 +478,7 @@ class ContextLocatorImpl implements ContextLocator {
               var excludedComponents = posix.split(excludedPath);
               if (pathContext.isRelative(excludedPath)) {
                 excludedComponents = [
-                  ...pathContext.split(optionsFile.parent2.path),
+                  ...pathContext.split(optionsFile.parent.path),
                   ...excludedComponents,
                 ];
               }
@@ -558,7 +558,7 @@ class ContextLocatorImpl implements ContextLocator {
   }
 
   static Folder _fileSystemRoot(Resource resource) {
-    for (var current = resource.parent2;; current = current.parent2) {
+    for (var current = resource.parent;; current = current.parent) {
       if (current.isRoot) {
         return current;
       }

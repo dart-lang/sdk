@@ -342,10 +342,13 @@ abstract class _PhysicalResource implements Resource {
   int get hashCode => path.hashCode;
 
   @override
-  Folder get parent2 {
+  Folder get parent {
     String parentPath = pathContext.dirname(path);
     return _PhysicalFolder(io.Directory(parentPath));
   }
+
+  @override
+  Folder get parent2 => parent;
 
   @override
   String get path => _entry.path;

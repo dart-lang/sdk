@@ -71,7 +71,7 @@ class UpdateSdkConstraints extends CorrectionProducer {
 
   File? _findPubspecFile() {
     var file = resourceProvider.getFile(this.file);
-    for (var folder in file.parent2.withAncestors) {
+    for (var folder in file.parent.withAncestors) {
       var pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
       if (pubspecFile.exists) {
         return pubspecFile;

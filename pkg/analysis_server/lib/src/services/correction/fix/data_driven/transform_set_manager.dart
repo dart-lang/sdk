@@ -59,7 +59,7 @@ class TransformSetManager {
       var parser = TransformSetParser(
           ErrorReporter(
               AnalysisErrorListener.NULL_LISTENER, file.createSource()),
-          file.parent2.parent2.shortName);
+          file.parent.parent.shortName);
       return parser.parse(content);
     } on FileSystemException {
       // Fall through to return `null`.

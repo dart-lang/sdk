@@ -416,7 +416,7 @@ analyzer:
     expect(outer1Root.optionsFile, outer1OptionsFile);
     expect(outer1Root.packagesFile, outer1PackagesFile);
 
-    ContextRoot outer2Root = findRoot(roots, testFile.parent2);
+    ContextRoot outer2Root = findRoot(roots, testFile.parent);
     expect(outer2Root.includedPaths, unorderedEquals([testFile.path]));
     expect(outer2Root.excludedPaths, isEmpty);
     expect(outer2Root.optionsFile, outer2OptionsFile);
@@ -1090,7 +1090,7 @@ analyzer:
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
     expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
     expect(outerRoot.excludedPaths,
-        unorderedEquals([innerOptionsFile.parent2.path]));
+        unorderedEquals([innerOptionsFile.parent.path]));
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
@@ -1461,7 +1461,7 @@ analyzer:
         contextLocator.locateRoots(includedPaths: [testFile.path]);
     expect(roots, hasLength(1));
 
-    ContextRoot package1Root = findRoot(roots, testFile.parent2);
+    ContextRoot package1Root = findRoot(roots, testFile.parent);
     expect(package1Root.includedPaths, unorderedEquals([testFile.path]));
     expect(package1Root.excludedPaths, isEmpty);
     expect(package1Root.optionsFile, optionsFile);
@@ -1477,7 +1477,7 @@ analyzer:
         contextLocator.locateRoots(includedPaths: [testFile.path]);
     expect(roots, hasLength(1));
 
-    ContextRoot package1Root = findRoot(roots, testFile.parent2);
+    ContextRoot package1Root = findRoot(roots, testFile.parent);
     expect(package1Root.includedPaths, unorderedEquals([testFile.path]));
     expect(package1Root.excludedPaths, isEmpty);
     expect(package1Root.optionsFile, optionsFile);

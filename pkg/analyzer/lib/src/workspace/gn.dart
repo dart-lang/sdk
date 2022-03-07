@@ -99,7 +99,7 @@ class GnWorkspace extends Workspace {
   static GnWorkspace? find(ResourceProvider provider, String filePath) {
     Resource resource = provider.getResource(filePath);
     if (resource is File) {
-      filePath = resource.parent2.path;
+      filePath = resource.parent.path;
     }
 
     var startFolder = provider.getFolder(filePath);

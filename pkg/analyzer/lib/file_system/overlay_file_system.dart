@@ -353,10 +353,13 @@ abstract class _OverlayResource implements Resource {
   int get hashCode => path.hashCode;
 
   @override
-  Folder get parent2 {
-    var parent = _resource.parent2;
+  Folder get parent {
+    var parent = _resource.parent;
     return _OverlayFolder(provider, parent);
   }
+
+  @override
+  Folder get parent2 => parent;
 
   @override
   String get path => _resource.path;

@@ -57,12 +57,12 @@ test:${toUri('/home/test/lib')}
   void _addFlutterPackage() {
     _addMetaPackage();
     var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-    _addPackageDependency('flutter', libFolder.parent2.path);
+    _addPackageDependency('flutter', libFolder.parent.path);
   }
 
   void _addMetaPackage() {
     var libFolder = MockPackages.instance.addMeta(resourceProvider);
-    _addPackageDependency('meta', libFolder.parent2.path);
+    _addPackageDependency('meta', libFolder.parent.path);
   }
 
   void _addPackageDependency(String name, String rootPath) {

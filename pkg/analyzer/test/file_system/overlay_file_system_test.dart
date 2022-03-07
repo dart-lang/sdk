@@ -38,7 +38,7 @@ class FileTest extends OverlayTestSupport {
     File targetFile =
         provider.getFile(baseProvider.convertPath('/foo/test.dart'));
     expect(targetFile.exists, isFalse);
-    file.copyTo(file.parent2.parent2);
+    file.copyTo(file.parent.parent);
     expect(targetFile.exists, isTrue);
   }
 
@@ -48,7 +48,7 @@ class FileTest extends OverlayTestSupport {
     File targetFile =
         provider.getFile(baseProvider.convertPath('/foo/test.dart'));
     expect(targetFile.exists, isFalse);
-    file.copyTo(file.parent2.parent2);
+    file.copyTo(file.parent.parent);
     expect(targetFile.exists, isTrue);
     expect(targetFile.readAsStringSync(), 'overlay');
     provider.removeOverlay(targetFile.path);
@@ -61,7 +61,7 @@ class FileTest extends OverlayTestSupport {
     File targetFile =
         provider.getFile(baseProvider.convertPath('/foo/test.dart'));
     expect(targetFile.exists, isFalse);
-    file.copyTo(file.parent2.parent2);
+    file.copyTo(file.parent.parent);
     expect(targetFile.exists, isTrue);
     expect(targetFile.readAsStringSync(), 'overlay');
     provider.removeOverlay(targetFile.path);
@@ -166,7 +166,7 @@ class FileTest extends OverlayTestSupport {
   }
 
   test_parent() {
-    var parent = _file(exists: true).parent2;
+    var parent = _file(exists: true).parent;
     expect(parent.exists, isTrue);
     expect(parent.path, defaultFolderPath);
   }
@@ -461,7 +461,7 @@ class FolderTest extends OverlayTestSupport {
         provider.getFolder(baseProvider.convertPath('/destination'));
 
     Folder copy = source.copyTo(destination);
-    expect(copy.parent2, destination);
+    expect(copy.parent, destination);
     _verifyStructure(copy, source);
   }
 
@@ -611,7 +611,7 @@ class FolderTest extends OverlayTestSupport {
 
   test_getChildren_nonExisting_withOverlay() {
     File file = _file(exists: false, withOverlay: true);
-    List<Resource> children = file.parent2.parent2.getChildren();
+    List<Resource> children = file.parent.parent.getChildren();
     expect(children, hasLength(1));
     expect(children[0], _isFolder);
   }
@@ -632,13 +632,13 @@ class FolderTest extends OverlayTestSupport {
   }
 
   test_parent_ofNonRoot() {
-    Folder parent = _folder(exists: true).parent2;
+    Folder parent = _folder(exists: true).parent;
     expect(parent.exists, isTrue);
     expect(parent.path, baseProvider.convertPath('/foo'));
   }
 
   test_parent_ofRoot() {
-    var parent = _folder(exists: true, path: '/').parent2;
+    var parent = _folder(exists: true, path: '/').parent;
     expect(parent.exists, isTrue);
     expect(parent.path, baseProvider.convertPath('/'));
   }
@@ -806,7 +806,7 @@ class OverlayResourceProviderTest extends OverlayTestSupport {
 
   test_getFolder_notExisting_withOverlay() {
     File file = _file(exists: false, withOverlay: true);
-    Folder folder = file.parent2;
+    Folder folder = file.parent;
     expect(folder, isNotNull);
     expect(folder.path, defaultFolderPath);
     expect(folder.exists, isTrue);

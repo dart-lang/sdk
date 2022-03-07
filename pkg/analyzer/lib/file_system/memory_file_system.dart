@@ -586,10 +586,13 @@ abstract class _MemoryResource implements Resource {
   int get hashCode => path.hashCode;
 
   @override
-  Folder get parent2 {
+  Folder get parent {
     String parentPath = provider.pathContext.dirname(path);
     return provider.getFolder(parentPath);
   }
+
+  @override
+  Folder get parent2 => parent;
 
   @override
   String get shortName => provider.pathContext.basename(path);
