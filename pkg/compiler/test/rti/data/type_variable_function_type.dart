@@ -10,7 +10,7 @@ import 'package:compiler/src/util/testing.dart';
 
 typedef T Func<T>();
 
-/*class: Foo:direct,explicit=[Foo.S* Function()*],needsArgs*/
+/*class: Foo:explicit=[Foo.S* Function()*],needsArgs,test*/
 class Foo<S> {
   m(x) => x is Func<S>;
 }

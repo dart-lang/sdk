@@ -6,7 +6,7 @@
 
 import 'package:compiler/src/util/testing.dart';
 
-/*class: A:deps=[B],direct,explicit=[A.T*],needsArgs*/
+/*class: A:deps=[B],explicit=[A.T*],needsArgs,test*/
 class A<T> {
   @pragma('dart2js:noInline')
   foo(x) {
@@ -17,7 +17,7 @@ class A<T> {
 /*class: BB:implicit=[BB]*/
 class BB {}
 
-/*class: B:deps=[method1],implicit=[B.T],indirect,needsArgs*/
+/*class: B:deps=[method1],implicit=[B.T],needsArgs,test*/
 class B<T> implements BB {
   @pragma('dart2js:noInline')
   foo() {
@@ -25,7 +25,7 @@ class B<T> implements BB {
   }
 }
 
-/*member: method1:implicit=[method1.T],indirect,needsArgs*/
+/*member: method1:implicit=[method1.T],needsArgs,test*/
 @pragma('dart2js:noInline')
 method1<T>() {
   return new B<T>().foo();

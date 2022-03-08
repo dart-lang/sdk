@@ -12,7 +12,7 @@ T method1a<T>() => null;
 /*member: method1b:*/
 T method1b<T>() => null;
 
-/*spec.member: method2:direct,explicit=[method2.T*],needsArgs*/
+/*spec.member: method2:explicit=[method2.T*],needsArgs,test*/
 T method2<T>(T t, String s) => t;
 
 class Class<T> {

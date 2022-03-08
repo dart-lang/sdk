@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*class: A:deps=[B],direct,explicit=[A.T*],needsArgs*/
+/*class: A:deps=[B],explicit=[A.T*],needsArgs,test*/
 class A<T> {
   @pragma('dart2js:noInline')
   foo(x) {
@@ -16,7 +16,7 @@ class A<T> {
 // computation of implicit is-tests.
 class BB {}
 
-/*class: B:implicit=[B.T],indirect,needsArgs*/
+/*class: B:implicit=[B.T],needsArgs,test*/
 class B<T> implements BB {
   @pragma('dart2js:noInline')
   foo() {

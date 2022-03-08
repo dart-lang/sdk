@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 class A {
-  /*member: A.instanceMethod:direct,explicit=[instanceMethod.T*],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
+  /*member: A.instanceMethod:explicit=[instanceMethod.T*],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)],test*/
   instanceMethod<T>(t) => t is T;
 }
 

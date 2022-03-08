@@ -12,7 +12,7 @@ class A<T> {}
 /*spec.class: A1:implicit=[A1]*/
 class A1 implements A<C1> {}
 
-/*class: B:direct,explicit=[B.T*],needsArgs*/
+/*class: B:explicit=[B.T*],needsArgs,test*/
 class B<T> {
   @pragma('dart2js:noInline')
   method(var t) => t is T;

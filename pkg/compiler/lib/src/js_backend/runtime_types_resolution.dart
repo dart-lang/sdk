@@ -25,22 +25,11 @@ import 'backend_usage.dart';
 abstract class RtiNode {
   Entity get entity;
   Set<RtiNode> _dependencies;
-  int _testState = 0;
-  int _literalState = 0;
+  bool _hasTest = false;
 
   Iterable<RtiNode> get dependencies => _dependencies ?? const [];
 
-  bool get hasDirectTest => _testState & 1 != 0;
-  bool get hasIndirectTest => _testState & 2 != 0;
-
-  bool get hasTest => _testState != 0;
-
-  bool get hasDirectLiteral => _literalState & 1 != 0;
-  bool get hasIndirectLiteral => _literalState & 2 != 0;
-
-  bool get hasLiteral => _literalState != 0;
-
-  bool get hasUse => hasTest || hasLiteral;
+  bool get hasTest => _hasTest;
 
   /// Register that if [entity] needs type arguments then so does `node.entity`.
   bool addDependency(RtiNode node) {
@@ -53,52 +42,13 @@ abstract class RtiNode {
     return _dependencies.add(node);
   }
 
-  void markTest({bool direct}) {
-    setTestState(direct ? 1 : 2);
-  }
-
-  void markDirectTest() {
-    setTestState(1);
-  }
-
-  void markIndirectTest() {
-    setTestState(2);
-  }
-
-  void setTestState(int value) {
-    if (_testState != value) {
-      if (_testState == 0) {
-        _testState |= value;
-        if (_dependencies != null) {
-          for (RtiNode node in _dependencies) {
-            node.markIndirectTest();
-          }
+  void markTest() {
+    if (!hasTest) {
+      _hasTest = true;
+      if (_dependencies != null) {
+        for (RtiNode node in _dependencies) {
+          node.markTest();
         }
-      } else {
-        _testState = value;
-      }
-    }
-  }
-
-  void markDirectLiteral() {
-    setLiteralState(1);
-  }
-
-  void markIndirectLiteral() {
-    setLiteralState(2);
-  }
-
-  void setLiteralState(int value) {
-    if (_literalState != value) {
-      if (_literalState == 0) {
-        _literalState |= value;
-        if (_dependencies != null) {
-          for (RtiNode node in _dependencies) {
-            node.markIndirectLiteral();
-          }
-        }
-      } else {
-        _literalState = value;
       }
     }
   }
@@ -223,9 +173,6 @@ class TypeVariableTests {
       : explicitIsChecks = _world.isChecks.toSet() {
     _setupDependencies();
     _propagateTests();
-    if (forRtiNeeds) {
-      _propagateLiterals();
-    }
     _collectResults();
   }
 
@@ -249,18 +196,6 @@ class TypeVariableTests {
   Iterable<ClassEntity> get classTestsForTesting =>
       _classes.values.where((n) => n.hasTest).map((n) => n.cls).toSet();
 
-  /// Classes that explicitly use their type variables in is-tests.
-  ///
-  /// For instance `A` in:
-  ///
-  ///     class A<T> {
-  ///       m(o) => o is T;
-  ///     }
-  ///     main() => new A<int>().m(0);
-  ///
-  Iterable<ClassEntity> get directClassTestsForTesting =>
-      _classes.values.where((n) => n.hasDirectTest).map((n) => n.cls).toSet();
-
   /// Methods that explicitly or implicitly use their type variables in
   /// is-tests.
   ///
@@ -272,18 +207,6 @@ class TypeVariableTests {
   ///
   Iterable<Entity> get methodTestsForTesting =>
       _methods.values.where((n) => n.hasTest).map((n) => n.function).toSet();
-
-  /// Methods that explicitly use their type variables in is-tests.
-  ///
-  /// For instance `m` in:
-  ///
-  ///     m<T>(o) => o is T;
-  ///     main() => m<int>(0);
-  ///
-  Iterable<Entity> get directMethodTestsForTesting => _methods.values
-      .where((n) => n.hasDirectTest)
-      .map((n) => n.function)
-      .toSet();
 
   /// The entities that need type arguments at runtime if the 'key entity' needs
   /// type arguments.
@@ -546,23 +469,23 @@ class TypeVariableTests {
   }
 
   void _propagateTests() {
-    void processTypeVariableType(TypeVariableType type, {bool direct = true}) {
+    void processTypeVariableType(TypeVariableType type) {
       TypeVariableEntity variable = type.element;
       if (variable.typeDeclaration is ClassEntity) {
-        _getClassNode(variable.typeDeclaration).markTest(direct: direct);
+        _getClassNode(variable.typeDeclaration).markTest();
       } else {
-        _getMethodNode(variable.typeDeclaration).markTest(direct: direct);
+        _getMethodNode(variable.typeDeclaration).markTest();
       }
     }
 
-    void processType(DartType type, {bool direct = true}) {
+    void processType(DartType type) {
       var typeWithoutNullability = type.withoutNullability;
       if (typeWithoutNullability is FutureOrType) {
-        _getClassNode(_commonElements.futureClass).markIndirectTest();
-        processType(typeWithoutNullability.typeArgument, direct: false);
+        _getClassNode(_commonElements.futureClass).markTest();
+        processType(typeWithoutNullability.typeArgument);
       } else {
         typeWithoutNullability.forEachTypeVariable((TypeVariableType type) {
-          processTypeVariableType(type, direct: direct);
+          processTypeVariableType(type);
         });
       }
     }
@@ -570,40 +493,14 @@ class TypeVariableTests {
     _world.isChecks.forEach(processType);
   }
 
-  void _propagateLiterals() {
-    _world.typeVariableTypeLiterals
-        .forEach((TypeVariableType typeVariableType) {
-      TypeVariableEntity variable = typeVariableType.element;
-      if (variable.typeDeclaration is ClassEntity) {
-        _getClassNode(variable.typeDeclaration).markDirectLiteral();
-      } else {
-        _getMethodNode(variable.typeDeclaration).markDirectLiteral();
-      }
-    });
-  }
-
   String dump({bool verbose = false}) {
     StringBuffer sb = StringBuffer();
 
     void addNode(RtiNode node) {
-      if (node.hasUse || node.dependencies.isNotEmpty || verbose) {
+      if (node.hasTest || node.dependencies.isNotEmpty || verbose) {
         sb.write(' $node');
-        String comma = '';
-        if (node._testState & 1 != 0) {
-          sb.write(' direct test');
-          comma = ',';
-        }
-        if (node._testState & 2 != 0) {
-          sb.write('$comma indirect test');
-          comma = ',';
-        }
-        if (node._literalState & 1 != 0) {
-          sb.write('$comma direct literal');
-          comma = ',';
-        }
-        if (node._literalState & 2 != 0) {
-          sb.write('$comma indirect literal');
-          comma = ',';
+        if (node.hasTest) {
+          sb.write(' test');
         }
         if (node.dependencies.isNotEmpty || verbose) {
           sb.writeln(':');

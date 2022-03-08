@@ -4,15 +4,15 @@
 
 // @dart = 2.7
 
-/*spec.member: f1:deps=[method],direct,explicit=[f1.T*],needsArgs,needsInst=[<method.X*>]*/
+/*spec.member: f1:deps=[method],explicit=[f1.T*],needsArgs,needsInst=[<method.X*>],test*/
 /*prod.member: f1:deps=[method]*/
 int f1<T>(T a, T b, T c) => null;
 
-/*spec.member: f2:deps=[method],direct,explicit=[f2.S*,f2.T*],needsArgs,needsInst=[<method.X*,method.Y*>]*/
+/*spec.member: f2:deps=[method],explicit=[f2.S*,f2.T*],needsArgs,needsInst=[<method.X*,method.Y*>],test*/
 /*prod.member: f2:deps=[method]*/
 int f2<T, S>(T a, S b, S c) => null;
 
-/*spec.member: f3:deps=[method],direct,explicit=[f3.S*,f3.T*,f3.U*],needsArgs,needsInst=[<method.X*,method.Y*,method.Z*>]*/
+/*spec.member: f3:deps=[method],explicit=[f3.S*,f3.T*,f3.U*],needsArgs,needsInst=[<method.X*,method.Y*,method.Z*>],test*/
 /*prod.member: f3:deps=[method]*/
 int f3<T, S, U>(T a, S b, U c) => null;
 
@@ -20,7 +20,7 @@ typedef int F1<R>(R a, R b, R c);
 typedef int F2<R, P>(R a, P b, P c);
 typedef int F3<R, P, Q>(R a, P b, Q c);
 
-/*spec.member: method:implicit=[method.X,method.Y,method.Z],indirect,needsArgs*/
+/*spec.member: method:implicit=[method.X,method.Y,method.Z],needsArgs,test*/
 /*prod.member: method:needsArgs*/
 method<X, Y, Z>() {
   F1<X> c1;
