@@ -35,18 +35,9 @@ class Isolate;
 class LocalScope;
 class LocalVariable;
 struct RegExpCompileData;
-class SourceLabel;
 template <typename T>
 class GrowableArray;
 class Parser;
-
-struct CatchParamDesc;
-class ClassDesc;
-struct MemberDesc;
-struct ParamList;
-struct QualIdent;
-class TopLevel;
-class RecursionChecker;
 
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
