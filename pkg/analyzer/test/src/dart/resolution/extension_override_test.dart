@@ -88,13 +88,35 @@ void f(int? a) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('foo();'),
-      element: findElement.method('foo'),
-      typeArgumentTypes: [],
-      invokeType: 'int Function()',
-      type: 'int?',
-    );
+    var node = findNode.methodInvocation('foo();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@54
+          staticType: int?
+      rightParenthesis: )
+    extendedType: int
+    staticType: null
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@method::foo
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int?
+''');
   }
 
   test_propertyAccess_getter_nullAware() async {

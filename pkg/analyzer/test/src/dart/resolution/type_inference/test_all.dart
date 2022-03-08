@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../node_text_expectations.dart';
 import 'collection_elements_test.dart' as collection_elements;
 import 'conditional_expression_test.dart' as conditional_expression;
 import 'equality_expressions_test.dart' as equality_expressions;
@@ -37,5 +38,6 @@ main() {
     tear_off.main();
     throw_expression.main();
     type_test_expressions.main();
+    defineReflectiveTests(UpdateNodeTextExpectations);
   }, name: 'type inference');
 }

@@ -41,13 +41,25 @@ main() {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('f(null)'),
-      element: findElement.topFunction('f'),
-      typeArgumentTypes: ['Map<int, double>?'],
-      invokeType: 'Map<int, double>? Function(Map<int, double>?)',
-      type: 'Map<int, double>?',
-    );
+    var node = findNode.methodInvocation('f(null)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        staticType: Null
+    rightParenthesis: )
+  staticInvokeType: Map<int, double>? Function(Map<int, double>?)
+  staticType: Map<int, double>?
+  typeArgumentTypes
+    Map<int, double>?
+''');
   }
 
   test_noContext_noTypeArgs_spread_never() async {

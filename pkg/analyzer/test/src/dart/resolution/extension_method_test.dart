@@ -546,13 +546,25 @@ f(Never a) {
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 57, 1),
       error(HintCode.DEAD_CODE, 62, 3),
     ]);
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'Never',
-    );
+
+    var node = findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@50
+    staticType: Never
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: Never
+''');
   }
 
   test_instance_method_fromInstance_nullable() async {

@@ -193,52 +193,36 @@ main() {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('f();'),
-      element: findElement.topFunction('f'),
-      typeArgumentTypes: ['bool'],
-      invokeType: 'bool Function()',
-      type: 'bool',
-    );
-
-    var node = findNode.prefix('!f()');
+    var node = findNode.methodInvocation('f();');
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
-PrefixExpression
-  operator: !
-  operand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      staticElement: self::@function::f
-      staticType: T Function<T>()
-    argumentList: ArgumentList
-      leftParenthesis: (
-      rightParenthesis: )
-    staticInvokeType: bool Function()
-    staticType: bool
-    typeArgumentTypes
-      bool
-  staticElement: <null>
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: bool Function()
   staticType: bool
+  typeArgumentTypes
+    bool
 ''');
     } else {
       assertResolvedNodeText(node, r'''
-PrefixExpression
-  operator: !
-  operand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      staticElement: self::@function::f
-      staticType: T* Function<T>()*
-    argumentList: ArgumentList
-      leftParenthesis: (
-      rightParenthesis: )
-    staticInvokeType: bool* Function()*
-    staticType: bool*
-    typeArgumentTypes
-      bool*
-  staticElement: <null>
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T* Function<T>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: bool* Function()*
   staticType: bool*
+  typeArgumentTypes
+    bool*
 ''');
     }
   }

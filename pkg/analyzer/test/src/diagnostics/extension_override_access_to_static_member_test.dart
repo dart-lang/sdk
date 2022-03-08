@@ -81,12 +81,34 @@ void f() {
       error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 77,
           5),
     ]);
-    var invocation = findNode.methodInvocation('empty();');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('empty'),
-      'String Function()',
-    );
+
+    var node = findNode.methodInvocation('empty();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleStringLiteral
+          literal: 'a'
+      rightParenthesis: )
+    extendedType: String
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: empty
+    staticElement: self::@extension::E::@method::empty
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
   }
 
   test_setter() async {
