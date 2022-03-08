@@ -6,7 +6,7 @@
 
 import 'dart:async';
 
-/*spec.class: global#Future:implicit=[Future<A*>],indirect,needsArgs*/
+/*spec.class: global#Future:implicit=[Future<A*>],needsArgs,test*/
 
 /*class: A:explicit=[FutureOr<A*>*],implicit=[A,Future<A*>]*/
 class A {}

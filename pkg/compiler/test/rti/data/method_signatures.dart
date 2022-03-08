@@ -17,7 +17,7 @@ class Class1 {
   Object method3(num n) => null;
 }
 
-/*spec.class: Class2:direct,explicit=[Class2.T*],needsArgs*/
+/*spec.class: Class2:explicit=[Class2.T*],needsArgs,test*/
 class Class2<T> {
   num method4(T n) => null;
 }
@@ -28,7 +28,7 @@ class Class3<T> {
   T method5(num n) => null;
 }
 
-/*spec.class: Class4:direct,explicit=[Class4.T*],needsArgs*/
+/*spec.class: Class4:explicit=[Class4.T*],needsArgs,test*/
 class Class4<T> {
   /*member: Class4.method6:*/
   num method6(num n, T t) => null;

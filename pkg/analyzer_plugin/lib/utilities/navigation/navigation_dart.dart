@@ -497,14 +497,14 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (!file.exists) {
       return null;
     }
-    var parent = file.parent2;
-    while (parent != parent.parent2) {
+    var parent = file.parent;
+    while (parent != parent.parent) {
       var examplesFolder = parent.getChildAssumingFolder('examples');
       if (examplesFolder.exists &&
           examplesFolder.getChildAssumingFolder('api').exists) {
         return parent.path;
       }
-      parent = parent.parent2;
+      parent = parent.parent;
     }
     return null;
   }

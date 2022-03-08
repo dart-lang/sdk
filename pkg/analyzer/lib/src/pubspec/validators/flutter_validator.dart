@@ -86,7 +86,7 @@ class FlutterValidator extends BasePubspecValidator {
       return true;
     }
     String fileName = assetFile.shortName;
-    Folder assetFolder = assetFile.parent2;
+    Folder assetFolder = assetFile.parent;
     if (!assetFolder.exists) {
       return false;
     }

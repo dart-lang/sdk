@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*member: method:direct,explicit=[method.T*],needsArgs*/
+/*member: method:explicit=[method.T*],needsArgs,test*/
 method<T>(T t) => t is T;
 
 main() {

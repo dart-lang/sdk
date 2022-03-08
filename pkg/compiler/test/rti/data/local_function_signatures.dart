@@ -24,7 +24,7 @@ class Class1 {
   }
 }
 
-/*spec.class: Class2:direct,explicit=[Class2.T*],needsArgs*/
+/*spec.class: Class2:explicit=[Class2.T*],needsArgs,test*/
 /*prod.class: Class2:needsArgs*/
 class Class2<T> {
   method4() {
@@ -43,7 +43,7 @@ class Class3<T> {
   }
 }
 
-/*spec.class: Class4:direct,explicit=[Class4.T*],needsArgs*/
+/*spec.class: Class4:explicit=[Class4.T*],needsArgs,test*/
 /*prod.class: Class4:needsArgs*/
 class Class4<T> {
   method6() {

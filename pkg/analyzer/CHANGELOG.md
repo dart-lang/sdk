@@ -2,7 +2,11 @@
 * Deprecated synchronous `getFile`, `getParsedLibrary`, `getParsedLibraryByElement`,
   `getParsedUnit` from `AnalysisSession`. Use corresponding `getXyz2` asynchronous
   methods instead. This change is necessary for the future work on macros.
-* Deprecated synchronous `getFileSync` from `AnalysisDriver`, use `getFile` instead.
+* Deprecated `Resource.parent2`, use `parent` instead.
+* Deprecated `AnalysisDriver.getFileSync`, use `getFile` instead.
+* Deprecated `AnalysisDriver.getParsedLibrary`, use `getParsedLibrary2` instead.
+* Deprecated `AnalysisDriver.getParsedLibraryByUri`, use `getParsedLibraryByUri2` instead.
+* Deprecated `AnalysisDriver.parseFileSync`, use `parseFile` instead.
 
 ## 3.3.1
 * Report HintCode.OVERRIDE_ON_NON_OVERRIDING_xyz on enum.

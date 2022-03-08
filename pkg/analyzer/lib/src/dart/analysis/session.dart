@@ -89,7 +89,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   Future<SomeParsedLibraryResult> getParsedLibrary2(String path) async {
     _checkConsistency();
-    return _driver.getParsedLibrary(path);
+    return _driver.getParsedLibrary2(path);
   }
 
   @Deprecated('Use getParsedLibraryByElement2() instead')
@@ -114,7 +114,7 @@ class AnalysisSessionImpl implements AnalysisSession {
       return NotElementOfThisSessionResult();
     }
 
-    return _driver.getParsedLibraryByUri(element.source.uri);
+    return _driver.getParsedLibraryByUri2(element.source.uri);
   }
 
   @Deprecated('Use getParsedUnit2() instead')
@@ -127,7 +127,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   Future<SomeParsedUnitResult> getParsedUnit2(String path) async {
     _checkConsistency();
-    return _driver.parseFileSync(path);
+    return _driver.parseFile(path);
   }
 
   @override

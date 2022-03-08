@@ -6,7 +6,7 @@
 
 import 'package:compiler/src/util/testing.dart';
 
-/*spec.class: Class:direct,explicit=[Class.T*],implicit=[Class.T],needsArgs*/
+/*spec.class: Class:explicit=[Class.T*],implicit=[Class.T],needsArgs,test*/
 class Class<T> {
   method() {
     var list = <T>[];

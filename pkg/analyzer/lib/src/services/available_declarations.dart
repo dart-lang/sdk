@@ -344,7 +344,7 @@ class DeclarationsContext {
     for (var path in _analysisContext.contextRoot.analyzedFiles()) {
       if (file_paths.isBazelBuild(pathContext, path)) {
         var file = _tracker._resourceProvider.getFile(path);
-        var packageFolder = file.parent2;
+        var packageFolder = file.parent;
         _packages.add(_Package(packageFolder));
       } else if (file_paths.isPubspecYaml(pathContext, path)) {
         var file = _tracker._resourceProvider.getFile(path);
@@ -352,7 +352,7 @@ class DeclarationsContext {
         var libPaths = _resolvePackageNamesToLibPaths(dependencies.lib);
         var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
 
-        var packageFolder = file.parent2;
+        var packageFolder = file.parent;
         var packagePath = packageFolder.path;
         pubPathPrefixToPathList[packagePath] = [
           ...libPaths,

@@ -6,7 +6,7 @@
 
 import 'package:compiler/src/util/testing.dart';
 
-/*spec.class: A:direct,explicit=[A.T*],needsArgs*/
+/*spec.class: A:explicit=[A.T*],needsArgs,test*/
 class A<T> {
   call(T t) {}
 }

@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 class C {
-  /*member: C._private:direct,explicit=[_private.T*],needsArgs,selectors=[Selector(call, _private, arity=1, types=1)]*/
+  /*member: C._private:explicit=[_private.T*],needsArgs,selectors=[Selector(call, _private, arity=1, types=1)],test*/
   _private<T>(t) => t is T;
 }
 

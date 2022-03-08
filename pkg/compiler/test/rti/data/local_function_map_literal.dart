@@ -6,11 +6,11 @@
 
 import 'package:compiler/src/util/testing.dart';
 
-/*spec.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
+/*spec.class: global#LinkedHashMap:deps=[Map],explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs,test*/
 /*prod.class: global#LinkedHashMap:deps=[Map],needsArgs*/
 
 @pragma('dart2js:noInline')
-/*spec.member: method:implicit=[method.T],indirect,needsArgs*/
+/*spec.member: method:implicit=[method.T],needsArgs,test*/
 /*prod.member: method:needsArgs*/
 method<T>() {
   return /*spec.needsSignature*/ () => <T, int>{};

@@ -4,12 +4,12 @@
 
 // @dart = 2.7
 
-/*member: f:deps=[method],direct,explicit=[f.T*],needsArgs,needsInst=[<method.S*>]*/
+/*member: f:deps=[method],explicit=[f.T*],needsArgs,needsInst=[<method.S*>],test*/
 bool f<T>(T a) => a is T;
 
 typedef bool F<R>(R a);
 
-/*member: method:implicit=[method.S],indirect,needsArgs*/
+/*member: method:implicit=[method.S],needsArgs,test*/
 method<S>() {
   F<S> c;
 

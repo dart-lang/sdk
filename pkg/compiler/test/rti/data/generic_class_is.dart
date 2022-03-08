@@ -7,7 +7,7 @@
 /*class: A:implicit=[A]*/
 class A {}
 
-/*class: B:direct,explicit=[B.T*],needsArgs*/
+/*class: B:explicit=[B.T*],needsArgs,test*/
 class B<T> {
   @pragma('dart2js:noInline')
   method(T t) => t is T;

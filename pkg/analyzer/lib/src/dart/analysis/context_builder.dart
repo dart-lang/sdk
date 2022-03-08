@@ -176,7 +176,7 @@ class ContextBuilderImpl implements ContextBuilder {
       );
       if (embedderYamlSource != null) {
         var embedderYamlPath = embedderYamlSource.fullName;
-        var libFolder = resourceProvider.getFile(embedderYamlPath).parent2;
+        var libFolder = resourceProvider.getFile(embedderYamlPath).parent;
         var locator = EmbedderYamlLocator.forLibFolder(libFolder);
         var embedderMap = locator.embedderYamls;
         if (embedderMap.isNotEmpty) {

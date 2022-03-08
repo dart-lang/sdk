@@ -96,6 +96,7 @@ class PhysicalResourceProvider implements ResourceProvider {
 class _PhysicalFile extends _PhysicalResource implements File {
   _PhysicalFile(io.File file) : super(file);
 
+  @Deprecated('Use watch() instead')
   @override
   Stream<WatchEvent> get changes => watch().changes;
 
@@ -208,6 +209,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
 class _PhysicalFolder extends _PhysicalResource implements Folder {
   _PhysicalFolder(io.Directory directory) : super(directory);
 
+  @Deprecated('Use watch() instead')
   @override
   Stream<WatchEvent> get changes => watch().changes;
 
@@ -340,10 +342,13 @@ abstract class _PhysicalResource implements Resource {
   int get hashCode => path.hashCode;
 
   @override
-  Folder get parent2 {
+  Folder get parent {
     String parentPath = pathContext.dirname(path);
     return _PhysicalFolder(io.Directory(parentPath));
   }
+
+  @override
+  Folder get parent2 => parent;
 
   @override
   String get path => _entry.path;

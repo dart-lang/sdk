@@ -70,7 +70,7 @@ abstract class BaseTest extends FileSystemTestSupport {
   File getFile({required bool exists, String? content, String? filePath}) {
     File file = provider.getFile(filePath ?? defaultFilePath);
     if (exists) {
-      file.parent2.create();
+      file.parent.create();
       file.writeAsStringSync(content ?? defaultFileContent);
     }
     return file;

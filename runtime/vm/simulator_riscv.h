@@ -165,6 +165,7 @@ class Simulator {
   uintx_t get_pc() const { return pc_; }
   uintx_t get_sp() const { return get_xreg(SP); }
   uintx_t get_fp() const { return get_xreg(FP); }
+  uintx_t get_lr() const { return get_xreg(RA); }
   void PrintRegisters();
   void PrintStack();
 

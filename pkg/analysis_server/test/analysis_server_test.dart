@@ -157,10 +157,10 @@ class AnalysisServerTest with ResourceProviderMixin {
 
     // Write both packages, in two events so that the first one will trigger
     // a rebuild.
-    config.add(name: 'foo', rootPath: fooLibFolder.parent2.path);
+    config.add(name: 'foo', rootPath: fooLibFolder.parent.path);
     writePackageConfig(projectPackageConfigFile, config);
     await pumpEventQueue(times: 1); // Allow server to begin processing.
-    config.add(name: 'bar', rootPath: barLibFolder.parent2.path);
+    config.add(name: 'bar', rootPath: barLibFolder.parent.path);
     writePackageConfig(projectPackageConfigFile, config);
 
     // Allow the server to catch up with everything.
@@ -344,7 +344,7 @@ analyzer:
   Folder _addSimplePackage(String name, String content) {
     final packagePath = '/packages/$name';
     final file = newFile('$packagePath/lib/$name.dart', content: content);
-    return file.parent2;
+    return file.parent;
   }
 }
 

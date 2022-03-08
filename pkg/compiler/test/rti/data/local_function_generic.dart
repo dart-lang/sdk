@@ -7,7 +7,7 @@
 import 'package:compiler/src/util/testing.dart';
 
 method1() {
-  /*spec.direct,explicit=[local.T*],needsArgs,needsSignature*/
+  /*spec.explicit=[local.T*],needsArgs,needsSignature,test*/
   /*prod.needsArgs,needsSignature*/
   T local<T>(T t) => t;
   return local;

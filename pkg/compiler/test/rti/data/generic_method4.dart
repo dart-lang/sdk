@@ -6,7 +6,7 @@
 
 import 'package:compiler/src/util/testing.dart';
 
-/*class: A:deps=[C.method2],direct,explicit=[A.T*],needsArgs*/
+/*class: A:deps=[C.method2],explicit=[A.T*],needsArgs,test*/
 class A<T> {
   @pragma('dart2js:noInline')
   foo(x) {
@@ -17,7 +17,7 @@ class A<T> {
 /*class: BB:implicit=[BB]*/
 class BB {}
 
-/*class: B:deps=[C.method1],implicit=[B.T],indirect,needsArgs*/
+/*class: B:deps=[C.method1],implicit=[B.T],needsArgs,test*/
 class B<T> implements BB {
   @pragma('dart2js:noInline')
   foo(c) {
@@ -26,13 +26,13 @@ class B<T> implements BB {
 }
 
 class C {
-  /*member: C.method1:implicit=[method1.T],indirect,needsArgs,selectors=[Selector(call, method1, arity=0, types=1)]*/
+  /*member: C.method1:implicit=[method1.T],needsArgs,selectors=[Selector(call, method1, arity=0, types=1)],test*/
   @pragma('dart2js:noInline')
   method1<T>() {
     return new B<T>().foo(this);
   }
 
-  /*member: C.method2:deps=[B],implicit=[method2.T],indirect,needsArgs,selectors=[Selector(call, method2, arity=0, types=1)]*/
+  /*member: C.method2:deps=[B],implicit=[method2.T],needsArgs,selectors=[Selector(call, method2, arity=0, types=1)],test*/
   @pragma('dart2js:noInline')
   method2<T>() => new A<T>();
 }

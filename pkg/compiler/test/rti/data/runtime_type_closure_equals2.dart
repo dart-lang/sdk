@@ -17,7 +17,7 @@ main() {
   /*needsArgs,needsSignature*/
   T local1b<T>() => null;
 
-  /*spec.direct,explicit=[local2.T*],needsArgs,needsSignature*/
+  /*spec.explicit=[local2.T*],needsArgs,needsSignature,test*/
   /*prod.needsArgs,needsSignature*/
   T local2<T>(T t, String s) => t;
 

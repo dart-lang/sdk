@@ -330,7 +330,7 @@ class ContextManagerImpl implements ContextManager {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var file = resourceProvider.getFile(path);
-      var packageName = file.parent2.parent2.shortName;
+      var packageName = file.parent.parent.shortName;
       var content = _readFile(path);
       var errorListener = RecordingErrorListener();
       var errorReporter = ErrorReporter(errorListener, file.createSource());

@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*spec.class: A:direct,explicit=[A.T*],needsArgs*/
+/*spec.class: A:explicit=[A.T*],needsArgs,test*/
 /*prod.class: A:needsArgs*/
 class A<T> {
   @pragma('dart2js:noInline')

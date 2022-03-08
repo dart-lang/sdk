@@ -71,7 +71,7 @@ class _PackageMapUriResolverTest {
     var b = provider.newFile(provider.convertPath('/bbb/b.dart'), '');
     expect(() {
       PackageMapUriResolver(provider, <String, List<Folder>>{
-        'pkg': <Folder>[a.parent2, b.parent2]
+        'pkg': <Folder>[a.parent, b.parent]
       });
     }, throwsArgumentError);
   }

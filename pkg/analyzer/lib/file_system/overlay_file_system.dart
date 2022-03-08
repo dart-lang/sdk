@@ -122,6 +122,7 @@ class _OverlayFile extends _OverlayResource implements File {
   _OverlayFile(OverlayResourceProvider provider, File file)
       : super(provider, file);
 
+  @Deprecated('Use watch() instead')
   @override
   Stream<WatchEvent> get changes => watch().changes;
 
@@ -236,6 +237,7 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   _OverlayFolder(OverlayResourceProvider provider, Folder folder)
       : super(provider, folder);
 
+  @Deprecated('Use watch() instead')
   @override
   Stream<WatchEvent> get changes => watch().changes;
 
@@ -351,10 +353,13 @@ abstract class _OverlayResource implements Resource {
   int get hashCode => path.hashCode;
 
   @override
-  Folder get parent2 {
-    var parent = _resource.parent2;
+  Folder get parent {
+    var parent = _resource.parent;
     return _OverlayFolder(provider, parent);
   }
+
+  @override
+  Folder get parent2 => parent;
 
   @override
   String get path => _resource.path;

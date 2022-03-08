@@ -676,7 +676,7 @@ class FileResolver {
     File? optionsFile;
     if (!isThirdParty) {
       optionsFile = performance.run('findOptionsFile', (_) {
-        var folder = resourceProvider.getFile(path).parent2;
+        var folder = resourceProvider.getFile(path).parent;
         return _findOptionsFile(folder);
       });
     }

@@ -6,7 +6,7 @@
 
 import 'package:compiler/src/util/testing.dart';
 
-/*spec.class: Class1:direct,explicit=[Class1.T*],needsArgs*/
+/*spec.class: Class1:explicit=[Class1.T*],needsArgs,test*/
 /*prod.class: Class1:needsArgs*/
 class Class1<T> {
   Class1();

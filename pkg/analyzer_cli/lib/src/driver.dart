@@ -523,14 +523,14 @@ class _AnalysisContextProvider {
     }
 
     // Exclude patterns are relative to the directory with the options file.
-    return PathFilter(contextRoot.root.path, optionsFile.parent2.path,
+    return PathFilter(contextRoot.root.path, optionsFile.parent.path,
         analysisContext!.analysisOptions.excludePatterns);
   }
 
   void configureForPath(String path) {
     var folder = _resourceProvider.getFolder(path);
     if (!folder.exists) {
-      folder = _resourceProvider.getFile(path).parent2;
+      folder = _resourceProvider.getFile(path).parent;
     }
 
     // In batch mode we are given separate file paths to analyze.
