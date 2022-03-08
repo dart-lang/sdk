@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 
 /// Parenthesize the target of the [expressionStatement]'s expression (assumed
 /// to [cascadeExpression]) before removing the cascade.

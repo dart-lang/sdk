@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 /// instances of the interfaces that constitute the AST.
 ///
 /// Clients should not extend, implement or mix-in this class.
+@Deprecated('Should not be used by clients')
 abstract class AstFactory {
   /// Returns a newly created list of adjacent strings. To be syntactically
   /// valid, the list of [strings] must contain at least two elements.
