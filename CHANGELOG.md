@@ -183,8 +183,20 @@ in 2018, as it doesn't work with any Dart 2.x release.
 
 #### Linter
 
-Updated the Linter to `1.18.0`, which includes changes that
+Updated the Linter to `1.19.2`, which includes changes that
 
+- adds new lint: `use_super_initializers`.
+- adds new lint: `use_enums`.
+- adds new lint: `use_colored_box`.
+- improves performance for `sort_constructors`.
+- improves docs for `always_use_package_imports`,
+  `avoid_print`, and `avoid_relative_lib_imports` .
+- updates `avoid_void_async` to skip `main` functions.
+- updates `prefer_final_parameters` to not super on super params.
+- updates lints for enhanced-enums and super-initializer language
+  features.
+- updates `unnecessary_late` to report on variable names.
+- marks `null_check_on_nullable_type_parameter` stable.
 - extends `camel_case_types` to cover enums.
 - fixes `no_leading_underscores_for_local_identifiers` to not
   mis-flag field formal parameters with default values.
