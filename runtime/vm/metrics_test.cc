@@ -88,8 +88,9 @@ ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
 
   // Ensure we've done new/old GCs to ensure max metrics are initialized.
   String::New("<land-in-new-space>", Heap::kNew);
-  IsolateGroup::Current()->heap()->new_space()->Scavenge(GCReason::kLowMemory);
-  IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kLowMemory);
+  IsolateGroup::Current()->heap()->new_space()->Scavenge(GCReason::kDebugging);
+  IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                                     /*compact=*/ true);
 
   // Ensure we've something live in new space.
   String::New("<land-in-new-space2>", Heap::kNew);
@@ -113,13 +114,6 @@ ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
     EXPECT(Dart_IsolateHeapGlobalUsedMaxMetric(isolate) > 0);
   }
 }
-
-class MetricsTestHelper {
- public:
-  static void Scavenge(Thread* thread) {
-    thread->heap()->CollectNewSpaceGarbage(thread, GCReason::kDebugging);
-  }
-};
 
 static uintptr_t event_counter;
 static const char* last_gcevent_type;
@@ -151,18 +145,18 @@ ISOLATE_UNIT_TEST_CASE(Metric_SetGCEventCallback) {
 
   Dart_SetGCEventCallback(&MyGCEventCallback);
 
-  MetricsTestHelper::Scavenge(Thread::Current());
+  GCTestHelper::CollectNewSpace();
 
   EXPECT_EQ(1UL, event_counter);
   EXPECT_STREQ("Scavenge", last_gcevent_type);
   EXPECT_STREQ("debugging", last_gcevent_reason);
 
   // This call emits 2 or 3 events.
-  IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kLowMemory);
+  GCTestHelper::CollectAllGarbage(/*compact=*/ true);
 
   EXPECT_GE(event_counter, 3UL);
   EXPECT_STREQ("MarkCompact", last_gcevent_type);
-  EXPECT_STREQ("low memory", last_gcevent_reason);
+  EXPECT_STREQ("debugging", last_gcevent_reason);
 }
 
 }  // namespace dart

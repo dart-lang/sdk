@@ -61,16 +61,18 @@ void Zone::Init() {
 }
 
 void Zone::Cleanup() {
-  {
-    MutexLocker ml(segment_cache_mutex);
-    ASSERT(segment_cache_size >= 0);
-    ASSERT(segment_cache_size <= kSegmentCacheCapacity);
-    while (segment_cache_size > 0) {
-      delete segment_cache[--segment_cache_size];
-    }
-  }
+  ClearCache();
   delete segment_cache_mutex;
   segment_cache_mutex = nullptr;
+}
+
+void Zone::ClearCache() {
+  MutexLocker ml(segment_cache_mutex);
+  ASSERT(segment_cache_size >= 0);
+  ASSERT(segment_cache_size <= kSegmentCacheCapacity);
+  while (segment_cache_size > 0) {
+    delete segment_cache[--segment_cache_size];
+  }
 }
 
 Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {

@@ -4389,7 +4389,7 @@ static void GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
   bool include_code_samples =
       BoolParameter::Parse(js->LookupParam("_code"), false);
 #if defined(DEBUG)
-  IsolateGroup::Current()->heap()->CollectAllGarbage();
+  IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kDebugging);
 #endif
   if (CheckNativeAllocationProfilerDisabled(thread, js)) {
     return;
@@ -4435,7 +4435,7 @@ static void GetAllocationProfileImpl(Thread* thread,
   }
   if (should_collect) {
     isolate_group->UpdateLastAllocationProfileGCTimestamp();
-    isolate_group->heap()->CollectAllGarbage();
+    isolate_group->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   isolate_group->class_table()->AllocationProfilePrintJSON(js, internal);
 }
