@@ -8,6 +8,10 @@
 
 import 'package:meta/meta.dart';
 
+/// https://github.com/dart-lang/linter/issues/3275
+typedef Foo1 = Map<String, Object>;
+final Foo1 foo = Foo1();
+
 /// Constructor tear-offs
 void constructorTearOffs() {
   List<List>.filled; // LINT
