@@ -1,3 +1,4 @@
-// @dart = 2.9
+List<int>? nullableList = [3];
+Map<int, int>? nullableMap = {3: 3};
 foo() => null;
 main() {}

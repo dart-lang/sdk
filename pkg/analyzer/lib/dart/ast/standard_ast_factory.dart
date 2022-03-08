@@ -6,4 +6,5 @@ import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 
 /// Gets an instance of [AstFactory] based on the standard AST implementation.
+@Deprecated('Should not be used by clients')
 final AstFactory astFactory = AstFactoryImpl();

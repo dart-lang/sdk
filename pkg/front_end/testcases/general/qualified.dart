@@ -1,7 +1,7 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 library test.qualified.main;
 
 import "qualified_lib.dart" as lib;
@@ -10,7 +10,7 @@ part "qualified_part.dart";
 
 class Bad extends lib.Missing {
   lib.Missing method() {}
-  factory WrongName() {}
+  factory WrongName() => throw '';
 }
 
 class WithMixin extends lib.Supertype with lib.Mixin {}

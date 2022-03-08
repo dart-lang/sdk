@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -12,9 +12,9 @@ static method foo() → dynamic {
   }
 }
 static method bar(dynamic d) → dynamic async* {
-  await for (dynamic x in d as{TypeError,ForDynamic} asy::Stream<dynamic>*) {
+  await for (dynamic x in d as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>) {
     yield x;
-    yield* x as{TypeError,ForDynamic} asy::Stream<dynamic>*;
+    yield* x as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>;
   }
 }
 static method main() → dynamic {
@@ -26,10 +26,10 @@ static method main() → dynamic {
     void x = core::print("Hello from do-while!");
   }
   while (false)
-  for (core::String* s in <core::String*>["Hello from for-in!"]) {
+  for (core::String s in <core::String>["Hello from for-in!"]) {
     core::print(s);
   }
-  for (core::String* s in <core::String*>["Hello from for-in without block!"])
+  for (core::String s in <core::String>["Hello from for-in without block!"])
     core::print(s);
   dynamic s;
   for (final dynamic #t1 in <dynamic>["Hello from for-in without decl!"]) {
@@ -45,15 +45,15 @@ static method main() → dynamic {
     try {
       throw "Hello from rethrow!";
     }
-    on dynamic catch(final dynamic e) {
+    on core::Object catch(final core::Object e) {
       rethrow;
     }
   }
-  on dynamic catch(final dynamic e) {
+  on core::Object catch(final core::Object e) {
     core::print(e);
   }
   self::foo();
-  core::bool* done = false;
+  core::bool done = false;
   while (!done) {
     done = true;
     core::print("Hello from while!");
@@ -64,7 +64,7 @@ static method main() → dynamic {
   try {
     assert(false, "Hello from assert!");
   }
-  on dynamic catch(final dynamic e) {
+  on core::Object catch(final core::Object e) {
     core::print(e);
   }
   #L1:
@@ -128,13 +128,13 @@ static method main() → dynamic {
         continue #L11;
       }
   }
-  core::int* i = 0;
+  core::int i = 0;
   #L13:
   do
     #L14:
     {
       core::print("Hello from do-while!");
-      if((i = i.{core::num::+}(1){(core::num*) →* core::int*}).{core::num::<}(3){(core::num*) →* core::bool*})
+      if((i = i.{core::num::+}(1){(core::num) → core::int}).{core::num::<}(3){(core::num) → core::bool})
         break #L14;
       break #L13;
     }
@@ -145,7 +145,7 @@ static method main() → dynamic {
     #L16:
     {
       core::print("Hello from while!");
-      if((i = i.{core::num::+}(1){(core::num*) →* core::int*}).{core::num::<}(3){(core::num*) →* core::bool*})
+      if((i = i.{core::num::+}(1){(core::num) → core::int}).{core::num::<}(3){(core::num) → core::bool})
         break #L16;
       break #L15;
     }

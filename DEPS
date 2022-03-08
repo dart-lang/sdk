@@ -71,7 +71,7 @@ vars = {
   "gn_revision": "b79031308cc878488202beb99883ec1f2efd9a6d",
 
   # Scripts that make 'git cl format' work.
-  "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
+  "clang_format_scripts_rev": "bb994c6f067340c1135eb43eed84f4b33cfa7397",
 
   "gperftools_revision": "180bfa10d7cb38e8b3784d60943d50e8fcef0dcb",
 

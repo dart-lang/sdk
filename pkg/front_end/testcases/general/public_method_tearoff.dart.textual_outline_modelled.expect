@@ -1,4 +1,3 @@
-// @dart = 2.9
 import './public_method_tearoff_lib.dart';
 
 class Foo extends Bar {}

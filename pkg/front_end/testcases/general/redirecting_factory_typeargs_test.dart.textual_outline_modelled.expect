@@ -1,4 +1,3 @@
-// @dart = 2.9
 library redirecting_factory_constructors.typeargs_test;
 
 class A {

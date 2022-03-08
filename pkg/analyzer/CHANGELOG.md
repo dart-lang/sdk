@@ -7,6 +7,7 @@
 * Deprecated `AnalysisDriver.getParsedLibrary`, use `getParsedLibrary2` instead.
 * Deprecated `AnalysisDriver.getParsedLibraryByUri`, use `getParsedLibraryByUri2` instead.
 * Deprecated `AnalysisDriver.parseFileSync`, use `parseFile` instead.
+* Deprecated `astFactory`, clients should not create AST nodes manually.
 
 ## 3.3.1
 * Report HintCode.OVERRIDE_ON_NON_OVERRIDING_xyz on enum.

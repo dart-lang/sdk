@@ -1,5 +1,4 @@
 // @dart = 2.9
-// @dart = 2.9
 class Class {
   Class operator +(Class cls) => cls;
   Class operator [](Class cls) => new Class();

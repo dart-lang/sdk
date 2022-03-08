@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -22,25 +22,15 @@ import self as self;
 import "dart:core" as core;
 
 class Super extends core::Object {
-  constructor •(core::bool* value) → self::Super*
+  constructor •(core::bool value) → self::Super
     : super core::Object::•()
     ;
-  get property() → core::bool*
+  get property() → core::bool
     return true;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Class extends self::Super {
-  field core::bool* field;
-  constructor •(core::bool* value) → self::Class*
+  field core::bool field;
+  constructor •(core::bool value) → self::Class
     : assert(invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:15:16: Error: Undefined name 'property'.
       : assert(property),
                ^^^^^^^^"), self::Class::field = invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:16:22: Error: Undefined name 'property'.
@@ -49,7 +39,7 @@ class Class extends self::Super {
         super(property);
               ^^^^^^^^")
     ;
-  constructor redirect() → self::Class*
+  constructor redirect() → self::Class
     : this self::Class::•(invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:19:27: Error: Undefined name 'property'.
   Class.redirect() : this(property);
                           ^^^^^^^^")

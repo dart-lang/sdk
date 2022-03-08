@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class FooBase<Tf> {
   int get x;
   factory FooBase(int x) = Foo<Tf>;

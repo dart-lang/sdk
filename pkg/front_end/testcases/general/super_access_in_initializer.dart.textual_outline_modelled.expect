@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Class extends Super {
   Class(bool value)
       : assert(property),
