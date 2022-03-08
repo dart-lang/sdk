@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -477,59 +476,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual.declaration, same(expectedBase));
 
     assertSubstitution(actual.substitution, expectedSubstitution);
-  }
-
-  void assertMethodInvocation(
-    MethodInvocation invocation,
-    Object? expectedElement,
-    String expectedInvokeType, {
-    String? expectedMethodNameType,
-    String? expectedNameType,
-    String? expectedType,
-    List<String> expectedTypeArguments = const <String>[],
-  }) {
-    var invocationImpl = invocation as MethodInvocationImpl;
-
-    // TODO(scheglov) Check for Member.
-    var element = invocation.methodName.staticElement;
-    if (expectedElement is Element) {
-      expect(element?.declaration, same(expectedElement));
-    } else {
-      expect(element, expectedElement);
-    }
-
-    // TODO(scheglov) Should we enforce this?
-//    if (expectedNameType == null) {
-//      if (expectedElement is ExecutableElement) {
-//        expectedNameType = expectedElement.type.displayName;
-//      } else if (expectedElement is VariableElement) {
-//        expectedNameType = expectedElement.type.displayName;
-//      }
-//    }
-//    assertType(invocation.methodName, expectedNameType);
-
-    assertTypeArgumentTypes(invocation, expectedTypeArguments);
-
-    assertInvokeType(invocation, expectedInvokeType);
-
-    expectedType ??= _extractReturnType(expectedInvokeType);
-    assertType(invocation, expectedType);
-
-    expectedMethodNameType ??= expectedInvokeType;
-    assertType(invocationImpl.methodNameType, expectedMethodNameType);
-  }
-
-  void assertMethodInvocation2(
-    MethodInvocation node, {
-    required Object? element,
-    required List<String> typeArgumentTypes,
-    required String invokeType,
-    required String type,
-  }) {
-    assertElement(node.methodName, element);
-    assertTypeArgumentTypes(node, typeArgumentTypes);
-    assertType(node.staticInvokeType, invokeType);
-    assertType(node.staticType, type);
   }
 
   void assertNamedParameterRef(String search, String name) {
@@ -1009,12 +955,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       ),
     );
     return buffer.toString();
-  }
-
-  static String _extractReturnType(String invokeType) {
-    int functionIndex = invokeType.indexOf(' Function');
-    expect(functionIndex, isNonNegative);
-    return invokeType.substring(0, functionIndex);
   }
 }
 

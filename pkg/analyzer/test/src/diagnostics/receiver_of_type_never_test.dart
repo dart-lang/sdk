@@ -402,15 +402,36 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 25, 8),
     ]);
 
-    assertMethodInvocation(
-      findNode.methodInvocation('.foo(1 + 2)'),
-      null,
-      'dynamic',
-      expectedType: 'Never',
-    );
-
-    // Verify that arguments are resolved.
-    assertType(findNode.binary('1 + 2'), 'int');
+    var node = findNode.methodInvocation('.foo(1 + 2)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: Never
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
+          literal: 2
+          staticType: int
+        staticElement: dart:core::@class::num::@method::+
+        staticInvokeType: num Function(num)
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: Never
+''');
   }
 
   test_methodInvocation_never_toString() async {
@@ -423,15 +444,36 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 30, 8),
     ]);
 
-    assertMethodInvocation(
-      findNode.methodInvocation('.toString(1 + 2)'),
-      null,
-      'dynamic',
-      expectedType: 'Never',
-    );
-
-    // Verify that arguments are resolved.
-    assertType(findNode.binary('1 + 2'), 'int');
+    var node = findNode.methodInvocation('.toString(1 + 2)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: Never
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
+          literal: 2
+          staticType: int
+        staticElement: dart:core::@class::num::@method::+
+        staticInvokeType: num Function(num)
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: Never
+''');
   }
 
   test_methodInvocation_neverQ_toString() async {
@@ -443,15 +485,36 @@ void f(Never? x) {
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 32, 5),
     ]);
 
-    assertMethodInvocation(
-      findNode.methodInvocation('.toString(1 + 2)'),
-      objectElement.getMethod('toString'),
-      'String Function()',
-      expectedType: 'String',
-    );
-
-    // Verify that arguments are resolved.
-    assertType(findNode.binary('1 + 2'), 'int');
+    var node = findNode.methodInvocation('.toString(1 + 2)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: Never?
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
+          literal: 2
+          staticType: int
+        staticElement: dart:core::@class::num::@method::+
+        staticInvokeType: num Function(num)
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
   }
 
   test_postfixExpression_never_plusPlus() async {
@@ -787,12 +850,29 @@ void f() {
 }
 ''');
 
-    assertMethodInvocation(
-      findNode.methodInvocation('toString()'),
-      null,
-      'dynamic',
-      expectedType: 'dynamic',
-    );
+    var node = findNode.methodInvocation('toString()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never*
+    rightParenthesis: )
+    staticType: Never*
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
   }
 
   test_propertyAccess_toString() async {

@@ -30,13 +30,27 @@ mixin M implements A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 82, 3),
     ]);
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('super.foo(0)'),
-      element: findElement.method('foo', of: 'A'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function(int)',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('super.foo(0)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
   }
 
   test_methodInvocation_mixinHasConcrete() async {
@@ -56,13 +70,23 @@ class C extends B {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('super.foo()'),
-      element: findElement.method('foo', of: 'M'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::M::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_methodInvocation_mixinHasNoSuchMethod() async {
@@ -80,13 +104,23 @@ class B extends Object with A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 107, 3),
     ]);
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('super.foo()'),
-      element: findElement.method('foo', of: 'A'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_methodInvocation_superHasAbstract() async {
@@ -106,13 +140,27 @@ abstract class B extends A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 95, 3),
     ]);
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('super.foo(0)'),
-      element: findElement.method('foo', of: 'A'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function(int)',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('super.foo(0)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
   }
 
   test_methodInvocation_superHasConcrete_mixinHasAbstract() async {
@@ -132,13 +180,23 @@ class C extends A with B {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('foo(); // ref'),
-      element: findElement.method('foo', of: 'A'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('foo(); // ref');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_methodInvocation_superHasNoSuchMethod() async {
@@ -154,13 +212,23 @@ class B extends A {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('super.foo()'),
-      element: findElement.method('foo', of: 'A'),
-      typeArgumentTypes: [],
-      invokeType: 'int Function()',
-      type: 'int',
-    );
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
   }
 
   test_methodInvocation_superSuperHasConcrete() async {
@@ -180,13 +248,23 @@ class C extends B {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('super.foo()'),
-      element: findElement.method('foo', of: 'A'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_propertyAccess_getter() async {
