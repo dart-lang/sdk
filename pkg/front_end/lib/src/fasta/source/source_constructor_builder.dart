@@ -130,9 +130,6 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             compilationUnit, charOffset, nativeMethodName);
 
   @override
-  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
-
-  @override
   SourceClassBuilder get classBuilder =>
       super.classBuilder as SourceClassBuilder;
 
@@ -782,6 +779,9 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       : _origin = origin,
         _synthesizedFunctionNode = synthesizedFunctionNode,
         super(constructor, constructorTearOff, parent);
+
+  @override
+  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
 
   // TODO(johnniwinther,cstefantsova): Rename [actualOrigin] to avoid the
   //  confusion with patches.

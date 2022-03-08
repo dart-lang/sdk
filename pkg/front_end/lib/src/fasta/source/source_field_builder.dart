@@ -283,9 +283,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
-
-  @override
   Member get member => _fieldEncoding.field;
 
   @override
