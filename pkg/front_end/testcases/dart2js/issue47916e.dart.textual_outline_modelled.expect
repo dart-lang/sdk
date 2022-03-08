@@ -1,0 +1,14 @@
+abstract class A {
+  const factory A() = B;
+}
+
+abstract class B implements A {
+  const factory B() = C.named;
+}
+
+class C implements B {
+  static C named() => new C();
+}
+
+main() {}
+test() {}
