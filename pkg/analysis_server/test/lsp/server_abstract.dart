@@ -203,7 +203,7 @@ abstract class AbstractLspAnalysisServerTest
         processRunner: processRunner);
     server.pluginManager = pluginManager;
 
-    projectFolderPath = convertPath('/home/test');
+    projectFolderPath = convertPath('/home/my_project');
     projectFolderUri = Uri.file(projectFolderPath);
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));

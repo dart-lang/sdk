@@ -34,9 +34,10 @@ class AbstractContextTest with ResourceProviderMixin {
     return _analysisContextCollection!.contexts.map((e) => e.driver).toList();
   }
 
-  /// The file system specific `/home/test/analysis_options.yaml` path.
+  /// The file system specific path for `analysis_options.yaml` in
+  /// [testPackageRootPath].
   String get analysisOptionsPath =>
-      convertPath('/home/test/analysis_options.yaml');
+      convertPath('$testPackageRootPath/analysis_options.yaml');
 
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
@@ -62,7 +63,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  AnalysisSession get session => contextFor('/home/test').currentSession;
+  AnalysisSession get session => contextFor(testPackageRootPath).currentSession;
 
   String? get testPackageLanguageVersion => latestLanguageVersion;
 
@@ -72,8 +73,9 @@ class AbstractContextTest with ResourceProviderMixin {
 
   String get testPackageTestPath => '$testPackageRootPath/test';
 
-  /// The file system specific `/home/test/pubspec.yaml` path.
-  String get testPubspecPath => convertPath('/home/test/pubspec.yaml');
+  /// The file system specific path for `pubspec.yaml` in [testPackageRootPath].
+  String get testPubspecPath =>
+      convertPath('$testPackageRootPath/pubspec.yaml');
 
   String get workspaceRootPath => '/home';
 
@@ -197,7 +199,7 @@ class AbstractContextTest with ResourceProviderMixin {
     AnalysisEngine.instance.clearCaches();
   }
 
-  /// Update `/home/test/pubspec.yaml` and create the driver.
+  /// Update `pubspec.yaml` and create the driver.
   void updateTestPubspecFile(String content) {
     newFile(testPubspecPath, content: content);
   }

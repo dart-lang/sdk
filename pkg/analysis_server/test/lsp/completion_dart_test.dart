@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analysis_server/src/services/snippets/dart/dart_snippet_producers.dart';
 import 'package:analysis_server/src/services/snippets/dart/flutter_snippet_producers.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -2406,6 +2407,33 @@ class B {}
       content,
       FlutterStatelessWidgetSnippetProducer.prefix,
     );
+  }
+
+  Future<void> test_snippets_mainFunction() async {
+    final content = '''
+class A {}
+
+main^
+
+class B {}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartMainFunctionSnippetProducer.prefix,
+      label: DartMainFunctionSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+class A {}
+
+void main(List<String> args) {
+  $0
+}
+
+class B {}
+''');
   }
 
   Future<void> test_snippets_notSupported() async {
