@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Operators {
   operator %(other) => null;
   operator &(other) => null;
@@ -10,7 +9,7 @@ class Operators {
   operator <(other) => null;
   operator <<(other) => null;
   operator <=(other) => null;
-  operator ==(other) => null;
+  operator ==(other) => true;
   operator >(other) => null;
   operator >=(other) => null;
   operator >>(other) => null;

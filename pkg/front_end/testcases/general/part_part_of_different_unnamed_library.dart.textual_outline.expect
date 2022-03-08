@@ -1,4 +1,3 @@
-// @dart = 2.9
 import 'part_part_of_different_unnamed_library_lib2.dart';
 @override
 part 'part_part_of_different_unnamed_library_lib1.dart';

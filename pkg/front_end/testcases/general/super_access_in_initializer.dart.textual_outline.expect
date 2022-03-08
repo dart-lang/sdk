@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Super {
   bool get property => true;
   Super(bool value);

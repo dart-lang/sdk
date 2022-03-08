@@ -1,11 +1,10 @@
-// @dart = 2.9
 library test.qualified.main;
 
 import "qualified_lib.dart" as lib;
 part "qualified_part.dart";
 
 class Bad extends lib.Missing {
-  factory WrongName() {}
+  factory WrongName() => throw '';
   lib.Missing method() {}
 }
 

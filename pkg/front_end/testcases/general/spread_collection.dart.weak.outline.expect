@@ -1,6 +1,9 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
+static field core::List<core::int>? nullableList;
+static field core::Map<core::int, core::int>? nullableMap;
 static method main() → dynamic
   ;
 static method foo() → dynamic

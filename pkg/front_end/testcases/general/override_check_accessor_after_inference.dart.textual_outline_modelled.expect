@@ -1,25 +1,24 @@
-// @dart = 2.9
 class A {}
 
 class B extends A {}
 
 class C {
-  B get y => null;
+  B get y => throw '';
   void set x(A value) {}
 }
 
 class D extends C {
-  get y => null;
+  get y => throw '';
   void set x(value) {}
 }
 
 class E extends D {
-  B get y => null;
+  B get y => throw '';
   void set x(A value) {}
 }
 
 class F extends D {
-  A get y => null;
+  A get y => throw '';
   void set x(B value) {}
 }
 

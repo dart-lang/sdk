@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart=2.9
-
 // The test checks that type arguments of the target of redirection factory
 // constructors are preserved throughout the chain of redirections.
 

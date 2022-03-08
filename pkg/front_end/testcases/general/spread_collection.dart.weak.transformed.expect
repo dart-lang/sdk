@@ -1,8 +1,8 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/spread_collection.dart:21:21: Error: Not enough type information to disambiguate between literal set and literal map.
+// pkg/front_end/testcases/general/spread_collection.dart:24:21: Error: Not enough type information to disambiguate between literal set and literal map.
 // Try providing type arguments for the literal explicitly to disambiguate it.
 //   final aSetOrMap = {...foo()};
 //                     ^
@@ -11,42 +11,44 @@ import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 
+static field core::List<core::int>? nullableList = core::_GrowableList::_literal1<core::int>(3);
+static field core::Map<core::int, core::int>? nullableMap = <core::int, core::int>{3: 3};
 static method main() → dynamic {
-  final core::List<core::int*>* aList = block {
-    final core::List<core::int*>* #t1 = core::_GrowableList::_literal1<core::int*>(1);
-    #t1.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(2)){(core::Iterable<core::int*>*) →* void};
-    final core::Iterable<core::int*>* #t2 = core::_GrowableList::_literal1<core::int*>(3);
+  final core::List<core::int> aList = block {
+    final core::List<core::int> #t1 = core::_GrowableList::_literal1<core::int>(1);
+    #t1.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::int>(2)){(core::Iterable<core::int>) → void};
+    final core::Iterable<core::int>? #t2 = self::nullableList;
     if(!(#t2 == null))
-      #t1.{core::List::addAll}{Invariant}(#t2){(core::Iterable<core::int*>*) →* void};
+      #t1.{core::List::addAll}{Invariant}(#t2{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
   } =>#t1;
-  final core::Map<core::int*, core::int*>* aMap = block {
-    final core::Map<core::int*, core::int*>* #t3 = <core::int*, core::int*>{};
-    #t3.{core::Map::[]=}{Invariant}(1, 1){(core::int*, core::int*) →* void};
+  final core::Map<core::int, core::int> aMap = block {
+    final core::Map<core::int, core::int> #t3 = <core::int, core::int>{};
+    #t3.{core::Map::[]=}{Invariant}(1, 1){(core::int, core::int) → void};
     {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = <core::int*, core::int*>{2: 2}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      core::Iterator<core::MapEntry<core::int, core::int>> :sync-for-iterator = <core::int, core::int>{2: 2}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int, core::int>>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::MapEntry<core::int*, core::int*>* #t4 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
-        #t3.{core::Map::[]=}{Invariant}(#t4.{core::MapEntry::key}{core::int*}, #t4.{core::MapEntry::value}{core::int*}){(core::int*, core::int*) →* void};
+        final core::MapEntry<core::int, core::int> #t4 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int, core::int>};
+        #t3.{core::Map::[]=}{Invariant}(#t4.{core::MapEntry::key}{core::int}, #t4.{core::MapEntry::value}{core::int}){(core::int, core::int) → void};
       }
     }
-    final core::Map<core::int*, core::int*>* #t5 = <core::int*, core::int*>{3: 3};
+    final core::Map<core::int, core::int>? #t5 = self::nullableMap;
     if(!(#t5 == null)) {
-      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t5.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::int*>>*};
+      core::Iterator<core::MapEntry<core::int, core::int>> :sync-for-iterator = #t5{core::Map<core::int, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int, core::int>>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::MapEntry<core::int*, core::int*>* #t6 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::int*>};
-        #t3.{core::Map::[]=}{Invariant}(#t6.{core::MapEntry::key}{core::int*}, #t6.{core::MapEntry::value}{core::int*}){(core::int*, core::int*) →* void};
+        final core::MapEntry<core::int, core::int> #t6 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int, core::int>};
+        #t3.{core::Map::[]=}{Invariant}(#t6.{core::MapEntry::key}{core::int}, #t6.{core::MapEntry::value}{core::int}){(core::int, core::int) → void};
       }
     }
   } =>#t3;
-  final core::Set<core::int*>* aSet = block {
-    final core::Set<core::int*>* #t7 = new col::_CompactLinkedHashSet::•<core::int*>();
-    #t7.{core::Set::add}{Invariant}(1){(core::int*) →* core::bool*};
-    #t7.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(2)){(core::Iterable<core::int*>*) →* void};
-    final core::Iterable<core::int*>* #t8 = core::_GrowableList::_literal1<core::int*>(3);
+  final core::Set<core::int> aSet = block {
+    final core::Set<core::int> #t7 = new col::_CompactLinkedHashSet::•<core::int>();
+    #t7.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
+    #t7.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int>(2)){(core::Iterable<core::int>) → void};
+    final core::Iterable<core::int>? #t8 = self::nullableList;
     if(!(#t8 == null))
-      #t7.{core::Set::addAll}{Invariant}(#t8){(core::Iterable<core::int*>*) →* void};
+      #t7.{core::Set::addAll}{Invariant}(#t8{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
   } =>#t7;
-  final Never* aSetOrMap = invalid-expression "pkg/front_end/testcases/general/spread_collection.dart:21:21: Error: Not enough type information to disambiguate between literal set and literal map.
+  final Never aSetOrMap = invalid-expression "pkg/front_end/testcases/general/spread_collection.dart:24:21: Error: Not enough type information to disambiguate between literal set and literal map.
 Try providing type arguments for the literal explicitly to disambiguate it.
   final aSetOrMap = {...foo()};
                     ^";

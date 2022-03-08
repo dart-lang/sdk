@@ -1,6 +1,5 @@
-// @dart = 2.9
 class Foo<T> {
-  Foo._internal({this.x});
+  Foo._internal({required this.x});
   Foo.from(String _init) : this._internal(x: _init);
   T x;
 }

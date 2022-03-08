@@ -1,4 +1,3 @@
-// @dart = 2.9
 bar(d) async* {}
 foo() {}
 main() {}
