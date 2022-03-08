@@ -25,14 +25,13 @@ class UseSuperInitializersTest extends LintRuleTest {
   test_named() async {
     await assertDiagnostics(r'''
 class A {
-  A({int? x, int? y});
+  const A({int? x, int? y});
 }
 class B extends A {
-  B({int? x, int? y}) : super(x: x, y: y);
+  const B({int? x, int? y}) : super(x: x, y: y);
 }
 ''', [
-      lint('use_super_initializers', 65, 1),
-      lint('use_super_initializers', 73, 1),
+      lint('use_super_initializers', 69, 1),
     ]);
   }
 
@@ -183,7 +182,7 @@ class B extends A {
   B(int x, {int? foo}) : super(x, foo: 0); 
 }
 ''', [
-      lint('use_super_initializers', 65, 1),
+      lint('use_super_initializers', 59, 1),
     ]);
   }
 
@@ -196,7 +195,7 @@ class B extends A {
   B(int x) : super(x);
 }
 ''', [
-      lint('use_super_initializers', 62, 1),
+      lint('use_super_initializers', 56, 1),
     ]);
   }
 
@@ -209,7 +208,7 @@ class B extends A {
   B([int x = 0]) : super(x);
 }
 ''', [
-      lint('use_super_initializers', 53, 1),
+      lint('use_super_initializers', 46, 1),
     ]);
   }
 
@@ -224,7 +223,7 @@ class C extends B {
   C(int foo, int bar) : super(foo, bar);
 }
 ''', [
-      lint('use_super_initializers', 99, 3),
+      lint('use_super_initializers', 93, 1),
     ]);
   }
 
@@ -237,7 +236,7 @@ class B extends A {
   B(int x, int y) : super(x, y: y);
 }
 ''', [
-      lint('use_super_initializers', 62, 1),
+      lint('use_super_initializers', 56, 1),
     ]);
   }
 
@@ -252,7 +251,7 @@ class C extends B {
   C(int baz, int foo, int bar) : super(foo, bar);
 }
 ''', [
-      lint('use_super_initializers', 108, 3),
+      lint('use_super_initializers', 93, 1),
     ]);
   }
 
@@ -265,8 +264,7 @@ class B extends A {
   B(int x, {int? y}) : super(x, y: y);
 }
 ''', [
-      lint('use_super_initializers', 62, 1),
-      lint('use_super_initializers', 71, 1),
+      lint('use_super_initializers', 56, 1),
     ]);
   }
 }
