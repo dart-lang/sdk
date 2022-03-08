@@ -280,7 +280,7 @@ abstract class LinterContext {
 
 /// Implementation of [LinterContext]
 class LinterContextImpl implements LinterContext {
-  static final _testDirectories = [
+  static final testDirectories = [
     '${p.separator}test${p.separator}',
     '${p.separator}integration_test${p.separator}',
     '${p.separator}test_driver${p.separator}',
@@ -393,7 +393,7 @@ class LinterContextImpl implements LinterContext {
   @override
   bool inTestDir(CompilationUnit unit) {
     var path = unit.declaredElement?.source.fullName;
-    return path != null && _testDirectories.any(path.contains);
+    return path != null && testDirectories.any(path.contains);
   }
 
   @override

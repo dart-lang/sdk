@@ -276,71 +276,6 @@ class LocalVarDescriptorsBuilder : public ValueObject {
   GrowableArray<VarDesc> vars_;
 };
 
-class NameReference : public ZoneAllocated {
- public:
-  NameReference(TokenPosition token_pos, const String& name)
-      : token_pos_(token_pos), name_(name) {
-    ASSERT(name.IsSymbol());
-  }
-  const String& name() const { return name_; }
-  TokenPosition token_pos() const { return token_pos_; }
-  void set_token_pos(TokenPosition value) { token_pos_ = value; }
-
- private:
-  TokenPosition token_pos_;
-  const String& name_;
-};
-
-class SourceLabel : public ZoneAllocated {
- public:
-  enum Kind {
-    kFor,
-    kWhile,
-    kDoWhile,
-    kSwitch,
-    kCase,
-    kTry,
-    kCatch,
-    kForward,
-    kStatement  // Any statement other than the above
-  };
-
-  SourceLabel(TokenPosition token_pos, const String& name, Kind kind)
-      : token_pos_(token_pos), name_(name), owner_(NULL), kind_(kind) {
-    ASSERT(name.IsSymbol());
-  }
-
-  static SourceLabel* New(TokenPosition token_pos, String* name, Kind kind) {
-    if (name != NULL) {
-      return new SourceLabel(token_pos, *name, kind);
-    } else {
-      return new SourceLabel(token_pos, Symbols::DefaultLabel(), kind);
-    }
-  }
-
-  TokenPosition token_pos() const { return token_pos_; }
-  const String& name() const { return name_; }
-  LocalScope* owner() const { return owner_; }
-  void set_owner(LocalScope* owner) { owner_ = owner; }
-
-  Kind kind() const { return kind_; }
-
-  // Returns the function level of the scope in which the label is defined.
-  int FunctionLevel() const;
-
-  bool IsUnresolved() { return kind_ == kForward; }
-  void ResolveForwardReference() { kind_ = kCase; }
-
- private:
-  const TokenPosition token_pos_;
-  const String& name_;
-  LocalScope* owner_;  // Local scope declaring this label.
-
-  Kind kind_;
-
-  DISALLOW_COPY_AND_ASSIGN(SourceLabel);
-};
-
 class LocalScope : public ZoneAllocated {
  public:
   LocalScope(LocalScope* parent, int function_level, int loop_level);
@@ -403,18 +338,8 @@ class LocalScope : public ZoneAllocated {
   // Returns false if a variable with the same name is already present.
   bool InsertParameterAt(intptr_t pos, LocalVariable* parameter);
 
-  // Add a label to the scope. Returns false if a label with the same name
-  // is already present.
-  bool AddLabel(SourceLabel* label);
-
-  // Move an unresolved label of a switch case label to an outer switch.
-  void MoveLabel(SourceLabel* label);
-
   // Lookup a variable in this scope only.
   LocalVariable* LocalLookupVariable(const String& name) const;
-
-  // Lookup a label in this scope only.
-  SourceLabel* LocalLookupLabel(const String& name) const;
 
   // Lookup a variable in this scope and its parents. If the variable
   // is found in a parent scope and 'test_only' is not true, we insert
@@ -423,25 +348,8 @@ class LocalScope : public ZoneAllocated {
   // We mark a variable as 'captured' when applicable.
   LocalVariable* LookupVariable(const String& name, bool test_only);
 
-  // Lookup a label in this scope and its parents.
-  SourceLabel* LookupLabel(const String& name);
-
-  // Lookup the "innermost" label that labels a for, while, do, or switch
-  // statement.
-  SourceLabel* LookupInnermostLabel(Token::Kind jump_kind);
-
-  // Lookup scope of outer switch statement at same function level.
-  // Returns NULL if this scope is not embedded in a switch.
-  LocalScope* LookupSwitchScope();
-
   // Mark this variable as captured by this scope.
   void CaptureVariable(LocalVariable* variable);
-
-  // Look for unresolved forward references to labels in this scope.
-  // If there are any, propagate the forward reference to the next
-  // outer scope of a switch statement. If there is no outer switch
-  // statement, return the first unresolved label found.
-  SourceLabel* CheckUnresolvedLabels();
 
   // Accessing the variables in the scope.
   intptr_t num_variables() const { return variables_.length(); }
@@ -453,12 +361,6 @@ class LocalScope : public ZoneAllocated {
   // Count the captured variables belonging to outer scopes and referenced in
   // this local scope.
   int NumCapturedVariables() const;
-
-  // Add a reference to the given name into this scope and the enclosing
-  // scopes that do not have a local variable declaration for this name
-  // already.
-  void AddReferencedName(TokenPosition token_pos, const String& name);
-  TokenPosition PreviousReferencePos(const String& name) const;
 
   // Allocate both captured and non-captured variables declared in this scope
   // and in its children scopes of the same function level. Allocating means
@@ -512,8 +414,6 @@ class LocalScope : public ZoneAllocated {
   void CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
                              int16_t* scope_id);
 
-  NameReference* FindReference(const String& name) const;
-
   static const int kUninitializedContextLevel = INT_MIN;
   LocalScope* parent_;
   LocalScope* child_;
@@ -524,16 +424,11 @@ class LocalScope : public ZoneAllocated {
   TokenPosition begin_token_pos_;  // Token index of beginning of scope.
   TokenPosition end_token_pos_;    // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;
-  GrowableArray<SourceLabel*> labels_;
 
   // List of variables allocated into the context which is owned by this scope,
   // and their corresponding Slots.
   GrowableArray<LocalVariable*> context_variables_;
   ZoneGrowableArray<const Slot*>* context_slots_;
-
-  // List of names referenced in this scope and its children that
-  // are not resolved to local variables.
-  GrowableArray<NameReference*> referenced_;
 
   DISALLOW_COPY_AND_ASSIGN(LocalScope);
 };

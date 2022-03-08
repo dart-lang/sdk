@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/services/snippets/dart/dart_snippet_producers.dart';
 import 'package:analysis_server/src/services/snippets/dart/flutter_snippet_producers.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -23,6 +24,7 @@ class DartSnippetManager {
   final producerGenerators =
       const <SnippetContext, List<SnippetProducerGenerator>>{
     SnippetContext.atTopLevel: [
+      DartMainFunctionSnippetProducer.newInstance,
       FlutterStatefulWidgetSnippetProducer.newInstance,
       FlutterStatefulWidgetWithAnimationControllerSnippetProducer.newInstance,
       FlutterStatelessWidgetSnippetProducer.newInstance,

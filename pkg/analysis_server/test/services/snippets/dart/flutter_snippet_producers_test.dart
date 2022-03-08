@@ -4,12 +4,10 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/flutter_snippet_producers.dart';
-import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../abstract_single_unit.dart';
-import 'test_support.dart';
+import 'dart_snippet_producers_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -20,39 +18,7 @@ void main() {
   });
 }
 
-abstract class FlutterSnippetProducerTest extends AbstractSingleUnitTest {
-  SnippetProducerGenerator get generator;
-  String get label;
-  String get prefix;
-
-  @override
-  bool get verifyNoTestUnitErrors => false;
-
-  Future<void> expectNotValidSnippet(
-    String code,
-  ) async {
-    await resolveTestCode(withoutMarkers(code));
-    final request = DartSnippetRequest(
-      unit: testAnalysisResult,
-      offset: offsetFromMarker(code),
-    );
-
-    final producer = generator(request);
-    expect(await producer.isValid(), isFalse);
-  }
-
-  Future<Snippet> expectValidSnippet(String code) async {
-    await resolveTestCode(withoutMarkers(code));
-    final request = DartSnippetRequest(
-      unit: testAnalysisResult,
-      offset: offsetFromMarker(code),
-    );
-
-    final producer = generator(request);
-    expect(await producer.isValid(), isTrue);
-    return producer.compute();
-  }
-
+abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
   /// Checks snippets can produce edits where the imports and snippet will be
   /// inserted at the same location.
   ///
@@ -64,6 +30,7 @@ abstract class FlutterSnippetProducerTest extends AbstractSingleUnitTest {
 
     final snippet = await expectValidSnippet('$prefix^');
     expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
 
     // Main edits replace $prefix.length characters starting at $prefix
     final mainEdit = snippet.change.edits[0].edits[0];
@@ -85,6 +52,7 @@ class A {}
 $prefix^
 ''');
     expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
 
     // Main edits replace $prefix.length characters starting at $prefix
     final mainEdit = snippet.change.edits[0].edits[0];
@@ -120,8 +88,8 @@ class FlutterStatefulWidgetSnippetProducerTest
     writeTestPackageConfig(flutter: true);
 
     final snippet = await expectValidSnippet('^');
-    expect(snippet.prefix, 'stful');
-    expect(snippet.label, 'Flutter Stateful Widget');
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
     snippet.change.edits
@@ -187,8 +155,8 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducerTest
     writeTestPackageConfig(flutter: true);
 
     final snippet = await expectValidSnippet('^');
-    expect(snippet.prefix, 'stanim');
-    expect(snippet.label, 'Flutter Widget with AnimationController');
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
     snippet.change.edits
@@ -268,8 +236,8 @@ class FlutterStatelessWidgetSnippetProducerTest
     writeTestPackageConfig(flutter: true);
 
     final snippet = await expectValidSnippet('^');
-    expect(snippet.prefix, 'stless');
-    expect(snippet.label, 'Flutter Stateless Widget');
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
     snippet.change.edits
