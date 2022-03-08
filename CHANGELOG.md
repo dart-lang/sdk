@@ -1,8 +1,8 @@
-# 1.19.0
+# 1.19.1
 
-- new lint: `user_super_initializers`
+- new lint: `use_super_initializers`
 - new lint: `use_enums`
-- new lint: `used_colored_box`
+- new lint: `use_colored_box`
 - performance improvements for `sort_constructors`
 - doc improvements for `always_use_package_imports`,
   `avoid_print`, and `avoid_relative_lib_imports` 
