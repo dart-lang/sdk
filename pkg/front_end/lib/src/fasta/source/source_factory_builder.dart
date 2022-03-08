@@ -407,6 +407,11 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       inferrer.helper = library.loader.createBodyBuilderForOutlineExpression(
           library, classBuilder, this, classBuilder!.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
+      if (targetBuilder is SourceMemberBuilder) {
+        // Ensure that target has been built.
+        targetBuilder.buildOutlineExpressions(targetBuilder.library,
+            classHierarchy, delayedActionPerformers, synthesizedFunctionNodes);
+      }
       if (targetBuilder is FunctionBuilder) {
         target = targetBuilder.member;
       } else if (targetBuilder is DillMemberBuilder) {
@@ -457,14 +462,34 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           new RedirectingFactoryBody(target, typeArguments, function);
       function.body!.parent = function;
     }
-    if (_factoryTearOff != null &&
-        (target is Constructor || target is Procedure && target.isFactory)) {
-      synthesizedFunctionNodes.add(buildRedirectingFactoryTearOffBody(
-          _factoryTearOff!,
-          target!,
-          typeArguments ?? [],
-          _tearOffTypeParameters!,
-          library));
+    if (_factoryTearOff != null) {
+      Set<Procedure> seenTargets = {};
+      while (target is Procedure && target.isRedirectingFactory) {
+        if (!seenTargets.add(target)) {
+          // Cyclic dependency.
+          target = null;
+          break;
+        }
+        RedirectingFactoryBody body =
+            target.function.body as RedirectingFactoryBody;
+        if (typeArguments != null) {
+          Substitution substitution = Substitution.fromPairs(
+              target.function.typeParameters, typeArguments);
+          typeArguments =
+              body.typeArguments?.map(substitution.substituteType).toList();
+        } else {
+          typeArguments = body.typeArguments;
+        }
+        target = body.target;
+      }
+      if (target is Constructor || target is Procedure && target.isFactory) {
+        synthesizedFunctionNodes.add(buildRedirectingFactoryTearOffBody(
+            _factoryTearOff!,
+            target!,
+            typeArguments ?? [],
+            _tearOffTypeParameters!,
+            library));
+      }
     }
     if (isConst && isPatch) {
       _finishPatch();

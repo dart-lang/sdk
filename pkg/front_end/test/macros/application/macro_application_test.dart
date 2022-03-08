@@ -31,7 +31,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:vm/target/vm.dart';
 
-import '../utils/kernel_chain.dart';
+import '../../utils/kernel_chain.dart';
 
 Future<void> main(List<String> args) async {
   bool generateExpectations = args.contains('-g');

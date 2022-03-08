@@ -28,7 +28,7 @@ Future<void> main(List<String> args) async {
     options.environmentDefines = {};
     options.explicitExperimentalFlags[ExperimentalFlag.macros] = true;
     options.packagesFileUri = Platform.script.resolve(
-        '../../_fe_analyzer_shared/test/macros/api/package_config.json');
+        '../../../_fe_analyzer_shared/test/macros/api/package_config.json');
     options.macroExecutorProvider = () async {
       return await isolatedExecutor.start(SerializationMode.byteDataServer);
     };
@@ -38,7 +38,7 @@ Future<void> main(List<String> args) async {
 
     InternalCompilerResult result = await kernelForProgramInternal(
         Platform.script.resolve(
-            '../../_fe_analyzer_shared/test/macros/api/api_test_data.dart'),
+            '../../../_fe_analyzer_shared/test/macros/api/api_test_data.dart'),
         options,
         retainDataForTesting: true) as InternalCompilerResult;
     Expect.isFalse(result.kernelTargetForTesting!.loader.hasSeenError);

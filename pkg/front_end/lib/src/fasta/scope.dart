@@ -805,7 +805,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  LibraryBuilder get library {
+  SourceLibraryBuilder get library {
     throw new UnsupportedError('AmbiguousMemberBuilder.library');
   }
 

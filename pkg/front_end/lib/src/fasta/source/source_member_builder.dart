@@ -25,6 +25,9 @@ import 'source_class_builder.dart';
 abstract class SourceMemberBuilder implements MemberBuilder {
   MemberDataForTesting? get dataForTesting;
 
+  @override
+  SourceLibraryBuilder get library;
+
   /// Builds the core AST structures for this member as needed for the outline.
   void buildMembers(
       SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f);
@@ -86,6 +89,9 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
       : dataForTesting =
             retainDataForTesting ? new MemberDataForTesting() : null,
         super(parent, charOffset, fileUri);
+
+  @override
+  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
 
   bool get isRedirectingGenerativeConstructor => false;
 
