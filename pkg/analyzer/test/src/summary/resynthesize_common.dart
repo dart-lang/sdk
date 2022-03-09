@@ -19866,46 +19866,55 @@ library
   }
 
   test_export_hide() async {
-    addLibrary('dart:async');
-    var library =
-        await checkLibrary('export "dart:async" hide Stream, Future;');
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', r'''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    var library = await checkLibrary(r'''
+export 'a.dart' hide A, C;
+''');
     checkElementText(
         library,
         r'''
 library
   exports
-    dart:async
+    package:test/a.dart
       combinators
-        hide: Stream, Future
+        hide: A, C
   definingUnit
   exportScope
-    Completer: dart:async;Completer
-    FutureOr: dart:async;FutureOr
-    StreamIterator: dart:async;dart:async/stream.dart;StreamIterator
-    StreamSubscription: dart:async;dart:async/stream.dart;StreamSubscription
-    StreamTransformer: dart:async;dart:async/stream.dart;StreamTransformer
-    Timer: dart:async;Timer
-    unawaited: dart:async;unawaited
+    B: package:test/a.dart;B
+    D: package:test/a.dart;D
 ''',
         withExportScope: true);
   }
 
   test_export_multiple_combinators() async {
-    addLibrary('dart:async');
-    var library =
-        await checkLibrary('export "dart:async" hide Stream show Future;');
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', r'''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    var library = await checkLibrary(r'''
+export 'a.dart' hide A show C;
+''');
     checkElementText(
         library,
         r'''
 library
   exports
-    dart:async
+    package:test/a.dart
       combinators
-        hide: Stream
-        show: Future
+        hide: A
+        show: C
   definingUnit
   exportScope
-    Future: dart:async;Future
+    C: package:test/a.dart;C
 ''',
         withExportScope: true);
   }
@@ -19927,21 +19936,28 @@ library
   }
 
   test_export_show() async {
-    addLibrary('dart:async');
-    var library =
-        await checkLibrary('export "dart:async" show Future, Stream;');
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', r'''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    var library = await checkLibrary(r'''
+export 'a.dart' show A, C;
+''');
     checkElementText(
         library,
         r'''
 library
   exports
-    dart:async
+    package:test/a.dart
       combinators
-        show: Future, Stream
+        show: A, C
   definingUnit
   exportScope
-    Future: dart:async;Future
-    Stream: dart:async;dart:async/stream.dart;Stream
+    A: package:test/a.dart;A
+    C: package:test/a.dart;C
 ''',
         withExportScope: true);
   }
