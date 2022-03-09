@@ -1,4 +1,3 @@
-// @dart = 2.9
 typedef _NullaryFunction();
 typedef _UnaryFunction(args);
 typedef _BinaryFunction(args, message);

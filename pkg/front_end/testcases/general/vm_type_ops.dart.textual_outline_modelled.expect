@@ -1,17 +1,6 @@
-// @dart = 2.9
-List<Iterable> globalVar;
-
-abstract class F<T> {
-  void foo7<Q extends T>(Q a, covariant num b, T c);
-  void foo8<Q extends T>(Q a, covariant num b, T c);
-}
-
 class A<T> {}
-
 class B extends A<String> {}
-
 class C<T1, T2, T3> extends B {}
-
 class D<P, Q> extends C<int, Q, P> {
   D(tt) : foo = tt;
   Map<P, Q> foo;
@@ -19,20 +8,24 @@ class D<P, Q> extends C<int, Q, P> {
   foo2(y) {}
   foo3<T1, T2>(z) {}
 }
-
+foo1(x) {}
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+List<Iterable> globalVar;
+abstract class F<T> {
+  void foo7<Q extends T>(Q a, covariant num b, T c);
+  void foo8<Q extends T>(Q a, covariant num b, T c);
+}
 class E<P extends String> {
-  factory E() => null;
+  factory E() => throw '';
   void foo6<T extends P, U extends List<T>>(Map<T, U> map) {}
 }
-
 class G<T> {
   void foo7<Q extends T>(Q a, int b, T c) {}
 }
-
 class H<T> extends G<T> implements F<T> {
   void foo8<Q extends T>(Q a, int b, T c) {}
 }
-
-foo1(x) {}
 main() {}
 void foo5(x) {}

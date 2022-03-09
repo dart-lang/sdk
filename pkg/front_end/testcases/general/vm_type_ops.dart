@@ -1,7 +1,7 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 // Copied from pkg/vm/testcases/bytecode/type_ops.dart
 
 class A<T> {}
@@ -51,14 +51,14 @@ class D<P, Q> extends C<int, Q, P> {
   }
 }
 
-List<Iterable> globalVar;
+late List<Iterable> globalVar;
 
 void foo5(x) {
   globalVar = x;
 }
 
 class E<P extends String> {
-  factory E() => null;
+  factory E() => throw '';
   void foo6<T extends P, U extends List<T>>(Map<T, U> map) {}
 }
 

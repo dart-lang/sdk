@@ -106,6 +106,9 @@ general/new_as_selector: FormatterCrash
 general/null_aware_super: FormatterCrash
 general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
+general/type_parameter_type_named_int: FormatterCrash
+general/type_parameter_usage_in_static_method_in_class: FormatterCrash
+general/type_parameter_usage_in_static_method_in_extension: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
