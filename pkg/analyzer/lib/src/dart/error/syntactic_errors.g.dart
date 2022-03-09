@@ -461,13 +461,6 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try declaring a constant.",
   );
 
-  static const ParserErrorCode
-      ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS = ParserErrorCode(
-    'ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS',
-    "Missing arguments in enum constructor invocation.",
-    correctionMessage: "Try adding an argument list.",
-  );
-
   static const ParserErrorCode ENUM_IN_CLASS = ParserErrorCode(
     'ENUM_IN_CLASS',
     "Enums can't be declared inside classes.",

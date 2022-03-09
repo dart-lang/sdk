@@ -1956,13 +1956,6 @@ ParserErrorCode.EMPTY_ENUM_BODY:
   notes: |-
     We can't guess at the names or number of the enum constants that should be
     added.
-ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS:
-  status: noFix
-  since: 2.17
-  notes: |-
-    We could potentially add `()`, but we generally don't have fixes for parse
-    errors because we assume the user is still typing and will soon fix the
-    problem.
 ParserErrorCode.ENUM_IN_CLASS:
   status: needsEvaluation
 ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
