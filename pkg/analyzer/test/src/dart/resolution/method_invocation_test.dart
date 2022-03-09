@@ -3687,6 +3687,7 @@ FunctionExpressionInvocation
     token: foo
     staticElement: self::@class::C::@getter::foo
     staticType: double Function(int)
+      alias: self::@typeAlias::MyFunction
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -3696,6 +3697,7 @@ FunctionExpressionInvocation
     rightParenthesis: )
   staticElement: <null>
   staticInvokeType: double Function(int)
+    alias: self::@typeAlias::MyFunction
   staticType: double
 ''');
     } else {
@@ -3705,6 +3707,7 @@ FunctionExpressionInvocation
     token: foo
     staticElement: self::@class::C::@getter::foo
     staticType: double* Function(int*)*
+      alias: self::@typeAlias::MyFunction
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -3714,6 +3717,7 @@ FunctionExpressionInvocation
     rightParenthesis: )
   staticElement: <null>
   staticInvokeType: double* Function(int*)*
+    alias: self::@typeAlias::MyFunction
   staticType: double*
 ''');
     }
@@ -7696,11 +7700,13 @@ FunctionExpressionInvocation
     token: a
     staticElement: a@39
     staticType: void Function()
+      alias: self::@typeAlias::F
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
   staticInvokeType: void Function()
+    alias: self::@typeAlias::F
   staticType: void
 ''');
     } else {
@@ -7710,11 +7716,13 @@ FunctionExpressionInvocation
     token: a
     staticElement: a@39
     staticType: void Function()*
+      alias: self::@typeAlias::F
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
   staticInvokeType: void Function()*
+    alias: self::@typeAlias::F
   staticType: void
 ''');
     }

@@ -1537,6 +1537,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       if (type != null) {
         var typeStr = _typeStr(type);
         _writelnWithIndent('$name: $typeStr');
+
+        var alias = type.alias;
+        if (alias != null) {
+          _withIndent(() {
+            _writeElement('alias', alias.element);
+            _writeTypeList('typeArguments', alias.typeArguments);
+          });
+        }
       } else {
         _writelnWithIndent('$name: null');
       }

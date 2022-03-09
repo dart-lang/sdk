@@ -15396,6 +15396,7 @@ library
                     staticElement: self::@typeAlias::F
                     staticType: null
                   type: int Function(String)
+                    alias: self::@typeAlias::F
               rightBracket: > @44
             leftBracket: [ @45
             rightBracket: ] @46
