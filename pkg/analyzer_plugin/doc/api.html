@@ -1507,6 +1507,13 @@ a:focus, a:hover {
       the user edit the variable name after the operation, all occurrences of
       the name could be edited simultaneously.
     </p>
+    <p>
+      Edit groups may have a length of 0 and function as tabstops where there
+      is no default text, for example, an edit that inserts an <tt>if</tt>
+      statement might provide an empty group between parens where a condition
+      should be typed. For this reason, it's also valid for a group to contain
+      only a single position that is not linked to others.
+    </p>
     
   <dl><dt class="field"><b>positions: List&lt;<a href="#type_Position">Position</a>&gt;</b></dt><dd>
         
