@@ -46,7 +46,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
     ...uriResolvers,
   ]);
 
-  var dataStore = SummaryDataStore.tmp();
+  var dataStore = SummaryDataStore();
   dataStore.addBundle('', sdkBundle);
 
   var logger = PerformanceLog(null);

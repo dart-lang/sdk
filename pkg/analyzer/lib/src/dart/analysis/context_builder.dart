@@ -72,7 +72,7 @@ class ContextBuilderImpl implements ContextBuilder {
 
     SummaryDataStore? summaryData;
     if (librarySummaryPaths != null) {
-      summaryData = SummaryDataStore.tmp();
+      summaryData = SummaryDataStore();
       for (var summaryPath in librarySummaryPaths) {
         var bytes = resourceProvider.getFile(summaryPath).readAsBytesSync();
         var bundle = PackageBundleReader(bytes);
