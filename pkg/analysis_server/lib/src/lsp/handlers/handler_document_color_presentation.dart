@@ -123,12 +123,20 @@ class DocumentColorPresentationHandler
         SourceRange(editStart.result, editEnd.result - editStart.result);
 
     final sessionHelper = AnalysisSessionHelper(unit.session);
+    final analysisContext = unit.session.analysisContext;
     final flutter = Flutter.instance;
     final colorType = await sessionHelper.getClass(flutter.widgetsUri, 'Color');
     if (colorType == null) {
       // If we can't find the class (perhaps because this isn't a Flutter
       // project) we will not include any results. In theory the client should
       // not be calling this request in that case.
+      return success([]);
+    }
+
+    // If this file is outside of analysis roots, we cannot build edits for it
+    // so return null to signal to the client that it should not try to modify
+    // the source.
+    if (!analysisContext.contextRoot.isAnalyzed(unit.path)) {
       return success([]);
     }
 
