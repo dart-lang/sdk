@@ -71,6 +71,8 @@ import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
 import '../base/nnbd_mode.dart';
 
+import '../kernel_generator_impl.dart' show precompileMacros;
+
 import 'builder/builder.dart' show Builder;
 
 import 'builder/class_builder.dart' show ClassBuilder;
@@ -109,6 +111,8 @@ import 'fasta_codes.dart';
 import 'import.dart' show Import;
 
 import 'incremental_serializer.dart' show IncrementalSerializer;
+
+import 'kernel/macro.dart' show enableMacros, NeededPrecompilations;
 
 import 'scope.dart' show Scope;
 
@@ -328,21 +332,29 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // For each computeDelta call we create a new kernel target which needs
       // to be setup, and in the case of experimental invalidation some of the
       // builders needs to be patched up.
-      IncrementalKernelTarget currentKernelTarget = _setupNewKernelTarget(
-          c,
-          uriTranslator,
-          hierarchy,
-          reusedLibraries,
-          experimentalInvalidation,
-          entryPoints!.first);
-      Map<LibraryBuilder, List<LibraryBuilder>>? rebuildBodiesMap =
-          _experimentalInvalidationCreateRebuildBodiesBuilders(
-              currentKernelTarget, experimentalInvalidation, uriTranslator);
-      entryPoints = currentKernelTarget.setEntryPoints(entryPoints!);
-      await currentKernelTarget.loader.buildOutlines();
-      _experimentalInvalidationPatchUpScopes(
-          experimentalInvalidation, rebuildBodiesMap);
-      rebuildBodiesMap = null;
+      IncrementalKernelTarget currentKernelTarget;
+      while (true) {
+        currentKernelTarget = _setupNewKernelTarget(c, uriTranslator, hierarchy,
+            reusedLibraries, experimentalInvalidation, entryPoints!.first);
+        Map<LibraryBuilder, List<LibraryBuilder>>? rebuildBodiesMap =
+            _experimentalInvalidationCreateRebuildBodiesBuilders(
+                currentKernelTarget, experimentalInvalidation, uriTranslator);
+        entryPoints = currentKernelTarget.setEntryPoints(entryPoints!);
+
+        // TODO(johnniwinther,jensj): Ensure that the internal state of the
+        // incremental compiler is consistent across 1 or more macro
+        // precompilations.
+        NeededPrecompilations? neededPrecompilations =
+            await currentKernelTarget.computeNeededPrecompilations();
+        if (enableMacros &&
+            await precompileMacros(neededPrecompilations, c.options)) {
+          continue;
+        }
+        _experimentalInvalidationPatchUpScopes(
+            experimentalInvalidation, rebuildBodiesMap);
+        rebuildBodiesMap = null;
+        break;
+      }
 
       // Checkpoint: Build the actual outline.
       // Note that the [Component] is not the "full" component.
