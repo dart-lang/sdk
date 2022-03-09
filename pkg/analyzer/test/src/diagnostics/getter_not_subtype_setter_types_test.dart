@@ -326,6 +326,17 @@ enum E {
     ]);
   }
 
+  test_enum_static_generatedGetter_thisSetter_index() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  static set values(int _) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 5, 1),
+    ]);
+  }
+
   test_extension_instance() async {
     await assertErrorsInCode('''
 extension E on Object {

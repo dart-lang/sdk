@@ -115,13 +115,11 @@ enum E {
   }
 
   test_setter_static() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 enum E {
   v;
   static set values(_) {}
 }
-''', [
-      error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 27, 6),
-    ]);
+''');
   }
 }
