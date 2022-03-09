@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
@@ -200,16 +199,15 @@ class ArgListContributor extends DartCompletionContributor {
   bool _isEditingNamedArgLabel() {
     if (argumentList != null) {
       var entity = request.target.entity;
-      if (entity is SimpleIdentifier &&
-          entity.isSynthetic &&
-          entity.token.next?.type == TokenType.COLON) {
-        return true;
-      }
       if (entity is NamedExpression) {
         var offset = request.offset;
-        if (entity.offset < offset && offset < entity.end) {
-          return true;
+        var nameId = entity.name.label;
+        // `^id: value` - add a new named argument.
+        // `^: value` - edit the name of this named argument.
+        if (offset == nameId.offset && !nameId.isSynthetic) {
+          return false;
         }
+        return nameId.offset <= offset && offset <= nameId.end;
       }
     }
     return false;

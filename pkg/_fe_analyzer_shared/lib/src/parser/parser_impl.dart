@@ -6710,7 +6710,7 @@ class Parser {
         break;
       }
       Token? colon = null;
-      if (optional(':', next.next!)) {
+      if (optional(':', next.next!) || /* recovery */ optional(':', next)) {
         token =
             ensureIdentifier(token, IdentifierContext.namedArgumentReference)
                 .next!;
