@@ -71,6 +71,8 @@ abstract class Timer {
   }
   static void run(void callback()) {}
 }
+
+void unawaited(Future<void>? future) {}
 ''',
   ),
   MockSdkLibraryUnit(

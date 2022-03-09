@@ -19884,6 +19884,7 @@ library
     StreamSubscription: dart:async;dart:async/stream.dart;StreamSubscription
     StreamTransformer: dart:async;dart:async/stream.dart;StreamTransformer
     Timer: dart:async;Timer
+    unawaited: dart:async;unawaited
 ''',
         withExportScope: true);
   }
