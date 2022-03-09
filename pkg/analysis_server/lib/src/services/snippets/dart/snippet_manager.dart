@@ -28,7 +28,13 @@ class DartSnippetManager {
       FlutterStatefulWidgetSnippetProducer.newInstance,
       FlutterStatefulWidgetWithAnimationControllerSnippetProducer.newInstance,
       FlutterStatelessWidgetSnippetProducer.newInstance,
-    ]
+    ],
+    SnippetContext.inBlock: [
+      DartIfElseSnippetProducer.newInstance,
+      DartIfSnippetProducer.newInstance,
+      DartSwitchSnippetProducer.newInstance,
+      DartTryCatchSnippetProducer.newInstance,
+    ],
   };
 
   Future<List<Snippet>> computeSnippets(

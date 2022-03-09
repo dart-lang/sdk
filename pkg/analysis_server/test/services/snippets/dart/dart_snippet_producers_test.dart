@@ -13,8 +13,172 @@ import 'test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(DartIfElseSnippetProducerTest);
+    defineReflectiveTests(DartIfSnippetProducerTest);
     defineReflectiveTests(DartMainFunctionSnippetProducerTest);
+    defineReflectiveTests(DartSwitchSnippetProducerTest);
+    defineReflectiveTests(DartTryCatchSnippetProducerTest);
   });
+}
+
+@reflectiveTest
+class DartIfElseSnippetProducerTest extends DartSnippetProducerTest {
+  @override
+  final generator = DartIfElseSnippetProducer.newInstance;
+
+  @override
+  String get label => DartIfElseSnippetProducer.label;
+
+  @override
+  String get prefix => DartIfElseSnippetProducer.prefix;
+
+  Future<void> test_ifElse() async {
+    var code = r'''
+void f() {
+  if^
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    snippet.change.edits
+        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    expect(code, '''
+void f() {
+  if () {
+    
+  } else {
+    
+  }
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 25);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 17},
+        ],
+        'length': 0,
+        'suggestions': []
+      }
+    ]);
+  }
+
+  Future<void> test_ifElse_indentedInsideBlock() async {
+    var code = r'''
+void f() {
+  if (true) {
+    if^
+  }
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    snippet.change.edits
+        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    expect(code, '''
+void f() {
+  if (true) {
+    if () {
+      
+    } else {
+      
+    }
+  }
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 43);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 33},
+        ],
+        'length': 0,
+        'suggestions': []
+      }
+    ]);
+  }
+}
+
+@reflectiveTest
+class DartIfSnippetProducerTest extends DartSnippetProducerTest {
+  @override
+  final generator = DartIfSnippetProducer.newInstance;
+
+  @override
+  String get label => DartIfSnippetProducer.label;
+
+  @override
+  String get prefix => DartIfSnippetProducer.prefix;
+
+  Future<void> test_if() async {
+    var code = r'''
+void f() {
+  if^
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    snippet.change.edits
+        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    expect(code, '''
+void f() {
+  if () {
+    
+  }
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 25);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 17},
+        ],
+        'length': 0,
+        'suggestions': []
+      }
+    ]);
+  }
+
+  Future<void> test_if_indentedInsideBlock() async {
+    var code = r'''
+void f() {
+  if (true) {
+    if^
+  }
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    snippet.change.edits
+        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    expect(code, '''
+void f() {
+  if (true) {
+    if () {
+      
+    }
+  }
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 43);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 33},
+        ],
+        'length': 0,
+        'suggestions': []
+      }
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -114,5 +278,189 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
     final producer = generator(request);
     expect(await producer.isValid(), isTrue);
     return producer.compute();
+  }
+}
+
+@reflectiveTest
+class DartSwitchSnippetProducerTest extends DartSnippetProducerTest {
+  @override
+  final generator = DartSwitchSnippetProducer.newInstance;
+
+  @override
+  String get label => DartSwitchSnippetProducer.label;
+
+  @override
+  String get prefix => DartSwitchSnippetProducer.prefix;
+
+  Future<void> test_switch() async {
+    var code = r'''
+void f() {
+  sw^
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    snippet.change.edits
+        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    expect(code, '''
+void f() {
+  switch () {
+    case :
+      
+      break;
+    default:
+  }
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 42);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      // expression
+      {
+        'positions': [
+          {'file': testFile, 'offset': 21},
+        ],
+        'length': 0,
+        'suggestions': []
+      },
+      // value
+      {
+        'positions': [
+          {'file': testFile, 'offset': 34},
+        ],
+        'length': 0,
+        'suggestions': []
+      },
+    ]);
+  }
+
+  Future<void> test_switch_indentedInsideBlock() async {
+    var code = r'''
+void f() {
+  if (true) {
+    sw^
+  }
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    snippet.change.edits
+        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    expect(code, '''
+void f() {
+  if (true) {
+    switch () {
+      case :
+        
+        break;
+      default:
+    }
+  }
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 62);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      // expression
+      {
+        'positions': [
+          {'file': testFile, 'offset': 37},
+        ],
+        'length': 0,
+        'suggestions': []
+      },
+      // value
+      {
+        'positions': [
+          {'file': testFile, 'offset': 52},
+        ],
+        'length': 0,
+        'suggestions': []
+      },
+    ]);
+  }
+}
+
+@reflectiveTest
+class DartTryCatchSnippetProducerTest extends DartSnippetProducerTest {
+  @override
+  final generator = DartTryCatchSnippetProducer.newInstance;
+
+  @override
+  String get label => DartTryCatchSnippetProducer.label;
+
+  @override
+  String get prefix => DartTryCatchSnippetProducer.prefix;
+
+  Future<void> test_tryCatch() async {
+    var code = r'''
+void f() {
+  tr^
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    snippet.change.edits
+        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    expect(code, '''
+void f() {
+  try {
+    
+  } catch (e) {
+    
+  }
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 23);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 35},
+        ],
+        'length': 1,
+        'suggestions': []
+      }
+    ]);
+  }
+
+  Future<void> test_tryCatch_indentedInsideBlock() async {
+    var code = r'''
+void f() {
+  if (true) {
+    tr^
+  }
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    snippet.change.edits
+        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    expect(code, '''
+void f() {
+  if (true) {
+    try {
+      
+    } catch (e) {
+      
+    }
+  }
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 41);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 55},
+        ],
+        'length': 1,
+        'suggestions': []
+      }
+    ]);
   }
 }

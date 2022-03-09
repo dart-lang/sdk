@@ -53,7 +53,7 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
   late ClassElement? classBuildContext;
   late ClassElement? classKey;
 
-  FlutterStatefulWidgetSnippetProducer(DartSnippetRequest request)
+  FlutterStatefulWidgetSnippetProducer._(DartSnippetRequest request)
       : super(request);
 
   @override
@@ -172,7 +172,7 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
 
   static FlutterStatefulWidgetSnippetProducer newInstance(
           DartSnippetRequest request) =>
-      FlutterStatefulWidgetSnippetProducer(request);
+      FlutterStatefulWidgetSnippetProducer._(request);
 }
 
 /// Produces a [Snippet] that creates a Flutter StatefulWidget with a
@@ -189,7 +189,7 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
   late ClassElement? classAnimationController;
   late ClassElement? classSingleTickerProviderStateMixin;
 
-  FlutterStatefulWidgetWithAnimationControllerSnippetProducer(
+  FlutterStatefulWidgetWithAnimationControllerSnippetProducer._(
       DartSnippetRequest request)
       : super(request);
 
@@ -358,7 +358,8 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
 
   static FlutterStatefulWidgetWithAnimationControllerSnippetProducer
       newInstance(DartSnippetRequest request) =>
-          FlutterStatefulWidgetWithAnimationControllerSnippetProducer(request);
+          FlutterStatefulWidgetWithAnimationControllerSnippetProducer._(
+              request);
 }
 
 /// Produces a [Snippet] that creates a Flutter StatelessWidget.
@@ -370,7 +371,7 @@ class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer {
   late ClassElement? classBuildContext;
   late ClassElement? classKey;
 
-  FlutterStatelessWidgetSnippetProducer(DartSnippetRequest request)
+  FlutterStatelessWidgetSnippetProducer._(DartSnippetRequest request)
       : super(request);
 
   @override
@@ -465,5 +466,5 @@ class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer {
 
   static FlutterStatelessWidgetSnippetProducer newInstance(
           DartSnippetRequest request) =>
-      FlutterStatelessWidgetSnippetProducer(request);
+      FlutterStatelessWidgetSnippetProducer._(request);
 }

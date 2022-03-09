@@ -2409,6 +2409,54 @@ class B {}
     );
   }
 
+  Future<void> test_snippets_if() async {
+    final content = '''
+void f() {
+  if^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartIfSnippetProducer.prefix,
+      label: DartIfSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  if ($1) {
+    $0
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_ifElse() async {
+    final content = '''
+void f() {
+  if^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartIfElseSnippetProducer.prefix,
+      label: DartIfElseSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  if ($1) {
+    $0
+  } else {
+    
+  }
+}
+''');
+  }
+
   Future<void> test_snippets_mainFunction() async {
     final content = '''
 class A {}
@@ -2445,6 +2493,57 @@ class B {}
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.kind == CompletionItemKind.Snippet), isFalse);
+  }
+
+  Future<void> test_snippets_switch() async {
+    final content = '''
+void f() {
+  swi^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartSwitchSnippetProducer.prefix,
+      label: DartSwitchSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  switch ($1) {
+    case $2:
+      $0
+      break;
+    default:
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_tryCatch() async {
+    final content = '''
+void f() {
+  tr^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartTryCatchSnippetProducer.prefix,
+      label: DartTryCatchSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  try {
+    $0
+  } catch (${1:e}) {
+    
+  }
+}
+''');
   }
 }
 
