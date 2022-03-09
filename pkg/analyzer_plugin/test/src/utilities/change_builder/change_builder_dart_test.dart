@@ -324,7 +324,7 @@ class C {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.write('if (');
