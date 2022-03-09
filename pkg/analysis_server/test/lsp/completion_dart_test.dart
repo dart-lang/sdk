@@ -2392,6 +2392,29 @@ class DartSnippetCompletionTest extends SnippetCompletionTest {
     );
   }
 
+  Future<void> test_snippets_doWhile() async {
+    final content = '''
+void f() {
+  do^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartDoWhileLoopSnippetProducer.prefix,
+      label: DartDoWhileLoopSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  do {
+    $0
+  } while ($1);
+}
+''');
+  }
+
   Future<void>
       test_snippets_flutterStateless_notAvailable_notFlutterProject() async {
     final content = '''
@@ -2407,6 +2430,52 @@ class B {}
       content,
       FlutterStatelessWidgetSnippetProducer.prefix,
     );
+  }
+
+  Future<void> test_snippets_for() async {
+    final content = '''
+void f() {
+  for^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartForLoopSnippetProducer.prefix,
+      label: DartForLoopSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  for (var i = 0; i < $1; i++) {
+    $0
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_forIn() async {
+    final content = '''
+void f() {
+  forin^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartForInLoopSnippetProducer.prefix,
+      label: DartForInLoopSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  for (var $1 in $2) {
+    $0
+  }
+}
+''');
   }
 
   Future<void> test_snippets_if() async {
@@ -2541,6 +2610,29 @@ void f() {
     $0
   } catch (${1:e}) {
     
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_while() async {
+    final content = '''
+void f() {
+  while^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartWhileLoopSnippetProducer.prefix,
+      label: DartWhileLoopSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  while ($1) {
+    $0
   }
 }
 ''');

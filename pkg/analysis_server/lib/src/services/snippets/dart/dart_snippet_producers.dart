@@ -3,11 +3,128 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/lint/linter.dart' show LinterContextImpl;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+
+/// Produces a [Snippet] that creates a `do while` loop.
+class DartDoWhileLoopSnippetProducer extends DartSnippetProducer {
+  static const prefix = 'do';
+  static const label = 'do while';
+
+  DartDoWhileLoopSnippetProducer._(DartSnippetRequest request) : super(request);
+
+  @override
+  Future<Snippet> compute() async {
+    final builder = ChangeBuilder(session: request.analysisSession);
+    final indent = utils.getLinePrefix(request.offset);
+
+    await builder.addDartFileEdit(request.filePath, (builder) {
+      builder.addReplacement(request.replacementRange, (builder) {
+        void writeIndented(String string) => builder.write('$indent$string');
+        builder.writeln('do {');
+        writeIndented('  ');
+        builder.selectHere();
+        builder.writeln();
+        writeIndented('} while (');
+        builder.addEmptyLinkedEdit('expression');
+        builder.write(');');
+      });
+    });
+
+    return Snippet(
+      prefix,
+      label,
+      'Insert a do-while loop.',
+      builder.sourceChange,
+    );
+  }
+
+  static DartDoWhileLoopSnippetProducer newInstance(
+          DartSnippetRequest request) =>
+      DartDoWhileLoopSnippetProducer._(request);
+}
+
+/// Produces a [Snippet] that creates a `for in` loop.
+class DartForInLoopSnippetProducer extends DartSnippetProducer {
+  static const prefix = 'forin';
+  static const label = 'for in';
+
+  DartForInLoopSnippetProducer._(DartSnippetRequest request) : super(request);
+
+  @override
+  Future<Snippet> compute() async {
+    final builder = ChangeBuilder(session: request.analysisSession);
+    final indent = utils.getLinePrefix(request.offset);
+    final varOrFinal =
+        isLintEnabled(LintNames.prefer_final_locals) ? 'final' : 'var';
+
+    await builder.addDartFileEdit(request.filePath, (builder) {
+      builder.addReplacement(request.replacementRange, (builder) {
+        void writeIndented(String string) => builder.write('$indent$string');
+        builder.write('for ($varOrFinal ');
+        builder.addEmptyLinkedEdit('variableName');
+        builder.write(' in ');
+        builder.addEmptyLinkedEdit('collectionName');
+        builder.writeln(') {');
+        writeIndented('  ');
+        builder.selectHere();
+        builder.writeln();
+        writeIndented('}');
+      });
+    });
+
+    return Snippet(
+      prefix,
+      label,
+      'Insert a for-in loop.',
+      builder.sourceChange,
+    );
+  }
+
+  static DartForInLoopSnippetProducer newInstance(DartSnippetRequest request) =>
+      DartForInLoopSnippetProducer._(request);
+}
+
+/// Produces a [Snippet] that creates a `for` loop.
+class DartForLoopSnippetProducer extends DartSnippetProducer {
+  static const prefix = 'for';
+  static const label = 'for';
+
+  DartForLoopSnippetProducer._(DartSnippetRequest request) : super(request);
+
+  @override
+  Future<Snippet> compute() async {
+    final builder = ChangeBuilder(session: request.analysisSession);
+    final indent = utils.getLinePrefix(request.offset);
+
+    await builder.addDartFileEdit(request.filePath, (builder) {
+      builder.addReplacement(request.replacementRange, (builder) {
+        void writeIndented(String string) => builder.write('$indent$string');
+        builder.write('for (var i = 0; i < ');
+        builder.addEmptyLinkedEdit('count');
+        builder.writeln('; i++) {');
+        writeIndented('  ');
+        builder.selectHere();
+        builder.writeln();
+        writeIndented('}');
+      });
+    });
+
+    return Snippet(
+      prefix,
+      label,
+      'Insert a for loop.',
+      builder.sourceChange,
+    );
+  }
+
+  static DartForLoopSnippetProducer newInstance(DartSnippetRequest request) =>
+      DartForLoopSnippetProducer._(request);
+}
 
 /// Produces a [Snippet] that creates an if/else statement.
 class DartIfElseSnippetProducer extends DartSnippetProducer {
@@ -155,6 +272,11 @@ abstract class DartSnippetProducer extends SnippetProducer {
       : sessionHelper = AnalysisSessionHelper(request.analysisSession),
         utils = CorrectionUtils(request.unit),
         super(request);
+
+  bool isLintEnabled(String name) {
+    var analysisOptions = sessionHelper.session.analysisContext.analysisOptions;
+    return analysisOptions.isLintEnabled(name);
+  }
 }
 
 /// Produces a [Snippet] that creates an if statement.
@@ -242,4 +364,41 @@ class DartTryCatchSnippetProducer extends DartSnippetProducer {
 
   static DartTryCatchSnippetProducer newInstance(DartSnippetRequest request) =>
       DartTryCatchSnippetProducer._(request);
+}
+
+/// Produces a [Snippet] that creates a `while` loop.
+class DartWhileLoopSnippetProducer extends DartSnippetProducer {
+  static const prefix = 'while';
+  static const label = 'while';
+
+  DartWhileLoopSnippetProducer._(DartSnippetRequest request) : super(request);
+
+  @override
+  Future<Snippet> compute() async {
+    final builder = ChangeBuilder(session: request.analysisSession);
+    final indent = utils.getLinePrefix(request.offset);
+
+    await builder.addDartFileEdit(request.filePath, (builder) {
+      builder.addReplacement(request.replacementRange, (builder) {
+        void writeIndented(String string) => builder.write('$indent$string');
+        builder.write('while (');
+        builder.addEmptyLinkedEdit('expression');
+        builder.writeln(') {');
+        writeIndented('  ');
+        builder.selectHere();
+        builder.writeln();
+        writeIndented('}');
+      });
+    });
+
+    return Snippet(
+      prefix,
+      label,
+      'Insert a while loop.',
+      builder.sourceChange,
+    );
+  }
+
+  static DartWhileLoopSnippetProducer newInstance(DartSnippetRequest request) =>
+      DartWhileLoopSnippetProducer._(request);
 }

@@ -30,10 +30,14 @@ class DartSnippetManager {
       FlutterStatelessWidgetSnippetProducer.newInstance,
     ],
     SnippetContext.inBlock: [
+      DartDoWhileLoopSnippetProducer.newInstance,
+      DartForInLoopSnippetProducer.newInstance,
+      DartForLoopSnippetProducer.newInstance,
       DartIfElseSnippetProducer.newInstance,
       DartIfSnippetProducer.newInstance,
       DartSwitchSnippetProducer.newInstance,
       DartTryCatchSnippetProducer.newInstance,
+      DartWhileLoopSnippetProducer.newInstance,
     ],
   };
 
