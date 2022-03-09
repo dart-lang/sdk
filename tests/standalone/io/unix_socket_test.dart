@@ -641,7 +641,7 @@ Future testFileMessageWithShortRead(String tempDirPath) async {
 }
 
 Future<RawServerSocket> createTestServer() async {
-  final server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  final server = await RawServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   return server
     ..listen((client) {
       String receivedData = "";
@@ -649,16 +649,16 @@ Future<RawServerSocket> createTestServer() async {
       client.writeEventsEnabled = false;
       client.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             assert(client.available() > 0);
             final buffer = client.read(200)!;
             receivedData += String.fromCharCodes(buffer);
             break;
-          case RawSocketEvent.READ_CLOSED:
+          case RawSocketEvent.readClosed:
             client.close();
             server.close();
             break;
-          case RawSocketEvent.CLOSED:
+          case RawSocketEvent.closed:
             Expect.equals(
                 "Hello, client 1!\nHello, client 2!\nHello, server!\n",
                 receivedData);

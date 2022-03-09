@@ -81,7 +81,7 @@ void startServer() {
 
   // Use port 0 to get an ephemeral port.
   int port = 0;
-  HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then((server) {
+  HttpServer.bind(InternetAddress.loopbackIPv4, port).then((server) {
     port = server.port;
     print("Source mapping server is running on "
         "'http://${server.address.address}:$port/'");
