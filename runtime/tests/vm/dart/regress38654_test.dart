@@ -60,7 +60,7 @@ String foo0() {
                 ((var3
                         ? Float32x4.wyyy
                         : var7[
-                            (false ? var4 : ZLibOption.DEFAULT_WINDOW_BITS)]) <<
+                            (false ? var4 : ZLibOption.defaultWindowBits)]) <<
                     var7[var7[-32769]]),
                 (var3 ? 8 : var7[-9223372036854775680]),
                 (Int32x4.xxww ^ Int32x4.zzyy)
@@ -183,7 +183,7 @@ Set<int> foo1(int par1, bool par2) {
                                 (~(((!(true))
                                     ? (false
                                         ? (++var2)
-                                        : var7[ZLibOption.STRATEGY_FILTERED])
+                                        : var7[ZLibOption.strategyFiltered])
                                     : Float32x4.xxyz))),
                                 (var3
                                     ? (true
