@@ -1,0 +1,19 @@
+enum E {
+x;
+
+String hello() {
+print("hello");
+return "hello";
+}
+}
+
+
+enum[KeywordToken] E[StringToken] {[BeginToken]
+x[StringToken];[SimpleToken]
+
+String[StringToken] hello[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken];[SimpleToken]
+return[KeywordToken] "hello"[StringToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

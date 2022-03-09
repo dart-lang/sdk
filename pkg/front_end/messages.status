@@ -223,8 +223,6 @@ EnumDeclaresConstFactory/analyzerCode: Fail
 EnumDeclaresConstFactory/example: Fail
 EnumDeclaresFactory/analyzerCode: Fail
 EnumDeclaresFactory/example: Fail
-EnumEntryWithTypeArgumentsWithoutArguments/analyzerCode: Fail
-EnumEntryWithTypeArgumentsWithoutArguments/example: Fail
 EnumFactoryRedirectsToConstructor/analyzerCode: Fail
 EnumFactoryRedirectsToConstructor/example: Fail
 EnumImplementerContainsValuesDeclaration/analyzerCode: Fail
