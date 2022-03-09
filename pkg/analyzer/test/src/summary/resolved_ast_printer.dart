@@ -1333,9 +1333,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     return '{$entriesStr}';
   }
 
-  /// TODO(scheglov) Make [type] non-nullable?
-  String? _typeStr(DartType? type) {
-    return type?.getDisplayString(withNullability: true);
+  String? _typeStr(DartType type) {
+    return type.getDisplayString(withNullability: true);
   }
 
   void _withIndent(void Function() f) {
@@ -1535,8 +1534,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   void _writeType(String name, DartType? type) {
     if (_withResolution) {
-      var typeStr = _typeStr(type);
-      _writelnWithIndent('$name: $typeStr');
+      if (type != null) {
+        var typeStr = _typeStr(type);
+        _writelnWithIndent('$name: $typeStr');
+      } else {
+        _writelnWithIndent('$name: null');
+      }
     }
   }
 
