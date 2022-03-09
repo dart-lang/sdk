@@ -5096,18 +5096,6 @@ JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
-JsInteropIndexNotSupported:
-  problemMessage: "JS interop classes do not support [] and []= operator methods."
-  correctionMessage: "Try replacing with a normal method."
-
-JsInteropStaticInteropWithInstanceMembers:
-  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
-  correctionMessage: "Try moving the instance member to a static extension."
-
-JsInteropStaticInteropWithNonStaticSupertype:
-  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static."
-  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
-
 JsInteropJSClassExtendsDartClass:
   problemMessage: "JS interop class '#name' cannot extend Dart class '#name2'."
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
@@ -5127,6 +5115,18 @@ JsInteropNonExternalConstructor:
 JsInteropNonExternalMember:
   problemMessage: "This JS interop member must be annotated with `external`. Only factories and static methods can be non-external."
   correctionMessage: "Try annotating the member with `external`."
+
+JsInteropOperatorsNotSupported:
+  problemMessage: "JS interop classes do not support operator methods."
+  correctionMessage: "Try replacing this with a normal method."
+
+JsInteropStaticInteropWithInstanceMembers:
+  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
+  correctionMessage: "Try moving the instance member to a static extension."
+
+JsInteropStaticInteropWithNonStaticSupertype:
+  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static."
+  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
 
 DefaultListConstructorError:
   problemMessage: "Can't use the default List constructor."
