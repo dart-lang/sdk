@@ -208,9 +208,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
           var parentPath =
               _computeParentWithExamplesAPI(node, resourceProvider);
           if (parentPath != null) {
+            var start = token.offset + startIndex;
+            var end = token.offset + endIndex;
             computer.collector.addRegion(
-                token.offset + startIndex,
-                token.offset + endIndex,
+                start,
+                end - start,
                 protocol.ElementKind.LIBRARY,
                 protocol.Location(
                     resourceProvider.pathContext.join(parentPath, pathSnippet),
