@@ -1,4 +1,3 @@
-// @dart = 2.9
 class C {
   get getterOnly => null;
   get setterOnly => null;

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -43,7 +43,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field dynamic superField = null;
-  synthetic constructor •() → self::C*
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   method superMethod() → dynamic {}
@@ -53,20 +53,10 @@ class C extends core::Object {
   get getterOnly() → dynamic
     return null;
   set getterOnly(dynamic _) → void {}
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class D extends self::C {
   field dynamic field = null;
-  synthetic constructor •() → self::D*
+  synthetic constructor •() → self::D
     : super self::C::•()
     ;
   set setterOnly(dynamic _) → void {}
@@ -78,8 +68,8 @@ class D extends self::C {
     this.{self::C::superField}{dynamic};
     this.{self::D::field} = 0;
     this.{self::C::superField} = 0;
-    this.{self::D::method}(){() →* dynamic};
-    this.{self::C::superMethod}(){() →* dynamic};
+    this.{self::D::method}(){() → dynamic};
+    this.{self::C::superMethod}(){() → dynamic};
     this.{self::C::setterOnly}{dynamic};
     this.{self::D::setterOnly} = 0;
     this.{self::D::getterOnly}{dynamic};
@@ -88,8 +78,8 @@ class D extends self::C {
     this.{self::C::superField}{dynamic};
     this.{self::D::field} = 0;
     this.{self::C::superField} = 0;
-    this.{self::D::method}(){() →* dynamic};
-    this.{self::C::superMethod}(){() →* dynamic};
+    this.{self::D::method}(){() → dynamic};
+    this.{self::C::superMethod}(){() → dynamic};
     this.{self::C::setterOnly}{dynamic};
     this.{self::D::setterOnly} = 0;
     this.{self::D::getterOnly}{dynamic};
@@ -128,7 +118,7 @@ Try correcting the name to the name of an existing method, or defining a method 
 }
 class E extends self::D {
   field dynamic missingField = null;
-  synthetic constructor •() → self::E*
+  synthetic constructor •() → self::E
     : super self::D::•()
     ;
   method missingMethod() → void {}

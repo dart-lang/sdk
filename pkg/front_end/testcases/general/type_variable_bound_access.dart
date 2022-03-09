@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class DynamicClass<T extends dynamic, S extends T> {
   T field1;
   T field2;
@@ -30,6 +30,9 @@ class Class<X5 extends X4, X4 extends X3, X3 extends X2, X2 extends X1,
   X3 field3;
   X4 field4;
   X5 field5;
+
+  Class(this.field0, this.field1, this.field2, this.field3, this.field4,
+      this.field5);
 
   method() {
     field0.isEven;

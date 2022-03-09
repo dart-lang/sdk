@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A<T> {}
 
 class B extends A<String> {}
@@ -15,11 +14,11 @@ class D<P, Q> extends C<int, Q, P> {
   Map<P, Q> foo4(w) {}
 }
 
-List<Iterable> globalVar;
+late List<Iterable> globalVar;
 void foo5(x) {}
 
 class E<P extends String> {
-  factory E() => null;
+  factory E() => throw '';
   void foo6<T extends P, U extends List<T>>(Map<T, U> map) {}
 }
 

@@ -2,30 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 class Uninitialized {
-  int x;
+  int? x;
 }
 
 class PartiallyInitialized {
-  int x;
+  int? x;
   PartiallyInitialized(this.x);
   PartiallyInitialized.noInitializer();
 }
 
 class Initialized {
-  int x;
+  int? x;
   Initialized(this.x);
 }
 
 class Forwarding {
-  int x;
+  int? x;
   Forwarding.initialize(this.x);
-  Forwarding(int arg) : this.initialize(arg);
+  Forwarding(int? arg) : this.initialize(arg);
 }
 
-int uninitializedTopLevel;
-int initializedTopLevel = 4;
+int? uninitializedTopLevel;
+int? initializedTopLevel = 4;
 
 main() {}
