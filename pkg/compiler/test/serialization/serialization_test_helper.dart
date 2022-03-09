@@ -105,7 +105,7 @@ runTest(
       options: commonOptions,
       outputProvider: collector,
       beforeRun: (Compiler compiler) {
-        compiler.kernelLoader.forceSerialization = true;
+        compiler.forceSerializationForTesting = true;
       });
   Expect.isTrue(result.isSuccess);
   Map<OutputType, Map<String, String>> expectedOutput = collector.clear();
@@ -119,7 +119,7 @@ runTest(
       options: commonOptions,
       outputProvider: collector2,
       beforeRun: (Compiler compiler) {
-        compiler.kernelLoader.forceSerialization = true;
+        compiler.forceSerializationForTesting = true;
         compiler.stopAfterClosedWorld = true;
       });
   Expect.isTrue(result2.isSuccess);
@@ -136,7 +136,7 @@ runTest(
           ['--out=$dillUri', '${Flags.writeClosedWorld}=$closedWorldUri'],
       outputProvider: collector3a,
       beforeRun: (Compiler compiler) {
-        compiler.kernelLoader.forceSerialization = true;
+        compiler.forceSerializationForTesting = true;
       });
   Expect.isTrue(result3a.isSuccess);
   Expect.isTrue(collector3a.binaryOutputMap.containsKey(dillUri));
@@ -164,7 +164,7 @@ runTest(
           ],
       outputProvider: collector3b,
       beforeRun: (Compiler compiler) {
-        compiler.kernelLoader.forceSerialization = true;
+        compiler.forceSerializationForTesting = true;
         compiler.stopAfterTypeInference = true;
       });
   Expect.isTrue(result3b.isSuccess);

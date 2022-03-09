@@ -7,6 +7,7 @@ library dart2js.compiler_base;
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 
 import '../compiler.dart' as api;
@@ -46,9 +47,9 @@ import 'js_model/locals.dart';
 import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
 import 'kernel/kernel_world.dart';
-import 'kernel/loader.dart' show KernelLoaderTask, KernelResult;
 import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions;
+import 'phase/load_kernel.dart' as load_kernel;
 import 'serialization/task.dart';
 import 'serialization/serialization.dart';
 import 'serialization/strategies.dart';
@@ -105,7 +106,9 @@ class Compiler {
   Entity get currentElement => _reporter.currentElement;
 
   List<CompilerTask> tasks;
-  KernelLoaderTask kernelLoader;
+  GenericTask loadKernelTask;
+  fe.InitializedCompilerState initializedCompilerState;
+  bool forceSerializationForTesting = false;
   GlobalTypeInferenceTask globalInference;
   CodegenWorldBuilder _codegenWorldBuilder;
 
@@ -179,7 +182,7 @@ class Compiler {
       // [enqueueTask] is created earlier because it contains the resolution
       // world objects needed by other tasks.
       enqueueTask = GenericTask('Enqueue', measurer),
-      kernelLoader = KernelLoaderTask(options, provider, reporter, measurer),
+      loadKernelTask = GenericTask('kernel loader', measurer),
       kernelFrontEndTask,
       globalInference = GlobalTypeInferenceTask(this),
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
@@ -191,6 +194,8 @@ class Compiler {
       userHandlerTask = GenericTask('Diagnostic handler', measurer),
       userProviderTask = GenericTask('Input provider', measurer)
     ];
+
+    initializedCompilerState = options.kernelInitializedCompilerState;
   }
 
   /// Creates the backend strategy.
@@ -259,15 +264,15 @@ class Compiler {
   /// Dumps a list of unused [ir.Library]'s in the [KernelResult]. This *must*
   /// be called before [setMainAndTrimComponent], because that method will
   /// discard the unused [ir.Library]s.
-  void dumpUnusedLibraries(KernelResult result) {
-    var usedUris = result.libraries.toSet();
+  void dumpUnusedLibraries(ir.Component component, List<Uri> libraries) {
+    var usedUris = libraries.toSet();
     bool isUnused(ir.Library l) => !usedUris.contains(l.importUri);
     String libraryString(ir.Library library) {
       return '${library.importUri}(${library.fileUri})';
     }
 
     var unusedLibraries =
-        result.component.libraries.where(isUnused).map(libraryString).toList();
+        component.libraries.where(isUnused).map(libraryString).toList();
     unusedLibraries.sort();
     var jsonLibraries = jsonEncode(unusedLibraries);
     outputProvider.createOutputSink(options.outputUri.pathSegments.last,
@@ -277,8 +282,29 @@ class Compiler {
     reporter.reportInfo(
         reporter.createMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
       'text': "${unusedLibraries.length} unused libraries out of "
-          "${result.component.libraries.length}. Dumping to JSON."
+          "${component.libraries.length}. Dumping to JSON."
     }));
+  }
+
+  /// Trims a component down to only the provided library uris.
+  ir.Component trimComponent(
+      ir.Component component, List<Uri> librariesToInclude) {
+    var irLibraryMap = <Uri, ir.Library>{};
+    var irLibraries = <ir.Library>[];
+    for (var library in component.libraries) {
+      irLibraryMap[library.importUri] = library;
+    }
+    for (var library in librariesToInclude) {
+      irLibraries.add(irLibraryMap[library]);
+    }
+    var mainMethod = component.mainMethodName;
+    var componentMode = component.mode;
+    final trimmedComponent = ir.Component(
+        libraries: irLibraries,
+        uriToSource: component.uriToSource,
+        nameRoot: component.root);
+    trimmedComponent.setMainMethodAndMode(mainMethod, true, componentMode);
+    return trimmedComponent;
   }
 
   Future runInternal() async {
@@ -331,25 +357,26 @@ class Compiler {
       await generateJavaScriptCode(globalTypeInferenceResults,
           indices: closedWorldAndIndices.indices);
     } else {
-      KernelResult result = await kernelLoader.load();
+      final input = load_kernel.Input(options, provider, reporter,
+          initializedCompilerState, forceSerializationForTesting);
+      load_kernel.Output output =
+          await loadKernelTask.measure(() async => load_kernel.run(input));
+      if (output == null || compilationFailed) return;
       reporter.log("Kernel load complete");
-      if (result == null) return;
-      if (compilationFailed) {
-        return;
-      }
       if (retainDataForTesting) {
-        componentForTesting = result.component;
+        componentForTesting = output.component;
       }
 
-      frontendStrategy.registerLoadedLibraries(result);
+      ir.Component component = output.component;
+      List<Uri> libraries = output.libraries;
+      frontendStrategy.registerLoadedLibraries(component, libraries);
 
       if (options.modularMode) {
-        await runModularAnalysis(result);
+        await runModularAnalysis(component, output.moduleLibraries);
       } else {
         List<ModuleData> data;
         if (options.hasModularAnalysisInputs) {
-          data =
-              await serializationTask.deserializeModuleData(result.component);
+          data = await serializationTask.deserializeModuleData(component);
         }
         frontendStrategy.registerModuleData(data);
 
@@ -360,16 +387,16 @@ class Compiler {
         // 'trimmed' elements.
         if (options.fromDill) {
           if (options.dumpUnusedLibraries) {
-            dumpUnusedLibraries(result);
+            dumpUnusedLibraries(component, libraries);
           }
           if (options.entryUri != null) {
-            result.trimComponent();
+            component = trimComponent(component, libraries);
           }
         }
         if (options.cfeOnly) {
-          await serializationTask.serializeComponent(result.component);
+          await serializationTask.serializeComponent(component);
         } else {
-          await compileFromKernel(result.rootLibraryUri, result.libraries);
+          await compileFromKernel(output.rootLibraryUri, libraries);
         }
       }
     }
@@ -471,18 +498,18 @@ class Compiler {
     return closedWorld;
   }
 
-  void runModularAnalysis(KernelResult result) {
+  void runModularAnalysis(
+      ir.Component component, Iterable<Uri> moduleLibraries) {
     _userCodeLocations
-        .addAll(result.moduleLibraries.map((module) => CodeLocation(module)));
+        .addAll(moduleLibraries.map((module) => CodeLocation(module)));
     selfTask.measureSubtask('runModularAnalysis', () {
-      var included = result.moduleLibraries.toSet();
+      var included = moduleLibraries.toSet();
       var elementMap = frontendStrategy.elementMap;
-      var moduleData = computeModuleData(result.component, included, options,
-          reporter, environment, elementMap);
+      var moduleData = computeModuleData(
+          component, included, options, reporter, environment, elementMap);
       if (compilationFailed) return;
-      serializationTask.testModuleSerialization(moduleData, result.component);
-      serializationTask.serializeModuleData(
-          moduleData, result.component, included);
+      serializationTask.testModuleSerialization(moduleData, component);
+      serializationTask.serializeModuleData(moduleData, component, included);
     });
   }
 

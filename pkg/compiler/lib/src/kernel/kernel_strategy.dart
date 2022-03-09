@@ -44,7 +44,7 @@ import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../util/enumset.dart';
 import 'element_map.dart';
-import 'loader.dart';
+import 'element_map_impl.dart';
 import 'native_basic_data.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
@@ -229,13 +229,13 @@ class KernelFrontendStrategy {
   }
 
   /// Registers a set of loaded libraries with this strategy.
-  void registerLoadedLibraries(KernelResult kernelResult) {
-    _elementMap.addComponent(kernelResult.component);
+  void registerLoadedLibraries(ir.Component component, List<Uri> libraries) {
+    _elementMap.addComponent(component);
     _irAnnotationData = processAnnotations(
-        ModularCore(kernelResult.component, _elementMap.constantEvaluator));
+        ModularCore(component, _elementMap.constantEvaluator));
     _annotationProcessor = KernelAnnotationProcessor(
         elementMap, nativeBasicDataBuilder, _irAnnotationData);
-    for (Uri uri in kernelResult.libraries) {
+    for (Uri uri in libraries) {
       LibraryEntity library = elementEnvironment.lookupLibrary(uri);
       if (maybeEnableNative(library.canonicalUri)) {
         _annotationProcessor.extractNativeAnnotations(library);
