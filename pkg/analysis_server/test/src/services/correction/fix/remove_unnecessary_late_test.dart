@@ -71,7 +71,7 @@ late String s1 = '', s2 = '';
       '''
 String s1 = '', s2 = '';
 ''',
-      errorFilter: (error) => error.toString().contains('test.dart(21..27)'),
+      errorFilter: (error) => error.toString().contains('test.dart(21..22)'),
     );
   }
 
@@ -83,7 +83,7 @@ late String s1 = '', s2 = '';
       '''
 String s1 = '', s2 = '';
 ''',
-      errorFilter: (error) => error.toString().contains('test.dart(12..18)'),
+      errorFilter: (error) => error.toString().contains('test.dart(12..13)'),
     );
   }
 

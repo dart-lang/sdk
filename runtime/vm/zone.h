@@ -90,6 +90,7 @@ class Zone {
   static void Init();
   static void Cleanup();
 
+  static void ClearCache();
   static intptr_t Size() { return total_size_; }
 
  private:

@@ -678,7 +678,7 @@ void SemiSpace::Init() {
   page_cache_mutex = new Mutex(NOT_IN_PRODUCT("page_cache_mutex"));
 }
 
-void SemiSpace::DrainCache() {
+void SemiSpace::ClearCache() {
   MutexLocker ml(page_cache_mutex);
   ASSERT(page_cache_size >= 0);
   ASSERT(page_cache_size <= kPageCacheCapacity);
@@ -688,7 +688,7 @@ void SemiSpace::DrainCache() {
 }
 
 void SemiSpace::Cleanup() {
-  DrainCache();
+  ClearCache();
   delete page_cache_mutex;
   page_cache_mutex = nullptr;
 }

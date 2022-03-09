@@ -1012,7 +1012,7 @@ void IsolateGroup::ValidateConstants() {
   // Verify that all canonical instances are correctly setup in the
   // corresponding canonical tables.
   NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
-  heap()->CollectAllGarbage();
+  heap()->CollectAllGarbage(GCReason::kDebugging);
   Thread* thread = Thread::Current();
   SafepointMutexLocker ml(
       thread->isolate_group()->constant_canonicalization_mutex());
@@ -1201,10 +1201,6 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
         return I->debugger()->PauseInterrupted();
       }
 #endif
-      break;
-    }
-    case Isolate::kLowMemoryMsg: {
-      I->group()->heap()->NotifyLowMemory();
       break;
     }
     case Isolate::kDrainServiceExtensionsMsg: {
@@ -2451,22 +2447,6 @@ void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
   } while (head != nullptr);
 }
 #endif  // !defined(PRODUCT)
-
-// static
-void Isolate::NotifyLowMemory() {
-  IsolateGroup::ForEach([](IsolateGroup* group) { group->NotifyLowMemory(); });
-}
-
-void IsolateGroup::NotifyLowMemory() {
-  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
-  MonitorLocker ml2(Isolate::isolate_creation_monitor_);
-  for (Isolate* isolate : isolates_) {
-    if (isolate->AcceptsMessagesLocked()) {
-      isolate->KillLocked(Isolate::kLowMemoryMsg);
-      return;  // Only wake up one member of the group.
-    }
-  }
-}
 
 void Isolate::LowLevelShutdown() {
   // Ensure we have a zone and handle scope so that we can call VM functions,

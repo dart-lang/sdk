@@ -1812,10 +1812,10 @@ class ObjectGraphCopier {
       }
 
       if (FLAG_gc_on_foc_slow_path) {
-        // We use kLowMemory to force the GC to compact, which is more likely to
-        // discover untracked pointers (and other issues, like incorrect class
-        // table).
-        thread_->heap()->CollectAllGarbage(GCReason::kLowMemory);
+        // We force the GC to compact, which is more likely to discover
+        // untracked pointers (and other issues, like incorrect class table).
+        thread_->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                           /*compact=*/ true);
       }
 
       // Fast copy failed due to

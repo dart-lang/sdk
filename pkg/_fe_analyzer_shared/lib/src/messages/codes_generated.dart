@@ -6569,17 +6569,6 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropIndexNotSupported =
-    messageJsInteropIndexNotSupported;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropIndexNotSupported = const MessageCode(
-    "JsInteropIndexNotSupported",
-    problemMessage:
-        r"""JS interop classes do not support [] and []= operator methods.""",
-    correctionMessage: r"""Try replacing with a normal method.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
@@ -6683,6 +6672,16 @@ const MessageCode messageJsInteropNonExternalMember = const MessageCode(
     problemMessage:
         r"""This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.""",
     correctionMessage: r"""Try annotating the member with `external`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropOperatorsNotSupported =
+    messageJsInteropOperatorsNotSupported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
+    "JsInteropOperatorsNotSupported",
+    problemMessage: r"""JS interop classes do not support operator methods.""",
+    correctionMessage: r"""Try replacing this with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>

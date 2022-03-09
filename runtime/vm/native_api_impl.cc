@@ -276,7 +276,7 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
     Isolate* isolate = (thread == NULL) ? NULL : thread->isolate();
     CHECK_ISOLATE(isolate);
     TransitionNativeToVM _(thread);
-    IsolateGroup::Current()->heap()->CollectAllGarbage();
+    IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kDebugging);
     return nullptr;
 
   } else if (strcmp(command, "is-thread-in-generated") == 0) {
