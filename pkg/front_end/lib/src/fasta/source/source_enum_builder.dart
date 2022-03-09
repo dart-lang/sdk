@@ -29,7 +29,6 @@ import '../fasta_codes.dart'
         LocatedMessage,
         Severity,
         messageEnumContainsValuesDeclaration,
-        messageEnumEntryWithTypeArgumentsWithoutArguments,
         messageEnumNonConstConstructor,
         messageNoUnnamedConstructorInObject,
         noLength,
@@ -609,13 +608,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
     if (enumConstantInfos != null) {
       for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
         if (enumConstantInfo != null) {
-          if (enumConstantInfo.argumentsBeginToken == null &&
-              enumConstantInfo.constructorReferenceBuilder?.typeArguments !=
-                  null) {
-            addProblem(messageEnumEntryWithTypeArgumentsWithoutArguments,
-                enumConstantInfo.charOffset, noLength);
-          }
-
           String constant = enumConstantInfo.name;
           Builder declaration = firstMemberNamed(constant)!;
           SourceFieldBuilder field;

@@ -1429,6 +1429,7 @@ vary
 vb
 vector
 vegorov
+verbatim
 verbosity
 versa
 versus

@@ -65,6 +65,7 @@ dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 
 [ $builder_tag == tsan ]
+dart/analyze_snapshot_binary_test: SkipSlow
 dart/appjit_cha_deopt_test: SkipSlow
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart/regress_40462_test: SkipSlow
@@ -72,6 +73,7 @@ dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, a
 dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
 dart/v8_snapshot_profile_writer_test: SkipSlow
+dart_2/analyze_snapshot_binary_test: SkipSlow
 dart_2/appjit_cha_deopt_test: SkipSlow
 dart_2/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart_2/regress_40462_test: SkipSlow
@@ -324,6 +326,11 @@ cc/CodeExecutability: SkipByDesign # --dual-map-code not supported on non-Linux/
 [ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
+
+# Currently this is only supported on 64-bit linux systems with precompilation
+[ $arch == ia32 || $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $compiler != dartk || $system == fuchsia || $system != linux ]
+dart/analyze_snapshot_binary_test: SkipByDesign # Only run on 64bit AOT on standard architectures
+dart_2/analyze_snapshot_binary_test: SkipByDesign # Only run on 64bit AOT on standard architectures
 
 # On the simluator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct

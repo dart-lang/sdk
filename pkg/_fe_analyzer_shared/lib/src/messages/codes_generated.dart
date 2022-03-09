@@ -2807,16 +2807,6 @@ const MessageCode messageEnumDeclaresConstFactory = const MessageCode(
         r"""Try removing the factory constructor declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeEnumEntryWithTypeArgumentsWithoutArguments =
-    messageEnumEntryWithTypeArgumentsWithoutArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumEntryWithTypeArgumentsWithoutArguments =
-    const MessageCode("EnumEntryWithTypeArgumentsWithoutArguments",
-        problemMessage:
-            r"""Missing arguments in enum constructor invocation.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumFactoryRedirectsToConstructor =
     messageEnumFactoryRedirectsToConstructor;
 

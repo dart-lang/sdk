@@ -26,6 +26,7 @@ declare_args() {
   dart_stripped_binary = "dart"
   dart_precompiled_runtime_stripped_binary = "dart_precompiled_runtime_product"
   gen_snapshot_stripped_binary = "gen_snapshot_product"
+  analyze_snapshot_binary = "analyze_snapshot_product"
 }
 
 # The directory layout of the SDK is as follows:

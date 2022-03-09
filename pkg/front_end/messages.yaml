@@ -5480,9 +5480,6 @@ SuperInitializerParameter:
 EnumSupertypeOfNonAbstractClass:
   problemMessage: "Non-abstract class '#name' has 'Enum' as a superinterface."
 
-EnumEntryWithTypeArgumentsWithoutArguments:
-  problemMessage: "Missing arguments in enum constructor invocation."
-
 EnumNonConstConstructor:
   problemMessage: "Generative enum constructors must be marked as 'const'."
 

@@ -1,0 +1,7 @@
+files:
+  - issue_48380_2_comma.dart
+  - issue_48380_2_comma_ok.dart
+filters:
+  - ignoreListenerArguments
+ignored:
+  - handleRecoverableError

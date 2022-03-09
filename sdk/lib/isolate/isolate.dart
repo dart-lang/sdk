@@ -235,9 +235,16 @@ class Isolate {
               onExit: resultPort.sendPort,
               errorsAreFatal: true,
               debugName: debugName)
-          .then<void>((_) {}, onError: result.completeError);
+          .then<void>((_) {}, onError: (error, stack) {
+        // Sending the computation failed asynchronously.
+        // Do not expect a response, report the error asynchronously.
+        resultPort.close();
+        result.completeError(error, stack);
+      });
     } on Object {
-      // Sending the computation failed.
+      // Sending the computation failed synchronously.
+      // This is not expected to happen, but if it does,
+      // the synchronous error is respected and rethrown synchronously.
       resultPort.close();
       rethrow;
     }
@@ -938,7 +945,7 @@ class _RemoteRunner<R> {
       if (potentiallyAsyncResult is Future<R>) {
         result = await potentiallyAsyncResult;
       } else {
-        result = potentiallyAsyncResult as R;
+        result = potentiallyAsyncResult;
       }
     } catch (e, s) {
       // If sending fails, the error becomes an uncaught error.
