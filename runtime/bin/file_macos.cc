@@ -88,6 +88,7 @@ MappedMemory* File::Map(MapType type,
   switch (type) {
     case kReadOnly:
       prot = PROT_READ;
+      map_flags |= MAP_RESILIENT_CODESIGN;
       break;
     case kReadExecute:
       // Try to allocate near the VM's binary.

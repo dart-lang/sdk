@@ -5,6 +5,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:dart2native/dart2native_macho.dart'
+    show writeAppendedMachOExecutable;
+
 // Maximum page size across all supported architectures (arm64 macOS has 16K
 // pages, some arm64 Linux distributions have 64K pages).
 const elfPageSize = 65536;
@@ -14,6 +17,11 @@ enum Kind { aot, exe }
 
 Future writeAppendedExecutable(
     String dartaotruntimePath, String payloadPath, String outputPath) async {
+  if (Platform.isMacOS) {
+    return await writeAppendedMachOExecutable(
+        dartaotruntimePath, payloadPath, outputPath);
+  }
+
   final dartaotruntime = File(dartaotruntimePath);
   final int dartaotruntimeLength = dartaotruntime.lengthSync();
 
