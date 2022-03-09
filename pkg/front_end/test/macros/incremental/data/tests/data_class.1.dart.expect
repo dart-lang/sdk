@@ -11,7 +11,7 @@ class DataClass extends core::Object {
   constructor •({required core::String string = #C2}) → self::DataClass
     : self::DataClass::string = string, super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/data_class-0 */ toString() → core::String {
+  method /* from org-dartlang-augmentation:/a/b/c/data_class.dart-0 */ toString() → core::String {
     return "DataClass(string=${this.{self::DataClass::string}{core::String}})";
   }
 }

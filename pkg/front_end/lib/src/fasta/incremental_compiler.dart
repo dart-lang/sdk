@@ -55,6 +55,8 @@ import 'package:kernel/target/changed_structure_notifier.dart'
 
 import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
+import '../api_prototype/compiler_options.dart' show CompilerOptions;
+
 import '../api_prototype/experimental_flags.dart';
 
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
@@ -70,6 +72,8 @@ import '../api_prototype/lowering_predicates.dart' show isExtensionThisName;
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
 import '../base/nnbd_mode.dart';
+
+import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../kernel_generator_impl.dart' show precompileMacros;
 
@@ -112,7 +116,7 @@ import 'import.dart' show Import;
 
 import 'incremental_serializer.dart' show IncrementalSerializer;
 
-import 'kernel/macro.dart' show enableMacros, NeededPrecompilations;
+import 'kernel/macro.dart' show enableMacros, MacroClass, NeededPrecompilations;
 
 import 'scope.dart' show Scope;
 
@@ -280,6 +284,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // Figure out what to keep and what to throw away.
       Set<Uri?> invalidatedUris = this._invalidatedUris.toSet();
+      _invalidatePrecompiledMacros(c.options, invalidatedUris);
       _invalidateNotKeptUserBuilders(invalidatedUris);
       ReusageResult? reusedResult = _computeReusedLibraries(
           lastGoodKernelTarget,
@@ -1388,6 +1393,23 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (_previousSourceBuilders == null ||
             !_previousSourceBuilders!.contains(builder.library)) {
           neededDillLibraries.add(builder.library);
+        }
+      }
+    }
+  }
+
+  void _invalidatePrecompiledMacros(
+      ProcessedOptions processedOptions, Set<Uri?> invalidatedUris) {
+    if (invalidatedUris.isEmpty) {
+      return;
+    }
+    CompilerOptions compilerOptions = processedOptions.rawOptionsForTesting;
+    Map<MacroClass, Uri>? precompiledMacroUris =
+        compilerOptions.precompiledMacroUris;
+    if (precompiledMacroUris != null) {
+      for (MacroClass macroClass in precompiledMacroUris.keys.toList()) {
+        if (invalidatedUris.contains(macroClass.importUri)) {
+          precompiledMacroUris.remove(macroClass);
         }
       }
     }

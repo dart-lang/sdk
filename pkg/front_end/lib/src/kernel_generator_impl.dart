@@ -320,7 +320,8 @@ Future<void> _compileMacros(NeededPrecompilations neededPrecompilations,
   fs.entityForUri(uri).writeAsStringSync(bootstrapMacroIsolate(
       macroDeclarations, SerializationMode.byteDataClient));
 
-  precompilationOptions..fileSystem = new HybridFileSystem(fs);
+  precompilationOptions
+    ..fileSystem = new HybridFileSystem(fs, options.fileSystem);
   CompilerResult? compilerResult =
       await kernelForProgramInternal(uri, precompilationOptions);
   Uri precompiledUri = await options.macroSerializer!

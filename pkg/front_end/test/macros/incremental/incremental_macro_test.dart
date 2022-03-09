@@ -28,33 +28,58 @@ import 'package:vm/target/vm.dart';
 import '../../utils/kernel_chain.dart';
 
 Future<void> main(List<String> args) async {
-  Map<String, Map<int, String>> testData = {};
+  Map<String, Test> tests = {};
+  Map<String, Map<Uri, Map<int, String>>> testData = {};
   Directory dataDir =
       new Directory.fromUri(Platform.script.resolve('data/tests'));
-  for (FileSystemEntity file in dataDir.listSync()) {
-    String fileName = file.uri.pathSegments.last;
+
+  void addFile(Test? test, FileSystemEntity file, String fileName) {
     if (file is! File || !fileName.endsWith('.dart')) {
-      continue;
+      return;
     }
-    String testName = fileName.substring(0, fileName.length - 5);
-    int dotIndex = testName.lastIndexOf('.');
+    String testFileName = fileName.substring(0, fileName.length - 5);
+    int dotIndex = testFileName.lastIndexOf('.');
     int index = 1;
     if (dotIndex != -1) {
-      index = int.parse(testName.substring(dotIndex + 1));
-      testName = testName.substring(0, dotIndex);
+      index = int.parse(testFileName.substring(dotIndex + 1));
+      testFileName = testFileName.substring(0, dotIndex);
     }
-    (testData[testName] ??= {})[index] = file.readAsStringSync();
+    String testName = testFileName;
+    testFileName += '.dart';
+    Uri uri = toTestUri(testFileName);
+    test ??= new Test(testName, uri);
+    tests[test.name] ??= test;
+    Map<Uri, Map<int, String>> updates = testData[test.name] ??= {};
+    (updates[uri] ??= {})[index] = file.readAsStringSync();
   }
 
-  List<Test> tests = [];
-  testData.forEach((String name, Map<int, String> files) {
-    List<TestUpdate> updates = [];
-    for (int index in files.keys.toList()..sort()) {
-      String file = files[index]!;
-      // TODO(johnniwinther): Support multiple files in the same test.
-      updates.add(new TestUpdate(index, {toTestUri(name): file}));
+  for (FileSystemEntity file in dataDir.listSync()) {
+    String fileName = file.uri.pathSegments.last;
+    if (file is Directory) {
+      Directory dir = file;
+      // Note that the last segment of a directory uri is the empty string!
+      String dirName = dir.uri.pathSegments[dir.uri.pathSegments.length - 2];
+      Test test = new Test('$dirName/main', toTestUri('$dirName/main.dart'));
+      for (FileSystemEntity file in dir.listSync()) {
+        addFile(test, file, '$dirName/${file.uri.pathSegments.last}');
+      }
+    } else {
+      addFile(null, file, fileName);
     }
-    tests.add(new Test(name, updates));
+  }
+
+  testData.forEach((String testName, Map<Uri, Map<int, String>> files) {
+    Test test = tests[testName]!;
+    Map<int, Map<Uri, String>> updatesMap = {};
+    files.forEach((Uri uri, Map<int, String> updates) {
+      test.uris.add(uri);
+      updates.forEach((int index, String source) {
+        (updatesMap[index] ??= {})[uri] = source;
+      });
+    });
+    for (int index in updatesMap.keys.toList()..sort()) {
+      test.updates.add(new TestUpdate(index, updatesMap[index]!));
+    }
   });
 
   args = args.toList();
@@ -80,22 +105,27 @@ Future<void> main(List<String> args) async {
   await CompilerContext.runWithOptions(processedOptions,
       (CompilerContext context) async {
     IncrementalCompiler compiler = new IncrementalCompiler(context);
-    for (Test test in tests) {
-      Uri mainUri = toTestUri(test.name);
+    for (Test test in tests.values) {
+      if (args.isNotEmpty && !args.contains(test.name)) {
+        print('Skipped ${test.name}');
+        continue;
+      }
+      Uri entryPoint = test.entryPoint;
       for (TestUpdate update in test.updates) {
+        print('Running ${test.name} update ${update.index}');
         update.files.forEach((Uri uri, String source) {
           memoryFileSystem.entityForUri(uri).writeAsStringSync(source);
           compiler.invalidate(uri);
         });
         IncrementalCompilerResult incrementalCompilerResult =
-            await compiler.computeDelta(entryPoints: [mainUri]);
+            await compiler.computeDelta(entryPoints: [entryPoint]);
         Component component = incrementalCompilerResult.component;
         StringBuffer buffer = new StringBuffer();
         Printer printer = new Printer(buffer)
           ..writeProblemsAsJson(
               "Problems in component", component.problemsAsJson);
         component.libraries.forEach((Library library) {
-          if (library.importUri == mainUri) {
+          if (test.uris.contains(library.importUri)) {
             printer.writeLibraryFile(library);
             printer.endLine();
           }
@@ -118,8 +148,8 @@ Future<void> main(List<String> args) async {
         } else if (generateExpectations) {
           expectationFile.writeAsStringSync(actual);
         } else {
-          throw 'Please use -g option to create file ${expectedUri} with this '
-              'content:\n$actual';
+          throw 'Please use -g option to create file ${expectationFileName} '
+              'with this content:\n$actual';
         }
       }
     }
@@ -129,9 +159,11 @@ Future<void> main(List<String> args) async {
 
 class Test {
   final String name;
-  final List<TestUpdate> updates;
+  final Uri entryPoint;
+  final Set<Uri> uris = {};
+  final List<TestUpdate> updates = [];
 
-  Test(this.name, this.updates);
+  Test(this.name, this.entryPoint);
 }
 
 class TestUpdate {
