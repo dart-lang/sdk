@@ -23,6 +23,8 @@ void main() async {
   await testIsolateHangs();
   await testIsolateKilled();
   await testIsolateExits();
+  // Failing to start.
+  await testInvalidMessage();
   asyncEnd();
 }
 
@@ -114,4 +116,12 @@ Future<void> testIsolateExits() async {
   Expect.type<RemoteError>(e);
   Expect.equals("Computation ended without result", e.toString());
   Expect.equals(0, variable);
+}
+
+Future<void> testInvalidMessage() async {
+  // Regression test for http://dartbug.com/48516
+  var unsendable = RawReceivePort();
+  await asyncExpectThrows<Error>(Isolate.run<void>(() => unsendable));
+  unsendable.close();
+  // Test should not hang.
 }
