@@ -161,8 +161,8 @@ class AddMissingParameterRequiredTest_Workspace
   ChangeWorkspace? _workspace;
 
   @override
-  ChangeWorkspace get workspace {
-    return _workspace ?? super.workspace;
+  Future<ChangeWorkspace> get workspace async {
+    return _workspace ?? await super.workspace;
   }
 
   Future<void> test_function_inPackage_inWorkspace() async {
@@ -174,8 +174,8 @@ class AddMissingParameterRequiredTest_Workspace
     );
 
     _workspace = DartChangeWorkspace([
-      session,
-      getContext('/home/aaa').currentSession,
+      await session,
+      await sessionFor('/home/aaa'),
     ]);
 
     await resolveTestCode('''

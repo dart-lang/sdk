@@ -38,7 +38,7 @@ class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest {
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParameter('a', isRequiredNamed: true);
@@ -69,7 +69,7 @@ class DartEditBuilderImpl_WithoutNullSafetyTest extends DartEditBuilderImplTest
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParameter('a', isCovariant: true, isRequiredNamed: true);
@@ -88,7 +88,7 @@ class DartEditBuilderImpl_WithoutNullSafetyTest extends DartEditBuilderImplTest
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParameter('a', isRequiredNamed: true);
@@ -110,7 +110,7 @@ class A {}
 ''';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParameter('a', isRequiredNamed: true);
@@ -137,7 +137,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeClassDeclaration('C', interfaces: [typeA]);
@@ -152,7 +152,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeClassDeclaration('C', isAbstract: true);
@@ -166,7 +166,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeClassDeclaration('C', membersWriter: () {
@@ -183,7 +183,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeClassDeclaration('C', mixins: [typeA]);
@@ -200,7 +200,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     DartType typeA = await _getType(path, 'A');
     DartType typeB = await _getType(path, 'B');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeClassDeclaration('C', mixins: [typeB], superclass: typeA);
@@ -215,7 +215,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeClassDeclaration('C', nameGroupName: 'name');
@@ -236,7 +236,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     addSource(path, 'class B {}');
     DartType typeB = await _getType(path, 'B');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeClassDeclaration('C',
@@ -257,7 +257,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class C {}');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(9, (builder) {
         builder.writeConstructorDeclaration('A', bodyWriter: () {
@@ -278,7 +278,7 @@ class C {
 }
 ''');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(42, (builder) {
         builder.writeConstructorDeclaration('A', fieldNames: ['a', 'bb']);
@@ -292,7 +292,7 @@ class C {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class C {}');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(9, (builder) {
         builder.writeConstructorDeclaration('A', initializerWriter: () {
@@ -308,7 +308,7 @@ class C {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class C {}');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(9, (builder) {
         builder.writeConstructorDeclaration('A', parameterWriter: () {
@@ -354,7 +354,7 @@ class C {
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeFieldDeclaration('f', initializerWriter: () {
@@ -371,7 +371,7 @@ class C {
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeFieldDeclaration('f', isConst: true);
@@ -386,7 +386,7 @@ class C {
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeFieldDeclaration('f', isConst: true, isFinal: true);
@@ -402,7 +402,7 @@ class C {
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeFieldDeclaration('f', isConst: true, type: typeA);
@@ -417,7 +417,7 @@ class C {
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeFieldDeclaration('f', isFinal: true);
@@ -433,7 +433,7 @@ class C {
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeFieldDeclaration('f', isFinal: true, type: typeA);
@@ -448,7 +448,7 @@ class C {
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeFieldDeclaration('f', isStatic: true);
@@ -463,7 +463,7 @@ class C {
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeFieldDeclaration('f', nameGroupName: 'name');
@@ -487,7 +487,7 @@ class C {
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeFieldDeclaration('f', type: typeA, typeGroupName: 'type');
@@ -511,7 +511,7 @@ class C {
     var content = '';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeFunctionDeclaration('fib', bodyWriter: () {
@@ -529,7 +529,7 @@ class C {
     var content = '';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeFunctionDeclaration('fib', nameGroupName: 'name');
@@ -551,7 +551,7 @@ class C {
     var content = '';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeFunctionDeclaration('fib', parameterWriter: () {
@@ -571,7 +571,7 @@ class C {
 
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeFunctionDeclaration('fib',
@@ -593,7 +593,7 @@ class C {
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeGetterDeclaration('g', bodyWriter: () {
@@ -610,7 +610,7 @@ class C {
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeGetterDeclaration('g', isStatic: true);
@@ -625,7 +625,7 @@ class C {
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeGetterDeclaration('g', nameGroupName: 'name');
@@ -649,7 +649,7 @@ class C {
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeGetterDeclaration('g',
@@ -675,7 +675,7 @@ class C {
 import 'foo.dart';
 ''');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeImportedName([
@@ -694,7 +694,7 @@ import 'foo.dart';
 import 'bar.dart';
 ''');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeImportedName([
@@ -712,7 +712,7 @@ import 'bar.dart';
     var content = '';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeImportedName([
@@ -738,7 +738,7 @@ Foo''');
     var content = 'test';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addReplacement(SourceRange(0, 4), (builder) {
         builder.writeImportedName([
@@ -768,7 +768,7 @@ void f() {
     addSource(path, content);
     await resolveFile(path);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(11, (builder) {
         builder.writeLocalVariableDeclaration('foo', initializerWriter: () {
@@ -789,7 +789,7 @@ void f() {
     addSource(path, content);
     await resolveFile(path);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(11, (builder) {
         builder.writeLocalVariableDeclaration('foo', nameGroupName: 'name');
@@ -815,7 +815,7 @@ void f() {
     addSource(path, content);
     await resolveFile(path);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(11, (builder) {
         builder.writeLocalVariableDeclaration('foo', isConst: true);
@@ -835,7 +835,7 @@ void f() {
     addSource(path, content);
     await resolveFile(path);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(11, (builder) {
         builder.writeLocalVariableDeclaration('foo', isFinal: true);
@@ -857,7 +857,7 @@ class MyClass {}''';
 
     var A = unit.declarations[1] as ClassDeclaration;
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(11, (builder) {
         builder.writeLocalVariableDeclaration(
@@ -888,7 +888,7 @@ class MyClass {}''';
 
     var A = unit.declarations[1] as ClassDeclaration;
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(11, (builder) {
         builder.writeLocalVariableDeclaration(
@@ -924,7 +924,7 @@ class MyClass {}''';
 
     var A = unit.declarations[1] as ClassDeclaration;
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(11, (builder) {
         builder.writeLocalVariableDeclaration(
@@ -953,7 +953,7 @@ class MyClass {}''';
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeMixinDeclaration('M', interfaces: [typeA]);
@@ -971,7 +971,7 @@ class MyClass {}''';
     DartType typeA = await _getType(path, 'A');
     DartType typeB = await _getType(path, 'B');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeMixinDeclaration('M',
@@ -987,7 +987,7 @@ class MyClass {}''';
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeMixinDeclaration('M', membersWriter: () {
@@ -1003,7 +1003,7 @@ class MyClass {}''';
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeMixinDeclaration('M', nameGroupName: 'name');
@@ -1024,7 +1024,7 @@ class MyClass {}''';
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeMixinDeclaration('M', superclassConstraints: [typeA]);
@@ -1039,7 +1039,7 @@ class MyClass {}''';
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParameter('a');
@@ -1054,7 +1054,7 @@ class MyClass {}''';
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParameter('a', isCovariant: true);
@@ -1070,7 +1070,7 @@ class MyClass {}''';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParameter('a', type: typeA);
@@ -1097,7 +1097,7 @@ class A {}
     var invocation = statement.expression as MethodInvocation;
     var argument = invocation.argumentList.arguments[0];
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(2, (builder) {
         builder.writeParameterMatchingArgument(argument, 0, <String>{});
@@ -1117,7 +1117,7 @@ class A {}
     var parameters = f.functionExpression.parameters;
     var elements = parameters?.parameters.map((p) => p.declaredElement!);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParameters(elements!);
@@ -1137,7 +1137,7 @@ class A {}
     var parameters = f.functionExpression.parameters;
     var elements = parameters?.parameters.map((p) => p.declaredElement!);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParameters(elements!);
@@ -1157,7 +1157,7 @@ class A {}
     var parameters = f.functionExpression.parameters;
     var elements = parameters?.parameters.map((p) => p.declaredElement!);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParameters(elements!);
@@ -1176,7 +1176,7 @@ class A {}
     var parameters = f.functionExpression.parameters;
     var elements = parameters?.parameters.map((p) => p.declaredElement!);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParameters(elements!, requiredTypes: true);
@@ -1199,7 +1199,7 @@ f(int i, String s) {
     var statement = body.block.statements[0] as ExpressionStatement;
     var invocation = statement.expression as MethodInvocation;
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParametersMatchingArguments(invocation.argumentList);
@@ -1225,7 +1225,7 @@ f(int i, String s) {
     var statement = body.block.statements[0] as ExpressionStatement;
     var invocation = statement.expression as MethodInvocation;
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeParametersMatchingArguments(invocation.argumentList);
@@ -1252,7 +1252,7 @@ import 'a.dart';
     var aElement = await _getClassElement(aPath, 'A');
     var fooElement = aElement.methods[0];
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeReference(fooElement);
@@ -1274,7 +1274,7 @@ import 'a.dart';
 
     var aElement = await _getTopLevelAccessorElement(aPath, 'a');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeReference(aElement);
@@ -1296,7 +1296,7 @@ import 'a.dart' as p;
 
     var aElement = await _getTopLevelAccessorElement(aPath, 'a');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeReference(aElement);
@@ -1316,7 +1316,7 @@ import 'a.dart' as p;
 
     var aElement = await _getTopLevelAccessorElement(aPath, 'a');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeReference(aElement);
@@ -1338,7 +1338,7 @@ a''');
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeSetterDeclaration('s', bodyWriter: () {
@@ -1355,7 +1355,7 @@ a''');
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeSetterDeclaration('s', isStatic: true);
@@ -1370,7 +1370,7 @@ a''');
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeSetterDeclaration('s', nameGroupName: 'name');
@@ -1394,7 +1394,7 @@ a''');
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeSetterDeclaration('s',
@@ -1419,7 +1419,7 @@ a''');
     addSource(path, content);
     var unit = (await resolveFile(path)).unit;
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         var typeProvider = unit.declaredElement!.library.typeProvider;
@@ -1461,7 +1461,7 @@ a''');
     var typeA = await _getType(path, 'A');
     var typeBofA = await _getType(path, 'B', typeArguments: [typeA]);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeType(typeBofA);
@@ -1477,7 +1477,7 @@ a''');
     addSource(path, content);
     DartType typeC = await _getType(path, 'C');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeType(typeC, groupName: 'type');
@@ -1498,7 +1498,7 @@ a''');
     addSource(path, content);
     DartType typeC = await _getType(path, 'C');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeType(typeC,
@@ -1533,7 +1533,7 @@ a''');
       nullabilitySuffix: NullabilitySuffix.star,
     );
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length, (builder) {
         // "T" cannot be written, because we are outside of "A".
@@ -1557,7 +1557,7 @@ a''');
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeType(null);
@@ -1592,7 +1592,7 @@ class B {}
       return '_prefix${nextPrefixIndex++}';
     }
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
         builder.writeType(a1.instantiate(
@@ -1639,7 +1639,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     addSource(path, content);
     var unit = (await resolveFile(path)).unit;
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         var typeProvider = unit.declaredElement!.library.typeProvider;
@@ -1656,7 +1656,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeType(typeA, required: true);
@@ -1671,7 +1671,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeType(null, required: true);
@@ -1687,7 +1687,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeType(typeA);
@@ -1711,7 +1711,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeTypes([]);
@@ -1728,7 +1728,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     DartType typeA = await _getType(path, 'A');
     DartType typeB = await _getType(path, 'B');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeTypes([typeA, typeB]);
@@ -1743,7 +1743,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     var content = 'class A {}';
     addSource(path, content);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeTypes(null);
@@ -1760,7 +1760,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     DartType typeA = await _getType(path, 'A');
     DartType typeB = await _getType(path, 'B');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeTypes([typeA, typeB], prefix: 'implements ');
@@ -1777,7 +1777,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
 
     var f = await _getTopLevelAccessorElement(path, 'v');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeType(f.returnType);
@@ -1822,7 +1822,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var body = findNode.functionBody('{}');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
     });
@@ -1839,7 +1839,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var body = findNode.functionBody('{}');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
     });
@@ -1868,7 +1868,7 @@ void functionAfter() {
     var path = convertPath('/home/test/lib/test.dart');
     newFile(path, content: initialCode);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(34, (builder) {
         builder.writeln('  3 +  4;');
@@ -1920,7 +1920,7 @@ void functionAfter() {
     var path = convertPath('/home/test/lib/test.dart');
     newFile(path, content: initialCode);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.format(SourceRange(37, 39));
     });
@@ -1949,7 +1949,7 @@ void functionAfter() {
     var path = convertPath('/home/test/lib/test.dart');
     newFile(path, content: initialCode);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     var future = Future.wait([
       builder.addDartFileEdit(path, (builder) {
         builder.addSimpleInsertion(0, '11');
@@ -1967,7 +1967,7 @@ void functionAfter() {
     var path = convertPath('/home/test/lib/test.dart');
     newFile(path, content: initialCode);
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addSimpleInsertion(0, '11');
     });
@@ -1988,7 +1988,7 @@ void functionAfter() {
     var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var type = findNode.typeAnnotation('String');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.replaceTypeWithFuture(type, resolvedUnit.typeProvider);
     });
@@ -2503,7 +2503,7 @@ import 'aaa.dart';
   }) async {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, initialCode);
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       for (var i = 0; i < uriList.length; ++i) {
         var uri = Uri.parse(uriList[i]);
@@ -3078,7 +3078,7 @@ class B extends A {
 
     var displayBuffer = displayText != null ? StringBuffer() : null;
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 2, (builder) {
         builder.writeOverride(

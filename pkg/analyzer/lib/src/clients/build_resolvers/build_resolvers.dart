@@ -77,6 +77,12 @@ class AnalysisDriverForPackageBuild {
     return _driver.currentSession;
   }
 
+  /// Return a [Future] that completes after pending file changes are applied,
+  /// so that [currentSession] can be used to compute results.
+  Future<void> applyPendingFileChanges() {
+    return _driver.applyPendingFileChanges();
+  }
+
   /// The file with the given [path] might have changed - updated, added or
   /// removed. Or not, we don't know. Or it might have, but then changed back.
   ///

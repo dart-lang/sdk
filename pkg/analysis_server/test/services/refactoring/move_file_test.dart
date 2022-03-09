@@ -65,7 +65,7 @@ import 'package:test/old_name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('$testPackageLibPath/222/new_name.dart',
         oldFile: file.path);
@@ -89,7 +89,7 @@ import 'package:test0.test1.test2/111/name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('/home/test0/test1/test3/lib/111/name.dart',
         oldFile: file.path);
@@ -113,7 +113,7 @@ import 'package:test0.test1.test2/111/name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('/home/test0/test1/test2/test3/lib/111/name.dart',
         oldFile: file.path);
@@ -137,7 +137,7 @@ import 'package:test0.test1.test2/111/name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('/home/test0/test1/lib/111/name.dart',
         oldFile: file.path);
@@ -159,7 +159,7 @@ import 'package:test/111/old_name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('$testPackageLibPath/222/new_name.dart',
         oldFile: file.path);
@@ -181,7 +181,7 @@ import 'package:test/222/old_name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('$testPackageLibPath/new_name.dart', oldFile: file.path);
     await _assertSuccessfulRefactoring();

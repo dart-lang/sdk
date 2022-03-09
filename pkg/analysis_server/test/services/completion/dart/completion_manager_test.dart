@@ -51,7 +51,7 @@ part 'test.dart';
 
     // Build the request
     var resolvedUnit =
-        await session.getResolvedUnit(testFile) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(testFile) as ResolvedUnitResult;
     request = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: resolvedUnit,
       offset: completionOffset,

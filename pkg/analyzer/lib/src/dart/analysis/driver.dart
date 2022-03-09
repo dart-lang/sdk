@@ -84,6 +84,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
   static const int DATA_VERSION = 209;
 
+  static const bool _applyFileChangesSynchronously = true;
+
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
   static int allowedNumberOfContextsToWrite = 10;
@@ -139,6 +141,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// The set of priority files, that should be analyzed sooner.
   final _priorityFiles = <String>{};
+
+  /// The file changes that should be applied before processing requests.
+  final List<_FileChange> _pendingFileChanges = [];
+
+  /// The completers to complete after [_pendingFileChanges] are applied.
+  final _pendingFileChangesCompleters = <Completer<void>>[];
 
   /// The mapping from the files for which analysis was requested using
   /// [getResult] to the [Completer]s to report the result.
@@ -287,7 +295,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   @override
   bool get hasFilesToAnalyze {
-    return _fileTracker.hasChangedFiles ||
+    return _pendingFileChanges.isNotEmpty ||
+        _fileTracker.hasChangedFiles ||
         _requestedFiles.isNotEmpty ||
         _requestedParts.isNotEmpty ||
         _fileTracker.hasPendingFiles ||
@@ -407,6 +416,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         }
       }
     }
+    if (_pendingFileChanges.isNotEmpty) {
+      return AnalysisDriverPriority.general;
+    }
     if (_fileTracker.hasChangedFiles) {
       return AnalysisDriverPriority.changedFiles;
     }
@@ -425,7 +437,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_errorsRequestedParts.isNotEmpty ||
         _requestedParts.isNotEmpty ||
         _partsToAnalyze.isNotEmpty ||
-        _unitElementRequestedParts.isNotEmpty) {
+        _unitElementRequestedParts.isNotEmpty ||
+        _pendingFileChangesCompleters.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
     return AnalysisDriverPriority.nothing;
@@ -439,9 +452,27 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _priorityResults.clear();
-      _removePotentiallyAffectedLibraries(path);
-      _fileTracker.addFile(path);
+      if (_applyFileChangesSynchronously) {
+        _removePotentiallyAffectedLibraries(path);
+        _fileTracker.addFile(path);
+      } else {
+        _pendingFileChanges.add(
+          _FileChange(path, _FileChangeKind.add),
+        );
+      }
       _scheduler.notify(this);
+    }
+  }
+
+  /// Return a [Future] that completes after pending file changes are applied,
+  /// so that [currentSession] can be used to compute results.
+  Future<void> applyPendingFileChanges() {
+    if (_pendingFileChanges.isNotEmpty) {
+      var completer = Completer<void>();
+      _pendingFileChangesCompleters.add(completer);
+      return completer.future;
+    } else {
+      return Future.value();
     }
   }
 
@@ -468,8 +499,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _priorityResults.clear();
-      _removePotentiallyAffectedLibraries(path);
-      _fileTracker.changeFile(path);
+      if (_applyFileChangesSynchronously) {
+        _removePotentiallyAffectedLibraries(path);
+        _fileTracker.changeFile(path);
+      } else {
+        _pendingFileChanges.add(
+          _FileChange(path, _FileChangeKind.change),
+        );
+      }
       _scheduler.notify(this);
     }
   }
@@ -629,6 +666,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (!_isAbsolutePath(path)) {
       return InvalidPathResult();
     }
+
+    _applyPendingFileChanges();
 
     FileState file = _fileTracker.getFile(path);
     return FileResultImpl(
@@ -987,6 +1026,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       );
     }
 
+    _applyPendingFileChanges();
+
     var completer = Completer<UnitElementResult>();
     _unitElementRequestedFiles
         .putIfAbsent(path, () => <Completer<UnitElementResult>>[])
@@ -1062,6 +1103,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (!_isAbsolutePath(path)) {
       return InvalidPathResult();
     }
+
+    _applyPendingFileChanges();
 
     FileState file = _fileTracker.getFile(path);
     RecordingErrorListener listener = RecordingErrorListener();
@@ -1342,8 +1385,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _lastProducedSignatures.remove(path);
       _priorityResults.clear();
-      _removePotentiallyAffectedLibraries(path);
-      _fileTracker.removeFile(path);
+      if (_applyFileChangesSynchronously) {
+        _removePotentiallyAffectedLibraries(path);
+        _fileTracker.removeFile(path);
+      } else {
+        _pendingFileChanges.add(
+          _FileChange(path, _FileChangeKind.remove),
+        );
+      }
       _scheduler.notify(this);
     }
   }
@@ -1411,6 +1460,33 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       var value = declaredVariables.get(name);
       buffer.addString(name);
       buffer.addString(value!);
+    }
+  }
+
+  void _applyPendingFileChanges() {
+    for (var fileChange in _pendingFileChanges) {
+      var path = fileChange.path;
+      _removePotentiallyAffectedLibraries(path);
+      switch (fileChange.kind) {
+        case _FileChangeKind.add:
+          _fileTracker.addFile(path);
+          break;
+        case _FileChangeKind.change:
+          _fileTracker.changeFile(path);
+          break;
+        case _FileChangeKind.remove:
+          _fileTracker.removeFile(path);
+          break;
+      }
+    }
+    _pendingFileChanges.clear();
+
+    if (_pendingFileChangesCompleters.isNotEmpty) {
+      var completers = _pendingFileChangesCompleters.toList();
+      _pendingFileChangesCompleters.clear();
+      for (var completer in completers) {
+        completer.complete();
+      }
     }
   }
 
@@ -2139,6 +2215,12 @@ class AnalysisDriverScheduler {
 
       await _hasWork.signal;
 
+      for (var driver in _drivers) {
+        if (driver is AnalysisDriver) {
+          driver._applyPendingFileChanges();
+        }
+      }
+
       // Transition to analyzing if there are files to analyze.
       if (_hasFilesToAnalyze) {
         _statusSupport.transitionToAnalyzing();
@@ -2497,6 +2579,20 @@ class _ExceptionState {
   @override
   String toString() => '$exception\n$stackTrace';
 }
+
+class _FileChange {
+  final String path;
+  final _FileChangeKind kind;
+
+  _FileChange(this.path, this.kind);
+
+  @override
+  String toString() {
+    return '[path: $path][kind: $kind]';
+  }
+}
+
+enum _FileChangeKind { add, change, remove }
 
 /// Task that computes the list of files that were added to the driver and
 /// declare a class member with the given [name].

@@ -55,41 +55,65 @@ class AnalysisSessionImpl implements AnalysisSession {
   driver.AnalysisDriver getDriver() => _driver;
 
   @override
-  Future<SomeErrorsResult> getErrors(String path) {
+  Future<SomeErrorsResult> getErrors(String path) async {
     _checkConsistency();
-    return _driver.getErrors(path);
+    try {
+      return await _driver.getErrors(path);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @Deprecated('Use getFile2() instead')
   @override
   SomeFileResult getFile(String path) {
     _checkConsistency();
-    return _driver.getFileSync(path);
+    try {
+      return _driver.getFileSync(path);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @override
   Future<SomeFileResult> getFile2(String path) async {
     _checkConsistency();
-    return _driver.getFile(path);
+    try {
+      return await _driver.getFile(path);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @override
-  Future<SomeLibraryElementResult> getLibraryByUri(String uri) {
+  Future<SomeLibraryElementResult> getLibraryByUri(String uri) async {
     _checkConsistency();
-    return _driver.getLibraryByUri(uri);
+    try {
+      return await _driver.getLibraryByUri(uri);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @Deprecated('Use getParsedLibrary2() instead')
   @override
   SomeParsedLibraryResult getParsedLibrary(String path) {
     _checkConsistency();
-    return _driver.getParsedLibrary(path);
+    try {
+      return _driver.getParsedLibrary(path);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @override
   Future<SomeParsedLibraryResult> getParsedLibrary2(String path) async {
     _checkConsistency();
-    return _driver.getParsedLibrary2(path);
+    try {
+      return await _driver.getParsedLibrary2(path);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @Deprecated('Use getParsedLibraryByElement2() instead')
@@ -101,7 +125,11 @@ class AnalysisSessionImpl implements AnalysisSession {
       return NotElementOfThisSessionResult();
     }
 
-    return _driver.getParsedLibraryByUri(element.source.uri);
+    try {
+      return _driver.getParsedLibraryByUri(element.source.uri);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @override
@@ -114,53 +142,79 @@ class AnalysisSessionImpl implements AnalysisSession {
       return NotElementOfThisSessionResult();
     }
 
-    return _driver.getParsedLibraryByUri2(element.source.uri);
+    try {
+      return await _driver.getParsedLibraryByUri2(element.source.uri);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @Deprecated('Use getParsedUnit2() instead')
   @override
   SomeParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
-    return _driver.parseFileSync(path);
+    try {
+      return _driver.parseFileSync(path);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @override
   Future<SomeParsedUnitResult> getParsedUnit2(String path) async {
     _checkConsistency();
-    return _driver.parseFile(path);
+    try {
+      return await _driver.parseFile(path);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @override
-  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) {
+  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) async {
     _checkConsistency();
-    return _driver.getResolvedLibrary(path);
+    try {
+      return await _driver.getResolvedLibrary(path);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @override
   Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
     LibraryElement element,
-  ) {
+  ) async {
     _checkConsistency();
 
     if (element.session != this) {
-      return Future.value(
-        NotElementOfThisSessionResult(),
-      );
+      return NotElementOfThisSessionResult();
     }
 
-    return _driver.getResolvedLibraryByUri(element.source.uri);
+    try {
+      return await _driver.getResolvedLibraryByUri(element.source.uri);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @override
-  Future<SomeResolvedUnitResult> getResolvedUnit(String path) {
+  Future<SomeResolvedUnitResult> getResolvedUnit(String path) async {
     _checkConsistency();
-    return _driver.getResult(path);
+    try {
+      return await _driver.getResult(path);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   @override
   Future<SomeUnitElementResult> getUnitElement(String path) {
     _checkConsistency();
-    return _driver.getUnitElement(path);
+    try {
+      return _driver.getUnitElement(path);
+    } finally {
+      _checkConsistency();
+    }
   }
 
   /// Check to see that results from this session will be consistent, and throw

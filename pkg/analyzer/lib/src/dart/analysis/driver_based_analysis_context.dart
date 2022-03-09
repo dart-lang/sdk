@@ -53,4 +53,9 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   Workspace get workspace {
     return contextRoot.workspace;
   }
+
+  @override
+  Future<void> applyPendingFileChanges() {
+    return driver.applyPendingFileChanges();
+  }
 }

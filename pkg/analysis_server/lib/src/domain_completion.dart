@@ -174,12 +174,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     var id = ++_latestGetSuggestionDetailsId;
     while (id == _latestGetSuggestionDetailsId && timer.elapsed < timeout) {
       try {
-        var analysisDriver = server.getAnalysisDriver(file);
-        if (analysisDriver == null) {
+        var session = await server.getAnalysisSession(file);
+        if (session == null) {
           server.sendResponse(Response.fileNotAnalyzed(request, 'libraryId'));
           return;
         }
-        var session = analysisDriver.currentSession;
 
         var completion = params.label;
         var builder = ChangeBuilder(session: session);
@@ -231,12 +230,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     var id = ++_latestGetSuggestionDetailsId;
     while (id == _latestGetSuggestionDetailsId && !budget.isEmpty) {
       try {
-        var analysisDriver = server.getAnalysisDriver(file);
-        if (analysisDriver == null) {
+        var session = await server.getAnalysisSession(file);
+        if (session == null) {
           server.sendResponse(Response.fileNotAnalyzed(request, file));
           return;
         }
-        var session = analysisDriver.currentSession;
 
         var completion = params.completion;
         var builder = ChangeBuilder(session: session);

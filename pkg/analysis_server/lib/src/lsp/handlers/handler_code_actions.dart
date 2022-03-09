@@ -253,7 +253,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     try {
       var context = DartAssistContextImpl(
         server.instrumentationService,
-        DartChangeWorkspace(server.currentSessions),
+        DartChangeWorkspace(
+          await server.currentSessions,
+        ),
         unit,
         offset,
         length,
@@ -344,7 +346,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         if (errorLine < range.start.line || errorLine > range.end.line) {
           continue;
         }
-        var workspace = DartChangeWorkspace(server.currentSessions);
+        var workspace = DartChangeWorkspace(
+          await server.currentSessions,
+        );
         var context = DartFixContextImpl(
             server.instrumentationService, workspace, unit, error);
         final fixes = await fixContributor.computeFixes(context);

@@ -469,12 +469,12 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
     newFile(path, content: initialCode);
 
     var requestedResult =
-        await session.getLibraryByUri(uriStr) as LibraryElementResult;
+        await (await session).getLibraryByUri(uriStr) as LibraryElementResult;
     var requestedLibrary = requestedResult.element;
     var requestedElement = requestedLibrary.exportNamespace.get(name);
     expect(requestedElement, isNotNull, reason: '`$name` in $uriStr');
 
-    var builder = newBuilder();
+    var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       var uri = Uri.parse(uriStr);
       var result = builder.importLibraryElement(uri);

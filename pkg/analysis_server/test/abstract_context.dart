@@ -63,7 +63,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  AnalysisSession get session => contextFor(testPackageRootPath).currentSession;
+  Future<AnalysisSession> get session => sessionFor(testPackageRootPath);
 
   String? get testPackageLanguageVersion => latestLanguageVersion;
 
@@ -87,6 +87,7 @@ class AbstractContextTest with ResourceProviderMixin {
     var analysisContext = contextFor(testPackageRootPath);
     var files = analysisContext.contextRoot.analyzedFiles().toList();
     for (var path in files) {
+      await analysisContext.applyPendingFileChanges();
       await analysisContext.currentSession.getResolvedUnit(path);
     }
   }
@@ -168,8 +169,14 @@ class AbstractContextTest with ResourceProviderMixin {
 
   Future<ResolvedUnitResult> resolveFile(String path) async {
     path = convertPath(path);
-    var session = contextFor(path).currentSession;
+    var session = await sessionFor(path);
     return await session.getResolvedUnit(path) as ResolvedUnitResult;
+  }
+
+  Future<AnalysisSession> sessionFor(String path) async {
+    var analysisContext = _contextFor(path);
+    await analysisContext.applyPendingFileChanges();
+    return analysisContext.currentSession;
   }
 
   @mustCallSuper

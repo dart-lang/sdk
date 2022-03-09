@@ -55,6 +55,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     }
 
     driver = drivers.first;
+    await driver.applyPendingFileChanges();
     _session = driver.currentSession;
     if (!resourceProvider.getResource(oldFile).exists) {
       return RefactoringStatus.fatal('$oldFile does not exist.');
@@ -113,8 +114,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     // If this element is a library, update outgoing references inside the file.
     if (element == libraryElement.definingCompilationUnit) {
       // Handle part-of directives in this library
-      var libraryResult = await driver.currentSession
-          .getResolvedLibraryByElement(libraryElement);
+      var libraryResult =
+          await _session.getResolvedLibraryByElement(libraryElement);
       if (libraryResult is! ResolvedLibraryResult) {
         return;
       }

@@ -126,10 +126,7 @@ T checkNotNull<T>(T reference, {dynamic message}) => T;
 
   Source addSource(String path, String content, [Uri? uri]) {
     File file = newFile(path, content: content);
-    Source source = file.createSource(uri);
-    driver!.addFile(file.path);
-    driver!.changeFile(file.path);
-    return source;
+    return file.createSource(uri);
   }
 
   /// Add the test_core package and a library with URI,

@@ -64,7 +64,10 @@ class A {
 }
 ''');
 
-    driverFor(testFilePathPlatform).changeFile(testFilePathPlatform);
+    var analysisDriver = driverFor(testFilePathPlatform);
+    analysisDriver.changeFile(testFilePathPlatform);
+    await analysisDriver.applyPendingFileChanges();
+
     await resolveTestCode(r'''
 class A {
   factory A() =;
@@ -80,7 +83,10 @@ class A {
 }
 ''');
 
-    driverFor(testFilePathPlatform).changeFile(testFilePathPlatform);
+    var analysisDriver = driverFor(testFilePathPlatform);
+    analysisDriver.changeFile(testFilePathPlatform);
+    await analysisDriver.applyPendingFileChanges();
+
     await resolveTestCode(r'''
 class A {
   factory A() =
@@ -96,7 +102,10 @@ class A {
 }
 ''');
 
-    driverFor(testFilePathPlatform).changeFile(testFilePathPlatform);
+    var analysisDriver = driverFor(testFilePathPlatform);
+    analysisDriver.changeFile(testFilePathPlatform);
+    await analysisDriver.applyPendingFileChanges();
+
     await resolveTestCode(r'''
 class A {
   const
