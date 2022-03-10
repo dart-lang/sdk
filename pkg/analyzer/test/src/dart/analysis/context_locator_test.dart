@@ -235,7 +235,7 @@ analyzer:
   void test_locateRoots_multiple_dirAndNestedDir_innerConfigurationFiles() {
     var outerRootFolder = newFolder('/outer');
     var innerOptionsFile = newAnalysisOptionsYamlFile('/outer/examples/inner');
-    var innerPackagesFile = newDotPackagesFile('/outer/examples/inner');
+    var innerPackagesFile = newPackageConfigJsonFile('/outer/examples/inner');
     var innerRootFolder = newFolder('/outer/examples/inner');
 
     var roots = contextLocator.locateRoots(
@@ -274,7 +274,7 @@ analyzer:
   void test_locateRoots_multiple_dirAndNestedDir_outerConfigurationFiles() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    File outerPackagesFile = newDotPackagesFile('/test/outer');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer');
     Folder innerRootFolder = newFolder('/test/outer/examples/inner');
 
     List<ContextRoot> roots = contextLocator.locateRoots(
@@ -336,7 +336,7 @@ analyzer:
   void test_locateRoots_multiple_dirAndNestedFile_outerConfigurationFiles() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    File outerPackagesFile = newDotPackagesFile('/test/outer');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer');
     File testFile = newFile('/test/outer/examples/inner/test.dart');
 
     List<ContextRoot> roots = contextLocator
@@ -353,11 +353,11 @@ analyzer:
   void test_locateRoots_multiple_dirAndSiblingDir_bothConfigurationFiles() {
     Folder outer1RootFolder = newFolder('/test/outer1');
     File outer1OptionsFile = newAnalysisOptionsYamlFile('/test/outer1');
-    File outer1PackagesFile = newDotPackagesFile('/test/outer1');
+    File outer1PackagesFile = newPackageConfigJsonFile('/test/outer1');
 
     Folder outer2RootFolder = newFolder('/test/outer2');
     File outer2OptionsFile = newAnalysisOptionsYamlFile('/test/outer2');
-    File outer2PackagesFile = newDotPackagesFile('/test/outer2');
+    File outer2PackagesFile = newPackageConfigJsonFile('/test/outer2');
 
     List<ContextRoot> roots = contextLocator.locateRoots(
         includedPaths: [outer1RootFolder.path, outer2RootFolder.path]);
@@ -400,10 +400,10 @@ analyzer:
   void test_locateRoots_multiple_dirAndSiblingFile() {
     Folder outer1RootFolder = newFolder('/test/outer1');
     File outer1OptionsFile = newAnalysisOptionsYamlFile('/test/outer1');
-    File outer1PackagesFile = newDotPackagesFile('/test/outer1');
+    File outer1PackagesFile = newPackageConfigJsonFile('/test/outer1');
 
     File outer2OptionsFile = newAnalysisOptionsYamlFile('/test/outer2');
-    File outer2PackagesFile = newDotPackagesFile('/test/outer2');
+    File outer2PackagesFile = newPackageConfigJsonFile('/test/outer2');
     File testFile = newFile('/test/outer2/test.dart');
 
     List<ContextRoot> roots = contextLocator
@@ -490,7 +490,7 @@ analyzer:
   exclude:
     - lib/test2.dart
 ''');
-    File packagesFile = newDotPackagesFile('/home/test');
+    File packagesFile = newPackageConfigJsonFile('/home/test');
     File testFile1 = newFile('/home/test/lib/test1.dart');
     File testFile2 = newFile('/home/test/lib/test2.dart');
 
@@ -552,7 +552,7 @@ analyzer:
 
   void test_locateRoots_multiple_fileAndSiblingFile_hasOptionsPackages() {
     File optionsFile = newAnalysisOptionsYamlFile('/home/test');
-    File packagesFile = newDotPackagesFile('/home/test');
+    File packagesFile = newPackageConfigJsonFile('/home/test');
     File testFile1 = newFile('/home/test/lib/test1.dart');
     File testFile2 = newFile('/home/test/lib/test2.dart');
 
@@ -571,7 +571,7 @@ analyzer:
   }
 
   void test_locateRoots_multiple_fileAndSiblingFile_hasPackages() {
-    File packagesFile = newDotPackagesFile('/home/test');
+    File packagesFile = newPackageConfigJsonFile('/home/test');
     File testFile1 = newFile('/home/test/lib/test1.dart');
     File testFile2 = newFile('/home/test/lib/test2.dart');
 
@@ -595,8 +595,8 @@ analyzer:
   /// just the file system root.
   void
       test_locateRoots_multiple_fileAndSiblingFile_hasPackages_overridePackages() {
-    newDotPackagesFile('/home/test'); // not used
-    File overridePackagesFile = newDotPackagesFile('/home');
+    newPackageConfigJsonFile('/home/test'); // not used
+    File overridePackagesFile = newPackageConfigJsonFile('/home');
     File testFile1 = newFile('/home/test/lib/test1.dart');
     File testFile2 = newFile('/home/test/lib/test2.dart');
 
@@ -789,7 +789,7 @@ analyzer:
   void test_locateRoots_nested_excluded_dot() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    File outerPackagesFile = newDotPackagesFile('/test/outer');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer');
 
     newFolder('/test/outer/.examples');
     newAnalysisOptionsYamlFile('/test/outer/.examples/inner');
@@ -809,7 +809,7 @@ analyzer:
   void test_locateRoots_nested_excluded_explicit() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    File outerPackagesFile = newDotPackagesFile('/test/outer');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer');
     Folder excludedFolder = newFolder('/test/outer/examples');
     newAnalysisOptionsYamlFile('/test/outer/examples/inner');
 
@@ -828,12 +828,13 @@ analyzer:
   void test_locateRoots_nested_multiple() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    File outerPackagesFile = newDotPackagesFile('/test/outer');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer');
     Folder inner1RootFolder = newFolder('/test/outer/examples/inner1');
     File inner1OptionsFile =
         newAnalysisOptionsYamlFile('/test/outer/examples/inner1');
     Folder inner2RootFolder = newFolder('/test/outer/examples/inner2');
-    File inner2PackagesFile = newDotPackagesFile('/test/outer/examples/inner2');
+    File inner2PackagesFile =
+        newPackageConfigJsonFile('/test/outer/examples/inner2');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
@@ -862,7 +863,7 @@ analyzer:
   void test_locateRoots_nested_options() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    File outerPackagesFile = newDotPackagesFile('/test/outer');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer');
     Folder innerRootFolder = newFolder('/test/outer/examples/inner');
     File innerOptionsFile =
         newAnalysisOptionsYamlFile('/test/outer/examples/inner');
@@ -887,7 +888,7 @@ analyzer:
   void test_locateRoots_nested_options_overriddenOptions() {
     Folder outerRootFolder = newFolder('/test/outer');
     newAnalysisOptionsYamlFile('/test/outer');
-    File outerPackagesFile = newDotPackagesFile('/test/outer');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer');
     newFolder('/test/outer/examples/inner');
     newAnalysisOptionsYamlFile('/test/outer/examples/inner');
     File overrideOptionsFile = newAnalysisOptionsYamlFile('/test/override');
@@ -907,11 +908,11 @@ analyzer:
   void test_locateRoots_nested_options_overriddenPackages() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    newDotPackagesFile('/test/outer');
+    newPackageConfigJsonFile('/test/outer');
     Folder innerRootFolder = newFolder('/test/outer/examples/inner');
     File innerOptionsFile =
         newAnalysisOptionsYamlFile('/test/outer/examples/inner');
-    File overridePackagesFile = newDotPackagesFile('/test/override');
+    File overridePackagesFile = newPackageConfigJsonFile('/test/override');
 
     List<ContextRoot> roots = contextLocator.locateRoots(
         includedPaths: [outerRootFolder.path],
@@ -934,11 +935,12 @@ analyzer:
   void test_locateRoots_nested_optionsAndPackages() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    File outerPackagesFile = newDotPackagesFile('/test/outer');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer');
     Folder innerRootFolder = newFolder('/test/outer/examples/inner');
     File innerOptionsFile =
         newAnalysisOptionsYamlFile('/test/outer/examples/inner');
-    File innerPackagesFile = newDotPackagesFile('/test/outer/examples/inner');
+    File innerPackagesFile =
+        newPackageConfigJsonFile('/test/outer/examples/inner');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
@@ -960,12 +962,12 @@ analyzer:
   void test_locateRoots_nested_optionsAndPackages_overriddenBoth() {
     Folder outerRootFolder = newFolder('/test/outer');
     newAnalysisOptionsYamlFile('/test/outer');
-    newDotPackagesFile('/test/outer');
+    newPackageConfigJsonFile('/test/outer');
     newFolder('/test/outer/examples/inner');
     newAnalysisOptionsYamlFile('/test/outer/examples/inner');
-    newDotPackagesFile('/test/outer/examples/inner');
+    newPackageConfigJsonFile('/test/outer/examples/inner');
     File overrideOptionsFile = newAnalysisOptionsYamlFile('/test/override');
-    File overridePackagesFile = newDotPackagesFile('/test/override');
+    File overridePackagesFile = newPackageConfigJsonFile('/test/override');
 
     List<ContextRoot> roots = contextLocator.locateRoots(
         includedPaths: [outerRootFolder.path],
@@ -1009,9 +1011,10 @@ analyzer:
   void test_locateRoots_nested_packages() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    File outerPackagesFile = newDotPackagesFile('/test/outer');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer');
     Folder innerRootFolder = newFolder('/test/outer/examples/inner');
-    File innerPackagesFile = newDotPackagesFile('/test/outer/examples/inner');
+    File innerPackagesFile =
+        newPackageConfigJsonFile('/test/outer/examples/inner');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
@@ -1033,9 +1036,10 @@ analyzer:
   void test_locateRoots_nested_packages_overriddenOptions() {
     Folder outerRootFolder = newFolder('/test/outer');
     newAnalysisOptionsYamlFile('/test/outer');
-    File outerPackagesFile = newDotPackagesFile('/test/outer');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer');
     Folder innerRootFolder = newFolder('/test/outer/examples/inner');
-    File innerPackagesFile = newDotPackagesFile('/test/outer/examples/inner');
+    File innerPackagesFile =
+        newPackageConfigJsonFile('/test/outer/examples/inner');
     File overrideOptionsFile = newAnalysisOptionsYamlFile('/test/override');
 
     List<ContextRoot> roots = contextLocator.locateRoots(
@@ -1059,10 +1063,10 @@ analyzer:
   void test_locateRoots_nested_packages_overriddenPackages() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    newDotPackagesFile('/test/outer');
+    newPackageConfigJsonFile('/test/outer');
     newFolder('/test/outer/examples/inner');
-    newDotPackagesFile('/test/outer/examples/inner');
-    File overridePackagesFile = newDotPackagesFile('/test/override');
+    newPackageConfigJsonFile('/test/outer/examples/inner');
+    File overridePackagesFile = newPackageConfigJsonFile('/test/override');
 
     List<ContextRoot> roots = contextLocator.locateRoots(
         includedPaths: [outerRootFolder.path],
@@ -1079,7 +1083,7 @@ analyzer:
   void test_locateRoots_nested_packagesDirectory_included() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    File outerPackagesFile = newDotPackagesFile('/test/outer');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer');
     File innerOptionsFile =
         newAnalysisOptionsYamlFile('/test/outer/packages/inner');
 
@@ -1152,7 +1156,7 @@ analyzer:
     - **.g.dart
 analyzer:
 ''');
-    File packagesFile = newDotPackagesFile('/test/root');
+    File packagesFile = newPackageConfigJsonFile('/test/root');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -1178,7 +1182,7 @@ analyzer:
   exclude:
     - data/**.g.dart
 ''');
-    File packagesFile = newDotPackagesFile('/test/root');
+    File packagesFile = newPackageConfigJsonFile('/test/root');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -1211,7 +1215,7 @@ analyzer:
   exclude:
     - data/**/foo/**
 ''');
-    File packagesFile = newDotPackagesFile('/test/root');
+    File packagesFile = newPackageConfigJsonFile('/test/root');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -1243,7 +1247,7 @@ analyzer:
   exclude:
     - data/**
 ''');
-    File packagesFile = newDotPackagesFile('/test/root');
+    File packagesFile = newPackageConfigJsonFile('/test/root');
     newFolder('/test/root/data');
 
     List<ContextRoot> roots =
@@ -1277,7 +1281,7 @@ analyzer:
     - data/**
 ''');
 
-    File packagesFile = newDotPackagesFile('/test/root');
+    File packagesFile = newPackageConfigJsonFile('/test/root');
     newFolder('/test/root/data');
 
     List<ContextRoot> roots =
@@ -1314,7 +1318,7 @@ analyzer:
     - foo/**
 ''');
 
-    File packagesFile = newDotPackagesFile('/test/root');
+    File packagesFile = newPackageConfigJsonFile('/test/root');
     newFolder('/test/root/foo');
     newFolder('/test/root/bar');
 
@@ -1348,7 +1352,7 @@ analyzer:
   exclude:
     - data/**
 ''');
-    File packagesFile = newDotPackagesFile('/test/root');
+    File packagesFile = newPackageConfigJsonFile('/test/root');
     newFolder('/test/root/data');
     newAnalysisOptionsYamlFile('/test/root/data', content: '');
 
@@ -1375,7 +1379,7 @@ analyzer:
   void test_locateRoots_single_dir_directOptions_directPackages() {
     Folder rootFolder = newFolder('/test/root');
     File optionsFile = newAnalysisOptionsYamlFile('/test/root');
-    File packagesFile = newDotPackagesFile('/test/root');
+    File packagesFile = newPackageConfigJsonFile('/test/root');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -1391,7 +1395,7 @@ analyzer:
   void test_locateRoots_single_dir_directOptions_inheritedPackages() {
     Folder rootFolder = newFolder('/test/root');
     File optionsFile = newAnalysisOptionsYamlFile('/test/root');
-    File packagesFile = newDotPackagesFile('/test');
+    File packagesFile = newPackageConfigJsonFile('/test');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -1407,7 +1411,7 @@ analyzer:
   void test_locateRoots_single_dir_inheritedOptions_directPackages() {
     Folder rootFolder = newFolder('/test/root');
     File optionsFile = newAnalysisOptionsYamlFile('/test');
-    File packagesFile = newDotPackagesFile('/test/root');
+    File packagesFile = newPackageConfigJsonFile('/test/root');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -1423,7 +1427,7 @@ analyzer:
   void test_locateRoots_single_dir_inheritedOptions_inheritedPackages() {
     Folder rootFolder = newFolder('/test/root');
     File optionsFile = newAnalysisOptionsYamlFile('/test');
-    File packagesFile = newDotPackagesFile('/test');
+    File packagesFile = newPackageConfigJsonFile('/test');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -1439,7 +1443,7 @@ analyzer:
   void test_locateRoots_single_dir_prefer_packageConfigJson() {
     var rootFolder = newFolder('/test');
     var optionsFile = newAnalysisOptionsYamlFile('/test');
-    newDotPackagesFile('/test'); // the file is not used
+    newPackageConfigJsonFile('/test'); // the file is not used
     var packageConfigJsonFile = newPackageConfigJsonFile('/test');
 
     var roots = contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -1454,7 +1458,7 @@ analyzer:
 
   void test_locateRoots_single_file_inheritedOptions_directPackages() {
     File optionsFile = newAnalysisOptionsYamlFile('/test');
-    File packagesFile = newDotPackagesFile('/test/root');
+    File packagesFile = newPackageConfigJsonFile('/test/root');
     File testFile = newFile('/test/root/test.dart');
 
     List<ContextRoot> roots =
@@ -1470,7 +1474,7 @@ analyzer:
 
   void test_locateRoots_single_file_notExisting() {
     File optionsFile = newAnalysisOptionsYamlFile('/test');
-    File packagesFile = newDotPackagesFile('/test/root');
+    File packagesFile = newPackageConfigJsonFile('/test/root');
     File testFile = getFile('/test/root/test.dart');
 
     List<ContextRoot> roots =
