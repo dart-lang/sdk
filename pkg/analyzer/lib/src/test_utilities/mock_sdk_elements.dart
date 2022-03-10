@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -872,6 +873,7 @@ class _MockSdkElementsBuilder {
     var asyncUnit = CompilationUnitElementImpl();
     var asyncSource = analysisContext.sourceFactory.forUri('dart:async')!;
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
+    asyncUnit.lineInfo = LineInfo([0]);
     asyncLibrary.definingCompilationUnit = asyncUnit;
 
     asyncUnit.classes = <ClassElement>[
@@ -890,6 +892,7 @@ class _MockSdkElementsBuilder {
 
     var coreSource = analysisContext.sourceFactory.forUri('dart:core')!;
     coreUnit.librarySource = coreUnit.source = coreSource;
+    coreUnit.lineInfo = LineInfo([0]);
 
     coreUnit.classes = <ClassElement>[
       boolElement,

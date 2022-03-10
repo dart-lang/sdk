@@ -974,7 +974,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   late Source source;
 
   @override
-  LineInfo? lineInfo;
+  late LineInfo lineInfo;
 
   /// The source of the library containing this compilation unit.
   ///

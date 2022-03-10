@@ -20124,9 +20124,6 @@ ParserErrorCode:
   EMPTY_ENUM_BODY:
     problemMessage: An enum must declare at least one constant name.
     correctionMessage: Try declaring a constant.
-  ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS:
-    problemMessage: Missing arguments in enum constructor invocation.
-    correctionMessage: Try adding an argument list.
   EXPECTED_CASE_OR_DEFAULT:
     problemMessage: "Expected 'case' or 'default'."
     correctionMessage: Try placing this code inside a case clause.

@@ -78,7 +78,6 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         TypeArgumentListImpl,
         TypeParameterImpl;
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
@@ -2914,18 +2913,6 @@ class AstBuilder extends StackListener {
           period: constructorNamePeriod,
           name: constructorNameId,
         );
-      }
-      // enum E { v<int> }
-      if (typeArguments != null && argumentList == null) {
-        errorReporter.errorReporter?.reportErrorForNode(
-          ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
-          typeArguments,
-        );
-        argumentList = _syntheticArgumentList(typeArguments.endToken);
-      }
-      // enum E { v.^ }
-      if (constructorSelector != null) {
-        argumentList ??= _syntheticArgumentList(constructorSelector.endToken);
       }
     }
 

@@ -8119,15 +8119,14 @@ class UriList extends Response {
       json == null ? null : UriList._fromJson(json);
 
   /// A list of URIs.
-  List<dynamic>? uris;
+  List<String?>? uris;
 
   UriList({
     required this.uris,
   });
 
   UriList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    uris = List<dynamic>.from(
-        createServiceObject(json['uris'], const ['dynamic']) as List? ?? []);
+    uris = List<String?>.from(json['uris']);
   }
 
   @override
@@ -8138,7 +8137,7 @@ class UriList extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'uris': uris?.map((f) => f.toJson()).toList(),
+      'uris': uris?.map((f) => f).toList(),
     });
     return json;
   }

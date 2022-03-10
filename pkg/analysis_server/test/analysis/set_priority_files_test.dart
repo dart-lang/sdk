@@ -83,8 +83,8 @@ analyzer:
   }
 
   Future<void> test_ignoredInAnalysisOptions_inChildContext() async {
-    newDotPackagesFile(projectPath);
-    newDotPackagesFile('$projectPath/child');
+    newPackageConfigJsonFile(projectPath);
+    newPackageConfigJsonFile('$projectPath/child');
     var sampleFile = convertPath('$projectPath/child/samples/sample.dart');
     newFile('$projectPath/child/${file_paths.analysisOptionsYaml}',
         content: r'''
@@ -99,8 +99,8 @@ analyzer:
   }
 
   Future<void> test_ignoredInAnalysisOptions_inRootContext() async {
-    newDotPackagesFile(projectPath);
-    newDotPackagesFile('$projectPath/child');
+    newPackageConfigJsonFile(projectPath);
+    newPackageConfigJsonFile('$projectPath/child');
     var sampleFile = convertPath('$projectPath/child/samples/sample.dart');
     newFile('$projectPath/${file_paths.analysisOptionsYaml}', content: r'''
 analyzer:

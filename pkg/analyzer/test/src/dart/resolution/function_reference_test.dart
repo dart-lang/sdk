@@ -363,6 +363,7 @@ FunctionReference
     token: f
     staticElement: f@61
     staticType: void Function<U>(U)
+      alias: self::@typeAlias::Fn
   staticType: void Function(int)
   typeArgumentTypes
     int

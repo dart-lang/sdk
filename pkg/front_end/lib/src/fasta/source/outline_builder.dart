@@ -551,8 +551,8 @@ class OutlineBuilder extends StackListenerImpl {
         addProblem(
             templateExperimentNotEnabled.withArguments(
                 'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-            augmentToken.next!.charOffset,
-            augmentToken.next!.length);
+            augmentToken.charOffset,
+            augmentToken.length);
         augmentToken = null;
       }
     }
@@ -835,8 +835,8 @@ class OutlineBuilder extends StackListenerImpl {
         addProblem(
             templateExperimentNotEnabled.withArguments(
                 'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-            macroToken.next!.charOffset,
-            macroToken.next!.length);
+            macroToken.charOffset,
+            macroToken.length);
         macroToken = null;
       }
     }

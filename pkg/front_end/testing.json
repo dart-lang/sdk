@@ -468,6 +468,7 @@
       "test/language_versioning/data/",
       "test/macros/application/data/",
       "test/macros/declaration/data/",
+      "test/macros/incremental/data/",
       "test/patching/data",
       "test/predicates/data",
       "test/static_types/data/",

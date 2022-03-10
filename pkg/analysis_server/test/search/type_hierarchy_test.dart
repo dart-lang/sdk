@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -168,11 +169,19 @@ library lib_a;
 class A {}
 class B extends A {}
 ''');
-    newDotPackagesFile('/packages/pkgA',
-        content: 'pkgA:${toUriStr('/packages/pkgA/lib')}');
+    newPackageConfigJsonFile(
+      '/packages/pkgA',
+      content: (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+          .toContent(toUriStr: toUriStr),
+    );
     // reference the package from a project
-    newDotPackagesFile(projectPath,
-        content: 'pkgA:${toUriStr('/packages/pkgA/lib')}');
+    newPackageConfigJsonFile(
+      projectPath,
+      content: (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+          .toContent(toUriStr: toUriStr),
+    );
     addTestFile('''
 import 'package:pkgA/libA.dart';
 class C extends A {}

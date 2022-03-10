@@ -4689,9 +4689,9 @@ library
         fields
           synthetic x @-1
             type: dynamic Function()
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                T
+              alias: self::@typeAlias::F
+                typeArguments
+                  T
           synthetic y @-1
             type: List<dynamic Function()>
         constructors
@@ -4699,9 +4699,9 @@ library
         accessors
           get x @41
             returnType: dynamic Function()
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                T
+              alias: self::@typeAlias::F
+                typeArguments
+                  T
           get y @69
             returnType: List<dynamic Function()>
       class B @89
@@ -4709,9 +4709,9 @@ library
         fields
           synthetic x @-1
             type: dynamic Function()
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                int
+              alias: self::@typeAlias::F
+                typeArguments
+                  int
           synthetic y @-1
             type: List<dynamic Function()>
         constructors
@@ -4722,9 +4722,9 @@ library
         accessors
           get x @114
             returnType: dynamic Function()
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                int
+              alias: self::@typeAlias::F
+                typeArguments
+                  int
           get y @131
             returnType: List<dynamic Function()>
     typeAliases

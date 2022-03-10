@@ -236,41 +236,6 @@ class A {}
     assertNoErrors(b_path);
   }
 
-  Future<void> test_fileSystem_addFile_dotPackagesFile() async {
-    deleteTestPackageConfigJsonFile();
-    var aaaLibPath = '/packages/aaa/lib';
-    var a_path = '$aaaLibPath/a.dart';
-
-    newFile(a_path, content: '''
-class A {}
-''');
-
-    newFile(testFilePath, content: '''
-import 'package:aaa/a.dart';
-void f(A a) {}
-''');
-
-    await setRoots(included: [workspaceRootPath], excluded: []);
-    await server.onAnalysisComplete;
-
-    // We cannot resolve `package:aaa/a.dart`
-    assertHasErrors(testFilePath);
-
-    // Write `.packages`, recreate analysis contexts.
-    newDotPackagesFile(testPackageRootPath, content: '''
-aaa:${toUriStr(aaaLibPath)}
-''');
-
-    await pumpEventQueue();
-    await server.onAnalysisComplete;
-
-    // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
-
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
-  }
-
   Future<void> test_fileSystem_addFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
@@ -564,44 +529,6 @@ class A {}
     assertNoErrors(b_path);
   }
 
-  Future<void> test_fileSystem_changeFile_dotPackagesFile() async {
-    deleteTestPackageConfigJsonFile();
-    var aaaLibPath = '/packages/aaa/lib';
-    var a_path = '$aaaLibPath/a.dart';
-
-    newFile(a_path, content: '''
-class A {}
-''');
-
-    // Write `.packages` empty, without `package:aaa`.
-    newDotPackagesFile(testPackageRootPath, content: '');
-
-    newFile(testFilePath, content: '''
-import 'package:aaa/a.dart';
-void f(A a) {}
-''');
-
-    await setRoots(included: [workspaceRootPath], excluded: []);
-    await server.onAnalysisComplete;
-
-    // We cannot resolve `package:aaa/a.dart`
-    assertHasErrors(testFilePath);
-
-    // Write `.packages`, recreate analysis contexts.
-    newDotPackagesFile(testPackageRootPath, content: '''
-aaa:${toUriStr(aaaLibPath)}
-''');
-
-    await pumpEventQueue();
-    await server.onAnalysisComplete;
-
-    // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
-
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
-  }
-
   Future<void> test_fileSystem_changeFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
@@ -833,43 +760,6 @@ void f(A a) {}
     assertHasErrors(b_path);
   }
 
-  Future<void> test_fileSystem_deleteFile_dotPackagesFile() async {
-    deleteTestPackageConfigJsonFile();
-    var aaaLibPath = '/packages/aaa/lib';
-    var a_path = '$aaaLibPath/a.dart';
-
-    newFile(a_path, content: '''
-class A {}
-''');
-
-    newDotPackagesFile(testPackageRootPath, content: '''
-aaa:${toUriStr(aaaLibPath)}
-''');
-
-    newFile(testFilePath, content: '''
-import 'package:aaa/a.dart';
-void f(A a) {}
-''');
-
-    await setRoots(included: [workspaceRootPath], excluded: []);
-    await server.onAnalysisComplete;
-
-    // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
-
-    // Write `.packages`, recreate analysis contexts.
-    deleteFile('$testPackageRootPath/.packages');
-
-    await pumpEventQueue();
-    await server.onAnalysisComplete;
-
-    // We cannot resolve `package:aaa/a.dart`
-    assertHasErrors(testFilePath);
-
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
-  }
-
   Future<void> test_fileSystem_deleteFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
@@ -985,35 +875,6 @@ void f(A a) {}
         [convertPath('$testPackageLibPath/a.dart')],
       ).toRequest('0'),
     );
-  }
-
-  Future<void> test_setRoots_dotPackagesFile() async {
-    deleteTestPackageConfigJsonFile();
-    var aaaLibPath = '/packages/aaa/lib';
-    var a_path = '$aaaLibPath/a.dart';
-
-    newFile(a_path, content: '''
-class A {}
-''');
-
-    newDotPackagesFile(testPackageRootPath, content: '''
-aaa:${toUriStr(aaaLibPath)}
-''');
-
-    newFile(testFilePath, content: '''
-import 'package:aaa/a.dart';
-void f(A a) {}
-''');
-
-    // create project and wait for analysis
-    await setRoots(included: [workspaceRootPath], excluded: []);
-    await server.onAnalysisComplete;
-
-    // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
-
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
   }
 
   Future<void> test_setRoots_excluded_notAbsolute() async {
@@ -1468,7 +1329,12 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
 library lib_a;
 class A {}
 ''').path;
-    newDotPackagesFile('/project', content: 'pkgA:file:///packages/pkgA/lib');
+    newPackageConfigJsonFile(
+      '/project',
+      content: (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+          .toContent(toUriStr: toUriStr),
+    );
     //
     addTestFile('''
 import 'package:pkgA/libA.dart';
@@ -1518,7 +1384,12 @@ main() {
 library lib_a;
 class A {}
 ''').path;
-    newDotPackagesFile('/project', content: 'pkgA:/packages/pkgA/lib');
+    newPackageConfigJsonFile(
+      '/project',
+      content: (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+          .toContent(toUriStr: toUriStr),
+    );
     //
     addTestFile('// no "pkgA" reference');
     await createProject();

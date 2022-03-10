@@ -1,6 +1,7 @@
 # Changelog
 
 ## 8.2.1
+- Changed type of `UriList.uris` from `dynamic` to `List<String?>?`.
 - Remove `example/vm_service_asserts.dart'
 
 ## 8.2.0

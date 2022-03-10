@@ -93,20 +93,8 @@ Future<CompilerResult> generateKernelInternal(
       kernelTarget.setEntryPoints(options.inputs);
       NeededPrecompilations? neededPrecompilations =
           await kernelTarget.computeNeededPrecompilations();
-      if (neededPrecompilations != null) {
-        if (enableMacros) {
-          // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
-          // the compiler options for the precompilation.
-          if (options.rawOptionsForTesting.macroTarget != null) {
-            await _compileMacros(
-                neededPrecompilations, options.rawOptionsForTesting);
-            // TODO(johnniwinther): Assert that some works has been done.
-            // TODO(johnniwinther): Stop in case of compile-time errors.
-            continue;
-          }
-        } else {
-          throw new UnsupportedError('Macro precompilation is not supported');
-        }
+      if (await precompileMacros(neededPrecompilations, options)) {
+        continue;
       }
       return _buildInternal(
           options: options,
@@ -276,6 +264,33 @@ class InternalCompilerResult implements CompilerResult {
 /// compilation below.
 Uri _defaultDir = Uri.parse('org-dartlang-macro:///a/b/c/');
 
+/// Compiles the libraries for the macro classes in [neededPrecompilations].
+///
+/// Returns `true` if macro classes were compiled and added to the
+/// [CompilerOptions.precompiledMacroUris] of the provided [options].
+///
+/// Returns `false` if no macro classes needed precompilation or if macro
+/// precompilation is not supported.
+Future<bool> precompileMacros(NeededPrecompilations? neededPrecompilations,
+    ProcessedOptions options) async {
+  if (neededPrecompilations != null) {
+    if (enableMacros) {
+      // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
+      // the compiler options for the precompilation.
+      if (options.rawOptionsForTesting.macroTarget != null) {
+        await _compileMacros(
+            neededPrecompilations, options.rawOptionsForTesting);
+        // TODO(johnniwinther): Assert that some works has been done.
+        // TODO(johnniwinther): Stop in case of compile-time errors.
+        return true;
+      }
+    } else {
+      throw new UnsupportedError('Macro precompilation is not supported');
+    }
+  }
+  return false;
+}
+
 Future<void> _compileMacros(NeededPrecompilations neededPrecompilations,
     CompilerOptions options) async {
   assert(options.macroSerializer != null);
@@ -305,7 +320,8 @@ Future<void> _compileMacros(NeededPrecompilations neededPrecompilations,
   fs.entityForUri(uri).writeAsStringSync(bootstrapMacroIsolate(
       macroDeclarations, SerializationMode.byteDataClient));
 
-  precompilationOptions..fileSystem = new HybridFileSystem(fs);
+  precompilationOptions
+    ..fileSystem = new HybridFileSystem(fs, options.fileSystem);
   CompilerResult? compilerResult =
       await kernelForProgramInternal(uri, precompilationOptions);
   Uri precompiledUri = await options.macroSerializer!

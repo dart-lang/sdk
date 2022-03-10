@@ -91,12 +91,12 @@ class ElementFactory {
       classTypeAlias(typeName, objectType, parameterNames);
 
   static CompilationUnitElementImpl compilationUnit(String fileName,
-      [Source? librarySource]) {
+      [Source? librarySource, LineInfo? lineInfo]) {
     Source source = NonExistingSource(fileName, toUri(fileName));
     CompilationUnitElementImpl unit = CompilationUnitElementImpl();
     unit.source = source;
-    librarySource ??= source;
-    unit.librarySource = librarySource;
+    unit.librarySource = librarySource ?? source;
+    unit.lineInfo = lineInfo ?? LineInfo([0]);
     return unit;
   }
 

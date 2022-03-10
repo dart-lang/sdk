@@ -1285,6 +1285,40 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeElement(name, element);
   }
 
+  void writeType(DartType? type, {String? name}) {
+    _sink.write(_indent);
+
+    if (name != null) {
+      _sink.write('$name: ');
+    }
+
+    if (type != null) {
+      var typeStr = _typeStr(type);
+      _writeln(typeStr);
+
+      var alias = type.alias;
+      if (alias != null) {
+        _withIndent(() {
+          _writeElement('alias', alias.element);
+          _withIndent(() {
+            _writeTypeList('typeArguments', alias.typeArguments);
+          });
+        });
+      }
+    } else {
+      _writeln('null');
+    }
+  }
+
+  void writeTypeList(String name, List<DartType>? types) {
+    if (types != null && types.isNotEmpty) {
+      _writelnWithIndent(name);
+      _withIndent(() {
+        types.forEach(writeType);
+      });
+    }
+  }
+
   /// Check that children entities of the [node] link to each other.
   void _checkChildrenEntitiesLinking(AstNode node) {
     Token? lastEnd;
@@ -1333,7 +1367,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     return '{$entriesStr}';
   }
 
-  String? _typeStr(DartType type) {
+  String _typeStr(DartType type) {
     return type.getDisplayString(withNullability: true);
   }
 
@@ -1534,24 +1568,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   void _writeType(String name, DartType? type) {
     if (_withResolution) {
-      if (type != null) {
-        var typeStr = _typeStr(type);
-        _writelnWithIndent('$name: $typeStr');
-      } else {
-        _writelnWithIndent('$name: null');
-      }
+      writeType(type, name: name);
     }
   }
 
   void _writeTypeList(String name, List<DartType>? types) {
-    if (types != null && types.isNotEmpty) {
-      _writelnWithIndent(name);
-      _withIndent(() {
-        for (var type in types) {
-          var typeStr = _typeStr(type);
-          _writelnWithIndent('$typeStr');
-        }
-      });
+    if (_withResolution) {
+      writeTypeList(name, types);
     }
   }
 

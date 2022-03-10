@@ -335,4 +335,23 @@ enum E {
 
     check(response).suggestions.isEmpty;
   }
+
+  Future<void> test_constantName_typeArguments_dot_x_semicolon_named() async {
+    var response = await getTestCodeSuggestions('''
+enum E<T> {
+  v<int>.^;
+  const E.foo01();
+  const E.foo02();
+}
+''');
+
+    check(response).suggestions.matchesInAnyOrder([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isConstructorInvocation,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isConstructorInvocation,
+    ]);
+  }
 }

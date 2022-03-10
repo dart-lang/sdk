@@ -1091,16 +1091,30 @@ class MemberType extends Member {
     // foo|bar[]|baz
     // (@Instance|Sentinel)[]
     bool loop = true;
+    bool nullable = false;
     this.isReturnType = isReturnType;
 
+    final unionTypes = <String>[];
     while (loop) {
       if (parser.consume('(')) {
         while (parser.peek()!.text != ')') {
-          // @Instance | Sentinel
-          parser.advance();
+          if (parser.consume('Null')) {
+            nullable = true;
+          } else {
+            // @Instance | Sentinel
+            final token = parser.advance()!;
+            if (token.isName) {
+              unionTypes.add(_coerceRefType(token.text)!);
+            }
+          }
         }
         parser.consume(')');
-        TypeRef ref = TypeRef('dynamic');
+        TypeRef ref;
+        if (unionTypes.length == 1) {
+          ref = TypeRef(unionTypes.first)..nullable = nullable;
+        } else {
+          ref = TypeRef('dynamic');
+        }
         while (parser.consume('[')) {
           parser.expect(']');
           ref.arrayDepth++;
@@ -1148,15 +1162,16 @@ class MemberType extends Member {
 class TypeRef {
   String? name;
   int arrayDepth = 0;
+  bool nullable = false;
   List<TypeRef>? genericTypes;
 
   TypeRef(this.name);
 
   String get ref {
     if (arrayDepth == 2) {
-      return 'List<List<${name}>>';
+      return 'List<List<${name}${nullable ? "?" : ""}>>';
     } else if (arrayDepth == 1) {
-      return 'List<${name}>';
+      return 'List<${name}${nullable ? "?" : ""}>';
     } else if (genericTypes != null) {
       return '$name<${genericTypes!.join(', ')}>';
     } else {
@@ -1168,13 +1183,15 @@ class TypeRef {
     assert(arrayDepth == 1);
 
     if (isListTypeSimple) {
-      return 'List<$name>';
+      return 'List<$name${nullable ? "?" : ""}>';
     } else {
       return 'List<String>';
     }
   }
 
-  String? get listTypeArg => arrayDepth == 2 ? 'List<$name>' : name;
+  String? get listTypeArg => arrayDepth == 2
+      ? 'List<$name${nullable ? "?" : ""}>'
+      : '$name${nullable ? "?" : ""}';
 
   bool get isArray => arrayDepth > 0;
 

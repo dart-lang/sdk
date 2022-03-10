@@ -384,6 +384,7 @@ mixin ElementsTypesMixin {
     var definingUnit = CompilationUnitElementImpl();
     definingUnit.source = source;
     definingUnit.librarySource = source;
+    definingUnit.lineInfo = LineInfo([0]);
 
     definingUnit.enclosingElement = library;
     library.definingCompilationUnit = definingUnit;

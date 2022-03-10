@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "macro.dart" as mac;
+import "dart:core" as core;
+
+import "org-dartlang-test:///a/b/c/user_macro/macro.dart";
+
+@#C1
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as mac;
+import "dart:core" as core;
+import "package:_fe_analyzer_shared/src/macros/api.dart" as api;
+
+import "dart:async";
+import "package:_fe_analyzer_shared/src/macros/api.dart";
+
+macro class MethodMacro extends core::Object implements api::ClassDeclarationsMacro /*hasConstConstructor*/  {
+  const constructor •() → mac::MethodMacro
+    : super core::Object::•()
+    ;
+  @#C2
+  method buildDeclarationsForClass(api::ClassDeclaration clazz, api::ClassMemberDeclarationBuilder builder) → FutureOr<void> async {}
+}
+
+constants  {
+  #C1 = mac::MethodMacro {}
+  #C2 = dart.core::_Override {}
+}

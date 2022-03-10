@@ -2392,6 +2392,29 @@ class DartSnippetCompletionTest extends SnippetCompletionTest {
     );
   }
 
+  Future<void> test_snippets_doWhile() async {
+    final content = '''
+void f() {
+  do^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartDoWhileLoopSnippetProducer.prefix,
+      label: DartDoWhileLoopSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  do {
+    $0
+  } while ($1);
+}
+''');
+  }
+
   Future<void>
       test_snippets_flutterStateless_notAvailable_notFlutterProject() async {
     final content = '''
@@ -2407,6 +2430,100 @@ class B {}
       content,
       FlutterStatelessWidgetSnippetProducer.prefix,
     );
+  }
+
+  Future<void> test_snippets_for() async {
+    final content = '''
+void f() {
+  for^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartForLoopSnippetProducer.prefix,
+      label: DartForLoopSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  for (var i = 0; i < $1; i++) {
+    $0
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_forIn() async {
+    final content = '''
+void f() {
+  forin^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartForInLoopSnippetProducer.prefix,
+      label: DartForInLoopSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  for (var $1 in $2) {
+    $0
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_if() async {
+    final content = '''
+void f() {
+  if^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartIfSnippetProducer.prefix,
+      label: DartIfSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  if ($1) {
+    $0
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_ifElse() async {
+    final content = '''
+void f() {
+  if^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartIfElseSnippetProducer.prefix,
+      label: DartIfElseSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  if ($1) {
+    $0
+  } else {
+    
+  }
+}
+''');
   }
 
   Future<void> test_snippets_mainFunction() async {
@@ -2445,6 +2562,80 @@ class B {}
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.kind == CompletionItemKind.Snippet), isFalse);
+  }
+
+  Future<void> test_snippets_switch() async {
+    final content = '''
+void f() {
+  swi^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartSwitchSnippetProducer.prefix,
+      label: DartSwitchSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  switch ($1) {
+    case $2:
+      $0
+      break;
+    default:
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_tryCatch() async {
+    final content = '''
+void f() {
+  tr^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartTryCatchSnippetProducer.prefix,
+      label: DartTryCatchSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  try {
+    $0
+  } catch (${1:e}) {
+    
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_while() async {
+    final content = '''
+void f() {
+  while^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartWhileLoopSnippetProducer.prefix,
+      label: DartWhileLoopSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  while ($1) {
+    $0
+  }
+}
+''');
   }
 }
 
