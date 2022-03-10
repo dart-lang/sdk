@@ -69,9 +69,7 @@ class PluginLocatorTest with ResourceProviderMixin {
   }
 
   void _createPubspec(String content) {
-    pubspecPath =
-        newFile('/package/${PluginLocator.pubspecFileName}', content: content)
-            .path;
+    pubspecPath = newPubspecYamlFile('/package', content).path;
   }
 
   String _createPubspecWithKey() {

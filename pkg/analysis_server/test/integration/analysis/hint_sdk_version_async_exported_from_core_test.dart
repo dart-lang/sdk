@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,7 +18,7 @@ void main() {
 class SdkVersionAsyncExportedFromCoreIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_update_pubspec() async {
-    var pubspecPath = sourcePath('pubspec.yaml');
+    var pubspecPath = sourcePath(file_paths.pubspecYaml);
     writeFile(pubspecPath, r'''
 name: test
 environment:

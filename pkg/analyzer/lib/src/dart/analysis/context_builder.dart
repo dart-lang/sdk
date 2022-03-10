@@ -27,6 +27,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
@@ -198,7 +199,7 @@ class ContextBuilderImpl implements ContextBuilder {
   /// TODO(scheglov) Get it from [Workspace]?
   File? _findPubspecFile(ContextRoot contextRoot) {
     for (var current in contextRoot.root.withAncestors) {
-      var file = current.getChildAssumingFile('pubspec.yaml');
+      var file = current.getChildAssumingFile(file_paths.pubspecYaml);
       if (file.exists) {
         return file;
       }

@@ -13,6 +13,7 @@ import 'package:analyzer/error/listener.dart' as error;
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:args/args.dart';
@@ -47,9 +48,6 @@ class Driver {
   /// The name of the command-line option used to specify the style of
   /// interaction to use when making `analysis.updateContent` requests.
   static String OVERLAY_STYLE_OPTION_NAME = 'overlay-style';
-
-  /// The name of the pubspec file.
-  static const String PUBSPEC_FILE_NAME = 'pubspec.yaml';
 
   /// The name of the branch used to clean-up after making temporary changes.
   static const String TEMP_BRANCH_NAME = 'temp';
@@ -203,7 +201,7 @@ class Driver {
       var children = directory.listSync(recursive: true, followLinks: false);
       for (var child in children) {
         var filePath = child.path;
-        if (path.basename(filePath) == PUBSPEC_FILE_NAME) {
+        if (path.basename(filePath) == file_paths.pubspecYaml) {
           pubspecFiles.add(filePath);
         }
       }
@@ -353,7 +351,7 @@ class Driver {
           statistics.commitsWithChangeInRootCount++;
           await _replayDiff(commitDelta);
         }
-        changedPubspecs = commitDelta.filesMatching(PUBSPEC_FILE_NAME);
+        changedPubspecs = commitDelta.filesMatching(file_paths.pubspecYaml);
       }
     } finally {
       // Ensure that the repository is left at the most recent commit.

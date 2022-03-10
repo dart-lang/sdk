@@ -502,8 +502,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final file2 = join(projectFolderPath, 'file2.dart');
     final file2Uri = Uri.file(file2);
     newFile(file2);
-    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    newFile(pubspecPath);
+    newPubspecYamlFile(projectFolderPath, '');
 
     await initialize(allowEmptyRootUri: true);
 
@@ -549,8 +548,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
     newFile(nestedFilePath);
-    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    newFile(pubspecPath);
+    newPubspecYamlFile(projectFolderPath, '');
 
     // The project folder shouldn't be added to start with.
     await initialize(allowEmptyRootUri: true);
@@ -716,8 +714,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonFileScheme_workspaceFolders() async {
-    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    newFile(pubspecPath);
+    newPubspecYamlFile(projectFolderPath, '');
 
     final rootUri = Uri.parse('vsls://');
     final fileUri = rootUri.replace(path: '/file1.dart');
@@ -788,8 +785,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final file2 = join(projectFolderPath, 'file2.dart');
     final file2Uri = Uri.file(file2);
     newFile(file2);
-    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    newFile(pubspecPath);
+    newPubspecYamlFile(projectFolderPath, '');
 
     await initialize(
       rootUri: projectFolderUri,
@@ -842,8 +838,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
     newFile(nestedFilePath);
-    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    newFile(pubspecPath);
+    newPubspecYamlFile(projectFolderPath, '');
 
     // The project folder shouldn't be added to start with.
     await initialize(
