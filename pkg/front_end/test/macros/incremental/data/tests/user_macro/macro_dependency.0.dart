@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'macro.dart';
-import 'main_lib.dart';
-
-@MethodMacro()
-class Class {
-  void existingMethod() {
-    existingMethodDependency();
-  }
+String generateBody() {
+  return '''
+  void method() {}
+''';
 }

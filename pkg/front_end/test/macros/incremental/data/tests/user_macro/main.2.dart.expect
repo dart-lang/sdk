@@ -12,7 +12,9 @@ class Class extends core::Object {
   synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/user_macro/main.dart-0 */ method() → void {}
+  method /* from org-dartlang-augmentation:/a/b/c/user_macro/main.dart-0 */ method() → void {
+    core::print("method");
+  }
   method existingMethod() → void {
     mai::existingMethodDependency();
   }
@@ -36,6 +38,14 @@ macro class MethodMacro extends core::Object implements api::ClassDeclarationsMa
   method buildDeclarationsForClass(api::ClassDeclaration clazz, api::ClassMemberDeclarationBuilder builder) → FutureOr<void> async {
     builder.{api::ClassMemberDeclarationBuilder::declareInClass}(new api::DeclarationCode::fromString(mac2::generateBody())){(api::DeclarationCode) → void};
   }
+}
+
+library /*isNonNullableByDefault*/;
+import self as mac2;
+import "dart:core" as core;
+
+static method generateBody() → core::String {
+  return "  void method() {\n    print('method');\n  }\n";
 }
 
 constants  {
