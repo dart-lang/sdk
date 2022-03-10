@@ -116,7 +116,7 @@ import 'import.dart' show Import;
 
 import 'incremental_serializer.dart' show IncrementalSerializer;
 
-import 'kernel/macro.dart' show enableMacros, MacroClass, NeededPrecompilations;
+import 'kernel/macro.dart' show enableMacros, NeededPrecompilations;
 
 import 'scope.dart' show Scope;
 
@@ -1404,12 +1404,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return;
     }
     CompilerOptions compilerOptions = processedOptions.rawOptionsForTesting;
-    Map<MacroClass, Uri>? precompiledMacroUris =
-        compilerOptions.precompiledMacroUris;
+    Map<Uri, Uri>? precompiledMacroUris = compilerOptions.precompiledMacroUris;
     if (precompiledMacroUris != null) {
-      for (MacroClass macroClass in precompiledMacroUris.keys.toList()) {
-        if (invalidatedUris.contains(macroClass.importUri)) {
-          precompiledMacroUris.remove(macroClass);
+      for (Uri macroLibraryUri in precompiledMacroUris.keys.toList()) {
+        if (invalidatedUris.contains(macroLibraryUri)) {
+          precompiledMacroUris.remove(macroLibraryUri);
         }
       }
     }
