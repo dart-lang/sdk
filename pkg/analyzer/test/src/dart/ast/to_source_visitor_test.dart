@@ -225,11 +225,15 @@ class ToSourceVisitorTest {
     _assertSource("abstract macro class C {}", declaration);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48541')
   void test_visitClassDeclaration_augment() {
-    ClassDeclaration declaration = AstTestFactory.classDeclaration(
-        null, "C", null, null, null, null,
-        isAugmentation: true);
-    _assertSource("augment class C {}", declaration);
+    var findNode = _parseStringToFindNode(r'''
+augment class A {}
+''');
+    _assertSource(
+      'augment class A {}',
+      findNode.classDeclaration('class A'),
+    );
   }
 
   void test_visitClassDeclaration_empty() {
@@ -293,10 +297,13 @@ class ToSourceVisitorTest {
   }
 
   void test_visitClassDeclaration_macro() {
-    ClassDeclaration declaration = AstTestFactory.classDeclaration(
-        null, "C", null, null, null, null,
-        isMacro: true);
-    _assertSource("macro class C {}", declaration);
+    var findNode = _parseStringToFindNode(r'''
+macro class A {}
+''');
+    _assertSource(
+      'macro class A {}',
+      findNode.classDeclaration('class A'),
+    );
   }
 
   void test_visitClassDeclaration_multipleMember() {
@@ -446,17 +453,15 @@ class ToSourceVisitorTest {
             isMacro: true));
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48541')
   void test_visitClassTypeAlias_augment() {
+    var findNode = _parseStringToFindNode(r'''
+augment class A = S with M;
+''');
     _assertSource(
-        "augment class C = S with M1;",
-        AstTestFactory.classTypeAlias(
-            "C",
-            null,
-            null,
-            AstTestFactory.namedType4("S"),
-            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
-            null,
-            isAugmentation: true));
+      'augment class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
   }
 
   void test_visitClassTypeAlias_generic() {
@@ -486,16 +491,13 @@ class ToSourceVisitorTest {
   }
 
   void test_visitClassTypeAlias_macro() {
+    var findNode = _parseStringToFindNode(r'''
+macro class A = S with M;
+''');
     _assertSource(
-        "macro class C = S with M1;",
-        AstTestFactory.classTypeAlias(
-            "C",
-            null,
-            null,
-            AstTestFactory.namedType4("S"),
-            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
-            null,
-            isMacro: true));
+      'macro class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
   }
 
   void test_visitClassTypeAlias_minimal() {

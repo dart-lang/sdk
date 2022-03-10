@@ -199,6 +199,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    _writeln('ClassTypeAlias');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement);
+      }
+    });
+  }
+
+  @override
   void visitComment(Comment node) {
     _writeln('Comment');
     _withIndent(() {
