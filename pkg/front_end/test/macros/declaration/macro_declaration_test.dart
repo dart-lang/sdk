@@ -47,7 +47,7 @@ class MacroTestConfig extends TestConfig {
     Uri precompiledPackage =
         Uri.parse('package:precompiled_macro/precompiled_macro.dart');
     options.precompiledMacroUris = {
-      new MacroClass(precompiledPackage, 'PrecompiledMacro'): dummyUri,
+      precompiledPackage: dummyUri,
     };
     return macroExecutor;
   }

@@ -60,7 +60,7 @@ class MacroTestConfig extends TestConfig {
   final Directory dataDir;
   final MacroSerializer macroSerializer;
   final bool generateExpectations;
-  final Map<MacroClass, Uri> precompiledMacroUris = {};
+  final Map<Uri, Uri> precompiledMacroUris = {};
 
   MacroTestConfig(this.dataDir, this.macroSerializer,
       {required this.generateExpectations})

@@ -326,12 +326,9 @@ Future<void> _compileMacros(NeededPrecompilations neededPrecompilations,
       await kernelForProgramInternal(uri, precompilationOptions);
   Uri precompiledUri = await options.macroSerializer!
       .createUriForComponent(compilerResult!.component!);
-  Map<MacroClass, Uri> precompiledMacroUris =
-      options.precompiledMacroUris ??= {};
+  Map<Uri, Uri> precompiledMacroUris = options.precompiledMacroUris ??= {};
   neededPrecompilations.macroDeclarations
       .forEach((Uri uri, Map<String, List<String>> macroClasses) {
-    for (String macroClass in macroClasses.keys) {
-      precompiledMacroUris[new MacroClass(uri, macroClass)] = precompiledUri;
-    }
+    precompiledMacroUris[uri] = precompiledUri;
   });
 }

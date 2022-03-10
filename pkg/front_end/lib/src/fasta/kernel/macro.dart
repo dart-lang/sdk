@@ -51,24 +51,6 @@ class MacroDeclarationData {
   List<Map<Uri, Map<String, List<String>>>> neededPrecompilations = [];
 }
 
-class MacroClass {
-  final Uri importUri;
-  final String className;
-
-  const MacroClass(this.importUri, this.className);
-
-  @override
-  int get hashCode => importUri.hashCode * 13 + className.hashCode * 17;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is MacroClass &&
-        importUri == other.importUri &&
-        className == other.className;
-  }
-}
-
 class MacroApplication {
   final ClassBuilder classBuilder;
   final String constructorName;
@@ -136,7 +118,7 @@ class MacroApplications {
 
   static Future<MacroApplications> loadMacroIds(
       macro.MacroExecutor macroExecutor,
-      Map<MacroClass, Uri> precompiledMacroUris,
+      Map<Uri, Uri> precompiledMacroUris,
       Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData,
       MacroApplicationDataForTesting? dataForTesting) async {
     Map<ClassBuilder, macro.MacroClassIdentifier> classIdCache = {};
@@ -147,14 +129,13 @@ class MacroApplications {
         List<MacroApplication>? applications) async {
       if (applications != null) {
         for (MacroApplication application in applications) {
-          MacroClass macroClass = new MacroClass(
-              application.classBuilder.library.importUri,
-              application.classBuilder.name);
-          Uri? precompiledMacroUri = precompiledMacroUris[macroClass];
+          Uri libraryUri = application.classBuilder.library.importUri;
+          String macroClassName = application.classBuilder.name;
+          Uri? precompiledMacroUri = precompiledMacroUris[libraryUri];
           try {
             macro.MacroClassIdentifier macroClassIdentifier =
-                classIdCache[application.classBuilder] ??= await macroExecutor
-                    .loadMacro(macroClass.importUri, macroClass.className,
+                classIdCache[application.classBuilder] ??=
+                    await macroExecutor.loadMacro(libraryUri, macroClassName,
                         precompiledKernelUri: precompiledMacroUri);
             try {
               application.instanceIdentifier = instanceIdCache[application] ??=
