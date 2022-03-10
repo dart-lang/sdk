@@ -1322,7 +1322,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   SaveArguments(compiler);
 
   // Enter the entry frame. Push a dummy return address for consistency with
-  // EnterFrame on ARM(64).
+  // EnterFrame on ARM(64). NativeParameterInstr expects this frame has size
+  // -exit_link_slot_from_entry_fp, verified below.
   __ PushImmediate(compiler::Immediate(0));
   __ EnterFrame(0);
 

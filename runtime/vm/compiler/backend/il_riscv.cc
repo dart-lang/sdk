@@ -1585,7 +1585,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save the argument registers, in reverse order.
   SaveArguments(compiler);
 
-  // Enter the entry frame.
+  // Enter the entry frame. NativeParameterInstr expects this frame has size
+  // -exit_link_slot_from_entry_fp, verified below.
   __ EnterFrame(0);
 
   // Save a space for the code object.

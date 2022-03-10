@@ -729,15 +729,17 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
     }
 
     // Pass target::NativeArguments structure by value and call native function.
-    __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
-    __ movq(Address(RSP, argc_tag_offset),
-            R10);  // Set argc in target::NativeArguments.
-    __ movq(Address(RSP, argv_offset),
-            R13);  // Set argv in target::NativeArguments.
-    __ leaq(RAX,
-            Address(RBP, 2 * target::kWordSize));  // Compute return value addr.
-    __ movq(Address(RSP, retval_offset),
-            RAX);  // Set retval in target::NativeArguments.
+    // Set thread in NativeArgs.
+    __ movq(Address(RSP, thread_offset), THR);
+    // Set argc in target::NativeArguments.
+    __ movq(Address(RSP, argc_tag_offset), R10);
+    // Set argv in target::NativeArguments.
+    __ movq(Address(RSP, argv_offset), R13);
+    // Compute return value addr.
+    __ leaq(RAX, Address(RBP, (target::frame_layout.param_end_from_fp + 1) *
+                                  target::kWordSize));
+    // Set retval in target::NativeArguments.
+    __ movq(Address(RSP, retval_offset), RAX);
 
     // Pass the pointer to the target::NativeArguments.
     __ movq(CallingConventions::kArg1Reg, RSP);

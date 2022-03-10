@@ -584,7 +584,9 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
 
   // Set retval in NativeArgs.
   ASSERT(retval_offset == 3 * target::kWordSize);
-  __ add(R3, FP, Operand(2 * target::kWordSize));
+  __ add(R3, FP,
+         Operand((target::frame_layout.param_end_from_fp + 1) *
+                 target::kWordSize));
 
   // Passing the structure by value as in runtime calls would require changing
   // Dart API for native functions.

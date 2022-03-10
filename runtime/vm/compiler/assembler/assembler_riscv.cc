@@ -3474,12 +3474,12 @@ void Assembler::EnterFrame(intptr_t frame_size) {
   subi(SP, SP, frame_size + 2 * target::kWordSize);
   sx(RA, Address(SP, frame_size + 1 * target::kWordSize));
   sx(FP, Address(SP, frame_size + 0 * target::kWordSize));
-  addi(FP, SP, frame_size + 0 * target::kWordSize);
+  addi(FP, SP, frame_size + 2 * target::kWordSize);
 }
 void Assembler::LeaveFrame() {
   // N.B. The ordering here is important. We must never read beyond SP or
   // it may have already been clobbered by a signal handler.
-  mv(SP, FP);
+  subi(SP, FP, 2 * target::kWordSize);
   lx(FP, Address(SP, 0 * target::kWordSize));
   lx(RA, Address(SP, 1 * target::kWordSize));
   addi(SP, SP, 2 * target::kWordSize);
@@ -3666,7 +3666,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
     subi(SP, SP, frame_size + 2 * target::kWordSize);
     sx(RA, Address(SP, frame_size + 1 * target::kWordSize));
     sx(FP, Address(SP, frame_size + 0 * target::kWordSize));
-    addi(FP, SP, frame_size + 0 * target::kWordSize);
+    addi(FP, SP, frame_size + 2 * target::kWordSize);
   } else {
     subi(SP, SP, frame_size + 4 * target::kWordSize);
     sx(RA, Address(SP, frame_size + 3 * target::kWordSize));
@@ -3674,7 +3674,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
     sx(CODE_REG, Address(SP, frame_size + 1 * target::kWordSize));
     addi(PP, PP, kHeapObjectTag);
     sx(PP, Address(SP, frame_size + 0 * target::kWordSize));
-    addi(FP, SP, frame_size + 2 * target::kWordSize);
+    addi(FP, SP, frame_size + 4 * target::kWordSize);
     if (new_pp == kNoRegister) {
       LoadPoolPointer();
     } else {
@@ -3711,7 +3711,7 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
     }
   }
   set_constant_pool_allowed(false);
-  mv(SP, FP);
+  subi(SP, FP, 2 * target::kWordSize);
   lx(FP, Address(SP, 0 * target::kWordSize));
   lx(RA, Address(SP, 1 * target::kWordSize));
   addi(SP, SP, 2 * target::kWordSize);
@@ -3730,13 +3730,13 @@ void Assembler::EnterCFrame(intptr_t frame_space) {
   subi(SP, SP, frame_space + 2 * target::kWordSize);
   sx(RA, Address(SP, frame_space + 1 * target::kWordSize));
   sx(FP, Address(SP, frame_space + 0 * target::kWordSize));
-  addi(FP, SP, frame_space);
+  addi(FP, SP, frame_space + 2 * target::kWordSize);
 }
 
 void Assembler::LeaveCFrame() {
   // N.B. The ordering here is important. We must never read beyond SP or
   // it may have already been clobbered by a signal handler.
-  mv(SP, FP);
+  subi(SP, FP, 2 * target::kWordSize);
   lx(FP, Address(SP, 0 * target::kWordSize));
   lx(RA, Address(SP, 1 * target::kWordSize));
   addi(SP, SP, 2 * target::kWordSize);
@@ -4179,7 +4179,7 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
     subi(SP, SP, 2 * target::kWordSize + frame_size);
     sx(RA, Address(SP, 1 * target::kWordSize + frame_size));
     sx(FP, Address(SP, 0 * target::kWordSize + frame_size));
-    addi(FP, SP, 0 * target::kWordSize + frame_size);
+    addi(FP, SP, 2 * target::kWordSize + frame_size);
   } else {
     subi(SP, SP, 4 * target::kWordSize + frame_size);
     sx(RA, Address(SP, 3 * target::kWordSize + frame_size));
@@ -4187,7 +4187,7 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
     sx(CODE_REG, Address(SP, 1 * target::kWordSize + frame_size));
     addi(PP, PP, kHeapObjectTag);
     sx(PP, Address(SP, 0 * target::kWordSize + frame_size));
-    addi(FP, SP, 2 * target::kWordSize + frame_size);
+    addi(FP, SP, 4 * target::kWordSize + frame_size);
   }
 
   PushRegisters(kRuntimeCallSavedRegisters);
@@ -4201,8 +4201,7 @@ void Assembler::LeaveCallRuntimeFrame(bool is_leaf) {
   const intptr_t kPushedRegistersSize =
       kRuntimeCallSavedRegisters.CpuRegisterCount() * target::kWordSize +
       kRuntimeCallSavedRegisters.FpuRegisterCount() * kFpuRegisterSize +
-      (target::frame_layout.dart_fixed_frame_size - 2) *
-          target::kWordSize;  // From EnterStubFrame (excluding PC / FP)
+      (target::frame_layout.dart_fixed_frame_size * target::kWordSize);
 
   subi(SP, FP, kPushedRegistersSize);
 

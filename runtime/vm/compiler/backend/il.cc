@@ -4400,15 +4400,15 @@ void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // The native entry frame has size -kExitLinkSlotFromFp. In order to access
-  // the top of stack from above the entry frame, we add a constant to account
-  // for the two frame pointers and two return addresses of the entry frame.
-  constexpr intptr_t kEntryFramePadding = 4;
-  compiler::ffi::FrameRebase rebase(
-      compiler->zone(),
-      /*old_base=*/SPREG, /*new_base=*/FPREG,
-      (-kExitLinkSlotFromEntryFp + kEntryFramePadding) *
-          compiler::target::kWordSize);
+  // There are two frames between SaveArguments and the NativeParameterInstr
+  // moves.
+  constexpr intptr_t delta =
+      kCallerSpSlotFromFp          // second frame FP to exit link slot
+      + -kExitLinkSlotFromEntryFp  // exit link slot to first frame FP
+      + kCallerSpSlotFromFp;       // first frame FP to argument save SP
+  compiler::ffi::FrameRebase rebase(compiler->zone(),
+                                    /*old_base=*/SPREG, /*new_base=*/FPREG,
+                                    delta * compiler::target::kWordSize);
   const auto& location =
       marshaller_.NativeLocationOfNativeParameter(def_index_);
   const auto& src =

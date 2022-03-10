@@ -436,16 +436,21 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movl(Address(ESP, thread_offset), THR);    // Set thread in NativeArgs.
-  __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
-  __ movl(Address(ESP, argv_offset), EAX);      // Set argv in NativeArguments.
-  __ leal(EAX,
-          Address(EBP, 2 * target::kWordSize));  // Compute return value addr.
-  __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
-  __ leal(
-      EAX,
-      Address(ESP, 2 * target::kWordSize));  // Pointer to the NativeArguments.
-  __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
+  // Set thread in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);
+  // Set argc in NativeArguments.
+  __ movl(Address(ESP, argc_tag_offset), EDX);
+  // Set argv in NativeArguments.
+  __ movl(Address(ESP, argv_offset), EAX);
+  // Compute return value addr.
+  __ leal(EAX, Address(EBP, (target::frame_layout.param_end_from_fp + 1) *
+                                target::kWordSize));
+  // Set retval in NativeArguments.
+  __ movl(Address(ESP, retval_offset), EAX);
+  // Pointer to the NativeArguments.
+  __ leal(EAX, Address(ESP, 2 * target::kWordSize));
+  // Pass the pointer to the NativeArguments.
+  __ movl(Address(ESP, 0), EAX);
 
   __ movl(Address(ESP, target::kWordSize), ECX);  // Function to call.
   __ call(wrapper_address);
