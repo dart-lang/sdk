@@ -1993,10 +1993,10 @@ library
           covariant U @96
             defaultType: dynamic
         supertype: C<U, T>
-          aliasElement: self::@typeAlias::A
-          aliasArguments
-            U
-            T
+          alias: self::@typeAlias::A
+            typeArguments
+              U
+              T
         constructors
           named @121
             periodOffset: 120
@@ -6412,13 +6412,13 @@ library
         typeParameters
           covariant X @42
             bound: void Function(X*)*
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                X*
+              alias: self::@typeAlias::F
+                typeArguments
+                  X*
             defaultType: void Function(Null*)*
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                Null*
+              alias: self::@typeAlias::F
+                typeArguments
+                  Null*
         constructors
           synthetic @-1
     typeAliases
@@ -6449,13 +6449,13 @@ library
         typeParameters
           covariant X @42
             bound: void Function(X)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                X
+              alias: self::@typeAlias::F
+                typeArguments
+                  X
             defaultType: void Function(Never)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                Never
+              alias: self::@typeAlias::F
+                typeArguments
+                  Never
         constructors
           synthetic @-1
     typeAliases
@@ -6486,13 +6486,13 @@ library
         typeParameters
           covariant X @38
             bound: X Function()
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                X
+              alias: self::@typeAlias::F
+                typeArguments
+                  X
             defaultType: dynamic Function()
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                dynamic
+              alias: self::@typeAlias::F
+                typeArguments
+                  dynamic
         constructors
           synthetic @-1
     typeAliases
@@ -6520,13 +6520,13 @@ library
         typeParameters
           covariant X @39
             bound: X Function(X)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                X
+              alias: self::@typeAlias::F
+                typeArguments
+                  X
             defaultType: dynamic Function(dynamic)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                dynamic
+              alias: self::@typeAlias::F
+                typeArguments
+                  dynamic
         constructors
           synthetic @-1
     typeAliases
@@ -6557,13 +6557,13 @@ library
         typeParameters
           covariant X @39
             bound: X Function(X)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                X
+              alias: self::@typeAlias::F
+                typeArguments
+                  X
             defaultType: dynamic Function(dynamic)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                dynamic
+              alias: self::@typeAlias::F
+                typeArguments
+                  dynamic
         constructors
           synthetic @-1
     typeAliases
@@ -6704,13 +6704,13 @@ library
         typeParameters
           covariant X @48
             bound: List<void Function(X)>
-              aliasElement: self::@typeAlias::A
-              aliasArguments
-                X
+              alias: self::@typeAlias::A
+                typeArguments
+                  X
             defaultType: List<void Function(Never)>
-              aliasElement: self::@typeAlias::A
-              aliasArguments
-                Never
+              alias: self::@typeAlias::A
+                typeArguments
+                  Never
         constructors
           synthetic @-1
     typeAliases
@@ -6736,13 +6736,13 @@ library
         typeParameters
           covariant X @37
             bound: Map<X, int>
-              aliasElement: self::@typeAlias::A
-              aliasArguments
-                X
+              alias: self::@typeAlias::A
+                typeArguments
+                  X
             defaultType: Map<dynamic, int>
-              aliasElement: self::@typeAlias::A
-              aliasArguments
-                dynamic
+              alias: self::@typeAlias::A
+                typeArguments
+                  dynamic
         constructors
           synthetic @-1
     typeAliases
@@ -16087,17 +16087,17 @@ library
         fields
           final f @71
             type: void Function(dynamic)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                dynamic
+              alias: self::@typeAlias::F
+                typeArguments
+                  dynamic
         constructors
           const @82
             parameters
               optionalNamed final this.f @90
                 type: void Function(dynamic)
-                  aliasElement: self::@typeAlias::F
-                  aliasArguments
-                    dynamic
+                  alias: self::@typeAlias::F
+                    typeArguments
+                      dynamic
                 constantInitializer
                   FunctionReference
                     function: SimpleIdentifier
@@ -16111,9 +16111,9 @@ library
         accessors
           synthetic get f @-1
             returnType: void Function(dynamic)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                dynamic
+              alias: self::@typeAlias::F
+                typeArguments
+                  dynamic
     typeAliases
       functionTypeAliasBased F @13
         typeParameters
@@ -16243,9 +16243,9 @@ library
         parameters
           optionalPositional compare @22
             type: int* Function(dynamic, dynamic)*
-              aliasElement: dart:core::@typeAlias::Comparator
-              aliasArguments
-                dynamic
+              alias: dart:core::@typeAlias::Comparator
+                typeArguments
+                  dynamic
             constantInitializer
               PrefixedIdentifier
                 prefix: SimpleIdentifier
@@ -19716,7 +19716,7 @@ library
         parameters
           requiredPositional f @25
             type: dynamic Function(int)
-              aliasElement: self::@typeAlias::F
+              alias: self::@typeAlias::F
         returnType: dynamic
 ''');
   }
@@ -20741,9 +20741,9 @@ library
         aliasedType: void Function(T) Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: void Function(T)
-            aliasElement: self::@typeAlias::F1
-            aliasArguments
-              T
+            alias: self::@typeAlias::F1
+              typeArguments
+                T
 ''');
   }
 
@@ -20763,9 +20763,9 @@ library
         aliasedType: void Function(T) Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: void Function(T)
-            aliasElement: self::@typeAlias::F1
-            aliasArguments
-              T
+            alias: self::@typeAlias::F1
+              typeArguments
+                T
       functionTypeAliasBased F1 @36
         typeParameters
           contravariant T @39
@@ -20838,9 +20838,9 @@ library
         aliasedType: T Function() Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: T Function()
-            aliasElement: self::@typeAlias::F1
-            aliasArguments
-              T
+            alias: self::@typeAlias::F1
+              typeArguments
+                T
 ''');
   }
 
@@ -20872,9 +20872,9 @@ library
           parameters
             requiredPositional a @50
               type: void Function(T)
-                aliasElement: self::@typeAlias::F1
-                aliasArguments
-                  T
+                alias: self::@typeAlias::F1
+                  typeArguments
+                    T
           returnType: void
 ''');
   }
@@ -20926,9 +20926,9 @@ library
             requiredPositional a @41
               type: T
           returnType: T Function()
-            aliasElement: self::@typeAlias::F1
-            aliasArguments
-              T
+            alias: self::@typeAlias::F1
+              typeArguments
+                T
 ''');
   }
 
@@ -21823,9 +21823,9 @@ library
           parameters
             requiredPositional @-1
               type: V1 Function()
-                aliasElement: self::@typeAlias::F2
-                aliasArguments
-                  V1
+                alias: self::@typeAlias::F2
+                  typeArguments
+                    V1
           returnType: dynamic
       F2 @43
         typeParameters
@@ -22663,9 +22663,9 @@ library
             parameters
               requiredPositional f @65
                 type: D<V, U> Function<U>()
-                  aliasElement: self::@typeAlias::F
-                  aliasArguments
-                    V
+                  alias: self::@typeAlias::F
+                    typeArguments
+                      V
       class D @77
         typeParameters
           covariant T @79
@@ -22740,7 +22740,7 @@ library
             parameters
               requiredPositional f @54
                 type: D<T> Function<T>()
-                  aliasElement: self::@typeAlias::F
+                  alias: self::@typeAlias::F
       class D @66
         typeParameters
           covariant T @68
@@ -23284,31 +23284,31 @@ library
         fields
           v @49
             type: int Function(String)
-              aliasElement: self::@typeAlias::F
+              alias: self::@typeAlias::F
         constructors
           synthetic @-1
             superConstructor: self::@class::D::@constructor::•
         accessors
           synthetic get v @-1
             returnType: int Function(String)
-              aliasElement: self::@typeAlias::F
+              alias: self::@typeAlias::F
           synthetic set v @-1
             parameters
               requiredPositional _v @-1
                 type: int Function(String)
-                  aliasElement: self::@typeAlias::F
+                  alias: self::@typeAlias::F
             returnType: void
       abstract class D @69
         fields
           synthetic v @-1
             type: int Function(String)
-              aliasElement: self::@typeAlias::F
+              alias: self::@typeAlias::F
         constructors
           synthetic @-1
         accessors
           abstract get v @79
             returnType: int Function(String)
-              aliasElement: self::@typeAlias::F
+              alias: self::@typeAlias::F
     typeAliases
       functionTypeAliasBased F @12
         aliasedType: int Function(String)
@@ -23507,7 +23507,7 @@ library
         parameters
           requiredPositional f @37
             type: void Function(int Function(String))
-              aliasElement: self::@typeAlias::F
+              alias: self::@typeAlias::F
         returnType: dynamic
 ''');
   }
@@ -24551,9 +24551,9 @@ library
         methods
           f @31
             returnType: O Function(O)
-              aliasElement: a.dart::@typeAlias::F
-              aliasArguments
-                O
+              alias: a.dart::@typeAlias::F
+                typeArguments
+                  O
 ''');
   }
 
@@ -24580,22 +24580,22 @@ library
     topLevelVariables
       static f @33
         type: dynamic Function(num)
-          aliasElement: self::@typeAlias::F
-          aliasArguments
-            num
+          alias: self::@typeAlias::F
+            typeArguments
+              num
     accessors
       synthetic static get f @-1
         returnType: dynamic Function(num)
-          aliasElement: self::@typeAlias::F
-          aliasArguments
-            num
+          alias: self::@typeAlias::F
+            typeArguments
+              num
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function(num)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                num
+              alias: self::@typeAlias::F
+                typeArguments
+                  num
         returnType: void
 ''');
   }
@@ -24665,22 +24665,22 @@ library
     topLevelVariables
       static f @49
         type: S Function<S>(num)
-          aliasElement: self::@typeAlias::F
-          aliasArguments
-            num
+          alias: self::@typeAlias::F
+            typeArguments
+              num
     accessors
       synthetic static get f @-1
         returnType: S Function<S>(num)
-          aliasElement: self::@typeAlias::F
-          aliasArguments
-            num
+          alias: self::@typeAlias::F
+            typeArguments
+              num
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: S Function<S>(num)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                num
+              alias: self::@typeAlias::F
+                typeArguments
+                  num
         returnType: void
 ''');
   }
@@ -33416,7 +33416,7 @@ library
         type: E
       static f @49
         type: dynamic Function()
-          aliasElement: self::@typeAlias::F
+          alias: self::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -33434,12 +33434,12 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          aliasElement: self::@typeAlias::F
+          alias: self::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              aliasElement: self::@typeAlias::F
+              alias: self::@typeAlias::F
         returnType: void
 ''');
   }
@@ -33460,7 +33460,7 @@ library
         type: E
       static f @38
         type: dynamic Function()
-          aliasElement: self::@typeAlias::F
+          alias: self::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -33478,12 +33478,12 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          aliasElement: self::@typeAlias::F
+          alias: self::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              aliasElement: self::@typeAlias::F
+              alias: self::@typeAlias::F
         returnType: void
   parts
     a.dart
@@ -33604,7 +33604,7 @@ library
           type: E
         static f @23
           type: dynamic Function()
-            aliasElement: self::@typeAlias::F
+            alias: self::@typeAlias::F
       accessors
         synthetic static get c @-1
           returnType: C
@@ -33622,12 +33622,12 @@ library
           returnType: void
         synthetic static get f @-1
           returnType: dynamic Function()
-            aliasElement: self::@typeAlias::F
+            alias: self::@typeAlias::F
         synthetic static set f @-1
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                aliasElement: self::@typeAlias::F
+                alias: self::@typeAlias::F
           returnType: void
 ''');
   }
@@ -33700,7 +33700,7 @@ library
           type: E
         static f @23
           type: dynamic Function()
-            aliasElement: self::@typeAlias::F
+            alias: self::@typeAlias::F
       accessors
         synthetic static get c @-1
           returnType: C
@@ -33718,12 +33718,12 @@ library
           returnType: void
         synthetic static get f @-1
           returnType: dynamic Function()
-            aliasElement: self::@typeAlias::F
+            alias: self::@typeAlias::F
         synthetic static set f @-1
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                aliasElement: self::@typeAlias::F
+                alias: self::@typeAlias::F
           returnType: void
 ''');
   }
@@ -33794,7 +33794,7 @@ library
           type: E
         static f @60
           type: dynamic Function()
-            aliasElement: self::@typeAlias::F
+            alias: self::@typeAlias::F
       accessors
         synthetic static get c @-1
           returnType: C
@@ -33812,12 +33812,12 @@ library
           returnType: void
         synthetic static get f @-1
           returnType: dynamic Function()
-            aliasElement: self::@typeAlias::F
+            alias: self::@typeAlias::F
         synthetic static set f @-1
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                aliasElement: self::@typeAlias::F
+                alias: self::@typeAlias::F
           returnType: void
 ''');
   }
@@ -33974,7 +33974,7 @@ library
         type: E
       static f @29
         type: dynamic Function()
-          aliasElement: a.dart::@typeAlias::F
+          alias: a.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -33992,12 +33992,12 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          aliasElement: a.dart::@typeAlias::F
+          alias: a.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              aliasElement: a.dart::@typeAlias::F
+              alias: a.dart::@typeAlias::F
         returnType: void
 ''');
   }
@@ -34018,7 +34018,7 @@ library
         type: E
       static f @29
         type: dynamic Function()
-          aliasElement: b.dart::@typeAlias::F
+          alias: b.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34036,12 +34036,12 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          aliasElement: b.dart::@typeAlias::F
+          alias: b.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              aliasElement: b.dart::@typeAlias::F
+              alias: b.dart::@typeAlias::F
         returnType: void
 ''');
   }
@@ -34063,7 +34063,7 @@ library
         type: E
       static f @29
         type: dynamic Function()
-          aliasElement: c.dart::@typeAlias::F
+          alias: c.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34081,12 +34081,12 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          aliasElement: c.dart::@typeAlias::F
+          alias: c.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              aliasElement: c.dart::@typeAlias::F
+              alias: c.dart::@typeAlias::F
         returnType: void
 ''');
   }
@@ -34108,7 +34108,7 @@ library
         type: E
       static f @31
         type: dynamic Function()
-          aliasElement: c.dart::@typeAlias::F
+          alias: c.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34126,12 +34126,12 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          aliasElement: c.dart::@typeAlias::F
+          alias: c.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              aliasElement: c.dart::@typeAlias::F
+              alias: c.dart::@typeAlias::F
         returnType: void
 ''');
   }
@@ -34152,7 +34152,7 @@ library
         type: E
       static f @31
         type: dynamic Function()
-          aliasElement: b.dart::@typeAlias::F
+          alias: b.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34170,12 +34170,12 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          aliasElement: b.dart::@typeAlias::F
+          alias: b.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              aliasElement: b.dart::@typeAlias::F
+              alias: b.dart::@typeAlias::F
         returnType: void
 ''');
   }
@@ -34196,7 +34196,7 @@ library
         type: E
       static f @29
         type: dynamic Function()
-          aliasElement: a.dart::@typeAlias::F
+          alias: a.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34214,12 +34214,12 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          aliasElement: a.dart::@typeAlias::F
+          alias: a.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              aliasElement: a.dart::@typeAlias::F
+              alias: a.dart::@typeAlias::F
         returnType: void
 ''');
   }
@@ -34273,7 +34273,7 @@ library
         type: E
       static f @31
         type: dynamic Function()
-          aliasElement: b.dart::@typeAlias::F
+          alias: b.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34291,12 +34291,12 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          aliasElement: b.dart::@typeAlias::F
+          alias: b.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              aliasElement: b.dart::@typeAlias::F
+              alias: b.dart::@typeAlias::F
         returnType: void
 ''');
   }
@@ -34316,7 +34316,7 @@ library
         type: E
       static f @29
         type: dynamic Function()
-          aliasElement: a.dart::@typeAlias::F
+          alias: a.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34334,12 +34334,12 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          aliasElement: a.dart::@typeAlias::F
+          alias: a.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              aliasElement: a.dart::@typeAlias::F
+              alias: a.dart::@typeAlias::F
         returnType: void
 ''');
   }
@@ -34357,16 +34357,16 @@ library
     topLevelVariables
       static f @15
         type: dynamic Function()
-          aliasElement: self::@typeAlias::F
+          alias: self::@typeAlias::F
     accessors
       synthetic static get f @-1
         returnType: dynamic Function()
-          aliasElement: self::@typeAlias::F
+          alias: self::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              aliasElement: self::@typeAlias::F
+              alias: self::@typeAlias::F
         returnType: void
 ''');
   }
@@ -34393,25 +34393,25 @@ library
     topLevelVariables
       static f @39
         type: String Function(int)
-          aliasElement: self::@typeAlias::F
-          aliasArguments
-            int
-            String
+          alias: self::@typeAlias::F
+            typeArguments
+              int
+              String
     accessors
       synthetic static get f @-1
         returnType: String Function(int)
-          aliasElement: self::@typeAlias::F
-          aliasArguments
-            int
-            String
+          alias: self::@typeAlias::F
+            typeArguments
+              int
+              String
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: String Function(int)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                int
-                String
+              alias: self::@typeAlias::F
+                typeArguments
+                  int
+                  String
         returnType: void
 ''');
   }
@@ -34437,25 +34437,25 @@ library
     topLevelVariables
       static f @26
         type: dynamic Function(dynamic)
-          aliasElement: self::@typeAlias::F
-          aliasArguments
-            dynamic
-            dynamic
+          alias: self::@typeAlias::F
+            typeArguments
+              dynamic
+              dynamic
     accessors
       synthetic static get f @-1
         returnType: dynamic Function(dynamic)
-          aliasElement: self::@typeAlias::F
-          aliasArguments
-            dynamic
-            dynamic
+          alias: self::@typeAlias::F
+            typeArguments
+              dynamic
+              dynamic
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function(dynamic)
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                dynamic
-                dynamic
+              alias: self::@typeAlias::F
+                typeArguments
+                  dynamic
+                  dynamic
         returnType: void
 ''');
   }
@@ -34572,9 +34572,9 @@ library
         aliasedType: void Function(T) Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: void Function(T)
-            aliasElement: self::@typeAlias::F1
-            aliasArguments
-              T
+            alias: self::@typeAlias::F1
+              typeArguments
+                T
 ''');
   }
 
@@ -34637,9 +34637,9 @@ library
         aliasedType: T Function() Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: T Function()
-            aliasElement: self::@typeAlias::F1
-            aliasArguments
-              T
+            alias: self::@typeAlias::F1
+              typeArguments
+                T
 ''');
   }
 
@@ -34671,9 +34671,9 @@ library
           parameters
             requiredPositional @-1
               type: void Function(T)
-                aliasElement: self::@typeAlias::F1
-                aliasArguments
-                  T
+                alias: self::@typeAlias::F1
+                  typeArguments
+                    T
           returnType: void
 ''');
   }
@@ -34726,7 +34726,7 @@ library
           parameters
             requiredPositional @-1
               type: void Function()
-                aliasElement: self::@typeAlias::F
+                alias: self::@typeAlias::F
           returnType: void
 ''');
   }
@@ -34778,9 +34778,9 @@ library
             requiredPositional @-1
               type: T
           returnType: T Function()
-            aliasElement: self::@typeAlias::F1
-            aliasArguments
-              T
+            alias: self::@typeAlias::F1
+              typeArguments
+                T
 ''');
   }
 
@@ -34927,24 +34927,24 @@ library
         fields
           f @58
             type: int Function<T>(T)
-              aliasElement: self::@typeAlias::Foo
-              aliasArguments
-                int
+              alias: self::@typeAlias::Foo
+                typeArguments
+                  int
         constructors
           synthetic @-1
         accessors
           synthetic get f @-1
             returnType: int Function<T>(T)
-              aliasElement: self::@typeAlias::Foo
-              aliasArguments
-                int
+              alias: self::@typeAlias::Foo
+                typeArguments
+                  int
           synthetic set f @-1
             parameters
               requiredPositional _f @-1
                 type: int Function<T>(T)
-                  aliasElement: self::@typeAlias::Foo
-                  aliasArguments
-                    int
+                  alias: self::@typeAlias::Foo
+                    typeArguments
+                      int
             returnType: void
     typeAliases
       Foo @8
@@ -35638,15 +35638,15 @@ library
         parameters
           requiredPositional a @71
             type: void Function()
-              aliasElement: self::@typeAlias::A1
+              alias: self::@typeAlias::A1
         returnType: void
       f2 @82
         parameters
           requiredPositional a @93
             type: int Function()
-              aliasElement: self::@typeAlias::A2
-              aliasArguments
-                int
+              alias: self::@typeAlias::A2
+                typeArguments
+                  int
         returnType: void
 ''');
   }
@@ -35677,16 +35677,16 @@ library
         parameters
           requiredPositional a @65
             type: List<int>
-              aliasElement: self::@typeAlias::A1
+              alias: self::@typeAlias::A1
         returnType: void
       f2 @76
         parameters
           requiredPositional a @95
             type: Map<int, String>
-              aliasElement: self::@typeAlias::A2
-              aliasArguments
-                int
-                String
+              alias: self::@typeAlias::A2
+                typeArguments
+                  int
+                  String
         returnType: void
 ''');
   }
@@ -35733,9 +35733,9 @@ library
         parameters
           requiredPositional a @33
             type: U
-              aliasElement: self::@typeAlias::A
-              aliasArguments
-                U
+              alias: self::@typeAlias::A
+                typeArguments
+                  U
         returnType: void
 ''');
   }
@@ -35777,9 +35777,9 @@ library
       class B @49
         interfaces
           A<int, String>
-            aliasElement: self::@typeAlias::X
-            aliasArguments
-              String
+            alias: self::@typeAlias::X
+              typeArguments
+                String
         constructors
           synthetic @-1
     typeAliases
@@ -35858,9 +35858,9 @@ library
         interfaces
           B
           A<int?>
-            aliasElement: self::@typeAlias::X
-            aliasArguments
-              int
+            alias: self::@typeAlias::X
+              typeArguments
+                int
           C
         constructors
           synthetic @-1
@@ -35993,7 +35993,7 @@ library
         supertype: Object
         mixins
           A<int>
-            aliasElement: self::@typeAlias::X
+            alias: self::@typeAlias::X
         constructors
           synthetic @-1
     typeAliases
@@ -36067,7 +36067,7 @@ library
         mixins
           M1
           A<int?>
-            aliasElement: self::@typeAlias::X
+            alias: self::@typeAlias::X
           M2
         constructors
           synthetic @-1
@@ -36124,7 +36124,7 @@ library
           synthetic @-1
       class B @40
         supertype: A<int>
-          aliasElement: self::@typeAlias::X
+          alias: self::@typeAlias::X
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
@@ -36154,9 +36154,9 @@ library
           synthetic @-1
       class B @38
         supertype: A<int>
-          aliasElement: self::@typeAlias::X
-          aliasArguments
-            A<int>
+          alias: self::@typeAlias::X
+            typeArguments
+              A<int>
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
@@ -36232,7 +36232,7 @@ library
           synthetic @-1
       class D @41
         supertype: A<int?>
-          aliasElement: self::@typeAlias::X
+          alias: self::@typeAlias::X
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
@@ -36321,7 +36321,7 @@ library
         parameters
           requiredPositional a @26
             type: dynamic Function()
-              aliasElement: self::@typeAlias::A
+              alias: self::@typeAlias::A
         returnType: void
 ''');
   }
@@ -36342,7 +36342,7 @@ library
         parameters
           requiredPositional a @26
             type: int
-              aliasElement: self::@typeAlias::A
+              alias: self::@typeAlias::A
         returnType: void
 ''');
   }
@@ -36366,7 +36366,7 @@ library
         parameters
           requiredPositional a @41
             type: List<int*>*
-              aliasElement: a.dart::@typeAlias::A
+              alias: a.dart::@typeAlias::A
         returnType: void
 ''');
   }
@@ -36387,7 +36387,7 @@ library
         parameters
           requiredPositional a @27
             type: int?
-              aliasElement: self::@typeAlias::A
+              alias: self::@typeAlias::A
         returnType: void
 ''');
   }
@@ -36411,9 +36411,9 @@ library
         parameters
           requiredPositional a @45
             type: Map<int, String>
-              aliasElement: self::@typeAlias::A
-              aliasArguments
-                String
+              alias: self::@typeAlias::A
+                typeArguments
+                  String
         returnType: void
 ''');
   }
@@ -36483,9 +36483,9 @@ library
         parameters
           requiredPositional a @49
             type: int
-              aliasElement: self::@typeAlias::A
-              aliasArguments
-                int
+              alias: self::@typeAlias::A
+                typeArguments
+                  int
         returnType: void
 ''');
   }
@@ -36515,9 +36515,9 @@ library
         parameters
           requiredPositional a @50
             type: int?
-              aliasElement: self::@typeAlias::A
-              aliasArguments
-                int
+              alias: self::@typeAlias::A
+                typeArguments
+                  int
         returnType: void
 ''');
   }
