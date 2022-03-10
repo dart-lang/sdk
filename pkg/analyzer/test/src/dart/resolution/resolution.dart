@@ -518,8 +518,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(node.staticType, type);
   }
 
-  void assertResolvedNodeText(AstNode node, String expected) {
-    var actual = _resolvedNodeText(node);
+  void assertResolvedNodeText(
+    AstNode node,
+    String expected, {
+    bool skipArgumentList = false,
+  }) {
+    var actual = _resolvedNodeText(
+      node,
+      skipArgumentList: skipArgumentList,
+    );
     if (actual != expected) {
       print(actual);
       NodeTextExpectationsCollector.add(actual);
@@ -887,13 +894,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
     fail('Expected SimpleIdentifier: (${node.runtimeType}) $node');
   }
 
-  String _resolvedNodeText(AstNode node) {
+  String _resolvedNodeText(
+    AstNode node, {
+    bool skipArgumentList = false,
+  }) {
     var buffer = StringBuffer();
     node.accept(
       ResolvedAstPrinter(
         selfUriStr: result.uri.toString(),
         sink: buffer,
         indent: '',
+        skipArgumentList: skipArgumentList,
       ),
     );
     return buffer.toString();

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -39,9 +38,22 @@ main() {
   inferContraContra(Contravariant<Upper>(), Contravariant<Middle>());
 }
     ''');
-    assertType(
-        findNode.methodInvocation('inferContraContra(').typeArgumentTypes![0],
-        'Middle');
+
+    var node = findNode.methodInvocation('inferContraContra(');
+    assertResolvedNodeText(
+        node,
+        r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: inferContraContra
+    staticElement: self::@function::inferContraContra
+    staticType: Exactly<T> Function<T>(Contravariant<T>, Contravariant<T>)
+  staticInvokeType: Exactly<Middle> Function(Contravariant<Middle>, Contravariant<Middle>)
+  staticType: Exactly<Middle>
+  typeArgumentTypes
+    Middle
+''',
+        skipArgumentList: true);
   }
 
   test_inference_in_parameter_downwards() async {
@@ -52,15 +64,30 @@ class B<in T> {
 }
 
 main() {
-  B<int> b = new B(<num>[])..x=2.2;
+  B<int> b = B(<num>[])..x=2.2;
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
     ]);
-    assertType(
-        (findNode.instanceCreation('new B').staticType as InterfaceType)
-            .typeArguments[0],
-        'num');
+
+    var node = findNode.instanceCreation('B(<num>');
+    assertResolvedNodeText(
+        node,
+        r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: B
+        staticElement: self::@class::B
+        staticType: null
+      type: B<num>
+    staticElement: ConstructorMember
+      base: self::@class::B::@constructor::•
+      substitution: {T: num}
+  staticType: B<num>
+''',
+        skipArgumentList: true);
   }
 
   test_inference_inout_parameter() async {
@@ -79,6 +106,22 @@ main() {
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 159, 19),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 180, 16),
     ]);
+
+    var node = findNode.methodInvocation('inferInvInv(');
+    assertResolvedNodeText(
+        node,
+        r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: inferInvInv
+    staticElement: self::@function::inferInvInv
+    staticType: Exactly<T> Function<T>(Invariant<T>, Invariant<T>)
+  staticInvokeType: Exactly<Object> Function(Invariant<Object>, Invariant<Object>)
+  staticType: Exactly<Object>
+  typeArgumentTypes
+    Object
+''',
+        skipArgumentList: true);
   }
 
   test_inference_out_parameter() async {
@@ -96,7 +139,21 @@ main() {
   inferCovCov(Covariant<Upper>(), Covariant<Middle>());
 }
 ''');
-    assertType(findNode.methodInvocation('inferCovCov(').typeArgumentTypes![0],
-        'Upper');
+
+    var node = findNode.methodInvocation('inferCovCov(');
+    assertResolvedNodeText(
+        node,
+        r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: inferCovCov
+    staticElement: self::@function::inferCovCov
+    staticType: Exactly<T> Function<T>(Covariant<T>, Covariant<T>)
+  staticInvokeType: Exactly<Upper> Function(Covariant<Upper>, Covariant<Upper>)
+  staticType: Exactly<Upper>
+  typeArgumentTypes
+    Upper
+''',
+        skipArgumentList: true);
   }
 }

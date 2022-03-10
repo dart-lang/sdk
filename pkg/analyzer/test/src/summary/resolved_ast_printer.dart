@@ -23,6 +23,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// The target sink to print AST.
   final StringSink _sink;
 
+  final bool skipArgumentList;
+
   /// If `true`, linking of [EnumConstantDeclaration] will be checked
   /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/48380
   final bool withCheckingLinking;
@@ -39,6 +41,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     required String? selfUriStr,
     required StringSink sink,
     required String indent,
+    this.skipArgumentList = false,
     this.withCheckingLinking = false,
     bool withOffsets = false,
     bool withResolution = true,
@@ -1331,7 +1334,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       if (value is Token) {
         _writeToken(entity.name, value);
       } else if (value is AstNode) {
-        _writeNode(entity.name, value);
+        if (value is ArgumentList && skipArgumentList) {
+        } else {
+          _writeNode(entity.name, value);
+        }
       } else if (value is List<Token>) {
         _writeTokenList(entity.name, value);
       } else if (value is List<AstNode>) {
