@@ -1,12 +1,12 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static const field core::int* foo = 42.{core::num::*}(42){(core::num*) →* core::int*};
-static const field core::String* bar = "hello ${const core::String::fromEnvironment("baz", defaultValue: "world")}!";
-static const field core::String* bar2 = "hello2 2".{core::String::+}(self::bar){(core::String*) →* core::String*};
-static const field core::bool* baz = true && true && (false || true) && 42 =={core::num::==}{(core::Object*) →* core::bool*} 21.{core::num::*}(4){(core::num*) →* core::int*}.{core::num::/}(2){(core::num*) →* core::double*};
-static const field core::Symbol* blaSymbol = #_x;
+static const field core::int foo = 42.{core::num::*}(42){(core::num) → core::int};
+static const field core::String bar = "hello ${const core::String::fromEnvironment("baz", defaultValue: "world")}!";
+static const field core::String bar2 = "hello2 2".{core::String::+}(self::bar){(core::String) → core::String};
+static const field core::bool baz = true && true && (false || true) && 42 =={core::num::==}{(core::Object) → core::bool} 21.{core::num::*}(4){(core::num) → core::int}.{core::num::/}(2){(core::num) → core::double};
+static const field core::Symbol blaSymbol = #_x;
 static method main() → dynamic
   ;
 static method _x() → void

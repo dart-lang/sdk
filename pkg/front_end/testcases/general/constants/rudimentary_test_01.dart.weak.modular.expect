@@ -1,12 +1,12 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static const field core::int* foo = #C1;
-static const field core::String* bar = #C2;
-static const field core::String* bar2 = #C3;
-static const field core::bool* baz = #C4;
-static const field core::Symbol* blaSymbol = #C5;
+static const field core::int foo = #C1;
+static const field core::String bar = #C2;
+static const field core::String bar2 = #C3;
+static const field core::bool baz = #C4;
+static const field core::Symbol blaSymbol = #C5;
 static method main() → dynamic {
   self::_x();
   #C6;

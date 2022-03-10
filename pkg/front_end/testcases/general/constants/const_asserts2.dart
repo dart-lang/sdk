@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 class Foo {
   final int x;
   const Foo(this.x)
@@ -17,10 +15,6 @@ class Foo {
       : assert(x < 0, "btw foo was ${const bool.fromEnvironment("foo")}");
   const Foo.withInvalidMessage(this.x) : assert(x < 0, x);
   const Foo.withInvalidCondition(this.x) : assert(x);
-  const Foo.withNullConditionFromEnv1(this.x)
-      : assert(bool.fromEnvironment("foo", defaultValue: null));
-  const Foo.withNullConditionFromEnv2(this.x)
-      : assert(const bool.fromEnvironment("foo", defaultValue: null));
 }
 
 class Bar {
@@ -35,8 +29,6 @@ const Foo foo2 = const Foo(0);
 const Foo foo3 = const Foo.withMessage(42);
 const Foo foo4 = const Foo.withInvalidMessage(42);
 const Foo foo5 = const Foo.withInvalidCondition(42);
-const Foo foo6 = const Foo.withNullConditionFromEnv1(42);
-const Foo foo7 = const Foo.withNullConditionFromEnv2(42);
 const Bar bar1 = const Bar.withMessage(1);
 const Bar bar2 = const Bar.withMessage(0);
 const Bar bar3 = const Bar.withoutMessage(1);

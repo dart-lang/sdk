@@ -2,314 +2,314 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/constants/various.dart:162:3: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/general/constants/various.dart:164:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   const ClassWithNonEmptyConstConstructor() {
 //   ^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:76:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:78:14: Error: Not a constant expression.
 // const x1 = --x;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:77:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:79:14: Error: Not a constant expression.
 // const x2 = ++x;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:78:12: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:80:12: Error: Not a constant expression.
 // const x3 = x--;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:79:12: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:81:12: Error: Not a constant expression.
 // const x4 = x++;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:84:14: Error: Setter not found: 'y'.
 // const y1 = --y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:85:14: Error: Setter not found: 'y'.
 // const y2 = ++y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:86:12: Error: Setter not found: 'y'.
 // const y3 = y--;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:87:12: Error: Setter not found: 'y'.
 // const y4 = y++;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:140:24: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:142:24: Error: Not a constant expression.
 // const function_const = () {};
 //                        ^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Can't access 'this' in a field initializer to read 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:182:14: Error: Can't access 'this' in a field initializer to read 'y'.
 //   final z1 = y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: The class 'AbstractClass' is abstract and can't be instantiated.
+// pkg/front_end/testcases/general/constants/various.dart:101:4: Error: The class 'AbstractClass' is abstract and can't be instantiated.
 //   @AbstractClass()
 //    ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/general/constants/various.dart:101:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 //   @AbstractClass()
 //    ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
+// pkg/front_end/testcases/general/constants/various.dart:104:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
 //   @AbstractClassWithConstructor()
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/general/constants/various.dart:104:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 //   @AbstractClassWithConstructor()
 //    ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/general/constants/various.dart:120:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 // const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
 //                                       ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:121:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+// pkg/front_end/testcases/general/constants/various.dart:123:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
 //   const ExtendsFoo2();
 //         ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:182:14: Error: Not a constant expression.
 //   final z1 = y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:181:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:183:14: Error: Not a constant expression.
 //   final z2 = x;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:96:11: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
+// pkg/front_end/testcases/general/constants/various.dart:98:11: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
 //     const AbstractClassWithConstructor();
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:96:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/general/constants/various.dart:98:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 //     const AbstractClassWithConstructor();
 //           ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:168:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/general/constants/various.dart:170:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 //     const ClassWithNonEmptyConstConstructor();
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:114:7: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+// pkg/front_end/testcases/general/constants/various.dart:116:7: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
 // class ExtendsFoo1 extends Foo {
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:101:4: Error: Not a constant expression.
 //   @AbstractClass()
 //    ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:104:4: Error: Not a constant expression.
 //   @AbstractClassWithConstructor()
 //    ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:10:34: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:12:34: Error: Constant evaluation error:
 // const bool notBarFromEnvOrNull = !barFromEnvOrNull;
 //                                  ^
-// pkg/front_end/testcases/general/constants/various.dart:10:34: Context: Expected constant 'null' to be of type 'bool', but was of type 'Null'.
+// pkg/front_end/testcases/general/constants/various.dart:12:34: Context: Expected constant 'null' to be of type 'bool', but was of type 'Null'.
 // const bool notBarFromEnvOrNull = !barFromEnvOrNull;
 //                                  ^
-// pkg/front_end/testcases/general/constants/various.dart:10:12: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:12:12: Context: While analyzing:
 // const bool notBarFromEnvOrNull = !barFromEnvOrNull;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:11:49: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:13:49: Error: Constant evaluation error:
 // const bool conditionalOnNull = barFromEnvOrNull ? true : false;
 //                                                 ^
-// pkg/front_end/testcases/general/constants/various.dart:11:32: Context: Expected constant 'null' to be of type 'bool', but was of type 'Null'.
+// pkg/front_end/testcases/general/constants/various.dart:13:32: Context: Expected constant 'null' to be of type 'bool', but was of type 'Null'.
 // const bool conditionalOnNull = barFromEnvOrNull ? true : false;
 //                                ^
-// pkg/front_end/testcases/general/constants/various.dart:11:12: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:13:12: Context: While analyzing:
 // const bool conditionalOnNull = barFromEnvOrNull ? true : false;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:16:41: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:18:41: Error: Constant evaluation error:
 // const bool andOnNull = barFromEnvOrNull && true;
 //                                         ^
-// pkg/front_end/testcases/general/constants/various.dart:16:41: Context: The method '&&' can't be invoked on 'null' in a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:18:41: Context: The method '&&' can't be invoked on 'null' in a constant expression.
 // const bool andOnNull = barFromEnvOrNull && true;
 //                                         ^
-// pkg/front_end/testcases/general/constants/various.dart:16:12: Context: While analyzing:
-// const bool andOnNull = barFromEnvOrNull && true;
-//            ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:17:30: Error: Constant evaluation error:
-// const bool andOnNull2 = true && barFromEnvOrNull;
-//                              ^
-// pkg/front_end/testcases/general/constants/various.dart:17:30: Context: Binary operator '&&' on 'true' requires operand of type 'bool', but was of type 'Null'.
-// const bool andOnNull2 = true && barFromEnvOrNull;
-//                              ^
-// pkg/front_end/testcases/general/constants/various.dart:17:12: Context: While analyzing:
-// const bool andOnNull2 = true && barFromEnvOrNull;
-//            ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:18:40: Error: Constant evaluation error:
-// const bool orOnNull = barFromEnvOrNull || true;
-//                                        ^
-// pkg/front_end/testcases/general/constants/various.dart:18:40: Context: The method '||' can't be invoked on 'null' in a constant expression.
-// const bool orOnNull = barFromEnvOrNull || true;
-//                                        ^
 // pkg/front_end/testcases/general/constants/various.dart:18:12: Context: While analyzing:
+// const bool andOnNull = barFromEnvOrNull && true;
+//            ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:19:30: Error: Constant evaluation error:
+// const bool andOnNull2 = true && barFromEnvOrNull;
+//                              ^
+// pkg/front_end/testcases/general/constants/various.dart:19:30: Context: Binary operator '&&' on 'true' requires operand of type 'bool', but was of type 'Null'.
+// const bool andOnNull2 = true && barFromEnvOrNull;
+//                              ^
+// pkg/front_end/testcases/general/constants/various.dart:19:12: Context: While analyzing:
+// const bool andOnNull2 = true && barFromEnvOrNull;
+//            ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:20:40: Error: Constant evaluation error:
+// const bool orOnNull = barFromEnvOrNull || true;
+//                                        ^
+// pkg/front_end/testcases/general/constants/various.dart:20:40: Context: The method '||' can't be invoked on 'null' in a constant expression.
+// const bool orOnNull = barFromEnvOrNull || true;
+//                                        ^
+// pkg/front_end/testcases/general/constants/various.dart:20:12: Context: While analyzing:
 // const bool orOnNull = barFromEnvOrNull || true;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:19:41: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:21:41: Error: Constant evaluation error:
 // const bool orOnNull2 = barFromEnvOrNull || false;
 //                                         ^
-// pkg/front_end/testcases/general/constants/various.dart:19:41: Context: The method '||' can't be invoked on 'null' in a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:21:41: Context: The method '||' can't be invoked on 'null' in a constant expression.
 // const bool orOnNull2 = barFromEnvOrNull || false;
 //                                         ^
-// pkg/front_end/testcases/general/constants/various.dart:19:12: Context: While analyzing:
-// const bool orOnNull2 = barFromEnvOrNull || false;
-//            ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:21:30: Error: Constant evaluation error:
-// const bool orOnNull4 = false || barFromEnvOrNull;
-//                              ^
-// pkg/front_end/testcases/general/constants/various.dart:21:30: Context: Binary operator '||' on 'false' requires operand of type 'bool', but was of type 'Null'.
-// const bool orOnNull4 = false || barFromEnvOrNull;
-//                              ^
 // pkg/front_end/testcases/general/constants/various.dart:21:12: Context: While analyzing:
+// const bool orOnNull2 = barFromEnvOrNull || false;
+//            ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:23:30: Error: Constant evaluation error:
+// const bool orOnNull4 = false || barFromEnvOrNull;
+//                              ^
+// pkg/front_end/testcases/general/constants/various.dart:23:30: Context: Binary operator '||' on 'false' requires operand of type 'bool', but was of type 'Null'.
+// const bool orOnNull4 = false || barFromEnvOrNull;
+//                              ^
+// pkg/front_end/testcases/general/constants/various.dart:23:12: Context: While analyzing:
 // const bool orOnNull4 = false || barFromEnvOrNull;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:29:11: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:31:11: Error: Constant evaluation error:
 //     const String.fromEnvironment(barFromEnvOrNullString);
 //           ^
-// pkg/front_end/testcases/general/constants/various.dart:29:11: Context: Null value during constant evaluation.
+// pkg/front_end/testcases/general/constants/various.dart:31:11: Context: Null value during constant evaluation.
 //     const String.fromEnvironment(barFromEnvOrNullString);
 //           ^
-// pkg/front_end/testcases/general/constants/various.dart:28:14: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:30:14: Context: While analyzing:
 // const String nullFromEnvString =
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:36:36: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:38:36: Error: Constant evaluation error:
 // const bool nullFromEnvBool = const bool.fromEnvironment(barFromEnvOrNullString);
 //                                    ^
-// pkg/front_end/testcases/general/constants/various.dart:36:36: Context: Null value during constant evaluation.
+// pkg/front_end/testcases/general/constants/various.dart:38:36: Context: Null value during constant evaluation.
 // const bool nullFromEnvBool = const bool.fromEnvironment(barFromEnvOrNullString);
 //                                    ^
-// pkg/front_end/testcases/general/constants/various.dart:36:12: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:38:12: Context: While analyzing:
 // const bool nullFromEnvBool = const bool.fromEnvironment(barFromEnvOrNullString);
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:43:34: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:45:34: Error: Constant evaluation error:
 // const int nullFromEnvInt = const int.fromEnvironment(barFromEnvOrNullString);
 //                                  ^
-// pkg/front_end/testcases/general/constants/various.dart:43:34: Context: Null value during constant evaluation.
+// pkg/front_end/testcases/general/constants/various.dart:45:34: Context: Null value during constant evaluation.
 // const int nullFromEnvInt = const int.fromEnvironment(barFromEnvOrNullString);
 //                                  ^
-// pkg/front_end/testcases/general/constants/various.dart:43:11: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:45:11: Context: While analyzing:
 // const int nullFromEnvInt = const int.fromEnvironment(barFromEnvOrNullString);
 //           ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:64:37: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:66:37: Error: Constant evaluation error:
 // const binaryOnDouble = willBeDouble << 2;
 //                                     ^
-// pkg/front_end/testcases/general/constants/various.dart:64:37: Context: Binary operator '<<' on '42.42' requires operand of type 'int', but was of type 'double'.
+// pkg/front_end/testcases/general/constants/various.dart:66:37: Context: Binary operator '<<' on '42.42' requires operand of type 'int', but was of type 'double'.
 // const binaryOnDouble = willBeDouble << 2;
 //                                     ^
-// pkg/front_end/testcases/general/constants/various.dart:64:7: Context: While analyzing:
-// const binaryOnDouble = willBeDouble << 2;
-//       ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:66:44: Error: Constant evaluation error:
-// const binaryOnIntWithDoubleBad = willBeInt << willBeDouble;
-//                                            ^
-// pkg/front_end/testcases/general/constants/various.dart:66:44: Context: Binary operator '<<' on '42.42' requires operand of type 'int', but was of type 'double'.
-// const binaryOnIntWithDoubleBad = willBeInt << willBeDouble;
-//                                            ^
 // pkg/front_end/testcases/general/constants/various.dart:66:7: Context: While analyzing:
+// const binaryOnDouble = willBeDouble << 2;
+//       ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:68:44: Error: Constant evaluation error:
+// const binaryOnIntWithDoubleBad = willBeInt << willBeDouble;
+//                                            ^
+// pkg/front_end/testcases/general/constants/various.dart:68:44: Context: Binary operator '<<' on '42.42' requires operand of type 'int', but was of type 'double'.
+// const binaryOnIntWithDoubleBad = willBeInt << willBeDouble;
+//                                            ^
+// pkg/front_end/testcases/general/constants/various.dart:68:7: Context: While analyzing:
 // const binaryOnIntWithDoubleBad = willBeInt << willBeDouble;
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:68:41: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:70:41: Error: Constant evaluation error:
 // const binaryOnIntWithString = willBeInt << "hello";
 //                                         ^
-// pkg/front_end/testcases/general/constants/various.dart:68:41: Context: Binary operator '<<' on '42' requires operand of type 'num', but was of type 'String'.
+// pkg/front_end/testcases/general/constants/various.dart:70:41: Context: Binary operator '<<' on '42' requires operand of type 'num', but was of type 'String'.
 // const binaryOnIntWithString = willBeInt << "hello";
 //                                         ^
-// pkg/front_end/testcases/general/constants/various.dart:68:7: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:70:7: Context: While analyzing:
 // const binaryOnIntWithString = willBeInt << "hello";
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:72:44: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:74:44: Error: Constant evaluation error:
 // const binaryOnStringWithInt = willBeString + willBeInt;
 //                                            ^
-// pkg/front_end/testcases/general/constants/various.dart:72:44: Context: Binary operator '+' on '"hello"' requires operand of type 'String', but was of type 'int'.
+// pkg/front_end/testcases/general/constants/various.dart:74:44: Context: Binary operator '+' on '"hello"' requires operand of type 'String', but was of type 'int'.
 // const binaryOnStringWithInt = willBeString + willBeInt;
 //                                            ^
-// pkg/front_end/testcases/general/constants/various.dart:72:7: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:74:7: Context: While analyzing:
 // const binaryOnStringWithInt = willBeString + willBeInt;
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:73:50: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:75:50: Error: Constant evaluation error:
 // const binaryOnStringWithStringBad = willBeString - " world";
 //                                                  ^
-// pkg/front_end/testcases/general/constants/various.dart:73:50: Context: The method '-' can't be invoked on '"hello"' in a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:75:50: Context: The method '-' can't be invoked on '"hello"' in a constant expression.
 // const binaryOnStringWithStringBad = willBeString - " world";
 //                                                  ^
-// pkg/front_end/testcases/general/constants/various.dart:73:7: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:75:7: Context: While analyzing:
 // const binaryOnStringWithStringBad = willBeString - " world";
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:78:13: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:80:13: Error: Constant evaluation error:
 // const x3 = x--;
 //             ^
-// pkg/front_end/testcases/general/constants/various.dart:78:12: Context: The invocation of 'x' is not allowed in a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:80:12: Context: The invocation of 'x' is not allowed in a constant expression.
 // const x3 = x--;
 //            ^
-// pkg/front_end/testcases/general/constants/various.dart:78:7: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:80:7: Context: While analyzing:
 // const x3 = x--;
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:79:13: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:81:13: Error: Constant evaluation error:
 // const x4 = x++;
 //             ^
-// pkg/front_end/testcases/general/constants/various.dart:79:12: Context: The invocation of 'x' is not allowed in a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:81:12: Context: The invocation of 'x' is not allowed in a constant expression.
 // const x4 = x++;
 //            ^
-// pkg/front_end/testcases/general/constants/various.dart:79:7: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:81:7: Context: While analyzing:
 // const x4 = x++;
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:129:29: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:131:29: Error: Constant evaluation error:
 // const bool foosEqual = foo1 == foo2;
 //                             ^
-// pkg/front_end/testcases/general/constants/various.dart:129:29: Context: Binary operator '==' requires receiver constant 'Foo {x: 42, y: 5}' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type 'Foo'.
+// pkg/front_end/testcases/general/constants/various.dart:131:29: Context: Binary operator '==' requires receiver constant 'Foo {x: 42, y: 5}' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/constants/various.dart'.
 // const bool foosEqual = foo1 == foo2;
 //                             ^
-// pkg/front_end/testcases/general/constants/various.dart:129:12: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:131:12: Context: While analyzing:
 // const bool foosEqual = foo1 == foo2;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:135:26: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:137:26: Error: Constant evaluation error:
 // const int circularity1 = circularity2;
 //                          ^
-// pkg/front_end/testcases/general/constants/various.dart:135:26: Context: Constant expression depends on itself.
+// pkg/front_end/testcases/general/constants/various.dart:137:26: Context: Constant expression depends on itself.
 // const int circularity1 = circularity2;
 //                          ^
-// pkg/front_end/testcases/general/constants/various.dart:135:11: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:137:11: Context: While analyzing:
 // const int circularity1 = circularity2;
 //           ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:148:11: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:150:11: Error: Constant evaluation error:
 //     const ConstClassWithFailingAssertWithEmptyMessage();
 //           ^
-// pkg/front_end/testcases/general/constants/various.dart:144:64: Context: This assertion failed with message: (empty)
+// pkg/front_end/testcases/general/constants/various.dart:146:64: Context: This assertion failed with message: (empty)
 //   const ConstClassWithFailingAssertWithEmptyMessage() : assert(false, "");
 //                                                                ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:185:11: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:187:11: Error: Constant evaluation error:
 //     const ConstClassWithFinalFields2();
 //           ^
-// pkg/front_end/testcases/general/constants/various.dart:181:14: Context: The invocation of 'x' is not allowed in a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:183:14: Context: The invocation of 'x' is not allowed in a constant expression.
 //   final z2 = x;
 //              ^
 //
@@ -391,7 +391,7 @@ class ExtendsFoo1 extends self::Foo {
 }
 class ExtendsFoo2 extends self::Foo /*hasConstConstructor*/  {
   const constructor •() → self::ExtendsFoo2*
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:121:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:123:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
   const ExtendsFoo2();
         ^^^^^^^^^^^"
     ;
@@ -531,27 +531,27 @@ static const field core::int* x2 = invalid-expression "Not a constant expression
 static const field core::int* x3 = invalid-expression "The invocation of 'x' is not allowed in a constant expression.";
 static const field core::int* x4 = invalid-expression "The invocation of 'x' is not allowed in a constant expression.";
 static const field core::int* y = #C12;
-static const field invalid-type y1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
+static const field invalid-type y1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:84:14: Error: Setter not found: 'y'.
 const y1 = --y;
              ^";
-static const field invalid-type y2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
+static const field invalid-type y2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:85:14: Error: Setter not found: 'y'.
 const y2 = ++y;
              ^";
-static const field core::int* y3 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
+static const field core::int* y3 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:86:12: Error: Setter not found: 'y'.
 const y3 = y--;
            ^";
-static const field core::int* y4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
+static const field core::int* y4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:87:12: Error: Setter not found: 'y'.
 const y4 = y++;
            ^";
-static field self::AbstractClassWithConstructor* abstractClassWithConstructor = throw invalid-expression "pkg/front_end/testcases/general/constants/various.dart:96:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static field self::AbstractClassWithConstructor* abstractClassWithConstructor = throw invalid-expression "pkg/front_end/testcases/general/constants/various.dart:98:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
     const AbstractClassWithConstructor();
           ^";
-static const field self::ExtendsFoo1* extendsFoo1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static const field self::ExtendsFoo1* extendsFoo1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:120:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
                                       ^^^^^^^^^^^";
-static const field self::ExtendsFoo2* extendsFoo2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:121:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+static const field self::ExtendsFoo2* extendsFoo2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:123:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
   const ExtendsFoo2();
         ^^^^^^^^^^^";
 static const field self::Foo* foo1 = #C14;
@@ -567,7 +567,7 @@ static const field core::int* circularity1 = invalid-expression "Constant expres
 static const field core::int* circularity2 = invalid-expression "Constant expression depends on itself.";
 static const field core::int* circularity3 = invalid-expression "Constant expression depends on itself.";
 static const field core::int* circularity4 = invalid-expression "Constant expression depends on itself.";
-static const field invalid-type function_const = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:140:24: Error: Not a constant expression.
+static const field invalid-type function_const = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:142:24: Error: Not a constant expression.
 const function_const = () {};
                        ^^";
 static field () →* Null function_var = () → Null {};
@@ -575,7 +575,7 @@ static field self::ConstClassWithFailingAssertWithEmptyMessage* failedAssertEmpt
 static const field self::ClassWithTypeArguments<dynamic, dynamic, dynamic>* classWithTypeArguments1 = #C19;
 static const field self::ClassWithTypeArguments<dynamic, dynamic, dynamic>* classWithTypeArguments2 = #C20;
 static const field core::bool* classWithTypeArgumentsIdentical = #C1;
-static field self::ClassWithNonEmptyConstConstructor* classWithNonEmptyConstConstructor = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:168:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static field self::ClassWithNonEmptyConstConstructor* classWithNonEmptyConstConstructor = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:170:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
     const ClassWithNonEmptyConstConstructor();
           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
@@ -634,15 +634,15 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: InstanceGet @ org-dartlang-testcase:///various.dart:111:26 -> IntConstant(5)
+Evaluated: InstanceGet @ org-dartlang-testcase:///various.dart:113:26 -> IntConstant(5)
 Extra constant evaluation: evaluated: 12, effectively constant: 1
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///various.dart:
-- ExtendsFoo2. (from org-dartlang-testcase:///various.dart:121:9)
-- Foo. (from org-dartlang-testcase:///various.dart:109:9)
+- ExtendsFoo2. (from org-dartlang-testcase:///various.dart:123:9)
+- Foo. (from org-dartlang-testcase:///various.dart:111:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
-- ConstClassWithFailingAssertWithEmptyMessage. (from org-dartlang-testcase:///various.dart:144:9)
-- ClassWithTypeArguments. (from org-dartlang-testcase:///various.dart:151:9)
-- ConstClassWithFinalFields2. (from org-dartlang-testcase:///various.dart:177:9)
+- ConstClassWithFailingAssertWithEmptyMessage. (from org-dartlang-testcase:///various.dart:146:9)
+- ClassWithTypeArguments. (from org-dartlang-testcase:///various.dart:153:9)
+- ConstClassWithFinalFields2. (from org-dartlang-testcase:///various.dart:179:9)
