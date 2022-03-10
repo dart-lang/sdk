@@ -581,9 +581,17 @@ class TypeConstraintGatherer {
     var rewind = _constraints.length;
 
     for (var i = 0; i < P.typeArguments.length; i++) {
+      var variance =
+          (P.element.typeParameters[i] as TypeParameterElementImpl).variance;
       var M = P.typeArguments[i];
       var N = Q.typeArguments[i];
-      if (!trySubtypeMatch(M, N, leftSchema)) {
+      if ((variance.isCovariant || variance.isInvariant) &&
+          !trySubtypeMatch(M, N, leftSchema)) {
+        _constraints.length = rewind;
+        return false;
+      }
+      if ((variance.isContravariant || variance.isInvariant) &&
+          !trySubtypeMatch(N, M, leftSchema)) {
         _constraints.length = rewind;
         return false;
       }
