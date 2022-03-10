@@ -1,16 +1,16 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_ANDROID) && !defined(DART_USE_ABSL)
+#if defined(DART_USE_ABSL)
+
+#include <errno.h>         // NOLINT
+#include <sys/resource.h>  // NOLINT
+#include <sys/time.h>      // NOLINT
 
 #include "bin/thread.h"
-#include "bin/thread_android.h"
-
-#include <errno.h>     // NOLINT
-#include <sys/time.h>  // NOLINT
-
+#include "bin/thread_absl.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 
@@ -20,19 +20,18 @@ namespace bin {
 #define VALIDATE_PTHREAD_RESULT(result)                                        \
   if (result != 0) {                                                           \
     const int kBufferSize = 1024;                                              \
-    char error_message[kBufferSize];                                           \
-    Utils::StrError(result, error_message, kBufferSize);                       \
-    FATAL2("pthread error: %d (%s)", result, error_message);                   \
+    char error_buf[kBufferSize];                                               \
+    FATAL2("pthread error: %d (%s)", result,                                   \
+           Utils::StrError(result, error_buf, kBufferSize));                   \
   }
 
 #ifdef DEBUG
 #define RETURN_ON_PTHREAD_FAILURE(result)                                      \
   if (result != 0) {                                                           \
     const int kBufferSize = 1024;                                              \
-    char error_message[kBufferSize];                                           \
-    Utils::StrError(result, error_message, kBufferSize);                       \
+    char error_buf[kBufferSize];                                               \
     fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", __FILE__, __LINE__,     \
-            result, error_message);                                            \
+            result, Utils::StrError(result, error_buf, kBufferSize));          \
     return result;                                                             \
   }
 #else
@@ -41,20 +40,6 @@ namespace bin {
     return result;                                                             \
   }
 #endif
-
-static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
-  struct timeval tv;
-  int64_t secs = micros / kMicrosecondsPerSecond;
-  int64_t remaining_micros = (micros - (secs * kMicrosecondsPerSecond));
-  int result = gettimeofday(&tv, NULL);
-  ASSERT(result == 0);
-  ts->tv_sec = tv.tv_sec + secs;
-  ts->tv_nsec = (tv.tv_usec + remaining_micros) * kNanosecondsPerMicrosecond;
-  if (ts->tv_nsec >= kNanosecondsPerSecond) {
-    ts->tv_sec += 1;
-    ts->tv_nsec -= kNanosecondsPerSecond;
-  }
-}
 
 class ThreadStartData {
  public:
@@ -153,152 +138,84 @@ intptr_t Thread::GetMaxStackSize() {
 }
 
 ThreadId Thread::GetCurrentThreadId() {
-  return gettid();
+  return pthread_self();
 }
 
 intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) <= sizeof(intptr_t));
+  ASSERT(sizeof(id) == sizeof(intptr_t));
   return static_cast<intptr_t>(id);
 }
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
-  return (a == b);
+  return (pthread_equal(a, b) != 0);
 }
 
-Mutex::Mutex() {
-  pthread_mutexattr_t attr;
-  int result = pthread_mutexattr_init(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
+Mutex::Mutex() : data_() {}
 
-#if defined(DEBUG)
-  result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-  VALIDATE_PTHREAD_RESULT(result);
-#endif  // defined(DEBUG)
+Mutex::~Mutex() {}
 
-  result = pthread_mutex_init(data_.mutex(), &attr);
-  // Verify that creating a pthread_mutex succeeded.
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_mutexattr_destroy(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-Mutex::~Mutex() {
-  int result = pthread_mutex_destroy(data_.mutex());
-  // Verify that the pthread_mutex was destroyed.
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Mutex::Lock() {
-  int result = pthread_mutex_lock(data_.mutex());
-  // Specifically check for dead lock to help debugging.
-  ASSERT(result != EDEADLK);
-  ASSERT(result == 0);  // Verify no other errors.
-  // TODO(iposva): Do we need to track lock owners?
+  data_.mutex()->Lock();
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 bool Mutex::TryLock() {
-  int result = pthread_mutex_trylock(data_.mutex());
-  // Return false if the lock is busy and locking failed.
-  if (result == EBUSY) {
+  if (!data_.mutex()->TryLock()) {
     return false;
   }
-  ASSERT(result == 0);  // Verify no other errors.
-  // TODO(iposva): Do we need to track lock owners?
   return true;
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Mutex::Unlock() {
-  // TODO(iposva): Do we need to track lock owners?
-  int result = pthread_mutex_unlock(data_.mutex());
-  // Specifically check for wrong thread unlocking to aid debugging.
-  ASSERT(result != EPERM);
-  ASSERT(result == 0);  // Verify no other errors.
+  data_.mutex()->Unlock();
 }
 
-Monitor::Monitor() {
-  pthread_mutexattr_t mutex_attr;
-  int result = pthread_mutexattr_init(&mutex_attr);
-  VALIDATE_PTHREAD_RESULT(result);
+Monitor::Monitor() : data_() {}
 
-#if defined(DEBUG)
-  result = pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
-  VALIDATE_PTHREAD_RESULT(result);
-#endif  // defined(DEBUG)
+Monitor::~Monitor() {}
 
-  result = pthread_mutex_init(data_.mutex(), &mutex_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_mutexattr_destroy(&mutex_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  pthread_condattr_t cond_attr;
-  result = pthread_condattr_init(&cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_cond_init(data_.cond(), &cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_condattr_destroy(&cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-Monitor::~Monitor() {
-  int result = pthread_mutex_destroy(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_cond_destroy(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Monitor::Enter() {
-  int result = pthread_mutex_lock(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
-  // TODO(iposva): Do we need to track lock owners?
+  data_.mutex()->Lock();
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Monitor::Exit() {
-  // TODO(iposva): Do we need to track lock owners?
-  int result = pthread_mutex_unlock(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
+  data_.mutex()->Unlock();
 }
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
   return WaitMicros(millis * kMicrosecondsPerMillisecond);
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
-  // TODO(iposva): Do we need to track lock owners?
   Monitor::WaitResult retval = kNotified;
   if (micros == kNoTimeout) {
     // Wait forever.
-    int result = pthread_cond_wait(data_.cond(), data_.mutex());
-    VALIDATE_PTHREAD_RESULT(result);
+    data_.cond()->Wait(data_.mutex());
   } else {
-    struct timespec ts;
-    ComputeTimeSpecMicros(&ts, micros);
-    int result = pthread_cond_timedwait(data_.cond(), data_.mutex(), &ts);
-    ASSERT((result == 0) || (result == ETIMEDOUT));
-    if (result == ETIMEDOUT) {
+    if (data_.cond()->WaitWithTimeout(data_.mutex(),
+                                      absl::Microseconds(micros))) {
       retval = kTimedOut;
     }
   }
   return retval;
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Monitor::Notify() {
-  // TODO(iposva): Do we need to track lock owners?
-  int result = pthread_cond_signal(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
+  data_.cond()->Signal();
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Monitor::NotifyAll() {
-  // TODO(iposva): Do we need to track lock owners?
-  int result = pthread_cond_broadcast(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
+  data_.cond()->SignalAll();
 }
 
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_ANDROID) && !defined(DART_USE_ABSL)
+#endif  // defined(DART_USE_ABSL)

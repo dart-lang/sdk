@@ -45,6 +45,8 @@ builtin_impl_sources = [
   "isolate_data.h",
   "lockers.h",
   "thread.h",
+  "thread_absl.cc",
+  "thread_absl.h",
   "thread_android.cc",
   "thread_android.h",
   "thread_fuchsia.cc",

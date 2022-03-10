@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA) && !defined(DART_USE_ABSL)
 
 #include "bin/thread.h"
 #include "bin/thread_fuchsia.h"
@@ -305,4 +305,4 @@ void Monitor::NotifyAll() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_FUCHSIA)
+#endif  // defined(DART_HOST_OS_FUCHSIA) && !defined(DART_USE_ABSL)

@@ -16,7 +16,9 @@ class Monitor;
 }  // namespace dart
 
 // Declare the OS-specific types ahead of defining the generic classes.
-#if defined(DART_HOST_OS_ANDROID)
+#if defined(DART_USE_ABSL)
+#include "bin/thread_absl.h"
+#elif defined(DART_HOST_OS_ANDROID)
 #include "bin/thread_android.h"
 #elif defined(DART_HOST_OS_FUCHSIA)
 #include "bin/thread_fuchsia.h"

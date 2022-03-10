@@ -1,38 +1,50 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
-#if defined(DART_HOST_OS_FUCHSIA) && !defined(DART_USE_ABSL)
 
-#include "vm/os.h"
-#include "vm/os_thread.h"
-#include "vm/os_thread_fuchsia.h"
+#if defined(DART_USE_ABSL)
 
 #include <errno.h>  // NOLINT
-#include <zircon/status.h>
-#include <zircon/syscalls.h>
-#include <zircon/threads.h>
-#include <zircon/tls.h>
-#include <zircon/types.h>
+#include <stdio.h>
+#include <sys/resource.h>  // NOLINT
+#include <sys/syscall.h>   // NOLINT
+#include <sys/time.h>      // NOLINT
 
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
 #include "platform/safe_stack.h"
+#include "platform/signal_blocker.h"
+#include "platform/utils.h"
+#include "vm/flags.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 
+DEFINE_FLAG(int,
+            worker_thread_priority,
+            kMinInt,
+            "The thread priority the VM should use for new worker threads.");
+
 #define VALIDATE_PTHREAD_RESULT(result)                                        \
   if (result != 0) {                                                           \
-    FATAL1("pthread error: %d", result);                                       \
+    const int kBufferSize = 1024;                                              \
+    char error_buf[kBufferSize];                                               \
+    FATAL2("pthread error: %d (%s)", result,                                   \
+           Utils::StrError(result, error_buf, kBufferSize));                   \
   }
 
+// Variation of VALIDATE_PTHREAD_RESULT for named objects.
 #if defined(PRODUCT)
 #define VALIDATE_PTHREAD_RESULT_NAMED(result) VALIDATE_PTHREAD_RESULT(result)
 #else
 #define VALIDATE_PTHREAD_RESULT_NAMED(result)                                  \
   if (result != 0) {                                                           \
-    FATAL2("[%s] pthread error: %d", name_, result);                           \
+    const int kBufferSize = 1024;                                              \
+    char error_buf[kBufferSize];                                               \
+    FATAL3("[%s] pthread error: %d (%s)", name_, result,                       \
+           Utils::StrError(result, error_buf, kBufferSize));                   \
   }
 #endif
 
@@ -46,24 +58,16 @@ namespace dart {
 #ifdef DEBUG
 #define RETURN_ON_PTHREAD_FAILURE(result)                                      \
   if (result != 0) {                                                           \
-    fprintf(stderr, "%s:%d: pthread error: %d\n", __FILE__, __LINE__, result); \
+    const int kBufferSize = 1024;                                              \
+    char error_buf[kBufferSize];                                               \
+    fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", __FILE__, __LINE__,     \
+            result, Utils::StrError(result, error_buf, kBufferSize));          \
     return result;                                                             \
   }
 #else
 #define RETURN_ON_PTHREAD_FAILURE(result)                                      \
   if (result != 0) return result;
 #endif
-
-static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
-  // time in nanoseconds.
-  zx_time_t now = zx_clock_get_monotonic();
-  zx_time_t target = now + (micros * kNanosecondsPerMicrosecond);
-  int64_t secs = target / kNanosecondsPerSecond;
-  int64_t nanos = target - (secs * kNanosecondsPerSecond);
-
-  ts->tv_sec = secs;
-  ts->tv_nsec = nanos;
-}
 
 class ThreadStartData {
  public:
@@ -84,10 +88,33 @@ class ThreadStartData {
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
 };
 
+// TODO(bkonyi): remove this call once the prebuilt SDK is updated.
+// Spawned threads inherit their spawner's signal mask. We sometimes spawn
+// threads for running Dart code from a thread that is blocking SIGPROF.
+// This function explicitly unblocks SIGPROF so the profiler continues to
+// sample this thread.
+static void UnblockSIGPROF() {
+  sigset_t set;
+  sigemptyset(&set);
+  sigaddset(&set, SIGPROF);
+  int r = pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+  USE(r);
+  ASSERT(r == 0);
+  ASSERT(!CHECK_IS_BLOCKING(SIGPROF));
+}
+
 // Dispatch to the thread start function provided by the caller. This trampoline
 // is used to ensure that the thread is properly destroyed if the thread just
 // exits.
 static void* ThreadStart(void* data_ptr) {
+  if (FLAG_worker_thread_priority != kMinInt) {
+    if (setpriority(PRIO_PROCESS, syscall(__NR_gettid),
+                    FLAG_worker_thread_priority) == -1) {
+      FATAL2("Setting thread priority to %d failed: errno = %d\n",
+             FLAG_worker_thread_priority, errno);
+    }
+  }
+
   ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
   const char* name = data->name();
@@ -95,15 +122,18 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
-  // Set the thread name.
-  zx_handle_t thread_handle = thrd_get_zx_handle(thrd_current());
-  zx_object_set_property(thread_handle, ZX_PROP_NAME, name, strlen(name) + 1);
+  // Set the thread name. There is 16 bytes limit on the name (including \0).
+  // pthread_setname_np ignores names that are too long rather than truncating.
+  char truncated_name[16];
+  snprintf(truncated_name, ARRAY_SIZE(truncated_name), "%s", name);
+  pthread_setname_np(pthread_self(), truncated_name);
 
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
     thread->set_name(name);
+    UnblockSIGPROF();
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
   }
@@ -133,7 +163,7 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-const ThreadId OSThread::kInvalidThreadId = ZX_HANDLE_INVALID;
+const ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(0);
 const ThreadJoinId OSThread::kInvalidThreadJoinId =
     static_cast<ThreadJoinId>(0);
 
@@ -163,12 +193,12 @@ intptr_t OSThread::GetMaxStackSize() {
 }
 
 ThreadId OSThread::GetCurrentThreadId() {
-  return thrd_get_zx_handle(thrd_current());
+  return pthread_self();
 }
 
 #ifdef SUPPORT_TIMELINE
 ThreadId OSThread::GetCurrentThreadTraceId() {
-  return pthread_self();
+  return syscall(__NR_gettid);
 }
 #endif  // PRODUCT
 
@@ -205,6 +235,7 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   pthread_attr_t attr;
+  // May fail on the main thread.
   if (pthread_getattr_np(pthread_self(), &attr) != 0) {
     return false;
   }
@@ -223,60 +254,18 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
 }
 
 #if defined(USING_SAFE_STACK)
-#define STRINGIFY(s) #s
 NO_SANITIZE_ADDRESS
 NO_SANITIZE_SAFE_STACK
 uword OSThread::GetCurrentSafestackPointer() {
-  uword result;
-#if defined(HOST_ARCH_X64)
-#define _loadfsword(index) "movq  %%fs:" STRINGIFY(index) ", %0"
-  asm volatile(
-    _loadfsword(ZX_TLS_UNSAFE_SP_OFFSET)
-    : "=r"(result)  // outputs
-  );
-#undef _loadfsword
-#elif defined(HOST_ARCH_ARM64)
-#define _loadword(index) "ldr %0, [%0, " STRINGIFY(index) "]"
-  asm volatile(
-    "mrs %0, TPIDR_EL0;\n"
-    _loadword(ZX_TLS_UNSAFE_SP_OFFSET)
-    : "=r"(result)  // outputs
-  );
-#else
-#error "Architecture not supported"
-#endif
-  return result;
+#error "SAFE_STACK is unsupported on this platform"
+  return 0;
 }
 
 NO_SANITIZE_ADDRESS
 NO_SANITIZE_SAFE_STACK
 void OSThread::SetCurrentSafestackPointer(uword ssp) {
-#if defined(HOST_ARCH_X64)
-#define str(s) #s
-#define _storefsword(index) "movq %0, %%fs:" str(index)
-  asm volatile(
-    _storefsword(ZX_TLS_UNSAFE_SP_OFFSET)
-    : // outputs.
-    : "r"(ssp)  // inputs.
-    :  // clobbered.
-  );
-#undef _storefsword
-#undef str
-#elif defined(HOST_ARCH_ARM64)
-#define _storeword(index) "str %1, [%0, " STRINGIFY(index) "]"
-  uword tmp;
-  asm volatile(
-    "mrs %0, TPIDR_EL0;\n"
-    _storeword(ZX_TLS_UNSAFE_SP_OFFSET)
-    : "=r"(tmp) // outputs.
-    : "r"(ssp)  // inputs.
-    :  // clobbered.
-  );
-#else
-#error "Architecture not supported"
-#endif
+#error "SAFE_STACK is unsupported on this platform"
 }
-#undef STRINGIFY
 #endif
 
 Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
@@ -284,22 +273,6 @@ Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
     : name_(name)
 #endif
 {
-  pthread_mutexattr_t attr;
-  int result = pthread_mutexattr_init(&attr);
-  VALIDATE_PTHREAD_RESULT_NAMED(result);
-
-#if defined(DEBUG)
-  result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-  VALIDATE_PTHREAD_RESULT_NAMED(result);
-#endif  // defined(DEBUG)
-
-  result = pthread_mutex_init(data_.mutex(), &attr);
-  // Verify that creating a pthread_mutex succeeded.
-  VALIDATE_PTHREAD_RESULT_NAMED(result);
-
-  result = pthread_mutexattr_destroy(&attr);
-  VALIDATE_PTHREAD_RESULT_NAMED(result);
-
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
   owner_ = OSThread::kInvalidThreadId;
@@ -307,34 +280,26 @@ Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
 }
 
 Mutex::~Mutex() {
-  int result = pthread_mutex_destroy(data_.mutex());
-  // Verify that the pthread_mutex was destroyed.
-  VALIDATE_PTHREAD_RESULT_NAMED(result);
-
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
   ASSERT(owner_ == OSThread::kInvalidThreadId);
 #endif  // defined(DEBUG)
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Mutex::Lock() {
-  int result = pthread_mutex_lock(data_.mutex());
-  // Specifically check for dead lock to help debugging.
-  ASSERT(result != EDEADLK);
-  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
+  data_.mutex()->Lock();
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
   owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 bool Mutex::TryLock() {
-  int result = pthread_mutex_trylock(data_.mutex());
-  // Return false if the lock is busy and locking failed.
-  if (result == EBUSY) {
+  if (!data_.mutex()->TryLock()) {
     return false;
   }
-  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
   owner_ = OSThread::GetCurrentThreadId();
@@ -342,47 +307,17 @@ bool Mutex::TryLock() {
   return true;
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Mutex::Unlock() {
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
   ASSERT(IsOwnedByCurrentThread());
   owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
-  int result = pthread_mutex_unlock(data_.mutex());
-  // Specifically check for wrong thread unlocking to aid debugging.
-  ASSERT(result != EPERM);
-  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
+  data_.mutex()->Unlock();
 }
 
 Monitor::Monitor() {
-  pthread_mutexattr_t mutex_attr;
-  int result = pthread_mutexattr_init(&mutex_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-#if defined(DEBUG)
-  result = pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
-  VALIDATE_PTHREAD_RESULT(result);
-#endif  // defined(DEBUG)
-
-  result = pthread_mutex_init(data_.mutex(), &mutex_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_mutexattr_destroy(&mutex_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  pthread_condattr_t cond_attr;
-  result = pthread_condattr_init(&cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_cond_init(data_.cond(), &cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_condattr_destroy(&cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
   owner_ = OSThread::kInvalidThreadId;
@@ -394,21 +329,13 @@ Monitor::~Monitor() {
   // When running with assertions enabled we track the owner.
   ASSERT(owner_ == OSThread::kInvalidThreadId);
 #endif  // defined(DEBUG)
-
-  int result = pthread_mutex_destroy(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_cond_destroy(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 bool Monitor::TryEnter() {
-  int result = pthread_mutex_trylock(data_.mutex());
-  // Return false if the lock is busy and locking failed.
-  if (result == EBUSY) {
+  if (!data_.mutex()->TryLock()) {
     return false;
   }
-  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
   ASSERT(owner_ == OSThread::kInvalidThreadId);
@@ -417,10 +344,9 @@ bool Monitor::TryEnter() {
   return true;
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Monitor::Enter() {
-  int result = pthread_mutex_lock(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
-
+  data_.mutex()->Lock();
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
   ASSERT(owner_ == OSThread::kInvalidThreadId);
@@ -428,15 +354,14 @@ void Monitor::Enter() {
 #endif  // defined(DEBUG)
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Monitor::Exit() {
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
   ASSERT(IsOwnedByCurrentThread());
   owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
-
-  int result = pthread_mutex_unlock(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
+  data_.mutex()->Unlock();
 }
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
@@ -444,6 +369,7 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
   return retval;
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
@@ -455,14 +381,10 @@ Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   Monitor::WaitResult retval = kNotified;
   if (micros == kNoTimeout) {
     // Wait forever.
-    int result = pthread_cond_wait(data_.cond(), data_.mutex());
-    VALIDATE_PTHREAD_RESULT(result);
+    data_.cond()->Wait(data_.mutex());
   } else {
-    struct timespec ts;
-    ComputeTimeSpecMicros(&ts, micros);
-    int result = pthread_cond_timedwait(data_.cond(), data_.mutex(), &ts);
-    ASSERT((result == 0) || (result == ETIMEDOUT));
-    if (result == ETIMEDOUT) {
+    if (data_.cond()->WaitWithTimeout(data_.mutex(),
+                                      absl::Microseconds(micros))) {
       retval = kTimedOut;
     }
   }
@@ -476,20 +398,20 @@ Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   return retval;
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Monitor::Notify() {
   // When running with assertions enabled we track the owner.
   ASSERT(IsOwnedByCurrentThread());
-  int result = pthread_cond_signal(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
+  data_.cond()->Signal();
 }
 
+ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Monitor::NotifyAll() {
   // When running with assertions enabled we track the owner.
   ASSERT(IsOwnedByCurrentThread());
-  int result = pthread_cond_broadcast(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
+  xdata_.cond()->SignalAll();
 }
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_FUCHSIA) && !defined(DART_USE_ABSL)
+#endif  // defined(DART_USE_ABSL)

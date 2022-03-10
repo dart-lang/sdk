@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
-#if defined(DART_HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS) && !defined(DART_USE_ABSL)
 
 #include "vm/os_thread.h"
 
