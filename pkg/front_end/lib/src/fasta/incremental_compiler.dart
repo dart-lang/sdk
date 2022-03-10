@@ -284,7 +284,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // Figure out what to keep and what to throw away.
       Set<Uri?> invalidatedUris = this._invalidatedUris.toSet();
-      _invalidatePrecompiledMacros(c.options, invalidatedUris);
       _invalidateNotKeptUserBuilders(invalidatedUris);
       ReusageResult? reusedResult = _computeReusedLibraries(
           lastGoodKernelTarget,
@@ -310,6 +309,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           await _initializeExperimentalInvalidation(reusedResult, c);
       recorderForTesting?.recordRebuildBodiesCount(
           experimentalInvalidation?.missingSources.length ?? 0);
+
+      _invalidatePrecompiledMacros(c.options, reusedResult.notReusedLibraries);
 
       // Cleanup: After (potentially) removing builders we have stuff to cleanup
       // to not leak, and we might need to re-create the dill target.
@@ -1098,6 +1099,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (reusedResult.directlyInvalidated.isEmpty) return null;
     if (reusedResult.invalidatedBecauseOfPackageUpdate) return null;
 
+    if (enableMacros) {
+      /// TODO(johnniwinther): Add a [hasMacro] property to [LibraryBuilder].
+      for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
+        Iterator<Builder> iterator = builder.iterator;
+        while (iterator.moveNext()) {
+          Builder childBuilder = iterator.current;
+          if (childBuilder is ClassBuilder && childBuilder.isMacro) {
+            // Changes to a library with macro classes can affect any class that
+            // depends on it.
+            return null;
+          }
+        }
+      }
+    }
+
     // Figure out if the file(s) have changed outline, or we can just
     // rebuild the bodies.
     for (LibraryBuilder builder in reusedResult.directlyInvalidated) {
@@ -1398,16 +1414,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
   }
 
-  void _invalidatePrecompiledMacros(
-      ProcessedOptions processedOptions, Set<Uri?> invalidatedUris) {
-    if (invalidatedUris.isEmpty) {
+  /// Removes the precompiled macros whose libraries cannot be reused.
+  void _invalidatePrecompiledMacros(ProcessedOptions processedOptions,
+      Set<LibraryBuilder> notReusedLibraries) {
+    if (notReusedLibraries.isEmpty) {
       return;
     }
     CompilerOptions compilerOptions = processedOptions.rawOptionsForTesting;
     Map<Uri, Uri>? precompiledMacroUris = compilerOptions.precompiledMacroUris;
     if (precompiledMacroUris != null) {
+      Set<Uri> importUris =
+          notReusedLibraries.map((library) => library.importUri).toSet();
       for (Uri macroLibraryUri in precompiledMacroUris.keys.toList()) {
-        if (invalidatedUris.contains(macroLibraryUri)) {
+        if (importUris.contains(macroLibraryUri)) {
           precompiledMacroUris.remove(macroLibraryUri);
         }
       }

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'macro_dependency.dart';
 
 macro
 
@@ -13,8 +14,6 @@ class MethodMacro implements ClassDeclarationsMacro {
   @override
   FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
-    builder.declareInClass(new DeclarationCode.fromString('''
-  void method() {}
-'''));
+    builder.declareInClass(new DeclarationCode.fromString(generateBody()));
   }
 }

@@ -90,7 +90,10 @@ Future<void> main(List<String> args) async {
   CompilerOptions compilerOptions = new CompilerOptions()
     ..sdkRoot = computePlatformBinariesLocation(forceBuildDir: true)
     ..packagesFileUri = Platform.script.resolve('data/package_config.json')
-    ..explicitExperimentalFlags = {ExperimentalFlag.macros: true}
+    ..explicitExperimentalFlags = {
+      ExperimentalFlag.macros: true,
+      ExperimentalFlag.alternativeInvalidationStrategy: true,
+    }
     ..macroSerializer = macroSerializer
     ..precompiledMacroUris = {}
     ..macroExecutorProvider = () async {
