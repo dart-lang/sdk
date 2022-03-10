@@ -1,0 +1,9 @@
+enum E<T> {
+  element<int>(),
+  element2<int>();
+
+  static void set element(E<int> val) {}
+  static void set element2(E<String> val) {}
+}
+
+main() {}

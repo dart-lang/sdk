@@ -5,6 +5,7 @@
 library fasta.implicit_type;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:front_end/src/fasta/source/source_enum_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -13,6 +14,7 @@ import 'package:kernel/src/printer.dart';
 import '../constant_context.dart';
 import '../fasta_codes.dart';
 import '../problems.dart' show unsupported;
+import '../builder/builder.dart';
 import '../source/source_field_builder.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
@@ -115,6 +117,7 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
     }
     isStarted = true;
     DartType? inferredType;
+    Builder? parent = fieldBuilder.parent;
     if (_overriddenFields != null) {
       for (ImplicitFieldType overridden in _overriddenFields!) {
         DartType overriddenType = overridden.inferType();
@@ -128,6 +131,10 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
         }
       }
       return inferredType!;
+    } else if (parent is SourceEnumBuilder &&
+        parent.elementBuilders.contains(fieldBuilder)) {
+      inferredType = parent.buildElement(
+          parent.library, fieldBuilder, parent.library.loader.coreTypes);
     } else if (initializerToken != null) {
       InterfaceType? enclosingClassThisType = fieldBuilder.classBuilder == null
           ? null
