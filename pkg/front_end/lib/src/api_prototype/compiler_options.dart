@@ -18,7 +18,6 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import '../base/nnbd_mode.dart';
 
-import '../fasta/kernel/macro.dart';
 import '../macro_serializer.dart';
 import 'experimental_flags.dart'
     show
@@ -118,11 +117,11 @@ class CompilerOptions {
   Future<MacroExecutor> Function() macroExecutorProvider =
       () async => throw 'Macro execution is not supported.';
 
-  /// Map from [MacroClass] to [Uri] for the precompiled dill that contains
-  /// the macro code.
+  /// Map from library import [Uri]s of libraries that declare macros to
+  /// the [Uri] for the precompiled dill that contains the macro code.
   ///
   /// This is part of the experimental macro feature.
-  Map<MacroClass, Uri>? precompiledMacroUris;
+  Map<Uri, Uri>? precompiledMacroUris;
 
   /// The [Target] used for compiling macros.
   ///

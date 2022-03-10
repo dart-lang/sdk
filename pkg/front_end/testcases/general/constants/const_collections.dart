@@ -1,7 +1,7 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 import 'dart:collection';
 
 class ConstIterable extends IterableBase<int> {
@@ -13,13 +13,13 @@ class ConstIterable extends IterableBase<int> {
 const int fortyTwo = 42;
 const dynamic fortyTwoAsDynamic = ((fortyTwo as dynamic) * 2) ~/ 2;
 
-const List<String> nullList = null;
+const List<String>? nullList = null;
 const List<String> foo = ["hello", "world"];
 List<String> get fooAsGetter => const ["hello", "world"];
 const List<String> bar = [...foo, "!"];
 var barAsVar = [...foo, "!"];
 List<String> get barAsGetter => const [...foo, "!"];
-const List<String> barWithNullSpread = [...foo, ...nullList];
+const List<String> barWithNullSpread = [...foo, ...?nullList];
 const List<String> barWithIntSpread = [...foo, ...fortyTwo];
 const List<String> barWithIntDynamicSpread = [...foo, ...fortyTwoAsDynamic];
 const List<String> barWithMapSpread = [...foo, ...quux];
@@ -32,12 +32,12 @@ const customIterable = const CustomIterable();
 const List<String> barWithCustomIterableSpread3 = [...bar, ...customIterable];
 const List<String> listConcat = ["Hello"] + ["World"];
 
-const Set<String> nullSet = null;
+const Set<String>? nullSet = null;
 const Set<String> baz = {"hello", "world"};
 Set<String> get bazAsGetter => const {"hello", "world"};
 const Set<String> qux = {...baz, "!"};
 Set<String> get quxAsGetter => const {...baz, "!"};
-const Set<String> quxWithNullSpread = {...baz, ...nullSet};
+const Set<String> quxWithNullSpread = {...baz, ...?nullSet};
 const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
 const Set<String> quxWithMapSpread = {...baz, ...quux};
 const Set<String> quxWithCustomIterableSpread1 = {
@@ -49,12 +49,12 @@ const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
 const Set<dynamic> setWithNonPrimitiveEquals = {const WithEquals(42)};
 const Set<dynamic> setWithDuplicates = {42, 42};
 
-const Map<String, String> nullMap = null;
+const Map<String, String>? nullMap = null;
 const Map<String, String> quux = {"hello": "world"};
 Map<String, String> get quuxAsGetter => const {"hello": "world"};
 const Map<String, String> quuz = {...quux, "!": "bye!"};
 Map<String, String> get quuzAsGetter => const {...quux, "!": "bye!"};
-const Map<String, String> quuzWithNullSpread = {...quux, ...nullMap};
+const Map<String, String> quuzWithNullSpread = {...quux, ...?nullMap};
 const Map<String, String> quuzWithIntSpread = {...quux, ...fortyTwo};
 const Map<String, String> quuzWithSetSpread = {...quux, ...baz};
 const Map<String, String> mapWithSetSpread = {...baz};
@@ -87,7 +87,7 @@ class CustomMap implements Map<String, String> {
   Iterable<MapEntry<String, String>> get entries => [];
 
   @override
-  String operator [](Object key) => throw new UnimplementedError();
+  String operator [](Object? key) => throw new UnimplementedError();
 
   @override
   void operator []=(String key, String value) => throw new UnimplementedError();
@@ -99,10 +99,10 @@ class CustomMap implements Map<String, String> {
   void clear() => throw new UnimplementedError();
 
   @override
-  bool containsKey(Object key) => throw new UnimplementedError();
+  bool containsKey(Object? key) => throw new UnimplementedError();
 
   @override
-  bool containsValue(Object value) => throw new UnimplementedError();
+  bool containsValue(Object? value) => throw new UnimplementedError();
 
   @override
   bool get isEmpty => throw new UnimplementedError();
@@ -117,7 +117,7 @@ class CustomMap implements Map<String, String> {
   int get length => throw new UnimplementedError();
 
   @override
-  String remove(Object key) => throw new UnimplementedError();
+  String remove(Object? key) => throw new UnimplementedError();
 
   @override
   Iterable<String> get values => throw new UnimplementedError();
@@ -145,7 +145,8 @@ class CustomMap implements Map<String, String> {
   void removeWhere(bool predicate(String key, String value)) =>
       throw new UnimplementedError();
 
-  String update(String key, String update(String value), {String ifAbsent()}) =>
+  String update(String key, String update(String value),
+          {String ifAbsent()?}) =>
       throw new UnimplementedError();
 
   Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> f(String key, String value)) =>

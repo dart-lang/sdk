@@ -70,7 +70,6 @@ import '../fasta/fasta_codes.dart'
         templateSdkSpecificationNotFound,
         templateSdkSummaryNotFound;
 
-import '../fasta/kernel/macro.dart';
 import '../fasta/messages.dart' show getLocation;
 
 import '../fasta/problems.dart' show DebugAbort, unimplemented;
@@ -858,7 +857,7 @@ class ProcessedOptions {
   Future<MacroExecutor> Function() get macroExecutorProvider =>
       _raw.macroExecutorProvider;
 
-  Map<MacroClass, Uri> get precompiledMacroUris =>
+  Map<Uri, Uri> get precompiledMacroUris =>
       _raw.precompiledMacroUris ?? const {};
 
   CompilerOptions get rawOptionsForTesting => _raw;

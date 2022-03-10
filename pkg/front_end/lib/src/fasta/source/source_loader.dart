@@ -1441,7 +1441,7 @@ severity: $severity
     /// Libraries containing precompiled macro classes.
     Set<Uri> precompiledMacroLibraries = {};
 
-    Map<MacroClass, Uri> precompiledMacroUris =
+    Map<Uri, Uri> precompiledMacroUris =
         target.context.options.precompiledMacroUris;
 
     for (LibraryBuilder libraryBuilder in libraryBuilders) {
@@ -1450,8 +1450,7 @@ severity: $severity
         Builder builder = iterator.current;
         if (builder is ClassBuilder && builder.isMacro) {
           Uri libraryUri = builder.library.importUri;
-          MacroClass macroClass = new MacroClass(libraryUri, builder.name);
-          if (!precompiledMacroUris.containsKey(macroClass)) {
+          if (!precompiledMacroUris.containsKey(libraryUri)) {
             (macroLibraries[libraryUri] ??= []).add(builder);
             if (retainDataForTesting) {
               (dataForTesting!.macroDeclarationData
@@ -1702,7 +1701,7 @@ severity: $severity
     if (libraryData.isNotEmpty) {
       MacroExecutor macroExecutor =
           await target.context.options.macroExecutorProvider();
-      Map<MacroClass, Uri> precompiledMacroUris =
+      Map<Uri, Uri> precompiledMacroUris =
           target.context.options.precompiledMacroUris;
       return await MacroApplications.loadMacroIds(
           macroExecutor,

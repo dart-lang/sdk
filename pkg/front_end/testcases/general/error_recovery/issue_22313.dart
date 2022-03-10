@@ -1,5 +1,5 @@
 class A { }
-// @dart=2.9
+
 class B { }
 
 class Foo extends A, B {

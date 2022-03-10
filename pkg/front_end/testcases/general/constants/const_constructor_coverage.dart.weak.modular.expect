@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "const_constructor_coverage_lib1.dart" as con;
@@ -6,15 +6,15 @@ import "const_constructor_coverage_lib1.dart" as con;
 import "org-dartlang-testcase:///const_constructor_coverage_lib1.dart";
 import "org-dartlang-testcase:///const_constructor_coverage_lib2.dart";
 
-static const field con::Foo* foo1 = #C4;
-static const field con::Foo* foo2 = #C4;
-static const field con::Foo* foo3 = #C4;
-static const field con::Foo* foo4 = #C4;
+static const field con::Foo foo1 = #C4;
+static const field con::Foo foo2 = #C4;
+static const field con::Foo foo3 = #C4;
+static const field con::Foo foo4 = #C4;
 static method main() → dynamic {
   core::print(#C4);
 }
 
-library;
+library /*isNonNullableByDefault*/;
 import self as con;
 import "dart:core" as core;
 import "const_constructor_coverage_lib2.dart" as con2;
@@ -22,61 +22,41 @@ import "const_constructor_coverage_lib2.dart" as con2;
 import "org-dartlang-testcase:///const_constructor_coverage_lib2.dart";
 
 class Foo extends core::Object /*hasConstConstructor*/  {
-  final field con::Bar* bar;
-  const constructor •() → con::Foo*
+  final field con::Bar bar;
+  const constructor •() → con::Foo
     : con::Foo::bar = #C3, super core::Object::•()
     ;
-  const constructor named1() → con::Foo*
+  const constructor named1() → con::Foo
     : con::Foo::bar = #C3, super core::Object::•()
     ;
-  const constructor named2() → con::Foo*
+  const constructor named2() → con::Foo
     : con::Foo::bar = #C3, super core::Object::•()
     ;
-  const constructor named3() → con::Foo*
+  const constructor named3() → con::Foo
     : con::Foo::bar = #C3, super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Bar extends core::Object /*hasConstConstructor*/  {
-  final field con2::Baz* baz;
-  const constructor •() → con::Bar*
+  final field con2::Baz baz;
+  const constructor •() → con::Bar
     : con::Bar::baz = #C2, super core::Object::•()
     ;
-  const constructor named1() → con::Bar*
+  const constructor named1() → con::Bar
     : con::Bar::baz = #C2, super core::Object::•()
     ;
-  const constructor named2() → con::Bar*
+  const constructor named2() → con::Bar
     : con::Bar::baz = #C2, super core::Object::•()
     ;
-  const constructor named3() → con::Bar*
+  const constructor named3() → con::Bar
     : con::Bar::baz = #C2, super core::Object::•()
     ;
-  const constructor named4(core::int* i) → con::Bar*
-    : con::Bar::baz = i.{core::num::>}(0){(core::num*) →* core::bool*} ?{con2::Baz*} #C2 : #C2, super core::Object::•()
+  const constructor named4(core::int i) → con::Bar
+    : con::Bar::baz = i.{core::num::>}(0){(core::num) → core::bool} ?{con2::Baz} #C2 : #C2, super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static const field con::Foo* foo = #C4;
+static const field con::Foo foo = #C4;
 
-library;
+library /*isNonNullableByDefault*/;
 import self as con2;
 import "dart:core" as core;
 import "const_constructor_coverage_lib1.dart" as con;
@@ -84,42 +64,32 @@ import "const_constructor_coverage_lib1.dart" as con;
 import "org-dartlang-testcase:///const_constructor_coverage_lib1.dart";
 
 class Baz extends core::Object /*hasConstConstructor*/  {
-  final field con::Bar* bar;
-  const constructor •() → con2::Baz*
+  final field con::Bar? bar;
+  const constructor •() → con2::Baz
     : con2::Baz::bar = null, super core::Object::•()
     ;
-  const constructor named1() → con2::Baz*
+  const constructor named1() → con2::Baz
     : con2::Baz::bar = null, super core::Object::•()
     ;
-  const constructor named2() → con2::Baz*
+  const constructor named2() → con2::Baz
     : con2::Baz::bar = null, super core::Object::•()
     ;
-  const constructor named3() → con2::Baz*
+  const constructor named3() → con2::Baz
     : con2::Baz::bar = #C3, super core::Object::•()
     ;
-  const constructor named4() → con2::Baz*
+  const constructor named4() → con2::Baz
     : con2::Baz::bar = null, super core::Object::•()
     ;
-  const constructor named5() → con2::Baz*
+  const constructor named5() → con2::Baz
     : con2::Baz::bar = null, super core::Object::•()
     ;
-  const constructor named6() → con2::Baz*
+  const constructor named6() → con2::Baz
     : con2::Baz::bar = null, super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static const field con2::Baz* baz = #C2;
-static const field con::Foo* foo = #C4;
-static const field con::Bar* bar = #C3;
+static const field con2::Baz baz = #C2;
+static const field con::Foo foo = #C4;
+static const field con::Bar bar = #C3;
 
 constants  {
   #C1 = null

@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Foo {
   const Foo({bool x: true});
   const x = Foo();

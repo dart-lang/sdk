@@ -59,6 +59,7 @@ general/constants/non_const_constructor: FormatterCrash
 general/constants/number_folds: FormatterCrash
 general/constants/number_folds_opt_out: FormatterCrash
 general/constants/various: FormatterCrash
+general/constants/various2: FormatterCrash
 general/constructor_initializer_invalid: FormatterCrash
 general/covariant_generic2: FormatterCrash
 general/duplicated_declarations: FormatterCrash
