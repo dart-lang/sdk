@@ -413,8 +413,8 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   @Deprecated('Not useful for clients')
   bool get hasLoadLibraryFunction;
 
-  /// Return the [LineInfo] for the [source], or `null` if not computed yet.
-  LineInfo? get lineInfo;
+  /// Return the [LineInfo] for the [source].
+  LineInfo get lineInfo;
 
   /// Return a list containing all of the mixins contained in this compilation
   /// unit.

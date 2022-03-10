@@ -14,7 +14,6 @@ import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -299,25 +298,16 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
 /// Creates a new [Location].
 Location _locationForArgs(
     engine.CompilationUnitElement unitElement, engine.SourceRange range) {
-  var startLine = 0;
-  var startColumn = 0;
-  var endLine = 0;
-  var endColumn = 0;
-  try {
-    var lineInfo = unitElement.lineInfo;
-    if (lineInfo != null) {
-      var startLocation = lineInfo.getLocation(range.offset);
-      startLine = startLocation.lineNumber;
-      startColumn = startLocation.columnNumber;
+  var lineInfo = unitElement.lineInfo;
 
-      var endLocation = lineInfo.getLocation(range.end);
-      endLine = endLocation.lineNumber;
-      endColumn = endLocation.columnNumber;
-    }
-  } on AnalysisException {
-    // TODO(brianwilkerson) It doesn't look like the code in the try block
-    //  should be able to throw an exception. Try removing the try statement.
-  }
+  var startLocation = lineInfo.getLocation(range.offset);
+  var endLocation = lineInfo.getLocation(range.end);
+
+  var startLine = startLocation.lineNumber;
+  var startColumn = startLocation.columnNumber;
+  var endLine = endLocation.lineNumber;
+  var endColumn = endLocation.columnNumber;
+
   return Location(unitElement.source.fullName, range.offset, range.length,
       startLine, startColumn,
       endLine: endLine, endColumn: endColumn);
