@@ -65,7 +65,8 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   Future<void> resolveFile2(String path) async {
-    var result = await session.getResolvedUnit(path) as ResolvedUnitResult;
+    var result =
+        await (await session).getResolvedUnit(path) as ResolvedUnitResult;
     testAnalysisResult = result;
     testCode = result.content;
     testUnit = result.unit;

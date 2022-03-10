@@ -66,8 +66,7 @@ class CompletionResolveHandler
     _latestCompletionItem = item;
     while (item == _latestCompletionItem && timer.elapsed < timeout) {
       try {
-        final analysisDriver = server.getAnalysisDriver(file);
-        final session = analysisDriver?.currentSession;
+        final session = await server.getAnalysisSession(file);
 
         // We shouldn't not get a driver/session, but if we did perhaps the file
         // was removed from the analysis set so assume the request is no longer

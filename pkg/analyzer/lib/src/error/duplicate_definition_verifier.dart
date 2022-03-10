@@ -93,7 +93,9 @@ class DuplicateDefinitionVerifier {
           member.name,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
-        _checkValuesDeclarationInEnum(member.name);
+        if (!(member.isStatic && member.isSetter)) {
+          _checkValuesDeclarationInEnum(member.name);
+        }
       }
     }
 

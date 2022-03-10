@@ -20,11 +20,12 @@ void main(List<String> args) async {
   String appDirPath = dirname(Platform.script.toFilePath());
 
   // Parse service.md into a model.
-  var file = File(
-      normalize(join(appDirPath, '../../../runtime/vm/service/service.md')));
-  var document = Document();
-  StringBuffer buf = StringBuffer(file.readAsStringSync());
-  var nodes = document.parseLines(buf.toString().split('\n'));
+  final file = File(
+    normalize(join(appDirPath, '../../../runtime/vm/service/service.md')),
+  );
+  final document = Document();
+  final buf = StringBuffer(file.readAsStringSync());
+  final nodes = document.parseLines(buf.toString().split('\n'));
   print('Parsed ${file.path}.');
   print('Service protocol version ${ApiParseUtil.parseVersionString(nodes)}.');
 
@@ -33,7 +34,6 @@ void main(List<String> args) async {
 
   await _generateDart(appDirPath, nodes);
   await _generateJava(appDirPath, nodes);
-  await _generateAsserts(appDirPath, nodes);
 }
 
 Future _generateDart(String appDirPath, List<Node> nodes) async {
@@ -96,34 +96,6 @@ ${generatedPaths.join('\n')}
   file.writeAsStringSync('version=${version.major}.${version.minor}\n');
 
   print('Wrote Java to $srcDirPath.');
-}
-
-Future _generateAsserts(String appDirPath, List<Node> nodes) async {
-  var outDirPath = normalize(join(appDirPath, '..', 'example'));
-  var outDir = Directory(outDirPath);
-  if (!outDir.existsSync()) outDir.createSync(recursive: true);
-  var outputFile = File(join(outDirPath, 'vm_service_assert.dart'));
-  var generator = dart.DartGenerator();
-  dart.api = dart.Api();
-  dart.api.parse(nodes);
-  dart.api.generateAsserts(generator);
-  outputFile.writeAsStringSync(generator.toString());
-  ProcessResult result = Process.runSync('dart', ['format', outDirPath]);
-  if (result.exitCode != 0) {
-    print('dart format: ${result.stdout}\n${result.stderr}');
-    throw result.exitCode;
-  }
-
-  if (_stampPubspecVersion) {
-    // Update the pubspec file.
-    Version version = ApiParseUtil.parseVersionSemVer(nodes);
-    _stampPubspec(version);
-
-    // Validate that the changelog contains an entry for the current version.
-    _checkUpdateChangelog(version);
-  }
-
-  print('Wrote Dart to ${outputFile.path}.');
 }
 
 // Push the major and minor versions into the pubspec.

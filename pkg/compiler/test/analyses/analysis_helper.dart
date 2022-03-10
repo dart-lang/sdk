@@ -15,7 +15,7 @@ import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/scope.dart';
 import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/ir/util.dart';
-import 'package:compiler/src/kernel/loader.dart';
+import 'package:compiler/src/phase/load_kernel.dart' as load_kernel;
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart'
@@ -61,8 +61,15 @@ run(Uri entryPoint, String allowedListPath,
         packageConfig: packageConfig,
         entryPoint: entryPoint,
         options: options);
-    KernelResult result = await compiler.kernelLoader.load();
-    new DynamicVisitor(compiler.reporter, result.component, allowedListPath,
+    load_kernel.Output result = await load_kernel.run(load_kernel.Input(
+        compiler.options,
+        compiler.provider,
+        compiler.reporter,
+        compiler.initializedCompilerState,
+        false));
+    compiler.frontendStrategy
+        .registerLoadedLibraries(result.component, result.libraries);
+    DynamicVisitor(compiler.reporter, result.component, allowedListPath,
             analyzedUrisFilter)
         .run(verbose: verbose, generate: generate);
   });

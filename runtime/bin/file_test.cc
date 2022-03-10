@@ -2,28 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "bin/file.h"
 #include "bin/dartutils.h"
 #include "bin/directory.h"
-#include "bin/file.h"
+#include "bin/test_utils.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
-// Helper method to be able to run the test from the runtime
-// directory, or the top directory.
-static const char* GetFileName(const char* name) {
-  if (bin::File::Exists(NULL, name)) {
-    return name;
-  } else {
-    static const int kRuntimeLength = strlen("runtime/");
-    return name + kRuntimeLength;
-  }
-}
-
 TEST_CASE(Read) {
-  const char* kFilename = GetFileName("runtime/bin/file_test.cc");
+  const char* kFilename = bin::test::GetFileName("runtime/bin/file_test.cc");
   bin::File* file = bin::File::Open(NULL, kFilename, bin::File::kRead);
   EXPECT(file != NULL);
   char buffer[16];
@@ -36,7 +26,7 @@ TEST_CASE(Read) {
 }
 
 TEST_CASE(OpenUri_RelativeFilename) {
-  const char* kFilename = GetFileName("runtime/bin/file_test.cc");
+  const char* kFilename = bin::test::GetFileName("runtime/bin/file_test.cc");
   char* encoded = reinterpret_cast<char*>(bin::DartUtils::ScopedCString(
       strlen(kFilename) * 3 + 1));
   char* t = encoded;
@@ -63,7 +53,8 @@ TEST_CASE(OpenUri_RelativeFilename) {
 }
 
 TEST_CASE(OpenUri_AbsoluteFilename) {
-  const char* kRelativeFilename = GetFileName("runtime/bin/file_test.cc");
+  const char* kRelativeFilename =
+      bin::test::GetFileName("runtime/bin/file_test.cc");
   const char* kFilename = bin::File::GetCanonicalPath(NULL, kRelativeFilename);
   EXPECT_NOTNULL(kFilename);
   char* encoded = reinterpret_cast<char*>(bin::DartUtils::ScopedCString(
@@ -100,7 +91,8 @@ static const char* Concat(const char* a, const char* b) {
 }
 
 TEST_CASE(OpenUri_ValidUri) {
-  const char* kRelativeFilename = GetFileName("runtime/bin/file_test.cc");
+  const char* kRelativeFilename =
+      bin::test::GetFileName("runtime/bin/file_test.cc");
   const char* kAbsoluteFilename = bin::File::GetCanonicalPath(NULL,
       kRelativeFilename);
   EXPECT_NOTNULL(kAbsoluteFilename);
@@ -132,7 +124,8 @@ TEST_CASE(OpenUri_ValidUri) {
 }
 
 TEST_CASE(OpenUri_UriWithSpaces) {
-  const char* kRelativeFilename = GetFileName("runtime/bin/file_test.cc");
+  const char* kRelativeFilename =
+      bin::test::GetFileName("runtime/bin/file_test.cc");
   const char* strSystemTemp = bin::Directory::SystemTemp(NULL);
   EXPECT_NOTNULL(strSystemTemp);
   const char* kTempDir = Concat(strSystemTemp, "/foo bar");
@@ -175,7 +168,7 @@ TEST_CASE(OpenUri_UriWithSpaces) {
 }
 
 TEST_CASE(OpenUri_InvalidUriPercentEncoding) {
-  const char* kFilename = GetFileName("runtime/bin/file_test.cc");
+  const char* kFilename = bin::test::GetFileName("runtime/bin/file_test.cc");
   char* encoded = reinterpret_cast<char*>(bin::DartUtils::ScopedCString(
       strlen(kFilename) * 3 + 1));
   char* t = encoded;
@@ -195,7 +188,7 @@ TEST_CASE(OpenUri_InvalidUriPercentEncoding) {
 }
 
 TEST_CASE(OpenUri_TruncatedUriPercentEncoding) {
-  const char* kFilename = GetFileName("runtime/bin/file_test.cc");
+  const char* kFilename = bin::test::GetFileName("runtime/bin/file_test.cc");
   char* encoded = reinterpret_cast<char*>(bin::DartUtils::ScopedCString(
       strlen(kFilename) * 3 + 1));
   char* t = encoded;
@@ -216,7 +209,7 @@ TEST_CASE(OpenUri_TruncatedUriPercentEncoding) {
 
 TEST_CASE(FileLength) {
   const char* kFilename =
-      GetFileName("runtime/tests/vm/data/fixed_length_file");
+      bin::test::GetFileName("runtime/tests/vm/data/fixed_length_file");
   bin::File* file = bin::File::Open(NULL, kFilename, bin::File::kRead);
   EXPECT(file != NULL);
   EXPECT_EQ(42, file->Length());
@@ -226,7 +219,7 @@ TEST_CASE(FileLength) {
 TEST_CASE(FilePosition) {
   char buf[42];
   const char* kFilename =
-      GetFileName("runtime/tests/vm/data/fixed_length_file");
+      bin::test::GetFileName("runtime/tests/vm/data/fixed_length_file");
   bin::File* file = bin::File::Open(NULL, kFilename, bin::File::kRead);
   EXPECT(file != NULL);
   EXPECT(file->ReadFully(buf, 12));

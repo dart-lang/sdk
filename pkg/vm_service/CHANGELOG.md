@@ -1,5 +1,8 @@
 # Changelog
 
+## 8.2.1
+- Remove `example/vm_service_asserts.dart'
+
 ## 8.2.0
 - Update to version `3.56` of the spec.
 - Added optional `line` and `column` properties to `SourceLocation`.

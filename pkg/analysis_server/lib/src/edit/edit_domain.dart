@@ -557,13 +557,14 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (driver == null) {
       return errorFixesList;
     }
+    await driver.applyPendingFileChanges();
     var session = driver.currentSession;
     var sourceFactory = driver.sourceFactory;
     var errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,
       sourceFactory,
-      driver.currentSession.analysisContext.contextRoot.root.path,
+      session.analysisContext.contextRoot.root.path,
     );
     var options = _getOptions(sourceFactory, content);
     if (options == null) {
@@ -602,7 +603,9 @@ class EditDomainHandler extends AbstractRequestHandler {
       for (var error in result.errors) {
         var errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == requestLine) {
-          var workspace = DartChangeWorkspace(server.currentSessions);
+          var workspace = DartChangeWorkspace(
+            await server.currentSessions,
+          );
           var context = DartFixContextImpl(
               server.instrumentationService, workspace, result, error);
 
@@ -652,11 +655,10 @@ error.errorCode: ${error.errorCode}
     var document =
         parseFragment(content, container: MANIFEST_TAG, generateSpans: true);
     var validator = ManifestValidator(manifestFile.createSource());
-    var driver = server.getAnalysisDriver(file);
-    if (driver == null) {
+    var session = await server.getAnalysisSession(file);
+    if (session == null) {
       return errorFixesList;
     }
-    var session = driver.currentSession;
     var errors = validator.validate(content, true);
     for (var error in errors) {
       var generator = ManifestFixGenerator(error, content, document);
@@ -688,8 +690,8 @@ error.errorCode: ${error.errorCode}
     if (content == null) {
       return errorFixesList;
     }
-    var driver = server.getAnalysisDriver(file);
-    if (driver == null) {
+    var session = await server.getAnalysisSession(file);
+    if (session == null) {
       return errorFixesList;
     }
     YamlDocument document;
@@ -704,7 +706,6 @@ error.errorCode: ${error.errorCode}
     }
     var validator =
         PubspecValidator(resourceProvider, pubspecFile.createSource());
-    var session = driver.currentSession;
     var errors = validator.validate(yamlContent.nodes);
     for (var error in errors) {
       var generator =
@@ -736,7 +737,9 @@ error.errorCode: ${error.errorCode}
     if (result != null) {
       var context = DartAssistContextImpl(
         server.instrumentationService,
-        DartChangeWorkspace(server.currentSessions),
+        DartChangeWorkspace(
+          await server.currentSessions,
+        ),
         result,
         offset,
         length,

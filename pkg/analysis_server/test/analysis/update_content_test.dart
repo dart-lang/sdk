@@ -157,20 +157,20 @@ f() {}
     var driver2 = server.getAnalysisDriver(filePath2)!;
 
     // no sources
-    expect(_getUserSources(driver1), isEmpty);
-    expect(_getUserSources(driver2), isEmpty);
+    expect(await _getUserSources(driver1), isEmpty);
+    expect(await _getUserSources(driver2), isEmpty);
 
     // add an overlay - new Source in context1
     server.updateContent('1', {filePath1: AddContentOverlay('')});
-    expect(_getUserSources(driver1), [filePath1]);
-    expect(_getUserSources(driver2), isEmpty);
+    expect(await _getUserSources(driver1), [filePath1]);
+    expect(await _getUserSources(driver2), isEmpty);
 
     // remove the overlay - no sources
     server.updateContent('2', {filePath1: RemoveContentOverlay()});
 
     // The file isn't removed from the list of added sources.
 //    expect(_getUserSources(driver1), isEmpty);
-    expect(_getUserSources(driver2), isEmpty);
+    expect(await _getUserSources(driver2), isEmpty);
   }
 
   @failingTest
@@ -259,8 +259,9 @@ f() {}
     expect(overlay, const TypeMatcher<RemoveContentOverlay>());
   }
 
-  List<String> _getUserSources(AnalysisDriver driver) {
+  Future<List<String>> _getUserSources(AnalysisDriver driver) async {
     var sources = <String>[];
+    await driver.applyPendingFileChanges();
     driver.addedFiles.forEach((path) {
       if (path.startsWith(convertPath('/User/'))) {
         sources.add(path);

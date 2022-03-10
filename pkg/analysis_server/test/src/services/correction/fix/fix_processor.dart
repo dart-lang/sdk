@@ -33,8 +33,8 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
   late String resultCode;
 
   /// The workspace in which fixes contributor operates.
-  ChangeWorkspace get workspace {
-    return DartChangeWorkspace([session]);
+  Future<ChangeWorkspace> get workspace async {
+    return DartChangeWorkspace([await session]);
   }
 
   /// Find the error that is to be fixed by computing the errors in the file,
@@ -97,8 +97,8 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   bool get useConfigFiles => false;
 
   /// The workspace in which fixes contributor operates.
-  DartChangeWorkspace get workspace {
-    return DartChangeWorkspace([session]);
+  Future<DartChangeWorkspace> get workspace async {
+    return DartChangeWorkspace([await session]);
   }
 
   Future<void> assertHasFix(String expected) async {
@@ -124,7 +124,8 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
-    var processor = BulkFixProcessor(TestInstrumentationService(), workspace,
+    var processor = BulkFixProcessor(
+        TestInstrumentationService(), await workspace,
         useConfigFiles: useConfigFiles);
     await processor.fixErrors([analysisContext]);
     return processor;
@@ -196,7 +197,7 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
     var context = DartFixContextImpl(
       TestInstrumentationService(),
-      workspace,
+      await workspace,
       testAnalysisResult,
       error,
     );
@@ -500,7 +501,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
     var context = DartFixContextImpl(
       TestInstrumentationService(),
-      workspace,
+      await workspace,
       testAnalysisResult,
       error,
     );

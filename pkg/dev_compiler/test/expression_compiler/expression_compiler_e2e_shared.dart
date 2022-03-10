@@ -61,10 +61,7 @@ main() {
 }
 ''';
 
-/// Shared tests that require a language version greater than 2.12.
-///
-/// Tests that exercise language features introduced with 2.12 or after are
-/// valid here.
+/// Shared tests that require a language version >=2.12.0 <2.17.0.
 // TODO(nshahan) Merge with [runAgnosticSharedTests] after we no longer need to
 // test support for evaluation in legacy (pre-null safety) code.
 void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
@@ -316,82 +313,6 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     });
   });
 
-  group('Named arguments anywhere', () {
-    var source = r'''
-      String topLevelMethod(int param1, String param2,
-              {int param3 = -1, String param4 = 'default'}) =>
-          '$param1, $param2, $param3, $param4';
-
-      class C {
-        int param1;
-        String param2;
-        int param3;
-        String param4;
-        C(this.param1, this.param2,
-            {this.param3 = -1, this.param4 = 'default'});
-
-        static String staticMethod(int param1, String param2,
-              {int param3 = -1, String param4 = 'default'}) =>
-          '$param1, $param2, $param3, $param4';
-
-        String instanceMethod(int param1, String param2,
-              {int param3 = -1, String param4 = 'default'}) =>
-          '$param1, $param2, $param3, $param4';
-
-        String toString() => '$param1, $param2, $param3, $param4';
-      }
-
-      main() {
-        String localMethod(int param1, String param2,
-              {int param3 = -1, String param4 = 'default'}) =>
-          '$param1, $param2, $param3, $param4';
-        var c = C(1, 'two');
-        // Breakpoint: bp
-        print('hello world');
-      }
-        ''';
-
-    setUpAll(() async {
-      await driver.initSource(setup, source,
-          experiments: {'named-arguments-anywhere': true});
-    });
-
-    tearDownAll(() async {
-      await driver.cleanupTest();
-    });
-
-    test('in top level method', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'topLevelMethod(param3: 3, 1, param4: "four", "two")',
-          expectedResult: '1, two, 3, four');
-    });
-    test('in local method', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'topLevelMethod(param3: 3, 1, param4: "four", "two")',
-          expectedResult: '1, two, 3, four');
-    });
-    test('in class constructor', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'C(param3: 3, 1, param4: "four", "two").toString()',
-          expectedResult: '1, two, 3, four');
-    });
-    test('in class static method', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'C.staticMethod(param3: 3, 1, param4: "four", "two")',
-          expectedResult: '1, two, 3, four');
-    });
-    test('in class instance method', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'c.instanceMethod(param3: 3, 1, param4: "four", "two")',
-          expectedResult: '1, two, 3, four');
-    });
-  });
-
   group('Enums', () {
     var source = r'''
       enum E {id1, id2, id3}
@@ -434,110 +355,6 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           breakpointId: 'bp',
           expression: 'e != E2.id2 && E.id2 != E2.id2',
           expectedResult: 'true');
-    });
-  });
-
-  group('Enhanced enums', () {
-    var source = r'''
-      enum E<T> with M {
-        id_int<int>(0),
-        id_bool<bool>(true),
-        id_string<String>('hello world', n: 13);
-
-        final T field;
-        final num n;
-        static const constStaticField = id_string;
-
-        const E(T arg0, {num? n}) : this.field = arg0, this.n = n ?? 42;
-
-        T get fieldGetter => field;
-        num instanceMethod() => n;
-      }
-
-      enum E2 with M {
-        v1, v2, id_string;
-        int get index => 10;
-      }
-
-      mixin M on Enum {
-        int mixinMethod() => index * 100;
-      }
-
-      main() {
-        var e = E.id_string;
-        // Breakpoint: bp
-        print('hello world');
-      }
-        ''';
-
-    setUpAll(() async {
-      await driver
-          .initSource(setup, source, experiments: {'enhanced-enums': true});
-    });
-
-    tearDownAll(() async {
-      await driver.cleanupTest();
-    });
-
-    test('evaluate to the correct string', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'E.id_string.toString()',
-          expectedResult: 'E.id_string');
-    });
-    test('evaluate to the correct index', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'E.id_string.index',
-          expectedResult: '2');
-    });
-    test('compare properly against themselves', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'e == E.id_string && E.id_string == E.id_string',
-          expectedResult: 'true');
-    });
-    test('compare properly against other enums', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'e != E2.id_string && E.id_string != E2.id_string',
-          expectedResult: 'true');
-    });
-    test('with instance methods', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'E.id_bool.instanceMethod()',
-          expectedResult: '42');
-    });
-    test('with instance methods from local instance', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'e.instanceMethod()',
-          expectedResult: '13');
-    });
-    test('with getters', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'E.id_int.fieldGetter',
-          expectedResult: '0');
-    });
-    test('with getters from local instance', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'e.fieldGetter',
-          expectedResult: 'hello world');
-    });
-    test('with mixin calls', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'E.id_string.mixinMethod()',
-          expectedResult: '200');
-    });
-    test('with mixin calls through overridden indices', () async {
-      await driver.check(
-          breakpointId: 'bp',
-          expression: 'E2.v2.mixinMethod()',
-          expectedResult: '1000');
     });
   });
 }

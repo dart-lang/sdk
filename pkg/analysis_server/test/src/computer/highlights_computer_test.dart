@@ -114,7 +114,7 @@ void main() {
     this.content = content;
     newFile(sourcePath, content: content);
     var result =
-        await session.getResolvedUnit(sourcePath) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
 
     if (hasErrors) {
       expect(result.errors, isNotEmpty);

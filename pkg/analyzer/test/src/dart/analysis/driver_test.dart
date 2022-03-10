@@ -407,10 +407,12 @@ class AnalysisDriverTest extends BaseAnalysisDriverTest {
     var b = convertPath('/test/lib/b.dart');
 
     driver.addFile(a);
+    await driver.applyPendingFileChanges();
     expect(driver.addedFiles, contains(a));
     expect(driver.addedFiles, isNot(contains(b)));
 
     driver.removeFile(a);
+    await driver.applyPendingFileChanges();
     expect(driver.addedFiles, isNot(contains(a)));
     expect(driver.addedFiles, isNot(contains(b)));
   }
@@ -830,6 +832,12 @@ import 'c.dart';
     // Change `b.dart`, also removes `c.dart` and `d.dart` that import it.
     // But `a.dart` and `d.dart` is not affected.
     driver.changeFile(b.path);
+    await driver.applyPendingFileChanges();
+
+    // We have a new session.
+    var session2 = driver.currentSession;
+    expect(session2, isNot(session1));
+
     driver.assertLoadedLibraryUriSet(
       excluded: [
         'package:test/b.dart',
@@ -841,10 +849,6 @@ import 'c.dart';
         'package:test/e.dart',
       ],
     );
-
-    // We have a new session.
-    var session2 = driver.currentSession;
-    expect(session2, isNot(session1));
 
     // `a.dart` and `e.dart` moved to the new session.
     // Invalidated libraries stuck with the old session.
@@ -896,6 +900,7 @@ import 'b.dart';
     // Removes `c.dart` that imports `b.dart`.
     // But `d.dart` is not affected.
     driver.changeFile(a.path);
+    await driver.applyPendingFileChanges();
     driver.assertLoadedLibraryUriSet(
       excluded: [
         'package:test/b.dart',
@@ -1001,9 +1006,7 @@ var A2 = B1;
 
     // Notify the driver about the change.
     driver.changeFile(testFile);
-
-    // The file was changed, so it is scheduled for analysis.
-    expect(driver.test.fileTracker.isFilePending(testFile), isTrue);
+    await driver.applyPendingFileChanges();
 
     // We get a new result.
     {
@@ -1411,6 +1414,7 @@ void f(A a) {}
 
     // Notify the driver that the file was changed.
     driver.changeFile(a);
+    await driver.applyPendingFileChanges();
 
     // So, `class A {}` is declared now.
     expect((await driver.getFileValid(a)).lineInfo.lineCount, 2);
@@ -2588,6 +2592,7 @@ void f(A a) {}
 
     // Notify the driver that the file was changed.
     driver.changeFile(a);
+    await driver.applyPendingFileChanges();
 
     // So, `class A {}` is declared now.
     {

@@ -35,7 +35,7 @@ class TransformSetManagerTest extends AbstractContextTest {
 
     var testFile = convertPath('$testPackageLibPath/test.dart');
     addSource(testFile, '');
-    var result = await session.getResolvedLibraryValid(testFile);
+    var result = await (await session).getResolvedLibraryValid(testFile);
     var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(2));
   }
@@ -46,7 +46,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     addSource('/home/test/pubspec.yaml', '');
     var testFile = convertPath('$testPackageLibPath/test.dart');
     addSource(testFile, '');
-    var result = await session.getResolvedLibraryValid(testFile);
+    var result = await (await session).getResolvedLibraryValid(testFile);
     var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(0));
   }

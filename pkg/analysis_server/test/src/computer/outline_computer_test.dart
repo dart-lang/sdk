@@ -33,7 +33,7 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
     testCode = code;
     newFile(testPath, content: code);
     var resolveResult =
-        await session.getResolvedUnit(testPath) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(testPath) as ResolvedUnitResult;
     return DartUnitOutlineComputer(
       resolveResult,
       withBasicFlutter: true,

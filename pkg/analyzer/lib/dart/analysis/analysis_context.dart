@@ -35,4 +35,8 @@ abstract class AnalysisContext {
   /// Return the workspace for containing the context root.
   @Deprecated('Use contextRoot.workspace instead')
   Workspace get workspace;
+
+  /// Return a [Future] that completes after pending file changes are applied,
+  /// so that [currentSession] can be used to compute results.
+  Future<void> applyPendingFileChanges();
 }

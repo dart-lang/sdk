@@ -735,7 +735,6 @@ void f() {
 }
 ''';
     newFile(other, content: otherCode);
-    driver.addFile(other);
 
     await resolveTestCode('''
 class A {

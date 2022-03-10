@@ -46,7 +46,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  AnalysisSession get session => contextFor(testPackageRootPath).currentSession;
+  Future<AnalysisSession> get session async => sessionFor(testPackageRootPath);
 
   /// The file system-specific `analysis_options.yaml` path.
   String get testPackageAnalysisOptionsPath =>
@@ -98,8 +98,14 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    var session = contextFor(path).currentSession;
+    var session = await sessionFor(path);
     return await session.getResolvedUnit(path) as ResolvedUnitResult;
+  }
+
+  Future<AnalysisSession> sessionFor(String path) async {
+    var analysisContext = contextFor(path);
+    await analysisContext.applyPendingFileChanges();
+    return analysisContext.currentSession;
   }
 
   void setUp() {

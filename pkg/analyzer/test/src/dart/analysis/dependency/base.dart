@@ -61,7 +61,10 @@ class BaseDependencyTest extends PubPackageResolutionTest {
 //    }
 
     newFile(path, content: content);
-    driverFor(path).changeFile(path);
+
+    var analysisDriver = driverFor(path);
+    analysisDriver.changeFile(path);
+    await analysisDriver.applyPendingFileChanges();
 
     var units = await _resolveLibrary(path);
     var uri = units.first.declaredElement!.source.uri;
