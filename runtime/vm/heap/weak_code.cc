@@ -58,7 +58,7 @@ bool WeakCodeReferences::IsOptimizedCode(const Array& dependent_code,
   return false;
 }
 
-void WeakCodeReferences::DisableCode() {
+void WeakCodeReferences::DisableCode(bool are_mutators_stopped) {
   Thread* thread = Thread::Current();
   const Array& code_objects = Array::Handle(thread->zone(), array_.ptr());
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -74,8 +74,7 @@ void WeakCodeReferences::DisableCode() {
   }
 
   auto isolate_group = IsolateGroup::Current();
-  // Deoptimize stacks and disable code with mutators stopped.
-  isolate_group->RunWithStoppedMutators([&]() {
+  auto disable_code_fun = [&]() {
     Code& code = Code::Handle();
     isolate_group->ForEachIsolate(
         [&](Isolate* isolate) {
@@ -140,7 +139,15 @@ void WeakCodeReferences::DisableCode() {
     }
 
     UpdateArrayTo(Object::null_array());
-  });
+  };
+
+  // Deoptimize stacks and disable code (with mutators stopped if they are not
+  // stopped yet).
+  if (are_mutators_stopped) {
+    disable_code_fun();
+  } else {
+    isolate_group->RunWithStoppedMutators(disable_code_fun);
+  }
 
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
