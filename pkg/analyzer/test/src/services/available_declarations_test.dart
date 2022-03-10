@@ -14,6 +14,8 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/context_collection_resolution.dart';
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvailableDeclarationsTest);
@@ -38,43 +40,20 @@ class AbstractContextTest with ResourceProviderMixin {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  void addDotPackagesDependency(String path, String name, String rootPath) {
-    var packagesFile = getFile(path);
-
-    String packagesContent;
-    try {
-      packagesContent = packagesFile.readAsStringSync();
-    } catch (_) {
-      packagesContent = '';
-    }
-
-    // Ignore if there is already the same package dependency.
-    if (packagesContent.contains('$name:file://')) {
-      return;
-    }
-
-    rootPath = convertPath(rootPath);
-    packagesContent += '$name:${toUri('$rootPath/lib')}\n';
-
-    packagesFile.writeAsStringSync(packagesContent);
-
-    createAnalysisContexts();
-  }
-
-  void addTestPackageDependency(String name, String rootPath) {
-    addDotPackagesDependency('/home/test/.packages', name, rootPath);
-  }
-
   /// Create all analysis contexts in `/home`.
   void createAnalysisContexts() {
+    createAnalysisContexts0('/home', '/home/test');
+  }
+
+  void createAnalysisContexts0(String rootPath, String testPath) {
     analysisContextCollection = AnalysisContextCollectionImpl(
-      includedPaths: [convertPath('/home')],
+      includedPaths: [convertPath(rootPath)],
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
     );
 
-    var testPath = convertPath('/home/test');
-    testAnalysisContext = getContext(testPath);
+    var testPath_ = convertPath(testPath);
+    testAnalysisContext = getContext(testPath_);
   }
 
   /// Create an analysis options file based on the given arguments.
@@ -107,11 +86,35 @@ class AbstractContextTest with ResourceProviderMixin {
     );
 
     newFolder('/home/test');
-    newDotPackagesFile('/home/test', content: '''
-test:${toUri('/home/test/lib')}
-''');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+    );
 
     createAnalysisContexts();
+  }
+
+  void writePackageConfig(
+    String directoryPath,
+    PackageConfigFileBuilder config,
+  ) {
+    newPackageConfigJsonFile(
+      directoryPath,
+      content: config.toContent(
+        toUriStr: toUriStr,
+      ),
+    );
+    createAnalysisContexts();
+  }
+
+  void writeTestPackageConfig(PackageConfigFileBuilder config) {
+    config = config.copy();
+
+    config.add(
+      name: 'test',
+      rootPath: '/home/test',
+    );
+
+    writePackageConfig('/home/test', config);
   }
 }
 
@@ -124,14 +127,20 @@ class AvailableDeclarationsTest extends _Base {
 dependencies:
   aaa: any
 ''');
-    addDotPackagesDependency('/home/bbb/.packages', 'aaa', '/home/aaa');
+    writePackageConfig(
+      '/home/bbb',
+      PackageConfigFileBuilder()..add(name: 'aaa', rootPath: '/home/aaa'),
+    );
     newFile('/home/bbb/lib/b.dart', content: 'class B {}');
 
     newPubspecYamlFile('/home/ccc', r'''
 dependencies:
   aaa: any
 ''');
-    addDotPackagesDependency('/home/ccc/.packages', 'aaa', '/home/aaa');
+    writePackageConfig(
+      '/home/ccc',
+      PackageConfigFileBuilder()..add(name: 'aaa', rootPath: '/home/aaa'),
+    );
     newFile('/home/ccc/lib/c.dart', content: 'class C {}');
 
     createAnalysisContexts();
@@ -563,7 +572,9 @@ name: test
 dependencies:
   aaa: any
 ''');
-    addTestPackageDependency('aaa', '/packages/aaa');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()..add(name: 'aaa', rootPath: '/packages/aaa'),
+    );
 
     var homeContext = analysisContextCollection.contextFor(homePath);
     var testContext = analysisContextCollection.contextFor(testPath);
@@ -3031,160 +3042,6 @@ int foo = 0;
 
 @reflectiveTest
 class GetLibrariesTest extends _Base {
-  test_bazel() async {
-    newFile('/home/aaa/lib/a.dart', content: 'class A {}');
-    newFile('/home/aaa/lib/src/a2.dart', content: 'class A2 {}');
-
-    newFile('/home/bbb/lib/b.dart', content: 'class B {}');
-    newFile('/home/bbb/lib/src/b2.dart', content: 'class B2 {}');
-
-    newFile('/home/material_button/BUILD', content: '');
-    newFile(
-      '/home/material_button/lib/button.dart',
-      content: 'class MaterialButton {}',
-    );
-    newFile(
-      '/home/material_button/test/button_test.dart',
-      content: 'class MaterialButtonTest {}',
-    );
-
-    newFile('/home/material_button/testing/BUILD', content: '');
-    newFile(
-      '/home/material_button/testing/lib/material_button_po.dart',
-      content: 'class MaterialButtonPO {}',
-    );
-
-    var packagesFilePath = '/home/material_button/.packages';
-    addDotPackagesDependency(packagesFilePath, 'aaa', '/home/aaa');
-    addDotPackagesDependency(packagesFilePath, 'bbb', '/home/bbb');
-    addDotPackagesDependency(
-      packagesFilePath,
-      'material_button',
-      '/home/material_button',
-    );
-    addDotPackagesDependency(
-      packagesFilePath,
-      'material_button_testing',
-      '/home/material_button/testing',
-    );
-
-    var analysisContext = analysisContextCollection.contextFor(
-      convertPath('/home/material_button'),
-    );
-    var context = tracker.addContext(analysisContext);
-    context.setDependencies({
-      convertPath('/home/material_button'): [convertPath('/home/aaa/lib')],
-      convertPath('/home/material_button/testing'): [
-        convertPath('/home/bbb/lib'),
-        convertPath('/home/material_button/lib'),
-      ],
-    });
-    await _doAllTrackerWork();
-
-    _assertHasLibrary('package:aaa/a.dart', declarations: [
-      _ExpectedDeclaration.class_('A', [
-        _ExpectedDeclaration.constructor(''),
-      ]),
-    ]);
-    _assertHasNoLibrary('package:aaa/src/a2.dart');
-
-    _assertHasLibrary('package:bbb/b.dart', declarations: [
-      _ExpectedDeclaration.class_('B', [
-        _ExpectedDeclaration.constructor(''),
-      ]),
-    ]);
-    _assertHasNoLibrary('package:bbb/src/b2.dart');
-
-    _assertHasLibrary('package:material_button/button.dart', declarations: [
-      _ExpectedDeclaration.class_('MaterialButton', [
-        _ExpectedDeclaration.constructor(''),
-      ]),
-    ]);
-    _assertHasLibrary(
-      toUriStr('/home/material_button/test/button_test.dart'),
-      declarations: [
-        _ExpectedDeclaration.class_('MaterialButtonTest', [
-          _ExpectedDeclaration.constructor(''),
-        ]),
-      ],
-    );
-    _assertHasLibrary(
-      'package:material_button_testing/material_button_po.dart',
-      declarations: [
-        _ExpectedDeclaration.class_('MaterialButtonPO', [
-          _ExpectedDeclaration.constructor(''),
-        ]),
-      ],
-    );
-
-    {
-      var path = convertPath('/home/material_button/lib/_.dart');
-      var libraries = context.getLibraries(path);
-      _assertHasLibraries(
-        libraries.sdk,
-        uriList: ['dart:core', 'dart:async'],
-      );
-      _assertHasLibraries(
-        libraries.dependencies,
-        uriList: ['package:aaa/a.dart'],
-        only: true,
-      );
-      _assertHasLibraries(
-        libraries.context,
-        uriList: [
-          'package:material_button/button.dart',
-        ],
-        only: true,
-      );
-    }
-
-    {
-      var path = convertPath('/home/material_button/test/_.dart');
-      var libraries = context.getLibraries(path);
-      _assertHasLibraries(
-        libraries.sdk,
-        uriList: ['dart:core', 'dart:async'],
-      );
-      _assertHasLibraries(
-        libraries.dependencies,
-        uriList: ['package:aaa/a.dart'],
-        only: true,
-      );
-      _assertHasLibraries(
-        libraries.context,
-        uriList: [
-          'package:material_button/button.dart',
-          toUriStr('/home/material_button/test/button_test.dart'),
-        ],
-        only: true,
-      );
-    }
-
-    {
-      var path = convertPath('/home/material_button/testing/lib/_.dart');
-      var libraries = context.getLibraries(path);
-      _assertHasLibraries(
-        libraries.sdk,
-        uriList: ['dart:core', 'dart:async'],
-      );
-      _assertHasLibraries(
-        libraries.dependencies,
-        uriList: [
-          'package:bbb/b.dart',
-          'package:material_button/button.dart',
-        ],
-        only: true,
-      );
-      _assertHasLibraries(
-        libraries.context,
-        uriList: [
-          'package:material_button_testing/material_button_po.dart',
-        ],
-        only: true,
-      );
-    }
-  }
-
   test_excludeSelf() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
@@ -3272,10 +3129,13 @@ dependencies:
 ''');
     newFile('/home/test/samples/basic/lib/s.dart', content: 'class S {}');
 
-    addTestPackageDependency('aaa', '/home/aaa');
-    addTestPackageDependency('bbb', '/home/bbb');
-    addTestPackageDependency('ccc', '/home/ccc');
-    addTestPackageDependency('basic', '/home/test/samples/basic');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '/home/aaa')
+        ..add(name: 'bbb', rootPath: '/home/bbb')
+        ..add(name: 'ccc', rootPath: '/home/ccc')
+        ..add(name: 'basic', rootPath: '/home/test/samples/basic'),
+    );
 
     var context = tracker.addContext(testAnalysisContext);
     await _doAllTrackerWork();
@@ -3449,8 +3309,11 @@ class A3 {}
 class B {}
 ''');
 
-    addTestPackageDependency('aaa', '/home/aaa');
-    addTestPackageDependency('bbb', '/home/bbb');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '/home/aaa')
+        ..add(name: 'bbb', rootPath: '/home/bbb'),
+    );
 
     newFile('/home/test/lib/t.dart', content: 'class T {}');
     newFile('/home/test/lib/src/t2.dart', content: 'class T2 {}');
@@ -3554,8 +3417,11 @@ class A {}
 class B {}
 ''');
 
-    addTestPackageDependency('aaa', '/home/aaa');
-    addTestPackageDependency('bbb', '/home/bbb');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '/home/aaa')
+        ..add(name: 'bbb', rootPath: '/home/bbb'),
+    );
 
     newFile('/home/test/lib/test.dart', content: r'''
 class C {}
