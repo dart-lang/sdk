@@ -37,3 +37,19 @@ class ToStringMacro implements ClassDeclarationsMacro {
     }
   }
 }
+
+macro
+
+class InjectMacro implements ClassDeclarationsMacro {
+  const InjectMacro();
+
+  @override
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+      ClassMemberDeclarationBuilder builder) async {
+    Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
+    if (!methods.any((m) => m.identifier.name == 'injectedMethod')) {
+      builder.declareInClass(new DeclarationCode.fromString('''
+ void injectedMethod() {}'''));
+    }
+  }
+}

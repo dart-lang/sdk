@@ -530,7 +530,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isUnsupported: false,
         target: library,
         origin: this,
-        isAugmentation: true);
+        isAugmentation: true,
+        referencesFrom: referencesFrom);
     addPatchLibrary(augmentationLibrary);
     loader.registerUnparsedLibrarySource(augmentationLibrary, source);
     return augmentationLibrary;
@@ -801,7 +802,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       builder = loader.read(resolvedUri, uriOffset,
           origin: isAugmentationImport ? this : null,
           accessor: this,
-          isAugmentation: isAugmentationImport);
+          isAugmentation: isAugmentationImport,
+          referencesFrom: isAugmentationImport ? referencesFrom : null);
     }
 
     imports.add(new Import(
@@ -1880,6 +1882,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             isMixinDeclaration,
             typeVariables: typeVariables,
             isMacro: false,
+            // TODO(johnniwinther): How can we support class with mixins?
             isAugmentation: false),
         interfaces,
         // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
