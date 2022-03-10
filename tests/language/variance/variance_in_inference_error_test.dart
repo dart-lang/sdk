@@ -48,30 +48,40 @@ main() {
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
+//                                 ^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 
   // String <: T <: int is not a valid constraint.
   inferCovContra(Covariant<String>(), Contravariant<int>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
+//                                    ^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 
   // Middle <: T <: Lower is not a valid constraint
   inferCovContra(Covariant<Middle>(), Contravariant<Lower>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
+//                                    ^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 
   // Upper <: T <: Lower is not a valid constraint
   inferCovContra(Covariant<Upper>(), Contravariant<Lower>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
+//                                   ^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 
   // Upper <: T <: Middle is not a valid constraint
   inferCovContra(Covariant<Upper>(), Contravariant<Middle>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
+//                                   ^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 
   // Inference for Contrabound(...) produces Lower <: T <: Upper.
   // Since T is contravariant, we choose Upper as the solution.

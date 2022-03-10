@@ -66,6 +66,7 @@ import 'try_statement_test.dart' as try_statement;
 import 'type_inference/test_all.dart' as type_inference;
 import 'type_literal_test.dart' as type_literal;
 import 'type_name_test.dart' as type_name;
+import 'variance_test.dart' as variance_test;
 import 'yield_statement_test.dart' as yield_statement;
 
 main() {
@@ -128,6 +129,7 @@ main() {
     type_inference.main();
     type_literal.main();
     type_name.main();
+    variance_test.main();
     yield_statement.main();
     defineReflectiveTests(UpdateNodeTextExpectations);
   }, name: 'resolution');
