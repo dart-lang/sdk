@@ -85,6 +85,11 @@ String _buildSnippetString(
         // Use the index as an ID to keep all related positions together (so
         // the remain "linked").
         linkedGroupId: index,
+        // If there is no selection, no tabstops, and only a single edit group
+        // allow it to be the final tabstop.
+        isFinal: selectionOffset == null &&
+            (tabStopOffsetLengthPairs?.isEmpty ?? false) &&
+            editGroups?.length == 1,
       ),
     );
   }
