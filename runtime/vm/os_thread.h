@@ -13,7 +13,9 @@
 #include "vm/globals.h"
 
 // Declare the OS-specific types ahead of defining the generic classes.
-#if defined(DART_HOST_OS_ANDROID)
+#if defined(DART_USE_ABSL)
+#include "vm/os_thread_absl.h"
+#elif defined(DART_HOST_OS_ANDROID)
 #include "vm/os_thread_android.h"
 #elif defined(DART_HOST_OS_FUCHSIA)
 #include "vm/os_thread_fuchsia.h"

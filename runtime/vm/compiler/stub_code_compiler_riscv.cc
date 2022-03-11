@@ -322,10 +322,10 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
          kNativeCallbackTrampolineSize *
              NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
 
+  const intptr_t shared_stub_start = __ CodeSize();
+
   __ Bind(&loaded_callback_id_hi);
   __ srai(T1, T1, 12);
-
-  const intptr_t shared_stub_start = __ CodeSize();
 
   // Save THR (callee-saved) and RA. Keeps stack aligned.
   COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
@@ -630,7 +630,8 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // Set argv in target::NativeArguments: R2 already contains argv.
   // Set retval in NativeArgs.
   ASSERT(retval_offset == 3 * target::kWordSize);
-  __ AddImmediate(T3, FP, 2 * target::kWordSize);
+  __ AddImmediate(
+      T3, FP, (target::frame_layout.param_end_from_fp + 1) * target::kWordSize);
 
   // Passing the structure by value as in runtime calls would require changing
   // Dart API for native functions.
@@ -843,11 +844,11 @@ static void PushArrayOfArguments(Assembler* assembler) {
 //   +------------------+
 //   | PC marker        | <- TOS
 //   +------------------+
-//   | Saved FP         | <- FP of stub
+//   | Saved FP         |
 //   +------------------+
 //   | return-address   |  (deoptimization point)
 //   +------------------+
-//   | Saved CODE_REG   |
+//   | Saved CODE_REG   | <- FP of stub
 //   +------------------+
 //   | ...              | <- SP of optimized frame
 //
@@ -880,7 +881,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
       // Save the original value of CODE_REG pushed before invoking this stub
       // instead of the value used to call this stub.
       COMPILE_ASSERT(TMP > CODE_REG);  // TMP saved first
-      __ lx(TMP, Address(FP, 2 * target::kWordSize));
+      __ lx(TMP, Address(FP, 0 * target::kWordSize));
       __ sx(TMP, Address(SP, i * target::kWordSize));
     } else {
       __ sx(r, Address(SP, i * target::kWordSize));
@@ -1318,10 +1319,13 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
 #if XLEN == 32
-  ASSERT_EQUAL(target::frame_layout.exit_link_slot_from_entry_fp, -40);
+  ASSERT_EQUAL(target::frame_layout.exit_link_slot_from_entry_fp, -42);
 #elif XLEN == 64
-  ASSERT_EQUAL(target::frame_layout.exit_link_slot_from_entry_fp, -28);
+  ASSERT_EQUAL(target::frame_layout.exit_link_slot_from_entry_fp, -30);
 #endif
+  // In debug mode, verify that we've pushed the top exit frame info at the
+  // correct offset from FP.
+  __ EmitEntryFrameVerification();
 
   // Mark that the thread is executing Dart code. Do this after initializing the
   // exit link for the profiler.

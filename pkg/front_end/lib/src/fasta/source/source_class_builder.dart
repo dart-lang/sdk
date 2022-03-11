@@ -66,12 +66,17 @@ Class initializeClass(
     int startCharOffset,
     int charOffset,
     int charEndOffset,
-    IndexedClass? referencesFrom) {
+    IndexedClass? referencesFrom,
+    {required bool isAugmentation}) {
   cls ??= new Class(
       name: name,
       typeParameters:
           TypeVariableBuilder.typeParametersFromBuilders(typeVariables),
-      reference: referencesFrom?.cls.reference,
+      // If the class is an augmentation class it shouldn't use the reference
+      // from index even when available.
+      // TODO(johnniwinther): Avoid creating [Class] so early in the builder
+      // that we end up creating unneeded nodes.
+      reference: isAugmentation ? null : referencesFrom?.cls.reference,
       fileUri: parent.fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -129,7 +134,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isMacro = false,
       this.isAugmentation = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
-            startCharOffset, nameOffset, charEndOffset, referencesFromIndexed),
+            startCharOffset, nameOffset, charEndOffset, referencesFromIndexed,
+            isAugmentation: isAugmentation),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             onTypes, scope, constructors, parent, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;

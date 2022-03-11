@@ -15,6 +15,71 @@ main() {
 
 @reflectiveTest
 class AstBuilderTest extends ParserDiagnosticsTest {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48541')
+  void test_class_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  name: SimpleIdentifier
+    token: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  void test_class_macro() {
+    var parseResult = parseStringWithErrors(r'''
+macro class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  macroKeyword: macro
+  classKeyword: class
+  name: SimpleIdentifier
+    token: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  void test_classAlias_macro() {
+    var parseResult = parseStringWithErrors(r'''
+mixin M {}
+macro class A = Object with M;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classTypeAlias('class A');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: SimpleIdentifier
+    token: A
+  equals: =
+  macroKeyword: macro
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: M
+  semicolon: ;
+''');
+  }
+
   void test_constructor_factory_misnamed() {
     var parseResult = parseStringWithErrors(r'''
 class A {

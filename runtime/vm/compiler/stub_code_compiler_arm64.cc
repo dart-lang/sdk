@@ -700,7 +700,8 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
 
   // Set retval in NativeArgs.
   ASSERT(retval_offset == 3 * target::kWordSize);
-  __ AddImmediate(R3, FP, 2 * target::kWordSize);
+  __ AddImmediate(
+      R3, FP, (target::frame_layout.param_end_from_fp + 1) * target::kWordSize);
 
   // Passing the structure by value as in runtime calls would require changing
   // Dart API for native functions.
@@ -1411,6 +1412,9 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -23);
 #endif
   __ Push(R6);
+  // In debug mode, verify that we've pushed the top exit frame info at the
+  // correct offset from FP.
+  __ EmitEntryFrameVerification();
 
   // Mark that the thread is executing Dart code. Do this after initializing the
   // exit link for the profiler.

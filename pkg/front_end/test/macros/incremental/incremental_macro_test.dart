@@ -20,7 +20,7 @@ import 'package:front_end/src/fasta/kernel/macro.dart';
 import 'package:front_end/src/isolate_macro_serializer.dart';
 import 'package:front_end/src/macro_serializer.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
-import 'package:kernel/ast.dart';
+import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:vm/target/vm.dart';
@@ -154,6 +154,9 @@ Future<void> main(List<String> args) async {
           throw 'Please use -g option to create file ${expectationFileName} '
               'with this content:\n$actual';
         }
+
+        /// Test serialization
+        writeComponentToBytes(component);
       }
     }
   }, errorOnMissingInput: false);

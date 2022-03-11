@@ -2146,8 +2146,8 @@ class AstBuilder extends StackListener {
     }
     var withClause = pop(NullValue.WithClause) as WithClause;
     var superclass = pop() as NamedType;
-    var macroKeyword = pop(NullValue.Token) as Token?;
     var augmentKeyword = pop(NullValue.Token) as Token?;
+    var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
@@ -2750,8 +2750,8 @@ class AstBuilder extends StackListener {
     var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
     var withClause = pop(NullValue.WithClause) as WithClause?;
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
-    var macroKeyword = pop(NullValue.Token) as Token?;
     var augmentKeyword = pop(NullValue.Token) as Token?;
+    var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;

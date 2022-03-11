@@ -4,7 +4,7 @@
 
 #include "platform/globals.h"  // NOLINT
 
-#if defined(DART_HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX) && !defined(DART_USE_ABSL)
 
 #include "vm/os_thread.h"
 
@@ -497,4 +497,4 @@ void Monitor::NotifyAll() {
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX) && !defined(DART_USE_ABSL)

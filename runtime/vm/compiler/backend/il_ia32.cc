@@ -1140,7 +1140,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
 
-  // Enter the entry frame.
+  // Enter the entry frame. NativeParameterInstr expects this frame has size
+  // -exit_link_slot_from_entry_fp, verified below.
   __ EnterFrame(0);
 
   // Save a space for the code object.

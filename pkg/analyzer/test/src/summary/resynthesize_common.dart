@@ -31,7 +31,6 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   late final SourceFactory sourceFactory;
   late final FolderBasedDartSdk sdk;
 
-  late String testFile;
   late Source testSource;
   Set<Source> otherLibrarySources = <Source>{};
 
@@ -54,9 +53,13 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
         ResourceUriResolver(resourceProvider),
       ],
     );
-
-    testFile = convertPath('/test.dart');
   }
+
+  String get testFilePath => '$testPackageLibPath/test.dart';
+
+  String get testPackageLibPath => '$testPackageRootPath/lib';
+
+  String get testPackageRootPath => '/home/test';
 
   void addLibrary(String uri) {
     var source = sourceFactory.forUri(uri)!;
@@ -76,7 +79,7 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   }
 
   Source addTestSource(String code, [Uri? uri]) {
-    testSource = addSource(testFile, code);
+    testSource = addSource(testFilePath, code);
     return testSource;
   }
 
@@ -2013,7 +2016,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_imported() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
@@ -2029,13 +2032,13 @@ class C {
     checkElementText(library, r'''
 library
   imports
-    foo.dart
+    package:test/foo.dart
   definingUnit
     classes
       class C @25
         constructors
           factory @39
-            redirectedConstructor: foo.dart::@class::D::@constructor::named
+            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::named
           _ @58
             periodOffset: 57
             nameEnd: 59
@@ -2043,7 +2046,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_imported_generic() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
@@ -2059,7 +2062,7 @@ class C<T, U> {
     checkElementText(library, r'''
 library
   imports
-    foo.dart
+    package:test/foo.dart
   definingUnit
     classes
       class C @25
@@ -2071,7 +2074,7 @@ library
         constructors
           factory @45
             redirectedConstructor: ConstructorMember
-              base: foo.dart::@class::D::@constructor::named
+              base: package:test/foo.dart::@class::D::@constructor::named
               substitution: {T: U, U: T}
           _ @70
             periodOffset: 69
@@ -2080,7 +2083,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_prefixed() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
@@ -2096,13 +2099,13 @@ class C {
     checkElementText(library, r'''
 library
   imports
-    foo.dart as foo @21
+    package:test/foo.dart as foo @21
   definingUnit
     classes
       class C @32
         constructors
           factory @46
-            redirectedConstructor: foo.dart::@class::D::@constructor::named
+            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::named
           _ @69
             periodOffset: 68
             nameEnd: 70
@@ -2110,7 +2113,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_prefixed_generic() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
@@ -2126,7 +2129,7 @@ class C<T, U> {
     checkElementText(library, r'''
 library
   imports
-    foo.dart as foo @21
+    package:test/foo.dart as foo @21
   definingUnit
     classes
       class C @32
@@ -2138,7 +2141,7 @@ library
         constructors
           factory @52
             redirectedConstructor: ConstructorMember
-              base: foo.dart::@class::D::@constructor::named
+              base: package:test/foo.dart::@class::D::@constructor::named
               substitution: {T: U, U: T}
           _ @81
             periodOffset: 80
@@ -2310,7 +2313,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_imported() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D() : super._();
@@ -2326,13 +2329,13 @@ class C {
     checkElementText(library, r'''
 library
   imports
-    foo.dart
+    package:test/foo.dart
   definingUnit
     classes
       class C @25
         constructors
           factory @39
-            redirectedConstructor: foo.dart::@class::D::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::•
           _ @52
             periodOffset: 51
             nameEnd: 53
@@ -2340,7 +2343,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_imported_generic() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
@@ -2356,7 +2359,7 @@ class C<T, U> {
     checkElementText(library, r'''
 library
   imports
-    foo.dart
+    package:test/foo.dart
   definingUnit
     classes
       class C @25
@@ -2368,7 +2371,7 @@ library
         constructors
           factory @45
             redirectedConstructor: ConstructorMember
-              base: foo.dart::@class::D::@constructor::•
+              base: package:test/foo.dart::@class::D::@constructor::•
               substitution: {T: U, U: T}
           _ @64
             periodOffset: 63
@@ -2377,7 +2380,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_imported_viaTypeAlias() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 typedef A = B;
 class B extends C {
@@ -2394,13 +2397,13 @@ class C {
     checkElementText(library, r'''
 library
   imports
-    foo.dart
+    package:test/foo.dart
   definingUnit
     classes
       class C @25
         constructors
           factory @39
-            redirectedConstructor: foo.dart::@class::B::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::B::@constructor::•
           _ @52
             periodOffset: 51
             nameEnd: 53
@@ -2408,7 +2411,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_prefixed() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D() : super._();
@@ -2424,13 +2427,13 @@ class C {
     checkElementText(library, r'''
 library
   imports
-    foo.dart as foo @21
+    package:test/foo.dart as foo @21
   definingUnit
     classes
       class C @32
         constructors
           factory @46
-            redirectedConstructor: foo.dart::@class::D::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::•
           _ @63
             periodOffset: 62
             nameEnd: 64
@@ -2438,7 +2441,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_prefixed_generic() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
@@ -2454,7 +2457,7 @@ class C<T, U> {
     checkElementText(library, r'''
 library
   imports
-    foo.dart as foo @21
+    package:test/foo.dart as foo @21
   definingUnit
     classes
       class C @32
@@ -2466,7 +2469,7 @@ library
         constructors
           factory @52
             redirectedConstructor: ConstructorMember
-              base: foo.dart::@class::D::@constructor::•
+              base: package:test/foo.dart::@class::D::@constructor::•
               substitution: {T: U, U: T}
           _ @75
             periodOffset: 74
@@ -2475,7 +2478,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_prefixed_viaTypeAlias() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 typedef A = B;
 class B extends C {
@@ -2492,13 +2495,13 @@ class C {
     checkElementText(library, r'''
 library
   imports
-    foo.dart as foo @21
+    package:test/foo.dart as foo @21
   definingUnit
     classes
       class C @32
         constructors
           factory @46
-            redirectedConstructor: foo.dart::@class::B::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::B::@constructor::•
           _ @63
             periodOffset: 62
             nameEnd: 64
@@ -3967,7 +3970,7 @@ library
   }
 
   test_class_field_propagatedType_final_dep_inLib() async {
-    addLibrarySource('/a.dart', 'final a = 1;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'final a = 1;');
     var library = await checkLibrary('''
 import "a.dart";
 class C {
@@ -3976,7 +3979,7 @@ class C {
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     classes
       class C @23
@@ -3992,7 +3995,7 @@ library
   }
 
   test_class_field_propagatedType_final_dep_inPart() async {
-    addSource('/a.dart', 'part of lib; final a = 1;');
+    addSource('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
     var library = await checkLibrary('''
 library lib;
 part "a.dart";
@@ -4183,7 +4186,7 @@ library
   }
 
   test_class_field_type_inferred_nonNullify() async {
-    addSource('/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 // @dart = 2.7
 var a = 0;
 ''');
@@ -4198,7 +4201,7 @@ class C {
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     classes
       class C @23
@@ -7199,8 +7202,7 @@ library
   }
 
   test_classAlias_with_const_constructors() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class Base {
   const Base._priv();
   const Base();
@@ -7253,8 +7255,7 @@ library
   }
 
   test_classAlias_with_forwarding_constructors() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class Base {
   bool x = true;
   Base._priv();
@@ -7685,7 +7686,8 @@ library
   }
 
   test_closure_in_variable_declaration_in_part() async {
-    addSource('/a.dart', 'part of lib; final f = (int i) => i.toDouble();');
+    addSource('$testPackageLibPath/a.dart',
+        'part of lib; final f = (int i) => i.toDouble();');
     var library = await checkLibrary('''
 library lib;
 part "a.dart";
@@ -10625,7 +10627,7 @@ library
   }
 
   test_const_invokeConstructor_generic_named_imported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C.named(K k, V v);
 }
@@ -10637,7 +10639,7 @@ const V = const C<int, String>.named(1, '222');
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const V @23
@@ -10649,7 +10651,7 @@ library
               type: NamedType
                 name: SimpleIdentifier
                   token: C @33
-                  staticElement: a.dart::@class::C
+                  staticElement: package:test/a.dart::@class::C
                   staticType: null
                 typeArguments: TypeArgumentList
                   leftBracket: < @34
@@ -10672,11 +10674,11 @@ library
               name: SimpleIdentifier
                 token: named @48
                 staticElement: ConstructorMember
-                  base: a.dart::@class::C::@constructor::named
+                  base: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
                 staticType: null
               staticElement: ConstructorMember
-                base: a.dart::@class::C::@constructor::named
+                base: package:test/a.dart::@class::C::@constructor::named
                 substitution: {K: int, V: String}
             argumentList: ArgumentList
               leftParenthesis: ( @53
@@ -10695,7 +10697,7 @@ library
   }
 
   test_const_invokeConstructor_generic_named_imported_withPrefix() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C.named(K k, V v);
 }
@@ -10707,7 +10709,7 @@ const V = const p.C<int, String>.named(1, '222');
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const V @28
@@ -10725,9 +10727,9 @@ library
                   period: . @39
                   identifier: SimpleIdentifier
                     token: C @40
-                    staticElement: a.dart::@class::C
+                    staticElement: package:test/a.dart::@class::C
                     staticType: null
-                  staticElement: a.dart::@class::C
+                  staticElement: package:test/a.dart::@class::C
                   staticType: null
                 typeArguments: TypeArgumentList
                   leftBracket: < @41
@@ -10750,11 +10752,11 @@ library
               name: SimpleIdentifier
                 token: named @55
                 staticElement: ConstructorMember
-                  base: a.dart::@class::C::@constructor::named
+                  base: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
                 staticType: null
               staticElement: ConstructorMember
-                base: a.dart::@class::C::@constructor::named
+                base: package:test/a.dart::@class::C::@constructor::named
                 substitution: {K: int, V: String}
             argumentList: ArgumentList
               leftParenthesis: ( @60
@@ -10879,7 +10881,7 @@ library
   }
 
   test_const_invokeConstructor_generic_unnamed_imported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C();
 }
@@ -10891,7 +10893,7 @@ const V = const C<int, String>();
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const V @23
@@ -10903,7 +10905,7 @@ library
               type: NamedType
                 name: SimpleIdentifier
                   token: C @33
-                  staticElement: a.dart::@class::C
+                  staticElement: package:test/a.dart::@class::C
                   staticType: null
                 typeArguments: TypeArgumentList
                   leftBracket: < @34
@@ -10923,7 +10925,7 @@ library
                   rightBracket: > @46
                 type: C<int, String>
               staticElement: ConstructorMember
-                base: a.dart::@class::C::@constructor::•
+                base: package:test/a.dart::@class::C::@constructor::•
                 substitution: {K: int, V: String}
             argumentList: ArgumentList
               leftParenthesis: ( @47
@@ -10936,7 +10938,7 @@ library
   }
 
   test_const_invokeConstructor_generic_unnamed_imported_withPrefix() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C();
 }
@@ -10948,7 +10950,7 @@ const V = const p.C<int, String>();
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const V @28
@@ -10966,9 +10968,9 @@ library
                   period: . @39
                   identifier: SimpleIdentifier
                     token: C @40
-                    staticElement: a.dart::@class::C
+                    staticElement: package:test/a.dart::@class::C
                     staticType: null
-                  staticElement: a.dart::@class::C
+                  staticElement: package:test/a.dart::@class::C
                   staticType: null
                 typeArguments: TypeArgumentList
                   leftBracket: < @41
@@ -10988,7 +10990,7 @@ library
                   rightBracket: > @53
                 type: C<int, String>
               staticElement: ConstructorMember
-                base: a.dart::@class::C::@constructor::•
+                base: package:test/a.dart::@class::C::@constructor::•
                 substitution: {K: int, V: String}
             argumentList: ArgumentList
               leftParenthesis: ( @54
@@ -11086,7 +11088,7 @@ library
   }
 
   test_const_invokeConstructor_named_imported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {
   const C.named();
 }
@@ -11098,7 +11100,7 @@ const V = const C.named();
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const V @23
@@ -11110,15 +11112,15 @@ library
               type: NamedType
                 name: SimpleIdentifier
                   token: C @33
-                  staticElement: a.dart::@class::C
+                  staticElement: package:test/a.dart::@class::C
                   staticType: null
                 type: C
               period: . @34
               name: SimpleIdentifier
                 token: named @35
-                staticElement: a.dart::@class::C::@constructor::named
+                staticElement: package:test/a.dart::@class::C::@constructor::named
                 staticType: null
-              staticElement: a.dart::@class::C::@constructor::named
+              staticElement: package:test/a.dart::@class::C::@constructor::named
             argumentList: ArgumentList
               leftParenthesis: ( @40
               rightParenthesis: ) @41
@@ -11130,7 +11132,7 @@ library
   }
 
   test_const_invokeConstructor_named_imported_withPrefix() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {
   const C.named();
 }
@@ -11142,7 +11144,7 @@ const V = const p.C.named();
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const V @28
@@ -11160,17 +11162,17 @@ library
                   period: . @39
                   identifier: SimpleIdentifier
                     token: C @40
-                    staticElement: a.dart::@class::C
+                    staticElement: package:test/a.dart::@class::C
                     staticType: null
-                  staticElement: a.dart::@class::C
+                  staticElement: package:test/a.dart::@class::C
                   staticType: null
                 type: C
               period: . @41
               name: SimpleIdentifier
                 token: named @42
-                staticElement: a.dart::@class::C::@constructor::named
+                staticElement: package:test/a.dart::@class::C::@constructor::named
                 staticType: null
-              staticElement: a.dart::@class::C::@constructor::named
+              staticElement: package:test/a.dart::@class::C::@constructor::named
             argumentList: ArgumentList
               leftParenthesis: ( @47
               rightParenthesis: ) @48
@@ -11262,7 +11264,7 @@ library
   }
 
   test_const_invokeConstructor_named_unresolved3() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {
 }
 ''');
@@ -11273,7 +11275,7 @@ const V = const p.C.named();
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const V @28
@@ -11291,9 +11293,9 @@ library
                   period: . @39
                   identifier: SimpleIdentifier
                     token: C @40
-                    staticElement: a.dart::@class::C
+                    staticElement: package:test/a.dart::@class::C
                     staticType: null
-                  staticElement: a.dart::@class::C
+                  staticElement: package:test/a.dart::@class::C
                   staticType: null
                 type: C
               period: . @41
@@ -11313,7 +11315,7 @@ library
   }
 
   test_const_invokeConstructor_named_unresolved4() async {
-    addLibrarySource('/a.dart', '');
+    addLibrarySource('$testPackageLibPath/a.dart', '');
     var library = await checkLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C.named();
@@ -11321,7 +11323,7 @@ const V = const p.C.named();
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const V @28
@@ -11487,7 +11489,7 @@ library
   }
 
   test_const_invokeConstructor_unnamed_imported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {
   const C();
 }
@@ -11499,7 +11501,7 @@ const V = const C();
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const V @23
@@ -11511,10 +11513,10 @@ library
               type: NamedType
                 name: SimpleIdentifier
                   token: C @33
-                  staticElement: a.dart::@class::C
+                  staticElement: package:test/a.dart::@class::C
                   staticType: null
                 type: C
-              staticElement: a.dart::@class::C::@constructor::•
+              staticElement: package:test/a.dart::@class::C::@constructor::•
             argumentList: ArgumentList
               leftParenthesis: ( @34
               rightParenthesis: ) @35
@@ -11526,7 +11528,7 @@ library
   }
 
   test_const_invokeConstructor_unnamed_imported_withPrefix() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {
   const C();
 }
@@ -11538,7 +11540,7 @@ const V = const p.C();
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const V @28
@@ -11556,12 +11558,12 @@ library
                   period: . @39
                   identifier: SimpleIdentifier
                     token: C @40
-                    staticElement: a.dart::@class::C
+                    staticElement: package:test/a.dart::@class::C
                     staticType: null
-                  staticElement: a.dart::@class::C
+                  staticElement: package:test/a.dart::@class::C
                   staticType: null
                 type: C
-              staticElement: a.dart::@class::C::@constructor::•
+              staticElement: package:test/a.dart::@class::C::@constructor::•
             argumentList: ArgumentList
               leftParenthesis: ( @41
               rightParenthesis: ) @42
@@ -11604,7 +11606,7 @@ library
   }
 
   test_const_invokeConstructor_unnamed_unresolved2() async {
-    addLibrarySource('/a.dart', '');
+    addLibrarySource('$testPackageLibPath/a.dart', '');
     var library = await checkLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C();
@@ -11612,7 +11614,7 @@ const V = const p.C();
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const V @28
@@ -11777,7 +11779,7 @@ library
   }
 
   test_const_length_ofClassConstField_imported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {
   static const String F = '';
 }
@@ -11789,7 +11791,7 @@ const int v = C.F.length;
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const v @27
@@ -11799,14 +11801,14 @@ library
             target: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: C @31
-                staticElement: a.dart::@class::C
+                staticElement: package:test/a.dart::@class::C
                 staticType: null
               period: . @32
               identifier: SimpleIdentifier
                 token: F @33
-                staticElement: a.dart::@class::C::@getter::F
+                staticElement: package:test/a.dart::@class::C::@getter::F
                 staticType: String
-              staticElement: a.dart::@class::C::@getter::F
+              staticElement: package:test/a.dart::@class::C::@getter::F
               staticType: String
             operator: . @34
             propertyName: SimpleIdentifier
@@ -11821,7 +11823,7 @@ library
   }
 
   test_const_length_ofClassConstField_imported_withPrefix() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {
   static const String F = '';
 }
@@ -11833,7 +11835,7 @@ const int v = p.C.F.length;
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const v @32
@@ -11849,14 +11851,14 @@ library
                 period: . @37
                 identifier: SimpleIdentifier
                   token: C @38
-                  staticElement: a.dart::@class::C
+                  staticElement: package:test/a.dart::@class::C
                   staticType: null
-                staticElement: a.dart::@class::C
+                staticElement: package:test/a.dart::@class::C
                 staticType: null
               operator: . @39
               propertyName: SimpleIdentifier
                 token: F @40
-                staticElement: a.dart::@class::C::@getter::F
+                staticElement: package:test/a.dart::@class::C::@getter::F
                 staticType: String
               staticType: String
             operator: . @41
@@ -11935,7 +11937,7 @@ library
   }
 
   test_const_length_ofTopLevelVariable_imported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 const String S = 'abc';
 ''');
     var library = await checkLibrary(r'''
@@ -11945,7 +11947,7 @@ const v = S.length;
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const v @23
@@ -11954,7 +11956,7 @@ library
           PrefixedIdentifier
             prefix: SimpleIdentifier
               token: S @27
-              staticElement: a.dart::@getter::S
+              staticElement: package:test/a.dart::@getter::S
               staticType: String
             period: . @28
             identifier: SimpleIdentifier
@@ -11970,7 +11972,7 @@ library
   }
 
   test_const_length_ofTopLevelVariable_imported_withPrefix() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 const String S = 'abc';
 ''');
     var library = await checkLibrary(r'''
@@ -11980,7 +11982,7 @@ const v = p.S.length;
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const v @28
@@ -11995,9 +11997,9 @@ library
               period: . @33
               identifier: SimpleIdentifier
                 token: S @34
-                staticElement: a.dart::@getter::S
+                staticElement: package:test/a.dart::@getter::S
                 staticType: String
-              staticElement: a.dart::@getter::S
+              staticElement: package:test/a.dart::@getter::S
               staticType: String
             operator: . @35
             propertyName: SimpleIdentifier
@@ -12883,8 +12885,7 @@ library
   }
 
   test_const_prefixExpression_extension_unaryMinus() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 extension E on Object {
   int operator -() => 0;
 }
@@ -13002,7 +13003,7 @@ library
   }
 
   test_const_reference_staticField_imported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {
   static const int F = 42;
 }
@@ -13014,7 +13015,7 @@ const V = C.F;
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const V @23
@@ -13023,14 +13024,14 @@ library
           PrefixedIdentifier
             prefix: SimpleIdentifier
               token: C @27
-              staticElement: a.dart::@class::C
+              staticElement: package:test/a.dart::@class::C
               staticType: null
             period: . @28
             identifier: SimpleIdentifier
               token: F @29
-              staticElement: a.dart::@class::C::@getter::F
+              staticElement: package:test/a.dart::@class::C::@getter::F
               staticType: int
-            staticElement: a.dart::@class::C::@getter::F
+            staticElement: package:test/a.dart::@class::C::@getter::F
             staticType: int
     accessors
       synthetic static get V @-1
@@ -13039,7 +13040,7 @@ library
   }
 
   test_const_reference_staticField_imported_withPrefix() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {
   static const int F = 42;
 }
@@ -13051,7 +13052,7 @@ const V = p.C.F;
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const V @28
@@ -13066,14 +13067,14 @@ library
               period: . @33
               identifier: SimpleIdentifier
                 token: C @34
-                staticElement: a.dart::@class::C
+                staticElement: package:test/a.dart::@class::C
                 staticType: null
-              staticElement: a.dart::@class::C
+              staticElement: package:test/a.dart::@class::C
               staticType: null
             operator: . @35
             propertyName: SimpleIdentifier
               token: F @36
-              staticElement: a.dart::@class::C::@getter::F
+              staticElement: package:test/a.dart::@class::C::@getter::F
               staticType: int
             staticType: int
     accessors
@@ -13127,7 +13128,7 @@ library
   }
 
   test_const_reference_staticMethod_imported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {
   static int m(int a, String b) => 42;
 }
@@ -13139,7 +13140,7 @@ const V = C.m;
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const V @23
@@ -13148,14 +13149,14 @@ library
           PrefixedIdentifier
             prefix: SimpleIdentifier
               token: C @27
-              staticElement: a.dart::@class::C
+              staticElement: package:test/a.dart::@class::C
               staticType: null
             period: . @28
             identifier: SimpleIdentifier
               token: m @29
-              staticElement: a.dart::@class::C::@method::m
+              staticElement: package:test/a.dart::@class::C::@method::m
               staticType: int Function(int, String)
-            staticElement: a.dart::@class::C::@method::m
+            staticElement: package:test/a.dart::@class::C::@method::m
             staticType: int Function(int, String)
     accessors
       synthetic static get V @-1
@@ -13164,7 +13165,7 @@ library
   }
 
   test_const_reference_staticMethod_imported_withPrefix() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {
   static int m(int a, String b) => 42;
 }
@@ -13176,7 +13177,7 @@ const V = p.C.m;
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const V @28
@@ -13191,14 +13192,14 @@ library
               period: . @33
               identifier: SimpleIdentifier
                 token: C @34
-                staticElement: a.dart::@class::C
+                staticElement: package:test/a.dart::@class::C
                 staticType: null
-              staticElement: a.dart::@class::C
+              staticElement: package:test/a.dart::@class::C
               staticType: null
             operator: . @35
             propertyName: SimpleIdentifier
               token: m @36
-              staticElement: a.dart::@class::C::@method::m
+              staticElement: package:test/a.dart::@class::C::@method::m
               staticType: int Function(int, String)
             staticType: int Function(int, String)
     accessors
@@ -13307,7 +13308,7 @@ library
   }
 
   test_const_reference_topLevelFunction_imported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 foo() {}
 ''');
     var library = await checkLibrary(r'''
@@ -13317,7 +13318,7 @@ const V = foo;
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const V @23
@@ -13325,7 +13326,7 @@ library
         constantInitializer
           SimpleIdentifier
             token: foo @27
-            staticElement: a.dart::@function::foo
+            staticElement: package:test/a.dart::@function::foo
             staticType: dynamic Function()
     accessors
       synthetic static get V @-1
@@ -13334,7 +13335,7 @@ library
   }
 
   test_const_reference_topLevelFunction_imported_withPrefix() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 foo() {}
 ''');
     var library = await checkLibrary(r'''
@@ -13344,7 +13345,7 @@ const V = p.foo;
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const V @28
@@ -13358,9 +13359,9 @@ library
             period: . @33
             identifier: SimpleIdentifier
               token: foo @34
-              staticElement: a.dart::@function::foo
+              staticElement: package:test/a.dart::@function::foo
               staticType: dynamic Function()
-            staticElement: a.dart::@function::foo
+            staticElement: package:test/a.dart::@function::foo
             staticType: dynamic Function()
     accessors
       synthetic static get V @-1
@@ -13407,7 +13408,7 @@ library
   }
 
   test_const_reference_topLevelVariable_imported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 const A = 1;
 ''');
     var library = await checkLibrary(r'''
@@ -13417,7 +13418,7 @@ const B = A + 2;
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const B @23
@@ -13426,7 +13427,7 @@ library
           BinaryExpression
             leftOperand: SimpleIdentifier
               token: A @27
-              staticElement: a.dart::@getter::A
+              staticElement: package:test/a.dart::@getter::A
               staticType: int
             operator: + @29
             rightOperand: IntegerLiteral
@@ -13442,7 +13443,7 @@ library
   }
 
   test_const_reference_topLevelVariable_imported_withPrefix() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 const A = 1;
 ''');
     var library = await checkLibrary(r'''
@@ -13452,7 +13453,7 @@ const B = p.A + 2;
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const B @28
@@ -13467,9 +13468,9 @@ library
               period: . @33
               identifier: SimpleIdentifier
                 token: A @34
-                staticElement: a.dart::@getter::A
+                staticElement: package:test/a.dart::@getter::A
                 staticType: int
-              staticElement: a.dart::@getter::A
+              staticElement: package:test/a.dart::@getter::A
               staticType: int
             operator: + @36
             rightOperand: IntegerLiteral
@@ -13701,7 +13702,7 @@ library
   }
 
   test_const_reference_type_imported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {}
 enum E {a, b, c}
 typedef F(int a, String b);
@@ -13715,7 +13716,7 @@ const vFunctionTypeAlias = F;
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const vClass @23
@@ -13723,21 +13724,21 @@ library
         constantInitializer
           SimpleIdentifier
             token: C @32
-            staticElement: a.dart::@class::C
+            staticElement: package:test/a.dart::@class::C
             staticType: Type
       static const vEnum @41
         type: Type
         constantInitializer
           SimpleIdentifier
             token: E @49
-            staticElement: a.dart::@enum::E
+            staticElement: package:test/a.dart::@enum::E
             staticType: Type
       static const vFunctionTypeAlias @58
         type: Type
         constantInitializer
           SimpleIdentifier
             token: F @79
-            staticElement: a.dart::@typeAlias::F
+            staticElement: package:test/a.dart::@typeAlias::F
             staticType: Type
     accessors
       synthetic static get vClass @-1
@@ -13750,7 +13751,7 @@ library
   }
 
   test_const_reference_type_imported_withPrefix() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C {}
 enum E {a, b, c}
 typedef F(int a, String b);
@@ -13764,7 +13765,7 @@ const vFunctionTypeAlias = p.F;
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const vClass @28
@@ -13778,9 +13779,9 @@ library
             period: . @38
             identifier: SimpleIdentifier
               token: C @39
-              staticElement: a.dart::@class::C
+              staticElement: package:test/a.dart::@class::C
               staticType: Type
-            staticElement: a.dart::@class::C
+            staticElement: package:test/a.dart::@class::C
             staticType: Type
       static const vEnum @48
         type: Type
@@ -13793,9 +13794,9 @@ library
             period: . @57
             identifier: SimpleIdentifier
               token: E @58
-              staticElement: a.dart::@enum::E
+              staticElement: package:test/a.dart::@enum::E
               staticType: Type
-            staticElement: a.dart::@enum::E
+            staticElement: package:test/a.dart::@enum::E
             staticType: Type
       static const vFunctionTypeAlias @67
         type: Type
@@ -13808,9 +13809,9 @@ library
             period: . @89
             identifier: SimpleIdentifier
               token: F @90
-              staticElement: a.dart::@typeAlias::F
+              staticElement: package:test/a.dart::@typeAlias::F
               staticType: Type
-            staticElement: a.dart::@typeAlias::F
+            staticElement: package:test/a.dart::@typeAlias::F
             staticType: Type
     accessors
       synthetic static get vClass @-1
@@ -13903,7 +13904,7 @@ library
   }
 
   test_const_reference_unresolved_prefix2() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
     var library = await checkLibrary(r'''
@@ -13913,7 +13914,7 @@ const V = p.C.foo;
     checkElementText(library, r'''
 library
   imports
-    foo.dart as p @21
+    package:test/foo.dart as p @21
   definingUnit
     topLevelVariables
       static const V @30
@@ -13928,9 +13929,9 @@ library
               period: . @35
               identifier: SimpleIdentifier
                 token: C @36
-                staticElement: foo.dart::@class::C
+                staticElement: package:test/foo.dart::@class::C
                 staticType: null
-              staticElement: foo.dart::@class::C
+              staticElement: package:test/foo.dart::@class::C
               staticType: null
             operator: . @37
             propertyName: SimpleIdentifier
@@ -15286,7 +15287,7 @@ library
   }
 
   test_const_topLevel_typedList_imported() async {
-    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
     var library = await checkLibrary(r'''
 import 'a.dart';
 const v = const <C>[];
@@ -15294,7 +15295,7 @@ const v = const <C>[];
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static const v @23
@@ -15308,7 +15309,7 @@ library
                 NamedType
                   name: SimpleIdentifier
                     token: C @34
-                    staticElement: a.dart::@class::C
+                    staticElement: package:test/a.dart::@class::C
                     staticType: null
                   type: C
               rightBracket: > @35
@@ -15322,7 +15323,7 @@ library
   }
 
   test_const_topLevel_typedList_importedWithPrefix() async {
-    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
     var library = await checkLibrary(r'''
 import 'a.dart' as p;
 const v = const <p.C>[];
@@ -15330,7 +15331,7 @@ const v = const <p.C>[];
     checkElementText(library, r'''
 library
   imports
-    a.dart as p @19
+    package:test/a.dart as p @19
   definingUnit
     topLevelVariables
       static const v @28
@@ -15350,9 +15351,9 @@ library
                     period: . @40
                     identifier: SimpleIdentifier
                       token: C @41
-                      staticElement: a.dart::@class::C
+                      staticElement: package:test/a.dart::@class::C
                       staticType: null
-                    staticElement: a.dart::@class::C
+                    staticElement: package:test/a.dart::@class::C
                     staticType: null
                   type: C
               rightBracket: > @42
@@ -19722,23 +19723,23 @@ library
   }
 
   test_export_class() async {
-    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
   exportScope
-    C: a.dart;C
+    C: package:test/a.dart;C
 ''',
         withExportScope: true);
   }
 
   test_export_class_type_alias() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class C = _D with _E;
 class _D {}
 class _E {}
@@ -19749,10 +19750,10 @@ class _E {}
         r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
   exportScope
-    C: a.dart;C
+    C: package:test/a.dart;C
 ''',
         withExportScope: true);
   }
@@ -19761,9 +19762,9 @@ library
     declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
     });
-    addLibrarySource('/foo.dart', 'class A {}');
-    addLibrarySource('/foo_io.dart', 'class A {}');
-    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await checkLibrary(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -19774,10 +19775,10 @@ export 'foo.dart'
         r'''
 library
   exports
-    foo.dart
+    package:test/foo.dart
   definingUnit
   exportScope
-    A: foo.dart;A
+    A: package:test/foo.dart;A
 ''',
         withExportScope: true);
     expect(library.exports[0].exportedLibrary!.source.shortName, 'foo.dart');
@@ -19788,9 +19789,9 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     });
-    addLibrarySource('/foo.dart', 'class A {}');
-    addLibrarySource('/foo_io.dart', 'class A {}');
-    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await checkLibrary(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -19801,10 +19802,10 @@ export 'foo.dart'
         r'''
 library
   exports
-    foo_io.dart
+    package:test/foo_io.dart
   definingUnit
   exportScope
-    A: foo_io.dart;A
+    A: package:test/foo_io.dart;A
 ''',
         withExportScope: true);
     expect(library.exports[0].exportedLibrary!.source.shortName, 'foo_io.dart');
@@ -19815,9 +19816,9 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
-    addLibrarySource('/foo.dart', 'class A {}');
-    addLibrarySource('/foo_io.dart', 'class A {}');
-    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await checkLibrary(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -19828,10 +19829,10 @@ export 'foo.dart'
         r'''
 library
   exports
-    foo_html.dart
+    package:test/foo_html.dart
   definingUnit
   exportScope
-    A: foo_html.dart;A
+    A: package:test/foo_html.dart;A
 ''',
         withExportScope: true);
     ExportElement export = library.exports[0];
@@ -19839,35 +19840,34 @@ library
   }
 
   test_export_function() async {
-    addLibrarySource('/a.dart', 'f() {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'f() {}');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
   exportScope
-    f: a.dart;f
+    f: package:test/a.dart;f
 ''',
         withExportScope: true);
   }
 
   test_export_getter() async {
-    addLibrarySource('/a.dart', 'get f() => null;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'get f() => null;');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
 ''');
   }
 
   test_export_hide() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 class C {}
@@ -19893,8 +19893,7 @@ library
   }
 
   test_export_multiple_combinators() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 class C {}
@@ -19920,24 +19919,23 @@ library
   }
 
   test_export_setter() async {
-    addLibrarySource('/a.dart', 'void set f(value) {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'void set f(value) {}');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
   exportScope
-    f=: a.dart;f=
+    f=: package:test/a.dart;f=
 ''',
         withExportScope: true);
   }
 
   test_export_show() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 class C {}
@@ -19963,7 +19961,7 @@ library
   }
 
   test_export_show_getter_setter() async {
-    addLibrarySource('/a.dart', '''
+    addLibrarySource('$testPackageLibPath/a.dart', '''
 get f => null;
 void set f(value) {}
 ''');
@@ -19973,29 +19971,29 @@ void set f(value) {}
         r'''
 library
   exports
-    a.dart
+    package:test/a.dart
       combinators
         show: f
   definingUnit
   exportScope
-    f: a.dart;f?
-    f=: a.dart;f=
+    f: package:test/a.dart;f?
+    f=: package:test/a.dart;f=
 ''',
         withExportScope: true);
   }
 
   test_export_typedef() async {
-    addLibrarySource('/a.dart', 'typedef F();');
+    addLibrarySource('$testPackageLibPath/a.dart', 'typedef F();');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
   exportScope
-    F: a.dart;F
+    F: package:test/a.dart;F
 ''',
         withExportScope: true);
   }
@@ -20008,50 +20006,50 @@ export 'foo.dart';
   }
 
   test_export_variable() async {
-    addLibrarySource('/a.dart', 'var x;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'var x;');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
   exportScope
-    x: a.dart;x?
-    x=: a.dart;x=
+    x: package:test/a.dart;x?
+    x=: package:test/a.dart;x=
 ''',
         withExportScope: true);
   }
 
   test_export_variable_const() async {
-    addLibrarySource('/a.dart', 'const x = 0;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'const x = 0;');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
   exportScope
-    x: a.dart;x?
+    x: package:test/a.dart;x?
 ''',
         withExportScope: true);
   }
 
   test_export_variable_final() async {
-    addLibrarySource('/a.dart', 'final x = 0;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'final x = 0;');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
   exportScope
-    x: a.dart;x?
+    x: package:test/a.dart;x?
 ''',
         withExportScope: true);
   }
@@ -20060,10 +20058,10 @@ library
     declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
     });
-    addLibrarySource('/foo.dart', 'class A {}');
-    addLibrarySource('/foo_io.dart', 'class A {}');
-    addLibrarySource('/foo_html.dart', 'class A {}');
-    addLibrarySource('/bar.dart', r'''
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -20075,14 +20073,14 @@ class B extends A {}
     checkElementText(library, r'''
 library
   imports
-    bar.dart
+    package:test/bar.dart
   definingUnit
     classes
       class B @25
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: foo.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -20093,10 +20091,10 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'false',
     });
-    addLibrarySource('/foo.dart', 'class A {}');
-    addLibrarySource('/foo_io.dart', 'class A {}');
-    addLibrarySource('/foo_html.dart', 'class A {}');
-    addLibrarySource('/bar.dart', r'''
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -20108,14 +20106,14 @@ class B extends A {}
     checkElementText(library, r'''
 library
   imports
-    bar.dart
+    package:test/bar.dart
   definingUnit
     classes
       class B @25
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: foo_io.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -20126,10 +20124,10 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
-    addLibrarySource('/foo.dart', 'class A {}');
-    addLibrarySource('/foo_io.dart', 'class A {}');
-    addLibrarySource('/foo_html.dart', 'class A {}');
-    addLibrarySource('/bar.dart', r'''
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -20141,30 +20139,30 @@ class B extends A {}
     checkElementText(library, r'''
 library
   imports
-    bar.dart
+    package:test/bar.dart
   definingUnit
     classes
       class B @25
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: foo_html.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
   test_exports() async {
-    addLibrarySource('/a.dart', 'library a;');
-    addLibrarySource('/b.dart', 'library b;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'library a;');
+    addLibrarySource('$testPackageLibPath/b.dart', 'library b;');
     var library = await checkLibrary('export "a.dart"; export "b.dart";');
     checkElementText(
         library,
         r'''
 library
   exports
-    a.dart
-    b.dart
+    package:test/a.dart
+    package:test/b.dart
   definingUnit
   exportScope
 ''',
@@ -20297,23 +20295,23 @@ library
   }
 
   test_function_entry_point_in_export() async {
-    addLibrarySource('/a.dart', 'library a; main() {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'library a; main() {}');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
 ''');
   }
 
   test_function_entry_point_in_export_hidden() async {
-    addLibrarySource('/a.dart', 'library a; main() {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'library a; main() {}');
     var library = await checkLibrary('export "a.dart" hide main;');
     checkElementText(library, r'''
 library
   exports
-    a.dart
+    package:test/a.dart
       combinators
         hide: main
   definingUnit
@@ -20321,7 +20319,7 @@ library
   }
 
   test_function_entry_point_in_part() async {
-    addSource('/a.dart', 'part of my.lib; main() {}');
+    addSource('$testPackageLibPath/a.dart', 'part of my.lib; main() {}');
     var library = await checkLibrary('library my.lib; part "a.dart";');
     checkElementText(library, r'''
 library
@@ -22178,9 +22176,9 @@ library
     declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
     });
-    addLibrarySource('/foo.dart', 'class A {}');
-    addLibrarySource('/foo_io.dart', 'class A {}');
-    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await checkLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -22191,14 +22189,14 @@ class B extends A {}
     checkElementText(library, r'''
 library
   imports
-    foo.dart
+    package:test/foo.dart
   definingUnit
     classes
       class B @104
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: foo.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -22209,9 +22207,9 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     });
-    addLibrarySource('/foo.dart', 'class A {}');
-    addLibrarySource('/foo_io.dart', 'class A {}');
-    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await checkLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -22222,14 +22220,14 @@ class B extends A {}
     checkElementText(library, r'''
 library
   imports
-    foo_io.dart
+    package:test/foo_io.dart
   definingUnit
     classes
       class B @104
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: foo_io.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -22240,9 +22238,9 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     });
-    addLibrarySource('/foo.dart', 'class A {}');
-    addLibrarySource('/foo_io.dart', 'class A {}');
-    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await checkLibrary(r'''
 import 'foo.dart'
   if (dart.library.io == 'true') 'foo_io.dart'
@@ -22253,14 +22251,14 @@ class B extends A {}
     checkElementText(library, r'''
 library
   imports
-    foo_io.dart
+    package:test/foo_io.dart
   definingUnit
     classes
       class B @124
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: foo_io.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -22271,9 +22269,9 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
-    addLibrarySource('/foo.dart', 'class A {}');
-    addLibrarySource('/foo_io.dart', 'class A {}');
-    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await checkLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -22284,14 +22282,14 @@ class B extends A {}
     checkElementText(library, r'''
 library
   imports
-    foo_html.dart
+    package:test/foo_html.dart
   definingUnit
     classes
       class B @104
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: foo_html.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -22302,9 +22300,9 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
-    addLibrarySource('/foo.dart', 'class A {}');
-    addLibrarySource('/foo_io.dart', 'class A {}');
-    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await checkLibrary(r'''
 import 'foo.dart'
   if (dart.library.io == 'true') 'foo_io.dart'
@@ -22315,14 +22313,14 @@ class B extends A {}
     checkElementText(library, r'''
 library
   imports
-    foo_html.dart
+    package:test/foo_html.dart
   definingUnit
     classes
       class B @124
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: foo_html.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -22355,8 +22353,7 @@ library
   }
 
   test_import_deferred() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/a.dart', 'f() {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'f() {}');
     var library = await checkLibrary('''
 import 'a.dart' deferred as p;
 ''');
@@ -22476,7 +22473,7 @@ library
   }
 
   test_import_prefixed() async {
-    addLibrarySource('/a.dart', 'library a; class C {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'library a; class C {}');
     var library = await checkLibrary('import "a.dart" as a; a.C c;');
 
     expect(library.imports[0].prefix!.nameOffset, 19);
@@ -22485,7 +22482,7 @@ library
     checkElementText(library, r'''
 library
   imports
-    a.dart as a @19
+    package:test/a.dart as a @19
   definingUnit
     topLevelVariables
       static c @26
@@ -22513,7 +22510,7 @@ class D extends p.C {} // Prevent "unused import" warning
     checkElementText(library, r'''
 library
   imports
-    test.dart as p @22
+    package:test/test.dart as p @22
   definingUnit
     classes
       class C @31
@@ -22524,31 +22521,6 @@ library
         constructors
           synthetic @-1
             superConstructor: self::@class::C::@constructor::•
-''');
-  }
-
-  test_import_short_absolute() async {
-    testFile = '/my/project/bin/test.dart';
-    // Note: "/a.dart" resolves differently on Windows vs. Posix.
-    var destinationPath = convertPath('/a.dart');
-    addLibrarySource(destinationPath, 'class C {}');
-    var library = await checkLibrary('import "/a.dart"; C c;');
-    checkElementText(library, r'''
-library
-  imports
-    a.dart
-  definingUnit
-    topLevelVariables
-      static c @20
-        type: C
-    accessors
-      synthetic static get c @-1
-        returnType: C
-      synthetic static set c @-1
-        parameters
-          requiredPositional _c @-1
-            type: C
-        returnType: void
 ''');
   }
 
@@ -22607,15 +22579,15 @@ import 'foo.dart';
   }
 
   test_imports() async {
-    addLibrarySource('/a.dart', 'library a; class C {}');
-    addLibrarySource('/b.dart', 'library b; class D {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'library a; class C {}');
+    addLibrarySource('$testPackageLibPath/b.dart', 'library b; class D {}');
     var library =
         await checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
     checkElementText(library, r'''
 library
   imports
-    a.dart
-    b.dart
+    package:test/a.dart
+    package:test/b.dart
   definingUnit
     topLevelVariables
       static c @36
@@ -23321,7 +23293,7 @@ library
   }
 
   test_inferred_type_nullability_class_ref_none() async {
-    addSource('/a.dart', 'int f() => 0;');
+    addSource('$testPackageLibPath/a.dart', 'int f() => 0;');
     var library = await checkLibrary('''
 import 'a.dart';
 var x = f();
@@ -23329,7 +23301,7 @@ var x = f();
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static x @21
@@ -23346,7 +23318,7 @@ library
   }
 
   test_inferred_type_nullability_class_ref_question() async {
-    addSource('/a.dart', 'int? f() => 0;');
+    addSource('$testPackageLibPath/a.dart', 'int? f() => 0;');
     var library = await checkLibrary('''
 import 'a.dart';
 var x = f();
@@ -23354,7 +23326,7 @@ var x = f();
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static x @21
@@ -23371,7 +23343,7 @@ library
   }
 
   test_inferred_type_nullability_function_type_none() async {
-    addSource('/a.dart', 'void Function() f() => () {};');
+    addSource('$testPackageLibPath/a.dart', 'void Function() f() => () {};');
     var library = await checkLibrary('''
 import 'a.dart';
 var x = f();
@@ -23379,7 +23351,7 @@ var x = f();
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static x @21
@@ -23396,7 +23368,7 @@ library
   }
 
   test_inferred_type_nullability_function_type_question() async {
-    addSource('/a.dart', 'void Function()? f() => () {};');
+    addSource('$testPackageLibPath/a.dart', 'void Function()? f() => () {};');
     var library = await checkLibrary('''
 import 'a.dart';
 var x = f();
@@ -23404,7 +23376,7 @@ var x = f();
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static x @21
@@ -23567,11 +23539,11 @@ library
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_other_lib() async {
-    addLibrarySource('/a.dart', '''
+    addLibrarySource('$testPackageLibPath/a.dart', '''
 import 'b.dart';
 abstract class D extends E {}
 ''');
-    addLibrarySource('/b.dart', '''
+    addLibrarySource('$testPackageLibPath/b.dart', '''
 abstract class E {
   void f(int x, int g(String s));
 }
@@ -23585,14 +23557,14 @@ class C extends D {
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     classes
       class C @23
         supertype: D
         constructors
           synthetic @-1
-            superConstructor: a.dart::@class::D::@constructor::•
+            superConstructor: package:test/a.dart::@class::D::@constructor::•
         methods
           f @44
             parameters
@@ -23747,7 +23719,7 @@ library
   }
 
   test_inferredType_definedInSdkLibraryPart() async {
-    addSource('/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
 class A {
   m(Stream p) {}
@@ -23762,14 +23734,14 @@ class B extends A {
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     classes
       class B @23
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: a.dart::@class::A::@constructor::•
+            superConstructor: package:test/a.dart::@class::A::@constructor::•
         methods
           m @39
             parameters
@@ -23831,7 +23803,7 @@ library
   }
 
   test_inferredType_implicitCreation_prefixed() async {
-    addLibrarySource('/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 class A {
   A();
   A.named();
@@ -23845,7 +23817,7 @@ var a2 = foo.A.named();
     checkElementText(library, r'''
 library
   imports
-    foo.dart as foo @21
+    package:test/foo.dart as foo @21
   definingUnit
     topLevelVariables
       static a1 @30
@@ -24125,7 +24097,7 @@ library
 
   test_instanceInference_operator_equal_legacy_from_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    addLibrarySource('/legacy.dart', r'''
+    addLibrarySource('$testPackageLibPath/legacy.dart', r'''
 // @dart = 2.7
 class LegacyDefault {
   bool operator==(other) => false;
@@ -24152,14 +24124,14 @@ class X3 extends LegacyInt {
     checkElementText(library, r'''
 library
   imports
-    legacy.dart
+    package:test/legacy.dart
   definingUnit
     classes
       class X1 @28
         supertype: LegacyDefault*
         constructors
           synthetic @-1
-            superConstructor: legacy.dart::@class::LegacyDefault::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::•
         methods
           == @71
             parameters
@@ -24170,7 +24142,7 @@ library
         supertype: LegacyObject*
         constructors
           synthetic @-1
-            superConstructor: legacy.dart::@class::LegacyObject::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::•
         methods
           == @140
             parameters
@@ -24181,7 +24153,7 @@ library
         supertype: LegacyInt*
         constructors
           synthetic @-1
-            superConstructor: legacy.dart::@class::LegacyInt::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::•
         methods
           == @206
             parameters
@@ -24192,7 +24164,7 @@ library
   }
 
   test_instanceInference_operator_equal_legacy_from_legacy_nullSafe() async {
-    addLibrarySource('/legacy.dart', r'''
+    addLibrarySource('$testPackageLibPath/legacy.dart', r'''
 // @dart = 2.7
 class LegacyDefault {
   bool operator==(other) => false;
@@ -24204,7 +24176,7 @@ class LegacyInt {
   bool operator==(int other) => false;
 }
 ''');
-    addLibrarySource('/nullSafe.dart', r'''
+    addLibrarySource('$testPackageLibPath/nullSafe.dart', r'''
 class NullSafeDefault {
   bool operator==(other) => false;
 }
@@ -24232,8 +24204,8 @@ class X3 extends LegacyInt implements NullSafeInt {
     checkElementText(library, r'''
 library
   imports
-    legacy.dart
-    nullSafe.dart
+    package:test/legacy.dart
+    package:test/nullSafe.dart
   definingUnit
     classes
       class X1 @67
@@ -24242,7 +24214,7 @@ library
           NullSafeDefault*
         constructors
           synthetic @-1
-            superConstructor: legacy.dart::@class::LegacyDefault::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::•
         methods
           == @136
             parameters
@@ -24255,7 +24227,7 @@ library
           NullSafeObject*
         constructors
           synthetic @-1
-            superConstructor: legacy.dart::@class::LegacyObject::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::•
         methods
           == @231
             parameters
@@ -24268,7 +24240,7 @@ library
           NullSafeInt*
         constructors
           synthetic @-1
-            superConstructor: legacy.dart::@class::LegacyInt::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::•
         methods
           == @320
             parameters
@@ -24279,7 +24251,7 @@ library
   }
 
   test_instanceInference_operator_equal_nullSafe_from_nullSafe() async {
-    addLibrarySource('/nullSafe.dart', r'''
+    addLibrarySource('$testPackageLibPath/nullSafe.dart', r'''
 class NullSafeDefault {
   bool operator==(other) => false;
 }
@@ -24305,14 +24277,14 @@ class X3 extends NullSafeInt {
     checkElementText(library, r'''
 library
   imports
-    nullSafe.dart
+    package:test/nullSafe.dart
   definingUnit
     classes
       class X1 @30
         supertype: NullSafeDefault
         constructors
           synthetic @-1
-            superConstructor: nullSafe.dart::@class::NullSafeDefault::@constructor::•
+            superConstructor: package:test/nullSafe.dart::@class::NullSafeDefault::@constructor::•
         methods
           == @74
             parameters
@@ -24323,7 +24295,7 @@ library
         supertype: NullSafeObject
         constructors
           synthetic @-1
-            superConstructor: nullSafe.dart::@class::NullSafeObject::@constructor::•
+            superConstructor: package:test/nullSafe.dart::@class::NullSafeObject::@constructor::•
         methods
           == @145
             parameters
@@ -24334,7 +24306,7 @@ library
         supertype: NullSafeInt
         constructors
           synthetic @-1
-            superConstructor: nullSafe.dart::@class::NullSafeInt::@constructor::•
+            superConstructor: package:test/nullSafe.dart::@class::NullSafeInt::@constructor::•
         methods
           == @213
             parameters
@@ -24526,11 +24498,11 @@ library
   }
 
   test_instantiateToBounds_functionTypeAlias_reexported() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class O {}
 typedef T F<T extends O>(T p);
 ''');
-    addLibrarySource('/b.dart', r'''
+    addLibrarySource('$testPackageLibPath/b.dart', r'''
 export 'a.dart' show F;
 ''');
     var library = await checkLibrary('''
@@ -24542,7 +24514,7 @@ class C {
     checkElementText(library, r'''
 library
   imports
-    b.dart
+    package:test/b.dart
   definingUnit
     classes
       class C @23
@@ -24551,7 +24523,7 @@ library
         methods
           f @31
             returnType: O Function(O)
-              alias: a.dart::@typeAlias::F
+              alias: package:test/a.dart::@typeAlias::F
                 typeArguments
                   O
 ''');
@@ -24750,8 +24722,7 @@ library
   }
 
   test_invalid_annotation_prefixed_constructor() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named();
 }
@@ -24795,8 +24766,7 @@ library
   }
 
   test_invalid_annotation_unprefixed_constructor() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named();
 }
@@ -24865,8 +24835,8 @@ library
   }
 
   test_invalid_nameConflict_imported() async {
-    addLibrarySource('/a.dart', 'V() {}');
-    addLibrarySource('/b.dart', 'V() {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'V() {}');
+    addLibrarySource('$testPackageLibPath/b.dart', 'V() {}');
     var library = await checkLibrary('''
 import 'a.dart';
 import 'b.dart';
@@ -24875,8 +24845,8 @@ foo([p = V]) {}
     checkElementText(library, r'''
 library
   imports
-    a.dart
-    b.dart
+    package:test/a.dart
+    package:test/b.dart
   definingUnit
     functions
       foo @34
@@ -24893,9 +24863,9 @@ library
   }
 
   test_invalid_nameConflict_imported_exported() async {
-    addLibrarySource('/a.dart', 'V() {}');
-    addLibrarySource('/b.dart', 'V() {}');
-    addLibrarySource('/c.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', 'V() {}');
+    addLibrarySource('$testPackageLibPath/b.dart', 'V() {}');
+    addLibrarySource('$testPackageLibPath/c.dart', r'''
 export 'a.dart';
 export 'b.dart';
 ''');
@@ -24906,7 +24876,7 @@ foo([p = V]) {}
     checkElementText(library, r'''
 library
   imports
-    c.dart
+    package:test/c.dart
   definingUnit
     functions
       foo @17
@@ -24916,7 +24886,7 @@ library
             constantInitializer
               SimpleIdentifier
                 token: V @26
-                staticElement: a.dart::@function::V
+                staticElement: package:test/a.dart::@function::V
                 staticType: dynamic Function()
         returnType: dynamic
 ''');
@@ -25043,13 +25013,13 @@ library
   imports
     <unresolved>
     <unresolved>
-    a1.dart
+    package:test/a1.dart
     <unresolved>
     <unresolved>
   exports
     <unresolved>
     <unresolved>
-    a2.dart
+    package:test/a2.dart
     <unresolved>
     <unresolved>
   definingUnit
@@ -25301,23 +25271,24 @@ library
   }
 
   test_main_class_alias_via_export() async {
-    addLibrarySource('/a.dart', 'class main = C with D; class C {} class D {}');
+    addLibrarySource('$testPackageLibPath/a.dart',
+        'class main = C with D; class C {} class D {}');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
 ''');
   }
 
   test_main_class_via_export() async {
-    addLibrarySource('/a.dart', 'class main {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'class main {}');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
 ''');
   }
@@ -25337,12 +25308,12 @@ library
   }
 
   test_main_getter_via_export() async {
-    addLibrarySource('/a.dart', 'get main => null;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'get main => null;');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
 ''');
   }
@@ -25361,12 +25332,12 @@ library
   }
 
   test_main_typedef_via_export() async {
-    addLibrarySource('/a.dart', 'typedef main();');
+    addLibrarySource('$testPackageLibPath/a.dart', 'typedef main();');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
 ''');
   }
@@ -25391,12 +25362,12 @@ library
   }
 
   test_main_variable_via_export() async {
-    addLibrarySource('/a.dart', 'var main;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'var main;');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
-    a.dart
+    package:test/a.dart
   definingUnit
 ''');
   }
@@ -25623,7 +25594,6 @@ library
   }
 
   test_metadata_constructor_call_named() async {
-    testFile = convertPath('/home/test/lib/test.dart');
     var library = await checkLibrary('''
 class A {
   const A.named(int _);
@@ -25846,8 +25816,7 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 class A {
   const A.named(int _);
 }
@@ -25898,12 +25867,11 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_inference() async {
-    addLibrarySource('/home/test/lib/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A.named(T _);
 }
 ''');
-    testFile = convertPath('/home/test/lib/test.dart');
     var library = await checkLibrary('''
 import "foo.dart" as foo;
 @foo.A.named(0)
@@ -25954,12 +25922,11 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_typeArguments() async {
-    addLibrarySource('/home/test/lib/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A.named();
 }
 ''');
-    testFile = convertPath('/home/test/lib/test.dart');
     var library = await checkLibrary('''
 import "foo.dart" as foo;
 @foo.A<int>.named()
@@ -26097,7 +26064,6 @@ library
   }
 
   test_metadata_constructor_call_unnamed() async {
-    testFile = convertPath('/home/test/lib/test.dart');
     var library = await checkLibrary('''
 class A {
   const A(int _);
@@ -26230,8 +26196,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/foo.dart', 'class A { const A(_); }');
+    addLibrarySource('$testPackageLibPath/foo.dart', 'class A { const A(_); }');
     var library =
         await checkLibrary('import "foo.dart" as foo; @foo.A(0) class C {}');
     checkElementText(library, r'''
@@ -26270,12 +26235,11 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_inference() async {
-    addLibrarySource('/home/test/lib/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A(T _);
 }
 ''');
-    testFile = convertPath('/home/test/lib/test.dart');
     var library = await checkLibrary('''
 import "foo.dart" as foo;
 @foo.A(0)
@@ -26319,12 +26283,11 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_typeArguments() async {
-    addLibrarySource('/home/test/lib/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A();
 }
 ''');
-    testFile = convertPath('/home/test/lib/test.dart');
     var library = await checkLibrary('''
 import "foo.dart" as foo;
 @foo.A<int>()
@@ -27198,7 +27161,7 @@ library
   }
 
   test_metadata_exportDirective() async {
-    addLibrarySource('/foo.dart', '');
+    addLibrarySource('$testPackageLibPath/foo.dart', '');
     var library = await checkLibrary('@a export "foo.dart"; const a = null;');
     checkElementText(library, r'''
 library
@@ -27211,7 +27174,7 @@ library
         staticType: null
       element: self::@getter::a
   exports
-    foo.dart
+    package:test/foo.dart
       metadata
         Annotation
           atSign: @ @0
@@ -29116,11 +29079,11 @@ library
   }
 
   test_metadata_offsets_onUnit() async {
-    addSource('/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 part of my.lib;
 ''');
 
-    addSource('/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 part of my.lib;
 ''');
 
@@ -29372,7 +29335,7 @@ library
   }
 
   test_metadata_partDirective() async {
-    addSource('/foo.dart', 'part of L;');
+    addSource('$testPackageLibPath/foo.dart', 'part of L;');
     var library = await checkLibrary('''
 library L;
 @a
@@ -29407,10 +29370,10 @@ library
   }
 
   test_metadata_partDirective2() async {
-    addSource('/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
-    addSource('/b.dart', r'''
+    addSource('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
     var library = await checkLibrary('''
@@ -29424,12 +29387,12 @@ part 'b.dart';
   }
 
   test_metadata_prefixed_variable() async {
-    addLibrarySource('/a.dart', 'const b = null;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'const b = null;');
     var library = await checkLibrary('import "a.dart" as a; @a.b class C {}');
     checkElementText(library, r'''
 library
   imports
-    a.dart as a @19
+    package:test/a.dart as a @19
   definingUnit
     classes
       class C @33
@@ -29444,11 +29407,11 @@ library
               period: . @24
               identifier: SimpleIdentifier
                 token: b @25
-                staticElement: a.dart::@getter::b
+                staticElement: package:test/a.dart::@getter::b
                 staticType: null
-              staticElement: a.dart::@getter::b
+              staticElement: package:test/a.dart::@getter::b
               staticType: null
-            element: a.dart::@getter::b
+            element: package:test/a.dart::@getter::b
         constructors
           synthetic @-1
 ''');
@@ -29885,7 +29848,6 @@ library
   }
 
   test_metadata_value_class_staticField() async {
-    testFile = convertPath('/home/test/lib/test.dart');
     var library = await checkLibrary('''
 class A {
   static const x = 0;
@@ -29933,7 +29895,6 @@ library
   }
 
   test_metadata_value_enum_constant() async {
-    testFile = convertPath('/home/test/lib/test.dart');
     var library = await checkLibrary('''
 enum E {a, b, c}
 @E.b
@@ -30049,7 +30010,6 @@ library
   }
 
   test_metadata_value_extension_staticField() async {
-    testFile = convertPath('/home/test/lib/test.dart');
     var library = await checkLibrary('''
 extension E on int {
   static const x = 0;
@@ -30097,8 +30057,7 @@ library
   }
 
   test_metadata_value_prefix_extension_staticField() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/foo.dart', '''
+    addLibrarySource('$testPackageLibPath/foo.dart', '''
 extension E on int {
   static const x = 0;
 }
@@ -30393,7 +30352,7 @@ library
   }
 
   test_mixin_inference_nullSafety2() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 
 mixin B<T> on A<T> {}
@@ -30408,7 +30367,7 @@ class D extends A<int> with B<int>, C {}
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     classes
       class D @37
@@ -30419,13 +30378,13 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: a.dart::@class::A::@constructor::•
+              base: package:test/a.dart::@class::A::@constructor::•
               substitution: {T: int*}
 ''');
   }
 
   test_mixin_inference_nullSafety_mixed_inOrder() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 mixin M<U> on A<U> {}
 ''');
@@ -30437,7 +30396,7 @@ class B extends A<int> with M {}
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     classes
       class B @38
@@ -30447,14 +30406,14 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: a.dart::@class::A::@constructor::•
+              base: package:test/a.dart::@class::A::@constructor::•
               substitution: {T: int*}
 ''');
   }
 
   @FailingTest(reason: 'Out-of-order inference is not specified yet')
   test_mixin_inference_nullSafety_mixed_outOfOrder() async {
-    addLibrarySource('/a.dart', r'''
+    addLibrarySource('$testPackageLibPath/a.dart', r'''
 // @dart = 2.8
 class A<T> {}
 mixin M<U> on A<U> {}
@@ -30571,8 +30530,8 @@ library
   }
 
   test_nameConflict_exportedAndLocal() async {
-    addLibrarySource('/a.dart', 'class C {}');
-    addLibrarySource('/c.dart', '''
+    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
+    addLibrarySource('$testPackageLibPath/c.dart', '''
 export 'a.dart';
 class C {}
 ''');
@@ -30583,7 +30542,7 @@ C v = null;
     checkElementText(library, r'''
 library
   imports
-    c.dart
+    package:test/c.dart
   definingUnit
     topLevelVariables
       static v @19
@@ -30600,12 +30559,12 @@ library
   }
 
   test_nameConflict_exportedAndLocal_exported() async {
-    addLibrarySource('/a.dart', 'class C {}');
-    addLibrarySource('/c.dart', '''
+    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
+    addLibrarySource('$testPackageLibPath/c.dart', '''
 export 'a.dart';
 class C {}
 ''');
-    addLibrarySource('/d.dart', 'export "c.dart";');
+    addLibrarySource('$testPackageLibPath/d.dart', 'export "c.dart";');
     var library = await checkLibrary('''
 import 'd.dart';
 C v = null;
@@ -30613,7 +30572,7 @@ C v = null;
     checkElementText(library, r'''
 library
   imports
-    d.dart
+    package:test/d.dart
   definingUnit
     topLevelVariables
       static v @19
@@ -30630,12 +30589,12 @@ library
   }
 
   test_nameConflict_exportedAndParted() async {
-    addLibrarySource('/a.dart', 'class C {}');
-    addLibrarySource('/b.dart', '''
+    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
+    addLibrarySource('$testPackageLibPath/b.dart', '''
 part of lib;
 class C {}
 ''');
-    addLibrarySource('/c.dart', '''
+    addLibrarySource('$testPackageLibPath/c.dart', '''
 library lib;
 export 'a.dart';
 part 'b.dart';
@@ -30647,7 +30606,7 @@ C v = null;
     checkElementText(library, r'''
 library
   imports
-    c.dart
+    package:test/c.dart
   definingUnit
     topLevelVariables
       static v @19
@@ -30668,8 +30627,8 @@ library
       return;
     }
 
-    addLibrarySource('/a.dart', 'class A {}');
-    addLibrarySource('/b.dart', 'export "/a.dart";');
+    addLibrarySource('$testPackageLibPath/a.dart', 'class A {}');
+    addLibrarySource('$testPackageLibPath/b.dart', 'export "/a.dart";');
     var library = await checkLibrary('''
 import 'a.dart';
 import 'b.dart';
@@ -30678,8 +30637,8 @@ A v = null;
     checkElementText(library, r'''
 library
   imports
-    a.dart
-    b.dart
+    package:test/a.dart
+    package:test/b.dart
   definingUnit
     topLevelVariables
       static v @36
@@ -32118,8 +32077,8 @@ part 'foo.dart';
   }
 
   test_parts() async {
-    addSource('/a.dart', 'part of my.lib;');
-    addSource('/b.dart', 'part of my.lib;');
+    addSource('$testPackageLibPath/a.dart', 'part of my.lib;');
+    addSource('$testPackageLibPath/b.dart', 'part of my.lib;');
     var library =
         await checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
@@ -32134,7 +32093,7 @@ library
   }
 
   test_parts_invalidUri() async {
-    addSource('/foo/bar.dart', 'part of my.lib;');
+    addSource('$testPackageLibPath/foo/bar.dart', 'part of my.lib;');
     var library = await checkLibrary('library my.lib; part "foo/";');
     checkElementText(library, r'''
 library
@@ -32147,7 +32106,7 @@ library
   }
 
   test_parts_invalidUri_nullStringValue() async {
-    addSource('/foo/bar.dart', 'part of my.lib;');
+    addSource('$testPackageLibPath/foo/bar.dart', 'part of my.lib;');
     var library = await checkLibrary(r'''
 library my.lib;
 part "${foo}/bar.dart";
@@ -32566,7 +32525,7 @@ library
   }
 
   test_type_inference_based_on_loadLibrary() async {
-    addLibrarySource('/a.dart', '');
+    addLibrarySource('$testPackageLibPath/a.dart', '');
     var library = await checkLibrary('''
 import 'a.dart' deferred as a;
 var x = a.loadLibrary;
@@ -32574,7 +32533,7 @@ var x = a.loadLibrary;
     checkElementText(library, r'''
 library
   imports
-    a.dart deferred as a @28
+    package:test/a.dart deferred as a @28
   definingUnit
     topLevelVariables
       static x @35
@@ -32591,8 +32550,7 @@ library
   }
 
   test_type_inference_classField_fromNullSafe_toLegacy() async {
-    testFile = convertPath('/home/test/lib/test.dart');
-    addLibrarySource('/home/test/lib/a.dart', '''
+    addLibrarySource('$testPackageLibPath/a.dart', '''
 class E {
   static final a = 0;
 }
@@ -32659,8 +32617,8 @@ library
   }
 
   test_type_inference_depends_on_exported_variable() async {
-    addLibrarySource('/a.dart', 'export "b.dart";');
-    addLibrarySource('/b.dart', 'var x = 0;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'export "b.dart";');
+    addLibrarySource('$testPackageLibPath/b.dart', 'var x = 0;');
     var library = await checkLibrary('''
 import 'a.dart';
 var y = x;
@@ -32668,7 +32626,7 @@ var y = x;
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static y @21
@@ -32908,8 +32866,8 @@ library
   }
 
   test_type_inference_multiplyDefinedElement() async {
-    addLibrarySource('/a.dart', 'class C {}');
-    addLibrarySource('/b.dart', 'class C {}');
+    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
+    addLibrarySource('$testPackageLibPath/b.dart', 'class C {}');
     var library = await checkLibrary('''
 import 'a.dart';
 import 'b.dart';
@@ -32918,8 +32876,8 @@ var v = C;
     checkElementText(library, r'''
 library
   imports
-    a.dart
-    b.dart
+    package:test/a.dart
+    package:test/b.dart
   definingUnit
     topLevelVariables
       static v @38
@@ -33445,7 +33403,8 @@ library
   }
 
   test_type_reference_lib_to_part() async {
-    addSource('/a.dart', 'part of l; class C {} enum E { v } typedef F();');
+    addSource('$testPackageLibPath/a.dart',
+        'part of l; class C {} enum E { v } typedef F();');
     var library =
         await checkLibrary('library l; part "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
@@ -33539,7 +33498,7 @@ library
   }
 
   test_type_reference_part_to_lib() async {
-    addSource('/a.dart', 'part of l; C c; E e; F f;');
+    addSource('$testPackageLibPath/a.dart', 'part of l; C c; E e; F f;');
     var library = await checkLibrary(
         'library l; part "a.dart"; class C {} enum E { v } typedef F();');
     checkElementText(library, r'''
@@ -33633,8 +33592,9 @@ library
   }
 
   test_type_reference_part_to_other_part() async {
-    addSource('/a.dart', 'part of l; class C {} enum E { v } typedef F();');
-    addSource('/b.dart', 'part of l; C c; E e; F f;');
+    addSource('$testPackageLibPath/a.dart',
+        'part of l; class C {} enum E { v } typedef F();');
+    addSource('$testPackageLibPath/b.dart', 'part of l; C c; E e; F f;');
     var library =
         await checkLibrary('library l; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
@@ -33729,7 +33689,7 @@ library
   }
 
   test_type_reference_part_to_part() async {
-    addSource('/a.dart',
+    addSource('$testPackageLibPath/a.dart',
         'part of l; class C {} enum E { v } typedef F(); C c; E e; F f;');
     var library = await checkLibrary('library l; part "a.dart";');
     checkElementText(library, r'''
@@ -33960,12 +33920,13 @@ library
   }
 
   test_type_reference_to_import() async {
-    addLibrarySource('/a.dart', 'class C {} enum E { v } typedef F();');
+    addLibrarySource(
+        '$testPackageLibPath/a.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static c @19
@@ -33974,7 +33935,7 @@ library
         type: E
       static f @29
         type: dynamic Function()
-          alias: a.dart::@typeAlias::F
+          alias: package:test/a.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -33992,24 +33953,25 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          alias: a.dart::@typeAlias::F
+          alias: package:test/a.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              alias: a.dart::@typeAlias::F
+              alias: package:test/a.dart::@typeAlias::F
         returnType: void
 ''');
   }
 
   test_type_reference_to_import_export() async {
-    addLibrarySource('/a.dart', 'export "b.dart";');
-    addLibrarySource('/b.dart', 'class C {} enum E { v } typedef F();');
+    addLibrarySource('$testPackageLibPath/a.dart', 'export "b.dart";');
+    addLibrarySource(
+        '$testPackageLibPath/b.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static c @19
@@ -34018,7 +33980,7 @@ library
         type: E
       static f @29
         type: dynamic Function()
-          alias: b.dart::@typeAlias::F
+          alias: package:test/b.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34036,25 +33998,26 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          alias: b.dart::@typeAlias::F
+          alias: package:test/b.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              alias: b.dart::@typeAlias::F
+              alias: package:test/b.dart::@typeAlias::F
         returnType: void
 ''');
   }
 
   test_type_reference_to_import_export_export() async {
-    addLibrarySource('/a.dart', 'export "b.dart";');
-    addLibrarySource('/b.dart', 'export "c.dart";');
-    addLibrarySource('/c.dart', 'class C {} enum E { v } typedef F();');
+    addLibrarySource('$testPackageLibPath/a.dart', 'export "b.dart";');
+    addLibrarySource('$testPackageLibPath/b.dart', 'export "c.dart";');
+    addLibrarySource(
+        '$testPackageLibPath/c.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static c @19
@@ -34063,7 +34026,7 @@ library
         type: E
       static f @29
         type: dynamic Function()
-          alias: c.dart::@typeAlias::F
+          alias: package:test/c.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34081,25 +34044,26 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          alias: c.dart::@typeAlias::F
+          alias: package:test/c.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              alias: c.dart::@typeAlias::F
+              alias: package:test/c.dart::@typeAlias::F
         returnType: void
 ''');
   }
 
   test_type_reference_to_import_export_export_in_subdirs() async {
-    addLibrarySource('/a/a.dart', 'export "b/b.dart";');
-    addLibrarySource('/a/b/b.dart', 'export "../c/c.dart";');
-    addLibrarySource('/a/c/c.dart', 'class C {} enum E { v } typedef F();');
+    addLibrarySource('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
+    addLibrarySource('$testPackageLibPath/a/b/b.dart', 'export "../c/c.dart";');
+    addLibrarySource('$testPackageLibPath/a/c/c.dart',
+        'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a/a.dart
   definingUnit
     topLevelVariables
       static c @21
@@ -34108,7 +34072,7 @@ library
         type: E
       static f @31
         type: dynamic Function()
-          alias: c.dart::@typeAlias::F
+          alias: package:test/a/c/c.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34126,24 +34090,25 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          alias: c.dart::@typeAlias::F
+          alias: package:test/a/c/c.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              alias: c.dart::@typeAlias::F
+              alias: package:test/a/c/c.dart::@typeAlias::F
         returnType: void
 ''');
   }
 
   test_type_reference_to_import_export_in_subdirs() async {
-    addLibrarySource('/a/a.dart', 'export "b/b.dart";');
-    addLibrarySource('/a/b/b.dart', 'class C {} enum E { v } typedef F();');
+    addLibrarySource('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
+    addLibrarySource('$testPackageLibPath/a/b/b.dart',
+        'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a/a.dart
   definingUnit
     topLevelVariables
       static c @21
@@ -34152,7 +34117,7 @@ library
         type: E
       static f @31
         type: dynamic Function()
-          alias: b.dart::@typeAlias::F
+          alias: package:test/a/b/b.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34170,24 +34135,25 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          alias: b.dart::@typeAlias::F
+          alias: package:test/a/b/b.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              alias: b.dart::@typeAlias::F
+              alias: package:test/a/b/b.dart::@typeAlias::F
         returnType: void
 ''');
   }
 
   test_type_reference_to_import_part() async {
-    addLibrarySource('/a.dart', 'library l; part "b.dart";');
-    addSource('/b.dart', 'part of l; class C {} enum E { v } typedef F();');
+    addLibrarySource('$testPackageLibPath/a.dart', 'library l; part "b.dart";');
+    addSource('$testPackageLibPath/b.dart',
+        'part of l; class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static c @19
@@ -34196,7 +34162,7 @@ library
         type: E
       static f @29
         type: dynamic Function()
-          alias: a.dart::@typeAlias::F
+          alias: package:test/a.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34214,25 +34180,26 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          alias: a.dart::@typeAlias::F
+          alias: package:test/a.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              alias: a.dart::@typeAlias::F
+              alias: package:test/a.dart::@typeAlias::F
         returnType: void
 ''');
   }
 
   test_type_reference_to_import_part2() async {
-    addLibrarySource('/a.dart', 'library l; part "p1.dart"; part "p2.dart";');
-    addSource('/p1.dart', 'part of l; class C1 {}');
-    addSource('/p2.dart', 'part of l; class C2 {}');
+    addLibrarySource('$testPackageLibPath/a.dart',
+        'library l; part "p1.dart"; part "p2.dart";');
+    addSource('$testPackageLibPath/p1.dart', 'part of l; class C1 {}');
+    addSource('$testPackageLibPath/p2.dart', 'part of l; class C2 {}');
     var library = await checkLibrary('import "a.dart"; C1 c1; C2 c2;');
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static c1 @20
@@ -34258,13 +34225,15 @@ library
   }
 
   test_type_reference_to_import_part_in_subdir() async {
-    addLibrarySource('/a/b.dart', 'library l; part "c.dart";');
-    addSource('/a/c.dart', 'part of l; class C {} enum E { v } typedef F();');
+    addLibrarySource(
+        '$testPackageLibPath/a/b.dart', 'library l; part "c.dart";');
+    addSource('$testPackageLibPath/a/c.dart',
+        'part of l; class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a/b.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
-    b.dart
+    package:test/a/b.dart
   definingUnit
     topLevelVariables
       static c @21
@@ -34273,7 +34242,7 @@ library
         type: E
       static f @31
         type: dynamic Function()
-          alias: b.dart::@typeAlias::F
+          alias: package:test/a/b.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34291,23 +34260,24 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          alias: b.dart::@typeAlias::F
+          alias: package:test/a/b.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              alias: b.dart::@typeAlias::F
+              alias: package:test/a/b.dart::@typeAlias::F
         returnType: void
 ''');
   }
 
   test_type_reference_to_import_relative() async {
-    addLibrarySource('/a.dart', 'class C {} enum E { v } typedef F();');
+    addLibrarySource(
+        '$testPackageLibPath/a.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static c @19
@@ -34316,7 +34286,7 @@ library
         type: E
       static f @29
         type: dynamic Function()
-          alias: a.dart::@typeAlias::F
+          alias: package:test/a.dart::@typeAlias::F
     accessors
       synthetic static get c @-1
         returnType: C
@@ -34334,12 +34304,12 @@ library
         returnType: void
       synthetic static get f @-1
         returnType: dynamic Function()
-          alias: a.dart::@typeAlias::F
+          alias: package:test/a.dart::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
             type: dynamic Function()
-              alias: a.dart::@typeAlias::F
+              alias: package:test/a.dart::@typeAlias::F
         returnType: void
 ''');
   }
@@ -36359,14 +36329,13 @@ void f(A a) {}
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     functions
       f @37
         parameters
           requiredPositional a @41
-            type: List<int*>*
-              alias: a.dart::@typeAlias::A
+            type: dynamic
         returnType: void
 ''');
   }
@@ -37030,8 +36999,8 @@ library
   }
 
   test_unresolved_annotation_simpleIdentifier_multiplyDefined() async {
-    addLibrarySource('/a.dart', 'const v = 0;');
-    addLibrarySource('/b.dart', 'const v = 0;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'const v = 0;');
+    addLibrarySource('$testPackageLibPath/b.dart', 'const v = 0;');
     var library = await checkLibrary('''
 import 'a.dart';
 import 'b.dart';
@@ -37042,8 +37011,8 @@ class C {}
     checkElementText(library, r'''
 library
   imports
-    a.dart
-    b.dart
+    package:test/a.dart
+    package:test/b.dart
   definingUnit
     classes
       class C @44
@@ -37088,7 +37057,7 @@ library
     checkElementText(library, r'''
 library
   exports
-    foo.dart
+    package:test/foo.dart
   definingUnit
 ''');
   }
@@ -37102,7 +37071,7 @@ library
     checkElementText(library, r'''
 library
   imports
-    foo.dart
+    package:test/foo.dart
   definingUnit
 ''');
   }
@@ -37256,7 +37225,7 @@ library
   }
 
   test_variable_getterInLib_setterInPart() async {
-    addSource('/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 part of my.lib;
 void set x(int _) {}
 ''');
@@ -37290,7 +37259,7 @@ library
   }
 
   test_variable_getterInPart_setterInLib() async {
-    addSource('/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 part of my.lib;
 int get x => 42;
 ''');
@@ -37325,8 +37294,9 @@ library
   }
 
   test_variable_getterInPart_setterInPart() async {
-    addSource('/a.dart', 'part of my.lib; int get x => 42;');
-    addSource('/b.dart', 'part of my.lib; void set x(int _) {}');
+    addSource('$testPackageLibPath/a.dart', 'part of my.lib; int get x => 42;');
+    addSource(
+        '$testPackageLibPath/b.dart', 'part of my.lib; void set x(int _) {}');
     var library =
         await checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
@@ -37580,12 +37550,12 @@ library
   }
 
   test_variable_propagatedType_final_dep_inLib() async {
-    addLibrarySource('/a.dart', 'final a = 1;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'final a = 1;');
     var library = await checkLibrary('import "a.dart"; final b = a / 2;');
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static final b @23
@@ -37597,7 +37567,7 @@ library
   }
 
   test_variable_propagatedType_final_dep_inPart() async {
-    addSource('/a.dart', 'part of lib; final a = 1;');
+    addSource('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
     var library =
         await checkLibrary('library lib; part "a.dart"; final b = a / 2;');
     checkElementText(library, r'''
@@ -37638,13 +37608,14 @@ library
 
   test_variable_propagatedType_implicit_dep() async {
     // The propagated type is defined in a library that is not imported.
-    addLibrarySource('/a.dart', 'class C {}');
-    addLibrarySource('/b.dart', 'import "a.dart"; C f() => null;');
+    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
+    addLibrarySource(
+        '$testPackageLibPath/b.dart', 'import "a.dart"; C f() => null;');
     var library = await checkLibrary('import "b.dart"; final x = f();');
     checkElementText(library, r'''
 library
   imports
-    b.dart
+    package:test/b.dart
   definingUnit
     topLevelVariables
       static final x @23
@@ -37656,8 +37627,9 @@ library
   }
 
   test_variable_setterInPart_getterInPart() async {
-    addSource('/a.dart', 'part of my.lib; void set x(int _) {}');
-    addSource('/b.dart', 'part of my.lib; int get x => 42;');
+    addSource(
+        '$testPackageLibPath/a.dart', 'part of my.lib; void set x(int _) {}');
+    addSource('$testPackageLibPath/b.dart', 'part of my.lib; int get x => 42;');
     var library =
         await checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
@@ -37731,7 +37703,7 @@ library
   }
 
   test_variable_type_inferred_nonNullify() async {
-    addSource('/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 // @dart = 2.7
 var a = 0;
 ''');
@@ -37744,7 +37716,7 @@ var b = a;
     checkElementText(library, r'''
 library
   imports
-    a.dart
+    package:test/a.dart
   definingUnit
     topLevelVariables
       static b @21
