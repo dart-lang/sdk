@@ -112,6 +112,12 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
         allowed: verbosityOption.allowed,
         allowedHelp: verbosityOption.allowedHelp,
       )
+      ..addOption(
+        packagesOption.flag,
+        abbr: packagesOption.abbr,
+        valueHelp: packagesOption.valueHelp,
+        help: packagesOption.help,
+      )
       ..addMultiOption(
         defineOption.flag,
         help: defineOption.help,
@@ -158,12 +164,18 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
 
     final enabledExperiments = args.enabledExperiments;
     final environmentVars = args['define'] ?? <String, String>{};
+
     // Build arguments.
-    List<String> buildArgs = [];
+    final buildArgs = <String>[];
     buildArgs.add('--snapshot-kind=$formatName');
     buildArgs.add('--snapshot=${path.canonicalize(outputFile)}');
 
-    String? verbosity = args[verbosityOption.flag];
+    final String? packages = args[packagesOption.flag];
+    if (packages != null) {
+      buildArgs.add('--packages=$packages');
+    }
+
+    final String? verbosity = args[verbosityOption.flag];
     buildArgs.add('--verbosity=$verbosity');
 
     if (enabledExperiments.isNotEmpty) {
@@ -226,13 +238,12 @@ class CompileNativeCommand extends CompileSubcommandCommand {
       )
       ..addFlag('enable-asserts',
           negatable: false, help: 'Enable assert statements.')
-      ..addOption('packages',
-          abbr: 'p',
-          valueHelp: 'path',
-          help:
-              '''Get package locations from the specified file instead of .packages.
-<path> can be relative or absolute.
-For example: dart compile $commandName --packages=/tmp/pkgs main.dart''')
+      ..addOption(
+        packagesOption.flag,
+        abbr: packagesOption.abbr,
+        valueHelp: packagesOption.valueHelp,
+        help: packagesOption.help,
+      )
       ..addFlag('sound-null-safety',
           help: 'Respect the nullability of types at runtime.',
           defaultsTo: null)
@@ -319,7 +330,9 @@ Sets the verbosity level of the compilation.
     allowed: Verbosity.allowedValues,
     allowedHelp: Verbosity.allowedValuesHelp,
   );
+
   late final Option defineOption;
+  late final Option packagesOption;
 
   CompileSubcommandCommand(String name, String description, bool verbose,
       {bool hidden = false})
@@ -331,6 +344,14 @@ Sets the verbosity level of the compilation.
 Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
 For example: dart compile $name -Da=1,b=2 main.dart''',
         ),
+        packagesOption = Option(
+            flag: 'packages',
+            abbr: 'p',
+            valueHelp: 'path',
+            help:
+                '''Get package locations from the specified file instead of .packages.
+<path> can be relative or absolute.
+For example: dart compile $name --packages=/tmp/pkgs main.dart'''),
         super(name, description, verbose, hidden: hidden);
 }
 

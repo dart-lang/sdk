@@ -7048,11 +7048,17 @@ class Parser {
         // to determine if this is part of a conditional expression
         //
         Listener originalListener = listener;
-        listener = new ForwardingListener();
-        // TODO(danrubel): consider using TokenStreamGhostWriter here
+        TokenStreamRewriter? originalRewriter = cachedRewriter;
+        listener = new NullListener();
+        UndoableTokenStreamRewriter undoableTokenStreamRewriter =
+            new UndoableTokenStreamRewriter();
+        cachedRewriter = undoableTokenStreamRewriter;
         Token afterExpression =
             parseExpressionWithoutCascade(afterIdentifier).next!;
+        // Undo all changes and reset.
+        undoableTokenStreamRewriter.undo();
         listener = originalListener;
+        cachedRewriter = originalRewriter;
 
         if (optional(':', afterExpression)) {
           // Looks like part of a conditional expression.

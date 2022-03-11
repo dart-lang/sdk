@@ -279,16 +279,12 @@ class CompletionDriver with ExpectMixin {
     } else if (notification.event == SERVER_NOTIFICATION_CONNECTED) {
       // Ignored.
     } else {
-      print('Unhandled notififcation: ${notification.event}');
+      print('Unhandled notification: ${notification.event}');
     }
   }
 
-  Future<AvailableSuggestionSet> waitForSetWithUri(String uri) async {
-    while (true) {
-      var result = uriToSetMap[uri];
-      if (result != null) {
-        return result;
-      }
+  Future<void> waitForSetWithUri(String uri) async {
+    while (uriToSetMap[uri] == null) {
       await Future.delayed(const Duration(milliseconds: 1));
     }
   }

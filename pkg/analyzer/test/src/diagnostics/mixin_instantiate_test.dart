@@ -30,9 +30,28 @@ main() {
       error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 43, 1),
     ]);
 
-    var creation = findNode.instanceCreation('M.named();');
-    var m = findElement.mixin('M');
-    assertInstanceCreation(creation, m, 'M', constructorName: 'named');
+    var node = findNode.instanceCreation('M.named();');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: M
+        staticElement: self::@mixin::M
+        staticType: null
+      type: M
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: self::@mixin::M::@constructor::named
+      staticType: null
+    staticElement: self::@mixin::M::@constructor::named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: M
+''');
   }
 
   test_namedConstructor_undefined() async {
@@ -62,8 +81,22 @@ main() {
       error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 27, 1),
     ]);
 
-    var creation = findNode.instanceCreation('M();');
-    var m = findElement.mixin('M');
-    assertInstanceCreation(creation, m, 'M');
+    var node = findNode.instanceCreation('M();');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: M
+        staticElement: self::@mixin::M
+        staticType: null
+      type: M
+    staticElement: self::@mixin::M::@constructor::•
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: M
+''');
   }
 }

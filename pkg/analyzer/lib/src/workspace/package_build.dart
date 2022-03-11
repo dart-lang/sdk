@@ -10,6 +10,7 @@ import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -135,10 +136,6 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
     'build',
     'generated'
   ];
-
-  /// We use pubspec.yaml to get the package name to be consistent with how
-  /// package:build does it.
-  static const String _pubspecName = 'pubspec.yaml';
 
   /// The associated pubspec file.
   final File _pubspecFile;
@@ -298,7 +295,7 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
       Map<String, List<Folder>> packageMap, String filePath) {
     var startFolder = provider.getFolder(filePath);
     for (var folder in startFolder.withAncestors) {
-      final File pubspec = folder.getChildAssumingFile(_pubspecName);
+      final File pubspec = folder.getChildAssumingFile(file_paths.pubspecYaml);
       final Folder dartToolDir =
           folder.getChildAssumingFolder(_dartToolRootName);
       final Folder dartToolBuildDir =

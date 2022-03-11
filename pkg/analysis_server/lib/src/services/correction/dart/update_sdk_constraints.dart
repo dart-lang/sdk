@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -72,7 +73,7 @@ class UpdateSdkConstraints extends CorrectionProducer {
   File? _findPubspecFile() {
     var file = resourceProvider.getFile(this.file);
     for (var folder in file.parent.withAncestors) {
-      var pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
+      var pubspecFile = folder.getChildAssumingFile(file_paths.pubspecYaml);
       if (pubspecFile.exists) {
         return pubspecFile;
       }

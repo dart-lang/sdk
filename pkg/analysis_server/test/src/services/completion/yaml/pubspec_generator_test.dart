@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:http/http.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -28,7 +29,7 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
   late PubPackageService pubPackageService;
 
   @override
-  String get fileName => 'pubspec.yaml';
+  String get fileName => file_paths.pubspecYaml;
 
   @override
   PubspecGenerator get generator =>

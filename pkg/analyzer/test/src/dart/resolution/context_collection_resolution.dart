@@ -262,8 +262,8 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
   List<String> get experiments => [
-        EnableString.constructor_tearoffs,
         EnableString.enhanced_enums,
+        EnableString.macros,
         EnableString.named_arguments_anywhere,
         EnableString.super_parameters,
       ];

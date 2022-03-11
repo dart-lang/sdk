@@ -384,54 +384,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertTypeNull(identifier);
   }
 
-  /// TODO(srawlins): Refactor to accept an `Object? expectedConstructor` which
-  /// can accept `elementMatcher` for generics, and simplify, similar to
-  /// `assertConstructorReference`.
-  void assertInstanceCreation(
-    InstanceCreationExpression creation,
-    ClassElement expectedClassElement,
-    String expectedType, {
-    String? constructorName,
-    bool expectedConstructorMember = false,
-    Map<String, String>? expectedSubstitution,
-    PrefixElement? expectedPrefix,
-    Element? expectedTypeNameElement,
-  }) {
-    var expectedConstructorElement =
-        _getConstructorElement(expectedClassElement, constructorName);
-
-    var actualConstructorElement =
-        getNodeElement(creation) as ConstructorElement?;
-    var constructorName2 = creation.constructorName.name;
-    if (constructorName2 != null) {
-      // TODO(brianwilkerson) This used to enforce that the two elements were
-      // the same object, but the changes to the AstRewriteVisitor broke that.
-      // We should explore re-establishing this restriction for performance.
-      assertConstructorElement(
-        constructorName2.staticElement as ConstructorElement?,
-        actualConstructorElement,
-      );
-    }
-
-    if (expectedConstructorMember) {
-      expect(actualConstructorElement, const TypeMatcher<Member>());
-      assertMember(
-        creation,
-        expectedConstructorElement,
-        expectedSubstitution!,
-      );
-    } else {
-      assertElement(creation, expectedConstructorElement);
-    }
-
-    assertType(creation, expectedType);
-
-    var namedType = creation.constructorName.type;
-    expectedTypeNameElement ??= expectedClassElement;
-    assertNamedType(namedType, expectedTypeNameElement, expectedType,
-        expectedPrefix: expectedPrefix);
-  }
-
   /// Resolve the [code], and ensure that it can be resolved without a crash,
   /// and is invalid, i.e. produces a diagnostic.
   Future<void> assertInvalidTestCode(String code) async {
@@ -566,8 +518,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(node.staticType, type);
   }
 
-  void assertResolvedNodeText(AstNode node, String expected) {
-    var actual = _resolvedNodeText(node);
+  void assertResolvedNodeText(
+    AstNode node,
+    String expected, {
+    bool skipArgumentList = false,
+  }) {
+    var actual = _resolvedNodeText(
+      node,
+      skipArgumentList: skipArgumentList,
+    );
     if (actual != expected) {
       print(actual);
       NodeTextExpectationsCollector.add(actual);
@@ -935,23 +894,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
     fail('Expected SimpleIdentifier: (${node.runtimeType}) $node');
   }
 
-  ConstructorElement _getConstructorElement(
-      ClassElement classElement, String? constructorName) {
-    var constructorElement = constructorName == null
-        ? classElement.unnamedConstructor
-        : classElement.getNamedConstructor(constructorName);
-    return constructorElement ??
-        fail("No constructor '${constructorName ?? '<unnamed>'}' in class "
-            "'${classElement.name}'.");
-  }
-
-  String _resolvedNodeText(AstNode node) {
+  String _resolvedNodeText(
+    AstNode node, {
+    bool skipArgumentList = false,
+  }) {
     var buffer = StringBuffer();
     node.accept(
       ResolvedAstPrinter(
         selfUriStr: result.uri.toString(),
         sink: buffer,
         indent: '',
+        skipArgumentList: skipArgumentList,
       ),
     );
     return buffer.toString();

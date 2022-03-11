@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -418,7 +419,7 @@ class PluginManager {
   @visibleForTesting
   List<String> pathsFor(String pluginPath) {
     var pluginFolder = resourceProvider.getFolder(pluginPath);
-    var pubspecFile = pluginFolder.getChildAssumingFile('pubspec.yaml');
+    var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
     if (!pubspecFile.exists) {
       // If there's no pubspec file, then we don't need to copy the package
       // because we won't be running pub.
@@ -689,7 +690,8 @@ class PluginManager {
     var stateName = _uniqueDirectoryName(pluginPath) + '.packages';
     var packagesFile = stateFolder.getChildAssumingFile(stateName);
     if (!packagesFile.exists) {
-      var pluginPubspec = pluginFolder.getChildAssumingFile('pubspec.yaml');
+      var pluginPubspec =
+          pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
       if (!pluginPubspec.exists) {
         return null;
       }
@@ -710,8 +712,8 @@ class PluginManager {
               if (packageSource != null) {
                 var libDirPath = context.dirname(packageSource.fullName);
                 visitedPackages[packageName] = libDirPath;
-                var pubspecPath =
-                    context.join(context.dirname(libDirPath), 'pubspec.yaml');
+                var pubspecPath = context.join(
+                    context.dirname(libDirPath), file_paths.pubspecYaml);
                 pubspecFiles.add(resourceProvider.getFile(pubspecPath));
               }
             }

@@ -474,8 +474,7 @@ main() {
   }
 
   Future<void> test_pubspecFile() async {
-    var filePath = join(projectPath, 'pubspec.yaml');
-    var pubspecFile = newFile(filePath, content: '''
+    var pubspecFile = newPubspecYamlFile(projectPath, '''
 version: 1.3.2
 ''').path;
 
@@ -488,7 +487,7 @@ version: 1.3.2
     var errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.location.file, filePath);
+    expect(error.location.file, pubspecFile);
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
     //
@@ -512,8 +511,7 @@ linter:
     - sort_pub_dependencies
 ''');
 
-    var filePath = join(projectPath, 'pubspec.yaml');
-    var pubspecFile = newFile(filePath, content: '''
+    var pubspecFile = newPubspecYamlFile(projectPath, '''
 name: sample
 
 dependencies:
@@ -530,7 +528,7 @@ dependencies:
     var errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.location.file, filePath);
+    expect(error.location.file, pubspecFile);
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);
     //

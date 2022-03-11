@@ -4390,7 +4390,7 @@ class Field : public Object {
   void RegisterDependentCode(const Code& code) const;
 
   // Deoptimize all dependent code objects.
-  void DeoptimizeDependentCode() const;
+  void DeoptimizeDependentCode(bool are_mutators_stopped = false) const;
 
   // Used by background compiler to check consistency of field copy with its
   // original.
@@ -4508,15 +4508,6 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
   class IsNonNullableIntBit
       : public BitField<uint16_t, bool, kIsNonNullableIntBit, 1> {};
-
-  // Update guarded cid and guarded length for this field. Returns true, if
-  // deoptimization of dependent code is required.
-  bool UpdateGuardedCidAndLength(const Object& value) const;
-
-  // Update guarded exactness state for this field. Returns true, if
-  // deoptimization of dependent code is required.
-  // Assumes that guarded cid was already updated.
-  bool UpdateGuardedExactnessState(const Object& value) const;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;

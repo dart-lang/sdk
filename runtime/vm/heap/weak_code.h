@@ -28,7 +28,7 @@ class WeakCodeReferences : public ValueObject {
 
   static bool IsOptimizedCode(const Array& dependent_code, const Code& code);
 
-  void DisableCode();
+  void DisableCode(bool are_mutators_stopped);
 
   bool HasCodes() const;
 

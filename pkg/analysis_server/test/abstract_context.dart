@@ -50,6 +50,7 @@ class AbstractContextTest with ResourceProviderMixin {
   /// class, an empty list if there are no experiments that should be enabled.
   List<String> get experiments => [
         EnableString.enhanced_enums,
+        EnableString.macros,
         EnableString.named_arguments_anywhere,
         EnableString.super_parameters,
       ];

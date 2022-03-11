@@ -155,7 +155,7 @@ var a = 1;
       ],
     );
     expect(result, equals(r'''
-var ${1|a,aaa,bbb\${\}\,\|,ccc|} = 1;
+var ${0|a,aaa,bbb\${\}\,\|,ccc|} = 1;
 '''));
   }
 
@@ -180,8 +180,8 @@ class  {
       ],
     );
     expect(result, equals(r'''
-class $1 {
-  $1();
+class $0 {
+  $0();
 }
 '''));
   }
@@ -208,8 +208,8 @@ class A {
       ],
     );
     expect(result, equals(r'''
-class ${1:A} {
-  ${1:A}();
+class ${0:A} {
+  ${0:A}();
 }
 '''));
   }
@@ -235,8 +235,8 @@ class A {
       ],
     );
     expect(result, equals(r'''
-class ${1:A} {
-  ${1:A}();
+class ${0:A} {
+  ${0:A}();
 }
 '''));
   }
@@ -264,8 +264,8 @@ class A {
       ],
     );
     expect(result, equals(r'''
-class ${1:A} {
-  ${1:A}();
+class ${0:A} {
+  ${0:A}();
 }
 '''));
   }

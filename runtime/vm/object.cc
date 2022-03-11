@@ -4083,7 +4083,7 @@ void Class::DisableCHAOptimizedCode(const Class& subclass) {
       THR_Print("Deopt for CHA (new subclass %s)\n", subclass.ToCString());
     }
   }
-  a.DisableCode();
+  a.DisableCode(/*are_mutators_stopped=*/false);
 }
 
 void Class::DisableAllCHAOptimizedCode() {
@@ -10949,7 +10949,7 @@ void Field::RegisterDependentCode(const Code& code) const {
   a.Register(code);
 }
 
-void Field::DeoptimizeDependentCode() const {
+void Field::DeoptimizeDependentCode(bool are_mutators_stopped) const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(IsOriginal());
@@ -10957,7 +10957,7 @@ void Field::DeoptimizeDependentCode() const {
   if (FLAG_trace_deoptimization && a.HasCodes()) {
     THR_Print("Deopt for field guard (field %s)\n", ToCString());
   }
-  a.DisableCode();
+  a.DisableCode(are_mutators_stopped);
 }
 
 bool Field::IsConsistentWith(const Field& other) const {
@@ -11231,45 +11231,102 @@ void Field::InitializeGuardedListLengthInObjectOffset(bool unsafe) const {
   }
 }
 
-bool Field::UpdateGuardedCidAndLength(const Object& value) const {
-  ASSERT(IsOriginal());
-  const intptr_t cid = value.GetClassId();
+class FieldGuardUpdater {
+ public:
+  FieldGuardUpdater(const Field* field, const Object& value);
+
+  bool IsUpdateNeeded() {
+    return does_guarded_cid_need_update_ ||
+           does_is_nullable_need_update_ ||
+           does_list_length_and_offset_need_update_ ||
+           does_static_type_exactness_state_need_update_;
+  }
+  void DoUpdate();
+
+ private:
+  void ReviewExactnessState();
+  void ReviewGuards();
+
+  intptr_t guarded_cid() { return guarded_cid_; }
+  void set_guarded_cid(intptr_t guarded_cid) {
+    guarded_cid_ = guarded_cid;
+    does_guarded_cid_need_update_ = true;
+  }
+
+  bool is_nullable() { return is_nullable_; }
+  void set_is_nullable(bool is_nullable) {
+    is_nullable_ = is_nullable;
+    does_is_nullable_need_update_ = true;
+  }
+
+  intptr_t guarded_list_length() { return list_length_; }
+  void set_guarded_list_length_and_offset(intptr_t list_length,
+      intptr_t list_length_in_object_offset) {
+    list_length_ = list_length;
+    list_length_in_object_offset_ = list_length_in_object_offset;
+    does_list_length_and_offset_need_update_ = true;
+  }
+
+  StaticTypeExactnessState static_type_exactness_state() {
+    return static_type_exactness_state_;
+  }
+  void set_static_type_exactness_state(StaticTypeExactnessState state) {
+    static_type_exactness_state_ = state;
+    does_static_type_exactness_state_need_update_ = true;
+  }
+
+  const Field* field_;
+  const Object& value_;
+
+  intptr_t guarded_cid_;
+  bool is_nullable_;
+  intptr_t list_length_;
+  intptr_t list_length_in_object_offset_;
+  StaticTypeExactnessState static_type_exactness_state_;
+
+  bool does_guarded_cid_need_update_ = false;
+  bool does_is_nullable_need_update_ = false;
+  bool does_list_length_and_offset_need_update_ = false;
+  bool does_static_type_exactness_state_need_update_ = false;
+};
+
+void FieldGuardUpdater::ReviewGuards() {
+  ASSERT(field_->IsOriginal());
+  const intptr_t cid = value_.GetClassId();
 
   if (guarded_cid() == kIllegalCid) {
-    // Field is assigned first time.
     set_guarded_cid(cid);
     set_is_nullable(cid == kNullCid);
 
     // Start tracking length if needed.
     ASSERT((guarded_list_length() == Field::kUnknownFixedLength) ||
            (guarded_list_length() == Field::kNoFixedLength));
-    if (needs_length_check()) {
+    if (field_->needs_length_check()) {
       ASSERT(guarded_list_length() == Field::kUnknownFixedLength);
-      set_guarded_list_length(GetListLength(value));
-      InitializeGuardedListLengthInObjectOffset();
+      set_guarded_list_length_and_offset(GetListLength(value_),
+                                         GetListLengthOffset(cid));
     }
 
     if (FLAG_trace_field_guards) {
-      THR_Print("    => %s\n", GuardedPropertiesAsCString());
+      THR_Print("    => %s\n", field_->GuardedPropertiesAsCString());
     }
-
-    return false;
+    return;
   }
 
   if ((cid == guarded_cid()) || ((cid == kNullCid) && is_nullable())) {
     // Class id of the assigned value matches expected class id and nullability.
 
     // If we are tracking length check if it has matches.
-    if (needs_length_check() &&
-        (guarded_list_length() != GetListLength(value))) {
+    if (field_->needs_length_check() &&
+        (guarded_list_length() != GetListLength(value_))) {
       ASSERT(guarded_list_length() != Field::kUnknownFixedLength);
-      set_guarded_list_length(Field::kNoFixedLength);
-      set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
-      return true;
+      set_guarded_list_length_and_offset(Field::kNoFixedLength,
+                                         Field::kUnknownLengthOffset);
+      return;
     }
 
     // Everything matches.
-    return false;
+    return;
   }
 
   if ((cid == kNullCid) && !is_nullable()) {
@@ -11288,14 +11345,11 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
   }
 
   // If we were tracking length drop collected feedback.
-  if (needs_length_check()) {
+  if (field_->needs_length_check()) {
     ASSERT(guarded_list_length() != Field::kUnknownFixedLength);
-    set_guarded_list_length(Field::kNoFixedLength);
-    set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+    set_guarded_list_length_and_offset(Field::kNoFixedLength,
+                                       Field::kUnknownLengthOffset);
   }
-
-  // Expected class id or nullability of the field changed.
-  return true;
 }
 
 bool Class::FindInstantiationOf(Zone* zone,
@@ -11555,10 +11609,10 @@ const char* StaticTypeExactnessState::ToCString() const {
   }
 }
 
-bool Field::UpdateGuardedExactnessState(const Object& value) const {
+void FieldGuardUpdater::ReviewExactnessState() {
   if (!static_type_exactness_state().IsExactOrUninitialized()) {
     // Nothing to update.
-    return false;
+    return;
   }
 
   if (guarded_cid() == kDynamicCid) {
@@ -11568,14 +11622,14 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
           "dynamic\n");
     }
     set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
-    return true;  // Invalidate.
+    return;
   }
 
   // If we are storing null into a field or we have an exact super type
   // then there is nothing to do.
-  if (value.IsNull() || static_type_exactness_state().IsHasExactSuperType() ||
+  if (value_.IsNull() || static_type_exactness_state().IsHasExactSuperType() ||
       static_type_exactness_state().IsHasExactSuperClass()) {
-    return false;
+    return;
   }
 
   // If we are storing a non-null value into a field that is considered
@@ -11583,16 +11637,16 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
   // type.
   ASSERT(guarded_cid() != kNullCid);
 
-  const Type& field_type = Type::Cast(AbstractType::Handle(type()));
+  const Type& field_type = Type::Cast(AbstractType::Handle(field_->type()));
   const TypeArguments& field_type_args =
       TypeArguments::Handle(field_type.arguments());
 
-  const Instance& instance = Instance::Cast(value);
+  const Instance& instance = Instance::Cast(value_);
   TypeArguments& args = TypeArguments::Handle();
   if (static_type_exactness_state().IsTriviallyExact()) {
     args = instance.GetTypeArguments();
     if (args.ptr() == field_type_args.ptr()) {
-      return false;
+      return;
     }
 
     if (FLAG_trace_field_guards) {
@@ -11601,13 +11655,43 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
     }
 
     set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
-    return true;
+    return;
   }
 
   ASSERT(static_type_exactness_state().IsUninitialized());
   set_static_type_exactness_state(StaticTypeExactnessState::Compute(
       field_type, instance, FLAG_trace_field_guards));
-  return true;
+  return;
+}
+
+FieldGuardUpdater::FieldGuardUpdater(const Field* field, const Object& value):
+    field_(field),
+    value_(value),
+    guarded_cid_(field->guarded_cid()),
+    is_nullable_(field->is_nullable()),
+    list_length_(field->guarded_list_length()),
+    list_length_in_object_offset_(
+        field->guarded_list_length_in_object_offset()),
+    static_type_exactness_state_(field->static_type_exactness_state()) {
+  ReviewGuards();
+  ReviewExactnessState();
+}
+
+void FieldGuardUpdater::DoUpdate() {
+  if (does_guarded_cid_need_update_) {
+    field_->set_guarded_cid(guarded_cid_);
+  }
+  if (does_is_nullable_need_update_) {
+    field_->set_is_nullable(is_nullable_);
+  }
+  if (does_list_length_and_offset_need_update_) {
+    field_->set_guarded_list_length(list_length_);
+    field_->set_guarded_list_length_in_object_offset(
+        list_length_in_object_offset_);
+  }
+  if (does_static_type_exactness_state_need_update_) {
+    field_->set_static_type_exactness_state(static_type_exactness_state_);
+  }
 }
 
 void Field::RecordStore(const Object& value) const {
@@ -11633,20 +11717,19 @@ void Field::RecordStore(const Object& value) const {
               value.ToCString());
   }
 
-  bool invalidate = false;
-  if (UpdateGuardedCidAndLength(value)) {
-    invalidate = true;
-  }
-  if (UpdateGuardedExactnessState(value)) {
-    invalidate = true;
-  }
-
-  if (invalidate) {
+  FieldGuardUpdater updater(this, value);
+  if (updater.IsUpdateNeeded()) {
     if (FLAG_trace_field_guards) {
       THR_Print("    => %s\n", GuardedPropertiesAsCString());
     }
-
-    DeoptimizeDependentCode();
+    // Nobody else could have updated guard state since we are holding write
+    // program lock. But we need to ensure we stop mutators as we update
+    // guard state as we can't have optimized code running with updated fields.
+    auto isolate_group = IsolateGroup::Current();
+    isolate_group->RunWithStoppedMutators([&]() {
+      updater.DoUpdate();
+      DeoptimizeDependentCode(/*are_mutators_stopped=*/true);
+    });
   }
 }
 

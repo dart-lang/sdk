@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -760,7 +761,7 @@ abstract class PluginTestSupport {
       //
       // Create a pubspec.yaml file.
       //
-      var pubspecFile = io.File(path.join(pluginPath, 'pubspec.yaml'));
+      var pubspecFile = io.File(path.join(pluginPath, file_paths.pubspecYaml));
       pubspecFile.writeAsStringSync(_getPubspecFileContent());
       //
       // Create the 'bin' directory.

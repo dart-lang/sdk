@@ -15,15 +15,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:test/test.dart';
 
-/// Used in [ResolvedAstPrinter] to print lines of code that corresponding
-/// to a subtree of AST. This help to make the bulky presentation of AST a
-/// bit more understandable.
-abstract class CodeLinesProvider {
-  /// If the [offset] corresponds to a new, never requested before line,
-  /// return this line, otherwise return `null`.
-  String nextLine(int offset);
-}
-
 /// Prints AST as a tree, with properties and children.
 class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// The URI of the library that contains the AST being printed.
@@ -32,8 +23,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// The target sink to print AST.
   final StringSink _sink;
 
-  /// The optional provider for code lines, might be `null`.
-  final CodeLinesProvider? _codeLinesProvider;
+  final bool skipArgumentList;
 
   /// If `true`, linking of [EnumConstantDeclaration] will be checked
   /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/48380
@@ -51,20 +41,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     required String? selfUriStr,
     required StringSink sink,
     required String indent,
-    CodeLinesProvider? codeLinesProvider,
+    this.skipArgumentList = false,
     this.withCheckingLinking = false,
     bool withOffsets = false,
     bool withResolution = true,
   })  : _selfUriStr = selfUriStr,
         _sink = sink,
-        _codeLinesProvider = codeLinesProvider,
         _withOffsets = withOffsets,
         _withResolution = withResolution,
         _indent = indent;
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
-    _writeNextCodeLine(node);
     _writeln('AdjacentStrings');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -75,7 +63,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    _writeNextCodeLine(node);
     _writeln('Annotation');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -85,7 +72,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    _writeNextCodeLine(node);
     _writeln('ArgumentList');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -94,7 +80,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitAsExpression(AsExpression node) {
-    _writeNextCodeLine(node);
     _writeln('AsExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -104,7 +89,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
-    _writeNextCodeLine(node);
     _writeln('AssertInitializer');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -113,7 +97,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitAssertStatement(AssertStatement node) {
-    _writeNextCodeLine(node);
     _writeln('AssertStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -122,7 +105,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _writeNextCodeLine(node);
     _writeln('AssignmentExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -137,7 +119,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    _writeNextCodeLine(node);
     _writeln('AwaitExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -147,7 +128,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    _writeNextCodeLine(node);
     _writeln('BinaryExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -159,7 +139,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    _writeNextCodeLine(node);
     _writeln('Block');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -168,7 +147,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
-    _writeNextCodeLine(node);
     _writeln('BlockFunctionBody');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -177,7 +155,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    _writeNextCodeLine(node);
     _writeln('BooleanLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -187,7 +164,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    _writeNextCodeLine(node);
     _writeln('BreakStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -196,7 +172,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    _writeNextCodeLine(node);
     _writeln('CascadeExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -206,7 +181,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    _writeNextCodeLine(node);
     _writeln('CatchClause');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -215,7 +189,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _writeNextCodeLine(node);
     _writeln('ClassDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -227,7 +200,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitComment(Comment node) {
-    _writeNextCodeLine(node);
     _writeln('Comment');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -236,7 +208,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    _writeNextCodeLine(node);
     _writeln('CompilationUnit');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -245,7 +216,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    _writeNextCodeLine(node);
     _writeln('ConditionalExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -255,7 +225,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    _writeNextCodeLine(node);
     _writeln('ConstructorDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -267,7 +236,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    _writeNextCodeLine(node);
     _writeln('ConstructorFieldInitializer');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -276,7 +244,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    _writeNextCodeLine(node);
     _writeln('ConstructorName');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -304,7 +271,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitContinueStatement(ContinueStatement node) {
-    _writeNextCodeLine(node);
     _writeln('ContinueStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -313,7 +279,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    _writeNextCodeLine(node);
     _writeln('DeclaredIdentifier');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -325,7 +290,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _writeNextCodeLine(node);
     _writeln('DefaultFormalParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -338,7 +302,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitDoStatement(DoStatement node) {
-    _writeNextCodeLine(node);
     _writeln('DoStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -347,7 +310,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    _writeNextCodeLine(node);
     _writeln('DoubleLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -357,7 +319,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
-    _writeNextCodeLine(node);
     _writeln('EmptyFunctionBody');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -378,7 +339,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _checkChildrenEntitiesLinking(node);
-    _writeNextCodeLine(node);
     _writeln('EnumConstantDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -390,7 +350,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    _writeNextCodeLine(node);
     _writeln('EnumDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -402,7 +361,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    _writeNextCodeLine(node);
     _writeln('ExportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -417,7 +375,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _writeNextCodeLine(node);
     _writeln('ExpressionFunctionBody');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -426,7 +383,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
-    _writeNextCodeLine(node);
     _writeln('ExpressionStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -435,7 +391,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    _writeNextCodeLine(node);
     _writeln('ExtendsClause');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -444,7 +399,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    _writeNextCodeLine(node);
     _writeln('ExtensionOverride');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -456,7 +410,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    _writeNextCodeLine(node);
     _writeln('FieldDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -468,7 +421,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    _writeNextCodeLine(node);
     _writeln('FieldFormalParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -481,7 +433,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
-    _writeNextCodeLine(node);
     _writeln('ForEachPartsWithDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -490,7 +441,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    _writeNextCodeLine(node);
     _writeln('ForEachPartsWithIdentifier');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -499,7 +449,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    _writeNextCodeLine(node);
     _writeln('FormalParameterList');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -508,7 +457,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    _writeNextCodeLine(node);
     _writeln('ForPartsWithDeclarations');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -517,7 +465,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitForPartsWithExpression(ForPartsWithExpression node) {
-    _writeNextCodeLine(node);
     _writeln('ForPartsWithExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -526,7 +473,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitForStatement(ForStatement node) {
-    _writeNextCodeLine(node);
     _writeln('ForStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -535,7 +481,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    _writeNextCodeLine(node);
     _writeln('FunctionDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -548,7 +493,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    _writeNextCodeLine(node);
     _writeln('FunctionDeclarationStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -557,7 +501,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    _writeNextCodeLine(node);
     _writeln('FunctionExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -570,7 +513,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _writeNextCodeLine(node);
     _writeln('FunctionExpressionInvocation');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -593,7 +535,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    _writeNextCodeLine(node);
     _writeln('FunctionTypeAlias');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -605,7 +546,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    _writeNextCodeLine(node);
     _writeln('FunctionTypedFormalParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -618,7 +558,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    _writeNextCodeLine(node);
     _writeln('GenericFunctionType');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -634,7 +573,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    _writeNextCodeLine(node);
     _writeln('GenericTypeAlias');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -646,7 +584,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitHideCombinator(HideCombinator node) {
-    _writeNextCodeLine(node);
     _writeln('HideCombinator');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -663,7 +600,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
-    _writeNextCodeLine(node);
     _writeln('IfStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -672,7 +608,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    _writeNextCodeLine(node);
     _writeln('ImplementsClause');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -692,7 +627,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    _writeNextCodeLine(node);
     _writeln('ImportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -707,7 +641,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _writeNextCodeLine(node);
     _writeln('IndexExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -718,7 +651,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _writeNextCodeLine(node);
     _writeln('InstanceCreationExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -728,7 +660,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
-    _writeNextCodeLine(node);
     _writeln('IntegerLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -738,7 +669,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    _writeNextCodeLine(node);
     _writeln('InterpolationExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -747,7 +677,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitInterpolationString(InterpolationString node) {
-    _writeNextCodeLine(node);
     _writeln('InterpolationString');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -756,7 +685,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitIsExpression(IsExpression node) {
-    _writeNextCodeLine(node);
     _writeln('IsExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -766,7 +694,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitLabel(Label node) {
-    _writeNextCodeLine(node);
     _writeln('Label');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -775,7 +702,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    _writeNextCodeLine(node);
     _writeln('LibraryDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -785,7 +711,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitLibraryIdentifier(LibraryIdentifier node) {
-    _writeNextCodeLine(node);
     _writeln('LibraryIdentifier');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -796,7 +721,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    _writeNextCodeLine(node);
     _writeln('ListLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -806,7 +730,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
-    _writeNextCodeLine(node);
     _writeln('SetOrMapLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -815,7 +738,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    _writeNextCodeLine(node);
     _writeln('MethodDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -828,7 +750,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _writeNextCodeLine(node);
     _writeln('MethodInvocation');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -840,7 +761,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _writeNextCodeLine(node);
     _writeln('MixinDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -852,7 +772,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitNamedExpression(NamedExpression node) {
-    _writeNextCodeLine(node);
     _writeln('NamedExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -861,7 +780,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _writeNextCodeLine(node);
     _writeln('NamedType');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -871,7 +789,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitNullLiteral(NullLiteral node) {
-    _writeNextCodeLine(node);
     _writeln('NullLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -881,7 +798,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitOnClause(OnClause node) {
-    _writeNextCodeLine(node);
     _writeln('OnClause');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -890,7 +806,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
-    _writeNextCodeLine(node);
     _writeln('ParenthesizedExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -900,7 +815,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    _writeNextCodeLine(node);
     _writeln('PartDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -913,7 +827,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    _writeNextCodeLine(node);
     _writeln('PartOfDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -923,7 +836,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _writeNextCodeLine(node);
     _writeln('PostfixExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -940,7 +852,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _writeNextCodeLine(node);
     _writeln('PrefixedIdentifier');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -951,7 +862,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _writeNextCodeLine(node);
     _writeln('PrefixExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -968,7 +878,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    _writeNextCodeLine(node);
     _writeln('PropertyAccess');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -980,7 +889,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
-    _writeNextCodeLine(node);
     _writeln('RedirectingConstructorInvocation');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -990,7 +898,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    _writeNextCodeLine(node);
     _writeln('ReturnStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -999,7 +906,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    _writeNextCodeLine(node);
     _writeln('SetOrMapLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1010,7 +916,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitShowCombinator(ShowCombinator node) {
-    _writeNextCodeLine(node);
     _writeln('ShowCombinator');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1019,7 +924,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _writeNextCodeLine(node);
     _writeln('SimpleFormalParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1032,7 +936,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _writeNextCodeLine(node);
     _writeln('SimpleIdentifier');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1047,7 +950,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    _writeNextCodeLine(node);
     _writeln('SimpleStringLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1064,7 +966,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    _writeNextCodeLine(node);
     _writeln('StringInterpolation');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1075,7 +976,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    _writeNextCodeLine(node);
     _writeln('SuperConstructorInvocation');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1085,7 +985,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSuperExpression(SuperExpression node) {
-    _writeNextCodeLine(node);
     _writeln('SuperExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1098,7 +997,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     if (withCheckingLinking) {
       _checkChildrenEntitiesLinking(node);
     }
-    _writeNextCodeLine(node);
     _writeln('SuperFormalParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1111,7 +1009,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    _writeNextCodeLine(node);
     _writeln('SwitchCase');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1120,7 +1017,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
-    _writeNextCodeLine(node);
     _writeln('SwitchDefault');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1129,7 +1025,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    _writeNextCodeLine(node);
     _writeln('SwitchStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1146,7 +1041,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitThisExpression(ThisExpression node) {
-    _writeNextCodeLine(node);
     _writeln('ThisExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1156,7 +1050,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitThrowExpression(ThrowExpression node) {
-    _writeNextCodeLine(node);
     _writeln('ThrowExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1166,7 +1059,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _writeNextCodeLine(node);
     _writeln('TopLevelVariableDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1178,7 +1070,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitTryStatement(TryStatement node) {
-    _writeNextCodeLine(node);
     _writeln('TryStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1187,7 +1078,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
-    _writeNextCodeLine(node);
     _writeln('TypeArgumentList');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1205,7 +1095,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    _writeNextCodeLine(node);
     _writeln('TypeParameter');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1217,7 +1106,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitTypeParameterList(TypeParameterList node) {
-    _writeNextCodeLine(node);
     _writeln('TypeParameterList');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1226,7 +1114,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    _writeNextCodeLine(node);
     _writeln('VariableDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1238,7 +1125,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    _writeNextCodeLine(node);
     _writeln('VariableDeclarationList');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1247,7 +1133,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _writeNextCodeLine(node);
     _writeln('VariableDeclarationStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1256,7 +1141,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    _writeNextCodeLine(node);
     _writeln('WhileStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1265,7 +1149,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    _writeNextCodeLine(node);
     _writeln('WithClause');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1274,7 +1157,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitYieldStatement(YieldStatement node) {
-    _writeNextCodeLine(node);
     _writeln('YieldStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
@@ -1452,7 +1334,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       if (value is Token) {
         _writeToken(entity.name, value);
       } else if (value is AstNode) {
-        _writeNode(entity.name, value);
+        if (value is ArgumentList && skipArgumentList) {
+        } else {
+          _writeNode(entity.name, value);
+        }
       } else if (value is List<Token>) {
         _writeTokenList(entity.name, value);
       } else if (value is List<AstNode>) {
@@ -1460,15 +1345,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       } else {
         throw UnimplementedError('(${value.runtimeType}) $value');
       }
-    }
-  }
-
-  void _writeNextCodeLine(AstNode node) {
-    var nextCodeLine = _codeLinesProvider?.nextLine(node.offset);
-    if (nextCodeLine != null) {
-      nextCodeLine = nextCodeLine.trim();
-      _sink.writeln('// $nextCodeLine');
-      _sink.write(_indent);
     }
   }
 
