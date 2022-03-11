@@ -872,4 +872,84 @@ ISOLATE_UNIT_TEST_CASE(IRTest_RawLoadField) {
   EXPECT_EQ(100, ptr2);
 }
 
+ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
+  // clang-format off
+  auto kScript = R"(
+    import 'dart:ffi';
+
+    int myFunction() {
+      return 100;
+    }
+
+    void anotherFunction() {}
+  )";
+  // clang-format on
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Zone* const zone = Thread::Current()->zone();
+  auto& invoke_result = Instance::Handle(zone);
+  invoke_result ^= Invoke(root_library, "myFunction");
+  EXPECT_EQ(Smi::New(100), invoke_result.ptr());
+
+  const auto& my_function =
+      Function::Handle(GetFunction(root_library, "myFunction"));
+
+  TestPipeline pipeline(my_function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  ReturnInstr* return_instr = nullptr;
+  {
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        {kMatchReturn, &return_instr},
+    }));
+  }
+
+  auto* const load_thread_instr = new (zone) LoadThreadInstr();
+  flow_graph->InsertBefore(return_instr, load_thread_instr, nullptr,
+                           FlowGraph::kValue);
+  auto load_thread_value = Value(load_thread_instr);
+
+  auto* const convert_instr = new (zone) IntConverterInstr(
+      kUntagged, kUnboxedFfiIntPtr, &load_thread_value, DeoptId::kNone);
+  flow_graph->InsertBefore(return_instr, convert_instr, nullptr,
+                           FlowGraph::kValue);
+  auto convert_value = Value(convert_instr);
+
+  auto* const box_instr = BoxInstr::Create(kUnboxedFfiIntPtr, &convert_value);
+  flow_graph->InsertBefore(return_instr, box_instr, nullptr, FlowGraph::kValue);
+
+  return_instr->InputAt(0)->definition()->ReplaceUsesWith(box_instr);
+
+  {
+    // Check we constructed the right graph.
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveLoadThread,
+        kMatchAndMoveIntConverter,
+        kMatchAndMoveBox,
+        kMatchReturn,
+    }));
+  }
+
+  pipeline.RunForcedOptimizedAfterSSAPasses();
+
+  {
+#if !defined(PRODUCT)
+    SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
+#endif
+    pipeline.CompileGraphAndAttachFunction();
+  }
+
+  // Ensure we can successfully invoke the function.
+  invoke_result ^= Invoke(root_library, "myFunction");
+  intptr_t result_int = Integer::Cast(invoke_result).AsInt64Value();
+  EXPECT_EQ(reinterpret_cast<intptr_t>(thread), result_int);
+}
+
 }  // namespace dart

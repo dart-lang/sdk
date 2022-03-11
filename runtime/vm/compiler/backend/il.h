@@ -512,6 +512,7 @@ struct InstrAttrs {
   M(BoxSmallInt, kNoGC)                                                        \
   M(IntConverter, kNoGC)                                                       \
   M(BitCast, kNoGC)                                                            \
+  M(LoadThread, kNoGC)                                                         \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
 
@@ -9277,6 +9278,32 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
   const Representation to_representation_;
 
   DISALLOW_COPY_AND_ASSIGN(BitCastInstr);
+};
+
+class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
+ public:
+  LoadThreadInstr() : TemplateDefinition(DeoptId::kNone) {}
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return kUntagged; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    UNREACHABLE();
+  }
+
+  virtual CompileType ComputeType() const { return CompileType::Int(); }
+
+  // CSE is allowed. The thread should always be the same value.
+  virtual bool AttributesEqual(const Instruction& other) const {
+    ASSERT(other.IsLoadThread());
+    return true;
+  }
+
+  DECLARE_INSTRUCTION(LoadThread);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LoadThreadInstr);
 };
 
 // SimdOpInstr
