@@ -383,7 +383,7 @@ enum ScaleFactor {
   TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
-#define R(reg) (1 << (reg))
+#define R(reg) (static_cast<RegList>(1) << (reg))
 
 class CallingConventions {
  public:

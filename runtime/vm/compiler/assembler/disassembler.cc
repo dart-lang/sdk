@@ -58,53 +58,6 @@ void DisassembleToStdout::Print(const char* format, ...) {
   va_end(args);
 }
 
-void DisassembleToJSONStream::ConsumeInstruction(char* hex_buffer,
-                                                 intptr_t hex_size,
-                                                 char* human_buffer,
-                                                 intptr_t human_size,
-                                                 Object* object,
-                                                 uword pc) {
-  // Instructions are represented as four consecutive values in a JSON array.
-  // The first is the address of the instruction, the second is the hex string,
-  // of the code, and the third is a human readable string, and the fourth is
-  // the object loaded by the instruction.
-  jsarr_.AddValueF("%" Pp "", pc);
-  jsarr_.AddValue(hex_buffer);
-  jsarr_.AddValue(human_buffer);
-
-  if (object != NULL) {
-    jsarr_.AddValue(*object);
-  } else {
-    jsarr_.AddValueNull();  // Not a reference to null.
-  }
-}
-
-void DisassembleToJSONStream::Print(const char* format, ...) {
-  va_list measure_args;
-  va_start(measure_args, format);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
-  va_end(measure_args);
-
-  char* p = reinterpret_cast<char*>(malloc(len + 1));
-  va_list print_args;
-  va_start(print_args, format);
-  intptr_t len2 = Utils::VSNPrint(p, len, format, print_args);
-  va_end(print_args);
-  ASSERT(len == len2);
-  for (intptr_t i = 0; i < len; i++) {
-    if (p[i] == '\n' || p[i] == '\r') {
-      p[i] = ' ';
-    }
-  }
-  // Instructions are represented as four consecutive values in a JSON array.
-  // Comments only use the third slot. See above comment for more information.
-  jsarr_.AddValueNull();
-  jsarr_.AddValueNull();
-  jsarr_.AddValue(p);
-  jsarr_.AddValueNull();
-  free(p);
-}
-
 void DisassembleToMemory::ConsumeInstruction(char* hex_buffer,
                                              intptr_t hex_size,
                                              char* human_buffer,
@@ -518,5 +471,54 @@ void Disassembler::DisassembleCode(const Function& function,
                                    const Code& code,
                                    bool optimized) {}
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+
+#if !defined(PRODUCT)
+void DisassembleToJSONStream::ConsumeInstruction(char* hex_buffer,
+                                                 intptr_t hex_size,
+                                                 char* human_buffer,
+                                                 intptr_t human_size,
+                                                 Object* object,
+                                                 uword pc) {
+  // Instructions are represented as four consecutive values in a JSON array.
+  // The first is the address of the instruction, the second is the hex string,
+  // of the code, and the third is a human readable string, and the fourth is
+  // the object loaded by the instruction.
+  jsarr_.AddValueF("%" Pp "", pc);
+  jsarr_.AddValue(hex_buffer);
+  jsarr_.AddValue(human_buffer);
+
+  if (object != NULL) {
+    jsarr_.AddValue(*object);
+  } else {
+    jsarr_.AddValueNull();  // Not a reference to null.
+  }
+}
+
+void DisassembleToJSONStream::Print(const char* format, ...) {
+  va_list measure_args;
+  va_start(measure_args, format);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  va_end(measure_args);
+
+  char* p = reinterpret_cast<char*>(malloc(len + 1));
+  va_list print_args;
+  va_start(print_args, format);
+  intptr_t len2 = Utils::VSNPrint(p, len, format, print_args);
+  va_end(print_args);
+  ASSERT(len == len2);
+  for (intptr_t i = 0; i < len; i++) {
+    if (p[i] == '\n' || p[i] == '\r') {
+      p[i] = ' ';
+    }
+  }
+  // Instructions are represented as four consecutive values in a JSON array.
+  // Comments only use the third slot. See above comment for more information.
+  jsarr_.AddValueNull();
+  jsarr_.AddValueNull();
+  jsarr_.AddValue(p);
+  jsarr_.AddValueNull();
+  free(p);
+}
+#endif  // !defined(PRODUCT)
 
 }  // namespace dart

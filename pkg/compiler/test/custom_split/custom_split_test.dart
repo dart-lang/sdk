@@ -28,6 +28,7 @@ const List<String> tests = [
   'fuse_with_or',
   'two_step',
   'two_branch',
+  'just_fuse',
 ];
 
 Map<String, List<String>> createPerTestOptions() {

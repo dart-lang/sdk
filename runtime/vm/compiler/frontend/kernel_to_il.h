@@ -381,7 +381,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Leaves a `LocalHandle` on the stack.
   Fragment AllocateHandle(LocalVariable* api_local_scope);
 
-  // Populates the base + offset with a tagged value.
+  // Loads a tagged value from an untagged base + offset from outside the heap.
+  Fragment RawLoadField(int32_t offset);
+
+  // Populates the untagged base + offset outside the heap with a tagged value.
+  //
+  // The store must be outside of the heap, does not emit a store barrier.
   Fragment RawStoreField(int32_t offset);
 
   // Wraps an `Object` from the stack and leaves a `LocalHandle` on the stack.

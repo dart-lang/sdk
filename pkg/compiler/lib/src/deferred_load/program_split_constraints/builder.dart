@@ -150,9 +150,8 @@ class Builder {
     Map<ImportEntity, Set<ImportEntity>> singletonTransitions = {};
     Map<Constraint, SetTransition> setTransitions = {};
     Map<Constraint, Set<ImportEntity>> processed = {};
-    Queue<_WorkItem> queue = Queue.from(nodeToConstraintMap.values
-        .where((node) => node.successors.isEmpty)
-        .map((node) => _WorkItem(node)));
+    Queue<_WorkItem> queue =
+        Queue.from(nodeToConstraintMap.values.map((node) => _WorkItem(node)));
     while (queue.isNotEmpty) {
       var item = queue.removeFirst();
       var constraint = item.child;

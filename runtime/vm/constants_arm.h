@@ -575,7 +575,7 @@ const QRegister kDartFirstVolatileFpuReg = Q0;
 const QRegister kDartLastVolatileFpuReg = Q3;
 const int kDartVolatileFpuRegCount = 4;
 
-#define R(REG) (1 << REG)
+#define R(reg) (static_cast<RegList>(1) << (reg))
 
 class CallingConventions {
  public:

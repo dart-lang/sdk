@@ -384,7 +384,7 @@ const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 // See "Procedure Call Standard for the ARM 64-bit Architecture", document
 // number "ARM IHI 0055B", May 22 2013.
 
-#define R(REG) (1 << REG)
+#define R(reg) (static_cast<RegList>(1) << (reg))
 
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =

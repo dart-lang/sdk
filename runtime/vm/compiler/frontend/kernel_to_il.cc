@@ -3905,6 +3905,13 @@ Fragment FlowGraphBuilder::AllocateHandle(LocalVariable* api_local_scope) {
   return code;
 }
 
+Fragment FlowGraphBuilder::RawLoadField(int32_t offset) {
+  Fragment code;
+  code += UnboxedIntConstant(offset, kUnboxedIntPtr);
+  code += LoadIndexed(kArrayCid, /*index_scale=*/1, /*index_unboxed=*/true);
+  return code;
+}
+
 Fragment FlowGraphBuilder::RawStoreField(int32_t offset) {
   Fragment code;
   Value* value = Pop();
@@ -3931,9 +3938,7 @@ Fragment FlowGraphBuilder::WrapHandle(LocalVariable* api_local_scope) {
 Fragment FlowGraphBuilder::UnwrapHandle() {
   Fragment code;
   code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
-  code += IntConstant(compiler::target::LocalHandle::ptr_offset());
-  code += UnboxTruncate(kUnboxedIntPtr);
-  code += LoadIndexed(kArrayCid, /*index_scale=*/1, /*index_unboxed=*/true);
+  code += RawLoadField(compiler::target::LocalHandle::ptr_offset());
   return code;
 }
 
@@ -4674,8 +4679,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   if (marshaller.IsPointer(compiler::ffi::kResultIndex) ||
       marshaller.IsVoid(compiler::ffi::kResultIndex)) {
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
-    catch_body += IntConstant(0);
-    catch_body += UnboxTruncate(kUnboxedFfiIntPtr);
+    catch_body += UnboxedIntConstant(0, kUnboxedFfiIntPtr);
   } else if (marshaller.IsHandle(compiler::ffi::kResultIndex)) {
     catch_body += UnhandledException();
     catch_body +=

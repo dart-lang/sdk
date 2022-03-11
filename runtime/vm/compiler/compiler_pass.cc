@@ -297,6 +297,7 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   INVOKE_PASS(TryOptimizePatterns);
 }
 
+// Keep in sync with TestPipeline::RunForcedOptimizedAfterSSAPasses.
 FlowGraph* CompilerPass::RunForceOptimizedPipeline(
     PipelineMode mode,
     CompilerPassState* pass_state) {

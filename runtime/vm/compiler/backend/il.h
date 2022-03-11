@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_H_
 
-#include "vm/hash_map.h"
 #if defined(DART_PRECOMPILED_RUNTIME)
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -513,6 +512,7 @@ struct InstrAttrs {
   M(BoxSmallInt, kNoGC)                                                        \
   M(IntConverter, kNoGC)                                                       \
   M(BitCast, kNoGC)                                                            \
+  M(LoadThread, kNoGC)                                                         \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
 
@@ -5358,6 +5358,14 @@ class AllocateHandleInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(AllocateHandleInstr);
 };
 
+// Populates the untagged base + offset outside the heap with a tagged value.
+//
+// The store must be outside of the heap, does not emit a store barrier.
+// For stores in the heap, use StoreIndexedInstr, which emits store barriers.
+//
+// Does not have a dual RawLoadFieldInstr, because for loads we do not have to
+// distinguish between loading from within the heap or outside the heap.
+// Use FlowGraphBuilder::RawLoadField.
 class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
  public:
   RawStoreFieldInstr(Value* base, Value* value, int32_t offset)
@@ -9272,6 +9280,32 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(BitCastInstr);
 };
 
+class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
+ public:
+  LoadThreadInstr() : TemplateDefinition(DeoptId::kNone) {}
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return kUntagged; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    UNREACHABLE();
+  }
+
+  virtual CompileType ComputeType() const { return CompileType::Int(); }
+
+  // CSE is allowed. The thread should always be the same value.
+  virtual bool AttributesEqual(const Instruction& other) const {
+    ASSERT(other.IsLoadThread());
+    return true;
+  }
+
+  DECLARE_INSTRUCTION(LoadThread);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LoadThreadInstr);
+};
+
 // SimdOpInstr
 //
 // All SIMD intrinsics and recognized methods are represented via instances
@@ -9832,7 +9866,6 @@ inline bool Value::CanBe(const Object& value) {
   ConstantInstr* constant = definition()->AsConstant();
   return (constant == nullptr) || constant->value().ptr() == value.ptr();
 }
-
 
 }  // namespace dart
 

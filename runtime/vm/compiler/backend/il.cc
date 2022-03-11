@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/frame_rebase.h"
@@ -6863,6 +6864,11 @@ Representation FfiCallInstr::representation() const {
   return marshaller_.RepInFfiCall(compiler::ffi::kResultIndex);
 }
 
+// TODO(http://dartbug.com/48543): integrate with register allocator directly.
+DEFINE_BACKEND(LoadThread, (Register out)) {
+  __ MoveRegister(out, THR);
+}
+
 // SIMD
 
 SimdOpInstr::Kind SimdOpInstr::KindForOperator(MethodRecognizer::Kind kind) {
@@ -7038,12 +7044,10 @@ static const Representation kUnboxedInt8 = kUnboxedInt32;
 
 // Define the metadata array.
 static const SimdOpInfo simd_op_information[] = {
-#define PP_APPLY(M, Args) M Args
 #define CASE(Arity, Mask, Name, Args, Result)                                  \
   {Arity, HAS_##Mask, REP(Result), {PP_APPLY(ENCODE_INPUTS_##Arity, Args)}},
     SIMD_OP_LIST(CASE, CASE)
 #undef CASE
-#undef PP_APPLY
 };
 
 // Undef all auxiliary macros.
