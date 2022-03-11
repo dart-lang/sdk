@@ -3194,11 +3194,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           &speculative_policy, pass_state.inline_id_to_function,
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array, function_stats);
-      {
-        COMPILER_TIMINGS_TIMER_SCOPE(thread(), EmitCode);
-        TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
-        graph_compiler.CompileGraph();
-      }
+      pass_state.graph_compiler = &graph_compiler;
+      CompilerPass::GenerateCode(&pass_state);
       {
         COMPILER_TIMINGS_TIMER_SCOPE(thread(), FinalizeCode);
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");

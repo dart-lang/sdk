@@ -6994,7 +6994,7 @@ DART_EXPORT bool Dart_IsPrecompiledRuntime() {
 }
 
 DART_EXPORT void Dart_DumpNativeStackTrace(void* context) {
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(DART_PRECOMPILER)
   Profiler::DumpStackTrace(context);
 #endif
 }
