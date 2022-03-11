@@ -91,6 +91,8 @@ class TestPipeline : public ValueObject {
 
   void RunAdditionalPasses(std::initializer_list<CompilerPass::Id> passes);
 
+  void RunForcedOptimizedAfterSSAPasses();
+
   void CompileGraphAndAttachFunction();
 
  private:

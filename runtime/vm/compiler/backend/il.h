@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_H_
 
-#include "vm/hash_map.h"
 #if defined(DART_PRECOMPILED_RUNTIME)
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -5358,6 +5357,14 @@ class AllocateHandleInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(AllocateHandleInstr);
 };
 
+// Populates the untagged base + offset outside the heap with a tagged value.
+//
+// The store must be outside of the heap, does not emit a store barrier.
+// For stores in the heap, use StoreIndexedInstr, which emits store barriers.
+//
+// Does not have a dual RawLoadFieldInstr, because for loads we do not have to
+// distinguish between loading from within the heap or outside the heap.
+// Use FlowGraphBuilder::RawLoadField.
 class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
  public:
   RawStoreFieldInstr(Value* base, Value* value, int32_t offset)
@@ -9832,7 +9839,6 @@ inline bool Value::CanBe(const Object& value) {
   ConstantInstr* constant = definition()->AsConstant();
   return (constant == nullptr) || constant->value().ptr() == value.ptr();
 }
-
 
 }  // namespace dart
 

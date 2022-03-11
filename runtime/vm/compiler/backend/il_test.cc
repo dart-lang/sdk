@@ -679,4 +679,197 @@ ISOLATE_UNIT_TEST_CASE(IRTest_DoubleEqualsSmi) {
   }));
 }
 
+#ifdef DART_TARGET_OS_WINDOWS
+const char* pointer_prefix = "0x";
+#else
+const char* pointer_prefix = "";
+#endif
+
+ISOLATE_UNIT_TEST_CASE(IRTest_RawStoreField) {
+  InstancePtr ptr = Smi::New(100);
+  OS::Print("&ptr %p\n", &ptr);
+
+  // clang-format off
+  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+    import 'dart:ffi';
+
+    void myFunction() {
+      final pointer = Pointer<IntPtr>.fromAddress(%s%p);
+      anotherFunction();
+    }
+
+    void anotherFunction() {}
+  )", pointer_prefix, &ptr), std::free);
+  // clang-format on
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  Invoke(root_library, "myFunction");
+  EXPECT_EQ(Smi::New(100), ptr);
+
+  const auto& my_function =
+      Function::Handle(GetFunction(root_library, "myFunction"));
+
+  TestPipeline pipeline(my_function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  Zone* const zone = Thread::Current()->zone();
+
+  StaticCallInstr* pointer = nullptr;
+  StaticCallInstr* another_function_call = nullptr;
+  {
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        {kMatchAndMoveStaticCall, &pointer},
+        {kMatchAndMoveStaticCall, &another_function_call},
+    }));
+  }
+  auto pointer_value = Value(pointer);
+  auto* const load_untagged_instr = new (zone) LoadUntaggedInstr(
+      &pointer_value, compiler::target::PointerBase::data_offset());
+  flow_graph->InsertBefore(another_function_call, load_untagged_instr, nullptr,
+                           FlowGraph::kValue);
+  auto load_untagged_value = Value(load_untagged_instr);
+  auto pointer_value2 = Value(pointer);
+  auto* const raw_store_field_instr =
+      new (zone) RawStoreFieldInstr(&load_untagged_value, &pointer_value2, 0);
+  flow_graph->InsertBefore(another_function_call, raw_store_field_instr,
+                           nullptr, FlowGraph::kEffect);
+  another_function_call->RemoveFromGraph();
+
+  {
+    // Check we constructed the right graph.
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveStaticCall,
+        kMatchAndMoveLoadUntagged,
+        kMatchAndMoveRawStoreField,
+    }));
+  }
+
+  pipeline.RunForcedOptimizedAfterSSAPasses();
+
+  {
+#if !defined(PRODUCT)
+    SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
+#endif
+    pipeline.CompileGraphAndAttachFunction();
+  }
+
+  // Ensure we can successfully invoke the function.
+  Invoke(root_library, "myFunction");
+
+  // Might be garbage if we ran a GC, but should never be a Smi.
+  EXPECT(!ptr.IsSmi());
+}
+
+// We do not have a RawLoadFieldInstr, instead we just use LoadIndexed for
+// loading from outside the heap.
+//
+// This test constructs to instructions from FlowGraphBuilder::RawLoadField
+// and exercises them to do a load from outside the heap.
+ISOLATE_UNIT_TEST_CASE(IRTest_RawLoadField) {
+  InstancePtr ptr = Smi::New(100);
+  intptr_t ptr2 = 100;
+  OS::Print("&ptr %p &ptr2 %p\n", &ptr, &ptr2);
+
+  // clang-format off
+  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+    import 'dart:ffi';
+
+    void myFunction() {
+      final pointer = Pointer<IntPtr>.fromAddress(%s%p);
+      anotherFunction();
+      final pointer2 = Pointer<IntPtr>.fromAddress(%s%p);
+      pointer2.value = 3;
+    }
+
+    void anotherFunction() {}
+  )", pointer_prefix, &ptr, pointer_prefix, &ptr2), std::free);
+  // clang-format on
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  Invoke(root_library, "myFunction");
+  EXPECT_EQ(Smi::New(100), ptr);
+  EXPECT_EQ(3, ptr2);
+
+  const auto& my_function =
+      Function::Handle(GetFunction(root_library, "myFunction"));
+
+  TestPipeline pipeline(my_function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  Zone* const zone = Thread::Current()->zone();
+
+  StaticCallInstr* pointer = nullptr;
+  StaticCallInstr* another_function_call = nullptr;
+  StaticCallInstr* pointer2 = nullptr;
+  StaticCallInstr* pointer2_store = nullptr;
+  {
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        {kMatchAndMoveStaticCall, &pointer},
+        {kMatchAndMoveStaticCall, &another_function_call},
+        {kMatchAndMoveStaticCall, &pointer2},
+        {kMatchAndMoveStaticCall, &pointer2_store},
+    }));
+  }
+  auto pointer_value = Value(pointer);
+  auto* const load_untagged_instr = new (zone) LoadUntaggedInstr(
+      &pointer_value, compiler::target::PointerBase::data_offset());
+  flow_graph->InsertBefore(another_function_call, load_untagged_instr, nullptr,
+                           FlowGraph::kValue);
+  auto load_untagged_value = Value(load_untagged_instr);
+  auto* const constant_instr = new (zone) UnboxedConstantInstr(
+      Integer::ZoneHandle(zone, Integer::New(0, Heap::kOld)), kUnboxedIntPtr);
+  flow_graph->InsertBefore(another_function_call, constant_instr, nullptr,
+                           FlowGraph::kValue);
+  auto constant_value = Value(constant_instr);
+  auto* const load_indexed_instr = new (zone)
+      LoadIndexedInstr(&load_untagged_value, &constant_value,
+                       /*index_unboxed=*/true, /*index_scale=*/1, kArrayCid,
+                       kAlignedAccess, DeoptId::kNone, InstructionSource());
+  flow_graph->InsertBefore(another_function_call, load_indexed_instr, nullptr,
+                           FlowGraph::kValue);
+
+  another_function_call->RemoveFromGraph();
+  pointer2_store->InputAt(2)->definition()->ReplaceUsesWith(load_indexed_instr);
+
+  {
+    // Check we constructed the right graph.
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveStaticCall,
+        kMatchAndMoveLoadUntagged,
+        kMatchAndMoveUnboxedConstant,
+        kMatchAndMoveLoadIndexed,
+        kMatchAndMoveStaticCall,
+        kMatchAndMoveStaticCall,
+    }));
+  }
+
+  pipeline.RunForcedOptimizedAfterSSAPasses();
+
+  {
+#if !defined(PRODUCT)
+    SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
+#endif
+    pipeline.CompileGraphAndAttachFunction();
+  }
+
+  // Ensure we can successfully invoke the function.
+  Invoke(root_library, "myFunction");
+  EXPECT_EQ(Smi::New(100), ptr);
+  EXPECT_EQ(100, ptr2);
+}
+
 }  // namespace dart
