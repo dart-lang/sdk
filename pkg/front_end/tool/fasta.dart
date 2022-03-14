@@ -106,7 +106,7 @@ Future<void> main(List<String> args) async {
       stop("'$command' isn't a valid subcommand.");
   }
 
-  if (extraVmArguments.isNotEmpty) {
+  if (extraVmArguments.isNotEmpty || !assertsEnabled) {
     List<String> arguments = [];
     arguments.addAll(extraVmArguments);
     arguments.add('--enable-asserts');
@@ -124,7 +124,7 @@ Future<void> main(List<String> args) async {
     arguments.addAll(remainingArguments);
     arguments.addAll(scriptArguments);
 
-    print('Running: ${script} ${arguments.join(' ')}');
+    print('Calling: ${script} ${arguments.join(' ')}');
     await mainFunction(arguments);
   }
 }
@@ -133,3 +133,12 @@ Never stop(String message) {
   stderr.write(message);
   exit(2);
 }
+
+final bool assertsEnabled = () {
+  try {
+    assert(false);
+    return false;
+  } catch (_) {
+    return true;
+  }
+}();
