@@ -9,6 +9,7 @@ import 'dependency_walker_test.dart' as dependency_walker;
 import 'elements_test.dart' as elements;
 import 'flat_buffers_test.dart' as flat_buffers;
 import 'in_summary_source_test.dart' as in_summary_source;
+import 'macro_test.dart' as macro;
 import 'top_level_inference_test.dart' as top_level_inference;
 
 main() {
@@ -18,6 +19,7 @@ main() {
     elements.main();
     flat_buffers.main();
     in_summary_source.main();
+    macro.main();
     top_level_inference.main();
   }, name: 'summary');
 }

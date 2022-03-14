@@ -712,6 +712,14 @@ class ClassElementImpl extends AbstractClassElementImpl {
     return true;
   }
 
+  bool get isMacro {
+    return hasModifier(Modifier.MACRO);
+  }
+
+  set isMacro(bool isMacro) {
+    setModifier(Modifier.MACRO, isMacro);
+  }
+
   @override
   bool get isMixinApplication {
     return hasModifier(Modifier.MIXIN_APPLICATION);
@@ -4338,23 +4346,26 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that modifier 'lazy' was applied to the element.
   static const Modifier LATE = Modifier('LATE', 17);
 
+  /// Indicates that a class is a macro builder.
+  static const Modifier MACRO = Modifier('MACRO', 18);
+
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 18);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 19);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 19);
+  static const Modifier SETTER = Modifier('SETTER', 20);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 20);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 21);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 21);
+  static const Modifier STATIC = Modifier('STATIC', 22);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 22);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 23);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -4374,6 +4385,7 @@ class Modifier implements Comparable<Modifier> {
     HAS_PART_OF_DIRECTIVE,
     IMPLICIT_TYPE,
     LATE,
+    MACRO,
     MIXIN_APPLICATION,
     SETTER,
     STATIC,

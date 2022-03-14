@@ -8,12 +8,14 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 
 class ClassElementFlags {
   static const int _isAbstract = 1 << 0;
-  static const int _isMixinApplication = 1 << 1;
-  static const int _isSimplyBounded = 1 << 2;
+  static const int _isMacro = 1 << 1;
+  static const int _isMixinApplication = 1 << 2;
+  static const int _isSimplyBounded = 1 << 3;
 
   static void read(SummaryDataReader reader, ClassElementImpl element) {
     var byte = reader.readByte();
     element.isAbstract = (byte & _isAbstract) != 0;
+    element.isMacro = (byte & _isMacro) != 0;
     element.isMixinApplication = (byte & _isMixinApplication) != 0;
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
@@ -21,6 +23,7 @@ class ClassElementFlags {
   static void write(BufferedSink sink, ClassElementImpl element) {
     var result = 0;
     result |= element.isAbstract ? _isAbstract : 0;
+    result |= element.isMacro ? _isMacro : 0;
     result |= element.isMixinApplication ? _isMixinApplication : 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);

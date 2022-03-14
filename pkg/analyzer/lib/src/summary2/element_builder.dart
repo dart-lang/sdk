@@ -98,6 +98,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var element = ClassElementImpl(name, nameNode.offset);
     element.isAbstract = node.isAbstract;
+    element.isMacro = node.macroKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -130,6 +131,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var element = ClassElementImpl(name, nameNode.offset);
     element.isAbstract = node.isAbstract;
+    element.isMacro = node.macroKeyword != null;
     element.isMixinApplication = true;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);

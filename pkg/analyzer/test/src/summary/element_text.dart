@@ -267,6 +267,7 @@ class _ElementWriter {
   void _writeClassElement(ClassElement e) {
     _writeIndentedLine(() {
       _writeIf(e.isAbstract && !e.isMixin, 'abstract ');
+      _writeIf(e.isMacro, 'macro ');
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
       if (e.isEnum) {
@@ -922,4 +923,11 @@ class _Replacement {
   final String text;
 
   _Replacement(this.offset, this.end, this.text);
+}
+
+extension on ClassElement {
+  bool get isMacro {
+    final self = this;
+    return self is ClassElementImpl && self.isMacro;
+  }
 }
