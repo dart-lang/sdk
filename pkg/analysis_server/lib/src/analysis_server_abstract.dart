@@ -417,8 +417,12 @@ abstract class AbstractAnalysisServer {
       return null;
     }
 
-    var result = await session.getParsedUnit2(path);
-    return result is ParsedUnitResult ? result : null;
+    try {
+      var result = await session.getParsedUnit2(path);
+      return result is ParsedUnitResult ? result : null;
+    } on InconsistentAnalysisException {
+      return null;
+    }
   }
 
   /// Return the resolved unit for the file with the given [path]. The file is
