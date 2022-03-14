@@ -19847,14 +19847,8 @@ AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
       ASSERT(object_store->nullable_future_null_type() != Type::null());
       return object_store->nullable_future_null_type();
     }
-    // To avoid having to special case FutureOr in nullability checks, we lift
-    // the nullability of the type argument to FutureOr as appropriate.
-    if (IsNullable() || unwrapped_type.IsNullable()) {
-      // FutureOr<T?> = FutureOr<T?>* = FutureOr<T?>?, so mark as nullable.
-      return Type::Cast(*this).ToNullability(Nullability::kNullable, space);
-    } else if (unwrapped_type.IsLegacy()) {
-      // FutureOr<T*> = FutureOr<T*>*, so mark as legacy.
-      return Type::Cast(*this).ToNullability(Nullability::kLegacy, space);
+    if (IsNullable() && unwrapped_type.IsNullable()) {
+      return Type::Cast(*this).ToNullability(Nullability::kNonNullable, space);
     }
   }
   return ptr();
