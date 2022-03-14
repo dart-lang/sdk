@@ -24,7 +24,7 @@ f(dynamic a) {
   }
 
   test_legacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 int a = 0;
 ''');

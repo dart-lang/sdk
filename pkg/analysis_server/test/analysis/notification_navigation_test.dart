@@ -274,7 +274,7 @@ main() {
   }
 
   Future<void> test_annotationConstructor_importPrefix() async {
-    newFile(join(testFolder, 'my_annotation.dart'), content: r'''
+    newFile2(join(testFolder, 'my_annotation.dart'), r'''
 library an;
 class MyAnnotation {
   const MyAnnotation();
@@ -349,7 +349,7 @@ main() {
   }
 
   Future<void> test_annotationField_importPrefix() async {
-    newFile(join(testFolder, 'mayn.dart'), content: r'''
+    newFile2(join(testFolder, 'mayn.dart'), r'''
 library an;
 const myan = new Object();
 ''');
@@ -821,7 +821,7 @@ void f() {
   }
 
   Future<void> test_functionReference_importPrefix_function() async {
-    newFile(join(testFolder, 'a.dart'), content: r'''
+    newFile2(join(testFolder, 'a.dart'), r'''
 void foo<T>() {}
 ''');
     addTestFile('''
@@ -1070,8 +1070,8 @@ library my.lib;
   }
 
   Future<void> test_multiplyDefinedElement() async {
-    newFile('$projectPath/bin/libA.dart', content: 'library A; int TEST = 1;');
-    newFile('$projectPath/bin/libB.dart', content: 'library B; int TEST = 2;');
+    newFile2('$projectPath/bin/libA.dart', 'library A; int TEST = 1;');
+    newFile2('$projectPath/bin/libB.dart', 'library B; int TEST = 2;');
     addTestFile('''
 import 'libA.dart';
 import 'libB.dart';
@@ -1162,7 +1162,7 @@ main() {
 
   Future<void> test_partOf() async {
     var libCode = 'library lib; part "test.dart";';
-    var libFile = newFile('$projectPath/bin/lib.dart', content: libCode).path;
+    var libFile = newFile2('$projectPath/bin/lib.dart', libCode).path;
     addTestFile('part of lib;');
     await prepareNavigation();
     assertHasRegionString('lib');
@@ -1221,8 +1221,8 @@ class A {
   }
 
   Future<void> test_string_configuration() async {
-    newFile('$projectPath/bin/lib.dart', content: '').path;
-    var lib2File = newFile('$projectPath/bin/lib2.dart', content: '').path;
+    newFile2('$projectPath/bin/lib.dart', '').path;
+    var lib2File = newFile2('$projectPath/bin/lib2.dart', '').path;
     addTestFile('import "lib.dart" if (dart.library.html) "lib2.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib2.dart"');
@@ -1231,7 +1231,7 @@ class A {
 
   Future<void> test_string_export() async {
     var libCode = 'library lib;';
-    var libFile = newFile('$projectPath/bin/lib.dart', content: libCode).path;
+    var libFile = newFile2('$projectPath/bin/lib.dart', libCode).path;
     addTestFile('export "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
@@ -1246,7 +1246,7 @@ class A {
 
   Future<void> test_string_import() async {
     var libCode = 'library lib;';
-    var libFile = newFile('$projectPath/bin/lib.dart', content: libCode).path;
+    var libFile = newFile2('$projectPath/bin/lib.dart', libCode).path;
     addTestFile('import "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
@@ -1267,8 +1267,7 @@ class A {
 
   Future<void> test_string_part() async {
     var unitCode = 'part of lib;  f() {}';
-    var unitFile =
-        newFile('$projectPath/bin/test_unit.dart', content: unitCode).path;
+    var unitFile = newFile2('$projectPath/bin/test_unit.dart', unitCode).path;
     addTestFile('''
 library lib;
 part "test_unit.dart";

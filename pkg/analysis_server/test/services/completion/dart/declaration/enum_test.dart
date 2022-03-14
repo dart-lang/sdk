@@ -59,7 +59,7 @@ mixin EnumTestCases on AbstractCompletionDriverTest {
   }
 
   Future<void> test_enumConstantName_imported_withPrefix() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum MyEnum { foo01 }
 ''');
 
@@ -119,7 +119,7 @@ void f() {
   }
 
   Future<void> test_enumName_imported_withPrefix() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum MyEnum { foo01 }
 ''');
 
@@ -155,7 +155,7 @@ void f() {
 
   @FailingTest(reason: 'element.kind is LIBRARY')
   Future<void> test_importPrefix() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum MyEnum { v }
 ''');
 
@@ -189,7 +189,7 @@ void f() {
   }
 
   Future<void> test_importPrefix_dot() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum MyEnum { v }
 ''');
 
@@ -246,7 +246,7 @@ void f() {
   }
 
   Future<void> test_nothing_imported_withPrefix() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum MyEnum { v }
 ''');
 
@@ -304,7 +304,7 @@ void f() {
 
     // imported
     {
-      newFile('$testPackageLibPath/a.dart', content: '''
+      newFile2('$testPackageLibPath/a.dart', '''
 $declaration
 ''');
       if (isProtocolVersion1) {
@@ -321,7 +321,7 @@ void f() {
 
     // not imported
     {
-      newFile('$testPackageLibPath/a.dart', content: '''
+      newFile2('$testPackageLibPath/a.dart', '''
 $declaration
 ''');
       if (isProtocolVersion1) {

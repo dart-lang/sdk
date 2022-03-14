@@ -223,7 +223,7 @@ plusThree(int x) {
 
   Future<void> test_package_multipleInSame() async {
     var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
-    newFile(fooPath, content: '''
+    newFile2(fooPath, '''
 class A {
   static String a = '';
 }
@@ -252,7 +252,7 @@ blankLine() {
 
   Future<void> test_package_noPrefix() async {
     var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
-    newFile(fooPath, content: '''
+    newFile2(fooPath, '''
 class Foo {
   static String first = '';
 }
@@ -278,7 +278,7 @@ blankLine() {
 
   Future<void> test_package_prefix_selected_class() async {
     var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
-    newFile(fooPath, content: '''
+    newFile2(fooPath, '''
 class Foo {
   static String first = '';
 }
@@ -304,7 +304,7 @@ blankLine() {
 
   Future<void> test_package_prefix_selected_function() async {
     var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
-    newFile(fooPath, content: '''
+    newFile2(fooPath, '''
 String foo() => '';
 ''');
 
@@ -328,7 +328,7 @@ blankLine() {
 
   Future<void> test_package_prefix_selected_getter() async {
     var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
-    newFile(fooPath, content: '''
+    newFile2(fooPath, '''
 String foo = '';
 ''');
 
@@ -352,7 +352,7 @@ blankLine() {
 
   Future<void> test_package_prefix_selected_setter() async {
     var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
-    newFile(fooPath, content: '''
+    newFile2(fooPath, '''
 String foo = '';
 ''');
 
@@ -376,7 +376,7 @@ main() {
 
   Future<void> test_package_prefix_unselected() async {
     var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
-    newFile(fooPath, content: '''
+    newFile2(fooPath, '''
 class Foo {
   static String first = '';
 }
@@ -402,7 +402,7 @@ blankLine() {
 
   Future<void> test_package_prefixedAndNot() async {
     var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
-    newFile(fooPath, content: '''
+    newFile2(fooPath, '''
 class Foo {
   static String first = '';
   static String second = '';
@@ -469,7 +469,7 @@ bool randomBool() {
 
   Future<void> _computeElements(String content, String selection) async {
     // TODO(brianwilkerson) Automatically extract the selection from the content.
-    newFile(sourcePath, content: content);
+    newFile2(sourcePath, content);
     var result =
         await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
     var computer = ImportedElementsComputer(

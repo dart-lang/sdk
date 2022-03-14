@@ -47,7 +47,7 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
     var generatedPath = convertPath('$workspaceRootPath/bazel-bin/$relPath');
 
     // This generated file should be used instead of the writable.
-    newFile(generatedPath);
+    newFile2(generatedPath, '');
 
     var analysisDriver = driverFor(convertPath(testFilePath));
 
@@ -73,7 +73,7 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
     var generatedPath = convertPath('$workspaceRootPath/bazel-bin/$relPath');
 
     // This generated file should be used instead of the writable.
-    newFile(generatedPath);
+    newFile2(generatedPath, '');
 
     var analysisDriver = driverFor(convertPath(testFilePath));
 
@@ -182,7 +182,7 @@ class FileSystemStateTest with ResourceProviderMixin {
 
   test_definedClassMemberNames() {
     String path = convertPath('/aaa/lib/a.dart');
-    newFile(path, content: r'''
+    newFile2(path, r'''
 class A {
   int a, b;
   A();
@@ -202,7 +202,7 @@ class B {
 
   test_definedClassMemberNames_enum() {
     String path = convertPath('/aaa/lib/a.dart');
-    newFile(path, content: r'''
+    newFile2(path, r'''
 enum E1 {
   v1;
   int field1, field2;
@@ -236,7 +236,7 @@ enum E2 {
 
   test_definedTopLevelNames() {
     String path = convertPath('/aaa/lib/a.dart');
-    newFile(path, content: r'''
+    newFile2(path, r'''
 class A {}
 class B = Object with A;
 typedef C();
@@ -270,7 +270,7 @@ var G, H;
 
   test_getFileForPath_emptyUri() {
     String path = convertPath('/test.dart');
-    newFile(path, content: r'''
+    newFile2(path, r'''
 import '';
 export '';
 part '';
@@ -284,7 +284,7 @@ part '';
 
   test_getFileForPath_hasLibraryDirective_hasPartOfDirective() {
     String a = convertPath('/test/lib/a.dart');
-    newFile(a, content: r'''
+    newFile2(a, r'''
 library L;
 part of L;
 ''');
@@ -307,7 +307,7 @@ export ':[invalid uri]';
 part 'a3.dart';
 part ':[invalid uri]';
 ''';
-    newFile(a, content: content_a1);
+    newFile2(a, content_a1);
 
     FileState file = fileSystemState.getFileForPath(a);
 
@@ -346,7 +346,7 @@ part 'a4.dart';
 
 class A1 {}
 ''';
-    newFile(a1, content: content_a1);
+    newFile2(a1, content_a1);
 
     FileState file = fileSystemState.getFileForPath(a1);
     expect(file.path, a1);
@@ -388,7 +388,7 @@ class A1 {}
     String b = convertPath('/test/lib/b.dart');
     String c = convertPath('/test/lib/c.dart');
     String d = convertPath('/test/lib/d.dart');
-    newFile(a, content: r'''
+    newFile2(a, r'''
 library lib;
 import 'dart:math';
 import 'b.dart';
@@ -409,11 +409,11 @@ part 'not_dart.txt';
   test_getFileForPath_part() {
     String a1 = convertPath('/aaa/lib/a1.dart');
     String a2 = convertPath('/aaa/lib/a2.dart');
-    newFile(a1, content: r'''
+    newFile2(a1, r'''
 library a1;
 part 'a2.dart';
 ''');
-    newFile(a2, content: r'''
+    newFile2(a2, r'''
 part of a1;
 class A2 {}
 ''');
@@ -446,7 +446,7 @@ class A2 {}
     // Now update the library, and refresh its file.
     // The 'a2.dart' is not referenced anymore.
     // So the part file does not have the library anymore.
-    newFile(a1, content: r'''
+    newFile2(a1, r'''
 library a1;
 part 'not-a2.dart';
 ''');
@@ -477,11 +477,11 @@ part 'not-a2.dart';
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A {}
 class B extends A {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 class A {}
 class D implements A {}
 ''');
@@ -495,7 +495,7 @@ class D implements A {}
     );
 
     // Change b.dart so that it does not subtype A.
-    newFile(b, content: r'''
+    newFile2(b, r'''
 class C {}
 class D implements C {}
 ''');
@@ -514,13 +514,13 @@ class D implements C {}
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A {}
 enum E1 implements A {
   v
 }
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 class A {}
 enum E2 implements A {
   v
@@ -536,7 +536,7 @@ enum E2 implements A {
     );
 
     // Change b.dart so that it does not subtype A.
-    newFile(b, content: r'''
+    newFile2(b, r'''
 class C {}
 enum E2 implements C {
   v
@@ -557,13 +557,13 @@ enum E2 implements C {
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 mixin M {}
 enum E1 with M {
   v
 }
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 mixin M {}
 enum E2 with M {
   v
@@ -611,17 +611,17 @@ enum E2 with M {
     _assertFilesWithoutLibraryCycle([]);
 
     // No imports, so just a single file.
-    newFile(pa);
+    newFile2(pa, '');
     _assertLibraryCycle(fa, [fa], []);
 
     // Import b.dart into a.dart, two files now.
-    newFile(pa, content: "import 'b.dart';");
+    newFile2(pa, "import 'b.dart';");
     fa.refresh();
     _assertFilesWithoutLibraryCycle([fa]);
     _assertLibraryCycle(fa, [fa], [fb.libraryCycle]);
 
     // Update b.dart so that it imports c.dart now.
-    newFile(pb, content: "import 'c.dart';");
+    newFile2(pb, "import 'c.dart';");
     fb.refresh();
     _assertFilesWithoutLibraryCycle([fa, fb]);
     _assertLibraryCycle(fa, [fa], [fb.libraryCycle]);
@@ -629,7 +629,7 @@ enum E2 with M {
     _assertFilesWithoutLibraryCycle([]);
 
     // Update b.dart so that it exports d.dart instead.
-    newFile(pb, content: "export 'd.dart';");
+    newFile2(pb, "export 'd.dart';");
     fb.refresh();
     _assertFilesWithoutLibraryCycle([fa, fb]);
     _assertLibraryCycle(fa, [fa], [fb.libraryCycle]);
@@ -637,7 +637,7 @@ enum E2 with M {
     _assertFilesWithoutLibraryCycle([]);
 
     // Update a.dart so that it does not import b.dart anymore.
-    newFile(pa);
+    newFile2(pa, '');
     fa.refresh();
     _assertFilesWithoutLibraryCycle([fa]);
     _assertLibraryCycle(fa, [fa], []);
@@ -647,8 +647,8 @@ enum E2 with M {
     String pa = convertPath('/aaa/lib/a.dart');
     String pb = convertPath('/aaa/lib/b.dart');
 
-    newFile(pa, content: "import 'b.dart';");
-    newFile(pb, content: "import 'a.dart';");
+    newFile2(pa, "import 'b.dart';");
+    newFile2(pb, "import 'a.dart';");
 
     FileState fa = fileSystemState.getFileForPath(pa);
     FileState fb = fileSystemState.getFileForPath(pb);
@@ -664,7 +664,7 @@ enum E2 with M {
     expect(fa.libraryCycle, same(fb.libraryCycle));
 
     // Update a.dart so that it does not import b.dart anymore.
-    newFile(pa);
+    newFile2(pa, '');
     fa.refresh();
     _assertFilesWithoutLibraryCycle([fa, fb]);
     _assertLibraryCycle(fa, [fa], []);
@@ -674,7 +674,7 @@ enum E2 with M {
   test_libraryCycle_invalidPart_withPart() {
     var pa = convertPath('/aaa/lib/a.dart');
 
-    newFile(pa, content: r'''
+    newFile2(pa, r'''
 part of lib;
 part 'a.dart';
 ''');
@@ -688,10 +688,10 @@ part 'a.dart';
     var a_path = convertPath('/aaa/lib/a.dart');
     var b_path = convertPath('/aaa/lib/b.dart');
 
-    newFile(a_path, content: r'''
+    newFile2(a_path, r'''
 part 'b.dart';
 ''');
-    newFile(b_path, content: r'''
+    newFile2(b_path, r'''
 part of 'a.dart';
 ''');
 
@@ -716,7 +716,7 @@ part of 'a.dart';
 
   test_referencedNames() {
     String path = convertPath('/aaa/lib/a.dart');
-    newFile(path, content: r'''
+    newFile2(path, r'''
 A foo(B p) {
   foo(null);
   C c = new C(p);
@@ -729,7 +729,7 @@ A foo(B p) {
 
   test_refresh_differentApiSignature() {
     String path = convertPath('/aaa/lib/a.dart');
-    newFile(path, content: r'''
+    newFile2(path, r'''
 class A {}
 ''');
     FileState file = fileSystemState.getFileForPath(path);
@@ -737,7 +737,7 @@ class A {}
     List<int> signature = file.apiSignature;
 
     // Update the resource and refresh the file state.
-    newFile(path, content: r'''
+    newFile2(path, r'''
 class B {}
 ''');
     bool apiSignatureChanged = file.refresh();
@@ -749,7 +749,7 @@ class B {}
 
   test_refresh_sameApiSignature() {
     String path = convertPath('/aaa/lib/a.dart');
-    newFile(path, content: r'''
+    newFile2(path, r'''
 class C {
   foo() {
     print(111);
@@ -760,7 +760,7 @@ class C {
     List<int> signature = file.apiSignature;
 
     // Update the resource and refresh the file state.
-    newFile(path, content: r'''
+    newFile2(path, r'''
 class C {
   foo() {
     print(222);
@@ -775,7 +775,7 @@ class C {
 
   test_store_zeroLengthUnlinked() {
     String path = convertPath('/test.dart');
-    newFile(path, content: 'class A {}');
+    newFile2(path, 'class A {}');
 
     // Get the file, prepare unlinked.
     FileState file = fileSystemState.getFileForPath(path);
@@ -791,7 +791,7 @@ class C {
 
   test_subtypedNames() {
     String path = convertPath('/test.dart');
-    newFile(path, content: r'''
+    newFile2(path, r'''
 class X extends A {}
 class Y extends A with B {}
 class Z implements C, D {}
@@ -806,10 +806,10 @@ class Z implements C, D {}
     String pc = convertPath('/aaa/lib/c.dart');
     String pd = convertPath('/aaa/lib/d.dart');
 
-    newFile(pa, content: "class A {}");
-    newFile(pb, content: "import 'a.dart';");
-    newFile(pc, content: "import 'b.dart';");
-    newFile(pd, content: "class D {}");
+    newFile2(pa, "class A {}");
+    newFile2(pb, "import 'a.dart';");
+    newFile2(pc, "import 'b.dart';");
+    newFile2(pd, "class D {}");
 
     FileState fa = fileSystemState.getFileForPath(pa);
     FileState fb = fileSystemState.getFileForPath(pb);
@@ -826,13 +826,13 @@ class Z implements C, D {}
 
     // Make an update to a.dart that does not change its API signature.
     // All library cycles are still valid.
-    newFile(pa, content: "class A {} // the same API signature");
+    newFile2(pa, "class A {} // the same API signature");
     fa.refresh();
     _assertFilesWithoutLibraryCycle([]);
 
     // Change a.dart API signature.
     // This flushes signatures of b.dart and c.dart, but d.dart is still OK.
-    newFile(pa, content: "class A2 {}");
+    newFile2(pa, "class A2 {}");
     fa.refresh();
     _assertFilesWithoutLibraryCycle([fa, fb, fc]);
   }
@@ -841,10 +841,10 @@ class Z implements C, D {}
     var aPath = convertPath('/test/lib/a.dart');
     var bPath = convertPath('/test/lib/b.dart');
 
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 part 'b.dart';
 ''');
-    newFile(bPath, content: '''
+    newFile2(bPath, '''
 part of 'a.dart';
 ''');
 

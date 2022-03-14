@@ -62,7 +62,7 @@ void bar<T>([void Function(T Function()) p = f]) {}
   }
 
   test_constructor_inDifferentFile() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile2('/test/lib/a.dart', '''
 import 'b.dart';
 const v = const MyClass();
 ''');

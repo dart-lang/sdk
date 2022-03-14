@@ -16,9 +16,9 @@ main() {
 @reflectiveTest
 class ExportResolutionTest extends PubPackageResolutionTest {
   test_configurations_default() async {
-    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_html.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_io.dart', content: 'class A {}');
+    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_html.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
       'dart.library.html': 'false',
@@ -44,9 +44,9 @@ export 'a.dart'
   }
 
   test_configurations_first() async {
-    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_html.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_io.dart', content: 'class A {}');
+    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_html.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
       'dart.library.html': 'true',
@@ -72,9 +72,9 @@ export 'a.dart'
   }
 
   test_configurations_second() async {
-    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_html.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_io.dart', content: 'class A {}');
+    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_html.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
       'dart.library.html': 'false',
@@ -101,7 +101,7 @@ export 'a.dart'
 
   /// Test that both getter and setter are in the export namespace.
   test_namespace_getter_setter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 get f => null;
 set f(_) {}
 ''');

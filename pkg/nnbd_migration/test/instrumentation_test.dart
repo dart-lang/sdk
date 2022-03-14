@@ -142,7 +142,7 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
   Future<void> analyze(String content,
       {bool removeViaComments = false, bool warnOnWeakCode = true}) async {
     var sourcePath = convertPath('$testsPath/lib/test.dart');
-    newFile(sourcePath, content: content);
+    newFile2(sourcePath, content);
     var listener = TestMigrationListener();
     var migration = NullabilityMigration(listener,
         instrumentation: _InstrumentationClient(this),

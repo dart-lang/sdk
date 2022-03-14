@@ -68,7 +68,7 @@ String main() {
 
   Future<void> test_comment_toolSeeCodeComment() async {
     var examplePath = 'examples/api/foo.dart';
-    newFile(convertPath('$testFolder/$examplePath'), content: '');
+    newFile2(convertPath('$testFolder/$examplePath'), '');
     addTestFile('''
 /// {@tool dartpad}
 /// ** See code in $examplePath **
@@ -191,8 +191,8 @@ main() {
   }
 
   Future<void> test_importUri_configurations() async {
-    final ioFile = newFile(join(testFolder, 'io.dart'));
-    final htmlFile = newFile(join(testFolder, 'html.dart'));
+    final ioFile = newFile2(join(testFolder, 'io.dart'), '');
+    final htmlFile = newFile2(join(testFolder, 'html.dart'), '');
     addTestFile('''
 import 'foo.dart'
   if (dart.library.io) 'io.dart'

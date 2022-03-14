@@ -32,7 +32,7 @@ class ReanalyzeTest extends AbstractAnalysisTest {
   Future<void> test_reanalyze() async {
     var b = convertPath('/other/b.dart');
 
-    newFile(testFile, content: r'''
+    newFile2(testFile, r'''
 import '../../other/b.dart';
 
 var b = B();
@@ -47,7 +47,7 @@ var b = B();
     filesErrors.clear();
 
     // Create b.dart, reanalyzing should fix the error.
-    newFile(b, content: 'class B {}');
+    newFile2(b, 'class B {}');
 
     // Reanalyze.
     await server.reanalyze();

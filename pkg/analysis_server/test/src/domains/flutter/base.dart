@@ -50,7 +50,7 @@ class FlutterBase extends AbstractAnalysisTest {
     var flutterLib = MockPackages.instance.addFlutter(resourceProvider);
     newPackageConfigJsonFile(
       '/home/test',
-      content: (PackageConfigFileBuilder()
+      (PackageConfigFileBuilder()
             ..add(name: 'test', rootPath: '/home/test')
             ..add(name: 'meta', rootPath: metaLib.parent.path)
             ..add(name: 'flutter', rootPath: flutterLib.parent.path))

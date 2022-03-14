@@ -196,8 +196,8 @@ class A {}
 
   Future<void>
       test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
-    newFile('$workspaceRootPath/aaa/lib/aaa.dart');
-    newFile('$workspaceRootPath/bbb/lib/bbb.dart');
+    newFile2('$workspaceRootPath/aaa/lib/aaa.dart', '');
+    newFile2('$workspaceRootPath/bbb/lib/bbb.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -221,8 +221,8 @@ import 'package:bbb/bbb.dart';
 
   Future<void>
       test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
-    newFile('$workspaceRootPath/aaa/lib/aaa.dart');
-    newFile('$workspaceRootPath/bbb/lib/bbb.dart');
+    newFile2('$workspaceRootPath/aaa/lib/aaa.dart', '');
+    newFile2('$workspaceRootPath/bbb/lib/bbb.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -245,10 +245,10 @@ import 'package:bbb/bbb.dart';
   }
 
   Future<void> test_addLibraryImports_package_hasImports_between() async {
-    newFile('$workspaceRootPath/aaa/lib/aaa.dart');
-    newFile('$workspaceRootPath/bbb/lib/bbb.dart');
-    newFile('$workspaceRootPath/ccc/lib/ccc.dart');
-    newFile('$workspaceRootPath/ddd/lib/ddd.dart');
+    newFile2('$workspaceRootPath/aaa/lib/aaa.dart', '');
+    newFile2('$workspaceRootPath/bbb/lib/bbb.dart', '');
+    newFile2('$workspaceRootPath/ccc/lib/ccc.dart', '');
+    newFile2('$workspaceRootPath/ddd/lib/ddd.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()

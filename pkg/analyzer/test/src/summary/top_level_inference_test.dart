@@ -1246,7 +1246,7 @@ library
   }
 
   test_initializer_extractProperty_explicitlyTyped_differentLibraryCycle() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class C {
   int f = 0;
 }
@@ -1314,7 +1314,7 @@ library
   }
 
   test_initializer_extractProperty_explicitlyTyped_sameLibraryCycle() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'test.dart'; // just do make it part of the library cycle
 class C {
   int f = 0;
@@ -1344,7 +1344,7 @@ library
   }
 
   test_initializer_extractProperty_implicitlyTyped_differentLibraryCycle() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class C {
   var f = 0;
 }
@@ -1412,7 +1412,7 @@ library
   }
 
   test_initializer_extractProperty_implicitlyTyped_sameLibraryCycle() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'test.dart'; // just do make it part of the library cycle
 class C {
   var f = 0;
@@ -5979,7 +5979,7 @@ library
   }
 
   test_method_OK_single_private_linkThroughOtherLibraryOfCycle() async {
-    newFile('$testPackageLibPath/other.dart', content: r'''
+    newFile2('$testPackageLibPath/other.dart', r'''
 import 'test.dart';
 class B extends A2 {}
 ''');
@@ -6163,7 +6163,7 @@ library
   }
 
   Future<LibraryElement> _encodeDecodeLibrary(String text) async {
-    newFile(testFilePath, content: text);
+    newFile2(testFilePath, text);
 
     var path = convertPath(testFilePath);
     var analysisSession = contextFor(path).currentSession;

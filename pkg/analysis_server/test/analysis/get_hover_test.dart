@@ -20,13 +20,13 @@ void main() {
 @reflectiveTest
 class AnalysisHoverBazelTest extends AbstractAnalysisTest {
   Future<void> test_bazel_notOwnedUri() async {
-    newFile('/workspace/WORKSPACE');
+    newFile2('/workspace/WORKSPACE', '');
     projectPath = newFolder('/workspace').path;
     testFile = convertPath('/workspace/dart/my/lib/test.dart');
 
-    newFile(
+    newFile2(
       '/workspace/bazel-genfiles/dart/my/lib/test.dart',
-      content: '// generated',
+      '// generated',
     );
 
     await createProject();

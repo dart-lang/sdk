@@ -325,7 +325,7 @@ void f() {
   }
 
   void test_rename_function_imported() {
-    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 foo() {}
 ''');
     fileResolver.resolve(path: a.path);
@@ -451,7 +451,7 @@ void f(F a) {}
     var location = lineInfo.getLocation(offset);
 
     content = content.substring(0, offset) + content.substring(offset + 1);
-    newFile(testPath, content: content);
+    newFile2(testPath, content);
 
     _correctionContext = _CorrectionContext(
       content,

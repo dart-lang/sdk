@@ -36,9 +36,10 @@ class PluginWatcherTest extends AbstractContextTest {
 
   Future<void> test_addedDriver() async {
     newPubspecYamlFile('/foo', 'name: foo');
-    newFile(
+    newFile2(
       join('/foo', PluginLocator.toolsFolderName,
           PluginLocator.defaultPluginFolderName, 'bin', 'plugin.dart'),
+      '',
     );
 
     writeTestPackageConfig(

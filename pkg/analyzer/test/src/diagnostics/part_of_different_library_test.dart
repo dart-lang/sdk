@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class PartOfDifferentLibraryTest extends PubPackageResolutionTest {
   test_name() async {
-    newFile('$testPackageLibPath/part.dart', content: "part of lub;");
+    newFile2('$testPackageLibPath/part.dart', "part of lub;");
     await assertErrorsInCode('''
 library lib;
 part 'part.dart';

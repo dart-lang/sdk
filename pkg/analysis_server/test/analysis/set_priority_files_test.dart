@@ -46,7 +46,7 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
 
   Future<void> test_fileInAnalysisRootAddedLater() async {
     var path = convertPath('/other/file.dart');
-    newFile(path);
+    newFile2(path, '');
     await _setPriorityFile(path);
     await _setAnalysisRoots('/other');
     _verifyPriorityFiles(path);
@@ -64,50 +64,49 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
 
   Future<void> test_fileNotInAnalysisRoot() async {
     var path = convertPath('/other/file.dart');
-    newFile(path);
+    newFile2(path, '');
     await _setPriorityFile(path);
     _verifyPriorityFiles(path);
   }
 
   Future<void> test_ignoredInAnalysisOptions() async {
     var sampleFile = convertPath('$projectPath/samples/sample.dart');
-    newFile('$projectPath/${file_paths.analysisOptionsYaml}', content: r'''
+    newFile2('$projectPath/${file_paths.analysisOptionsYaml}', r'''
 analyzer:
   exclude:
     - 'samples/**'
 ''');
-    newFile(sampleFile);
+    newFile2(sampleFile, '');
     // attempt to set priority file
     await _setPriorityFile(sampleFile);
     _verifyPriorityFiles(sampleFile);
   }
 
   Future<void> test_ignoredInAnalysisOptions_inChildContext() async {
-    newPackageConfigJsonFile(projectPath);
-    newPackageConfigJsonFile('$projectPath/child');
+    newPackageConfigJsonFile(projectPath, '');
+    newPackageConfigJsonFile('$projectPath/child', '');
     var sampleFile = convertPath('$projectPath/child/samples/sample.dart');
-    newFile('$projectPath/child/${file_paths.analysisOptionsYaml}',
-        content: r'''
+    newFile2('$projectPath/child/${file_paths.analysisOptionsYaml}', r'''
 analyzer:
   exclude:
     - 'samples/**'
 ''');
-    newFile(sampleFile);
+    newFile2(sampleFile, '');
     // attempt to set priority file
     await _setPriorityFile(sampleFile);
     _verifyPriorityFiles(sampleFile);
   }
 
   Future<void> test_ignoredInAnalysisOptions_inRootContext() async {
-    newPackageConfigJsonFile(projectPath);
-    newPackageConfigJsonFile('$projectPath/child');
+    newPackageConfigJsonFile(projectPath, '');
+    newPackageConfigJsonFile('$projectPath/child', '');
     var sampleFile = convertPath('$projectPath/child/samples/sample.dart');
-    newFile('$projectPath/${file_paths.analysisOptionsYaml}', content: r'''
+    newFile2('$projectPath/${file_paths.analysisOptionsYaml}', r'''
 analyzer:
   exclude:
     - 'child/samples/**'
 ''');
-    newFile(sampleFile);
+    newFile2(sampleFile, '');
     // attempt to set priority file
     await _setPriorityFile(sampleFile);
     _verifyPriorityFiles(sampleFile);

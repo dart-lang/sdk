@@ -280,7 +280,7 @@ class BazelWatcherTest with ResourceProviderMixin {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
       } else {
-        newFile(path);
+        newFile2(path, '');
       }
     }
   }

@@ -60,7 +60,7 @@ class ConvertToPackageImport_AlwaysUsePackageImportsTest
   String get lintCode => LintNames.always_use_package_imports;
 
   Future<void> test_relativeImport() async {
-    newFile('$testPackageLibPath/foo.dart', content: '''
+    newFile2('$testPackageLibPath/foo.dart', '''
 class Foo {}
 ''');
     await resolveTestCode('''
@@ -118,7 +118,7 @@ class ConvertToPackageImport_AvoidRelativeLibImportsTest
     // This test fails because any attempt to specify a relative path that
     // includes 'lib' (which the lint requires) results in a malformed URI when
     // trying to resolve the import.
-    newFile('$testPackageLibPath/foo/bar.dart', content: '''
+    newFile2('$testPackageLibPath/foo/bar.dart', '''
 class C {}
 ''');
     await resolveTestCode('''

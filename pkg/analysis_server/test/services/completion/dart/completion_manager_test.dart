@@ -32,7 +32,7 @@ class CompletionManagerTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_resolveDirectives() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 library libA;
 /// My class.
 /// Short description.
@@ -40,7 +40,7 @@ library libA;
 /// Longer description.
 class A {}
 ''');
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 library libB;
 import "a.dart" as foo;
 part 'test.dart';

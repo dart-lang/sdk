@@ -17,7 +17,7 @@ main() {
 class ForEachElementTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A implements Iterable<int> {
   Iterator<int> iterator => throw 0;
 }

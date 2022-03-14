@@ -47,7 +47,7 @@ class C extends A implements B {}
   }
 
   test_class_extends_implements_optOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class I<T> {}
 class A implements I<int> {}
 class B implements I<int?> {}
@@ -61,7 +61,7 @@ class C extends A implements B {}
   }
 
   test_class_extends_optIn_implements_optOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 
 class B extends A<int> {}
@@ -86,7 +86,7 @@ class C extends A with B {}
   }
 
   test_class_mixed_viaLegacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 
 class Bi implements A<int> {}
@@ -95,7 +95,7 @@ class Biq implements A<int?> {}
 ''');
 
     // Both `Bi` and `Biq` implement `A<int*>` in legacy, so identical.
-    newFile('$testPackageLibPath/b.dart', content: r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -124,11 +124,11 @@ class C extends B implements A<Object> {}
   }
 
   test_class_topMerge_optIn_optOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 // @dart = 2.5
 import 'a.dart';
 

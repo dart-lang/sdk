@@ -234,7 +234,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_children_closure_blockBody() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -270,7 +270,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_children_closure_expressionBody() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -472,7 +472,7 @@ class WidgetFactory {
   }
 
   Future<void> test_namedArgument_anywhere() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -512,7 +512,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_parentAssociationLabel() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -584,7 +584,7 @@ class MyWidget extends StatelessWidget {
 
   Future<FlutterOutline> _computeOutline(String code) async {
     testCode = code;
-    newFile(testPath, content: code);
+    newFile2(testPath, code);
     resolveResult =
         await (await session).getResolvedUnit(testPath) as ResolvedUnitResult;
     computer = FlutterOutlineComputer(resolveResult);

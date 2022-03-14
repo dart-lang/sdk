@@ -23,7 +23,7 @@ class InvalidUseOfProtectedMemberTest extends PubPackageResolutionTest {
   }
 
   test_closure() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -31,7 +31,7 @@ class A {
   int a() => 42;
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 
 void main() {
@@ -59,14 +59,14 @@ class B extends A {
   }
 
   test_extension_outsideClassAndFile() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a(int i) {}
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 extension E on A {
   e() {
@@ -95,14 +95,14 @@ class B extends A {
   }
 
   test_field_outsideClassAndLibrary() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   int a = 0;
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 abstract class B {
   int b() => new A().a;
@@ -128,14 +128,14 @@ abstract class B implements A {
   }
 
   test_fromSuperclassConstraint() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 abstract class A {
   @protected
   void foo() {}
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 mixin M on A {
   @override
@@ -150,14 +150,14 @@ mixin M on A {
   }
 
   test_function_outsideClassAndLibrary() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a(){ }
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 
 main() {
@@ -210,14 +210,14 @@ class B extends A {
   }
 
   test_getter_outsideClassAndLibrary() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   int get a => 42;
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 class B {
   A a = A();
@@ -244,7 +244,7 @@ abstract class B implements A {
   }
 
   test_inDocs() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -258,7 +258,7 @@ class A {
   int a() => 0;
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 /// OK: [A.a], [A.b], [A.c].
 f() {}
@@ -269,14 +269,14 @@ f() {}
   }
 
   test_method_outsideClassAndLibrary() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a() {}
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 
 class B {
@@ -355,14 +355,14 @@ main() {
     // TODO(srawlins): This test verifies that the analyzer **allows**
     // protected members to be called on objects other than `this`, which
     // violates the protected spec.
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void set a(int i) { }
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 class B {
   A a = A();

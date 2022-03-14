@@ -21,7 +21,7 @@ class NonNullableBazelWorkspaceTest extends BazelWorkspaceResolutionTest {
   bool get isNullSafetyEnabled => true;
 
   test_buildFile_legacy_commentedOut() async {
-    newFile('$myPackageRootPath/BUILD', content: r'''
+    newFile2('$myPackageRootPath/BUILD', r'''
 dart_package(
 #  null_safety = True,
 ''');
@@ -35,7 +35,7 @@ dart_package(
   }
 
   test_buildFile_nonNullable() async {
-    newFile('$myPackageRootPath/BUILD', content: r'''
+    newFile2('$myPackageRootPath/BUILD', r'''
 dart_package(
   null_safety = True,
 )
@@ -67,7 +67,7 @@ dart_package(
   }
 
   test_buildFile_nonNullable_languageVersion_current() async {
-    newFile('$myPackageRootPath/BUILD', content: r'''
+    newFile2('$myPackageRootPath/BUILD', r'''
 dart_package(
   null_safety = True,
 )
@@ -84,7 +84,7 @@ dart_package(
   }
 
   test_buildFile_nonNullable_languageVersion_fromWorkspace() async {
-    newFile('$workspaceRootPath/dart/build_defs/bzl/language.bzl', content: r'''
+    newFile2('$workspaceRootPath/dart/build_defs/bzl/language.bzl', r'''
 _version = "2.9"
 _version_null_safety = "2.14"
 _version_for_analyzer = _version_null_safety
@@ -96,7 +96,7 @@ language = struct(
 )
 ''');
 
-    newFile('$myPackageRootPath/BUILD', content: r'''
+    newFile2('$myPackageRootPath/BUILD', r'''
 dart_package(
   null_safety = True,
 )
@@ -113,7 +113,7 @@ dart_package(
   }
 
   test_buildFile_nonNullable_oneLine_noComma() async {
-    newFile('$myPackageRootPath/BUILD', content: r'''
+    newFile2('$myPackageRootPath/BUILD', r'''
 dart_package(null_safety = True)
 ''');
 
@@ -126,7 +126,7 @@ dart_package(null_safety = True)
   }
 
   test_buildFile_nonNullable_soundNullSafety() async {
-    newFile('$myPackageRootPath/BUILD', content: r'''
+    newFile2('$myPackageRootPath/BUILD', r'''
 dart_package(
   sound_null_safety = True
 )
@@ -141,7 +141,7 @@ dart_package(
   }
 
   test_buildFile_nonNullable_withComments() async {
-    newFile('$myPackageRootPath/BUILD', content: r'''
+    newFile2('$myPackageRootPath/BUILD', r'''
 dart_package(
   # Preceding comment.
   null_safety = True,  # Trailing comment.

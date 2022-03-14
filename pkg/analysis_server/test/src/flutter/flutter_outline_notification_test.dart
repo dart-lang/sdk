@@ -75,11 +75,11 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
   Future<void> test_children() async {
     newPackageConfigJsonFile(
       projectPath,
-      content: (PackageConfigFileBuilder()
+      (PackageConfigFileBuilder()
             ..add(name: 'flutter', rootPath: flutterFolder.parent.path))
           .toContent(toUriStr: toUriStr),
     );
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 analyzer:
   strong-mode: true
 ''');

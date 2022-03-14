@@ -45,12 +45,12 @@ main() {
   Future<void> test_errorInPart() async {
     var libPath = join(testFolder, 'main.dart');
     var partPath = join(testFolder, 'main_part.dart');
-    newFile(libPath, content: r'''
+    newFile2(libPath, r'''
 library main;
 part 'main_part.dart';
 class A {}
 ''');
-    newFile(partPath, content: r'''
+    newFile2(partPath, r'''
 part of main;
 class A {}
 ''');
@@ -69,7 +69,7 @@ class A {}
   Future<void> test_fileWithoutContext() async {
     // Broken under the new driver.
     var file = convertPath('/outside.dart');
-    newFile(file, content: '''
+    newFile2(file, '''
 main() {
   print(42);
 }

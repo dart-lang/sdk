@@ -543,7 +543,7 @@ void f() {
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {
   A.named(T a);
 }
@@ -597,7 +597,7 @@ InstanceCreationExpression
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor_typeArguments() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {
   A.named(int a);
 }
@@ -665,7 +665,7 @@ InstanceCreationExpression
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor_typeArguments_new() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {
   A.new(int a);
 }
@@ -733,7 +733,7 @@ InstanceCreationExpression
   }
 
   test_targetPrefixedIdentifier_prefix_getter_method() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 A get foo => A();
 
 class A {
@@ -782,7 +782,7 @@ MethodInvocation
   }
 
   test_targetPrefixedIdentifier_typeAlias_interfaceType_constructor() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {
   A.named(T a);
 }
@@ -1021,7 +1021,7 @@ f() {
   }
 
   test_targetSimpleIdentifier_prefix_class() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T, U> {
   A(int a);
 }
@@ -1084,7 +1084,7 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_prefix_extension() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 
 extension E<T> on A {
@@ -1113,7 +1113,7 @@ f(prefix.A a) {
   }
 
   test_targetSimpleIdentifier_prefix_function() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void A<T, U>(int a) {}
 ''');
 

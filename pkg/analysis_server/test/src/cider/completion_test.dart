@@ -112,7 +112,7 @@ import 'dart:math';
 
   Future<void> test_compute_updateImportedLibrary() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {}
 ''');
 
@@ -132,7 +132,7 @@ import 'a.dart';
     _assertHasClass(text: 'A');
 
     // Update the imported library, has 'B', but not 'A'.
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class B {}
 ''');
     _createFileResolver();
@@ -144,7 +144,7 @@ class B {}
 
   Future<void> test_compute_updateImports() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {}
 ''');
 
@@ -166,7 +166,7 @@ var a = ^;
   }
 
   Future<void> test_compute_uriContributor_disabled() async {
-    newFile('/workspace/dart/test/lib/a.dart', content: '');
+    newFile2('/workspace/dart/test/lib/a.dart', '');
     await _compute(r'''
 import '^';
 ''');
@@ -474,7 +474,7 @@ class A {
   }
 
   Future<void> test_limitedResolution_hasPart() async {
-    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    newFile2('/workspace/dart/test/lib/a.dart', r'''
 class A {}
 ''');
 
@@ -488,7 +488,7 @@ part 'a.dart';
   }
 
   Future<void> test_limitedResolution_inPart_partOfName() async {
-    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    newFile2('/workspace/dart/test/lib/a.dart', r'''
 library my_lib;
 part 'test.dart';
 class A {}
@@ -504,7 +504,7 @@ part of my_lib;
   }
 
   Future<void> test_limitedResolution_inPart_partOfUri() async {
-    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    newFile2('/workspace/dart/test/lib/a.dart', r'''
 part 'test.dart';
 class A {}
 ''');
@@ -599,12 +599,12 @@ void foo() {
 
   Future<void> test_warmUp_cachesImportedLibraries() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {}
 ''');
 
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 import 'a.dart';
 ''');
 
@@ -885,7 +885,7 @@ import 'a.dart';
     var location = lineInfo.getLocation(offset);
 
     content = content.substring(0, offset) + content.substring(offset + 1);
-    newFile(testPath, content: content);
+    newFile2(testPath, content);
 
     return _CompletionContext(
       content,

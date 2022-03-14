@@ -174,7 +174,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteGetter_declared_hasExtends_private_otherLibrary() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   int get _foo => 0;
 }
@@ -478,7 +478,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteMethod_declared_hasExtends_private_otherLibrary() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   void _foo() {}
 }
@@ -782,7 +782,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteSetter_declared_hasExtends_private_otherLibrary() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   set _foo(int _) {}
 }
@@ -1086,7 +1086,7 @@ class B extends A {
   }
 
   test_lookUpInheritedMethod_declared_hasExtends_private_otherLibrary() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   void _foo() {}
 }

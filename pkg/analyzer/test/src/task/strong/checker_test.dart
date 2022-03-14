@@ -248,7 +248,7 @@ void main() {
   }
 
   test_conversionAndDynamicInvoke() async {
-    newFile('$testPackageLibPath/helper.dart', content: r'''
+    newFile2('$testPackageLibPath/helper.dart', r'''
 dynamic toString = (int x) => x + 42;
 dynamic hashCode = "hello";
 ''');
@@ -2787,7 +2787,7 @@ class E extends B implements A { }
   }
 
   test_privateOverride() async {
-    newFile('$testPackageLibPath/helper.dart', content: r'''
+    newFile2('$testPackageLibPath/helper.dart', r'''
 import 'test.dart' as main;
 
 class Base {

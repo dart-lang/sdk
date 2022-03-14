@@ -42,11 +42,11 @@ class ContextRootTest with ResourceProviderMixin {
     String excludePath = convertPath('/test/root/exclude');
     String cPath = convertPath('/test/root/exclude/c.dart');
 
-    newFile(optionsPath);
-    newFile(readmePath);
-    newFile(aPath);
-    newFile(bPath);
-    newFile(cPath);
+    newFile2(optionsPath, '');
+    newFile2(readmePath, '');
+    newFile2(aPath, '');
+    newFile2(bPath, '');
+    newFile2(cPath, '');
     contextRoot.excluded.add(newFolder(excludePath));
 
     expect(contextRoot.analyzedFiles(),
@@ -55,9 +55,9 @@ class ContextRootTest with ResourceProviderMixin {
 
   test_isAnalyzed_excludedByGlob_includedFile() {
     var rootPath = '/home/test';
-    var includedFile = newFile('$rootPath/lib/a1.dart');
-    var excludedFile = newFile('$rootPath/lib/a2.dart');
-    var implicitFile = newFile('$rootPath/lib/b.dart');
+    var includedFile = newFile2('$rootPath/lib/a1.dart', '');
+    var excludedFile = newFile2('$rootPath/lib/a2.dart', '');
+    var implicitFile = newFile2('$rootPath/lib/b.dart', '');
 
     var root = _createContextRoot(rootPath);
     root.included.add(includedFile);
@@ -80,14 +80,14 @@ class ContextRootTest with ResourceProviderMixin {
 
     var includedFolderPath = convertPath('$rootPath/lib/src/included');
     var includedFolder = getFolder(includedFolderPath);
-    var includedFile1 = newFile('$includedFolderPath/a1.dart');
-    var includedFile2 = newFile('$includedFolderPath/inner/a2.dart');
-    var excludedFile1 = newFile('$includedFolderPath/a1.g.dart');
+    var includedFile1 = newFile2('$includedFolderPath/a1.dart', '');
+    var includedFile2 = newFile2('$includedFolderPath/inner/a2.dart', '');
+    var excludedFile1 = newFile2('$includedFolderPath/a1.g.dart', '');
 
     var excludedFolderPath = convertPath('$rootPath/lib/src/not_included');
-    var excludedFile2 = newFile('$excludedFolderPath/b.dart');
+    var excludedFile2 = newFile2('$excludedFolderPath/b.dart', '');
 
-    var implicitFile = newFile('$rootPath/lib/c.dart');
+    var implicitFile = newFile2('$rootPath/lib/c.dart', '');
 
     var root = _createContextRoot(rootPath);
     root.included.add(includedFolder);

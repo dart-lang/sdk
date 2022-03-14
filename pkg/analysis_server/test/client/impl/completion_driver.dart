@@ -92,14 +92,16 @@ class CompletionDriver with ExpectMixin {
     if (offset != null) {
       expect(completionOffset, -1, reason: 'cannot supply offset and ^');
       completionOffset = offset;
-      server.newFile(server.testFilePath, content: content);
+      server.newFile2(server.testFilePath, content);
     } else {
       expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
       var nextOffset = content.indexOf('^', completionOffset + 1);
       expect(nextOffset, equals(-1), reason: 'too many ^');
-      server.newFile(server.testFilePath,
-          content: content.substring(0, completionOffset) +
-              content.substring(completionOffset + 1));
+      server.newFile2(
+        server.testFilePath,
+        content.substring(0, completionOffset) +
+            content.substring(completionOffset + 1),
+      );
     }
   }
 

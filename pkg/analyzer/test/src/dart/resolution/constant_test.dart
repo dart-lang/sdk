@@ -23,7 +23,7 @@ main() {
 @reflectiveTest
 class ConstantResolutionTest extends PubPackageResolutionTest {
   test_constructor_nullSafe_fromLegacy_super() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   const A(List<Object> a);
 }
@@ -46,7 +46,7 @@ const b = B(a);
   }
 
   test_constructor_nullSafe_fromLegacy_this() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   const A(List<Object> a) : this(a);
   const A.second(List<Object> a);
@@ -87,7 +87,7 @@ class A<T, U> {
   }
 
   test_field_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = 42;
 }
@@ -105,7 +105,7 @@ const bar = A.foo;
   }
 
   test_fromEnvironment_optOut_fromOptIn() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 
 const cBool = const bool.fromEnvironment('foo', defaultValue: false);
@@ -133,7 +133,7 @@ const vString = cString;
   }
 
   test_topLevelVariable_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 const foo = 42;
 ''');
 
@@ -150,11 +150,11 @@ const bar = foo;
   }
 
   test_topLevelVariable_optOut2() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 const a = 42;
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 
 const b = a;
@@ -173,7 +173,7 @@ const c = b;
   }
 
   test_topLevelVariable_optOut3() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 const a = int.fromEnvironment('a', defaultValue: 42);
 ''');
@@ -199,7 +199,7 @@ const b = a;
 class ConstantResolutionWithoutNullSafetyTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_constantValue_defaultParameter_noDefaultValue() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   const A({int p});
 }
@@ -281,7 +281,7 @@ class A<T, U> {
   }
 
   test_functionType_element_typeArguments() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 typedef F<T> = T Function(int);
 const a = C<F<double>>();
 
@@ -312,7 +312,7 @@ const v = a;
   }
 
   test_imported_prefixedIdentifier_staticField_class() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 const a = C.f;
 
 class C {
@@ -329,7 +329,7 @@ import 'a.dart';
   }
 
   test_imported_prefixedIdentifier_staticField_extension() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 const a = E.f;
 
 extension E on int {
@@ -346,7 +346,7 @@ import 'a.dart';
   }
 
   test_imported_prefixedIdentifier_staticField_mixin() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 const a = M.f;
 
 class C {}
@@ -365,7 +365,7 @@ import 'a.dart';
   }
 
   test_imported_super_defaultFieldFormalParameter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'test.dart';
 
 class A {
@@ -409,7 +409,7 @@ extension E on int {
 
   /// See https://github.com/dart-lang/sdk/issues/43462
   test_useLanguageVersionOfEnclosingLibrary() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class Wrapper {
   final int value;
   const Wrapper(Object value) : value = value as int;

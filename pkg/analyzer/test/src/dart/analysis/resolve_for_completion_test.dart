@@ -458,7 +458,7 @@ mixin M on foo^ {}
   }
 
   test_processPendingChanges() async {
-    newFile(testFilePath, content: 'class A {}');
+    newFile2(testFilePath, 'class A {}');
 
     // Read the file.
     await testDriver.getFile(testFilePathPlatform);
@@ -559,7 +559,7 @@ void f<T^>() {
 
     var before = content.substring(0, offset);
     var after = content.substring(offset + 1);
-    newFile(path, content: before + after);
+    newFile2(path, before + after);
 
     return offset;
   }

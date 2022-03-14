@@ -43,8 +43,8 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     }
   }
 
-  void newFile(String path, {String? content}) =>
-      File(path).writeAsStringSync(content ?? '');
+  void newFile(String path, String content) =>
+      File(path).writeAsStringSync(content);
 
   void newFolder(String path) => Directory(path).createSync(recursive: true);
 

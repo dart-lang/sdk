@@ -205,7 +205,7 @@ extension E on String {
   }
 
   Future<void> test_explicitTarget_method_imported() async {
-    newFile(convertPath('/project/bin/lib.dart'), content: '''
+    newFile2(convertPath('/project/bin/lib.dart'), '''
 extension E on String {
   void m() {}
 }
@@ -221,7 +221,7 @@ void f(String s) {
   }
 
   Future<void> test_explicitTarget_method_inLibrary() async {
-    newFile(convertPath('/project/bin/lib.dart'), content: '''
+    newFile2(convertPath('/project/bin/lib.dart'), '''
 part 'test.dart';
 extension E on String {
   void m() {}
@@ -238,7 +238,7 @@ void f(String s) {
   }
 
   Future<void> test_explicitTarget_method_inPart() async {
-    newFile(convertPath('/project/bin/part.dart'), content: '''
+    newFile2(convertPath('/project/bin/part.dart'), '''
 extension E on String {
   void m() {}
 }
@@ -257,7 +257,7 @@ void f(String s) {
   Future<void> test_explicitTarget_method_notImported() async {
     // Available suggestions data doesn't yet have information about extension
     // methods.
-    newFile(convertPath('/project/bin/lib.dart'), content: '''
+    newFile2(convertPath('/project/bin/lib.dart'), '''
 extension E on String {
   void m() {}
 }
@@ -589,7 +589,7 @@ class B implements A {
 
   @failingTest
   Future<void> test_unnamedConstructor_inDifferentLibrary() async {
-    newFile('/project/bin/b.dart', content: '''
+    newFile2('/project/bin/b.dart', '''
 class B implements A {
   B();
 }
@@ -710,7 +710,7 @@ void g() {}
 @reflectiveTest
 class SuperConstructorInvocationCompletionTest extends CompletionTestCase {
   Future<void> test_namedConstructor_notVisible() async {
-    newFile('/project/bin/a.dart', content: '''
+    newFile2('/project/bin/a.dart', '''
 class A {
   A._() {}
 }

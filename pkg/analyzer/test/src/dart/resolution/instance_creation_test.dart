@@ -407,7 +407,7 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class Foo<X> {
   Foo.bar();
 }
@@ -522,7 +522,7 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class Foo<X> {
   Foo.bar();
 }

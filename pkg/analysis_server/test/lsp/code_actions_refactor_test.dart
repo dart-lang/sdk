@@ -44,7 +44,7 @@ main() {
   var b = test();
 }
 ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -76,7 +76,7 @@ main() {
   var b = test;
 }
 ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -144,7 +144,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -173,7 +173,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -241,7 +241,7 @@ main() {
   [[print('Test!');]]
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
         emptyTextDocumentClientCapabilities,
@@ -301,7 +301,7 @@ Object text() => Text('Test!');
 Object Container(Object text) => null;
 Object Text(Object text) => null;
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -319,7 +319,7 @@ import 'dart:convert';
 ^
 main() {}
     ''';
-    newFile(mainFilePath, content: content);
+    newFile2(mainFilePath, content);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
@@ -345,7 +345,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
         windowCapabilities:
             withWorkDoneProgressSupport(emptyWindowClientCapabilities));
@@ -381,7 +381,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     var didGetProgressNotifications = false;
@@ -417,7 +417,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
         windowCapabilities:
             withWorkDoneProgressSupport(emptyWindowClientCapabilities));
@@ -455,7 +455,7 @@ main() {
 
 void foo(int arg) {}
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -485,7 +485,7 @@ main() {
 
 void foo(int arg) {}
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -565,7 +565,7 @@ class NewWidget extends StatelessWidget {
   }
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -583,7 +583,7 @@ import 'dart:convert';
 ^
 main() {}
     ''';
-    newFile(mainFilePath, content: content);
+    newFile2(mainFilePath, content);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
@@ -614,7 +614,7 @@ void main() {
   print(1);
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -658,7 +658,7 @@ void bar() {
   print('test');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -693,7 +693,7 @@ void foo2() {
   print('test');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),

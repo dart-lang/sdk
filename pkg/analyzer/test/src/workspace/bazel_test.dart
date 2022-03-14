@@ -27,14 +27,14 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
   late final BazelFileUriResolver resolver;
 
   void setUp() {
-    newFile('/workspace/WORKSPACE');
+    newFile2('/workspace/WORKSPACE', '');
     newFolder('/workspace/bazel-genfiles');
     workspace =
         BazelWorkspace.find(resourceProvider, convertPath('/workspace'))!;
     resolver = BazelFileUriResolver(workspace);
-    newFile('/workspace/test.dart');
-    newFile('/workspace/bazel-bin/gen1.dart');
-    newFile('/workspace/bazel-genfiles/gen2.dart');
+    newFile2('/workspace/test.dart', '');
+    newFile2('/workspace/bazel-bin/gen1.dart', '');
+    newFile2('/workspace/bazel-genfiles/gen2.dart', '');
     expect(workspace.isBazel, isTrue);
   }
 
@@ -560,7 +560,7 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
       } else {
-        newFile(path);
+        newFile2(path, '');
       }
     }
     workspace =
@@ -635,10 +635,10 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_samePackage() {
     _setUpPackage();
-    final targetFile = newFile('/ws/some/code/lib/code2.dart');
-    final targetFile2 = newFile('/ws/some/code/lib/src/code3.dart');
-    final targetBinFile = newFile('/ws/some/code/bin/code.dart');
-    final targetTestFile = newFile('/ws/some/code/test/code_test.dart');
+    final targetFile = newFile2('/ws/some/code/lib/code2.dart', '');
+    final targetFile2 = newFile2('/ws/some/code/lib/src/code3.dart', '');
+    final targetBinFile = newFile2('/ws/some/code/bin/code.dart', '');
+    final targetTestFile = newFile2('/ws/some/code/test/code_test.dart', '');
 
     expect(package!.contains(_testSource(targetFile.path)), isTrue);
     expect(package!.contains(_testSource(targetFile2.path)), isTrue);
@@ -648,8 +648,8 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_samePackage_summarySource() {
     _setUpPackage();
-    newFile('/ws/some/code/lib/code2.dart');
-    newFile('/ws/some/code/lib/src/code3.dart');
+    newFile2('/ws/some/code/lib/code2.dart', '');
+    newFile2('/ws/some/code/lib/src/code3.dart', '');
     final file2Source = _inSummarySource('package:some.code/code2.dart');
     final file3Source = _inSummarySource('package:some.code/src/code2.dart');
 
@@ -659,8 +659,8 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_subPackage() {
     _setUpPackage();
-    newFile('/ws/some/code/testing/BUILD');
-    newFile('/ws/some/code/testing/lib/testing.dart');
+    newFile2('/ws/some/code/testing/BUILD', '');
+    newFile2('/ws/some/code/testing/lib/testing.dart', '');
 
     expect(
       package!.contains(
@@ -701,8 +701,8 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
   void test_findPackageFor_inBlazeOut_notPackage() {
     var path =
         convertPath('/ws/blaze-out/k8-opt/bin/news/lib/news_base.pb.dart');
-    newFile('/ws/news/BUILD', content: '');
-    newFile(path, content: '');
+    newFile2('/ws/news/BUILD', '');
+    newFile2(path, '');
     workspace = BazelWorkspace.find(resourceProvider, path)!;
 
     var package = workspace.findPackageFor(path);
@@ -718,7 +718,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       resourceProvider,
       convertPath('/ws/some/code'),
     )!;
-    final targetFile = newFile('/ws/some/code/lib/code.dart');
+    final targetFile = newFile2('/ws/some/code/lib/code.dart', '');
 
     package = workspace.findPackageFor(targetFile.path);
     expect(package, isNull);
@@ -811,7 +811,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
       } else {
-        newFile(path);
+        newFile2(path, '');
       }
     }
   }
@@ -1055,7 +1055,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
 
   void test_find_null_symlinkPrefix() {
     String prefix = BazelWorkspace.defaultSymlinkPrefix;
-    newFile('/workspace/WORKSPACE');
+    newFile2('/workspace/WORKSPACE', '');
     var workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
@@ -1126,7 +1126,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
       } else {
-        newFile(path);
+        newFile2(path, '');
       }
     }
   }

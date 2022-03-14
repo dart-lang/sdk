@@ -740,7 +740,7 @@ void f(var a) {
 
   Future<void> test_createChange_MethodElement_potential_inPubCache() async {
     var externalPath = '$packagesRootPath/aaa/lib/lib.dart';
-    newFile(externalPath, content: r'''
+    newFile2(externalPath, r'''
 processObj(p) {
   p.test();
 }
@@ -819,7 +819,7 @@ void f(var a) {
   }
 
   Future<void> test_createChange_outsideOfProject_declarationInPackage() async {
-    newFile('$workspaceRootPath/aaa/lib/aaa.dart', content: r'''
+    newFile2('$workspaceRootPath/aaa/lib/aaa.dart', r'''
 class A {
   void test() {}
 }
@@ -867,7 +867,7 @@ void f(A a, B b) {
   }
 
   Future<void> test_createChange_outsideOfProject_referenceInPart() async {
-    newFile('/home/part.dart', content: r'''
+    newFile2('/home/part.dart', r'''
 part of test;
 
 void foo(A a) {

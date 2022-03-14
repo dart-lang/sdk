@@ -232,7 +232,7 @@ class Foo {
     var location = lineInfo.getLocation(offset);
 
     content = content.substring(0, offset) + content.substring(offset + 1);
-    newFile(testPath, content: content);
+    newFile2(testPath, content);
 
     _correctionContext = _CorrectionContext(
       content,

@@ -487,7 +487,7 @@ class CompilationUnitElementImplTest {
 @reflectiveTest
 class ElementAnnotationImplTest extends PubPackageResolutionTest {
   test_computeConstantValue() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   final String f;
   const A(this.f);
@@ -1361,7 +1361,7 @@ class LibraryElementImplTest {
 @reflectiveTest
 class TopLevelVariableElementImplTest extends PubPackageResolutionTest {
   test_computeConstantValue() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 const int C = 42;
 ''');
     await resolveTestCode(r'''

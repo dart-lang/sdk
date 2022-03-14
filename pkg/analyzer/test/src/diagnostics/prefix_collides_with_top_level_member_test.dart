@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class PrefixCollidesWithTopLevelMemberTest extends PubPackageResolutionTest {
   test_functionTypeAlias() async {
-    newFile('$testPackageLibPath/lib.dart', content: r'''
+    newFile2('$testPackageLibPath/lib.dart', r'''
 library lib;
 class A{}
 ''');
@@ -30,7 +30,7 @@ p.A a = p.A();
   }
 
   test_no_collision() async {
-    newFile('$testPackageLibPath/lib.dart', content: r'''
+    newFile2('$testPackageLibPath/lib.dart', r'''
 library lib;
 class A {}''');
     await assertNoErrorsInCode(r'''
@@ -44,7 +44,7 @@ p.A a = p.A();
   }
 
   test_topLevelFunction() async {
-    newFile('$testPackageLibPath/lib.dart', content: r'''
+    newFile2('$testPackageLibPath/lib.dart', r'''
 library lib;
 class A{}
 ''');
@@ -58,7 +58,7 @@ p.A a = p.A();
   }
 
   test_topLevelVariable() async {
-    newFile('$testPackageLibPath/lib.dart', content: r'''
+    newFile2('$testPackageLibPath/lib.dart', r'''
 library lib;
 class A{}
 ''');
@@ -72,7 +72,7 @@ p.A a = p.A();
   }
 
   test_type() async {
-    newFile('$testPackageLibPath/lib.dart', content: r'''
+    newFile2('$testPackageLibPath/lib.dart', r'''
 library lib;
 class A{}
 ''');

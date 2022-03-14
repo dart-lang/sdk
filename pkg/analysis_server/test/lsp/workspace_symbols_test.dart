@@ -22,7 +22,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     extension StringExtensions on String {}
     extension on String {}
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final symbols = await getWorkspaceSymbols('S');
@@ -44,7 +44,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
       myMethod() {}
     }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final symbols = await getWorkspaceSymbols('topLevel');
@@ -69,7 +69,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
       myMethod() {}
     }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     // meld should match myField
@@ -118,7 +118,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
       [[myMethodWithArgs(int a) {}]]
     }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final symbols = await getWorkspaceSymbols('my');

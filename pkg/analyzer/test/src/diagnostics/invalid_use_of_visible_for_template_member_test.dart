@@ -22,7 +22,7 @@ class InvalidUseOfVisibleForTemplateMemberTest
     super.setUp();
 
     var angularMetaPath = '/packages/angular_meta';
-    newFile('$angularMetaPath/lib/angular_meta.dart', content: r'''
+    newFile2('$angularMetaPath/lib/angular_meta.dart', r'''
 library angular.meta;
 
 const _VisibleForTemplate visibleForTemplate = const _VisibleForTemplate();
@@ -40,13 +40,13 @@ class _VisibleForTemplate {
   }
 
   test_export() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
 int fn0() => 1;
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 export 'lib1.dart' show fn0;
 ''');
 
@@ -55,14 +55,14 @@ export 'lib1.dart' show fn0;
   }
 
   test_functionInExtension() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 extension E on List {
   @visibleForTemplate
   int m() => 1;
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   E([]).m();
@@ -76,14 +76,14 @@ void main() {
   }
 
   test_functionInExtension_fromTemplate() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 extension E on List {
   @visibleForTemplate
   int m() => 1;
 }
 ''');
-    newFile('$testPackageLibPath/lib1.template.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.template.dart', r'''
 import 'lib1.dart';
 void main() {
   E([]).m();
@@ -95,14 +95,14 @@ void main() {
   }
 
   test_method() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 class A {
   @visibleForTemplate
   void a(){ }
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 
 class B {
@@ -117,14 +117,14 @@ class B {
   }
 
   test_method_fromTemplate() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 class A {
   @visibleForTemplate
   void a(){ }
 }
 ''');
-    newFile('$testPackageLibPath/lib1.template.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.template.dart', r'''
 import 'lib1.dart';
 
 class B {
@@ -137,7 +137,7 @@ class B {
   }
 
   test_namedConstructor() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 class A {
   int _x;
@@ -146,7 +146,7 @@ class A {
   A.forTemplate(this._x);
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 
 void main() {
@@ -163,7 +163,7 @@ void main() {
   }
 
   test_propertyAccess() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 class A {
   @visibleForTemplate
@@ -173,7 +173,7 @@ class A {
   set b(_) => 7;
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 
 void main() {
@@ -190,7 +190,7 @@ void main() {
   }
 
   test_protectedAndForTemplate_usedAsProtected() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 import 'package:meta/meta.dart';
 class A {
@@ -199,7 +199,7 @@ class A {
   void a(){ }
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 class B extends A {
   void b() => new A().a();
@@ -211,7 +211,7 @@ class B extends A {
   }
 
   test_protectedAndForTemplate_usedAsTemplate() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 import 'package:meta/meta.dart';
 class A {
@@ -220,7 +220,7 @@ class A {
   void a(){ }
 }
 ''');
-    newFile('$testPackageLibPath/lib1.template.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.template.dart', r'''
 import 'lib1.dart';
 void main() {
   new A().a();
@@ -232,13 +232,13 @@ void main() {
   }
 
   test_topLevelFunction() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
 int fn0() => 1;
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 
 void main() {
@@ -253,12 +253,12 @@ void main() {
   }
 
   test_topLevelVariable() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 @visibleForTemplate
 int a = 7;
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 
 void main() {
@@ -273,7 +273,7 @@ void main() {
   }
 
   test_unnamedConstructor() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
 class A {
   int _x;
@@ -282,7 +282,7 @@ class A {
   A(this._x);
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 
 void main() {

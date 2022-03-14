@@ -46,8 +46,8 @@ class AnalysisServerTest with ResourceProviderMixin {
     server.serverServices = {ServerService.STATUS};
     newFolder('/foo');
     newFolder('/bar');
-    newFile('/foo/foo.dart', content: 'import "../bar/bar.dart";');
-    var bar = newFile('/bar/bar.dart', content: 'library bar;');
+    newFile2('/foo/foo.dart', 'import "../bar/bar.dart";');
+    var bar = newFile2('/bar/bar.dart', 'library bar;');
     await server.setAnalysisRoots('0', ['/foo', '/bar'], []);
     var subscriptions = <AnalysisService, Set<String>>{};
     for (var service in AnalysisService.VALUES) {
@@ -119,9 +119,9 @@ class AnalysisServerTest with ResourceProviderMixin {
     // Create a file that references two packages, which will we write to
     // package_config.json individually.
     newFolder(projectRoot);
-    newFile(
+    newFile2(
       projectTestFile,
-      content: r'''
+      r'''
       import "package:foo/foo.dart";'
       import "package:bar/bar.dart";'
       ''',
@@ -183,7 +183,7 @@ class AnalysisServerTest with ResourceProviderMixin {
   Future test_serverStatusNotifications_hasFile() async {
     server.serverServices.add(ServerService.STATUS);
 
-    newFile('/test/lib/a.dart', content: r'''
+    newFile2('/test/lib/a.dart', r'''
 class A {}
 ''');
     await server.setAnalysisRoots('0', [convertPath('/test')], []);
@@ -245,8 +245,8 @@ class A {}
   Future<void>
       test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
     var path = convertPath('/project/samples/sample.dart');
-    newFile(path);
-    newAnalysisOptionsYamlFile('/project', content: r'''
+    newFile2(path, '');
+    newAnalysisOptionsYamlFile2('/project', r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -266,8 +266,8 @@ analyzer:
   Future<void>
       test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
     var path = convertPath('/project/samples/sample.dart');
-    newFile(path);
-    newAnalysisOptionsYamlFile('/project', content: r'''
+    newFile2(path, '');
+    newAnalysisOptionsYamlFile2('/project', r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -334,7 +334,7 @@ analyzer:
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, content: config.toContent(toUriStr: toUriStr));
+    newFile2(path, config.toContent(toUriStr: toUriStr));
   }
 
   /// Creates a simple package named [name] with [content] in the file at
@@ -343,7 +343,7 @@ analyzer:
   /// Returns a [Folder] that represents the packages `lib` folder.
   Folder _addSimplePackage(String name, String content) {
     final packagePath = '/packages/$name';
-    final file = newFile('$packagePath/lib/$name.dart', content: content);
+    final file = newFile2('$packagePath/lib/$name.dart', content);
     return file.parent;
   }
 }

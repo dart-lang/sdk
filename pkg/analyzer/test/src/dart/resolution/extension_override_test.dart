@@ -323,7 +323,7 @@ FunctionExpressionInvocation
   }
 
   test_call_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   int call(String s) => 0;
@@ -414,7 +414,7 @@ FunctionExpressionInvocation
 
   test_call_prefix_typeArguments() async {
     // The test is failing because we're not yet doing type inference.
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   int call(T s) => 0;
@@ -779,7 +779,7 @@ PropertyAccess
   }
 
   test_getter_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   int get g => 0;
@@ -863,7 +863,7 @@ PropertyAccess
   }
 
   test_getter_prefix_typeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   int get g => 0;
@@ -1149,7 +1149,7 @@ MethodInvocation
   }
 
   test_method_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   void m() {}
@@ -1241,7 +1241,7 @@ MethodInvocation
   }
 
   test_method_prefix_typeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   void m() {}
@@ -1601,7 +1601,7 @@ PostfixExpression
   }
 
   test_operator_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   void operator +(int offset) {}
@@ -1687,7 +1687,7 @@ BinaryExpression
   }
 
   test_operator_prefix_typeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   void operator +(int offset) {}
@@ -1999,7 +1999,7 @@ AssignmentExpression
   }
 
   test_setter_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   set s(int x) {}
@@ -2105,7 +2105,7 @@ AssignmentExpression
   }
 
   test_setter_prefix_typeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   set s(int x) {}
@@ -2451,7 +2451,7 @@ AssignmentExpression
   }
 
   test_setterAndGetter_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   int get s => 0;
@@ -2560,7 +2560,7 @@ AssignmentExpression
   }
 
   test_setterAndGetter_prefix_typeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   int get s => 0;

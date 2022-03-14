@@ -28,7 +28,7 @@ void foo() {
   }
 
   test_imported() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class B {}
 ''');
     await assertErrorsInCode('''

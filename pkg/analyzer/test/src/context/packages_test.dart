@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class PackagesTest with ResourceProviderMixin {
   void setUp() {
-    newFile('/test/lib/test.dart', content: '');
+    newFile2('/test/lib/test.dart', '');
   }
 
   void test_findPackagesFrom_missing() {
@@ -66,7 +66,7 @@ class PackagesTest with ResourceProviderMixin {
   }
 
   test_parsePackageConfigJsonFile() {
-    var file = newFile('/test/.dart_tool/package_config.json', content: '''
+    var file = newFile2('/test/.dart_tool/package_config.json', '''
 {
   "configVersion": 2,
   "packages": [
@@ -116,7 +116,7 @@ class PackagesTest with ResourceProviderMixin {
 
   test_parsePackagesFile_packageConfig() {
     var path = convertPath('/test/.dart_tool/package_config.json');
-    newFile(path, content: '''
+    newFile2(path, '''
 {
   "configVersion": 2,
   "packages": [

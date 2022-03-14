@@ -615,7 +615,7 @@ class C<E> {
   }
 
   test_isConst_notInContext_constructor_const_generic_named_prefixed() async {
-    newFile('$testPackageLibPath/c.dart', content: '''
+    newFile2('$testPackageLibPath/c.dart', '''
 class C<E> {
   const C.n();
 }
@@ -638,7 +638,7 @@ class C<E> {
   }
 
   test_isConst_notInContext_constructor_const_generic_unnamed_prefixed() async {
-    newFile('$testPackageLibPath/c.dart', content: '''
+    newFile2('$testPackageLibPath/c.dart', '''
 class C<E> {
   const C();
 }
@@ -689,7 +689,7 @@ class C<E> {
   }
 
   test_isConst_notInContext_constructor_const_nonGeneric_named_prefixed() async {
-    newFile('$testPackageLibPath/c.dart', content: '''
+    newFile2('$testPackageLibPath/c.dart', '''
 class C {
   const C.n();
 }
@@ -712,7 +712,7 @@ class C {
   }
 
   test_isConst_notInContext_constructor_const_nonGeneric_unnamed_prefixed() async {
-    newFile('$testPackageLibPath/c.dart', content: '''
+    newFile2('$testPackageLibPath/c.dart', '''
 class C {
   const C();
 }

@@ -40,7 +40,7 @@ main() {
   List<AnalysisError> get testFileErrors => filesErrors[testFile]!;
 
   void addOptionsFile(String contents) {
-    newFile(optionsFilePath, content: contents);
+    newFile2(optionsFilePath, contents);
   }
 
   @override

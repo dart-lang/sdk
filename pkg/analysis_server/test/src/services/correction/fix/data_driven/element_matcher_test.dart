@@ -366,7 +366,7 @@ String s = '';
 
   Future<void> test_imports_package() async {
     var packageRootPath = '$workspaceRootPath/other';
-    newFile('$packageRootPath/lib/other.dart', content: '');
+    newFile2('$packageRootPath/lib/other.dart', '');
     writeTestPackageConfig(
         config: PackageConfigFileBuilder()
           ..add(name: 'other', rootPath: packageRootPath));

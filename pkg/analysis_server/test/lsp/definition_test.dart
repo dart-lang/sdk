@@ -87,7 +87,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     );
     configureTestPlugin(respondWith: pluginResult);
 
-    newFile(pluginAnalyzedFilePath);
+    newFile2(pluginAnalyzedFilePath, '');
     await initialize();
     final res = await getDefinitionAsLocation(
         pluginAnalyzedFileUri, lsp.Position(line: 0, character: 0));
@@ -189,7 +189,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile(pubspecFilePath, content: simplePubspecContent);
+    newFile2(pubspecFilePath, simplePubspecContent);
     await initialize();
 
     final res = await getDefinitionAsLocation(pubspecFileUri, startOfDocPos);
@@ -287,7 +287,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(contents));
+    newFile2(mainFilePath, withoutMarkers(contents));
     await initialize();
     final res = await getDefinitionAsLocation(
         mainFileUri, positionFromMarker(contents));

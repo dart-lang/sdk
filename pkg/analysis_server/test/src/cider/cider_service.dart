@@ -51,8 +51,8 @@ class CiderServiceTest with ResourceProviderMixin {
 
     logger = PerformanceLog(logBuffer);
 
-    newFile('/workspace/WORKSPACE');
-    newFile('/workspace/dart/test/BUILD');
+    newFile2('/workspace/WORKSPACE', '');
+    newFile2('/workspace/dart/test/BUILD', '');
     createFileResolver();
   }
 

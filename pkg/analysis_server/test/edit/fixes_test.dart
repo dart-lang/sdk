@@ -33,7 +33,7 @@ class FixesTest extends AbstractAnalysisTest {
 
   Future<void> test_fileOutsideRoot() async {
     final outsideFile = '/foo/test.dart';
-    newFile(outsideFile, content: 'bad code to create error');
+    newFile2(outsideFile, 'bad code to create error');
 
     // Set up the original project, as the code fix code won't run at all
     // if there are no contexts.
@@ -152,7 +152,7 @@ print(1)
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
     newPackageConfigJsonFile(
       '/aaa',
-      content: (PackageConfigFileBuilder()
+      (PackageConfigFileBuilder()
             ..add(name: 'aaa', rootPath: '/aaa')
             ..add(name: 'bbb', rootPath: '/bbb'))
           .toContent(toUriStr: toUriStr),
@@ -164,12 +164,12 @@ dependencies:
 
     newPackageConfigJsonFile(
       '/bbb',
-      content: (PackageConfigFileBuilder()..add(name: 'bbb', rootPath: '/bbb'))
+      (PackageConfigFileBuilder()..add(name: 'bbb', rootPath: '/bbb'))
           .toContent(toUriStr: toUriStr),
     );
-    newFile('/bbb/lib/target.dart', content: 'class Foo() {}');
-    newFile('/bbb/lib/target.generated.dart', content: 'class Foo() {}');
-    newFile('/bbb/lib/target.template.dart', content: 'class Foo() {}');
+    newFile2('/bbb/lib/target.dart', 'class Foo() {}');
+    newFile2('/bbb/lib/target.generated.dart', 'class Foo() {}');
+    newFile2('/bbb/lib/target.template.dart', 'class Foo() {}');
 
     await setRoots(
         included: [convertPath('/aaa'), convertPath('/bbb')], excluded: []);

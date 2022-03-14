@@ -112,7 +112,7 @@ void f() {
   }
 
   test_nonNullifyType() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 var a = 0;
 ''');

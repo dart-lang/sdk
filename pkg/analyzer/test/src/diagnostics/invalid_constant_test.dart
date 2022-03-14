@@ -61,7 +61,7 @@ class A {
   }
 
   test_in_initializer_from_deferred_library_field() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 const int c = 1;''');
     await assertErrorsInCode('''
@@ -77,7 +77,7 @@ class A {
   }
 
   test_in_initializer_from_deferred_library_field_nested() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 const int c = 1;
 ''');
@@ -94,7 +94,7 @@ class A {
   }
 
   test_in_initializer_from_deferred_library_redirecting() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 const int c = 1;
 ''');
@@ -111,7 +111,7 @@ class A {
   }
 
   test_in_initializer_from_deferred_library_super() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 const int c = 1;
 ''');
