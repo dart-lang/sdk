@@ -47,7 +47,6 @@ compiler/test/sourcemaps/stacktrace_test: Slow, Pass
 dartdev/test/commands/analyze_test: Slow, Pass
 dartdev/test/commands/help_test: Slow, Pass
 dartdev/test/smoke/*: Slow, Pass
-dds/test/devtools_server/devtools_server_test: Slow, Pass
 dev_compiler/test/modular/*: Slow, Pass
 dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
@@ -146,6 +145,7 @@ vm_service/test/*: SkipByDesign # Uses dart:io
 vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == windows ]
+dds/test/devtools_server/devtools_server_connection_test: Skip # Issue 48528
 dds/test/devtools_server/devtools_server_test: Skip # Issue 48528
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/fasta/strong_test: Pass, Slow, Timeout
