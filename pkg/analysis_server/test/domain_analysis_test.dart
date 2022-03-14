@@ -611,7 +611,7 @@ transforms: []
     // Use long delay, so that it does not happen.
     server.pendingFilesRemoveOverlayDelay = const Duration(seconds: 300);
 
-    newFile(testFilePath, content: '');
+    newFile2(testFilePath, '');
 
     // Add an overlay without errors.
     await handleSuccessfulRequest(
@@ -655,7 +655,7 @@ transforms: []
     );
 
     // Change the file again, has errors.
-    newFile(testFilePath, content: 'error');
+    newFile2(testFilePath, 'error');
 
     // The timer cancelled on the watch event, and the file analyzed.
     await _waitAnalysisComplete();
