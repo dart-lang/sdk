@@ -1819,7 +1819,7 @@ LintCode.use_colored_box:
 LintCode.use_decorated_box:
   status: needsEvaluation
 LintCode.use_enums:
-    status: needsFix
+    status: hasFix
 LintCode.use_full_hex_values_for_flutter_colors:
   status: hasFix
 LintCode.use_function_type_syntax_for_parameters:

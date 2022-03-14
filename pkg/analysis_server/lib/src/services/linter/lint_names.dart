@@ -147,6 +147,7 @@ class LintNames {
   static const String unnecessary_string_interpolations =
       'unnecessary_string_interpolations';
   static const String unnecessary_this = 'unnecessary_this';
+  static const String use_enums = 'use_enums';
   static const String use_full_hex_values_for_flutter_colors =
       'use_full_hex_values_for_flutter_colors';
   static const String use_function_type_syntax_for_parameters =

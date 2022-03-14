@@ -308,6 +308,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Change '{0}' to '{1}' type annotation",
   );
+  static const CONVERT_CLASS_TO_ENUM = FixKind(
+    'dart.fix.convert.classToEnum',
+    DartFixKindPriority.DEFAULT,
+    'Convert class to an enum',
+  );
+  static const CONVERT_CLASS_TO_ENUM_MULTI = FixKind(
+    'dart.fix.convert.classToEnum.multi',
+    DartFixKindPriority.DEFAULT,
+    'Convert classes to enums in file',
+  );
   static const CONVERT_FLUTTER_CHILD = FixKind(
     'dart.fix.flutter.convert.childToChildren',
     DartFixKindPriority.DEFAULT,
