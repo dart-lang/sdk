@@ -777,10 +777,17 @@ config("no_optimize") {
   if (is_win) {
     # The only difference on windows is that the inlining is less aggressive.
     # (We accept the default level). Otherwise it is very slow.
-    cflags = [
-      "/O${debug_optimization_level}",  # Do some optimizations.
-      "/Oy-",  # Disable omitting frame pointers, must be after /O2.
-    ]
+    if (is_clang && debug_optimization_level != "2") {
+      cflags = [
+        "-d${debug_optimization_level}",  # Do some optimizations.
+        "/Oy-",  # Disable omitting frame pointers, must be after /O2.
+      ]
+    } else {
+      cflags = [
+        "/O${debug_optimization_level}",  # Do some optimizations.
+        "/Oy-",  # Disable omitting frame pointers, must be after /O2.
+      ]
+    }
   } else if (is_android) {
     # On Android we kind of optimize some things that don't affect debugging
     # much even when optimization is disabled to get the binary size down.

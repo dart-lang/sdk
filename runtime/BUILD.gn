@@ -168,10 +168,17 @@ config("dart_config") {
   # flags.
   if (is_win) {
     if (dart_debug) {
-      cflags = [
-        "/O${dart_debug_optimization_level}",
-        "/Oy-",
-      ]
+      if (is_clang && dart_debug_optimization_level != "2") {
+        cflags = [
+          "-d${dart_debug_optimization_level}",
+          "/Oy-",
+        ]
+      } else {
+        cflags = [
+          "/O${dart_debug_optimization_level}",
+          "/Oy-",
+        ]
+      }
     } else {
       cflags = [
         "/O2",
