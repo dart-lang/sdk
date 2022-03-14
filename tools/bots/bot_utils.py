@@ -39,6 +39,19 @@ ARCH_RENAMES = {
     'arm64': 'arm64',
 }
 
+SYSTEM_TO_CIPD = {
+    'windows': 'windows',
+    'linux': 'linux',
+    'macos': 'mac',
+}
+
+ARCH_TO_CIPD = {
+    'ia32': '386',
+    'x64': 'amd64',
+    'arm': 'arm6l',
+    'arm64': 'arm64',
+}
+
 
 class Channel(object):
     BETA = 'beta'
