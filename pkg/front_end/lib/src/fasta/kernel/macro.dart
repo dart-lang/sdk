@@ -36,6 +36,12 @@ import 'hierarchy/hierarchy_node.dart';
 
 bool enableMacros = false;
 
+/// Enables macros whether the Macro class actually exists in the transitive
+/// deps or not. This allows for easier experimentation.
+///
+/// TODO: Remove this once it is no longer necessary.
+bool forceEnableMacros = false;
+
 const String augmentationScheme = 'org-dartlang-augmentation';
 
 final Uri macroLibraryUri =
@@ -702,8 +708,10 @@ class MacroApplications {
       //  declarations?
       return new macro.FieldDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
-          identifier: new macro.IdentifierImpl(
-              id: macro.RemoteInstance.uniqueId, name: builder.name),
+          identifier: new _IdentifierImpl.forMemberBuilder(
+              memberBuilder: builder,
+              id: macro.RemoteInstance.uniqueId,
+              name: builder.name),
           definingClass: definingClass.identifier as macro.IdentifierImpl,
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
@@ -713,8 +721,10 @@ class MacroApplications {
     } else {
       return new macro.VariableDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
-          identifier: new macro.IdentifierImpl(
-              id: macro.RemoteInstance.uniqueId, name: builder.name),
+          identifier: new _IdentifierImpl.forMemberBuilder(
+              memberBuilder: builder,
+              id: macro.RemoteInstance.uniqueId,
+              name: builder.name),
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
           isLate: builder.isLate,

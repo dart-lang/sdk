@@ -428,6 +428,7 @@ existentially
 exp
 expando
 expense
+experimentation
 explaining
 exportable
 exportee
