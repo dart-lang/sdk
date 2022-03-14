@@ -666,6 +666,10 @@ bool Options::ParseArguments(int argc,
         if (implicitly_use_dart_dev && Options::vm_service_auth_disabled()) {
           dart_options->AddArgument("--disable-service-auth-codes");
         }
+        if (implicitly_use_dart_dev &&
+            Options::enable_service_port_fallback()) {
+          dart_options->AddArgument("--enable-service-port-fallback");
+        }
       }
       first_option = false;
     }
