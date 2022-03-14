@@ -1,52 +1,67 @@
-// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../util/feature_sets.dart';
-import 'element_text.dart';
-import 'resynthesize_common.dart';
 import 'test_strategies.dart';
 
-main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(ResynthesizeAstKeepLinkingTest);
-    defineReflectiveTests(ResynthesizeAstFromBytesTest);
-    // defineReflectiveTests(ApplyCheckElementTextReplacements);
-  });
-}
-
+/// A base for testing building elements.
 @reflectiveTest
-class ApplyCheckElementTextReplacements {
-  test_applyReplacements() {
-    applyCheckElementTextReplacements();
-  }
-}
-
-@reflectiveTest
-abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
-    with ResynthesizeTestCases {
+abstract class ElementsBaseTest with ResourceProviderMixin {
   /// The shared SDK bundle, computed once and shared among test invocations.
   static _SdkBundle? _sdkBundle;
+
+  /// The set of features enabled in this test.
+  FeatureSet featureSet = FeatureSets.latestWithExperiments;
+
+  DeclaredVariables declaredVariables = DeclaredVariables();
+  late final SourceFactory sourceFactory;
+  late final FolderBasedDartSdk sdk;
+
+  ElementsBaseTest() {
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+    sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
+
+    sourceFactory = SourceFactory([
+      DartUriResolver(sdk),
+      PackageMapUriResolver(resourceProvider, {
+        'test': [
+          getFolder('/home/test/lib'),
+        ],
+      }),
+      ResourceUriResolver(resourceProvider),
+    ]);
+  }
 
   /// We need to test both cases - when we keep linking libraries (happens for
   /// new or invalidated libraries), and when we load libraries from bytes
@@ -94,13 +109,27 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     );
   }
 
-  @override
-  Future<LibraryElementImpl> checkLibrary(String text,
-      {bool allowErrors = false, bool dumpSummaries = false}) async {
-    var source = addTestSource(text);
+  String get testFilePath => '$testPackageLibPath/test.dart';
+
+  String get testPackageLibPath => '$testPackageRootPath/lib';
+
+  String get testPackageRootPath => '/home/test';
+
+  void addSource(String path, String contents) {
+    newFile(path, content: contents);
+  }
+
+  Future<LibraryElementImpl> buildLibrary(
+    String text, {
+    bool allowErrors = false,
+    bool dumpSummaries = false,
+  }) async {
+    var testFile = newFile(testFilePath, content: text);
+    var testUri = sourceFactory.pathToUri(testFile.path)!;
+    var testSource = sourceFactory.forUri2(testUri)!;
 
     var inputLibraries = <LinkInputLibrary>[];
-    _addNonDartLibraries({}, inputLibraries, source);
+    _addNonDartLibraries({}, inputLibraries, testSource);
 
     var unitsInformativeBytes = <Uri, Uint8List>{};
     for (var inputLibrary in inputLibraries) {
@@ -146,11 +175,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
       );
     }
 
-    return elementFactory.libraryOfUri2('${source.uri}');
-  }
-
-  void setUp() {
-    featureSet = FeatureSets.latestWithExperiments;
+    return elementFactory.libraryOfUri2('$testUri');
   }
 
   void _addLibraryUnits(
@@ -262,18 +287,6 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
       return '';
     }
   }
-}
-
-@reflectiveTest
-class ResynthesizeAstFromBytesTest extends ResynthesizeAst2Test {
-  @override
-  bool get keepLinkingLibraries => false;
-}
-
-@reflectiveTest
-class ResynthesizeAstKeepLinkingTest extends ResynthesizeAst2Test {
-  @override
-  bool get keepLinkingLibraries => true;
 }
 
 class _AnalysisSessionForLinking implements AnalysisSessionImpl {
