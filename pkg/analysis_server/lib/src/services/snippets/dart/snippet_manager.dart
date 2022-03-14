@@ -28,6 +28,7 @@ class DartSnippetManager {
       FlutterStatefulWidgetSnippetProducer.newInstance,
       FlutterStatefulWidgetWithAnimationControllerSnippetProducer.newInstance,
       FlutterStatelessWidgetSnippetProducer.newInstance,
+      DartClassSnippetProducer.newInstance,
     ],
     SnippetContext.inBlock: [
       DartDoWhileLoopSnippetProducer.newInstance,
@@ -38,6 +39,8 @@ class DartSnippetManager {
       DartSwitchSnippetProducer.newInstance,
       DartTryCatchSnippetProducer.newInstance,
       DartWhileLoopSnippetProducer.newInstance,
+      DartTestBlockSnippetProducer.newInstance,
+      DartTestGroupBlockSnippetProducer.newInstance,
     ],
   };
 

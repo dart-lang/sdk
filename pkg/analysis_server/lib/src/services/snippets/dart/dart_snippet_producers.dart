@@ -10,6 +10,43 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/lint/linter.dart' show LinterContextImpl;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
+/// Produces a [Snippet] that creates a Class definition.
+class DartClassSnippetProducer extends DartSnippetProducer {
+  static const prefix = 'class';
+  static const label = 'class';
+
+  DartClassSnippetProducer._(DartSnippetRequest request) : super(request);
+
+  @override
+  Future<Snippet> compute() async {
+    final builder = ChangeBuilder(session: request.analysisSession);
+    final indent = utils.getLinePrefix(request.offset);
+
+    await builder.addDartFileEdit(request.filePath, (builder) {
+      builder.addReplacement(request.replacementRange, (builder) {
+        void writeIndented(String string) => builder.write('$indent$string');
+        builder.write('class ');
+        builder.addEmptyLinkedEdit('className');
+        builder.writeln(' {');
+        writeIndented('  ');
+        builder.selectHere();
+        builder.writeln();
+        writeIndented('}');
+      });
+    });
+
+    return Snippet(
+      prefix,
+      label,
+      'Insert a class definition.',
+      builder.sourceChange,
+    );
+  }
+
+  static DartClassSnippetProducer newInstance(DartSnippetRequest request) =>
+      DartClassSnippetProducer._(request);
+}
+
 /// Produces a [Snippet] that creates a `do while` loop.
 class DartDoWhileLoopSnippetProducer extends DartSnippetProducer {
   static const prefix = 'do';
@@ -219,11 +256,7 @@ class DartMainFunctionSnippetProducer extends DartSnippetProducer {
   /// function.
   ///
   /// The parameter is suppressed for any known test directories.
-  bool get _insertArgsParameter {
-    final path = request.unit.path;
-    return !LinterContextImpl.testDirectories
-        .any((testDir) => path.contains(testDir));
-  }
+  bool get _insertArgsParameter => !isInTestDirectory;
 
   @override
   Future<Snippet> compute() async {
@@ -273,6 +306,12 @@ abstract class DartSnippetProducer extends SnippetProducer {
         utils = CorrectionUtils(request.unit),
         super(request);
 
+  bool get isInTestDirectory {
+    final path = request.unit.path;
+    return LinterContextImpl.testDirectories
+        .any((testDir) => path.contains(testDir));
+  }
+
   bool isLintEnabled(String name) {
     var analysisOptions = sessionHelper.session.analysisContext.analysisOptions;
     return analysisOptions.isLintEnabled(name);
@@ -321,6 +360,100 @@ class DartSwitchSnippetProducer extends DartSnippetProducer {
 
   static DartSwitchSnippetProducer newInstance(DartSnippetRequest request) =>
       DartSwitchSnippetProducer._(request);
+}
+
+/// Produces a [Snippet] that creates a `test()` block.
+class DartTestBlockSnippetProducer extends DartSnippetProducer {
+  static const prefix = 'test';
+  static const label = 'test';
+
+  DartTestBlockSnippetProducer._(DartSnippetRequest request) : super(request);
+
+  @override
+  Future<Snippet> compute() async {
+    final builder = ChangeBuilder(session: request.analysisSession);
+    final indent = utils.getLinePrefix(request.offset);
+
+    await builder.addDartFileEdit(request.filePath, (builder) {
+      builder.addReplacement(request.replacementRange, (builder) {
+        void writeIndented(String string) => builder.write('$indent$string');
+        builder.write("test('");
+        builder.addEmptyLinkedEdit('testName');
+        builder.writeln("', () {");
+        writeIndented('  ');
+        builder.selectHere();
+        builder.writeln();
+        writeIndented('});');
+      });
+    });
+
+    return Snippet(
+      prefix,
+      label,
+      'Insert a test block.',
+      builder.sourceChange,
+    );
+  }
+
+  @override
+  Future<bool> isValid() async {
+    if (!await super.isValid()) {
+      return false;
+    }
+
+    return isInTestDirectory;
+  }
+
+  static DartTestBlockSnippetProducer newInstance(DartSnippetRequest request) =>
+      DartTestBlockSnippetProducer._(request);
+}
+
+/// Produces a [Snippet] that creates a `test()` block.
+class DartTestGroupBlockSnippetProducer extends DartSnippetProducer {
+  static const prefix = 'group';
+  static const label = 'group';
+
+  DartTestGroupBlockSnippetProducer._(DartSnippetRequest request)
+      : super(request);
+
+  @override
+  Future<Snippet> compute() async {
+    final builder = ChangeBuilder(session: request.analysisSession);
+    final indent = utils.getLinePrefix(request.offset);
+
+    await builder.addDartFileEdit(request.filePath, (builder) {
+      builder.addReplacement(request.replacementRange, (builder) {
+        void writeIndented(String string) => builder.write('$indent$string');
+        builder.write("group('");
+        builder.addEmptyLinkedEdit('groupName');
+        builder.writeln("', () {");
+        writeIndented('  ');
+        builder.selectHere();
+        builder.writeln();
+        writeIndented('});');
+      });
+    });
+
+    return Snippet(
+      prefix,
+      label,
+      'Insert a test group block.',
+      builder.sourceChange,
+    );
+  }
+
+  @override
+  Future<bool> isValid() async {
+    if (!await super.isValid()) {
+      return false;
+    }
+
+    return isInTestDirectory;
+  }
+
+  static DartTestGroupBlockSnippetProducer newInstance(
+          DartSnippetRequest request) =>
+      DartTestGroupBlockSnippetProducer._(request);
 }
 
 /// Produces a [Snippet] that creates a try/catch statement.

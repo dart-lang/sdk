@@ -22,7 +22,57 @@ void main() {
     defineReflectiveTests(DartSwitchSnippetProducerTest);
     defineReflectiveTests(DartTryCatchSnippetProducerTest);
     defineReflectiveTests(DartWhileLoopSnippetProducerTest);
+    defineReflectiveTests(DartClassSnippetProducerTest);
+    defineReflectiveTests(DartTestBlockSnippetProducerTest);
+    defineReflectiveTests(DartTestGroupBlockSnippetProducerTest);
   });
+}
+
+@reflectiveTest
+class DartClassSnippetProducerTest extends DartSnippetProducerTest {
+  @override
+  final generator = DartClassSnippetProducer.newInstance;
+
+  @override
+  String get label => DartClassSnippetProducer.label;
+
+  @override
+  String get prefix => DartClassSnippetProducer.prefix;
+
+  Future<void> test_class() async {
+    var code = r'''
+class A {}
+  
+^
+
+class B {}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    snippet.change.edits
+        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    expect(code, '''
+class A {}
+  
+class  {
+  
+}
+
+class B {}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 25);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 20},
+        ],
+        'length': 0,
+        'suggestions': []
+      }
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -520,6 +570,110 @@ void f() {
         'suggestions': []
       },
     ]);
+  }
+}
+
+@reflectiveTest
+class DartTestBlockSnippetProducerTest extends DartSnippetProducerTest {
+  @override
+  final generator = DartTestBlockSnippetProducer.newInstance;
+
+  @override
+  String get label => DartTestBlockSnippetProducer.label;
+
+  @override
+  String get prefix => DartTestBlockSnippetProducer.prefix;
+
+  Future<void> test_inTestFile() async {
+    testFile = convertPath('$testPackageLibPath/test/foo_test.dart');
+    var code = r'''
+void f() {
+  test^
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    snippet.change.edits
+        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    expect(code, '''
+void f() {
+  test('', () {
+    
+  });
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 31);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 19},
+        ],
+        'length': 0,
+        'suggestions': []
+      }
+    ]);
+  }
+
+  Future<void> test_notTestFile() async {
+    var code = r'''
+void f() {
+  test^
+}''';
+    await expectNotValidSnippet(code);
+  }
+}
+
+@reflectiveTest
+class DartTestGroupBlockSnippetProducerTest extends DartSnippetProducerTest {
+  @override
+  final generator = DartTestGroupBlockSnippetProducer.newInstance;
+
+  @override
+  String get label => DartTestGroupBlockSnippetProducer.label;
+
+  @override
+  String get prefix => DartTestGroupBlockSnippetProducer.prefix;
+
+  Future<void> test_inTestFile() async {
+    testFile = convertPath('$testPackageLibPath/test/foo_test.dart');
+    var code = r'''
+void f() {
+  group^
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    snippet.change.edits
+        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    expect(code, '''
+void f() {
+  group('', () {
+    
+  });
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 32);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 20},
+        ],
+        'length': 0,
+        'suggestions': []
+      }
+    ]);
+  }
+
+  Future<void> test_notTestFile() async {
+    var code = r'''
+void f() {
+  group^
+}''';
+    await expectNotValidSnippet(code);
   }
 }
 

@@ -2371,6 +2371,25 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
 
 @reflectiveTest
 class DartSnippetCompletionTest extends SnippetCompletionTest {
+  Future<void> test_snippets_class() async {
+    final content = '''
+clas^
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartClassSnippetProducer.prefix,
+      label: DartClassSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+class $1 {
+  $0
+}
+''');
+  }
+
   Future<void> test_snippets_disabled() async {
     final content = '^';
 
@@ -2586,6 +2605,56 @@ void f() {
       break;
     default:
   }
+}
+''');
+  }
+
+  Future<void> test_snippets_testBlock() async {
+    mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
+    mainFileUri = Uri.file(mainFilePath);
+    final content = '''
+void f() {
+  test^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartTestBlockSnippetProducer.prefix,
+      label: DartTestBlockSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  test('$1', () {
+    $0
+  });
+}
+''');
+  }
+
+  Future<void> test_snippets_testGroupBlock() async {
+    mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
+    mainFileUri = Uri.file(mainFilePath);
+    final content = '''
+void f() {
+  group^
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartTestGroupBlockSnippetProducer.prefix,
+      label: DartTestGroupBlockSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void f() {
+  group('$1', () {
+    $0
+  });
 }
 ''');
   }
