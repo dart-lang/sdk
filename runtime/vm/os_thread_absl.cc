@@ -409,7 +409,7 @@ ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Monitor::NotifyAll() {
   // When running with assertions enabled we track the owner.
   ASSERT(IsOwnedByCurrentThread());
-  xdata_.cond()->SignalAll();
+  data_.cond()->SignalAll();
 }
 
 }  // namespace dart
