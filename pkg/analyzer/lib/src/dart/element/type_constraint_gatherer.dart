@@ -47,6 +47,8 @@ class TypeConstraintGatherer {
     _typeParameters.addAll(typeParameters);
   }
 
+  bool get isConstraintSetEmpty => _constraints.isEmpty;
+
   DartType get _defaultTypeParameterBound {
     if (_typeSystem.isNonNullableByDefault) {
       return _typeSystem.objectQuestion;
