@@ -546,6 +546,14 @@ class A {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3),
     ]);
   }
+
+  test_spread_iterable_in_map_context() async {
+    await assertErrorsInCode('''
+Map<int, int> f() => {...[1, 2, 3, 4]};
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 21, 17),
+    ]);
+  }
 }
 
 @reflectiveTest

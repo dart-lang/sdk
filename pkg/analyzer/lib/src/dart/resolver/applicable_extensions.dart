@@ -196,24 +196,21 @@ extension NotInstantiatedExtensionsExtensions<R>
       var freshTypeParameters = freshTypes.freshTypeParameters;
       var rawExtendedType = freshTypes.substitute(extension.extendedType);
 
-      var inferrer = GenericInferrer(typeSystem, freshTypeParameters);
+      var inferrer = GenericInferrer(typeSystem, freshTypeParameters,
+          genericMetadataIsEnabled: genericMetadataIsEnabled);
       inferrer.constrainArgument(
         targetType,
         rawExtendedType,
         'extendedType',
       );
-      var typeArguments = inferrer.infer(
-        freshTypeParameters,
-        failAtError: true,
-        genericMetadataIsEnabled: genericMetadataIsEnabled,
-      );
-      if (typeArguments == null) {
+      var inferredTypes = inferrer.tryUpwardsInfer();
+      if (inferredTypes == null) {
         continue;
       }
 
       var substitution = Substitution.fromPairs(
         extension.typeParameters,
-        typeArguments,
+        inferredTypes,
       );
       var extendedType = substitution.substituteType(
         extension.extendedType,

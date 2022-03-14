@@ -425,13 +425,9 @@ class TypeSystemImpl implements TypeSystem {
   /// Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
   /// infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
   ///
-  /// This is similar to [inferGenericFunctionOrType], but the return type is
+  /// This is similar to [setupGenericTypeInference], but the return type is
   /// also considered as part of the solution.
-  ///
-  /// If this function is called with a [contextType] that is also
-  /// uninstantiated, or a [fnType] that is already instantiated, it will have
-  /// no effect and return `null`.
-  List<DartType>? inferFunctionTypeInstantiation(
+  List<DartType> inferFunctionTypeInstantiation(
     FunctionType contextType,
     FunctionType fnType, {
     ErrorReporter? errorReporter,
@@ -446,87 +442,14 @@ class TypeSystemImpl implements TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var inferrer = GenericInferrer(this, fnType.typeFormals);
+    var inferrer = GenericInferrer(this, fnType.typeFormals,
+        errorReporter: errorReporter,
+        errorNode: errorNode,
+        genericMetadataIsEnabled: genericMetadataIsEnabled);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
-    return inferrer.infer(
-      fnType.typeFormals,
-      errorReporter: errorReporter,
-      errorNode: errorNode,
-      genericMetadataIsEnabled: genericMetadataIsEnabled,
-    );
-  }
-
-  /// Infers type arguments for a generic type, function, method, or
-  /// list/map literal, using the downward context type as well as the
-  /// argument types if available.
-  ///
-  /// For example, given a function type with generic type parameters, this
-  /// infers the type parameters from the actual argument types, and returns the
-  /// instantiated function type.
-  ///
-  /// Concretely, given a function type with parameter types P0, P1, ... Pn,
-  /// result type R, and generic type parameters T0, T1, ... Tm, use the
-  /// argument types A0, A1, ... An to solve for the type parameters.
-  ///
-  /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
-  /// running the subtype algorithm, and when we reach a type parameter Tj,
-  /// recording the lower or upper bound it must satisfy. At the end, all
-  /// constraints can be combined to determine the type.
-  ///
-  /// All constraints on each type parameter Tj are tracked, as well as where
-  /// they originated, so we can issue an error message tracing back to the
-  /// argument values, type parameter "extends" clause, or the return type
-  /// context.
-  List<DartType>? inferGenericFunctionOrType({
-    ClassElement? genericClass,
-    required List<TypeParameterElement> typeParameters,
-    required List<ParameterElement> parameters,
-    required DartType declaredReturnType,
-    required List<DartType> argumentTypes,
-    required DartType? contextReturnType,
-    ErrorReporter? errorReporter,
-    AstNode? errorNode,
-    bool downwards = false,
-    bool isConst = false,
-    required bool genericMetadataIsEnabled,
-  }) {
-    if (typeParameters.isEmpty) {
-      return null;
-    }
-
-    // Create a TypeSystem that will allow certain type parameters to be
-    // inferred. It will optimistically assume these type parameters can be
-    // subtypes (or supertypes) as necessary, and track the constraints that
-    // are implied by this.
-    var inferrer = GenericInferrer(this, typeParameters);
-
-    if (contextReturnType != null) {
-      if (isConst) {
-        contextReturnType = eliminateTypeVariables(contextReturnType);
-      }
-      inferrer.constrainReturnType(declaredReturnType, contextReturnType);
-    }
-
-    for (int i = 0; i < argumentTypes.length; i++) {
-      // Try to pass each argument to each parameter, recording any type
-      // parameter bounds that were implied by this assignment.
-      inferrer.constrainArgument(
-        argumentTypes[i],
-        parameters[i].type,
-        parameters[i].name,
-        genericClass: genericClass,
-      );
-    }
-
-    return inferrer.infer(
-      typeParameters,
-      errorReporter: errorReporter,
-      errorNode: errorNode,
-      downwardsInferPhase: downwards,
-      genericMetadataIsEnabled: genericMetadataIsEnabled,
-    );
+    return inferrer.upwardsInfer();
   }
 
   /// Given a [DartType] [type], if [type] is an uninstantiated
@@ -1295,19 +1218,18 @@ class TypeSystemImpl implements TypeSystem {
     required bool genericMetadataIsEnabled,
   }) {
     var typeParameters = mixinElement.typeParameters;
-    var inferrer = GenericInferrer(this, typeParameters);
+    var inferrer = GenericInferrer(this, typeParameters,
+        considerExtendsClause: false,
+        genericMetadataIsEnabled: genericMetadataIsEnabled);
     for (int i = 0; i < srcTypes.length; i++) {
       inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
       inferrer.constrainReturnType(destTypes[i], srcTypes[i]);
     }
 
-    var inferredTypes = inferrer.infer(
-      typeParameters,
-      considerExtendsClause: false,
-      genericMetadataIsEnabled: genericMetadataIsEnabled,
-    )!;
-    inferredTypes =
-        inferredTypes.map(_removeBoundsOfGenericFunctionTypes).toList();
+    var inferredTypes = inferrer
+        .upwardsInfer()
+        .map(_removeBoundsOfGenericFunctionTypes)
+        .toList();
     var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
 
     for (int i = 0; i < srcTypes.length; i++) {
@@ -1566,6 +1488,36 @@ class TypeSystemImpl implements TypeSystem {
   /// nnbd/feature-specification.md#runtime-type-equality-operator
   bool runtimeTypesEqual(DartType T1, DartType T2) {
     return RuntimeTypeEqualityHelper(this).equal(T1, T2);
+  }
+
+  /// Prepares to infer type arguments for a generic type, function, method, or
+  /// list/map literal, initializing a [GenericInferrer] using the downward
+  /// context type.
+  GenericInferrer setupGenericTypeInference(
+      {required List<TypeParameterElement> typeParameters,
+      required DartType declaredReturnType,
+      required DartType? contextReturnType,
+      ErrorReporter? errorReporter,
+      AstNode? errorNode,
+      required bool genericMetadataIsEnabled,
+      bool isConst = false}) {
+    // Create a GenericInferrer that will allow certain type parameters to be
+    // inferred. It will optimistically assume these type parameters can be
+    // subtypes (or supertypes) as necessary, and track the constraints that
+    // are implied by this.
+    var inferrer = GenericInferrer(this, typeParameters,
+        errorReporter: errorReporter,
+        errorNode: errorNode,
+        genericMetadataIsEnabled: genericMetadataIsEnabled);
+
+    if (contextReturnType != null) {
+      if (isConst) {
+        contextReturnType = eliminateTypeVariables(contextReturnType);
+      }
+      inferrer.constrainReturnType(declaredReturnType, contextReturnType);
+    }
+
+    return inferrer;
   }
 
   /// If a legacy library, return the legacy version of the [type].

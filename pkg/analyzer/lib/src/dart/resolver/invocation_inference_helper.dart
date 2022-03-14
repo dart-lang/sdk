@@ -133,7 +133,7 @@ class InvocationInferenceHelper {
         errorReporter: _errorReporter,
         errorNode: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
-      )!;
+      );
       identifier.tearOffTypeArgumentTypes = typeArguments;
       if (typeArguments.isNotEmpty) {
         return tearOffType.instantiate(typeArguments);
