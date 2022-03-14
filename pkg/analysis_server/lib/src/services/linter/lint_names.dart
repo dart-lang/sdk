@@ -136,6 +136,8 @@ class LintNames {
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_late = 'unnecessary_late';
   static const String unnecessary_new = 'unnecessary_new';
+  static const String unnecessary_null_aware_assignments =
+      'unnecessary_null_aware_assignments';
   static const String unnecessary_null_in_if_null_operators =
       'unnecessary_null_in_if_null_operators';
   static const String unnecessary_nullable_for_final_variable_declarations =

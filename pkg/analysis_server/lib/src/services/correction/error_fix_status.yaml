@@ -1783,7 +1783,7 @@ LintCode.unnecessary_late:
 LintCode.unnecessary_new:
   status: hasFix
 LintCode.unnecessary_null_aware_assignments:
-  status: needsFix
+  status: hasFix
 LintCode.unnecessary_null_checks:
   status: needsEvaluation
 LintCode.unnecessary_null_in_if_null_operators:

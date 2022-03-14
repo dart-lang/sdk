@@ -104,6 +104,7 @@ import 'package:analysis_server/src/services/correction/dart/qualify_reference.d
 import 'package:analysis_server/src/services/correction/dart/remove_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
@@ -627,6 +628,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_new: [
       RemoveUnnecessaryNew.newInstance,
+    ],
+    LintNames.unnecessary_null_aware_assignments: [
+      RemoveAssignment.newInstance,
     ],
     LintNames.unnecessary_null_in_if_null_operators: [
       RemoveIfNullOperator.newInstance,

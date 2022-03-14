@@ -829,6 +829,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove arguments in file',
   );
+  static const REMOVE_ASSIGNMENT = FixKind(
+    'dart.fix.remove.assignment',
+    DartFixKindPriority.DEFAULT,
+    'Remove assignment',
+  );
+  static const REMOVE_ASSIGNMENT_MULTI = FixKind(
+    'dart.fix.remove.assignment.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove unnecessary assignments everywhere in file',
+  );
   static const REMOVE_AWAIT = FixKind(
     'dart.fix.remove.await',
     DartFixKindPriority.DEFAULT,
