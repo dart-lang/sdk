@@ -39,7 +39,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_null_awa
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_to_super_initializing_parameter.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_super_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/encapsulate_field.dart';
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_convert_to_children.dart';
@@ -120,7 +120,7 @@ class AssistProcessor extends BaseProcessor {
     ConvertToRelativeImport.newInstance,
     ConvertToSetLiteral.newInstance,
     ConvertToSingleQuotes.newInstance,
-    ConvertToSuperInitializingParameter.newInstance,
+    ConvertToSuperParameters.newInstance,
     EncapsulateField.newInstance,
     ExchangeOperands.newInstance,
     FlutterConvertToChildren.newInstance,
