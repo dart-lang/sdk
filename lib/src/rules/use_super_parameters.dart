@@ -42,15 +42,15 @@ class B extends A {
 ```
 ''';
 
-class UseSuperInitializers extends LintRule {
+class UseSuperParameters extends LintRule {
   static const LintCode singleParam =
-      LintCode('use_super_initializers', "Convert '{0}' to a super parameter.");
+      LintCode('use_super_parameters', "Convert '{0}' to a super parameter.");
   static const LintCode multipleParams =
-      LintCode('use_super_initializers', 'Convert {0} to super parameters.');
+      LintCode('use_super_parameters', 'Convert {0} to super parameters.');
 
-  UseSuperInitializers()
+  UseSuperParameters()
       : super(
-            name: 'use_super_initializers',
+            name: 'use_super_parameters',
             description: _desc,
             details: _details,
             maturity: Maturity.experimental,
@@ -230,10 +230,10 @@ class _Visitor extends SimpleAstVisitor {
     if (identifiers.length > 1) {
       var msg = identifiers.quotedAndCommaSeparatedWithAnd;
       rule.reportLint(target,
-          errorCode: UseSuperInitializers.multipleParams, arguments: [msg]);
+          errorCode: UseSuperParameters.multipleParams, arguments: [msg]);
     } else {
       rule.reportLint(target,
-          errorCode: UseSuperInitializers.singleParam,
+          errorCode: UseSuperParameters.singleParam,
           arguments: [identifiers.first]);
     }
   }

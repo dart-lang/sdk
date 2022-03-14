@@ -1,3 +1,9 @@
+# 1.20.0
+
+- renamed `use_super_initializers` to `use_super_parameters`
+- fixed `unnecessary_null_aware_assignments` property-access
+  false positive
+
 # 1.19.2
 
 - new lint: `use_super_initializers`

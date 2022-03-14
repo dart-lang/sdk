@@ -8,19 +8,19 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UseSuperInitializersTest);
+    defineReflectiveTests(UseSuperParametersTest);
   });
 }
 
 @reflectiveTest
-class UseSuperInitializersTest extends LintRuleTest {
+class UseSuperParametersTest extends LintRuleTest {
   @override
   List<String> get experiments => [
         EnableString.super_parameters,
       ];
 
   @override
-  String get lintRule => 'use_super_initializers';
+  String get lintRule => 'use_super_parameters';
 
   test_named() async {
     await assertDiagnostics(r'''
@@ -31,7 +31,7 @@ class B extends A {
   const B({int? x, int? y}) : super(x: x, y: y);
 }
 ''', [
-      lint('use_super_initializers', 69, 1),
+      lint('use_super_parameters', 69, 1),
     ]);
   }
 
@@ -182,7 +182,7 @@ class B extends A {
   B(int x, {int? foo}) : super(x, foo: 0); 
 }
 ''', [
-      lint('use_super_initializers', 59, 1),
+      lint('use_super_parameters', 59, 1),
     ]);
   }
 
@@ -195,7 +195,7 @@ class B extends A {
   B(int x) : super(x);
 }
 ''', [
-      lint('use_super_initializers', 56, 1),
+      lint('use_super_parameters', 56, 1),
     ]);
   }
 
@@ -208,7 +208,7 @@ class B extends A {
   B([int x = 0]) : super(x);
 }
 ''', [
-      lint('use_super_initializers', 46, 1),
+      lint('use_super_parameters', 46, 1),
     ]);
   }
 
@@ -223,7 +223,7 @@ class C extends B {
   C(int foo, int bar) : super(foo, bar);
 }
 ''', [
-      lint('use_super_initializers', 93, 1),
+      lint('use_super_parameters', 93, 1),
     ]);
   }
 
@@ -236,7 +236,7 @@ class B extends A {
   B(int x, int y) : super(x, y: y);
 }
 ''', [
-      lint('use_super_initializers', 56, 1),
+      lint('use_super_parameters', 56, 1),
     ]);
   }
 
@@ -251,7 +251,7 @@ class C extends B {
   C(int baz, int foo, int bar) : super(foo, bar);
 }
 ''', [
-      lint('use_super_initializers', 93, 1),
+      lint('use_super_parameters', 93, 1),
     ]);
   }
 
@@ -264,7 +264,7 @@ class B extends A {
   B(int x, {int? y}) : super(x, y: y);
 }
 ''', [
-      lint('use_super_initializers', 56, 1),
+      lint('use_super_parameters', 56, 1),
     ]);
   }
 }
