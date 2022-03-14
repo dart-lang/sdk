@@ -39,6 +39,10 @@ class MyHttpClient1 implements HttpClient {
   set authenticate(Future<bool> f(Uri url, String scheme, String realm)) {}
   void addCredentials(
       Uri url, String realm, HttpClientCredentials credentials) {}
+  set connectionFactory(
+      Future<ConnectionTask<Socket>> Function(
+              Uri url, String proxyHost, int proxyPort)
+          f) {}
   set findProxy(String f(Uri url)) {}
   set authenticateProxy(
       Future<bool> f(String host, int port, String scheme, String realm)) {}
@@ -46,6 +50,8 @@ class MyHttpClient1 implements HttpClient {
       String host, int port, String realm, HttpClientCredentials credentials) {}
   set badCertificateCallback(
       bool callback(X509Certificate cert, String host, int port)) {}
+  void set keyLog(Function(String line) callback) =>
+      throw UnsupportedError("keyLog not implemented");
   void close({bool force: false}) {}
 }
 
@@ -79,6 +85,10 @@ class MyHttpClient2 implements HttpClient {
   set authenticate(Future<bool> f(Uri url, String scheme, String realm)) {}
   void addCredentials(
       Uri url, String realm, HttpClientCredentials credentials) {}
+  set connectionFactory(
+      Future<ConnectionTask<Socket>> Function(
+              Uri url, String proxyHost, int proxyPort)
+          f) {}
   set findProxy(String f(Uri url)) {}
   set authenticateProxy(
       Future<bool> f(String host, int port, String scheme, String realm)) {}
@@ -86,6 +96,8 @@ class MyHttpClient2 implements HttpClient {
       String host, int port, String realm, HttpClientCredentials credentials) {}
   set badCertificateCallback(
       bool callback(X509Certificate cert, String host, int port)) {}
+  void set keyLog(Function(String line) callback) =>
+      throw UnsupportedError("keyLog not implemented");
   void close({bool force: false}) {}
 }
 

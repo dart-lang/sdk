@@ -6,7 +6,7 @@
 
 // Derived from language_2/mixin_declaration/mixin_declaration_subtype_test.
 
-import "package:expect/expect.dart";
+import "package:compiler/src/util/testing.dart";
 
 // A mixin declaration introduces a type.
 
@@ -82,33 +82,30 @@ class GC<T> implements GA<T>, GB<List<T>> {}
 /*class: GD:checkedInstance,typeArgument*/
 class GD<T> = GC<T> with GM<T>;
 
-@pragma('dart2js:noInline')
-test(o) {}
-
 main() {
-  test(new M3());
-  test(new D2());
-  test(new D4());
-  test(new E5());
-  Expect.subtype<M1, A>();
-  Expect.subtype<M1, B>();
-  Expect.subtype<M1, I>();
-  Expect.subtype<M1, J>();
-  Expect.subtype<D1, M1>();
-  Expect.subtype<D2, M2>();
-  Expect.subtype<D3, M3>();
-  Expect.subtype<D4, M4>();
-  Expect.subtype<D5, M5>();
-  Expect.subtype<E5, M5>();
-  Expect.notSubtype<M1, C>();
-  Expect.notSubtype<C, M1>();
+  makeLive(new M3());
+  makeLive(new D2());
+  makeLive(new D4());
+  makeLive(new E5());
+  subtype<M1, A>();
+  subtype<M1, B>();
+  subtype<M1, I>();
+  subtype<M1, J>();
+  subtype<D1, M1>();
+  subtype<D2, M2>();
+  subtype<D3, M3>();
+  subtype<D4, M4>();
+  subtype<D5, M5>();
+  subtype<E5, M5>();
+  notSubtype<M1, C>();
+  notSubtype<C, M1>();
 
-  Expect.subtype<GM<int>, GA<int>>();
-  Expect.subtype<GM<int>, GB<List<int>>>();
-  Expect.subtype<GM<int>, GI<Iterable<int>>>();
-  Expect.subtype<GM<int>, GJ<Set<int>>>();
-  Expect.subtype<GD<int>, GM<int>>();
-  Expect.subtype<GD<int>, GC<int>>();
-  Expect.notSubtype<GM<int>, GC<int>>();
-  Expect.notSubtype<GC<int>, GM<int>>();
+  subtype<GM<int>, GA<int>>();
+  subtype<GM<int>, GB<List<int>>>();
+  subtype<GM<int>, GI<Iterable<int>>>();
+  subtype<GM<int>, GJ<Set<int>>>();
+  subtype<GD<int>, GM<int>>();
+  subtype<GD<int>, GC<int>>();
+  notSubtype<GM<int>, GC<int>>();
+  notSubtype<GC<int>, GM<int>>();
 }

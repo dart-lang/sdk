@@ -92,6 +92,22 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
     assertHasFileTarget(testFile, offset, length);
   }
 
+  /// TODO(scheglov) Improve target matching.
+  void assertHasTargetInDartCore(String search) {
+    var dartCoreFile = getFile('/sdk/lib/core/core.dart');
+    var dartCoreContent = dartCoreFile.readAsStringSync();
+
+    var offset = dartCoreContent.indexOf(search);
+    expect(offset, isNot(-1));
+
+    if (dartCoreContent.contains(search, offset + search.length)) {
+      fail('Not unique');
+    }
+
+    var length = findIdentifierLength(search);
+    assertHasFileTarget(dartCoreFile.path, offset, length);
+  }
+
   /// Validates that there is a target in [testTargets]  with [testFile], at the
   /// offset of [str] in [testFile], and with the length of  [str].
   void assertHasTargetString(String str) {
@@ -347,19 +363,7 @@ main() {
     assertHasRegion('myan // ref');
   }
 
-  Future<void> test_class_fromSDK() async {
-    addTestFile('''
-int V = 42;
-''');
-    await prepareNavigation();
-    assertHasRegion('int V');
-    var targetIndex = testTargetIndexes[0];
-    var target = targets[targetIndex];
-    expect(target.startLine, greaterThan(0));
-    expect(target.startColumn, greaterThan(0));
-  }
-
-  Future<void> test_constructor_named() async {
+  Future<void> test_class_constructor_named() async {
     addTestFile('''
 class A {
   A.named(BBB p) {}
@@ -377,7 +381,7 @@ class BBB {}
     assertHasRegionTarget('BBB p', 'BBB {}');
   }
 
-  Future<void> test_constructor_unnamed() async {
+  Future<void> test_class_constructor_unnamed() async {
     addTestFile('''
 class A {
   A(BBB p) {}
@@ -392,7 +396,7 @@ class BBB {}
     assertHasRegionTarget('BBB p', 'BBB {}');
   }
 
-  Future<void> test_constructorReference_named() async {
+  Future<void> test_class_constructorReference_named() async {
     addTestFile('''
 class A {}
 class B<T> {
@@ -408,7 +412,7 @@ void f() {
     assertHasRegionTarget('A>', 'A {}');
   }
 
-  Future<void> test_constructorReference_unnamed_declared() async {
+  Future<void> test_class_constructorReference_unnamed_declared() async {
     addTestFile('''
 class A {
   A();
@@ -422,7 +426,7 @@ void f() {
     assertHasRegionTarget('new;', 'A();', targetLength: 0);
   }
 
-  Future<void> test_constructorReference_unnamed_declared_new() async {
+  Future<void> test_class_constructorReference_unnamed_declared_new() async {
     addTestFile('''
 class A {
   A.new();
@@ -436,7 +440,7 @@ void f() {
     assertHasRegionTarget('new;', 'new();');
   }
 
-  Future<void> test_constructorReference_unnamed_default() async {
+  Future<void> test_class_constructorReference_unnamed_default() async {
     addTestFile('''
 class A {}
 void f() {
@@ -448,55 +452,7 @@ void f() {
     assertHasRegionTarget('new;', 'A {}');
   }
 
-  Future<void> test_enum_constant() async {
-    addTestFile('''
-enum E { a, b }
-void f() {
-  E.a;
-}
-''');
-    await prepareNavigation();
-    assertHasRegion('a;');
-    assertHasTarget('a,');
-  }
-
-  Future<void> test_enum_index() async {
-    addTestFile('''
-enum E { a, b }
-void f() {
-  E.a.index;
-}
-''');
-    await prepareNavigation();
-    assertHasRegion('index');
-    assertHasTarget('E {');
-  }
-
-  Future<void> test_enum_values() async {
-    addTestFile('''
-enum E { a, b }
-void f() {
-  E.values;
-}
-''');
-    await prepareNavigation();
-    assertHasRegion('values');
-    assertHasTarget('E');
-  }
-
-  Future<void> test_extension_on() async {
-    addTestFile('''
-class C //1
-{}
-extension E on C //2
-{}
-''');
-    await prepareNavigation();
-    assertHasRegion('C //2');
-    assertHasTarget('C //1');
-  }
-
-  Future<void> test_factoryRedirectingConstructor_implicit() async {
+  Future<void> test_class_factoryRedirectingConstructor_implicit() async {
     addTestFile('''
 class A {
   factory A() = B;
@@ -510,7 +466,7 @@ class B {
   }
 
   Future<void>
-      test_factoryRedirectingConstructor_implicit_withTypeArgument() async {
+      test_class_factoryRedirectingConstructor_implicit_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -529,7 +485,7 @@ class C<T> {}
     }
   }
 
-  Future<void> test_factoryRedirectingConstructor_named() async {
+  Future<void> test_class_factoryRedirectingConstructor_named() async {
     addTestFile('''
 class A {
   factory A() = B.named;
@@ -550,7 +506,7 @@ class B {
   }
 
   Future<void>
-      test_factoryRedirectingConstructor_named_withTypeArgument() async {
+      test_class_factoryRedirectingConstructor_named_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -575,7 +531,7 @@ class C<T> {
     }
   }
 
-  Future<void> test_factoryRedirectingConstructor_unnamed() async {
+  Future<void> test_class_factoryRedirectingConstructor_unnamed() async {
     addTestFile('''
 class A {
   factory A() = B;
@@ -590,7 +546,7 @@ class B {
   }
 
   Future<void>
-      test_factoryRedirectingConstructor_unnamed_withTypeArgument() async {
+      test_class_factoryRedirectingConstructor_unnamed_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -611,7 +567,7 @@ class C<T> {
     }
   }
 
-  Future<void> test_factoryRedirectingConstructor_unresolved() async {
+  Future<void> test_class_factoryRedirectingConstructor_unresolved() async {
     addTestFile('''
 class A {
   factory A() = B;
@@ -621,7 +577,7 @@ class A {
     // don't check regions, but there should be no exceptions
   }
 
-  Future<void> test_fieldFormalParameter() async {
+  Future<void> test_class_fieldFormalParameter() async {
     addTestFile('''
 class AAA {
   int fff = 123;
@@ -632,7 +588,7 @@ class AAA {
     assertHasRegionTarget('fff);', 'fff = 123');
   }
 
-  Future<void> test_fieldFormalParameter_unresolved() async {
+  Future<void> test_class_fieldFormalParameter_unresolved() async {
     addTestFile('''
 class AAA {
   AAA(this.fff);
@@ -640,6 +596,201 @@ class AAA {
 ''');
     await prepareNavigation();
     assertNoRegion('fff);', 3);
+  }
+
+  Future<void> test_class_fromSDK() async {
+    addTestFile('''
+int V = 42;
+''');
+    await prepareNavigation();
+    assertHasRegion('int V');
+    var targetIndex = testTargetIndexes[0];
+    var target = targets[targetIndex];
+    expect(target.startLine, greaterThan(0));
+    expect(target.startColumn, greaterThan(0));
+  }
+
+  Future<void> test_enum_constant() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.a;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('a;');
+    assertHasTarget('a,');
+  }
+
+  Future<void> test_enum_constructor_named() async {
+    addTestFile('''
+const a = 0;
+
+enum E<T> {
+  v<int>.named(a); // 1
+  E.named(int _) {}
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('v<int', 'named(int');
+    assertHasRegion('int>');
+    assertHasRegionTarget('named(a); // 1', 'named(int');
+    assertHasRegionTarget('a); // 1', 'a = 0');
+
+    assertHasRegion('int _');
+  }
+
+  Future<void> test_enum_constructor_unnamed() async {
+    addTestFile('''
+enum E {
+  v1,
+  v2(),
+  v3.new();
+  const E();
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('v1', 'E();', targetLength: 0);
+    assertHasRegionTarget('v2()', 'E();', targetLength: 0);
+    assertHasRegionTarget('v3', 'E();', targetLength: 0);
+    assertHasRegionTarget('new()', 'E();', targetLength: 0);
+  }
+
+  Future<void> test_enum_field() async {
+    addTestFile('''
+enum E {
+  v;
+  final int foo = 0;
+  void bar() {
+    foo;
+    foo = 1;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int foo');
+    assertHasRegionTarget('foo;', 'foo = 0;');
+    assertHasRegionTarget('foo = 1;', 'foo = 0;');
+  }
+
+  Future<void> test_enum_getter() async {
+    addTestFile('''
+enum E {
+  v;
+  int get foo => 0;
+  void bar() {
+    foo;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int get');
+    assertHasRegionTarget('foo;', 'foo =>');
+  }
+
+  Future<void> test_enum_implements() async {
+    addTestFile('''
+class A {}
+
+enum E implements A { // ref
+  v
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('A { // ref', 'A {}');
+  }
+
+  Future<void> test_enum_index() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.a.index;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('index');
+    assertHasTargetInDartCore('index;');
+  }
+
+  Future<void> test_enum_method() async {
+    addTestFile('''
+enum E {
+  v;
+  void foo(int a) {}
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int ');
+  }
+
+  Future<void> test_enum_setter() async {
+    addTestFile('''
+enum E {
+  v;
+  set foo(int _) {}
+  void bar() {
+    foo = 0;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int _');
+    assertHasRegionTarget('foo = 0;', 'foo(');
+  }
+
+  Future<void> test_enum_typeParameter() async {
+    addTestFile('''
+enum E<T> {
+  v(0);
+  const E(T t);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('T t', 'T>');
+  }
+
+  Future<void> test_enum_values() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.values;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('values');
+    assertHasTarget('E');
+  }
+
+  Future<void> test_enum_with() async {
+    addTestFile('''
+mixin M {}
+
+enum E with M { // ref
+  v
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('M { // ref', 'M {}');
+  }
+
+  Future<void> test_extension_on() async {
+    addTestFile('''
+class C //1
+{}
+extension E on C //2
+{}
+''');
+    await prepareNavigation();
+    assertHasRegion('C //2');
+    assertHasTarget('C //1');
   }
 
   Future<void> test_functionReference_className_staticMethod() async {
@@ -930,6 +1081,19 @@ main() {
 ''');
     await prepareNavigation();
     assertNoRegionAt('TEST');
+  }
+
+  Future<void> test_namedExpression_name() async {
+    addTestFile('''
+void f(int a, int b, {int? c, int? d}) {}
+
+void g() {
+  f(0, c: 2, 1, d: 3);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('c: 2', 'c,');
+    assertHasRegionTarget('d: 3', 'd}) {}');
   }
 
   Future<void> test_operator_arithmetic() async {

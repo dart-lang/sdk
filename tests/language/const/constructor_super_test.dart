@@ -17,8 +17,10 @@ class B extends A {
         super(x);
 
   // Const constructor cannot call non-const super constructor.
-  const B.zerofive() : b = 0, super(5);
-  //                          ^^^^^^^^
+  const B.zerofive()
+      : b = 0,
+        super(5);
+  //    ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
   // [cfe] A constant constructor can't call a non-constant super constructor.
 }
@@ -29,9 +31,9 @@ class C extends A {
   const C.named(x);
   //    ^
   // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
-  // [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
   //    ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
+  // [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
 }
 
 main() {

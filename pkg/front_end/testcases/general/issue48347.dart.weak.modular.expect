@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+
+import "dart:async";
+
+static method test(asy::StreamController<void> _eventStreamController) → dynamic async {
+  await for (final void _ in _eventStreamController.{asy::StreamController::stream}{asy::Stream<void>}) {
+  }
+}
+static method main() → dynamic {}

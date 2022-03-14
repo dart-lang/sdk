@@ -241,7 +241,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     // 'dart:test' is used in the unit tests and isn't an actual part of the
     // platform.
     if (skipPlatform &&
-        node.importUri.scheme == 'dart' &&
+        node.importUri.isScheme('dart') &&
         node.importUri.path != 'test') {
       return;
     }
@@ -304,7 +304,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
 
   bool isObjectClass(Class c) {
     return c.name == "Object" &&
-        c.enclosingLibrary.importUri.scheme == "dart" &&
+        c.enclosingLibrary.importUri.isScheme("dart") &&
         c.enclosingLibrary.importUri.path == "core";
   }
 
@@ -435,7 +435,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   }
 
   void _checkConstructorTearOff(Node node, Member tearOffTarget) {
-    if (tearOffTarget.enclosingLibrary.importUri.scheme == 'dart') {
+    if (tearOffTarget.enclosingLibrary.importUri.isScheme('dart')) {
       // Platform libraries are not compilation with test flags and might
       // contain tear-offs not expected when testing lowerings.
       return;
@@ -540,7 +540,7 @@ class FastaVerifyGetStaticType extends VerifyGetStaticType {
     // 'dart:test' is used in the unit tests and isn't an actual part of the
     // platform.
     if (skipPlatform &&
-        node.importUri.scheme == 'dart' &&
+        node.importUri.isScheme('dart') &&
         node.importUri.path != "test") {
       return;
     }

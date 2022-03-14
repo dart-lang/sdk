@@ -25,6 +25,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_abstract.dart';
+import 'domain_completion_test.dart';
 import 'mocks.dart';
 
 void main() {
@@ -43,8 +44,6 @@ class AnalysisDomainBazelTest extends _AnalysisDomainTest {
   String get myPackageRootPath => '$workspaceRootPath/dart/my';
 
   String get myPackageTestFilePath => '$myPackageLibPath/test.dart';
-
-  String get workspaceRootPath => '/workspace';
 
   @override
   void setUp() {
@@ -347,15 +346,8 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 
 @reflectiveTest
 class AnalysisDomainPubTest extends _AnalysisDomainTest {
-  String get testFilePath => '$testPackageLibPath/test.dart';
-
-  String get testPackageLibPath => '$testPackageRootPath/lib';
-
-  String get testPackageRootPath => '$workspaceRootPath/test';
-
-  String get workspaceRootPath => '/home';
-
   Future<void> test_fileSystem_addFile_analysisOptions() async {
+    deleteTestPackageAnalysisOptionsFile();
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
@@ -389,6 +381,7 @@ analyzer:
   }
 
   Future<void> test_fileSystem_addFile_analysisOptions_analysis() async {
+    deleteTestPackageAnalysisOptionsFile();
     var a_path = '$testPackageLibPath/a.dart';
     var options_path = '$testPackageRootPath/analysis_options.yaml';
 
@@ -460,16 +453,15 @@ analyzer:
   }
 
   Future<void> test_fileSystem_addFile_dart_dotFolder() async {
-    var a_path = '$projectPath/lib/.foo/a.dart';
-    var b_path = '$projectPath/lib/b.dart';
+    var a_path = '$testPackageLibPath/.foo/a.dart';
+    var b_path = '$testPackageLibPath/b.dart';
 
     newFile(b_path, content: r'''
 import '.foo/a.dart';
 void f(A a) {}
 ''');
 
-    await createProject();
-    await pumpEventQueue();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
     // We don't have a.dart, so the import cannot be resolved.
@@ -489,10 +481,10 @@ class A {}
   }
 
   Future<void> test_fileSystem_addFile_dart_excluded() async {
-    var a_path = '$projectPath/lib/a.dart';
-    var b_path = '$projectPath/lib/b.dart';
+    var a_path = '$testPackageLibPath/a.dart';
+    var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile(projectPath, content: r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, content: r'''
 analyzer:
   exclude:
     - "**/a.dart"
@@ -503,8 +495,7 @@ import 'a.dart';
 void f(A a) {}
 ''');
 
-    await createProject();
-    await pumpEventQueue();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
     // We don't have a.dart, so the import cannot be resolved.
@@ -524,6 +515,7 @@ class A {}
   }
 
   Future<void> test_fileSystem_addFile_dotPackagesFile() async {
+    deleteTestPackageConfigJsonFile();
     var aaaLibPath = '/packages/aaa/lib';
     var a_path = '$aaaLibPath/a.dart';
 
@@ -562,12 +554,6 @@ aaa:${toUriStr(aaaLibPath)}
 
     newFile('$testPackageLibPath/a.dart', content: '');
 
-    // Make sure that it is a package.
-    writePackageConfig(
-      '$testPackageRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder(),
-    );
-
     await setRoots(included: [workspaceRootPath], excluded: []);
 
     // No `fix_data.yaml` to analyze yet.
@@ -605,9 +591,9 @@ void f(A a) {}
     assertHasErrors(testFilePath);
 
     // Write `package_config.json`, recreate analysis contexts.
-    writePackageConfig(
-      '$testPackageRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     await pumpEventQueue();
@@ -857,6 +843,7 @@ class A {}
   }
 
   Future<void> test_fileSystem_changeFile_dotPackagesFile() async {
+    deleteTestPackageConfigJsonFile();
     var aaaLibPath = '/packages/aaa/lib';
     var a_path = '$aaaLibPath/a.dart';
 
@@ -898,12 +885,6 @@ aaa:${toUriStr(aaaLibPath)}
 
     newFile('$testPackageLibPath/a.dart', content: '');
 
-    // Make sure that it is a package.
-    writePackageConfig(
-      '$testPackageRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder(),
-    );
-
     // This file has an error.
     newFile(path, content: '0: 1');
 
@@ -935,12 +916,6 @@ transforms: []
 class A {}
 ''');
 
-    // Write the empty file, without `package:aaa`.
-    writePackageConfig(
-      '$testPackageRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder(),
-    );
-
     newFile(testFilePath, content: '''
 import 'package:aaa/a.dart';
 void f(A a) {}
@@ -949,13 +924,14 @@ void f(A a) {}
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
+    // The default `package_config.json` is without `package:aaa`.
     // We cannot resolve `package:aaa/a.dart`
     assertHasErrors(testFilePath);
 
     // Write `package_config.json`, recreate analysis contexts.
-    writePackageConfig(
-      '$testPackageRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     await pumpEventQueue();
@@ -1090,6 +1066,7 @@ void f(A a) {}
   }
 
   Future<void> test_fileSystem_deleteFile_dotPackagesFile() async {
+    deleteTestPackageConfigJsonFile();
     var aaaLibPath = '/packages/aaa/lib';
     var a_path = '$aaaLibPath/a.dart';
 
@@ -1130,12 +1107,6 @@ void f(A a) {}
 
     newFile('$testPackageLibPath/a.dart', content: '');
 
-    // Make sure that it is a package.
-    writePackageConfig(
-      '$testPackageRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder(),
-    );
-
     // This file has an error.
     newFile(path, content: '0: 1');
 
@@ -1161,9 +1132,9 @@ class A {}
 ''');
 
     // Write the empty file, without `package:aaa`.
-    writePackageConfig(
-      '$testPackageRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     newFile(testFilePath, content: '''
@@ -1193,6 +1164,7 @@ void f(A a) {}
   }
 
   Future<void> test_setRoots_dotPackagesFile() async {
+    deleteTestPackageConfigJsonFile();
     var aaaLibPath = '/packages/aaa/lib';
     var a_path = '$aaaLibPath/a.dart';
 
@@ -1373,13 +1345,7 @@ analyzer:
   Future<void> test_setRoots_notDartFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
-    // Make sure that it is a package.
-    writePackageConfig(
-      '$testPackageRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder(),
-    );
-
-    // So, `lib/fix_data.yaml` will be analyzed.
+    // `lib/fix_data.yaml` will be analyzed.
     newFile(path, content: '0: 1');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
@@ -1395,9 +1361,9 @@ analyzer:
 class A {}
 ''');
 
-    writePackageConfig(
-      '$testPackageRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     newFile(testFilePath, content: '''
@@ -1454,8 +1420,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
         InstrumentationService.NULL_SERVICE);
     handler = AnalysisDomainHandler(server);
     // listen for notifications
-    var notificationStream = serverChannel.notificationController.stream;
-    notificationStream.listen((Notification notification) {
+    serverChannel.notifications.listen((Notification notification) {
       if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
         var decoded = AnalysisErrorsParams.fromNotification(notification);
         filesErrors[decoded.file] = decoded.errors;
@@ -1763,7 +1728,7 @@ class A {}
   }
 }
 
-class _AnalysisDomainTest extends AbstractAnalysisTest {
+class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
   final Map<String, List<AnalysisError>> filesErrors = {};
 
   /// The files for which `analysis.flushResults` was received.
@@ -1799,10 +1764,6 @@ class _AnalysisDomainTest extends AbstractAnalysisTest {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
     }
-  }
-
-  void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, content: config.toContent(toUriStr: toUriStr));
   }
 
   void _assertAnalyzedFiles({

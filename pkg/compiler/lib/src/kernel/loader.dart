@@ -14,7 +14,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
 import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
 
-import '../../compiler_new.dart' as api;
+import '../../compiler.dart' as api;
 import '../commandline_options.dart' show Flags;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../common.dart';
@@ -269,7 +269,7 @@ class KernelLoaderTask extends CompilerTask {
 
       // Libraries dependencies do not show implicit imports to `dart:core`.
       var dartCore = component.libraries.firstWhere((lib) {
-        return lib.importUri.scheme == 'dart' && lib.importUri.path == 'core';
+        return lib.importUri.isScheme('dart') && lib.importUri.path == 'core';
       });
       search(dartCore);
 

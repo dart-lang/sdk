@@ -41,6 +41,10 @@ class RegisterNames {
     ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
     return cpu_reg_names[reg];
   }
+  static const char* RegisterAbiName(Register reg) {
+    ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
+    return cpu_reg_abi_names[reg];
+  }
   static const char* FpuRegisterName(FpuRegister reg) {
     ASSERT((0 <= reg) && (reg < kNumberOfFpuRegisters));
     return fpu_reg_names[reg];

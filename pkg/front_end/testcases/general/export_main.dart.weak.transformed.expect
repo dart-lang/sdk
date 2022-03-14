@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "hello.dart" as hel;
 additionalExports = (hel::main)
@@ -6,7 +6,7 @@ additionalExports = (hel::main)
 export "org-dartlang-testcase:///hello.dart" show main;
 
 
-library;
+library /*isNonNullableByDefault*/;
 import self as hel;
 import "dart:core" as core;
 

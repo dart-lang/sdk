@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: A:checkedTypeArgument,typeArgument*/
 class A {}
@@ -36,6 +36,6 @@ test(o) => o is C<A>;
 main() {
   dynamic o =
       new DateTime.now().millisecondsSinceEpoch == 0 ? new F() : new E();
-  Expect.isTrue(test(o.m<B>()));
-  Expect.isFalse(test(o.m<D>()));
+  makeLive(test(o.m<B>()));
+  makeLive(test(o.m<D>()));
 }

@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class NonNullableBazelWorkspaceTest extends BazelWorkspaceResolutionTest {
   @override
-  bool get typeToStringWithNullability => true;
+  bool get isNullSafetyEnabled => true;
 
   test_buildFile_legacy_commentedOut() async {
     newFile('$myPackageRootPath/BUILD', content: r'''
@@ -115,6 +115,21 @@ dart_package(
   test_buildFile_nonNullable_oneLine_noComma() async {
     newFile('$myPackageRootPath/BUILD', content: r'''
 dart_package(null_safety = True)
+''');
+
+    await resolveFileCode(
+      '$myPackageRootPath/lib/a.dart',
+      'int v = 0;',
+    );
+    assertNoErrorsInResult();
+    assertType(findNode.namedType('int v'), 'int');
+  }
+
+  test_buildFile_nonNullable_soundNullSafety() async {
+    newFile('$myPackageRootPath/BUILD', content: r'''
+dart_package(
+  sound_null_safety = True
+)
 ''');
 
     await resolveFileCode(

@@ -49,7 +49,7 @@ abstract class DartCompletionContributorTest
     var builder = SuggestionBuilder(request);
     var contributor = createContributor(request, builder);
     await contributor.computeSuggestions();
-    return builder.suggestions.toList();
+    return builder.suggestions.map((e) => e.build()).toList();
   }
 
   DartCompletionContributor createContributor(

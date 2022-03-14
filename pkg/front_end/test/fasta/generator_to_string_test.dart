@@ -95,7 +95,8 @@ Future<void> main() async {
                     new NoneTarget(new TargetFlags())),
                 uriTranslator)
             .loader,
-        isUnsupported: false);
+        isUnsupported: false,
+        isAugmentation: false);
     libraryBuilder.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder =
         new LoadLibraryBuilder(libraryBuilder, dummyLibraryDependency, -1);
@@ -118,7 +119,7 @@ Future<void> main() async {
         new TypeParameter("T"), libraryBuilder);
     VariableDeclaration variable = new VariableDeclaration(null);
 
-    TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null);
+    TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null, null);
     engine.prepareTopLevel(coreTypes, hierarchy);
 
     BodyBuilder helper = new BodyBuilder(

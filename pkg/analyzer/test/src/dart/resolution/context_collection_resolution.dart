@@ -212,6 +212,10 @@ abstract class ContextResolutionTest
     );
   }
 
+  /// Override this method to update [analysisOptions] for every context root,
+  /// the default or already updated with `analysis_options.yaml` file.
+  void updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {}
+
   /// Call this method if the test needs to use the empty byte store, without
   /// any information cached.
   void useEmptyByteStore() {
@@ -241,6 +245,7 @@ abstract class ContextResolutionTest
       resourceProvider: resourceProvider,
       retainDataForTesting: retainDataForTesting,
       sdkPath: sdkRoot.path,
+      updateAnalysisOptions: updateAnalysisOptions,
     );
 
     verifyCreatedCollection();
@@ -263,6 +268,9 @@ class PubPackageResolutionTest extends ContextResolutionTest {
         EnableString.super_parameters,
       ];
 
+  @override
+  bool get isNullSafetyEnabled => true;
+
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
 
@@ -275,9 +283,6 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
   String get testPackageRootPath => '$workspaceRootPath/test';
-
-  @override
-  bool get typeToStringWithNullability => true;
 
   String get workspaceRootPath => '/home';
 
@@ -440,12 +445,17 @@ mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {
   String? get testPackageLanguageVersion => '2.14';
 }
 
+mixin WithoutEnhancedEnumsMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => '2.16';
+}
+
 mixin WithoutNullSafetyMixin on PubPackageResolutionTest {
   @override
-  String? get testPackageLanguageVersion => '2.9';
+  bool get isNullSafetyEnabled => false;
 
   @override
-  bool get typeToStringWithNullability => false;
+  String? get testPackageLanguageVersion => '2.9';
 }
 
 mixin WithStrictCastsMixin on PubPackageResolutionTest {

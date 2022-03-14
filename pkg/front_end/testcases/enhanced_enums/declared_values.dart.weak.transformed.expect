@@ -1,0 +1,138 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:8:25: Error: Enums can't contain declarations of members with the name 'values'.
+//   static const List<E1> values = [E1.element]; // Error in E1.
+//                         ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:14:7: Error: Enums can't contain declarations of members with the name 'values'.
+//   int values = 42; // Error in E2.
+//       ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:21:7: Error: 'values' is already declared in this scope.
+//   int values = 42; // Duplicate.
+//       ^^^^^^
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:20:25: Context: Previous declaration of 'values'.
+//   static const List<E3> values = [E3.element]; // Error in E3.
+//                         ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:20:25: Error: Enums can't contain declarations of members with the name 'values'.
+//   static const List<E3> values = [E3.element]; // Error in E3.
+//                         ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:45:8: Error: Enums can't contain declarations of members with the name 'values'.
+//   void values() {} // Error in E7.
+//        ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:36:6: Error: The type 'List<E6>' of the getter 'E6.values' is not a subtype of the type 'Never' of the setter 'E6.values'.
+//  - 'List' is from 'dart:core'.
+//  - 'E6' is from 'pkg/front_end/testcases/enhanced_enums/declared_values.dart'.
+// enum E6 {
+//      ^^^^^...
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:39:19: Context: This is the declaration of the setter 'E6.values'.
+//   static void set values(Never x) {} // Error in E6.
+//                   ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1> values = #C4;
+  static const field self::E1 element = #C3;
+  const constructor •(core::int index, core::String name) → self::E1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2> values = #C6;
+  static const field self::E2 element = #C5;
+  const constructor •(core::int index, core::String name) → self::E2
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E3> values = #C8;
+  static const field self::E3 element = #C7;
+  const constructor •(core::int index, core::String name) → self::E3
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E4> values = #C10;
+  static const field self::E4 element = #C9;
+  const constructor •(core::int index, core::String name) → self::E4
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+  static set values(core::List<self::E4> x) → void {}
+}
+class E5 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E5> values = #C12;
+  static const field self::E5 element = #C11;
+  const constructor •(core::int index, core::String name) → self::E5
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+  static set values(dynamic x) → void {}
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E6> values = #C14;
+  static const field self::E6 element = #C13;
+  const constructor •(core::int index, core::String name) → self::E6
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+  static set values(Never x) → void {}
+}
+class E7 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E7> values = #C16;
+  static const field self::E7 element = #C15;
+  const constructor •(core::int index, core::String name) → self::E7
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E7.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = "element"
+  #C3 = self::E1 {index:#C1, _name:#C2}
+  #C4 = <self::E1*>[#C3]
+  #C5 = self::E2 {index:#C1, _name:#C2}
+  #C6 = <self::E2*>[#C5]
+  #C7 = self::E3 {index:#C1, _name:#C2}
+  #C8 = <self::E3*>[#C7]
+  #C9 = self::E4 {index:#C1, _name:#C2}
+  #C10 = <self::E4*>[#C9]
+  #C11 = self::E5 {index:#C1, _name:#C2}
+  #C12 = <self::E5*>[#C11]
+  #C13 = self::E6 {index:#C1, _name:#C2}
+  #C14 = <self::E6*>[#C13]
+  #C15 = self::E7 {index:#C1, _name:#C2}
+  #C16 = <self::E7*>[#C15]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///declared_values.dart:
+- E1. (from org-dartlang-testcase:///declared_values.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- E2. (from org-dartlang-testcase:///declared_values.dart:11:6)
+- E3. (from org-dartlang-testcase:///declared_values.dart:17:6)
+- E4. (from org-dartlang-testcase:///declared_values.dart:24:6)
+- E5. (from org-dartlang-testcase:///declared_values.dart:30:6)
+- E6. (from org-dartlang-testcase:///declared_values.dart:36:6)
+- E7. (from org-dartlang-testcase:///declared_values.dart:42:6)

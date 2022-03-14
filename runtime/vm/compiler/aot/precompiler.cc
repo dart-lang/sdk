@@ -871,17 +871,6 @@ void Precompiler::ProcessFunction(const Function& function) {
               function.token_pos().ToCString(),
               Function::KindToCString(function.kind()));
   }
-  if (function.SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
-    THR_Print(
-        "Warning: %s from %s is too large. Some optimizations have been "
-        "disabled, and the compiler might run out of memory. "
-        "Consider refactoring this code into smaller components.\n",
-        function.QualifiedUserVisibleNameCString(),
-        String::Handle(
-            Z, Library::Handle(Z, Class::Handle(Z, function.Owner()).library())
-                   .url())
-            .ToCString());
-  }
 
   ASSERT(!function.is_abstract());
 
@@ -2482,28 +2471,11 @@ void Precompiler::TraceTypesFromRetainedClasses() {
           }
         }
       }
-      intptr_t cid = cls.id();
-      if (cid == kDoubleCid) {
-        // Rehash.
-        cls.set_constants(Object::null_array());
-        for (intptr_t j = 0; j < retained_constants.Length(); j++) {
-          constant ^= retained_constants.At(j);
-          cls.InsertCanonicalDouble(Z, Double::Cast(constant));
-        }
-      } else if (cid == kMintCid) {
-        // Rehash.
-        cls.set_constants(Object::null_array());
-        for (intptr_t j = 0; j < retained_constants.Length(); j++) {
-          constant ^= retained_constants.At(j);
-          cls.InsertCanonicalMint(Z, Mint::Cast(constant));
-        }
-      } else {
-        // Rehash.
-        cls.set_constants(Object::null_array());
-        for (intptr_t j = 0; j < retained_constants.Length(); j++) {
-          constant ^= retained_constants.At(j);
-          cls.InsertCanonicalConstant(Z, constant);
-        }
+      // Rehash.
+      cls.set_constants(Object::null_array());
+      for (intptr_t j = 0; j < retained_constants.Length(); j++) {
+        constant ^= retained_constants.At(j);
+        cls.InsertCanonicalConstant(Z, constant);
       }
 
       if (retained_constants.Length() > 0) {

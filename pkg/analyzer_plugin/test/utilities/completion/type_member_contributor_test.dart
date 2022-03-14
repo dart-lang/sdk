@@ -1681,6 +1681,8 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
+  /// TODO(scheglov) move this test into contributor independent suite
+  @FailingTest(reason: 'No index, not local anymore')
   Future<void> test_enumConst_index() async {
     addTestSource('enum E { one, two } main() {E.one.^}');
     await computeSuggestions();
@@ -1691,6 +1693,8 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
+  /// TODO(scheglov) move this test into contributor independent suite
+  @FailingTest(reason: 'No index, not local anymore')
   Future<void> test_enumConst_index2() async {
     addTestSource('enum E { one, two } main() {E.one.i^}');
     await computeSuggestions();
@@ -1701,6 +1705,8 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
+  /// TODO(scheglov) move this test into contributor independent suite
+  @FailingTest(reason: 'No index, not local anymore')
   Future<void> test_enumConst_index3() async {
     addTestSource('enum E { one, two } main() {E.one.^ int g;}');
     await computeSuggestions();

@@ -94,9 +94,6 @@ bool MethodRecognizer::HasNonNullableResultTypeFromPragma(
 
 intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
   switch (kind) {
-    case kImmutableArrayGetIndexed:
-      return kImmutableArrayCid;
-
     case kObjectArrayGetIndexed:
     case kObjectArraySetIndexed:
     case kObjectArraySetIndexedUnchecked:
@@ -278,6 +275,8 @@ void MethodRecognizer::InitializeState() {
 #undef SET_FUNCTION_BIT
 
   if (!fingerprints_match) {
+    // Private names are mangled. Mangling depends on Library::private_key_.
+    // If registering a new bootstrap library, add at the end.
     FATAL(
         "FP mismatch while recognizing methods. If the behavior of "
         "these functions has changed, then changes are also needed in "

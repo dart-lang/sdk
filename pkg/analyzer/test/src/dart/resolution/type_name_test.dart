@@ -856,5 +856,5 @@ f(Never a) {}
 class TypeNameResolutionWithoutNullSafetyTest extends PubPackageResolutionTest
     with TypeNameResolutionTestCases, WithoutNullSafetyMixin {
   @override
-  bool get typeToStringWithNullability => true;
+  bool get isNullSafetyEnabled => true;
 }

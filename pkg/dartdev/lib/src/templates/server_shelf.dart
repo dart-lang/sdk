@@ -9,8 +9,11 @@ import 'common.dart' as common;
 class ServerShelfGenerator extends DefaultGenerator {
   ServerShelfGenerator()
       : super(
-            'server-shelf', 'Server app', 'A server app using `package:shelf`',
-            categories: const ['dart', 'server']) {
+          'server-shelf',
+          'Server app',
+          'A server app using package:shelf.',
+          categories: const ['dart', 'server'],
+        ) {
     addFile('.gitignore', common.gitignore);
     addFile('analysis_options.yaml', common.analysisOptions);
     addFile('CHANGELOG.md', common.changelog);
@@ -42,7 +45,7 @@ version: 1.0.0
 # homepage: https://www.example.com
 
 environment:
-${common.sdkConstraint}
+  ${common.sdkConstraint}
 
 dependencies:
   args: ^2.0.0
@@ -52,7 +55,6 @@ dependencies:
 dev_dependencies:
   http: ^0.13.0
   lints: ^1.0.0
-  test_process: ^2.0.0
   test: ^1.15.0
 ''';
 
@@ -125,7 +127,7 @@ Response _rootHandler(Request req) {
 }
 
 Response _echoHandler(Request request) {
-  final message = params(request, 'message');
+  final message = request.params['message'];
   return Response.ok('$message\n');
 }
 
@@ -180,21 +182,27 @@ build/
 ''';
 
 final String _test = r'''
+import 'dart:io';
+
 import 'package:http/http.dart';
 import 'package:test/test.dart';
-import 'package:test_process/test_process.dart';
 
 void main() {
   final port = '8080';
   final host = 'http://0.0.0.0:$port';
+  late Process p;
 
   setUp(() async {
-    await TestProcess.start(
+    p = await Process.start(
       'dart',
       ['run', 'bin/server.dart'],
       environment: {'PORT': port},
     );
+    // Wait for server to start and print to stdout.
+    await p.stdout.first;
   });
+
+  tearDown(() => p.kill());
 
   test('Root', () async {
     final response = await get(Uri.parse(host + '/'));
@@ -207,6 +215,7 @@ void main() {
     expect(response.statusCode, 200);
     expect(response.body, 'hello\n');
   });
+
   test('404', () async {
     final response = await get(Uri.parse(host + '/foobar'));
     expect(response.statusCode, 404);

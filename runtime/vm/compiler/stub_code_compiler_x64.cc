@@ -1375,7 +1375,7 @@ static const RegisterSet kCalleeSavedRegisterSet(
 //   RDX : arguments array.
 //   RCX : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  __ pushq(Address(RSP, 0));  // Marker for the profiler.
+  NOT_IN_PRODUCT(__ pushq(Address(RSP, 0)));  // Marker for the profiler.
   __ EnterFrame(0);
 
   const Register kTargetReg = CallingConventions::kArg1Reg;
@@ -1518,7 +1518,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
-  __ popq(RCX);
+  NOT_IN_PRODUCT(__ popq(RCX));  // Drop profiler marker.
 
   __ ret();
 }
@@ -1938,7 +1938,7 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 static void GenerateAllocateObjectHelper(Assembler* assembler,
                                          bool is_cls_parameterized) {
   // Note: Keep in sync with calling function.
-  const Register kTagsReg = R8;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
 
   {
     Label slow_case;
@@ -2049,14 +2049,13 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 }
 
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
-  const Register kTagsToClsIdReg = R8;
-
   if (!FLAG_precompiled_mode) {
     __ movq(CODE_REG,
             Address(THR, target::Thread::call_to_runtime_stub_offset()));
   }
 
-  __ ExtractClassIdFromTags(kTagsToClsIdReg, kTagsToClsIdReg);
+  __ ExtractClassIdFromTags(AllocateObjectABI::kTagsReg,
+                            AllocateObjectABI::kTagsReg);
 
   // Create a stub frame.
   // Ensure constant pool is allowed so we can e.g. load class object.
@@ -2067,7 +2066,7 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   __ pushq(AllocateObjectABI::kResultReg);
 
   // Push class of object to be allocated.
-  __ LoadClassById(AllocateObjectABI::kResultReg, kTagsToClsIdReg);
+  __ LoadClassById(AllocateObjectABI::kResultReg, AllocateObjectABI::kTagsReg);
   __ pushq(AllocateObjectABI::kResultReg);
 
   // Must be Object::null() if non-parameterized class.
@@ -2118,7 +2117,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
-  const Register kTagsReg = R8;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
 
   __ movq(kTagsReg, Immediate(tags));
 
@@ -3782,8 +3781,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ xorq(RBX, RBX); /* Zero. */
     __ leaq(RDI, FieldAddress(RAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
-        RAX, FieldAddress(RAX, target::TypedDataBase::data_field_offset()),
-        RDI);
+        RAX, FieldAddress(RAX, target::PointerBase::data_offset()), RDI);
     Label done, init_loop;
     __ Bind(&init_loop);
     __ cmpq(RDI, RCX);

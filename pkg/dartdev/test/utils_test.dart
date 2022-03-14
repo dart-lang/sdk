@@ -37,10 +37,6 @@ void main() {
   });
 
   group('trimEnd', () {
-    test('null string', () {
-      expect(trimEnd(null, 'suffix'), null);
-    });
-
     test('null suffix', () {
       expect(trimEnd('string', null), 'string');
     });

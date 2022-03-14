@@ -1,3 +1,13 @@
+## 3.3.1
+* Report HintCode.OVERRIDE_ON_NON_OVERRIDING_xyz on enum.
+
+## 3.3.0
+* Added `getField` to `ExtensionElement`.
+* Added `isGenerative` to `ConstructorElement`.
+* Added `isDartCoreEnum` to `ClassElement` and `DartType`.
+* Deprecated `superclass2`, `mixinTypes2`, etc. Use `superclass`, `mixinTypes`, etc.
+* APIs for `enhanced-enums` language feature.
+
 ## 3.2.0
 * Deprecated `changes` getter in `File` and `Folder`, use `watch()` instead.
 

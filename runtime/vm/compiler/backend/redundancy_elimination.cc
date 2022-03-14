@@ -1671,34 +1671,13 @@ Instruction* DelayAllocations::DominantUse(Definition* def) {
     uses.Insert(use);
   }
 
-  // Find the dominant use.
-  Instruction* dominant_use = nullptr;
-  auto use_it = uses.GetIterator();
-  while (auto use = use_it.Next()) {
-    // Start with the instruction before the use, then walk backwards through
-    // blocks in the dominator chain until we hit the definition or another use.
-    Instruction* instr = nullptr;
-    if (auto phi = (*use)->AsPhi()) {
-      // For phi uses, the dominant use only has to dominate the
-      // predecessor block corresponding to the phi input.
-      ASSERT(phi->InputCount() == phi->block()->PredecessorCount());
-      for (intptr_t i = 0; i < phi->InputCount(); i++) {
-        if (phi->InputAt(i)->definition() == def) {
-          instr = phi->block()->PredecessorAt(i)->last_instruction();
-          break;
-        }
-      }
-      ASSERT(instr != nullptr);
-    } else {
-      instr = (*use)->previous();
-    }
-
-    bool dominated = false;
+  // Returns |true| iff |instr| or any instruction dominating it are either a
+  // a |def| or a use of a |def|.
+  auto is_dominated_by_another_use = [&](Instruction* instr) {
     while (instr != def) {
       if (uses.HasKey(instr)) {
-        // We hit another use.
-        dominated = true;
-        break;
+        // We hit another use, meaning that this use dominates the given |use|.
+        return true;
       }
       if (auto block = instr->AsBlockEntry()) {
         instr = block->dominator()->last_instruction();
@@ -1706,7 +1685,38 @@ Instruction* DelayAllocations::DominantUse(Definition* def) {
         instr = instr->previous();
       }
     }
-    if (!dominated) {
+    return false;
+  };
+
+  // Find the dominant use.
+  Instruction* dominant_use = nullptr;
+  auto use_it = uses.GetIterator();
+  while (auto use = use_it.Next()) {
+    bool dominated_by_another_use = false;
+
+    if (auto phi = (*use)->AsPhi()) {
+      // For phi uses check that the dominant use dominates all
+      // predecessor blocks corresponding to matching phi inputs.
+      ASSERT(phi->InputCount() == phi->block()->PredecessorCount());
+      dominated_by_another_use = true;
+      for (intptr_t i = 0; i < phi->InputCount(); i++) {
+        if (phi->InputAt(i)->definition() == def) {
+          if (!is_dominated_by_another_use(
+                  phi->block()->PredecessorAt(i)->last_instruction())) {
+            dominated_by_another_use = false;
+            break;
+          }
+        }
+      }
+    } else {
+      // Start with the instruction before the use, then walk backwards through
+      // blocks in the dominator chain until we hit the definition or
+      // another use.
+      dominated_by_another_use =
+          is_dominated_by_another_use((*use)->previous());
+    }
+
+    if (!dominated_by_another_use) {
       if (dominant_use != nullptr) {
         // More than one use reached the definition, which means no use
         // dominates all other uses.
@@ -1782,7 +1792,7 @@ class LoadOptimizer : public ValueObject {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->is_huge_method()) {
       return false;
     }
 
@@ -3009,7 +3019,7 @@ class StoreOptimizer : public LivenessAnalysis {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->is_huge_method()) {
       return;
     }
 

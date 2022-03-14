@@ -701,7 +701,7 @@ void f() {
   }
 
   test_nullAware_context() async {
-    var question = typeToStringWithNullability ? '?' : '';
+    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
 T f<T>() => throw Error();
 g(int$question a) {
@@ -1721,7 +1721,7 @@ void f() {
   }
 
   test_simpleIdentifier_parameter_compound_ifNull() async {
-    var question = typeToStringWithNullability ? '?' : '';
+    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
 void f(num$question x) {
   x ??= 0;
@@ -1747,8 +1747,8 @@ void f(num$question x) {
   }
 
   test_simpleIdentifier_parameter_compound_ifNull2() async {
-    var question = typeToStringWithNullability ? '?' : '';
-    var errorOffset = typeToStringWithNullability ? 77 : 76;
+    var question = isNullSafetyEnabled ? '?' : '';
+    var errorOffset = isNullSafetyEnabled ? 77 : 76;
     await assertErrorsInCode('''
 class A {}
 class B extends A {}
@@ -1780,7 +1780,7 @@ void f(B$question x) {
   }
 
   test_simpleIdentifier_parameter_compound_ifNull_notAssignableType() async {
-    var question = typeToStringWithNullability ? '?' : '';
+    var question = isNullSafetyEnabled ? '?' : '';
     var code = '''
 void f(double$question a, int b) {
   a ??= b;
@@ -2294,7 +2294,7 @@ void f() {
   }
 
   test_simpleIdentifier_topGetter_topSetter_compound_ifNull2() async {
-    var question = typeToStringWithNullability ? '?' : '';
+    var question = isNullSafetyEnabled ? '?' : '';
     await assertErrorsInCode('''
 void f() {
   x ??= C();

@@ -1365,7 +1365,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // from over-writing Dart frames.
   __ mov(SP, CSP);
   __ SetupCSPFromThread(R3);
-  READS_RETURN_ADDRESS_FROM_LR(__ Push(LR));  // Marker for the profiler.
+  // Marker for the profiler.
+  NOT_IN_PRODUCT(READS_RETURN_ADDRESS_FROM_LR(__ Push(LR)));
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1488,7 +1489,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
-  __ Drop(1);
+  NOT_IN_PRODUCT(__ Drop(1));  // Drop profiler marker.
   __ RestoreCSP();
   __ ret();
 }
@@ -1904,7 +1905,7 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 
 static void GenerateAllocateObjectHelper(Assembler* assembler,
                                          bool is_cls_parameterized) {
-  const Register kTagsReg = R2;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
 
   {
     Label slow_case;
@@ -2014,20 +2015,19 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 }
 
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
-  const Register kTagsToClsIdReg = R2;
-
   if (!FLAG_precompiled_mode) {
     __ ldr(CODE_REG,
            Address(THR, target::Thread::call_to_runtime_stub_offset()));
   }
 
-  __ ExtractClassIdFromTags(kTagsToClsIdReg, kTagsToClsIdReg);
+  __ ExtractClassIdFromTags(AllocateObjectABI::kTagsReg,
+                            AllocateObjectABI::kTagsReg);
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
 
-  __ LoadClassById(R0, kTagsToClsIdReg);
+  __ LoadClassById(R0, AllocateObjectABI::kTagsReg);
   __ PushPair(R0, NULL_REG);  // Pushes result slot, then class object.
 
   // Should be Object::null() if class is non-parameterized.
@@ -2072,7 +2072,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
   // Note: Keep in sync with helper function.
-  const Register kTagsReg = R2;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
 
   __ LoadImmediate(kTagsReg, tags);
 
@@ -3726,7 +3726,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* data area to be initialized. */
     __ AddImmediate(R2, R0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
-        R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R2);
+        R0, FieldAddress(R0, target::PointerBase::data_offset()), R2);
     Label init_loop, done;
     __ Bind(&init_loop);
     __ cmp(R2, Operand(R1));

@@ -48,7 +48,7 @@ class _Platform {
   static String? _packageConfig() => VMLibraryHooks.packageConfigString;
 
   @patch
-  static Uri _script() => VMLibraryHooks.platformScript;
+  static Uri _script() => VMLibraryHooks.platformScript!;
 
   // This script singleton is written to by the embedder if applicable.
   @pragma("vm:entry-point")

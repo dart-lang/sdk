@@ -9,9 +9,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MainHasTooManyRequiredPositionalParametersTest);
     defineReflectiveTests(
-      MainHasTooManyRequiredPositionalParametersWithNullSafetyTest,
+      MainHasTooManyRequiredPositionalParametersTest,
+    );
+    defineReflectiveTests(
+      MainHasTooManyRequiredPositionalParametersWithoutNullSafetyTest,
     );
   });
 }
@@ -19,9 +21,20 @@ main() {
 @reflectiveTest
 class MainHasTooManyRequiredPositionalParametersTest
     extends PubPackageResolutionTest
-    with
-        WithoutNullSafetyMixin,
-        MainHasTooManyRequiredPositionalParametersTestCases {}
+    with MainHasTooManyRequiredPositionalParametersTestCases {
+  test_positionalRequired_3_namedRequired_1() async {
+    await resolveTestCode('''
+void main(args, int a, int b, {required int c}) {}
+''');
+    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4),
+      error(
+          CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
+          5,
+          4),
+    ], legacy: []));
+  }
+}
 
 mixin MainHasTooManyRequiredPositionalParametersTestCases
     on PubPackageResolutionTest {
@@ -93,19 +106,8 @@ void main(args, int a, int b, {int c = 0}) {}
 }
 
 @reflectiveTest
-class MainHasTooManyRequiredPositionalParametersWithNullSafetyTest
+class MainHasTooManyRequiredPositionalParametersWithoutNullSafetyTest
     extends PubPackageResolutionTest
-    with MainHasTooManyRequiredPositionalParametersTestCases {
-  test_positionalRequired_3_namedRequired_1() async {
-    await resolveTestCode('''
-void main(args, int a, int b, {required int c}) {}
-''');
-    assertErrorsInResult(expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4),
-      error(
-          CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
-          5,
-          4),
-    ], legacy: []));
-  }
-}
+    with
+        WithoutNullSafetyMixin,
+        MainHasTooManyRequiredPositionalParametersTestCases {}

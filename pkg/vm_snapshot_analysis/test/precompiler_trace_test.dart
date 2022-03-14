@@ -103,11 +103,22 @@ void main() async {
     test('collapse-by-package', () async {
       await withFlag(testSource, '--trace_precompiler_to', (json) async {
         final jsonRaw = await loadJson(File(json));
+
         final callGraph = loadTrace(jsonRaw).collapse(NodeType.packageNode);
 
         // Collapsing by package should not collapse dart:* libraries into root
         // node and create predecessors for the root node.
         expect(callGraph.root.pred, isEmpty);
+      });
+    });
+
+    test('root-dominator-is-null', () async {
+      await withFlag(testSource, '--trace_precompiler_to', (json) async {
+        final jsonRaw = await loadJson(File(json));
+
+        final callGraph = loadTrace(jsonRaw).collapse(NodeType.classNode);
+
+        expect(callGraph.root.dominator, isNull);
       });
     });
   });

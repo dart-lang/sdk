@@ -147,7 +147,9 @@ class _LibraryManager {
         ..group("Current library: $_currentLibrary")
         ..groupCollapsed("All libraries:");
       _listLibraries();
-      window.console..groupEnd()..groupEnd();
+      window.console
+        ..groupEnd()
+        ..groupEnd();
       return;
     }
     var matches = findMatches(name);
@@ -169,9 +171,9 @@ class _LibraryManager {
   static List<Uri> _sortUris(Iterable<Uri> uris) {
     return (uris.toList())
       ..sort((Uri a, Uri b) {
-        if (a.scheme != b.scheme) {
-          if (a.scheme == 'dart') return -1;
-          if (b.scheme == 'dart') return 1;
+        if (!a.isScheme(b.scheme)) {
+          if (a.isScheme('dart')) return -1;
+          if (b.isScheme('dart')) return 1;
           return a.scheme.compareTo(b.scheme);
         }
         return a.toString().compareTo(b.toString());
@@ -213,14 +215,18 @@ class _LibraryManager {
       if (index != -1) {
         // %c enables styling console log messages with css
         // specified at the end of the console.
-        sb..write(txt.substring(0, index))..write('%c');
+        sb
+          ..write(txt.substring(0, index))
+          ..write('%c');
         var matchEnd = index + key.length;
         sb
           ..write(txt.substring(index, matchEnd))
           ..write('%c')
           ..write(txt.substring(matchEnd))
           ..write('\n');
-        boldPairs..add('font-weight: bold')..add('font-weight: normal');
+        boldPairs
+          ..add('font-weight: bold')
+          ..add('font-weight: normal');
       }
     }
     _log([sb.toString()]..addAll(boldPairs));
@@ -738,7 +744,7 @@ class _Utils {
     // This matches JavaScript behavior. We should consider displaying
     // getters for all dart platform libraries rather than just the DOM
     // libraries.
-    return libraryMirror.uri.scheme == 'dart' &&
+    return libraryMirror.uri.isScheme('dart') &&
         SIDE_EFFECT_FREE_LIBRARIES.contains(libraryMirror.uri.toString());
   }
 

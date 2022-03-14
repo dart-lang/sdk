@@ -181,7 +181,7 @@ class _HashSet<E> extends _InternalSet<E>
         dart.identityEquals)) {
       @notNull
       Object? k = key;
-      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, k.hashCode);
+      var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, k.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
           k = JS('', '#[#]', buckets, i);
@@ -199,7 +199,7 @@ class _HashSet<E> extends _InternalSet<E>
         dart.identityEquals)) {
       @notNull
       Object? k = key;
-      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, k.hashCode);
+      var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, k.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
           k = JS('', '#[#]', buckets, i);
@@ -222,7 +222,7 @@ class _HashSet<E> extends _InternalSet<E>
       var keyMap = _keyMap;
       @notNull
       var k = key;
-      int hash = JS('!', '# & 0x3ffffff', k.hashCode);
+      int hash = JS('!', '# & 0x3fffffff', k.hashCode);
       var buckets = JS('', '#.get(#)', keyMap, hash);
       if (buckets == null) {
         JS('', '#.set(#, [#])', keyMap, hash, key);
@@ -237,7 +237,7 @@ class _HashSet<E> extends _InternalSet<E>
       return false;
     }
     JS('', '#.add(#)', map, key);
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = (_modifications + 1) & 0x3fffffff;
     return true;
   }
 
@@ -255,7 +255,7 @@ class _HashSet<E> extends _InternalSet<E>
       JS('', '#.add(#)', map, key);
     }
     if (length != JS<int>('!', '#.size', map)) {
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 
@@ -267,7 +267,7 @@ class _HashSet<E> extends _InternalSet<E>
         dart.identityEquals)) {
       @notNull
       Object? k = key;
-      int hash = JS('!', '# & 0x3ffffff', k.hashCode);
+      int hash = JS('!', '# & 0x3fffffff', k.hashCode);
       var buckets = JS('', '#.get(#)', _keyMap, hash);
       if (buckets == null) return false; // not found
       for (int i = 0, n = JS('!', '#.length', buckets);;) {
@@ -286,7 +286,7 @@ class _HashSet<E> extends _InternalSet<E>
     }
     var map = _map;
     if (JS<bool>('!', '#.delete(#)', map, key)) {
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
       return true;
     }
     return false;
@@ -297,7 +297,7 @@ class _HashSet<E> extends _InternalSet<E>
     if (JS<int>('!', '#.size', map) > 0) {
       JS('', '#.clear()', map);
       JS('', '#.clear()', _keyMap);
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 }
@@ -356,7 +356,7 @@ class _IdentityHashSet<E> extends _InternalSet<E>
     var map = _map;
     if (JS<bool>('!', '#.has(#)', map, element)) return false;
     JS('', '#.add(#)', map, element);
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = (_modifications + 1) & 0x3fffffff;
     return true;
   }
 
@@ -367,13 +367,13 @@ class _IdentityHashSet<E> extends _InternalSet<E>
       JS('', '#.add(#)', map, key);
     }
     if (length != JS<int>('!', '#.size', map)) {
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 
   bool remove(Object? element) {
     if (JS<bool>('!', '#.delete(#)', _map, element)) {
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
       return true;
     }
     return false;
@@ -383,7 +383,7 @@ class _IdentityHashSet<E> extends _InternalSet<E>
     var map = _map;
     if (JS<int>('!', '#.size', map) > 0) {
       JS('', '#.clear()', map);
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 }
@@ -449,7 +449,7 @@ class _CustomHashSet<E> extends _InternalSet<E>
 
   bool contains(Object? key) {
     if (key is E) {
-      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, _hashCode(key));
+      var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, _hashCode(key));
       if (buckets != null) {
         var equals = _equals;
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
@@ -463,7 +463,7 @@ class _CustomHashSet<E> extends _InternalSet<E>
 
   E? lookup(Object? key) {
     if (key is E) {
-      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, _hashCode(key));
+      var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, _hashCode(key));
       if (buckets != null) {
         var equals = _equals;
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
@@ -477,7 +477,7 @@ class _CustomHashSet<E> extends _InternalSet<E>
 
   bool add(E key) {
     var keyMap = _keyMap;
-    var hash = JS<int>('!', '# & 0x3ffffff', _hashCode(key));
+    var hash = JS<int>('!', '# & 0x3fffffff', _hashCode(key));
     var buckets = JS('', '#.get(#)', keyMap, hash);
     if (buckets == null) {
       JS('', '#.set(#, [#])', keyMap, hash, key);
@@ -490,7 +490,7 @@ class _CustomHashSet<E> extends _InternalSet<E>
       JS('', '#.push(#)', buckets, key);
     }
     JS('', '#.add(#)', _map, key);
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = (_modifications + 1) & 0x3fffffff;
     return true;
   }
 
@@ -501,7 +501,7 @@ class _CustomHashSet<E> extends _InternalSet<E>
 
   bool remove(Object? key) {
     if (key is E) {
-      var hash = JS<int>('!', '# & 0x3ffffff', _hashCode(key));
+      var hash = JS<int>('!', '# & 0x3fffffff', _hashCode(key));
       var keyMap = _keyMap;
       var buckets = JS('', '#.get(#)', keyMap, hash);
       if (buckets == null) return false; // not found
@@ -515,7 +515,7 @@ class _CustomHashSet<E> extends _InternalSet<E>
             JS('', '#.splice(#, 1)', buckets, i);
           }
           JS('', '#.delete(#)', _map, k);
-          _modifications = (_modifications + 1) & 0x3ffffff;
+          _modifications = (_modifications + 1) & 0x3fffffff;
           return true;
         }
       }
@@ -528,7 +528,7 @@ class _CustomHashSet<E> extends _InternalSet<E>
     if (JS<int>('!', '#.size', map) > 0) {
       JS('', '#.clear()', map);
       JS('', '#.clear()', _keyMap);
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 }

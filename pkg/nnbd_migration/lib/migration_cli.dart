@@ -546,17 +546,14 @@ class MigrationCliRunner implements DartFixListenerClient {
               resourceProvider.getFile(s).exists)
           .toSet();
 
-  NonNullableFix createNonNullableFix(
-      DartFixListener listener,
-      ResourceProvider resourceProvider,
-      LineInfo Function(String path) getLineInfo,
-      Object? bindAddress,
+  NonNullableFix createNonNullableFix(DartFixListener listener,
+      ResourceProvider resourceProvider, Object? bindAddress,
       {List<String> included = const <String>[],
       int? preferredPort,
       String? summaryPath,
       required String sdkPath}) {
-    return NonNullableFix(listener, resourceProvider, getLineInfo, bindAddress,
-        logger, (String? path) => shouldBeMigrated(path!),
+    return NonNullableFix(listener, resourceProvider, bindAddress, logger,
+        (String? path) => shouldBeMigrated(path!),
         included: included,
         preferredPort: preferredPort,
         summaryPath: summaryPath,
@@ -661,8 +658,8 @@ Exception details:
     _fixCodeProcessor = _FixCodeProcessor(analysisContext, this);
     _dartFixListener = DartFixListener(
         DriverProviderImpl(resourceProvider, analysisContext), this);
-    nonNullableFix = createNonNullableFix(_dartFixListener!, resourceProvider,
-        _fixCodeProcessor!.getLineInfo, computeBindAddress(),
+    nonNullableFix = createNonNullableFix(
+        _dartFixListener!, resourceProvider, computeBindAddress(),
         included: [options.directory],
         preferredPort: options.previewPort,
         summaryPath: options.summary,
@@ -999,9 +996,6 @@ class _FixCodeProcessor extends Object {
       : pathsToProcess = _migrationCli.computePathsToProcess(context);
 
   bool get isPreviewServerRunning => _task?.isPreviewServerRunning ?? false;
-
-  LineInfo getLineInfo(String path) =>
-      (context.currentSession.getFile(path) as FileResult).lineInfo;
 
   void prepareToRerun() {
     var driver = context.driver;

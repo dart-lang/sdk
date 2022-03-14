@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -25,19 +24,32 @@ T f<T>(T t) => t;
 int g() => f(null) ?? 0;
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('f(null)'),
-      element: findElement.topFunction('f'),
-      typeArgumentTypes: ['int?'],
-      invokeType: 'int? Function(int?)',
-      type: 'int?',
-    );
-
-    assertBinaryExpression(
-      findNode.binary('?? 0'),
-      element: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.binary('?? 0'), r'''
+BinaryExpression
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      staticElement: self::@function::f
+      staticType: T Function<T>(T)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        NullLiteral
+          literal: null
+          staticType: Null
+      rightParenthesis: )
+    staticInvokeType: int? Function(int?)
+    staticType: int?
+    typeArgumentTypes
+      int?
+  operator: ??
+  rightOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: int
+''');
   }
 
   test_ifNull_nullableInt_int() async {
@@ -47,11 +59,21 @@ void f(int? x, int y) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('x ?? y'),
-      element: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.binary('x ?? y'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: x@12
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: y
+    staticElement: y@19
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: int
+''');
   }
 
   test_ifNull_nullableInt_nullableDouble() async {
@@ -61,11 +83,21 @@ void f(int? x, double? y) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('x ?? y'),
-      element: null,
-      type: 'num?',
-    );
+    assertResolvedNodeText(findNode.binary('x ?? y'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: x@12
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: y
+    staticElement: y@23
+    staticType: double?
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: num?
+''');
   }
 
   test_ifNull_nullableInt_nullableInt() async {
@@ -75,11 +107,21 @@ void f(int? x) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('x ?? x'),
-      element: null,
-      type: 'int?',
-    );
+    assertResolvedNodeText(findNode.binary('x ?? x'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: x@12
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: x
+    staticElement: x@12
+    staticType: int?
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: int?
+''');
   }
 
   test_plus_int_never() async {
@@ -89,8 +131,21 @@ f(int a, Never b) {
 }
 ''');
 
-    assertBinaryExpression(findNode.binary('a + b'),
-        element: numElement.getMethod('+'), type: 'num');
+    assertResolvedNodeText(findNode.binary('a + b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@15
+    staticType: Never
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: num
+''');
   }
 
   test_plus_never_int() async {
@@ -103,11 +158,21 @@ f(Never a, int b) {
       error(HintCode.DEAD_CODE, 26, 2),
     ]);
 
-    assertBinaryExpression(
-      findNode.binary('a + b'),
-      element: isNull,
-      type: 'Never',
-    );
+    assertResolvedNodeText(findNode.binary('a + b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@8
+    staticType: Never
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@15
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: Never
+''');
   }
 }
 
@@ -119,14 +184,21 @@ f(int a, int b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a != b'),
-      element: elementMatcher(
-        numElement.getMethod('=='),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'bool',
-    );
+    assertResolvedNodeText(findNode.binary('a != b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: !=
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@13
+    staticType: int
+  staticElement: dart:core::@class::num::@method::==
+  staticInvokeType: bool Function(Object)
+  staticType: bool
+''');
   }
 
   test_bangEq_extensionOverride_left() async {
@@ -140,11 +212,31 @@ void f(int a) {
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2),
     ]);
 
-    assertBinaryExpression(
-      findNode.binary('!= 0'),
-      element: null,
-      type: 'dynamic',
-    );
+    assertResolvedNodeText(findNode.binary('!= 0'), r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@34
+          staticType: int
+      rightParenthesis: )
+    extendedType: int
+    staticType: null
+  operator: !=
+  rightOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
   }
 
   test_bangEqEq() async {
@@ -156,14 +248,21 @@ f(int a, int b) {
       error(ScannerErrorCode.UNSUPPORTED_OPERATOR, 22, 1),
     ]);
 
-    assertBinaryExpression(
-      findNode.binary('a !== b'),
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertType(findNode.simple('a !=='), 'int');
-    assertType(findNode.simple('b;'), 'int');
+    assertResolvedNodeText(findNode.binary('a !== b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: !==
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@13
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
   }
 
   test_eqEq() async {
@@ -173,14 +272,21 @@ f(int a, int b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a == b'),
-      element: elementMatcher(
-        numElement.getMethod('=='),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'bool',
-    );
+    assertResolvedNodeText(findNode.binary('a == b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: ==
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@13
+    staticType: int
+  staticElement: dart:core::@class::num::@method::==
+  staticInvokeType: bool Function(Object)
+  staticType: bool
+''');
   }
 
   test_eqEq_extensionOverride_left() async {
@@ -194,11 +300,31 @@ void f(int a) {
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2),
     ]);
 
-    assertBinaryExpression(
-      findNode.binary('== 0'),
-      element: null,
-      type: 'dynamic',
-    );
+    assertResolvedNodeText(findNode.binary('== 0'), r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@34
+          staticType: int
+      rightParenthesis: )
+    extendedType: int
+    staticType: null
+  operator: ==
+  rightOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
   }
 
   test_eqEqEq() async {
@@ -210,29 +336,46 @@ f(int a, int b) {
       error(ScannerErrorCode.UNSUPPORTED_OPERATOR, 22, 1),
     ]);
 
-    assertBinaryExpression(
-      findNode.binary('a === b'),
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertType(findNode.simple('a ==='), 'int');
-    assertType(findNode.simple('b;'), 'int');
+    assertResolvedNodeText(findNode.binary('a === b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: ===
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@13
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
   }
 
   test_ifNull() async {
-    var question = typeToStringWithNullability ? '?' : '';
+    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
 f(int$question a, double b) {
   a ?? b;
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a ?? b'),
-      element: null,
-      type: 'num',
-    );
+    assertResolvedNodeText(findNode.binary('a ?? b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@7
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@17
+    staticType: double
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: num
+''');
   }
 
   test_logicalAnd() async {
@@ -242,11 +385,21 @@ f(bool a, bool b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a && b'),
-      element: boolElement.getMethod('&&'),
-      type: 'bool',
-    );
+    assertResolvedNodeText(findNode.binary('a && b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@7
+    staticType: bool
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@15
+    staticType: bool
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: bool
+''');
   }
 
   test_logicalOr() async {
@@ -256,11 +409,21 @@ f(bool a, bool b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a || b'),
-      element: boolElement.getMethod('||'),
-      type: 'bool',
-    );
+    assertResolvedNodeText(findNode.binary('a || b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@7
+    staticType: bool
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@15
+    staticType: bool
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: bool
+''');
   }
 
   test_minus_int_context_int() async {
@@ -283,14 +446,21 @@ f(int a, double b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a - b'),
-      element: elementMatcher(
-        numElement.getMethod('-'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'double',
-    );
+    assertResolvedNodeText(findNode.binary('a - b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: -
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@16
+    staticType: double
+  staticElement: dart:core::@class::num::@method::-
+  staticInvokeType: num Function(num)
+  staticType: double
+''');
   }
 
   test_minus_int_int() async {
@@ -300,14 +470,21 @@ f(int a, int b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a - b'),
-      element: elementMatcher(
-        numElement.getMethod('-'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.binary('a - b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: -
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@13
+    staticType: int
+  staticElement: dart:core::@class::num::@method::-
+  staticInvokeType: num Function(num)
+  staticType: int
+''');
   }
 
   test_mod_int_context_int() async {
@@ -330,14 +507,21 @@ f(int a, double b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a % b'),
-      element: elementMatcher(
-        numElement.getMethod('%'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'double',
-    );
+    assertResolvedNodeText(findNode.binary('a % b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: %
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@16
+    staticType: double
+  staticElement: dart:core::@class::num::@method::%
+  staticInvokeType: num Function(num)
+  staticType: double
+''');
   }
 
   test_mod_int_int() async {
@@ -347,14 +531,21 @@ f(int a, int b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a % b'),
-      element: elementMatcher(
-        numElement.getMethod('%'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.binary('a % b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: %
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@13
+    staticType: int
+  staticElement: dart:core::@class::num::@method::%
+  staticInvokeType: num Function(num)
+  staticType: int
+''');
   }
 
   test_plus_double_context_double() async {
@@ -401,14 +592,21 @@ f(double a, dynamic b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a + b'),
-      element: elementMatcher(
-        doubleElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'double',
-    );
+    assertResolvedNodeText(findNode.binary('a + b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@9
+    staticType: double
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@20
+    staticType: dynamic
+  staticElement: dart:core::@class::double::@method::+
+  staticInvokeType: double Function(num)
+  staticType: double
+''');
   }
 
   test_plus_int_context_double() async {
@@ -485,14 +683,21 @@ f(int a, double b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a + b'),
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'double',
-    );
+    assertResolvedNodeText(findNode.binary('a + b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@16
+    staticType: double
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: double
+''');
   }
 
   test_plus_int_dynamic() async {
@@ -502,14 +707,21 @@ f(int a, dynamic b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a + b'),
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'num',
-    );
+    assertResolvedNodeText(findNode.binary('a + b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@17
+    staticType: dynamic
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: num
+''');
   }
 
   test_plus_int_int() async {
@@ -519,14 +731,21 @@ f(int a, int b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a + b'),
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.binary('a + b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@13
+    staticType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: int
+''');
   }
 
   test_plus_int_int_target_rewritten() async {
@@ -536,14 +755,28 @@ f(int Function() a, int b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a() + b'),
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.binary('a() + b'), r'''
+BinaryExpression
+  leftOperand: FunctionExpressionInvocation
+    function: SimpleIdentifier
+      token: a
+      staticElement: a@17
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: <null>
+    staticInvokeType: int Function()
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@24
+    staticType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: int
+''');
   }
 
   test_plus_int_int_via_extension_explicit() async {
@@ -556,14 +789,32 @@ f(int a, int b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('E(a) + b'),
-      element: elementMatcher(
-        findElement.method('+', of: 'E'),
-        isLegacy: false,
-      ),
-      type: 'String',
-    );
+    assertResolvedNodeText(findNode.binary('E(a) + b'), r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@66
+          staticType: int
+      rightParenthesis: )
+    extendedType: int
+    staticType: null
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@73
+    staticType: int
+  staticElement: self::@extension::E::@method::+
+  staticInvokeType: String Function(int)
+  staticType: String
+''');
   }
 
   test_plus_int_num() async {
@@ -573,14 +824,21 @@ f(int a, num b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a + b'),
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'num',
-    );
+    assertResolvedNodeText(findNode.binary('a + b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@13
+    staticType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: num
+''');
   }
 
   test_plus_num_context_int() async {
@@ -664,14 +922,21 @@ f(A a, double b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a + b'),
-      element: elementMatcher(
-        findElement.method('+', of: 'A'),
-        isLegacy: false,
-      ),
-      type: 'String',
-    );
+    assertResolvedNodeText(findNode.binary('a + b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@59
+    staticType: A
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@69
+    staticType: double
+  staticElement: self::@class::A::@method::+
+  staticInvokeType: String Function(double)
+  staticType: String
+''');
   }
 
   test_plus_other_int_via_extension_explicit() async {
@@ -685,14 +950,32 @@ f(A a, int b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('E(a) + b'),
-      element: elementMatcher(
-        findElement.method('+', of: 'E'),
-        isLegacy: false,
-      ),
-      type: 'String',
-    );
+    assertResolvedNodeText(findNode.binary('E(a) + b'), r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@73
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@80
+    staticType: int
+  staticElement: self::@extension::E::@method::+
+  staticInvokeType: String Function(int)
+  staticType: String
+''');
   }
 
   test_plus_other_int_via_extension_implicit() async {
@@ -706,14 +989,21 @@ f(A a, int b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a + b'),
-      element: elementMatcher(
-        findElement.method('+', of: 'E'),
-        isLegacy: false,
-      ),
-      type: 'String',
-    );
+    assertResolvedNodeText(findNode.binary('a + b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@73
+    staticType: A
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@80
+    staticType: int
+  staticElement: self::@extension::E::@method::+
+  staticInvokeType: String Function(int)
+  staticType: String
+''');
   }
 
   test_receiverTypeParameter_bound_dynamic() async {
@@ -723,11 +1013,20 @@ f<T extends dynamic>(T a) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a + 0'),
-      element: null,
-      type: 'dynamic',
-    );
+    assertResolvedNodeText(findNode.binary('a + 0'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@23
+    staticType: T
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
   }
 
   test_receiverTypeParameter_bound_num() async {
@@ -737,14 +1036,20 @@ f<T extends num>(T a) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a + 0'),
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'num',
-    );
+    assertResolvedNodeText(findNode.binary('a + 0'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@19
+    staticType: T
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: num
+''');
   }
 
   test_slash() async {
@@ -754,14 +1059,21 @@ f(int a, int b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a / b'),
-      element: elementMatcher(
-        numElement.getMethod('/'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'double',
-    );
+    assertResolvedNodeText(findNode.binary('a / b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: /
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@13
+    staticType: int
+  staticElement: dart:core::@class::num::@method::/
+  staticInvokeType: double Function(num)
+  staticType: double
+''');
   }
 
   test_star_int_context_int() async {
@@ -784,14 +1096,21 @@ f(int a, double b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a * b'),
-      element: elementMatcher(
-        numElement.getMethod('*'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'double',
-    );
+    assertResolvedNodeText(findNode.binary('a * b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@16
+    staticType: double
+  staticElement: dart:core::@class::num::@method::*
+  staticInvokeType: num Function(num)
+  staticType: double
+''');
   }
 
   test_star_int_int() async {
@@ -801,13 +1120,20 @@ f(int a, int b) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('a * b'),
-      element: elementMatcher(
-        numElement.getMethod('*'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.binary('a * b'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: a@6
+    staticType: int
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: b
+    staticElement: b@13
+    staticType: int
+  staticElement: dart:core::@class::num::@method::*
+  staticInvokeType: num Function(num)
+  staticType: int
+''');
   }
 }

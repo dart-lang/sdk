@@ -102,7 +102,6 @@ class ObjectPointerVisitor;
   V(EvalSourceUri, "evaluate:source")                                          \
   V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
-  V(ExceptionParameter, ":exception")                                          \
   V(ExceptionVar, ":exception_var")                                            \
   V(Expando, "Expando")                                                        \
   V(ExprTemp, ":expr_temp")                                                    \
@@ -288,6 +287,7 @@ class ObjectPointerVisitor;
   V(_CombinatorMirror, "_CombinatorMirror")                                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
+  V(_CompleteWithNoFutureOnAsyncReturn, "_completeWithNoFutureOnAsyncReturn")  \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
   V(_CompleteOnAsyncError, "_completeOnAsyncError")                            \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
@@ -401,6 +401,7 @@ class ObjectPointerVisitor;
   V(_Utf8Decoder, "_Utf8Decoder")                                              \
   V(_VariableMirror, "_VariableMirror")                                        \
   V(_WeakProperty, "_WeakProperty")                                            \
+  V(_WeakReferenceImpl, "_WeakReferenceImpl")                                  \
   V(_typedDataBase, "_typedDataBase")                                          \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
@@ -475,6 +476,7 @@ class ObjectPointerVisitor;
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
   V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")                        \
   V(vm_external_name, "vm:external-name")                                      \
+  V(vm_invisible, "vm:invisible")                                              \
   V(vm_testing_print_flow_graph, "vm:testing:print-flow-graph")
 
 // Contains a list of frequently used strings in a canonicalized form. This

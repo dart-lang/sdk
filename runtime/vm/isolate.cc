@@ -412,10 +412,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 }
 
 IsolateGroup::~IsolateGroup() {
-  // Finalize any weak persistent handles with a non-null referent.
-  FinalizeWeakPersistentHandlesVisitor visitor(this);
-  api_state()->VisitWeakHandlesUnlocked(&visitor);
-
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(marking_stack_ == nullptr);
@@ -1656,11 +1652,6 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   ASSERT(isolate == Isolate::Current());
 }
-
-void BaseIsolate::AssertCurrentThreadIsMutator() const {
-  ASSERT(Isolate::Current() == this);
-  ASSERT(Thread::Current()->IsMutatorThread());
-}
 #endif  // defined(DEBUG)
 
 #if defined(DEBUG)
@@ -1785,6 +1776,8 @@ void Isolate::InitVM() {
   shutdown_callback_ = nullptr;
   cleanup_callback_ = nullptr;
   cleanup_group_callback_ = nullptr;
+  register_kernel_blob_callback_ = nullptr;
+  unregister_kernel_blob_callback_ = nullptr;
   if (isolate_creation_monitor_ == nullptr) {
     isolate_creation_monitor_ = new Monitor();
   }
@@ -2661,14 +2654,20 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   if (shutdown_group) {
     KernelIsolate::NotifyAboutIsolateGroupShutdown(isolate_group);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
     if (!is_vm_isolate) {
       Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,
                                         /*bypass_safepoint=*/false);
+#if !defined(DART_PRECOMPILED_RUNTIME)
       BackgroundCompiler::Stop(isolate_group);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+      // Finalize any weak persistent handles with a non-null referent with
+      // isolate group still being available.
+      FinalizeWeakPersistentHandlesVisitor visitor(isolate_group);
+      isolate_group->api_state()->VisitWeakHandlesUnlocked(&visitor);
+
       Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
     }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
     // The "vm-isolate" does not have a thread pool.
     ASSERT(is_vm_isolate == (isolate_group->thread_pool() == nullptr));
@@ -2707,6 +2706,10 @@ Dart_IsolateGroupCreateCallback Isolate::create_group_callback_ = nullptr;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = nullptr;
 Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = nullptr;
 Dart_IsolateGroupCleanupCallback Isolate::cleanup_group_callback_ = nullptr;
+Dart_RegisterKernelBlobCallback Isolate::register_kernel_blob_callback_ =
+    nullptr;
+Dart_UnregisterKernelBlobCallback Isolate::unregister_kernel_blob_callback_ =
+    nullptr;
 
 Random* IsolateGroup::isolate_group_random_ = nullptr;
 Monitor* Isolate::isolate_creation_monitor_ = nullptr;

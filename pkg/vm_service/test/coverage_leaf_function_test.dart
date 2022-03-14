@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:developer';
+
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
+
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
@@ -38,7 +40,7 @@ IsolateTest coverageTest(Map<String, dynamic> expectedRange,
     expect(stack.frames!.length, greaterThanOrEqualTo(1));
     expect(stack.frames![0].function!.name, 'testFunction');
 
-    final Library root =
+    final root =
         await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
     FuncRef funcRef =
         root.functions!.singleWhere((f) => f.name == 'leafFunction');
@@ -69,12 +71,12 @@ var tests = <IsolateTest>[
   coverageTest(
     {
       'scriptIndex': 0,
-      'startPos': 397,
-      'endPos': 447,
+      'startPos': 399,
+      'endPos': 449,
       'compiled': true,
       'coverage': {
         'hits': [],
-        'misses': [397]
+        'misses': [399]
       }
     },
     reportLines: false,
@@ -82,12 +84,12 @@ var tests = <IsolateTest>[
   coverageTest(
     {
       'scriptIndex': 0,
-      'startPos': 397,
-      'endPos': 447,
+      'startPos': 399,
+      'endPos': 449,
       'compiled': true,
       'coverage': {
         'hits': [],
-        'misses': [11]
+        'misses': [13]
       }
     },
     reportLines: true,
@@ -97,11 +99,11 @@ var tests = <IsolateTest>[
   coverageTest(
     {
       'scriptIndex': 0,
-      'startPos': 397,
-      'endPos': 447,
+      'startPos': 399,
+      'endPos': 449,
       'compiled': true,
       'coverage': {
-        'hits': [397],
+        'hits': [399],
         'misses': []
       }
     },
@@ -110,11 +112,11 @@ var tests = <IsolateTest>[
   coverageTest(
     {
       'scriptIndex': 0,
-      'startPos': 397,
-      'endPos': 447,
+      'startPos': 399,
+      'endPos': 449,
       'compiled': true,
       'coverage': {
-        'hits': [11],
+        'hits': [13],
         'misses': []
       }
     },

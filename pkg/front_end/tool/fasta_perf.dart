@@ -13,6 +13,7 @@ import 'package:_fe_analyzer_shared/src/scanner/io.dart'
     show readBytesFromFileSync;
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:args/args.dart';
 
@@ -95,11 +96,11 @@ Future setup(Uri entryUri) async {
 }
 
 /// Scan [contents] and return the first token produced by the scanner.
-Token tokenize(List<int> contents) {
+ScannerResult tokenize(List<int> contents) {
   scanTimer.start();
-  var token = scan(contents).tokens;
+  var result = scan(contents);
   scanTimer.stop();
-  return token;
+  return result;
 }
 
 /// Scans every file in [files] and reports the time spent doing so.
@@ -173,7 +174,7 @@ Set<String> extractDirectiveUris(List<int> contents) {
   var listener = new DirectiveListenerWithNative();
   new TopLevelParser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe)
-      .parseUnit(tokenize(contents));
+      .parseUnit(tokenize(contents).tokens);
   return new Set<String>()
     ..addAll(listener.imports.map((directive) => directive.uri!))
     ..addAll(listener.exports.map((directive) => directive.uri!))
@@ -203,17 +204,19 @@ void parseFiles(Map<Uri, List<int>> files) {
 
 /// Parse the full body of [source].
 void parseFull(Uri uri, List<int> source) {
-  var tokens = tokenize(source);
-  Parser parser = new Parser(new _PartialAstBuilder(uri),
+  var result = tokenize(source);
+  var lineInfo = LineInfo(result.lineStarts);
+  Parser parser = new Parser(new _PartialAstBuilder(uri, lineInfo),
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
-  parser.parseUnit(tokens);
+  parser.parseUnit(result.tokens);
 }
 
 // Note: AstBuilder doesn't build compilation-units or classes, only method
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
-  _PartialAstBuilder(Uri uri)
-      : super(null, uri, true, FeatureSet.latestLanguageVersion(), uri);
+  _PartialAstBuilder(Uri uri, LineInfo lineInfo)
+      : super(
+            null, uri, true, FeatureSet.latestLanguageVersion(), lineInfo, uri);
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]

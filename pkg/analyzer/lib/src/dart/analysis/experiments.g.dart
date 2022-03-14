@@ -147,7 +147,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.enhanced_enums,
     documentation: 'Enhanced Enums',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('2.17.0'),
   );
 
   static final extension_methods = ExperimentalFeature(
@@ -198,7 +198,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.named_arguments_anywhere,
     documentation: 'Named Arguments Anywhere',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('2.17.0'),
   );
 
   static final non_nullable = ExperimentalFeature(
@@ -248,7 +248,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.super_parameters,
     documentation: 'Super-Initializer Parameters',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('2.17.0'),
   );
 
   static final test_experiment = ExperimentalFeature(
@@ -309,7 +309,7 @@ class IsEnabledByDefault {
   static const bool control_flow_collections = true;
 
   /// Default state of the experiment "enhanced-enums"
-  static const bool enhanced_enums = false;
+  static const bool enhanced_enums = true;
 
   /// Default state of the experiment "extension-methods"
   static const bool extension_methods = true;
@@ -324,7 +324,7 @@ class IsEnabledByDefault {
   static const bool macros = false;
 
   /// Default state of the experiment "named-arguments-anywhere"
-  static const bool named_arguments_anywhere = false;
+  static const bool named_arguments_anywhere = true;
 
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = true;
@@ -339,7 +339,7 @@ class IsEnabledByDefault {
   static const bool spread_collections = true;
 
   /// Default state of the experiment "super-parameters"
-  static const bool super_parameters = false;
+  static const bool super_parameters = true;
 
   /// Default state of the experiment "test-experiment"
   static const bool test_experiment = false;

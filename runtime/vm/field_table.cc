@@ -117,8 +117,7 @@ void FieldTable::Grow(intptr_t new_capacity) {
   old_tables_->Add(old_table);
   // Ensure that new_table_ is populated before it is published
   // via store to table_.
-  std::atomic_thread_fence(std::memory_order_release);
-  table_ = new_table;
+  reinterpret_cast<AcqRelAtomic<ObjectPtr*>*>(&table_)->store(new_table);
   if (isolate_ != nullptr) {
     isolate_->mutator_thread()->field_table_values_ = table_;
   }

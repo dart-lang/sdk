@@ -166,7 +166,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     // We need to inform the applier about the right shape of the AST.
     // _sink.writeByte(node.name != null ? 1 : 0);
 
-    _writeNode(node.type2);
+    _writeNode(node.type);
     _writeOptionalNode(node.name);
 
     _sink.writeElement(node.staticElement);

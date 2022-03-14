@@ -81,7 +81,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
-    ResolutionWorldBuilderImpl resolutionWorldBuilder =
+    ResolutionWorldBuilder resolutionWorldBuilder =
         compiler.resolutionWorldBuilderForTesting;
     ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
     Features features = new Features();

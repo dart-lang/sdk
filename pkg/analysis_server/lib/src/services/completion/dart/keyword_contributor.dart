@@ -264,6 +264,29 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    if (!request.featureSet.isEnabled(Feature.enhanced_enums)) {
+      return;
+    }
+
+    if (entity == node.name) {
+      return;
+    }
+
+    var semicolon = node.semicolon;
+    if (request.offset <= node.leftBracket.offset) {
+      if (node.withClause == null) {
+        _addSuggestion(Keyword.WITH);
+      }
+      if (node.implementsClause == null) {
+        _addSuggestion(Keyword.IMPLEMENTS);
+      }
+    } else if (semicolon != null && semicolon.end <= request.offset) {
+      _addEnumBodyKeywords();
+    }
+  }
+
+  @override
   void visitExpression(Expression node) {
     _addExpressionKeywords(node);
   }
@@ -292,6 +315,20 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (request.opType.completionLocation == 'FieldDeclaration_static') {
+      _addSuggestion(Keyword.CONST);
+      _addSuggestion(Keyword.DYNAMIC);
+      _addSuggestion(Keyword.FINAL);
+      _addSuggestion(Keyword.LATE);
+      return;
+    }
+
+    if (request.opType.completionLocation == 'FieldDeclaration_static_late') {
+      _addSuggestion(Keyword.DYNAMIC);
+      _addSuggestion(Keyword.FINAL);
+      return;
+    }
+
     var fields = node.fields;
     if (entity != fields) {
       return;
@@ -312,6 +349,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (node.fields.lateKeyword == null &&
         request.featureSet.isEnabled(Feature.non_nullable)) {
       _addSuggestion(Keyword.LATE);
+    }
+    if (node.fields.type == null) {
+      _addSuggestion(Keyword.DYNAMIC);
     }
     if (!node.isStatic) {
       _addSuggestion(Keyword.STATIC);
@@ -858,6 +898,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (request.featureSet.isEnabled(Feature.non_nullable)) {
       _addSuggestion(Keyword.LATE);
     }
+  }
+
+  void _addEnumBodyKeywords() {
+    _addSuggestions([
+      Keyword.CONST,
+      Keyword.DYNAMIC,
+      Keyword.FINAL,
+      Keyword.GET,
+      Keyword.LATE,
+      Keyword.OPERATOR,
+      Keyword.SET,
+      Keyword.STATIC,
+      Keyword.VAR,
+      Keyword.VOID
+    ]);
   }
 
   void _addExpressionKeywords(AstNode node) {

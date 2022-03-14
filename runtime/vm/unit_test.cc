@@ -648,7 +648,9 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
         KernelIsolate::CompileExpressionToKernel(
             /* platform_kernel= */ nullptr, /* platform_kernel_size= */ 0,
             expr.ToCString(), param_names, Array::empty_array(),
-            String::Handle(lib.url()).ToCString(), /* klass= */ nullptr,
+            Array::empty_array(), Array::empty_array(), Array::empty_array(),
+            String::Handle(lib.url()).ToCString(),
+            /* klass= */ nullptr,
             /* method= */ nullptr,
             /* is_static= */ true);
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {

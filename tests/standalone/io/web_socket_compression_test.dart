@@ -55,7 +55,7 @@ class SecurityConfiguration {
     String nonce = base64.encode(nonceData);
 
     uri = new Uri(
-        scheme: uri.scheme == "wss" ? "https" : "http",
+        scheme: uri.isScheme("wss") ? "https" : "http",
         userInfo: uri.userInfo,
         host: uri.host,
         port: uri.port,

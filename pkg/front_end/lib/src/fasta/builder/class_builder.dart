@@ -51,9 +51,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// The types in the `on` clause of an extension or mixin declaration.
   List<TypeBuilder>? get onTypes;
 
-  ConstructorScope get constructors;
-
-  ConstructorScopeBuilder get constructorScopeBuilder;
+  ConstructorScope get constructorScope;
 
   @override
   Uri get fileUri;
@@ -61,6 +59,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
   bool get isAbstract;
 
   bool get isMacro;
+
+  bool get isAugmentation;
 
   bool get declaresConstConstructor;
 
@@ -124,11 +124,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
       {bool isSetter: false, bool isSuper: false});
 
   /// Calls [f] for each constructor declared in this class.
-  ///
-  /// If [includeInjectedConstructors] is `true`, constructors only declared in
-  /// the patch class, if any, are included.
-  void forEachConstructor(void Function(String, MemberBuilder) f,
-      {bool includeInjectedConstructors: false});
+  void forEachConstructor(void Function(String, MemberBuilder) f);
 }
 
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl
@@ -146,10 +142,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   List<TypeBuilder>? onTypes;
 
   @override
-  final ConstructorScope constructors;
-
-  @override
-  final ConstructorScopeBuilder constructorScopeBuilder;
+  final ConstructorScope constructorScope;
 
   @override
   bool isNullClass = false;
@@ -168,11 +161,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       this.interfaceBuilders,
       this.onTypes,
       Scope scope,
-      this.constructors,
+      this.constructorScope,
       LibraryBuilder parent,
       int charOffset)
-      : constructorScopeBuilder = new ConstructorScopeBuilder(constructors),
-        super(metadata, modifiers, name, parent, charOffset, scope);
+      : super(metadata, modifiers, name, parent, charOffset, scope);
 
   @override
   String get debugName => "ClassBuilder";
@@ -229,7 +221,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       return null;
     }
     MemberBuilder? declaration =
-        constructors.lookup(name == 'new' ? '' : name, charOffset, uri);
+        constructorScope.lookup(name == 'new' ? '' : name, charOffset, uri);
     if (declaration == null && isPatch) {
       return origin.findConstructorOrFactory(
           name, charOffset, uri, accessingLibrary);
@@ -326,7 +318,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
     if (name == "FutureOr") {
       LibraryBuilder parentLibrary = parent as LibraryBuilder;
-      if (parentLibrary.importUri.scheme == "dart" &&
+      if (parentLibrary.importUri.isScheme("dart") &&
           parentLibrary.importUri.path == "async") {
         assert(arguments != null && arguments.length == 1);
         return new FutureOrType(arguments!.single, nullability);

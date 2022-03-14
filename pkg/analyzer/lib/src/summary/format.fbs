@@ -68,6 +68,12 @@ enum IndexRelationKind : byte {
   /// Right: location.
   IS_INVOKED_BY,
 
+  /// Left: an unnamed constructor.
+  ///   Is invoked by an enum constant, without arguments, which is special
+  ///   because when the name given, an empty argument list must be added.
+  /// Right: location.
+  IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS,
+
   /// Left: any element.
   ///   Is referenced (and not invoked, read/written) at.
   /// Right: location.

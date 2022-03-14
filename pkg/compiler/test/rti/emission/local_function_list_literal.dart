@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*spec.class: global#JSArray:checkedInstance,checks=[$isIterable,$isList],instance*/
 /*prod.class: global#JSArray:checks=[$isList],instance*/
@@ -18,6 +18,6 @@ method<T>() {
 test(o) => o is List<int>;
 
 main() {
-  Expect.isTrue(test(method<int>().call()));
-  Expect.isFalse(test(method<String>().call()));
+  makeLive(test(method<int>().call()));
+  makeLive(test(method<String>().call()));
 }

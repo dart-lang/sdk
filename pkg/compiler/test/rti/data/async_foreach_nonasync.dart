@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 /*spec.class: Class:direct,explicit=[Class.T*],implicit=[Class.T],needsArgs*/
 class Class<T> {
   method() {
@@ -12,7 +14,7 @@ class Class<T> {
     // arguments on `Class`. See the 'async_foreach.dart' test.
     list.forEach(
         /*spec.needsSignature*/
-        (x) => print(x));
+        (x) => makeLive(x));
   }
 }
 

@@ -11,12 +11,11 @@ import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 
-import '../compiler_new.dart';
-import 'backend_strategy.dart';
+import '../compiler.dart';
+import 'common.dart';
+import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
-import 'common.dart';
-import 'common_elements.dart' show JElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
@@ -25,10 +24,10 @@ import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
+import 'js_model/js_strategy.dart';
 import 'js_backend/field_analysis.dart';
 import 'universe/codegen_world_builder.dart';
-import 'universe/world_impact.dart'
-    show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
+import 'universe/world_impact.dart' show WorldImpact, WorldImpactVisitorImpl;
 import 'util/sink_adapter.dart';
 import 'world.dart' show JClosedWorld;
 
@@ -370,7 +369,7 @@ class ElementInfoCollector {
     return _outputToInfo.putIfAbsent(outputUnit, () {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
-      BackendStrategy backendStrategy = compiler.backendStrategy;
+      JsBackendStrategy backendStrategy = compiler.backendStrategy;
       assert(outputUnit.name != null || outputUnit.isMainOutput);
       var filename = outputUnit.isMainOutput
           ? compiler.options.outputUri.pathSegments.last
@@ -427,7 +426,6 @@ abstract class InfoReporter {
 }
 
 class DumpInfoTask extends CompilerTask implements InfoReporter {
-  static const ImpactUseCase IMPACT_USE = ImpactUseCase('Dump info');
   final Compiler compiler;
   final bool useBinaryFormat;
 
@@ -493,20 +491,17 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     if (impact == null) return const <Selection>[];
 
     var selections = <Selection>[];
-    compiler.impactStrategy.visitImpact(
-        entity,
-        impact,
-        WorldImpactVisitorImpl(visitDynamicUse: (member, dynamicUse) {
-          AbstractValue mask = dynamicUse.receiverConstraint;
-          selections.addAll(closedWorld
-              // TODO(het): Handle `call` on `Closure` through
-              // `world.includesClosureCall`.
-              .locateMembers(dynamicUse.selector, mask)
-              .map((MemberEntity e) => Selection(e, mask)));
-        }, visitStaticUse: (member, staticUse) {
-          selections.add(Selection(staticUse.element, null));
-        }),
-        IMPACT_USE);
+    impact.apply(WorldImpactVisitorImpl(visitDynamicUse: (member, dynamicUse) {
+      AbstractValue mask = dynamicUse.receiverConstraint;
+      selections.addAll(closedWorld
+          // TODO(het): Handle `call` on `Closure` through
+          // `world.includesClosureCall`.
+          .locateMembers(dynamicUse.selector, mask)
+          .map((MemberEntity e) => Selection(e, mask)));
+    }, visitStaticUse: (member, staticUse) {
+      selections.add(Selection(staticUse.element, null));
+    }));
+    unregisterImpact(entity);
     return selections;
   }
 
@@ -665,9 +660,6 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
             DependencyInfo(useInfo, selection.receiverConstraint?.toString()));
       }
     }
-
-    // Notify the impact strategy impacts are no longer needed for dump info.
-    compiler.impactStrategy.onImpactUsed(IMPACT_USE);
 
     // Track dependencies that come from inlining.
     for (Entity entity in inlineMap.keys) {

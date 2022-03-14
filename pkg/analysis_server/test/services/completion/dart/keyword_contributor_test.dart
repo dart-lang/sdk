@@ -394,6 +394,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.ABSTRACT,
       Keyword.CONST,
       Keyword.COVARIANT,
+      Keyword.DYNAMIC,
       Keyword.EXTERNAL,
       Keyword.FINAL
     ];

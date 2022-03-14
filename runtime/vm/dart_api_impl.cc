@@ -1114,9 +1114,10 @@ Dart_NewFinalizableHandle(Dart_Handle object,
 
 DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
                                          intptr_t external_size) {
-  IsolateGroup* isolate_group = IsolateGroup::Current();
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
   CHECK_ISOLATE_GROUP(isolate_group);
-  NoSafepointScope no_safepoint_scope;
+  TransitionToVM transition(T);
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsActiveWeakPersistentHandle(object));
@@ -1140,9 +1141,10 @@ DART_EXPORT void Dart_UpdateFinalizableExternalSize(
 }
 
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
-  IsolateGroup* isolate_group = IsolateGroup::Current();
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
   CHECK_ISOLATE_GROUP(isolate_group);
-  NoSafepointScope no_safepoint_scope;
+  TransitionToVM transition(T);
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsActivePersistentHandle(object));
@@ -1155,9 +1157,10 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
 
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object) {
-  IsolateGroup* isolate_group = IsolateGroup::Current();
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
   CHECK_ISOLATE_GROUP(isolate_group);
-  NoSafepointScope no_safepoint_scope;
+  TransitionToVM transition(T);
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsActiveWeakPersistentHandle(object));
@@ -1201,15 +1204,7 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
         "Invalid Dart_InitializeParams version.");
   }
 
-  return Dart::Init(params->vm_snapshot_data, params->vm_snapshot_instructions,
-                    params->create_group, params->initialize_isolate,
-                    params->shutdown_isolate, params->cleanup_isolate,
-                    params->cleanup_group, params->thread_start,
-                    params->thread_exit, params->file_open, params->file_read,
-                    params->file_write, params->file_close,
-                    params->entropy_source, params->get_service_assets,
-                    params->start_kernel_isolate, params->code_observer,
-                    params->post_task, params->post_task_data);
+  return Dart::Init(params);
 }
 
 DART_EXPORT char* Dart_Cleanup() {
@@ -4172,8 +4167,6 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
       !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(Z, object, 'TypedData');
   }
-  T->DecrementNoSafepointScopeDepth();
-  END_NO_CALLBACK_SCOPE(T);
   if (FLAG_verify_acquired_data) {
     const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
     WeakTable* table = I->group()->api_state()->acquired_table();
@@ -4185,6 +4178,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
     table->SetValue(obj.ptr(), 0);  // Delete entry from table.
     delete ad;
   }
+  T->DecrementNoSafepointScopeDepth();
+  END_NO_CALLBACK_SCOPE(T);
   return Api::Success();
 }
 

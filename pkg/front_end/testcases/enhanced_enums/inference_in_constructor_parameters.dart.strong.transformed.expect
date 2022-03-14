@@ -49,7 +49,7 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///inference_in_constructor_parameters.dart:
 - E1. (from org-dartlang-testcase:///inference_in_constructor_parameters.dart:10:9)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - E2. (from org-dartlang-testcase:///inference_in_constructor_parameters.dart:16:9)
 - E3. (from org-dartlang-testcase:///inference_in_constructor_parameters.dart:19:6)

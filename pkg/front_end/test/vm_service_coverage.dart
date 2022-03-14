@@ -112,10 +112,10 @@ class CoverageHelper extends vmService.LaunchingVMServiceHelper {
   }
 
   bool includeCoverageFor(Uri uri) {
-    if (uri.scheme == "dart") {
+    if (uri.isScheme("dart")) {
       return false;
     }
-    if (uri.scheme == "package") {
+    if (uri.isScheme("package")) {
       return uri.pathSegments.first == "front_end" ||
           uri.pathSegments.first == "_fe_analyzer_shared" ||
           uri.pathSegments.first == "kernel";

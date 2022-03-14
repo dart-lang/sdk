@@ -179,11 +179,6 @@ static const IntrinsicDesc core_intrinsics[] = {
   {nullptr, nullptr},
 };
 
-static const IntrinsicDesc math_intrinsics[] = {
-  MATH_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
-  {nullptr, nullptr},
-};
-
 static const IntrinsicDesc typed_data_intrinsics[] = {
   GRAPH_TYPED_DATA_INTRINSICS_LIST(DEFINE_INTRINSIC)
   {nullptr, nullptr},
@@ -210,10 +205,9 @@ void Intrinsifier::InitializeState() {
   String& str2 = String::Handle(zone);
   Error& error = Error::Handle(zone);
 
-  static const intptr_t kNumLibs = 5;
+  static const intptr_t kNumLibs = 4;
   const LibraryInstrinsicsDesc intrinsics[kNumLibs] = {
       {Library::Handle(zone, Library::CoreLibrary()), core_intrinsics},
-      {Library::Handle(zone, Library::MathLibrary()), math_intrinsics},
       {Library::Handle(zone, Library::TypedDataLibrary()),
        typed_data_intrinsics},
       {Library::Handle(zone, Library::DeveloperLibrary()),

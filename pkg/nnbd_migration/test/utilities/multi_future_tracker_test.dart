@@ -24,6 +24,22 @@ class MultiFutureTrackerTest {
     testTracker = null;
   }
 
+  Future<void> test_doesNotBlockWithoutLimit() async {
+    var completer1 = Completer();
+
+    // Limit is set above the number of futures we are adding.
+    testTracker = MultiFutureTracker(10);
+    await testTracker!.addFutureFromClosure(() => completer1.future);
+    // The second future added should be executing even though the first
+    // future is not complete.  A test failure will time out.
+    await testTracker!.addFutureFromClosure(() async {
+      expect(completer1.isCompleted, isFalse);
+      completer1.complete();
+    });
+
+    return await testTracker!.wait();
+  }
+
   Future<void> test_multiFutureBlocksOnLimit() async {
     var completer1 = Completer();
 
@@ -40,20 +56,12 @@ class MultiFutureTrackerTest {
     return await testTracker!.wait();
   }
 
-  Future<void> test_doesNotBlockWithoutLimit() async {
-    var completer1 = Completer();
-
-    // Limit is set above the number of futures we are adding.
-    testTracker = MultiFutureTracker(10);
-    await testTracker!.addFutureFromClosure(() => completer1.future);
-    // The second future added should be executing even though the first
-    // future is not complete.  A test failure will time out.
-    await testTracker!.addFutureFromClosure(() async {
-      expect(completer1.isCompleted, isFalse);
-      completer1.complete();
-    });
-
-    return await testTracker!.wait();
+  Future<void> test_returnsValueFromRun() async {
+    testTracker = MultiFutureTracker(1);
+    await expectLater(await testTracker!.runFutureFromClosure(() async => true),
+        equals(true));
+    await expectLater(
+        await testTracker!.runFutureFromClosure(() => true), equals(true));
   }
 
   Future<void> test_runsSeriallyAtLowLimit() async {
@@ -75,13 +83,5 @@ class MultiFutureTrackerTest {
     // Now, these should complete normally.
     await runFuture1;
     await runFuture2;
-  }
-
-  Future<void> test_returnsValueFromRun() async {
-    testTracker = MultiFutureTracker(1);
-    await expectLater(await testTracker!.runFutureFromClosure(() async => true),
-        equals(true));
-    await expectLater(
-        await testTracker!.runFutureFromClosure(() => true), equals(true));
   }
 }

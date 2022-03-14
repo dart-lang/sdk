@@ -5,11 +5,10 @@
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
-import 'deferred_load.dart';
 import 'entity_data.dart';
 
 import '../common.dart';
-import '../common_elements.dart' show CommonElements, KElementEnvironment;
+import '../common/elements.dart' show CommonElements, KElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart'
     show ConstantValue, ConstructedConstantValue, InstantiationConstantValue;
@@ -18,10 +17,9 @@ import '../elements/entities.dart';
 import '../ir/util.dart';
 import '../kernel/kelements.dart' show KLocalFunction;
 import '../kernel/element_map.dart';
+import '../kernel/kernel_world.dart';
 import '../universe/use.dart';
-import '../universe/world_impact.dart'
-    show ImpactStrategy, WorldImpact, WorldImpactVisitorImpl;
-import '../world.dart' show KClosedWorld;
+import '../universe/world_impact.dart' show WorldImpact, WorldImpactVisitorImpl;
 
 /// [EntityDataInfo] is meta data about [EntityData] for a given compilation
 /// [Entity].
@@ -63,7 +61,6 @@ class EntityDataInfoBuilder {
       this.closedWorld, this.elementMap, this.compiler, this.registry);
 
   Map<Entity, WorldImpact> get impactCache => compiler.impactCache;
-  ImpactStrategy get impactStrategy => compiler.impactStrategy;
   KElementEnvironment get elementEnvironment =>
       compiler.frontendStrategy.elementEnvironment;
   CommonElements get commonElements => compiler.frontendStrategy.commonElements;
@@ -242,20 +239,16 @@ class EntityDataInfoBuilder {
   /// Extract any dependencies that are known from the impact of [element].
   void _addDependenciesFromImpact(MemberEntity element) {
     WorldImpact worldImpact = impactCache[element];
-    impactStrategy.visitImpact(
-        element,
-        worldImpact,
-        WorldImpactVisitorImpl(
-            visitStaticUse: (MemberEntity member, StaticUse staticUse) {
-          _addFromStaticUse(element, staticUse);
-        }, visitTypeUse: (MemberEntity member, TypeUse typeUse) {
-          _addFromTypeUse(element, typeUse);
-        }, visitDynamicUse: (MemberEntity member, DynamicUse dynamicUse) {
-          // TODO(johnniwinther): Use rti need data to skip unneeded type
-          // arguments.
-          addTypeListDependencies(dynamicUse.typeArguments);
-        }),
-        DeferredLoadTask.IMPACT_USE);
+    worldImpact.apply(WorldImpactVisitorImpl(
+        visitStaticUse: (MemberEntity member, StaticUse staticUse) {
+      _addFromStaticUse(element, staticUse);
+    }, visitTypeUse: (MemberEntity member, TypeUse typeUse) {
+      _addFromTypeUse(element, typeUse);
+    }, visitDynamicUse: (MemberEntity member, DynamicUse dynamicUse) {
+      // TODO(johnniwinther): Use rti need data to skip unneeded type
+      // arguments.
+      addTypeListDependencies(dynamicUse.typeArguments);
+    }));
   }
 }
 

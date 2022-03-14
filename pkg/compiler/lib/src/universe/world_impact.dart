@@ -159,63 +159,6 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
   }
 }
 
-/// [WorldImpactBuilder] that can create and collect a sequence of
-/// [WorldImpact]s.
-class StagedWorldImpactBuilder implements WorldImpactBuilder {
-  final bool collectImpacts;
-  WorldImpactBuilderImpl _currentBuilder;
-  final List<WorldImpactBuilderImpl> _builders = [];
-
-  StagedWorldImpactBuilder({this.collectImpacts = false});
-
-  void _ensureBuilder() {
-    if (_currentBuilder == null) {
-      _currentBuilder = WorldImpactBuilderImpl();
-      if (collectImpacts) {
-        _builders.add(_currentBuilder);
-      }
-    }
-  }
-
-  @override
-  void registerTypeUse(TypeUse typeUse) {
-    _ensureBuilder();
-    _currentBuilder.registerTypeUse(typeUse);
-  }
-
-  @override
-  void registerDynamicUse(DynamicUse dynamicUse) {
-    _ensureBuilder();
-    _currentBuilder.registerDynamicUse(dynamicUse);
-  }
-
-  @override
-  void registerStaticUse(StaticUse staticUse) {
-    _ensureBuilder();
-    _currentBuilder.registerStaticUse(staticUse);
-  }
-
-  @override
-  void registerConstantUse(ConstantUse constantUse) {
-    _ensureBuilder();
-    _currentBuilder.registerConstantUse(constantUse);
-  }
-
-  /// Returns the [WorldImpact] built so far with this builder. The builder
-  /// is reset, and if [collectImpacts] is `true` the impact is cached for
-  /// [worldImpacts].
-  WorldImpact flush() {
-    if (_currentBuilder == null) return const WorldImpact();
-    WorldImpact worldImpact = _currentBuilder;
-    _currentBuilder = null;
-    return worldImpact;
-  }
-
-  /// If [collectImpacts] is `true` this returns all [WorldImpact]s built with
-  /// this builder.
-  Iterable<WorldImpact> get worldImpacts => _builders;
-}
-
 /// Mutable implementation of [WorldImpact] used to transform
 /// [ResolutionImpact] or [CodegenImpact] to [WorldImpact].
 class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
@@ -300,34 +243,6 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
     sb.write('TransformedWorldImpact($worldImpact)');
     WorldImpact.printOn(sb, this);
     return sb.toString();
-  }
-}
-
-/// Constant used to denote a specific use of a [WorldImpact].
-class ImpactUseCase {
-  final String name;
-
-  const ImpactUseCase(this.name);
-
-  @override
-  String toString() => 'ImpactUseCase($name)';
-}
-
-/// Strategy used for processing [WorldImpact] object in various use cases.
-class ImpactStrategy {
-  const ImpactStrategy();
-
-  /// Applies [impact] to [visitor] for the [impactUseCase] of [impactSource].
-  void visitImpact(var impactSource, WorldImpact impact,
-      WorldImpactVisitor visitor, ImpactUseCase impactUseCase) {
-    // Apply unconditionally.
-    impact.apply(visitor);
-  }
-
-  /// Notifies the strategy that no more impacts of [impactUseCase] will be
-  /// applied.
-  void onImpactUsed(ImpactUseCase impactUseCase) {
-    // Do nothing.
   }
 }
 

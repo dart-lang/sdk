@@ -72,7 +72,7 @@ template("_application_snapshot") {
   if (defined(invoker.dot_packages)) {
     dot_packages = invoker.dot_packages
   } else {
-    dot_packages = rebase_path("$_dart_root/.packages")
+    dot_packages = rebase_path("$_dart_root/.dart_tool/package_config.json")
   }
   output = "$root_gen_dir/$name.dart.snapshot"
   if (defined(invoker.output)) {
@@ -197,7 +197,8 @@ template("_application_snapshot") {
 #    Any build dependencies.
 #
 #  dot_packages (optional):
-#    The .packages file for the app. Defaults to the $_dart_root/.packages.
+#    The package config file for the app. Defaults to
+#    $_dart_root/.dart_tool/package_config.json.
 #
 #  output (optional):
 #    Overrides the full output path.
@@ -230,7 +231,8 @@ template("application_snapshot") {
 #    Any build dependencies.
 #
 #  dot_packages (optional):
-#    The .packages file for the app. Defaults to the $_dart_root/.packages.
+#    The packages config file for the app. Defaults to
+#    $_dart_root/.dart_tool/package_config.json.
 #
 #  output (optional):
 #    Overrides the full output path.

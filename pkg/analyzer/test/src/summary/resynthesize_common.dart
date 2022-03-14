@@ -8,17 +8,16 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../util/feature_sets.dart';
 import 'element_text.dart';
 
 /// Abstract base class for resynthesizing and comparing elements.
@@ -83,27 +82,6 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 
   Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors = false});
-}
-
-class FeatureSets {
-  static final FeatureSet language_2_9 = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.9.0'),
-    flags: [],
-  );
-
-  static final FeatureSet language_2_12 = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.12.0'),
-    flags: [],
-  );
-
-  static final FeatureSet latestWithExperiments = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.16.0'),
-    flags: [
-      EnableString.constructor_tearoffs,
-      EnableString.enhanced_enums,
-      EnableString.super_parameters,
-    ],
-  );
 }
 
 /// Mixin containing test cases exercising summary resynthesis.  Intended to be
@@ -792,11 +770,12 @@ library
             constantInitializers
               AssertInitializer
                 assertKeyword: assert @29
+                leftParenthesis: ( @35
                 condition: BinaryExpression
                   leftOperand: SimpleIdentifier
+                    token: x @36
                     staticElement: x@24
                     staticType: int
-                    token: x @36
                   operator: >= @38
                   rightOperand: IntegerLiteral
                     literal: 42 @41
@@ -804,7 +783,6 @@ library
                   staticElement: dart:core::@class::num::@method::>=
                   staticInvokeType: bool Function(num)
                   staticType: bool
-                leftParenthesis: ( @35
                 rightParenthesis: ) @43
 ''');
   }
@@ -828,11 +806,12 @@ library
             constantInitializers
               AssertInitializer
                 assertKeyword: assert @29
+                leftParenthesis: ( @35
                 condition: BinaryExpression
                   leftOperand: SimpleIdentifier
+                    token: x @36
                     staticElement: x@24
                     staticType: int
-                    token: x @36
                   operator: >= @38
                   rightOperand: IntegerLiteral
                     literal: 42 @41
@@ -840,7 +819,7 @@ library
                   staticElement: dart:core::@class::num::@method::>=
                   staticInvokeType: bool Function(num)
                   staticType: bool
-                leftParenthesis: ( @35
+                comma: , @43
                 message: SimpleStringLiteral
                   literal: 'foo' @45
                 rightParenthesis: ) @50
@@ -866,14 +845,14 @@ library
           const @29
             constantInitializers
               ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x @35
+                  staticElement: self::@class::C::@field::x
+                  staticType: null
                 equals: = @37
                 expression: IntegerLiteral
                   literal: 42 @39
                   staticType: int
-                fieldName: SimpleIdentifier
-                  staticElement: self::@class::C::@field::x
-                  staticType: null
-                  token: x @35
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -901,21 +880,21 @@ library
           const @29
             constantInitializers
               ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x @35
+                  staticElement: self::@class::C::@field::x
+                  staticType: null
                 equals: = @37
                 expression: MethodInvocation
+                  methodName: SimpleIdentifier
+                    token: foo @39
+                    staticElement: self::@function::foo
+                    staticType: int Function()
                   argumentList: ArgumentList
                     leftParenthesis: ( @42
                     rightParenthesis: ) @43
-                  methodName: SimpleIdentifier
-                    staticElement: self::@function::foo
-                    staticType: int Function()
-                    token: foo @39
                   staticInvokeType: int Function()
                   staticType: int
-                fieldName: SimpleIdentifier
-                  staticElement: self::@class::C::@field::x
-                  staticType: null
-                  token: x @35
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -951,15 +930,15 @@ library
                     staticType: int
             constantInitializers
               ConstructorFieldInitializer
-                equals: = @54
-                expression: SimpleIdentifier
-                  staticElement: self::@class::A::@constructor::•::@parameter::f
-                  staticType: int
-                  token: f @56
                 fieldName: SimpleIdentifier
+                  token: _f @51
                   staticElement: self::@class::A::@field::_f
                   staticType: null
-                  token: _f @51
+                equals: = @54
+                expression: SimpleIdentifier
+                  token: f @56
+                  staticElement: self::@class::A::@constructor::•::@parameter::f
+                  staticType: int
         accessors
           synthetic get _f @-1
             returnType: int
@@ -988,6 +967,10 @@ library
                 type: int
             constantInitializers
               ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x @40
+                  staticElement: self::@class::C::@field::x
+                  staticType: null
                 equals: = @42
                 expression: BinaryExpression
                   leftOperand: IntegerLiteral
@@ -995,16 +978,12 @@ library
                     staticType: int
                   operator: + @46
                   rightOperand: SimpleIdentifier
+                    token: p @48
                     staticElement: p@35
                     staticType: int
-                    token: p @48
                   staticElement: dart:core::@class::num::@method::+
                   staticInvokeType: num Function(num)
                   staticType: int
-                fieldName: SimpleIdentifier
-                  staticElement: self::@class::C::@field::x
-                  staticType: null
-                  token: x @40
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -1043,41 +1022,41 @@ library
             nameEnd: 71
             constantInitializers
               RedirectingConstructorInvocation
+                thisKeyword: this @79
                 argumentList: ArgumentList
+                  leftParenthesis: ( @83
                   arguments
                     InstanceCreationExpression
-                      argumentList: ArgumentList
-                        leftParenthesis: ( @97
-                        rightParenthesis: ) @98
                       constructorName: ConstructorName
-                        staticElement: ConstructorMember
-                          base: self::@class::A::@constructor::•
-                          substitution: {T: dynamic Function()}
                         type: NamedType
                           name: SimpleIdentifier
+                            token: A @84
                             staticElement: self::@class::A
                             staticType: null
-                            token: A @84
-                          type: A<dynamic Function()>
                           typeArguments: TypeArgumentList
+                            leftBracket: < @85
                             arguments
                               GenericFunctionType
-                                declaredElement: GenericFunctionTypeElement
-                                  parameters
-                                  returnType: dynamic
-                                  type: dynamic Function()
                                 functionKeyword: Function @86
                                 parameters: FormalParameterList
                                   leftParenthesis: ( @94
                                   rightParenthesis: ) @95
+                                declaredElement: GenericFunctionTypeElement
+                                  parameters
+                                  returnType: dynamic
+                                  type: dynamic Function()
                                 type: dynamic Function()
-                            leftBracket: < @85
                             rightBracket: > @96
+                          type: A<dynamic Function()>
+                        staticElement: ConstructorMember
+                          base: self::@class::A::@constructor::•
+                          substitution: {T: dynamic Function()}
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @97
+                        rightParenthesis: ) @98
                       staticType: A<dynamic Function()>
-                  leftParenthesis: ( @83
                   rightParenthesis: ) @99
                 staticElement: self::@class::B::@constructor::•
-                thisKeyword: this @79
             redirectedConstructor: self::@class::B::@constructor::•
 ''');
   }
@@ -1107,17 +1086,17 @@ library
           const @72
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @78
                 argumentList: ArgumentList
+                  leftParenthesis: ( @83
                   arguments
                     ListLiteral
                       constKeyword: const @84
                       leftBracket: [ @90
                       rightBracket: ] @91
                       staticType: List<String>
-                  leftParenthesis: ( @83
                   rightParenthesis: ) @92
                 staticElement: self::@class::A::@constructor::•
-                superKeyword: super @78
             superConstructor: self::@class::A::@constructor::•
 ''');
   }
@@ -1149,20 +1128,20 @@ library
           const @62
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @68
+                period: . @73
+                constructorName: SimpleIdentifier
+                  token: aaa @74
+                  staticElement: self::@class::A::@constructor::aaa
+                  staticType: null
                 argumentList: ArgumentList
+                  leftParenthesis: ( @77
                   arguments
                     IntegerLiteral
                       literal: 42 @78
                       staticType: int
-                  leftParenthesis: ( @77
                   rightParenthesis: ) @80
-                constructorName: SimpleIdentifier
-                  staticElement: self::@class::A::@constructor::aaa
-                  staticType: null
-                  token: aaa @74
-                period: . @73
                 staticElement: self::@class::A::@constructor::aaa
-                superKeyword: super @68
             superConstructor: self::@class::A::@constructor::aaa
 ''');
   }
@@ -1191,16 +1170,16 @@ library
           const @55
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @61
+                period: . @66
+                constructorName: SimpleIdentifier
+                  token: _ @67
+                  staticElement: self::@class::A::@constructor::_
+                  staticType: null
                 argumentList: ArgumentList
                   leftParenthesis: ( @68
                   rightParenthesis: ) @69
-                constructorName: SimpleIdentifier
-                  staticElement: self::@class::A::@constructor::_
-                  staticType: null
-                  token: _ @67
-                period: . @66
                 staticElement: self::@class::A::@constructor::_
-                superKeyword: super @61
             superConstructor: self::@class::A::@constructor::_
 ''');
   }
@@ -1234,7 +1213,14 @@ library
           const @67
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @73
+                period: . @78
+                constructorName: SimpleIdentifier
+                  token: aaa @79
+                  staticElement: self::@class::A::@constructor::aaa
+                  staticType: null
                 argumentList: ArgumentList
+                  leftParenthesis: ( @82
                   arguments
                     IntegerLiteral
                       literal: 1 @83
@@ -1242,21 +1228,15 @@ library
                     NamedExpression
                       name: Label
                         label: SimpleIdentifier
+                          token: b @86
                           staticElement: self::@class::A::@constructor::aaa::@parameter::b
                           staticType: null
-                          token: b @86
+                        colon: : @87
                       expression: IntegerLiteral
                         literal: 2 @89
                         staticType: int
-                  leftParenthesis: ( @82
                   rightParenthesis: ) @90
-                constructorName: SimpleIdentifier
-                  staticElement: self::@class::A::@constructor::aaa
-                  staticType: null
-                  token: aaa @79
-                period: . @78
                 staticElement: self::@class::A::@constructor::aaa
-                superKeyword: super @73
             superConstructor: self::@class::A::@constructor::aaa
 ''');
   }
@@ -1288,15 +1268,15 @@ library
             nameEnd: 63
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @68
                 argumentList: ArgumentList
+                  leftParenthesis: ( @73
                   arguments
                     IntegerLiteral
                       literal: 42 @74
                       staticType: int
-                  leftParenthesis: ( @73
                   rightParenthesis: ) @76
                 staticElement: self::@class::A::@constructor::•
-                superKeyword: super @68
             superConstructor: self::@class::A::@constructor::•
 ''');
   }
@@ -1323,17 +1303,17 @@ library
             nameEnd: 57
             constantInitializers
               RedirectingConstructorInvocation
+                thisKeyword: this @62
                 argumentList: ArgumentList
+                  leftParenthesis: ( @66
                   arguments
                     ListLiteral
                       constKeyword: const @67
                       leftBracket: [ @73
                       rightBracket: ] @74
                       staticType: List<String>
-                  leftParenthesis: ( @66
                   rightParenthesis: ) @75
                 staticElement: self::@class::A::@constructor::•
-                thisKeyword: this @62
             redirectedConstructor: self::@class::A::@constructor::•
 ''');
   }
@@ -1354,22 +1334,22 @@ library
           const @18
             constantInitializers
               RedirectingConstructorInvocation
+                thisKeyword: this @24
+                period: . @28
+                constructorName: SimpleIdentifier
+                  token: named @29
+                  staticElement: self::@class::C::@constructor::named
+                  staticType: null
                 argumentList: ArgumentList
+                  leftParenthesis: ( @34
                   arguments
                     IntegerLiteral
                       literal: 1 @35
                       staticType: int
                     SimpleStringLiteral
                       literal: 'bbb' @38
-                  leftParenthesis: ( @34
                   rightParenthesis: ) @43
-                constructorName: SimpleIdentifier
-                  staticElement: self::@class::C::@constructor::named
-                  staticType: null
-                  token: named @29
-                period: . @28
                 staticElement: self::@class::C::@constructor::named
-                thisKeyword: this @24
             redirectedConstructor: self::@class::C::@constructor::named
           const named @56
             periodOffset: 55
@@ -1398,7 +1378,14 @@ library
           const @18
             constantInitializers
               RedirectingConstructorInvocation
+                thisKeyword: this @24
+                period: . @28
+                constructorName: SimpleIdentifier
+                  token: named @29
+                  staticElement: self::@class::C::@constructor::named
+                  staticType: null
                 argumentList: ArgumentList
+                  leftParenthesis: ( @34
                   arguments
                     IntegerLiteral
                       literal: 1 @35
@@ -1406,21 +1393,15 @@ library
                     NamedExpression
                       name: Label
                         label: SimpleIdentifier
+                          token: b @38
                           staticElement: self::@class::C::@constructor::named::@parameter::b
                           staticType: null
-                          token: b @38
+                        colon: : @39
                       expression: IntegerLiteral
                         literal: 2 @41
                         staticType: int
-                  leftParenthesis: ( @34
                   rightParenthesis: ) @42
-                constructorName: SimpleIdentifier
-                  staticElement: self::@class::C::@constructor::named
-                  staticType: null
-                  token: named @29
-                period: . @28
                 staticElement: self::@class::C::@constructor::named
-                thisKeyword: this @24
             redirectedConstructor: self::@class::C::@constructor::named
           const named @55
             periodOffset: 54
@@ -1451,17 +1432,17 @@ library
             nameEnd: 25
             constantInitializers
               RedirectingConstructorInvocation
+                thisKeyword: this @30
                 argumentList: ArgumentList
+                  leftParenthesis: ( @34
                   arguments
                     IntegerLiteral
                       literal: 1 @35
                       staticType: int
                     SimpleStringLiteral
                       literal: 'bbb' @38
-                  leftParenthesis: ( @34
                   rightParenthesis: ) @43
                 staticElement: self::@class::C::@constructor::•
-                thisKeyword: this @30
             redirectedConstructor: self::@class::C::@constructor::•
           const @54
             parameters
@@ -2595,16 +2576,16 @@ library
           const @37
             constantInitializers
               RedirectingConstructorInvocation
+                thisKeyword: this @43
+                period: . @47
+                constructorName: SimpleIdentifier
+                  token: named @48
+                  staticElement: self::@class::C::@constructor::named
+                  staticType: null
                 argumentList: ArgumentList
                   leftParenthesis: ( @53
                   rightParenthesis: ) @54
-                constructorName: SimpleIdentifier
-                  staticElement: self::@class::C::@constructor::named
-                  staticType: null
-                  token: named @48
-                period: . @47
                 staticElement: self::@class::C::@constructor::named
-                thisKeyword: this @43
             redirectedConstructor: self::@class::C::@constructor::named
 ''');
   }
@@ -2631,16 +2612,16 @@ library
           const @40
             constantInitializers
               RedirectingConstructorInvocation
+                thisKeyword: this @46
+                period: . @50
+                constructorName: SimpleIdentifier
+                  token: named @51
+                  staticElement: self::@class::C::@constructor::named
+                  staticType: null
                 argumentList: ArgumentList
                   leftParenthesis: ( @56
                   rightParenthesis: ) @57
-                constructorName: SimpleIdentifier
-                  staticElement: self::@class::C::@constructor::named
-                  staticType: null
-                  token: named @51
-                period: . @50
                 staticElement: self::@class::C::@constructor::named
-                thisKeyword: this @46
             redirectedConstructor: self::@class::C::@constructor::named
 ''');
   }
@@ -2685,11 +2666,11 @@ library
             nameEnd: 38
             constantInitializers
               RedirectingConstructorInvocation
+                thisKeyword: this @43
                 argumentList: ArgumentList
                   leftParenthesis: ( @47
                   rightParenthesis: ) @48
                 staticElement: self::@class::C::@constructor::•
-                thisKeyword: this @43
             redirectedConstructor: self::@class::C::@constructor::•
 ''');
   }
@@ -2716,11 +2697,11 @@ library
             nameEnd: 41
             constantInitializers
               RedirectingConstructorInvocation
+                thisKeyword: this @46
                 argumentList: ArgumentList
                   leftParenthesis: ( @50
                   rightParenthesis: ) @51
                 staticElement: self::@class::C::@constructor::•
-                thisKeyword: this @46
             redirectedConstructor: self::@class::C::@constructor::•
 ''');
   }
@@ -2909,25 +2890,25 @@ library
           const @29
             constantInitializers
               ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x @35
+                  staticElement: self::@class::C::@field::x
+                  staticType: null
                 equals: = @37
                 expression: InstanceCreationExpression
+                  keyword: const @39
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: SimpleIdentifier
+                        token: D @45
+                        staticElement: self::@class::D
+                        staticType: null
+                      type: D
+                    staticElement: self::@class::D::@constructor::•
                   argumentList: ArgumentList
                     leftParenthesis: ( @46
                     rightParenthesis: ) @47
-                  constructorName: ConstructorName
-                    staticElement: self::@class::D::@constructor::•
-                    type: NamedType
-                      name: SimpleIdentifier
-                        staticElement: self::@class::D
-                        staticType: null
-                        token: D @45
-                      type: D
-                  keyword: const @39
                   staticType: D
-                fieldName: SimpleIdentifier
-                  staticElement: self::@class::C::@field::x
-                  staticType: null
-                  token: x @35
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -2939,25 +2920,25 @@ library
           const @81
             constantInitializers
               ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x @87
+                  staticElement: self::@class::D::@field::x
+                  staticType: null
                 equals: = @89
                 expression: InstanceCreationExpression
+                  keyword: const @91
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: SimpleIdentifier
+                        token: C @97
+                        staticElement: self::@class::C
+                        staticType: null
+                      type: C
+                    staticElement: self::@class::C::@constructor::•
                   argumentList: ArgumentList
                     leftParenthesis: ( @98
                     rightParenthesis: ) @99
-                  constructorName: ConstructorName
-                    staticElement: self::@class::C::@constructor::•
-                    type: NamedType
-                      name: SimpleIdentifier
-                        staticElement: self::@class::C
-                        staticType: null
-                        token: C @97
-                      type: C
-                  keyword: const @91
                   staticType: C
-                fieldName: SimpleIdentifier
-                  staticElement: self::@class::D::@field::x
-                  staticType: null
-                  token: x @87
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -3260,83 +3241,83 @@ library
         documentationComment: /// Comment 1\n/// Comment 2
         metadata
           Annotation
+            atSign: @ @28
+            name: SimpleIdentifier
+              token: Annotation @29
+              staticElement: self::@class::Annotation
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @39
               rightParenthesis: ) @40
-            atSign: @ @28
             element: self::@class::Annotation::@constructor::•
-            name: SimpleIdentifier
-              staticElement: self::@class::Annotation
-              staticType: null
-              token: Annotation @29
         constructors
           synthetic @-1
       class BeforeMetaNamed @117
         documentationComment: /// Comment 1\n/// Comment 2
         metadata
           Annotation
+            atSign: @ @91
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: Annotation @92
+                staticElement: self::@class::Annotation
+                staticType: null
+              period: . @102
+              identifier: SimpleIdentifier
+                token: named @103
+                staticElement: self::@class::Annotation::@constructor::named
+                staticType: null
+              staticElement: self::@class::Annotation::@constructor::named
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @108
               rightParenthesis: ) @109
-            atSign: @ @91
             element: self::@class::Annotation::@constructor::named
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: self::@class::Annotation::@constructor::named
-                staticType: null
-                token: named @103
-              period: . @102
-              prefix: SimpleIdentifier
-                staticElement: self::@class::Annotation
-                staticType: null
-                token: Annotation @92
-              staticElement: self::@class::Annotation::@constructor::named
-              staticType: null
         constructors
           synthetic @-1
       class AfterMeta @185
         documentationComment: /// Comment 1\n/// Comment 2
         metadata
           Annotation
+            atSign: @ @137
+            name: SimpleIdentifier
+              token: Annotation @138
+              staticElement: self::@class::Annotation
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            atSign: @ @137
             element: self::@class::Annotation::@constructor::•
-            name: SimpleIdentifier
-              staticElement: self::@class::Annotation
-              staticType: null
-              token: Annotation @138
         constructors
           synthetic @-1
       class AroundMeta @247
         documentationComment: /// Comment 2
         metadata
           Annotation
+            atSign: @ @213
+            name: SimpleIdentifier
+              token: Annotation @214
+              staticElement: self::@class::Annotation
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @224
               rightParenthesis: ) @225
-            atSign: @ @213
             element: self::@class::Annotation::@constructor::•
-            name: SimpleIdentifier
-              staticElement: self::@class::Annotation
-              staticType: null
-              token: Annotation @214
         constructors
           synthetic @-1
       class DocBeforeMetaNotDocAfter @319
         documentationComment: /// Doc comment.
         metadata
           Annotation
+            atSign: @ @279
+            name: SimpleIdentifier
+              token: Annotation @280
+              staticElement: self::@class::Annotation
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @290
               rightParenthesis: ) @291
-            atSign: @ @279
             element: self::@class::Annotation::@constructor::•
-            name: SimpleIdentifier
-              staticElement: self::@class::Annotation
-              staticType: null
-              token: Annotation @280
         constructors
           synthetic @-1
       class Annotation @354
@@ -3556,22 +3537,40 @@ library
             type: A<int Function(double)>
             constantInitializer
               InstanceCreationExpression
-                argumentList: ArgumentList
-                  leftParenthesis: ( @81
-                  rightParenthesis: ) @82
+                keyword: const @50
                 constructorName: ConstructorName
-                  staticElement: ConstructorMember
-                    base: self::@class::A::@constructor::•
-                    substitution: {T: int Function(double)}
                   type: NamedType
                     name: SimpleIdentifier
+                      token: A @56
                       staticElement: self::@class::A
                       staticType: null
-                      token: A @56
-                    type: A<int Function(double)>
                     typeArguments: TypeArgumentList
+                      leftBracket: < @57
                       arguments
                         GenericFunctionType
+                          returnType: NamedType
+                            name: SimpleIdentifier
+                              token: int @58
+                              staticElement: dart:core::@class::int
+                              staticType: null
+                            type: int
+                          functionKeyword: Function @62
+                          parameters: FormalParameterList
+                            leftParenthesis: ( @70
+                            parameter: SimpleFormalParameter
+                              type: NamedType
+                                name: SimpleIdentifier
+                                  token: double @71
+                                  staticElement: dart:core::@class::double
+                                  staticType: null
+                                type: double
+                              identifier: SimpleIdentifier
+                                token: a @78
+                                staticElement: a@78
+                                staticType: null
+                              declaredElement: a@78
+                              declaredElementType: double
+                            rightParenthesis: ) @79
                           declaredElement: GenericFunctionTypeElement
                             parameters
                               a
@@ -3579,34 +3578,15 @@ library
                                 type: double
                             returnType: int
                             type: int Function(double)
-                          functionKeyword: Function @62
-                          parameters: FormalParameterList
-                            leftParenthesis: ( @70
-                            parameters
-                              SimpleFormalParameter
-                                declaredElement: a@78
-                                declaredElementType: double
-                                identifier: SimpleIdentifier
-                                  staticElement: a@78
-                                  staticType: null
-                                  token: a @78
-                                type: NamedType
-                                  name: SimpleIdentifier
-                                    staticElement: dart:core::@class::double
-                                    staticType: null
-                                    token: double @71
-                                  type: double
-                            rightParenthesis: ) @79
-                          returnType: NamedType
-                            name: SimpleIdentifier
-                              staticElement: dart:core::@class::int
-                              staticType: null
-                              token: int @58
-                            type: int
                           type: int Function(double)
-                      leftBracket: < @57
                       rightBracket: > @80
-                keyword: const @50
+                    type: A<int Function(double)>
+                  staticElement: ConstructorMember
+                    base: self::@class::A::@constructor::•
+                    substitution: {T: int Function(double)}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @81
+                  rightParenthesis: ) @82
                 staticType: A<int Function(double)>
         constructors
           const @93
@@ -3869,12 +3849,12 @@ library
             type: List<int>
             constantInitializer
               ListLiteral
+                leftBracket: [ @111
                 elements
                   SimpleIdentifier
+                    token: a @112
                     staticElement: self::@getter::a
                     staticType: int
-                    token: a @112
-                leftBracket: [ @111
                 rightBracket: ] @113
                 staticType: List<int>
         constructors
@@ -6896,11 +6876,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::D::@constructor::•
       class D @32
         constructors
@@ -6935,11 +6915,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::D::@constructor::•
       class D @35
         constructors
@@ -6973,11 +6953,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::D::@constructor::•
       class D @43
         constructors
@@ -7011,11 +6991,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::D::@constructor::•
       class D @48
         constructors
@@ -7049,11 +7029,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::D::@constructor::•
       class D @87
         constructors
@@ -7084,11 +7064,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::A::@constructor::•
       class A @42
         constructors
@@ -7130,11 +7110,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::D::@constructor::•
       class D @39
         constructors
@@ -7168,11 +7148,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::D::@constructor::•
       class D @29
         constructors
@@ -7203,11 +7183,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::D::@constructor::•
       class D @26
         constructors
@@ -7249,25 +7229,25 @@ library
           synthetic const @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::•
-                superKeyword: super @0
             superConstructor: package:test/a.dart::@class::Base::@constructor::•
           synthetic const named @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
+                period: . @0
+                constructorName: SimpleIdentifier
+                  token: named @-1
+                  staticElement: package:test/a.dart::@class::Base::@constructor::named
+                  staticType: null
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: SimpleIdentifier
-                  staticElement: package:test/a.dart::@class::Base::@constructor::named
-                  staticType: null
-                  token: named @-1
-                period: . @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::named
-                superKeyword: super @0
             superConstructor: package:test/a.dart::@class::Base::@constructor::named
 ''');
   }
@@ -7311,25 +7291,25 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::•
-                superKeyword: super @0
             superConstructor: package:test/a.dart::@class::Base::@constructor::•
           synthetic noArgs @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
+                period: . @0
+                constructorName: SimpleIdentifier
+                  token: noArgs @-1
+                  staticElement: package:test/a.dart::@class::Base::@constructor::noArgs
+                  staticType: null
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: SimpleIdentifier
-                  staticElement: package:test/a.dart::@class::Base::@constructor::noArgs
-                  staticType: null
-                  token: noArgs @-1
-                period: . @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::noArgs
-                superKeyword: super @0
             superConstructor: package:test/a.dart::@class::Base::@constructor::noArgs
           synthetic requiredArg @-1
             parameters
@@ -7337,21 +7317,21 @@ library
                 type: dynamic
             constantInitializers
               SuperConstructorInvocation
-                argumentList: ArgumentList
-                  arguments
-                    SimpleIdentifier
-                      staticElement: x@-1
-                      staticType: dynamic
-                      token: x @-1
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
+                superKeyword: super @0
+                period: . @0
                 constructorName: SimpleIdentifier
+                  token: requiredArg @-1
                   staticElement: package:test/a.dart::@class::Base::@constructor::requiredArg
                   staticType: null
-                  token: requiredArg @-1
-                period: . @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: x @-1
+                      staticElement: x@-1
+                      staticType: dynamic
+                  rightParenthesis: ) @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::requiredArg
-                superKeyword: super @0
             superConstructor: package:test/a.dart::@class::Base::@constructor::requiredArg
           synthetic positionalArg @-1
             parameters
@@ -7363,21 +7343,21 @@ library
                     staticType: bool
             constantInitializers
               SuperConstructorInvocation
-                argumentList: ArgumentList
-                  arguments
-                    SimpleIdentifier
-                      staticElement: x@-1
-                      staticType: bool
-                      token: x @-1
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
+                superKeyword: super @0
+                period: . @0
                 constructorName: SimpleIdentifier
+                  token: positionalArg @-1
                   staticElement: package:test/a.dart::@class::Base::@constructor::positionalArg
                   staticType: null
-                  token: positionalArg @-1
-                period: . @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: x @-1
+                      staticElement: x@-1
+                      staticType: bool
+                  rightParenthesis: ) @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::positionalArg
-                superKeyword: super @0
             superConstructor: package:test/a.dart::@class::Base::@constructor::positionalArg
           synthetic positionalArg2 @-1
             parameters
@@ -7389,21 +7369,21 @@ library
                     staticType: bool
             constantInitializers
               SuperConstructorInvocation
-                argumentList: ArgumentList
-                  arguments
-                    SimpleIdentifier
-                      staticElement: x@-1
-                      staticType: bool
-                      token: x @-1
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
+                superKeyword: super @0
+                period: . @0
                 constructorName: SimpleIdentifier
+                  token: positionalArg2 @-1
                   staticElement: package:test/a.dart::@class::Base::@constructor::positionalArg2
                   staticType: null
-                  token: positionalArg2 @-1
-                period: . @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: x @-1
+                      staticElement: x@-1
+                      staticType: bool
+                  rightParenthesis: ) @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::positionalArg2
-                superKeyword: super @0
             superConstructor: package:test/a.dart::@class::Base::@constructor::positionalArg2
           synthetic namedArg @-1
             parameters
@@ -7415,21 +7395,21 @@ library
                     staticType: int
             constantInitializers
               SuperConstructorInvocation
-                argumentList: ArgumentList
-                  arguments
-                    SimpleIdentifier
-                      staticElement: x@-1
-                      staticType: int
-                      token: x @-1
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
+                superKeyword: super @0
+                period: . @0
                 constructorName: SimpleIdentifier
+                  token: namedArg @-1
                   staticElement: package:test/a.dart::@class::Base::@constructor::namedArg
                   staticType: null
-                  token: namedArg @-1
-                period: . @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: x @-1
+                      staticElement: x@-1
+                      staticType: int
+                  rightParenthesis: ) @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::namedArg
-                superKeyword: super @0
             superConstructor: package:test/a.dart::@class::Base::@constructor::namedArg
           synthetic namedArg2 @-1
             parameters
@@ -7441,21 +7421,21 @@ library
                     staticType: bool
             constantInitializers
               SuperConstructorInvocation
-                argumentList: ArgumentList
-                  arguments
-                    SimpleIdentifier
-                      staticElement: x@-1
-                      staticType: bool
-                      token: x @-1
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
+                superKeyword: super @0
+                period: . @0
                 constructorName: SimpleIdentifier
+                  token: namedArg2 @-1
                   staticElement: package:test/a.dart::@class::Base::@constructor::namedArg2
                   staticType: null
-                  token: namedArg2 @-1
-                period: . @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: x @-1
+                      staticElement: x@-1
+                      staticType: bool
+                  rightParenthesis: ) @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::namedArg2
-                superKeyword: super @0
             superConstructor: package:test/a.dart::@class::Base::@constructor::namedArg2
 ''');
   }
@@ -7501,25 +7481,25 @@ library
                 type: List<dynamic>
             constantInitializers
               SuperConstructorInvocation
-                argumentList: ArgumentList
-                  arguments
-                    SimpleIdentifier
-                      staticElement: t@-1
-                      staticType: dynamic
-                      token: t @-1
-                    SimpleIdentifier
-                      staticElement: l@-1
-                      staticType: List<dynamic>
-                      token: l @-1
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
+                superKeyword: super @0
+                period: . @0
                 constructorName: SimpleIdentifier
+                  token: ctor @-1
                   staticElement: self::@class::Base::@constructor::ctor
                   staticType: null
-                  token: ctor @-1
-                period: . @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: t @-1
+                      staticElement: t@-1
+                      staticType: dynamic
+                    SimpleIdentifier
+                      token: l @-1
+                      staticElement: l@-1
+                      staticType: List<dynamic>
+                  rightParenthesis: ) @0
                 staticElement: self::@class::Base::@constructor::ctor
-                superKeyword: super @0
             superConstructor: ConstructorMember
               base: self::@class::Base::@constructor::ctor
               substitution: {T: dynamic}
@@ -7570,25 +7550,25 @@ library
                 type: List<List<U>>
             constantInitializers
               SuperConstructorInvocation
-                argumentList: ArgumentList
-                  arguments
-                    SimpleIdentifier
-                      staticElement: t@-1
-                      staticType: List<U>
-                      token: t @-1
-                    SimpleIdentifier
-                      staticElement: l@-1
-                      staticType: List<List<U>>
-                      token: l @-1
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
+                superKeyword: super @0
+                period: . @0
                 constructorName: SimpleIdentifier
+                  token: ctor @-1
                   staticElement: self::@class::Base::@constructor::ctor
                   staticType: null
-                  token: ctor @-1
-                period: . @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: t @-1
+                      staticElement: t@-1
+                      staticType: List<U>
+                    SimpleIdentifier
+                      token: l @-1
+                      staticElement: l@-1
+                      staticType: List<List<U>>
+                  rightParenthesis: ) @0
                 staticElement: self::@class::Base::@constructor::ctor
-                superKeyword: super @0
             superConstructor: ConstructorMember
               base: self::@class::Base::@constructor::ctor
               substitution: {T: List<U>}
@@ -7617,11 +7597,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::D::@constructor::•
       class D @26
         constructors
@@ -7772,15 +7752,15 @@ library
       class HasAnnotation @84
         metadata
           Annotation
+            atSign: @ @68
+            name: SimpleIdentifier
+              token: Object @69
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @75
               rightParenthesis: ) @76
-            atSign: @ @68
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @69
         codeOffset: 68
         codeLength: 32
         constructors
@@ -7789,15 +7769,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @102
+            name: SimpleIdentifier
+              token: Object @103
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @109
               rightParenthesis: ) @110
-            atSign: @ @102
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @103
         codeOffset: 102
         codeLength: 70
         constructors
@@ -7806,15 +7786,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @204
+            name: SimpleIdentifier
+              token: Object @205
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @211
               rightParenthesis: ) @212
-            atSign: @ @204
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @205
         codeOffset: 174
         codeLength: 70
         constructors
@@ -7823,15 +7803,15 @@ library
         documentationComment: /// Comment 2.
         metadata
           Annotation
+            atSign: @ @261
+            name: SimpleIdentifier
+              token: Object @262
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @268
               rightParenthesis: ) @269
-            atSign: @ @261
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @262
         codeOffset: 261
         codeLength: 57
         constructors
@@ -7897,11 +7877,11 @@ library
           synthetic const @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: dart:core::@class::Object::@constructor::•
-                superKeyword: super @0
       class alias HasDocComment @91
         documentationComment: /// Comment 1.\n/// Comment 2.
         codeOffset: 55
@@ -7914,23 +7894,23 @@ library
           synthetic const @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: dart:core::@class::Object::@constructor::•
-                superKeyword: super @0
       class alias HasAnnotation @142
         metadata
           Annotation
+            atSign: @ @126
+            name: SimpleIdentifier
+              token: Object @127
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @133
               rightParenthesis: ) @134
-            atSign: @ @126
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @127
         codeOffset: 126
         codeLength: 49
         supertype: Object
@@ -7941,24 +7921,24 @@ library
           synthetic const @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: dart:core::@class::Object::@constructor::•
-                superKeyword: super @0
       class alias AnnotationThenComment @223
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @177
+            name: SimpleIdentifier
+              token: Object @178
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @184
               rightParenthesis: ) @185
-            atSign: @ @177
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @178
         codeOffset: 177
         codeLength: 87
         supertype: Object
@@ -7969,24 +7949,24 @@ library
           synthetic const @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: dart:core::@class::Object::@constructor::•
-                superKeyword: super @0
       class alias CommentThenAnnotation @312
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @296
+            name: SimpleIdentifier
+              token: Object @297
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @303
               rightParenthesis: ) @304
-            atSign: @ @296
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @297
         codeOffset: 266
         codeLength: 87
         supertype: Object
@@ -7997,24 +7977,24 @@ library
           synthetic const @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: dart:core::@class::Object::@constructor::•
-                superKeyword: super @0
       class alias CommentAroundAnnotation @401
         documentationComment: /// Comment 2.
         metadata
           Annotation
+            atSign: @ @370
+            name: SimpleIdentifier
+              token: Object @371
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @377
               rightParenthesis: ) @378
-            atSign: @ @370
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @371
         codeOffset: 370
         codeLength: 74
         supertype: Object
@@ -8025,11 +8005,11 @@ library
           synthetic const @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: dart:core::@class::Object::@constructor::•
-                superKeyword: super @0
 ''',
         withCodeRanges: true);
   }
@@ -8091,15 +8071,15 @@ library
           hasAnnotation @106
             metadata
               Annotation
+                atSign: @ @92
+                name: SimpleIdentifier
+                  token: Object @93
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @99
                   rightParenthesis: ) @100
-                atSign: @ @92
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @93
             codeOffset: 92
             codeLength: 32
             periodOffset: 105
@@ -8108,15 +8088,15 @@ library
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
               Annotation
+                atSign: @ @128
+                name: SimpleIdentifier
+                  token: Object @129
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @135
                   rightParenthesis: ) @136
-                atSign: @ @128
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @129
             codeOffset: 128
             codeLength: 74
             periodOffset: 175
@@ -8125,15 +8105,15 @@ library
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
               Annotation
+                atSign: @ @240
+                name: SimpleIdentifier
+                  token: Object @241
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @247
                   rightParenthesis: ) @248
-                atSign: @ @240
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @241
             codeOffset: 206
             codeLength: 74
             periodOffset: 253
@@ -8142,15 +8122,15 @@ library
             documentationComment: /// Comment 2.
             metadata
               Annotation
+                atSign: @ @301
+                name: SimpleIdentifier
+                  token: Object @302
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @308
                   rightParenthesis: ) @309
-                atSign: @ @301
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @302
             codeOffset: 301
             codeLength: 59
             periodOffset: 331
@@ -8216,15 +8196,15 @@ library
           factory hasAnnotation @167
             metadata
               Annotation
+                atSign: @ @145
+                name: SimpleIdentifier
+                  token: Object @146
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @152
                   rightParenthesis: ) @153
-                atSign: @ @145
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @146
             codeOffset: 145
             codeLength: 49
             periodOffset: 166
@@ -8233,15 +8213,15 @@ library
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
               Annotation
+                atSign: @ @198
+                name: SimpleIdentifier
+                  token: Object @199
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @205
                   rightParenthesis: ) @206
-                atSign: @ @198
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @199
             codeOffset: 198
             codeLength: 91
             periodOffset: 253
@@ -8250,15 +8230,15 @@ library
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
               Annotation
+                atSign: @ @327
+                name: SimpleIdentifier
+                  token: Object @328
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @334
                   rightParenthesis: ) @335
-                atSign: @ @327
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @328
             codeOffset: 293
             codeLength: 91
             periodOffset: 348
@@ -8267,15 +8247,15 @@ library
             documentationComment: /// Comment 2.
             metadata
               Annotation
+                atSign: @ @405
+                name: SimpleIdentifier
+                  token: Object @406
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @412
                   rightParenthesis: ) @413
-                atSign: @ @405
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @406
             codeOffset: 405
             codeLength: 76
             periodOffset: 443
@@ -8307,22 +8287,17 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant bbb @16
             codeOffset: 16
@@ -8330,22 +8305,17 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant ccc @21
             codeOffset: 21
@@ -8353,45 +8323,38 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: aaa @-1
                     staticElement: self::@enum::E::@getter::aaa
                     staticType: E
-                    token: aaa @-1
                   SimpleIdentifier
+                    token: bbb @-1
                     staticElement: self::@enum::E::@getter::bbb
                     staticType: E
-                    token: bbb @-1
                   SimpleIdentifier
+                    token: ccc @-1
                     staticElement: self::@enum::E::@getter::ccc
                     staticType: E
-                    token: ccc @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -8403,11 +8366,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''',
         withCodeRanges: true);
   }
@@ -8464,15 +8422,15 @@ library
       HasAnnotation @118
         metadata
           Annotation
+            atSign: @ @98
+            name: SimpleIdentifier
+              token: Object @99
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @105
               rightParenthesis: ) @106
-            atSign: @ @98
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @99
         codeOffset: 98
         codeLength: 41
         extendedType: A
@@ -8480,15 +8438,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @141
+            name: SimpleIdentifier
+              token: Object @142
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            atSign: @ @141
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @142
         codeOffset: 141
         codeLength: 79
         extendedType: A
@@ -8496,15 +8454,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @252
+            name: SimpleIdentifier
+              token: Object @253
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @259
               rightParenthesis: ) @260
-            atSign: @ @252
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @253
         codeOffset: 222
         codeLength: 79
         extendedType: A
@@ -8512,15 +8470,15 @@ library
         documentationComment: /// Comment 2.
         metadata
           Annotation
+            atSign: @ @318
+            name: SimpleIdentifier
+              token: Object @319
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @325
               rightParenthesis: ) @326
-            atSign: @ @318
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @319
         codeOffset: 318
         codeLength: 66
         extendedType: A
@@ -8659,30 +8617,30 @@ library
           hasAnnotation @100
             metadata
               Annotation
+                atSign: @ @84
+                name: SimpleIdentifier
+                  token: Object @85
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @91
                   rightParenthesis: ) @92
-                atSign: @ @84
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @85
             codeOffset: 84
             codeLength: 29
             type: int
           hasAnnotation2 @115
             metadata
               Annotation
+                atSign: @ @84
+                name: SimpleIdentifier
+                  token: Object @85
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @91
                   rightParenthesis: ) @92
-                atSign: @ @84
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @85
             codeOffset: 115
             codeLength: 14
             type: int
@@ -8690,15 +8648,15 @@ library
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
               Annotation
+                atSign: @ @134
+                name: SimpleIdentifier
+                  token: Object @135
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @141
                   rightParenthesis: ) @142
-                atSign: @ @134
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @135
             codeOffset: 134
             codeLength: 71
             type: int
@@ -8706,15 +8664,15 @@ library
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
               Annotation
+                atSign: @ @134
+                name: SimpleIdentifier
+                  token: Object @135
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @141
                   rightParenthesis: ) @142
-                atSign: @ @134
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @135
             codeOffset: 207
             codeLength: 22
             type: int
@@ -8722,15 +8680,15 @@ library
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
               Annotation
+                atSign: @ @268
+                name: SimpleIdentifier
+                  token: Object @269
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @275
                   rightParenthesis: ) @276
-                atSign: @ @268
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @269
             codeOffset: 234
             codeLength: 71
             type: int
@@ -8738,15 +8696,15 @@ library
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
               Annotation
+                atSign: @ @268
+                name: SimpleIdentifier
+                  token: Object @269
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @275
                   rightParenthesis: ) @276
-                atSign: @ @268
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @269
             codeOffset: 307
             codeLength: 22
             type: int
@@ -8754,15 +8712,15 @@ library
             documentationComment: /// Comment 2.
             metadata
               Annotation
+                atSign: @ @351
+                name: SimpleIdentifier
+                  token: Object @352
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @358
                   rightParenthesis: ) @359
-                atSign: @ @351
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @352
             codeOffset: 351
             codeLength: 56
             type: int
@@ -8770,15 +8728,15 @@ library
             documentationComment: /// Comment 2.
             metadata
               Annotation
+                atSign: @ @351
+                name: SimpleIdentifier
+                  token: Object @352
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @358
                   rightParenthesis: ) @359
-                atSign: @ @351
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @352
             codeOffset: 409
             codeLength: 24
             type: int
@@ -8903,15 +8861,15 @@ library
       hasAnnotation @85
         metadata
           Annotation
+            atSign: @ @70
+            name: SimpleIdentifier
+              token: Object @71
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @77
               rightParenthesis: ) @78
-            atSign: @ @70
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @71
         codeOffset: 70
         codeLength: 33
         returnType: void
@@ -8919,15 +8877,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @105
+            name: SimpleIdentifier
+              token: Object @106
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @112
               rightParenthesis: ) @113
-            atSign: @ @105
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @106
         codeOffset: 105
         codeLength: 71
         returnType: void
@@ -8935,15 +8893,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @208
+            name: SimpleIdentifier
+              token: Object @209
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @215
               rightParenthesis: ) @216
-            atSign: @ @208
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @209
         codeOffset: 178
         codeLength: 71
         returnType: void
@@ -8951,15 +8909,15 @@ library
         documentationComment: /// Comment 2.
         metadata
           Annotation
+            atSign: @ @266
+            name: SimpleIdentifier
+              token: Object @267
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @273
               rightParenthesis: ) @274
-            atSign: @ @266
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @267
         codeOffset: 266
         codeLength: 58
         returnType: void
@@ -9015,15 +8973,15 @@ library
       functionTypeAliasBased HasAnnotation @90
         metadata
           Annotation
+            atSign: @ @72
+            name: SimpleIdentifier
+              token: Object @73
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @79
               rightParenthesis: ) @80
-            atSign: @ @72
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @73
         codeOffset: 72
         codeLength: 34
         aliasedType: dynamic Function()
@@ -9033,15 +8991,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @108
+            name: SimpleIdentifier
+              token: Object @109
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @115
               rightParenthesis: ) @116
-            atSign: @ @108
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @109
         codeOffset: 108
         codeLength: 72
         aliasedType: dynamic Function()
@@ -9051,15 +9009,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @212
+            name: SimpleIdentifier
+              token: Object @213
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @219
               rightParenthesis: ) @220
-            atSign: @ @212
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @213
         codeOffset: 182
         codeLength: 72
         aliasedType: dynamic Function()
@@ -9069,15 +9027,15 @@ library
         documentationComment: /// Comment 2.
         metadata
           Annotation
+            atSign: @ @271
+            name: SimpleIdentifier
+              token: Object @272
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @278
               rightParenthesis: ) @279
-            atSign: @ @271
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @272
         codeOffset: 271
         codeLength: 59
         aliasedType: dynamic Function()
@@ -9135,15 +9093,15 @@ library
       HasAnnotation @112
         metadata
           Annotation
+            atSign: @ @94
+            name: SimpleIdentifier
+              token: Object @95
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @101
               rightParenthesis: ) @102
-            atSign: @ @94
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @95
         codeOffset: 94
         codeLength: 45
         aliasedType: dynamic Function()
@@ -9153,15 +9111,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @141
+            name: SimpleIdentifier
+              token: Object @142
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            atSign: @ @141
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @142
         codeOffset: 141
         codeLength: 83
         aliasedType: dynamic Function()
@@ -9171,15 +9129,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @256
+            name: SimpleIdentifier
+              token: Object @257
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @263
               rightParenthesis: ) @264
-            atSign: @ @256
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @257
         codeOffset: 226
         codeLength: 83
         aliasedType: dynamic Function()
@@ -9189,15 +9147,15 @@ library
         documentationComment: /// Comment 2.
         metadata
           Annotation
+            atSign: @ @326
+            name: SimpleIdentifier
+              token: Object @327
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @333
               rightParenthesis: ) @334
-            atSign: @ @326
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @327
         codeOffset: 326
         codeLength: 70
         aliasedType: dynamic Function()
@@ -9259,15 +9217,15 @@ library
           hasAnnotation @107
             metadata
               Annotation
+                atSign: @ @90
+                name: SimpleIdentifier
+                  token: Object @91
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @97
                   rightParenthesis: ) @98
-                atSign: @ @90
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @91
             codeOffset: 90
             codeLength: 35
             returnType: void
@@ -9275,15 +9233,15 @@ library
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
               Annotation
+                atSign: @ @129
+                name: SimpleIdentifier
+                  token: Object @130
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @136
                   rightParenthesis: ) @137
-                atSign: @ @129
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @130
             codeOffset: 129
             codeLength: 77
             returnType: void
@@ -9291,15 +9249,15 @@ library
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
               Annotation
+                atSign: @ @244
+                name: SimpleIdentifier
+                  token: Object @245
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @251
                   rightParenthesis: ) @252
-                atSign: @ @244
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @245
             codeOffset: 210
             codeLength: 77
             returnType: void
@@ -9307,15 +9265,15 @@ library
             documentationComment: /// Comment 2.
             metadata
               Annotation
+                atSign: @ @308
+                name: SimpleIdentifier
+                  token: Object @309
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @315
                   rightParenthesis: ) @316
-                atSign: @ @308
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @309
             codeOffset: 308
             codeLength: 62
             returnType: void
@@ -9365,30 +9323,30 @@ library
             type: int
             metadata
               Annotation
+                atSign: @ @5
+                name: SimpleIdentifier
+                  token: Object @6
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @12
                   rightParenthesis: ) @13
-                atSign: @ @5
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @6
           requiredPositional b @26
             type: int
           requiredPositional c @43
             type: int
             metadata
               Annotation
+                atSign: @ @29
+                name: SimpleIdentifier
+                  token: Object @30
+                  staticElement: dart:core::@class::Object
+                  staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @36
                   rightParenthesis: ) @37
-                atSign: @ @29
                 element: dart:core::@class::Object::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: dart:core::@class::Object
-                  staticType: null
-                  token: Object @30
         returnType: dynamic
 ''');
   }
@@ -9510,30 +9468,30 @@ library
       static hasAnnotation @80
         metadata
           Annotation
+            atSign: @ @66
+            name: SimpleIdentifier
+              token: Object @67
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @73
               rightParenthesis: ) @74
-            atSign: @ @66
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @67
         codeOffset: 66
         codeLength: 27
         type: int
       static hasAnnotation2 @95
         metadata
           Annotation
+            atSign: @ @66
+            name: SimpleIdentifier
+              token: Object @67
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @73
               rightParenthesis: ) @74
-            atSign: @ @66
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @67
         codeOffset: 95
         codeLength: 14
         type: int
@@ -9541,15 +9499,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @112
+            name: SimpleIdentifier
+              token: Object @113
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @119
               rightParenthesis: ) @120
-            atSign: @ @112
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @113
         codeOffset: 112
         codeLength: 65
         type: int
@@ -9557,15 +9515,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @112
+            name: SimpleIdentifier
+              token: Object @113
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @119
               rightParenthesis: ) @120
-            atSign: @ @112
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @113
         codeOffset: 179
         codeLength: 22
         type: int
@@ -9573,15 +9531,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @234
+            name: SimpleIdentifier
+              token: Object @235
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @241
               rightParenthesis: ) @242
-            atSign: @ @234
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @235
         codeOffset: 204
         codeLength: 65
         type: int
@@ -9589,15 +9547,15 @@ library
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
           Annotation
+            atSign: @ @234
+            name: SimpleIdentifier
+              token: Object @235
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @241
               rightParenthesis: ) @242
-            atSign: @ @234
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @235
         codeOffset: 271
         codeLength: 22
         type: int
@@ -9605,15 +9563,15 @@ library
         documentationComment: /// Comment 2.
         metadata
           Annotation
+            atSign: @ @311
+            name: SimpleIdentifier
+              token: Object @312
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @318
               rightParenthesis: ) @319
-            atSign: @ @311
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @312
         codeOffset: 311
         codeLength: 52
         type: int
@@ -9621,15 +9579,15 @@ library
         documentationComment: /// Comment 2.
         metadata
           Annotation
+            atSign: @ @311
+            name: SimpleIdentifier
+              token: Object @312
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @318
               rightParenthesis: ) @319
-            atSign: @ @311
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @312
         codeOffset: 365
         codeLength: 24
         type: int
@@ -9780,18 +9738,18 @@ library
         type: int
         constantInitializer
           AsExpression
-            asOperator: as @29
             expression: SimpleIdentifier
+              token: a @27
               staticElement: self::@getter::a
               staticType: num
-              token: a @27
-            staticType: int
+            asOperator: as @29
             type: NamedType
               name: SimpleIdentifier
+                token: int @32
                 staticElement: dart:core::@class::int
                 staticType: null
-                token: int @32
               type: int
+            staticType: int
     accessors
       synthetic static get a @-1
         returnType: num
@@ -9819,22 +9777,22 @@ library
         type: int
         constantInitializer
           ParenthesizedExpression
+            leftParenthesis: ( @23
             expression: AssignmentExpression
               leftHandSide: SimpleIdentifier
+                token: a @24
                 staticElement: <null>
                 staticType: null
-                token: a @24
               operator: += @26
-              readElement: self::@getter::a
-              readType: int
               rightHandSide: IntegerLiteral
                 literal: 1 @29
                 staticType: int
-              staticElement: dart:core::@class::num::@method::+
-              staticType: int
+              readElement: self::@getter::a
+              readType: int
               writeElement: self::@getter::a
               writeType: dynamic
-            leftParenthesis: ( @23
+              staticElement: dart:core::@class::num::@method::+
+              staticType: int
             rightParenthesis: ) @30
             staticType: int
     accessors
@@ -9857,29 +9815,29 @@ library
         type: int
         constantInitializer
           CascadeExpression
+            target: IntegerLiteral
+              literal: 0 @10
+              staticType: int
             cascadeSections
               PropertyAccess
                 operator: .. @11
                 propertyName: SimpleIdentifier
+                  token: isEven @13
                   staticElement: dart:core::@class::int::@getter::isEven
                   staticType: bool
-                  token: isEven @13
                 staticType: bool
               MethodInvocation
+                operator: .. @19
+                methodName: SimpleIdentifier
+                  token: abs @21
+                  staticElement: dart:core::@class::int::@method::abs
+                  staticType: int Function()
                 argumentList: ArgumentList
                   leftParenthesis: ( @24
                   rightParenthesis: ) @25
-                methodName: SimpleIdentifier
-                  staticElement: dart:core::@class::int::@method::abs
-                  staticType: int Function()
-                  token: abs @21
-                operator: .. @19
                 staticInvokeType: int Function()
                 staticType: int
             staticType: int
-            target: IntegerLiteral
-              literal: 0 @10
-              staticType: int
     accessors
       synthetic static get a @-1
         returnType: int
@@ -9909,30 +9867,30 @@ library
             type: int
             constantInitializer
               PrefixedIdentifier
-                identifier: SimpleIdentifier
-                  staticElement: self::@class::C::@getter::f1
-                  staticType: int
-                  token: f1 @63
-                period: . @62
                 prefix: SimpleIdentifier
+                  token: C @61
                   staticElement: self::@class::C
                   staticType: null
-                  token: C @61
+                period: . @62
+                identifier: SimpleIdentifier
+                  token: f1 @63
+                  staticElement: self::@class::C::@getter::f1
+                  staticType: int
                 staticElement: self::@class::C::@getter::f1
                 staticType: int
           static const f3 @67
             type: int
             constantInitializer
               PrefixedIdentifier
-                identifier: SimpleIdentifier
-                  staticElement: self::@class::C::@getter::f2
-                  staticType: int
-                  token: f2 @74
-                period: . @73
                 prefix: SimpleIdentifier
+                  token: C @72
                   staticElement: self::@class::C
                   staticType: null
-                  token: C @72
+                period: . @73
+                identifier: SimpleIdentifier
+                  token: f2 @74
+                  staticElement: self::@class::C::@getter::f2
+                  staticType: int
                 staticElement: self::@class::C::@getter::f2
                 staticType: int
         constructors
@@ -9989,54 +9947,54 @@ library
         type: Object
         constantInitializer
           InstanceCreationExpression
+            keyword: const @89
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @95
+                  staticElement: self::@class::C
+                  staticType: null
+                type: C<int>
+              staticElement: ConstructorMember
+                base: self::@class::C::@constructor::•
+                substitution: {T: int}
             argumentList: ArgumentList
+              leftParenthesis: ( @96
               arguments
                 IntegerLiteral
                   literal: 0 @97
                   staticType: int
-              leftParenthesis: ( @96
               rightParenthesis: ) @98
-            constructorName: ConstructorName
-              staticElement: ConstructorMember
-                base: self::@class::C::@constructor::•
-                substitution: {T: int}
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: self::@class::C
-                  staticType: null
-                  token: C @95
-                type: C<int>
-            keyword: const @89
             staticType: C<int>
       static const y @114
         type: Object
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              arguments
-                IntegerLiteral
-                  literal: 0 @132
-                  staticType: int
-              leftParenthesis: ( @131
-              rightParenthesis: ) @133
+            keyword: const @118
             constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @124
+                  staticElement: self::@class::C
+                  staticType: null
+                type: C<int>
+              period: . @125
               name: SimpleIdentifier
+                token: named @126
                 staticElement: ConstructorMember
                   base: self::@class::C::@constructor::named
                   substitution: {T: dynamic}
                 staticType: null
-                token: named @126
-              period: . @125
               staticElement: ConstructorMember
                 base: self::@class::C::@constructor::named
                 substitution: {T: int}
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: self::@class::C
-                  staticType: null
-                  token: C @124
-                type: C<int>
-            keyword: const @118
+            argumentList: ArgumentList
+              leftParenthesis: ( @131
+              arguments
+                IntegerLiteral
+                  literal: 0 @132
+                  staticType: int
+              rightParenthesis: ) @133
             staticType: C<int>
     accessors
       synthetic static get x @-1
@@ -10081,18 +10039,18 @@ library
         constantInitializer
           ConstructorReference
             constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: self::@class::A::@constructor::named
-                staticType: null
-                token: named @37
-              period: . @36
-              staticElement: self::@class::A::@constructor::named
               type: NamedType
                 name: SimpleIdentifier
+                  token: A @35
                   staticElement: self::@class::A
                   staticType: null
-                  token: A @35
                 type: null
+              period: . @36
+              name: SimpleIdentifier
+                token: named @37
+                staticElement: self::@class::A::@constructor::named
+                staticType: null
+              staticElement: self::@class::A::@constructor::named
             staticType: A Function()
     accessors
       synthetic static get v @-1
@@ -10142,9 +10100,9 @@ library
         constantInitializer
           FunctionReference
             function: SimpleIdentifier
+              token: f @48
               staticElement: self::@function::f
               staticType: void Function<T>(T)
-              token: f @48
             staticType: void Function(int)
             typeArgumentTypes
               int
@@ -10176,22 +10134,22 @@ library
         constantInitializer
           FunctionReference
             function: SimpleIdentifier
+              token: f @28
               staticElement: self::@function::f
               staticType: void Function<T>(T)
-              token: f @28
-            staticType: void Function(int)
-            typeArgumentTypes
-              int
             typeArguments: TypeArgumentList
+              leftBracket: < @29
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: int @30
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @30
                   type: int
-              leftBracket: < @29
               rightBracket: > @33
+            staticType: void Function(int)
+            typeArgumentTypes
+              int
     accessors
       synthetic static get v @-1
         returnType: void Function(int)
@@ -10220,11 +10178,11 @@ library
         type: List<int>
         constantInitializer
           ListLiteral
+            leftBracket: [ @10
             elements
               IntegerLiteral
                 literal: 0 @11
                 staticType: int
-            leftBracket: [ @10
             rightBracket: ] @12
             staticType: List<int>
       static const b @21
@@ -10237,20 +10195,20 @@ library
         type: int
         constantInitializer
           IndexExpression
+            target: SimpleIdentifier
+              token: a @38
+              staticElement: self::@getter::a
+              staticType: List<int>
+            leftBracket: [ @39
             index: SimpleIdentifier
+              token: b @40
               staticElement: self::@getter::b
               staticType: int
-              token: b @40
-            leftBracket: [ @39
             rightBracket: ] @41
             staticElement: MethodMember
               base: dart:core::@class::List::@method::[]
               substitution: {E: int}
             staticType: int
-            target: SimpleIdentifier
-              staticElement: self::@getter::a
-              staticType: List<int>
-              token: a @38
     accessors
       synthetic static get a @-1
         returnType: List<int>
@@ -10315,48 +10273,48 @@ library
         type: List<P<dynamic>>
         constantInitializer
           ListLiteral
+            leftBracket: [ @140
             elements
               InstanceCreationExpression
-                argumentList: ArgumentList
-                  leftParenthesis: ( @146
-                  rightParenthesis: ) @147
                 constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: P1 @144
+                      staticElement: self::@class::P1
+                      staticType: null
+                    type: P1<dynamic>
                   staticElement: ConstructorMember
                     base: self::@class::P1::@constructor::•
                     substitution: {T: dynamic}
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@class::P1
-                      staticType: null
-                      token: P1 @144
-                    type: P1<dynamic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @146
+                  rightParenthesis: ) @147
                 staticType: P1<dynamic>
               InstanceCreationExpression
-                argumentList: ArgumentList
-                  leftParenthesis: ( @159
-                  rightParenthesis: ) @160
                 constructorName: ConstructorName
-                  staticElement: ConstructorMember
-                    base: self::@class::P2::@constructor::•
-                    substitution: {T: int}
                   type: NamedType
                     name: SimpleIdentifier
+                      token: P2 @152
                       staticElement: self::@class::P2
                       staticType: null
-                      token: P2 @152
-                    type: P2<int>
                     typeArguments: TypeArgumentList
+                      leftBracket: < @154
                       arguments
                         NamedType
                           name: SimpleIdentifier
+                            token: int @155
                             staticElement: dart:core::@class::int
                             staticType: null
-                            token: int @155
                           type: int
-                      leftBracket: < @154
                       rightBracket: > @158
+                    type: P2<int>
+                  staticElement: ConstructorMember
+                    base: self::@class::P2::@constructor::•
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @159
+                  rightParenthesis: ) @160
                 staticType: P2<int>
-            leftBracket: [ @140
             rightBracket: ] @163
             staticType: List<P<dynamic>>
     accessors
@@ -10387,13 +10345,13 @@ library
                   staticType: int
                 operator: + @31
                 rightOperand: MethodInvocation
+                  methodName: SimpleIdentifier
+                    token: foo @33
+                    staticElement: self::@function::foo
+                    staticType: int Function()
                   argumentList: ArgumentList
                     leftParenthesis: ( @36
                     rightParenthesis: ) @37
-                  methodName: SimpleIdentifier
-                    staticElement: self::@function::foo
-                    staticType: int Function()
-                    token: foo @33
                   staticInvokeType: int Function()
                   staticType: int
                 staticElement: dart:core::@class::num::@method::+
@@ -10448,14 +10406,14 @@ library
         type: int Function()
         constantInitializer
           FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: ( @10
+              rightParenthesis: ) @0
             body: BlockFunctionBody
               block: Block
                 leftBracket: { @0
                 rightBracket: } @25
             declaredElement: <null>
-            parameters: FormalParameterList
-              leftParenthesis: ( @10
-              rightParenthesis: ) @0
             staticType: null
     accessors
       synthetic static get v @-1
@@ -10476,14 +10434,14 @@ library
         constantInitializer
           BinaryExpression
             leftOperand: FunctionExpression
+              parameters: FormalParameterList
+                leftParenthesis: ( @10
+                rightParenthesis: ) @0
               body: BlockFunctionBody
                 block: Block
                   leftBracket: { @0
                   rightBracket: } @25
               declaredElement: <null>
-              parameters: FormalParameterList
-                leftParenthesis: ( @10
-                rightParenthesis: ) @0
               staticType: null
             operator: + @27
             rightOperand: IntegerLiteral
@@ -10526,13 +10484,13 @@ library
               staticType: int
             operator: + @12
             rightOperand: MethodInvocation
+              methodName: SimpleIdentifier
+                token: foo @14
+                staticElement: self::@function::foo
+                staticType: int Function()
               argumentList: ArgumentList
                 leftParenthesis: ( @17
                 rightParenthesis: ) @18
-              methodName: SimpleIdentifier
-                staticElement: self::@function::foo
-                staticType: int Function()
-                token: foo @14
               staticInvokeType: int Function()
               staticType: int
             staticElement: dart:core::@class::num::@method::+
@@ -10567,9 +10525,9 @@ library
         constantInitializer
           BinaryExpression
             leftOperand: SimpleIdentifier
+              token: a @32
               staticElement: self::@getter::a
               staticType: int
-              token: a @32
             operator: + @34
             rightOperand: IntegerLiteral
               literal: 5 @36
@@ -10616,49 +10574,49 @@ library
         type: C<int, String>
         constantInitializer
           InstanceCreationExpression
+            keyword: const @55
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @61
+                  staticElement: self::@class::C
+                  staticType: null
+                typeArguments: TypeArgumentList
+                  leftBracket: < @62
+                  arguments
+                    NamedType
+                      name: SimpleIdentifier
+                        token: int @63
+                        staticElement: dart:core::@class::int
+                        staticType: null
+                      type: int
+                    NamedType
+                      name: SimpleIdentifier
+                        token: String @68
+                        staticElement: dart:core::@class::String
+                        staticType: null
+                      type: String
+                  rightBracket: > @74
+                type: C<int, String>
+              period: . @75
+              name: SimpleIdentifier
+                token: named @76
+                staticElement: ConstructorMember
+                  base: self::@class::C::@constructor::named
+                  substitution: {K: int, V: String}
+                staticType: null
+              staticElement: ConstructorMember
+                base: self::@class::C::@constructor::named
+                substitution: {K: int, V: String}
             argumentList: ArgumentList
+              leftParenthesis: ( @81
               arguments
                 IntegerLiteral
                   literal: 1 @82
                   staticType: int
                 SimpleStringLiteral
                   literal: '222' @85
-              leftParenthesis: ( @81
               rightParenthesis: ) @90
-            constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: ConstructorMember
-                  base: self::@class::C::@constructor::named
-                  substitution: {K: int, V: String}
-                staticType: null
-                token: named @76
-              period: . @75
-              staticElement: ConstructorMember
-                base: self::@class::C::@constructor::named
-                substitution: {K: int, V: String}
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: self::@class::C
-                  staticType: null
-                  token: C @61
-                type: C<int, String>
-                typeArguments: TypeArgumentList
-                  arguments
-                    NamedType
-                      name: SimpleIdentifier
-                        staticElement: dart:core::@class::int
-                        staticType: null
-                        token: int @63
-                      type: int
-                    NamedType
-                      name: SimpleIdentifier
-                        staticElement: dart:core::@class::String
-                        staticType: null
-                        token: String @68
-                      type: String
-                  leftBracket: < @62
-                  rightBracket: > @74
-            keyword: const @55
             staticType: C<int, String>
     accessors
       synthetic static get V @-1
@@ -10686,49 +10644,49 @@ library
         type: C<int, String>
         constantInitializer
           InstanceCreationExpression
+            keyword: const @27
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @33
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                typeArguments: TypeArgumentList
+                  leftBracket: < @34
+                  arguments
+                    NamedType
+                      name: SimpleIdentifier
+                        token: int @35
+                        staticElement: dart:core::@class::int
+                        staticType: null
+                      type: int
+                    NamedType
+                      name: SimpleIdentifier
+                        token: String @40
+                        staticElement: dart:core::@class::String
+                        staticType: null
+                      type: String
+                  rightBracket: > @46
+                type: C<int, String>
+              period: . @47
+              name: SimpleIdentifier
+                token: named @48
+                staticElement: ConstructorMember
+                  base: a.dart::@class::C::@constructor::named
+                  substitution: {K: int, V: String}
+                staticType: null
+              staticElement: ConstructorMember
+                base: a.dart::@class::C::@constructor::named
+                substitution: {K: int, V: String}
             argumentList: ArgumentList
+              leftParenthesis: ( @53
               arguments
                 IntegerLiteral
                   literal: 1 @54
                   staticType: int
                 SimpleStringLiteral
                   literal: '222' @57
-              leftParenthesis: ( @53
               rightParenthesis: ) @62
-            constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: ConstructorMember
-                  base: a.dart::@class::C::@constructor::named
-                  substitution: {K: int, V: String}
-                staticType: null
-                token: named @48
-              period: . @47
-              staticElement: ConstructorMember
-                base: a.dart::@class::C::@constructor::named
-                substitution: {K: int, V: String}
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: a.dart::@class::C
-                  staticType: null
-                  token: C @33
-                type: C<int, String>
-                typeArguments: TypeArgumentList
-                  arguments
-                    NamedType
-                      name: SimpleIdentifier
-                        staticElement: dart:core::@class::int
-                        staticType: null
-                        token: int @35
-                      type: int
-                    NamedType
-                      name: SimpleIdentifier
-                        staticElement: dart:core::@class::String
-                        staticType: null
-                        token: String @40
-                      type: String
-                  leftBracket: < @34
-                  rightBracket: > @46
-            keyword: const @27
             staticType: C<int, String>
     accessors
       synthetic static get V @-1
@@ -10756,57 +10714,57 @@ library
         type: C<int, String>
         constantInitializer
           InstanceCreationExpression
+            keyword: const @32
+            constructorName: ConstructorName
+              type: NamedType
+                name: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: p @38
+                    staticElement: self::@prefix::p
+                    staticType: null
+                  period: . @39
+                  identifier: SimpleIdentifier
+                    token: C @40
+                    staticElement: a.dart::@class::C
+                    staticType: null
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                typeArguments: TypeArgumentList
+                  leftBracket: < @41
+                  arguments
+                    NamedType
+                      name: SimpleIdentifier
+                        token: int @42
+                        staticElement: dart:core::@class::int
+                        staticType: null
+                      type: int
+                    NamedType
+                      name: SimpleIdentifier
+                        token: String @47
+                        staticElement: dart:core::@class::String
+                        staticType: null
+                      type: String
+                  rightBracket: > @53
+                type: C<int, String>
+              period: . @54
+              name: SimpleIdentifier
+                token: named @55
+                staticElement: ConstructorMember
+                  base: a.dart::@class::C::@constructor::named
+                  substitution: {K: int, V: String}
+                staticType: null
+              staticElement: ConstructorMember
+                base: a.dart::@class::C::@constructor::named
+                substitution: {K: int, V: String}
             argumentList: ArgumentList
+              leftParenthesis: ( @60
               arguments
                 IntegerLiteral
                   literal: 1 @61
                   staticType: int
                 SimpleStringLiteral
                   literal: '222' @64
-              leftParenthesis: ( @60
               rightParenthesis: ) @69
-            constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: ConstructorMember
-                  base: a.dart::@class::C::@constructor::named
-                  substitution: {K: int, V: String}
-                staticType: null
-                token: named @55
-              period: . @54
-              staticElement: ConstructorMember
-                base: a.dart::@class::C::@constructor::named
-                substitution: {K: int, V: String}
-              type: NamedType
-                name: PrefixedIdentifier
-                  identifier: SimpleIdentifier
-                    staticElement: a.dart::@class::C
-                    staticType: null
-                    token: C @40
-                  period: . @39
-                  prefix: SimpleIdentifier
-                    staticElement: self::@prefix::p
-                    staticType: null
-                    token: p @38
-                  staticElement: a.dart::@class::C
-                  staticType: null
-                type: C<int, String>
-                typeArguments: TypeArgumentList
-                  arguments
-                    NamedType
-                      name: SimpleIdentifier
-                        staticElement: dart:core::@class::int
-                        staticType: null
-                        token: int @42
-                      type: int
-                    NamedType
-                      name: SimpleIdentifier
-                        staticElement: dart:core::@class::String
-                        staticType: null
-                        token: String @47
-                      type: String
-                  leftBracket: < @41
-                  rightBracket: > @53
-            keyword: const @32
             staticType: C<int, String>
     accessors
       synthetic static get V @-1
@@ -10838,20 +10796,20 @@ library
         type: C<dynamic, dynamic>
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @48
-              rightParenthesis: ) @49
+            keyword: const @41
             constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @47
+                  staticElement: self::@class::C
+                  staticType: null
+                type: C<dynamic, dynamic>
               staticElement: ConstructorMember
                 base: self::@class::C::@constructor::•
                 substitution: {K: dynamic, V: dynamic}
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: self::@class::C
-                  staticType: null
-                  token: C @47
-                type: C<dynamic, dynamic>
-            keyword: const @41
+            argumentList: ArgumentList
+              leftParenthesis: ( @48
+              rightParenthesis: ) @49
             staticType: C<dynamic, dynamic>
     accessors
       synthetic static get V @-1
@@ -10883,36 +10841,36 @@ library
         type: C<int, String>
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @61
-              rightParenthesis: ) @62
+            keyword: const @41
             constructorName: ConstructorName
-              staticElement: ConstructorMember
-                base: self::@class::C::@constructor::•
-                substitution: {K: int, V: String}
               type: NamedType
                 name: SimpleIdentifier
+                  token: C @47
                   staticElement: self::@class::C
                   staticType: null
-                  token: C @47
-                type: C<int, String>
                 typeArguments: TypeArgumentList
+                  leftBracket: < @48
                   arguments
                     NamedType
                       name: SimpleIdentifier
+                        token: int @49
                         staticElement: dart:core::@class::int
                         staticType: null
-                        token: int @49
                       type: int
                     NamedType
                       name: SimpleIdentifier
+                        token: String @54
                         staticElement: dart:core::@class::String
                         staticType: null
-                        token: String @54
                       type: String
-                  leftBracket: < @48
                   rightBracket: > @60
-            keyword: const @41
+                type: C<int, String>
+              staticElement: ConstructorMember
+                base: self::@class::C::@constructor::•
+                substitution: {K: int, V: String}
+            argumentList: ArgumentList
+              leftParenthesis: ( @61
+              rightParenthesis: ) @62
             staticType: C<int, String>
     accessors
       synthetic static get V @-1
@@ -10940,36 +10898,36 @@ library
         type: C<int, String>
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @47
-              rightParenthesis: ) @48
+            keyword: const @27
             constructorName: ConstructorName
-              staticElement: ConstructorMember
-                base: a.dart::@class::C::@constructor::•
-                substitution: {K: int, V: String}
               type: NamedType
                 name: SimpleIdentifier
+                  token: C @33
                   staticElement: a.dart::@class::C
                   staticType: null
-                  token: C @33
-                type: C<int, String>
                 typeArguments: TypeArgumentList
+                  leftBracket: < @34
                   arguments
                     NamedType
                       name: SimpleIdentifier
+                        token: int @35
                         staticElement: dart:core::@class::int
                         staticType: null
-                        token: int @35
                       type: int
                     NamedType
                       name: SimpleIdentifier
+                        token: String @40
                         staticElement: dart:core::@class::String
                         staticType: null
-                        token: String @40
                       type: String
-                  leftBracket: < @34
                   rightBracket: > @46
-            keyword: const @27
+                type: C<int, String>
+              staticElement: ConstructorMember
+                base: a.dart::@class::C::@constructor::•
+                substitution: {K: int, V: String}
+            argumentList: ArgumentList
+              leftParenthesis: ( @47
+              rightParenthesis: ) @48
             staticType: C<int, String>
     accessors
       synthetic static get V @-1
@@ -10997,44 +10955,44 @@ library
         type: C<int, String>
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @54
-              rightParenthesis: ) @55
+            keyword: const @32
             constructorName: ConstructorName
-              staticElement: ConstructorMember
-                base: a.dart::@class::C::@constructor::•
-                substitution: {K: int, V: String}
               type: NamedType
                 name: PrefixedIdentifier
-                  identifier: SimpleIdentifier
-                    staticElement: a.dart::@class::C
-                    staticType: null
-                    token: C @40
-                  period: . @39
                   prefix: SimpleIdentifier
+                    token: p @38
                     staticElement: self::@prefix::p
                     staticType: null
-                    token: p @38
+                  period: . @39
+                  identifier: SimpleIdentifier
+                    token: C @40
+                    staticElement: a.dart::@class::C
+                    staticType: null
                   staticElement: a.dart::@class::C
                   staticType: null
-                type: C<int, String>
                 typeArguments: TypeArgumentList
+                  leftBracket: < @41
                   arguments
                     NamedType
                       name: SimpleIdentifier
+                        token: int @42
                         staticElement: dart:core::@class::int
                         staticType: null
-                        token: int @42
                       type: int
                     NamedType
                       name: SimpleIdentifier
+                        token: String @47
                         staticElement: dart:core::@class::String
                         staticType: null
-                        token: String @47
                       type: String
-                  leftBracket: < @41
                   rightBracket: > @53
-            keyword: const @32
+                type: C<int, String>
+              staticElement: ConstructorMember
+                base: a.dart::@class::C::@constructor::•
+                substitution: {K: int, V: String}
+            argumentList: ArgumentList
+              leftParenthesis: ( @54
+              rightParenthesis: ) @55
             staticType: C<int, String>
     accessors
       synthetic static get V @-1
@@ -11074,7 +11032,22 @@ library
         type: C
         constantInitializer
           InstanceCreationExpression
+            keyword: const @83
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @89
+                  staticElement: self::@class::C
+                  staticType: null
+                type: C
+              period: . @90
+              name: SimpleIdentifier
+                token: named @91
+                staticElement: self::@class::C::@constructor::named
+                staticType: null
+              staticElement: self::@class::C::@constructor::named
             argumentList: ArgumentList
+              leftParenthesis: ( @96
               arguments
                 BooleanLiteral
                   literal: true @97
@@ -11088,36 +11061,23 @@ library
                 NamedExpression
                   name: Label
                     label: SimpleIdentifier
+                      token: d @109
                       staticElement: self::@class::C::@constructor::named::@parameter::d
                       staticType: null
-                      token: d @109
+                    colon: : @110
                   expression: SimpleStringLiteral
                     literal: 'ccc' @112
                 NamedExpression
                   name: Label
                     label: SimpleIdentifier
+                      token: e @119
                       staticElement: self::@class::C::@constructor::named::@parameter::e
                       staticType: null
-                      token: e @119
+                    colon: : @120
                   expression: DoubleLiteral
                     literal: 3.4 @122
                     staticType: double
-              leftParenthesis: ( @96
               rightParenthesis: ) @125
-            constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: self::@class::C::@constructor::named
-                staticType: null
-                token: named @91
-              period: . @90
-              staticElement: self::@class::C::@constructor::named
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: self::@class::C
-                  staticType: null
-                  token: C @89
-                type: C
-            keyword: const @83
             staticType: C
     accessors
       synthetic static get V @-1
@@ -11145,23 +11105,23 @@ library
         type: C
         constantInitializer
           InstanceCreationExpression
+            keyword: const @27
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @33
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                type: C
+              period: . @34
+              name: SimpleIdentifier
+                token: named @35
+                staticElement: a.dart::@class::C::@constructor::named
+                staticType: null
+              staticElement: a.dart::@class::C::@constructor::named
             argumentList: ArgumentList
               leftParenthesis: ( @40
               rightParenthesis: ) @41
-            constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: a.dart::@class::C::@constructor::named
-                staticType: null
-                token: named @35
-              period: . @34
-              staticElement: a.dart::@class::C::@constructor::named
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: a.dart::@class::C
-                  staticType: null
-                  token: C @33
-                type: C
-            keyword: const @27
             staticType: C
     accessors
       synthetic static get V @-1
@@ -11189,31 +11149,31 @@ library
         type: C
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @47
-              rightParenthesis: ) @48
+            keyword: const @32
             constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: a.dart::@class::C::@constructor::named
-                staticType: null
-                token: named @42
-              period: . @41
-              staticElement: a.dart::@class::C::@constructor::named
               type: NamedType
                 name: PrefixedIdentifier
-                  identifier: SimpleIdentifier
-                    staticElement: a.dart::@class::C
-                    staticType: null
-                    token: C @40
-                  period: . @39
                   prefix: SimpleIdentifier
+                    token: p @38
                     staticElement: self::@prefix::p
                     staticType: null
-                    token: p @38
+                  period: . @39
+                  identifier: SimpleIdentifier
+                    token: C @40
+                    staticElement: a.dart::@class::C
+                    staticType: null
                   staticElement: a.dart::@class::C
                   staticType: null
                 type: C
-            keyword: const @32
+              period: . @41
+              name: SimpleIdentifier
+                token: named @42
+                staticElement: a.dart::@class::C::@constructor::named
+                staticType: null
+              staticElement: a.dart::@class::C::@constructor::named
+            argumentList: ArgumentList
+              leftParenthesis: ( @47
+              rightParenthesis: ) @48
             staticType: C
     accessors
       synthetic static get V @-1
@@ -11238,23 +11198,23 @@ library
         type: C
         constantInitializer
           InstanceCreationExpression
+            keyword: const @21
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @27
+                  staticElement: self::@class::C
+                  staticType: null
+                type: C
+              period: . @28
+              name: SimpleIdentifier
+                token: named @29
+                staticElement: <null>
+                staticType: null
+              staticElement: <null>
             argumentList: ArgumentList
               leftParenthesis: ( @34
               rightParenthesis: ) @35
-            constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: named @29
-              period: . @28
-              staticElement: <null>
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: self::@class::C
-                  staticType: null
-                  token: C @27
-                type: C
-            keyword: const @21
             staticType: C
     accessors
       synthetic static get V @-1
@@ -11274,26 +11234,26 @@ library
         type: dynamic
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @23
-              rightParenthesis: ) @24
+            keyword: const @10
             constructorName: ConstructorName
-              staticElement: <null>
               type: NamedType
                 name: PrefixedIdentifier
-                  identifier: SimpleIdentifier
-                    staticElement: <null>
-                    staticType: null
-                    token: named @18
-                  period: . @17
                   prefix: SimpleIdentifier
+                    token: C @16
                     staticElement: <null>
                     staticType: null
-                    token: C @16
+                  period: . @17
+                  identifier: SimpleIdentifier
+                    token: named @18
+                    staticElement: <null>
+                    staticType: null
                   staticElement: <null>
                   staticType: null
                 type: dynamic
-            keyword: const @10
+              staticElement: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @23
+              rightParenthesis: ) @24
             staticType: dynamic
     accessors
       synthetic static get V @-1
@@ -11320,31 +11280,31 @@ library
         type: C
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @47
-              rightParenthesis: ) @48
+            keyword: const @32
             constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: named @42
-              period: . @41
-              staticElement: <null>
               type: NamedType
                 name: PrefixedIdentifier
-                  identifier: SimpleIdentifier
-                    staticElement: a.dart::@class::C
-                    staticType: null
-                    token: C @40
-                  period: . @39
                   prefix: SimpleIdentifier
+                    token: p @38
                     staticElement: self::@prefix::p
                     staticType: null
-                    token: p @38
+                  period: . @39
+                  identifier: SimpleIdentifier
+                    token: C @40
+                    staticElement: a.dart::@class::C
+                    staticType: null
                   staticElement: a.dart::@class::C
                   staticType: null
                 type: C
-            keyword: const @32
+              period: . @41
+              name: SimpleIdentifier
+                token: named @42
+                staticElement: <null>
+                staticType: null
+              staticElement: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @47
+              rightParenthesis: ) @48
             staticType: C
     accessors
       synthetic static get V @-1
@@ -11368,31 +11328,31 @@ library
         type: dynamic
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @47
-              rightParenthesis: ) @48
+            keyword: const @32
             constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: named @42
-              period: . @41
-              staticElement: <null>
               type: NamedType
                 name: PrefixedIdentifier
-                  identifier: SimpleIdentifier
-                    staticElement: <null>
-                    staticType: null
-                    token: C @40
-                  period: . @39
                   prefix: SimpleIdentifier
+                    token: p @38
                     staticElement: self::@prefix::p
                     staticType: null
-                    token: p @38
+                  period: . @39
+                  identifier: SimpleIdentifier
+                    token: C @40
+                    staticElement: <null>
+                    staticType: null
                   staticElement: <null>
                   staticType: null
                 type: dynamic
-            keyword: const @32
+              period: . @41
+              name: SimpleIdentifier
+                token: named @42
+                staticElement: <null>
+                staticType: null
+              staticElement: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @47
+              rightParenthesis: ) @48
             staticType: dynamic
     accessors
       synthetic static get V @-1
@@ -11412,31 +11372,31 @@ library
         type: dynamic
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @25
-              rightParenthesis: ) @26
+            keyword: const @10
             constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: named @20
-              period: . @19
-              staticElement: <null>
               type: NamedType
                 name: PrefixedIdentifier
-                  identifier: SimpleIdentifier
-                    staticElement: <null>
-                    staticType: null
-                    token: C @18
-                  period: . @17
                   prefix: SimpleIdentifier
+                    token: p @16
                     staticElement: <null>
                     staticType: null
-                    token: p @16
+                  period: . @17
+                  identifier: SimpleIdentifier
+                    token: C @18
+                    staticElement: <null>
+                    staticType: null
                   staticElement: <null>
                   staticType: null
                 type: dynamic
-            keyword: const @10
+              period: . @19
+              name: SimpleIdentifier
+                token: named @20
+                staticElement: <null>
+                staticType: null
+              staticElement: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @25
+              rightParenthesis: ) @26
             staticType: dynamic
     accessors
       synthetic static get V @-1
@@ -11464,23 +11424,23 @@ library
         type: C<dynamic>
         constantInitializer
           InstanceCreationExpression
+            keyword: const @24
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @30
+                  staticElement: self::@class::C
+                  staticType: null
+                type: C<dynamic>
+              period: . @31
+              name: SimpleIdentifier
+                token: named @32
+                staticElement: <null>
+                staticType: null
+              staticElement: <null>
             argumentList: ArgumentList
               leftParenthesis: ( @37
               rightParenthesis: ) @38
-            constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: named @32
-              period: . @31
-              staticElement: <null>
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: self::@class::C
-                  staticType: null
-                  token: C @30
-                type: C<dynamic>
-            keyword: const @24
             staticType: C<dynamic>
     accessors
       synthetic static get V @-1
@@ -11507,18 +11467,18 @@ library
         type: C
         constantInitializer
           InstanceCreationExpression
+            keyword: const @35
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @41
+                  staticElement: self::@class::C
+                  staticType: null
+                type: C
+              staticElement: self::@class::C::@constructor::•
             argumentList: ArgumentList
               leftParenthesis: ( @42
               rightParenthesis: ) @43
-            constructorName: ConstructorName
-              staticElement: self::@class::C::@constructor::•
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: self::@class::C
-                  staticType: null
-                  token: C @41
-                type: C
-            keyword: const @35
             staticType: C
     accessors
       synthetic static get V @-1
@@ -11546,18 +11506,18 @@ library
         type: C
         constantInitializer
           InstanceCreationExpression
+            keyword: const @27
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @33
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                type: C
+              staticElement: a.dart::@class::C::@constructor::•
             argumentList: ArgumentList
               leftParenthesis: ( @34
               rightParenthesis: ) @35
-            constructorName: ConstructorName
-              staticElement: a.dart::@class::C::@constructor::•
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: a.dart::@class::C
-                  staticType: null
-                  token: C @33
-                type: C
-            keyword: const @27
             staticType: C
     accessors
       synthetic static get V @-1
@@ -11585,26 +11545,26 @@ library
         type: C
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @41
-              rightParenthesis: ) @42
+            keyword: const @32
             constructorName: ConstructorName
-              staticElement: a.dart::@class::C::@constructor::•
               type: NamedType
                 name: PrefixedIdentifier
-                  identifier: SimpleIdentifier
-                    staticElement: a.dart::@class::C
-                    staticType: null
-                    token: C @40
-                  period: . @39
                   prefix: SimpleIdentifier
+                    token: p @38
                     staticElement: self::@prefix::p
                     staticType: null
-                    token: p @38
+                  period: . @39
+                  identifier: SimpleIdentifier
+                    token: C @40
+                    staticElement: a.dart::@class::C
+                    staticType: null
                   staticElement: a.dart::@class::C
                   staticType: null
                 type: C
-            keyword: const @32
+              staticElement: a.dart::@class::C::@constructor::•
+            argumentList: ArgumentList
+              leftParenthesis: ( @41
+              rightParenthesis: ) @42
             staticType: C
     accessors
       synthetic static get V @-1
@@ -11624,18 +11584,18 @@ library
         type: dynamic
         constantInitializer
           InstanceCreationExpression
+            keyword: const @10
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @16
+                  staticElement: <null>
+                  staticType: null
+                type: dynamic
+              staticElement: <null>
             argumentList: ArgumentList
               leftParenthesis: ( @17
               rightParenthesis: ) @18
-            constructorName: ConstructorName
-              staticElement: <null>
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: <null>
-                  staticType: null
-                  token: C @16
-                type: dynamic
-            keyword: const @10
             staticType: dynamic
     accessors
       synthetic static get V @-1
@@ -11659,26 +11619,26 @@ library
         type: dynamic
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @41
-              rightParenthesis: ) @42
+            keyword: const @32
             constructorName: ConstructorName
-              staticElement: <null>
               type: NamedType
                 name: PrefixedIdentifier
-                  identifier: SimpleIdentifier
-                    staticElement: <null>
-                    staticType: null
-                    token: C @40
-                  period: . @39
                   prefix: SimpleIdentifier
+                    token: p @38
                     staticElement: self::@prefix::p
                     staticType: null
-                    token: p @38
+                  period: . @39
+                  identifier: SimpleIdentifier
+                    token: C @40
+                    staticElement: <null>
+                    staticType: null
                   staticElement: <null>
                   staticType: null
                 type: dynamic
-            keyword: const @32
+              staticElement: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @41
+              rightParenthesis: ) @42
             staticType: dynamic
     accessors
       synthetic static get V @-1
@@ -11698,26 +11658,26 @@ library
         type: dynamic
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @19
-              rightParenthesis: ) @20
+            keyword: const @10
             constructorName: ConstructorName
-              staticElement: <null>
               type: NamedType
                 name: PrefixedIdentifier
-                  identifier: SimpleIdentifier
-                    staticElement: <null>
-                    staticType: null
-                    token: C @18
-                  period: . @17
                   prefix: SimpleIdentifier
+                    token: p @16
                     staticElement: <null>
                     staticType: null
-                    token: p @16
+                  period: . @17
+                  identifier: SimpleIdentifier
+                    token: C @18
+                    staticElement: <null>
+                    staticType: null
                   staticElement: <null>
                   staticType: null
                 type: dynamic
-            keyword: const @10
+              staticElement: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @19
+              rightParenthesis: ) @20
             staticType: dynamic
     accessors
       synthetic static get V @-1
@@ -11745,17 +11705,17 @@ library
         constantInitializer
           IsExpression
             expression: SimpleIdentifier
+              token: a @23
               staticElement: self::@getter::a
               staticType: int
-              token: a @23
             isOperator: is @25
-            staticType: bool
             type: NamedType
               name: SimpleIdentifier
+                token: int @28
                 staticElement: dart:core::@class::int
                 staticType: null
-                token: int @28
               type: int
+            staticType: bool
     accessors
       synthetic static get a @-1
         returnType: int
@@ -11792,24 +11752,24 @@ library
         type: int
         constantInitializer
           PropertyAccess
-            operator: . @59
-            propertyName: SimpleIdentifier
-              staticElement: dart:core::@class::String::@getter::length
-              staticType: int
-              token: length @60
-            staticType: int
             target: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: self::@class::C::@getter::F
-                staticType: String
-                token: F @58
-              period: . @57
               prefix: SimpleIdentifier
+                token: C @56
                 staticElement: self::@class::C
                 staticType: null
-                token: C @56
+              period: . @57
+              identifier: SimpleIdentifier
+                token: F @58
+                staticElement: self::@class::C::@getter::F
+                staticType: String
               staticElement: self::@class::C::@getter::F
               staticType: String
+            operator: . @59
+            propertyName: SimpleIdentifier
+              token: length @60
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+            staticType: int
     accessors
       synthetic static get v @-1
         returnType: int
@@ -11836,24 +11796,24 @@ library
         type: int
         constantInitializer
           PropertyAccess
-            operator: . @34
-            propertyName: SimpleIdentifier
-              staticElement: dart:core::@class::String::@getter::length
-              staticType: int
-              token: length @35
-            staticType: int
             target: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: a.dart::@class::C::@getter::F
-                staticType: String
-                token: F @33
-              period: . @32
               prefix: SimpleIdentifier
+                token: C @31
                 staticElement: a.dart::@class::C
                 staticType: null
-                token: C @31
+              period: . @32
+              identifier: SimpleIdentifier
+                token: F @33
+                staticElement: a.dart::@class::C::@getter::F
+                staticType: String
               staticElement: a.dart::@class::C::@getter::F
               staticType: String
+            operator: . @34
+            propertyName: SimpleIdentifier
+              token: length @35
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+            staticType: int
     accessors
       synthetic static get v @-1
         returnType: int
@@ -11880,31 +11840,31 @@ library
         type: int
         constantInitializer
           PropertyAccess
-            operator: . @41
-            propertyName: SimpleIdentifier
-              staticElement: dart:core::@class::String::@getter::length
-              staticType: int
-              token: length @42
-            staticType: int
             target: PropertyAccess
-              operator: . @39
-              propertyName: SimpleIdentifier
-                staticElement: a.dart::@class::C::@getter::F
-                staticType: String
-                token: F @40
-              staticType: String
               target: PrefixedIdentifier
-                identifier: SimpleIdentifier
-                  staticElement: a.dart::@class::C
-                  staticType: null
-                  token: C @38
-                period: . @37
                 prefix: SimpleIdentifier
+                  token: p @36
                   staticElement: self::@prefix::p
                   staticType: null
-                  token: p @36
+                period: . @37
+                identifier: SimpleIdentifier
+                  token: C @38
+                  staticElement: a.dart::@class::C
+                  staticType: null
                 staticElement: a.dart::@class::C
                 staticType: null
+              operator: . @39
+              propertyName: SimpleIdentifier
+                token: F @40
+                staticElement: a.dart::@class::C::@getter::F
+                staticType: String
+              staticType: String
+            operator: . @41
+            propertyName: SimpleIdentifier
+              token: length @42
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+            staticType: int
     accessors
       synthetic static get v @-1
         returnType: int
@@ -11923,14 +11883,14 @@ library
         type: int
         constantInitializer
           PropertyAccess
-            operator: . @15
-            propertyName: SimpleIdentifier
-              staticElement: dart:core::@class::String::@getter::length
-              staticType: int
-              token: length @16
-            staticType: int
             target: SimpleStringLiteral
               literal: 'abc' @10
+            operator: . @15
+            propertyName: SimpleIdentifier
+              token: length @16
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+            staticType: int
     accessors
       synthetic static get v @-1
         returnType: int
@@ -11955,15 +11915,15 @@ library
         type: int
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: dart:core::@class::String::@getter::length
-              staticType: int
-              token: length @36
-            period: . @35
             prefix: SimpleIdentifier
+              token: S @34
               staticElement: self::@getter::S
               staticType: String
-              token: S @34
+            period: . @35
+            identifier: SimpleIdentifier
+              token: length @36
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
             staticElement: dart:core::@class::String::@getter::length
             staticType: int
     accessors
@@ -11992,15 +11952,15 @@ library
         type: int
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: dart:core::@class::String::@getter::length
-              staticType: int
-              token: length @29
-            period: . @28
             prefix: SimpleIdentifier
+              token: S @27
               staticElement: a.dart::@getter::S
               staticType: String
-              token: S @27
+            period: . @28
+            identifier: SimpleIdentifier
+              token: length @29
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
             staticElement: dart:core::@class::String::@getter::length
             staticType: int
     accessors
@@ -12027,24 +11987,24 @@ library
         type: int
         constantInitializer
           PropertyAccess
-            operator: . @35
-            propertyName: SimpleIdentifier
-              staticElement: dart:core::@class::String::@getter::length
-              staticType: int
-              token: length @36
-            staticType: int
             target: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: a.dart::@getter::S
-                staticType: String
-                token: S @34
-              period: . @33
               prefix: SimpleIdentifier
+                token: p @32
                 staticElement: self::@prefix::p
                 staticType: null
-                token: p @32
+              period: . @33
+              identifier: SimpleIdentifier
+                token: S @34
+                staticElement: a.dart::@getter::S
+                staticType: String
               staticElement: a.dart::@getter::S
               staticType: String
+            operator: . @35
+            propertyName: SimpleIdentifier
+              token: length @36
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+            staticType: int
     accessors
       synthetic static get v @-1
         returnType: int
@@ -12073,15 +12033,15 @@ library
         type: int Function()
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: self::@class::C::@method::length
-              staticType: int Function()
-              token: length @53
-            period: . @52
             prefix: SimpleIdentifier
+              token: C @51
               staticElement: self::@class::C
               staticType: null
-              token: C @51
+            period: . @52
+            identifier: SimpleIdentifier
+              token: length @53
+              staticElement: self::@class::C::@method::length
+              staticType: int Function()
             staticElement: self::@class::C::@method::length
             staticType: int Function()
     accessors
@@ -12103,27 +12063,30 @@ library
         constantInitializer
           ListLiteral
             constKeyword: const @17
-            elements
-              IfElement
-                condition: BooleanLiteral
-                  literal: true @33
-                  staticType: bool
-                thenStatement: IntegerLiteral
-                  literal: 1 @39
-                  staticType: int
-            leftBracket: [ @28
-            rightBracket: ] @40
-            staticType: List<int>
             typeArguments: TypeArgumentList
+              leftBracket: < @23
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: int @24
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @24
                   type: int
-              leftBracket: < @23
               rightBracket: > @27
+            leftBracket: [ @28
+            elements
+              IfElement
+                ifKeyword: if @29
+                leftParenthesis: ( @32
+                condition: BooleanLiteral
+                  literal: true @33
+                  staticType: bool
+                rightParenthesis: ) @37
+                thenElement: IntegerLiteral
+                  literal: 1 @39
+                  staticType: int
+            rightBracket: ] @40
+            staticType: List<int>
     accessors
       synthetic static get x @-1
         returnType: Object
@@ -12143,30 +12106,34 @@ library
         constantInitializer
           ListLiteral
             constKeyword: const @17
-            elements
-              IfElement
-                condition: BooleanLiteral
-                  literal: true @33
-                  staticType: bool
-                elseStatement: IntegerLiteral
-                  literal: 2 @46
-                  staticType: int
-                thenStatement: IntegerLiteral
-                  literal: 1 @39
-                  staticType: int
-            leftBracket: [ @28
-            rightBracket: ] @47
-            staticType: List<int>
             typeArguments: TypeArgumentList
+              leftBracket: < @23
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: int @24
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @24
                   type: int
-              leftBracket: < @23
               rightBracket: > @27
+            leftBracket: [ @28
+            elements
+              IfElement
+                ifKeyword: if @29
+                leftParenthesis: ( @32
+                condition: BooleanLiteral
+                  literal: true @33
+                  staticType: bool
+                rightParenthesis: ) @37
+                thenElement: IntegerLiteral
+                  literal: 1 @39
+                  staticType: int
+                elseKeyword: else @41
+                elseElement: IntegerLiteral
+                  literal: 2 @46
+                  staticType: int
+            rightBracket: ] @47
+            staticType: List<int>
     accessors
       synthetic static get x @-1
         returnType: Object
@@ -12189,11 +12156,11 @@ library
         constantInitializer
           ListLiteral
             constKeyword: const @17
+            leftBracket: [ @23
             elements
               IntegerLiteral
                 literal: 1 @24
                 staticType: int
-            leftBracket: [ @23
             rightBracket: ] @25
             staticType: List<int>
     accessors
@@ -12215,40 +12182,40 @@ library
         constantInitializer
           ListLiteral
             constKeyword: const @17
+            typeArguments: TypeArgumentList
+              leftBracket: < @23
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @24
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @27
+            leftBracket: [ @28
             elements
               SpreadElement
+                spreadOperator: ... @29
                 expression: ListLiteral
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @32
+                    arguments
+                      NamedType
+                        name: SimpleIdentifier
+                          token: int @33
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                        type: int
+                    rightBracket: > @36
+                  leftBracket: [ @37
                   elements
                     IntegerLiteral
                       literal: 1 @38
                       staticType: int
-                  leftBracket: [ @37
                   rightBracket: ] @39
                   staticType: List<int>
-                  typeArguments: TypeArgumentList
-                    arguments
-                      NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::int
-                          staticType: null
-                          token: int @33
-                        type: int
-                    leftBracket: < @32
-                    rightBracket: > @36
-                spreadOperator: ... @29
-            leftBracket: [ @28
             rightBracket: ] @40
             staticType: List<int>
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @24
-                  type: int
-              leftBracket: < @23
-              rightBracket: > @27
     accessors
       synthetic static get x @-1
         returnType: Object
@@ -12268,40 +12235,40 @@ library
         constantInitializer
           ListLiteral
             constKeyword: const @17
+            typeArguments: TypeArgumentList
+              leftBracket: < @23
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @24
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @27
+            leftBracket: [ @28
             elements
               SpreadElement
+                spreadOperator: ...? @29
                 expression: ListLiteral
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @33
+                    arguments
+                      NamedType
+                        name: SimpleIdentifier
+                          token: int @34
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                        type: int
+                    rightBracket: > @37
+                  leftBracket: [ @38
                   elements
                     IntegerLiteral
                       literal: 1 @39
                       staticType: int
-                  leftBracket: [ @38
                   rightBracket: ] @40
                   staticType: List<int>
-                  typeArguments: TypeArgumentList
-                    arguments
-                      NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::int
-                          staticType: null
-                          token: int @34
-                        type: int
-                    leftBracket: < @33
-                    rightBracket: > @37
-                spreadOperator: ...? @29
-            leftBracket: [ @28
             rightBracket: ] @41
             staticType: List<int>
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @24
-                  type: int
-              leftBracket: < @23
-              rightBracket: > @27
     accessors
       synthetic static get x @-1
         returnType: Object
@@ -12321,53 +12288,45 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @17
-            elements
-              IfElement
-                condition: BooleanLiteral
-                  literal: true @38
-                  staticType: bool
-                thenStatement: SetOrMapLiteral
-                  key: IntegerLiteral
-                    literal: 1 @44
-                    staticType: int
-                  value: IntegerLiteral
-                    literal: 2 @47
-                    staticType: int
-            isMap: true
-            leftBracket: { @33
-            rightBracket: } @48
-            staticType: Map<int, int>
             typeArguments: TypeArgumentList
+              leftBracket: < @23
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: int @24
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @24
                   type: int
                 NamedType
                   name: SimpleIdentifier
+                    token: int @29
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @29
                   type: int
-              leftBracket: < @23
               rightBracket: > @32
+            leftBracket: { @33
+            elements
+              IfElement
+                ifKeyword: if @34
+                leftParenthesis: ( @37
+                condition: BooleanLiteral
+                  literal: true @38
+                  staticType: bool
+                rightParenthesis: ) @42
+                thenElement: SetOrMapLiteral
+                  key: IntegerLiteral
+                    literal: 1 @44
+                    staticType: int
+                  separator: : @45
+                  value: IntegerLiteral
+                    literal: 2 @47
+                    staticType: int
+            rightBracket: } @48
+            isMap: true
+            staticType: Map<int, int>
     accessors
       synthetic static get x @-1
         returnType: Object
-''');
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
-  test_const_map_if_else() async {
-    var library = await checkLibrary('''
-const Object x = const <int, int>{if (true) 1: 2 else 3: 4];
-''');
-    checkElementText(library, r'''
-const Object x = const <
-        int/*location: dart:core;int*/,
-        int/*location: dart:core;int*/>{if (true) 1: 2 else 3: 4}/*isMap*/;
 ''');
   }
 
@@ -12387,17 +12346,18 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @17
+            leftBracket: { @23
             elements
               SetOrMapLiteral
                 key: IntegerLiteral
                   literal: 1 @24
                   staticType: int
+                separator: : @25
                 value: DoubleLiteral
                   literal: 1.0 @27
                   staticType: double
-            isMap: true
-            leftBracket: { @23
             rightBracket: } @30
+            isMap: true
             staticType: Map<int, double>
     accessors
       synthetic static get x @-1
@@ -12418,58 +12378,59 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @17
+            typeArguments: TypeArgumentList
+              leftBracket: < @23
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @24
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @29
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @32
+            leftBracket: { @33
             elements
               SpreadElement
+                spreadOperator: ... @34
                 expression: SetOrMapLiteral
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @37
+                    arguments
+                      NamedType
+                        name: SimpleIdentifier
+                          token: int @38
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                        type: int
+                      NamedType
+                        name: SimpleIdentifier
+                          token: int @43
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                        type: int
+                    rightBracket: > @46
+                  leftBracket: { @47
                   elements
                     SetOrMapLiteral
                       key: IntegerLiteral
                         literal: 1 @48
                         staticType: int
+                      separator: : @49
                       value: IntegerLiteral
                         literal: 2 @51
                         staticType: int
-                  isMap: true
-                  leftBracket: { @47
                   rightBracket: } @52
+                  isMap: true
                   staticType: Map<int, int>
-                  typeArguments: TypeArgumentList
-                    arguments
-                      NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::int
-                          staticType: null
-                          token: int @38
-                        type: int
-                      NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::int
-                          staticType: null
-                          token: int @43
-                        type: int
-                    leftBracket: < @37
-                    rightBracket: > @46
-                spreadOperator: ... @34
-            isMap: true
-            leftBracket: { @33
             rightBracket: } @53
+            isMap: true
             staticType: Map<int, int>
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @24
-                  type: int
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @29
-                  type: int
-              leftBracket: < @23
-              rightBracket: > @32
     accessors
       synthetic static get x @-1
         returnType: Object
@@ -12489,58 +12450,59 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @17
+            typeArguments: TypeArgumentList
+              leftBracket: < @23
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @24
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @29
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @32
+            leftBracket: { @33
             elements
               SpreadElement
+                spreadOperator: ...? @34
                 expression: SetOrMapLiteral
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @38
+                    arguments
+                      NamedType
+                        name: SimpleIdentifier
+                          token: int @39
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                        type: int
+                      NamedType
+                        name: SimpleIdentifier
+                          token: int @44
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                        type: int
+                    rightBracket: > @47
+                  leftBracket: { @48
                   elements
                     SetOrMapLiteral
                       key: IntegerLiteral
                         literal: 1 @49
                         staticType: int
+                      separator: : @50
                       value: IntegerLiteral
                         literal: 2 @52
                         staticType: int
-                  isMap: true
-                  leftBracket: { @48
                   rightBracket: } @53
+                  isMap: true
                   staticType: Map<int, int>
-                  typeArguments: TypeArgumentList
-                    arguments
-                      NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::int
-                          staticType: null
-                          token: int @39
-                        type: int
-                      NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::int
-                          staticType: null
-                          token: int @44
-                        type: int
-                    leftBracket: < @38
-                    rightBracket: > @47
-                spreadOperator: ...? @34
-            isMap: true
-            leftBracket: { @33
             rightBracket: } @54
+            isMap: true
             staticType: Map<int, int>
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @24
-                  type: int
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @29
-                  type: int
-              leftBracket: < @23
-              rightBracket: > @32
     accessors
       synthetic static get x @-1
         returnType: Object
@@ -12560,31 +12522,31 @@ library
         type: int
         constantInitializer
           MethodInvocation
+            methodName: SimpleIdentifier
+              token: f @28
+              staticElement: self::@function::f
+              staticType: T Function<T>(T)
+            typeArguments: TypeArgumentList
+              leftBracket: < @29
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @30
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @33
             argumentList: ArgumentList
+              leftParenthesis: ( @34
               arguments
                 IntegerLiteral
                   literal: 0 @35
                   staticType: int
-              leftParenthesis: ( @34
               rightParenthesis: ) @36
-            methodName: SimpleIdentifier
-              staticElement: self::@function::f
-              staticType: T Function<T>(T)
-              token: f @28
             staticInvokeType: int Function(int)
             staticType: int
             typeArgumentTypes
               int
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @30
-                  type: int
-              leftBracket: < @29
-              rightBracket: > @33
     accessors
       synthetic static get b @-1
         returnType: int
@@ -12622,9 +12584,9 @@ library
                 type: dynamic
                 constantInitializer
                   SimpleIdentifier
+                    token: foo @40
                     staticElement: self::@function::foo
                     staticType: int Function()
-                    token: foo @40
                 field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
@@ -12834,16 +12796,16 @@ library
         constantInitializer
           PostfixExpression
             operand: SimpleIdentifier
+              token: a @23
               staticElement: <null>
               staticType: null
-              token: a @23
             operator: ++ @24
             readElement: self::@getter::a
             readType: int
-            staticElement: dart:core::@class::num::@method::+
-            staticType: int
             writeElement: self::@getter::a
             writeType: dynamic
+            staticElement: dart:core::@class::num::@method::+
+            staticType: int
     accessors
       synthetic static get a @-1
         returnType: int
@@ -12872,9 +12834,9 @@ library
         constantInitializer
           PostfixExpression
             operand: SimpleIdentifier
+              token: a @28
               staticElement: self::@getter::a
               staticType: int?
-              token: a @28
             operator: ! @29
             staticElement: <null>
             staticType: int
@@ -12905,11 +12867,11 @@ library
         type: int
         constantInitializer
           PrefixExpression
+            operator: - @23
             operand: SimpleIdentifier
+              token: a @24
               staticElement: self::@getter::a
               staticType: int
-              token: a @24
-            operator: - @23
             staticElement: dart:core::@class::int::@method::unary-
             staticType: int
     accessors
@@ -12942,11 +12904,11 @@ library
         type: int
         constantInitializer
           PrefixExpression
+            operator: - @27
             operand: SimpleIdentifier
+              token: a @28
               staticElement: package:test/a.dart::@getter::a
               staticType: Object
-              token: a @28
-            operator: - @27
             staticElement: package:test/a.dart::@extension::E::@method::unary-
             staticType: int
     accessors
@@ -12974,17 +12936,17 @@ library
         type: int
         constantInitializer
           PrefixExpression
+            operator: ++ @23
             operand: SimpleIdentifier
+              token: a @25
               staticElement: <null>
               staticType: null
-              token: a @25
-            operator: ++ @23
             readElement: self::@getter::a
             readType: int
-            staticElement: dart:core::@class::num::@method::+
-            staticType: int
             writeElement: self::@getter::a
             writeType: dynamic
+            staticElement: dart:core::@class::num::@method::+
+            staticType: int
     accessors
       synthetic static get a @-1
         returnType: int
@@ -13022,15 +12984,15 @@ library
         type: int
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: self::@class::C::@getter::F
-              staticType: int
-              token: F @51
-            period: . @50
             prefix: SimpleIdentifier
+              token: C @49
               staticElement: self::@class::C
               staticType: null
-              token: C @49
+            period: . @50
+            identifier: SimpleIdentifier
+              token: F @51
+              staticElement: self::@class::C::@getter::F
+              staticType: int
             staticElement: self::@class::C::@getter::F
             staticType: int
     accessors
@@ -13059,15 +13021,15 @@ library
         type: int
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: a.dart::@class::C::@getter::F
-              staticType: int
-              token: F @29
-            period: . @28
             prefix: SimpleIdentifier
+              token: C @27
               staticElement: a.dart::@class::C
               staticType: null
-              token: C @27
+            period: . @28
+            identifier: SimpleIdentifier
+              token: F @29
+              staticElement: a.dart::@class::C::@getter::F
+              staticType: int
             staticElement: a.dart::@class::C::@getter::F
             staticType: int
     accessors
@@ -13096,24 +13058,24 @@ library
         type: int
         constantInitializer
           PropertyAccess
-            operator: . @35
-            propertyName: SimpleIdentifier
-              staticElement: a.dart::@class::C::@getter::F
-              staticType: int
-              token: F @36
-            staticType: int
             target: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: a.dart::@class::C
-                staticType: null
-                token: C @34
-              period: . @33
               prefix: SimpleIdentifier
+                token: p @32
                 staticElement: self::@prefix::p
                 staticType: null
-                token: p @32
+              period: . @33
+              identifier: SimpleIdentifier
+                token: C @34
+                staticElement: a.dart::@class::C
+                staticType: null
               staticElement: a.dart::@class::C
               staticType: null
+            operator: . @35
+            propertyName: SimpleIdentifier
+              token: F @36
+              staticElement: a.dart::@class::C::@getter::F
+              staticType: int
+            staticType: int
     accessors
       synthetic static get V @-1
         returnType: int
@@ -13147,15 +13109,15 @@ library
         type: int Function(int, String)
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: self::@class::C::@method::m
-              staticType: int Function(int, String)
-              token: m @63
-            period: . @62
             prefix: SimpleIdentifier
+              token: C @61
               staticElement: self::@class::C
               staticType: null
-              token: C @61
+            period: . @62
+            identifier: SimpleIdentifier
+              token: m @63
+              staticElement: self::@class::C::@method::m
+              staticType: int Function(int, String)
             staticElement: self::@class::C::@method::m
             staticType: int Function(int, String)
     accessors
@@ -13184,15 +13146,15 @@ library
         type: int Function(int, String)
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: a.dart::@class::C::@method::m
-              staticType: int Function(int, String)
-              token: m @29
-            period: . @28
             prefix: SimpleIdentifier
+              token: C @27
               staticElement: a.dart::@class::C
               staticType: null
-              token: C @27
+            period: . @28
+            identifier: SimpleIdentifier
+              token: m @29
+              staticElement: a.dart::@class::C::@method::m
+              staticType: int Function(int, String)
             staticElement: a.dart::@class::C::@method::m
             staticType: int Function(int, String)
     accessors
@@ -13221,24 +13183,24 @@ library
         type: int Function(int, String)
         constantInitializer
           PropertyAccess
-            operator: . @35
-            propertyName: SimpleIdentifier
-              staticElement: a.dart::@class::C::@method::m
-              staticType: int Function(int, String)
-              token: m @36
-            staticType: int Function(int, String)
             target: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: a.dart::@class::C
-                staticType: null
-                token: C @34
-              period: . @33
               prefix: SimpleIdentifier
+                token: p @32
                 staticElement: self::@prefix::p
                 staticType: null
-                token: p @32
+              period: . @33
+              identifier: SimpleIdentifier
+                token: C @34
+                staticElement: a.dart::@class::C
+                staticType: null
               staticElement: a.dart::@class::C
               staticType: null
+            operator: . @35
+            propertyName: SimpleIdentifier
+              token: m @36
+              staticElement: a.dart::@class::C::@method::m
+              staticType: int Function(int, String)
+            staticType: int Function(int, String)
     accessors
       synthetic static get V @-1
         returnType: int Function(int, String)
@@ -13271,15 +13233,15 @@ library
         type: void Function()
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: self::@extension::E::@method::f
-              staticType: void Function()
-              token: f @65
-            period: . @64
             prefix: SimpleIdentifier
+              token: E @63
               staticElement: self::@extension::E
               staticType: null
-              token: E @63
+            period: . @64
+            identifier: SimpleIdentifier
+              token: f @65
+              staticElement: self::@extension::E::@method::f
+              staticType: void Function()
             staticElement: self::@extension::E::@method::f
             staticType: void Function()
     accessors
@@ -13301,9 +13263,9 @@ library
         type: dynamic Function()
         constantInitializer
           SimpleIdentifier
+            token: foo @19
             staticElement: self::@function::foo
             staticType: dynamic Function()
-            token: foo @19
     accessors
       synthetic static get V @-1
         returnType: dynamic Function()
@@ -13326,9 +13288,9 @@ library
         type: R Function<P, R>(P)
         constantInitializer
           SimpleIdentifier
+            token: foo @30
             staticElement: self::@function::foo
             staticType: R Function<P, R>(P)
-            token: foo @30
     accessors
       synthetic static get V @-1
         returnType: R Function<P, R>(P)
@@ -13362,9 +13324,9 @@ library
         type: dynamic Function()
         constantInitializer
           SimpleIdentifier
+            token: foo @27
             staticElement: a.dart::@function::foo
             staticType: dynamic Function()
-            token: foo @27
     accessors
       synthetic static get V @-1
         returnType: dynamic Function()
@@ -13389,15 +13351,15 @@ library
         type: dynamic Function()
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: a.dart::@function::foo
-              staticType: dynamic Function()
-              token: foo @34
-            period: . @33
             prefix: SimpleIdentifier
+              token: p @32
               staticElement: self::@prefix::p
               staticType: null
-              token: p @32
+            period: . @33
+            identifier: SimpleIdentifier
+              token: foo @34
+              staticElement: a.dart::@function::foo
+              staticType: dynamic Function()
             staticElement: a.dart::@function::foo
             staticType: dynamic Function()
     accessors
@@ -13426,9 +13388,9 @@ library
         constantInitializer
           BinaryExpression
             leftOperand: SimpleIdentifier
+              token: A @23
               staticElement: self::@getter::A
               staticType: int
-              token: A @23
             operator: + @25
             rightOperand: IntegerLiteral
               literal: 2 @27
@@ -13463,9 +13425,9 @@ library
         constantInitializer
           BinaryExpression
             leftOperand: SimpleIdentifier
+              token: A @27
               staticElement: a.dart::@getter::A
               staticType: int
-              token: A @27
             operator: + @29
             rightOperand: IntegerLiteral
               literal: 2 @31
@@ -13498,15 +13460,15 @@ library
         constantInitializer
           BinaryExpression
             leftOperand: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: a.dart::@getter::A
-                staticType: int
-                token: A @34
-              period: . @33
               prefix: SimpleIdentifier
+                token: p @32
                 staticElement: self::@prefix::p
                 staticType: null
-                token: p @32
+              period: . @33
+              identifier: SimpleIdentifier
+                token: A @34
+                staticElement: a.dart::@getter::A
+                staticType: int
               staticElement: a.dart::@getter::A
               staticType: int
             operator: + @36
@@ -13557,87 +13519,70 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant b @36
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant c @39
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: a @-1
                     staticElement: self::@enum::E::@getter::a
                     staticType: E
-                    token: a @-1
                   SimpleIdentifier
+                    token: b @-1
                     staticElement: self::@enum::E::@getter::b
                     staticType: E
-                    token: b @-1
                   SimpleIdentifier
+                    token: c @-1
                     staticElement: self::@enum::E::@getter::c
                     staticType: E
-                    token: c @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -13649,11 +13594,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     typeAliases
       functionTypeAliasBased F @50
         aliasedType: dynamic Function(int, String)
@@ -13669,51 +13609,51 @@ library
         type: Type
         constantInitializer
           SimpleIdentifier
+            token: dynamic @87
             staticElement: dynamic@-1
             staticType: Type
-            token: dynamic @87
       static const vNull @102
         type: Type
         constantInitializer
           SimpleIdentifier
+            token: Null @110
             staticElement: dart:core::@class::Null
             staticType: Type
-            token: Null @110
       static const vObject @122
         type: Type
         constantInitializer
           SimpleIdentifier
+            token: Object @132
             staticElement: dart:core::@class::Object
             staticType: Type
-            token: Object @132
       static const vClass @146
         type: Type
         constantInitializer
           SimpleIdentifier
+            token: C @155
             staticElement: self::@class::C
             staticType: Type
-            token: C @155
       static const vGenericClass @164
         type: Type
         constantInitializer
           SimpleIdentifier
+            token: D @180
             staticElement: self::@class::D
             staticType: Type
-            token: D @180
       static const vEnum @189
         type: Type
         constantInitializer
           SimpleIdentifier
+            token: E @197
             staticElement: self::@enum::E
             staticType: Type
-            token: E @197
       static const vFunctionTypeAlias @206
         type: Type
         constantInitializer
           SimpleIdentifier
+            token: F @227
             staticElement: self::@typeAlias::F
             staticType: Type
-            token: F @227
     accessors
       synthetic static get vDynamic @-1
         returnType: Type
@@ -13782,23 +13722,23 @@ library
         type: Type
         constantInitializer
           SimpleIdentifier
+            token: C @32
             staticElement: a.dart::@class::C
             staticType: Type
-            token: C @32
       static const vEnum @41
         type: Type
         constantInitializer
           SimpleIdentifier
+            token: E @49
             staticElement: a.dart::@enum::E
             staticType: Type
-            token: E @49
       static const vFunctionTypeAlias @58
         type: Type
         constantInitializer
           SimpleIdentifier
+            token: F @79
             staticElement: a.dart::@typeAlias::F
             staticType: Type
-            token: F @79
     accessors
       synthetic static get vClass @-1
         returnType: Type
@@ -13831,45 +13771,45 @@ library
         type: Type
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: a.dart::@class::C
-              staticType: Type
-              token: C @39
-            period: . @38
             prefix: SimpleIdentifier
+              token: p @37
               staticElement: self::@prefix::p
               staticType: null
-              token: p @37
+            period: . @38
+            identifier: SimpleIdentifier
+              token: C @39
+              staticElement: a.dart::@class::C
+              staticType: Type
             staticElement: a.dart::@class::C
             staticType: Type
       static const vEnum @48
         type: Type
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: a.dart::@enum::E
-              staticType: Type
-              token: E @58
-            period: . @57
             prefix: SimpleIdentifier
+              token: p @56
               staticElement: self::@prefix::p
               staticType: null
-              token: p @56
+            period: . @57
+            identifier: SimpleIdentifier
+              token: E @58
+              staticElement: a.dart::@enum::E
+              staticType: Type
             staticElement: a.dart::@enum::E
             staticType: Type
       static const vFunctionTypeAlias @67
         type: Type
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: a.dart::@typeAlias::F
-              staticType: Type
-              token: F @90
-            period: . @89
             prefix: SimpleIdentifier
+              token: p @88
               staticElement: self::@prefix::p
               staticType: null
-              token: p @88
+            period: . @89
+            identifier: SimpleIdentifier
+              token: F @90
+              staticElement: a.dart::@typeAlias::F
+              staticType: Type
             staticElement: a.dart::@typeAlias::F
             staticType: Type
     accessors
@@ -13919,9 +13859,9 @@ library
         type: dynamic
         constantInitializer
           SimpleIdentifier
+            token: foo @10
             staticElement: <null>
             staticType: dynamic
-            token: foo @10
     accessors
       synthetic static get V @-1
         returnType: dynamic
@@ -13945,15 +13885,15 @@ library
         type: dynamic
         constantInitializer
           PrefixedIdentifier
-            identifier: SimpleIdentifier
-              staticElement: <null>
-              staticType: dynamic
-              token: foo @23
-            period: . @22
             prefix: SimpleIdentifier
+              token: C @21
               staticElement: self::@class::C
               staticType: null
-              token: C @21
+            period: . @22
+            identifier: SimpleIdentifier
+              token: foo @23
+              staticElement: <null>
+              staticType: dynamic
             staticElement: <null>
             staticType: dynamic
     accessors
@@ -13980,24 +13920,24 @@ library
         type: dynamic
         constantInitializer
           PropertyAccess
-            operator: . @37
-            propertyName: SimpleIdentifier
-              staticElement: <null>
-              staticType: dynamic
-              token: foo @38
-            staticType: dynamic
             target: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: foo.dart::@class::C
-                staticType: null
-                token: C @36
-              period: . @35
               prefix: SimpleIdentifier
+                token: p @34
                 staticElement: self::@prefix::p
                 staticType: null
-                token: p @34
+              period: . @35
+              identifier: SimpleIdentifier
+                token: C @36
+                staticElement: foo.dart::@class::C
+                staticType: null
               staticElement: foo.dart::@class::C
               staticType: null
+            operator: . @37
+            propertyName: SimpleIdentifier
+              token: foo @38
+              staticElement: <null>
+              staticType: dynamic
+            staticType: dynamic
     accessors
       synthetic static get V @-1
         returnType: dynamic
@@ -14017,42 +13957,34 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @17
-            elements
-              IfElement
-                condition: BooleanLiteral
-                  literal: true @33
-                  staticType: bool
-                thenStatement: IntegerLiteral
-                  literal: 1 @39
-                  staticType: int
-            isMap: false
-            leftBracket: { @28
-            rightBracket: } @40
-            staticType: Set<int>
             typeArguments: TypeArgumentList
+              leftBracket: < @23
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: int @24
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @24
                   type: int
-              leftBracket: < @23
               rightBracket: > @27
+            leftBracket: { @28
+            elements
+              IfElement
+                ifKeyword: if @29
+                leftParenthesis: ( @32
+                condition: BooleanLiteral
+                  literal: true @33
+                  staticType: bool
+                rightParenthesis: ) @37
+                thenElement: IntegerLiteral
+                  literal: 1 @39
+                  staticType: int
+            rightBracket: } @40
+            isMap: false
+            staticType: Set<int>
     accessors
       synthetic static get x @-1
         returnType: Object
-''');
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
-  test_const_set_if_else() async {
-    var library = await checkLibrary('''
-const Object x = const <int>{if (true) 1 else 2];
-''');
-    checkElementText(library, r'''
-const Object x = const <
-        int/*location: dart:core;int*/>{if (true) 1 else 2}/*isSet*/;
 ''');
   }
 
@@ -14072,13 +14004,13 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @17
+            leftBracket: { @23
             elements
               IntegerLiteral
                 literal: 1 @24
                 staticType: int
-            isMap: false
-            leftBracket: { @23
             rightBracket: } @25
+            isMap: false
             staticType: Set<int>
     accessors
       synthetic static get x @-1
@@ -14099,42 +14031,42 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @17
+            typeArguments: TypeArgumentList
+              leftBracket: < @23
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @24
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @27
+            leftBracket: { @28
             elements
               SpreadElement
+                spreadOperator: ... @29
                 expression: SetOrMapLiteral
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @32
+                    arguments
+                      NamedType
+                        name: SimpleIdentifier
+                          token: int @33
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                        type: int
+                    rightBracket: > @36
+                  leftBracket: { @37
                   elements
                     IntegerLiteral
                       literal: 1 @38
                       staticType: int
-                  isMap: false
-                  leftBracket: { @37
                   rightBracket: } @39
+                  isMap: false
                   staticType: Set<int>
-                  typeArguments: TypeArgumentList
-                    arguments
-                      NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::int
-                          staticType: null
-                          token: int @33
-                        type: int
-                    leftBracket: < @32
-                    rightBracket: > @36
-                spreadOperator: ... @29
-            isMap: false
-            leftBracket: { @28
             rightBracket: } @40
+            isMap: false
             staticType: Set<int>
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @24
-                  type: int
-              leftBracket: < @23
-              rightBracket: > @27
     accessors
       synthetic static get x @-1
         returnType: Object
@@ -14154,42 +14086,42 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @17
+            typeArguments: TypeArgumentList
+              leftBracket: < @23
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @24
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @27
+            leftBracket: { @28
             elements
               SpreadElement
+                spreadOperator: ...? @29
                 expression: SetOrMapLiteral
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @33
+                    arguments
+                      NamedType
+                        name: SimpleIdentifier
+                          token: int @34
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                        type: int
+                    rightBracket: > @37
+                  leftBracket: { @38
                   elements
                     IntegerLiteral
                       literal: 1 @39
                       staticType: int
-                  isMap: false
-                  leftBracket: { @38
                   rightBracket: } @40
+                  isMap: false
                   staticType: Set<int>
-                  typeArguments: TypeArgumentList
-                    arguments
-                      NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::int
-                          staticType: null
-                          token: int @34
-                        type: int
-                    leftBracket: < @33
-                    rightBracket: > @37
-                spreadOperator: ...? @29
-            isMap: false
-            leftBracket: { @28
             rightBracket: } @41
+            isMap: false
             staticType: Set<int>
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @24
-                  type: int
-              leftBracket: < @23
-              rightBracket: > @27
     accessors
       synthetic static get x @-1
         returnType: Object
@@ -14525,8 +14457,8 @@ library
         type: int
         constantInitializer
           ConditionalExpression
-            colon: : @35
             condition: ParenthesizedExpression
+              leftParenthesis: ( @21
               expression: BinaryExpression
                 leftOperand: IntegerLiteral
                   literal: 1 @22
@@ -14538,17 +14470,17 @@ library
                 staticElement: dart:core::@class::num::@method::==
                 staticInvokeType: bool Function(Object)
                 staticType: bool
-              leftParenthesis: ( @21
               rightParenthesis: ) @28
               staticType: bool
-            elseExpression: IntegerLiteral
-              literal: 22 @37
-              staticType: int
             question: ? @30
-            staticType: int
             thenExpression: IntegerLiteral
               literal: 11 @32
               staticType: int
+            colon: : @35
+            elseExpression: IntegerLiteral
+              literal: 22 @37
+              staticType: int
+            staticType: int
     accessors
       synthetic static get vConditional @-1
         returnType: int
@@ -14567,8 +14499,8 @@ library
         type: int
         constantInitializer
           ConditionalExpression
-            colon: : @33
             condition: ParenthesizedExpression
+              leftParenthesis: ( @19
               expression: BinaryExpression
                 leftOperand: IntegerLiteral
                   literal: 1 @20
@@ -14580,17 +14512,17 @@ library
                 staticElement: dart:core::@class::num::@method::==
                 staticInvokeType: bool Function(Object)
                 staticType: bool
-              leftParenthesis: ( @19
               rightParenthesis: ) @26
               staticType: bool
-            elseExpression: IntegerLiteral
-              literal: 22 @35
-              staticType: int
             question: ? @28
-            staticType: int
             thenExpression: IntegerLiteral
               literal: 11 @30
               staticType: int
+            colon: : @33
+            elseExpression: IntegerLiteral
+              literal: 22 @35
+              staticType: int
+            staticType: int
     accessors
       synthetic static get vIdentical @-1
         returnType: int
@@ -14673,10 +14605,10 @@ library
         type: int
         constantInitializer
           PrefixExpression
+            operator: - @115
             operand: IntegerLiteral
               literal: 2 @116
               staticType: int
-            operator: - @115
             staticElement: dart:core::@class::int::@method::unary-
             staticType: int
       static const vIntLong1 @125
@@ -14712,13 +14644,13 @@ library
         type: String
         constantInitializer
           AdjacentStrings
-            staticType: String
-            stringValue: aaabbb
             strings
               SimpleStringLiteral
                 literal: 'aaa' @299
               SimpleStringLiteral
                 literal: 'bbb' @305
+            staticType: String
+            stringValue: aaabbb
       static const vStringInterpolation @318
         type: String
         constantInitializer
@@ -14727,18 +14659,18 @@ library
               InterpolationString
                 contents: 'aaa  @341
               InterpolationExpression
+                leftBracket: ${ @346
                 expression: BooleanLiteral
                   literal: true @348
                   staticType: bool
-                leftBracket: ${ @346
                 rightBracket: } @352
               InterpolationString
                 contents:   @353
               InterpolationExpression
+                leftBracket: ${ @354
                 expression: IntegerLiteral
                   literal: 42 @356
                   staticType: int
-                leftBracket: ${ @354
                 rightBracket: } @358
               InterpolationString
                 contents:  bbb' @359
@@ -14748,6 +14680,7 @@ library
         type: Symbol
         constantInitializer
           SymbolLiteral
+            poundSign: # @382
             components
               components: aaa
                 offset: 383
@@ -14755,7 +14688,6 @@ library
                 offset: 387
               components: ccc
                 offset: 391
-            poundSign: # @382
     accessors
       synthetic static get vNull @-1
         returnType: dynamic
@@ -14805,20 +14737,20 @@ library
         type: String?
         constantInitializer
           MethodInvocation
+            target: SimpleIdentifier
+              token: a @28
+              staticElement: self::@getter::a
+              staticType: int?
+            operator: ?. @29
+            methodName: SimpleIdentifier
+              token: toString @31
+              staticElement: dart:core::@class::int::@method::toString
+              staticType: String Function()
             argumentList: ArgumentList
               leftParenthesis: ( @39
               rightParenthesis: ) @40
-            methodName: SimpleIdentifier
-              staticElement: dart:core::@class::int::@method::toString
-              staticType: String Function()
-              token: toString @31
-            operator: ?. @29
             staticInvokeType: String Function()
             staticType: String?
-            target: SimpleIdentifier
-              staticElement: self::@getter::a
-              staticType: int?
-              token: a @28
     accessors
       synthetic static get a @-1
         returnType: int?
@@ -14846,23 +14778,23 @@ library
         type: int?
         constantInitializer
           CascadeExpression
+            target: SimpleIdentifier
+              token: a @28
+              staticElement: self::@getter::a
+              staticType: int?
             cascadeSections
               MethodInvocation
+                operator: ?.. @29
+                methodName: SimpleIdentifier
+                  token: toString @32
+                  staticElement: dart:core::@class::int::@method::toString
+                  staticType: String Function()
                 argumentList: ArgumentList
                   leftParenthesis: ( @40
                   rightParenthesis: ) @41
-                methodName: SimpleIdentifier
-                  staticElement: dart:core::@class::int::@method::toString
-                  staticType: String Function()
-                  token: toString @32
-                operator: ?.. @29
                 staticInvokeType: String Function()
                 staticType: String
             staticType: int?
-            target: SimpleIdentifier
-              staticElement: self::@getter::a
-              staticType: int?
-              token: a @28
     accessors
       synthetic static get a @-1
         returnType: int?
@@ -14892,19 +14824,19 @@ library
         type: List<int?>
         constantInitializer
           ListLiteral
+            leftBracket: [ @44
             elements
               PropertyAccess
-                operator: ?. @49
-                propertyName: SimpleIdentifier
-                  staticElement: dart:core::@class::String::@getter::length
-                  staticType: int
-                  token: length @51
-                staticType: int?
                 target: SimpleIdentifier
+                  token: a @48
                   staticElement: self::@getter::a
                   staticType: String?
-                  token: a @48
-            leftBracket: [ @44
+                operator: ?. @49
+                propertyName: SimpleIdentifier
+                  token: length @51
+                  staticElement: dart:core::@class::String::@getter::length
+                  staticType: int
+                staticType: int?
             rightBracket: ] @59
             staticType: List<int?>
     accessors
@@ -14930,6 +14862,7 @@ library
         constantInitializer
           BinaryExpression
             leftOperand: ParenthesizedExpression
+              leftParenthesis: ( @15
               expression: BinaryExpression
                 leftOperand: IntegerLiteral
                   literal: 1 @16
@@ -14941,7 +14874,6 @@ library
                 staticElement: dart:core::@class::num::@method::+
                 staticInvokeType: num Function(num)
                 staticType: int
-              leftParenthesis: ( @15
               rightParenthesis: ) @21
               staticType: int
             operator: * @23
@@ -14955,7 +14887,9 @@ library
         type: int
         constantInitializer
           PrefixExpression
+            operator: - @43
             operand: ParenthesizedExpression
+              leftParenthesis: ( @44
               expression: BinaryExpression
                 leftOperand: IntegerLiteral
                   literal: 1 @45
@@ -14967,23 +14901,16 @@ library
                 staticElement: dart:core::@class::num::@method::+
                 staticInvokeType: num Function(num)
                 staticType: int
-              leftParenthesis: ( @44
               rightParenthesis: ) @50
               staticType: int
-            operator: - @43
             staticElement: dart:core::@class::int::@method::unary-
             staticType: int
       static const v3 @63
         type: int
         constantInitializer
           PropertyAccess
-            operator: . @83
-            propertyName: SimpleIdentifier
-              staticElement: dart:core::@class::String::@getter::length
-              staticType: int
-              token: length @84
-            staticType: int
             target: ParenthesizedExpression
+              leftParenthesis: ( @68
               expression: BinaryExpression
                 leftOperand: SimpleStringLiteral
                   literal: 'aaa' @69
@@ -14993,9 +14920,14 @@ library
                 staticElement: dart:core::@class::String::@method::+
                 staticInvokeType: String Function(String)
                 staticType: String
-              leftParenthesis: ( @68
               rightParenthesis: ) @82
               staticType: String
+            operator: . @83
+            propertyName: SimpleIdentifier
+              token: length @84
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+            staticType: int
     accessors
       synthetic static get v1 @-1
         returnType: int
@@ -15035,30 +14967,30 @@ library
         type: bool
         constantInitializer
           PrefixExpression
+            operator: ! @39
             operand: BooleanLiteral
               literal: true @40
               staticType: bool
-            operator: ! @39
             staticElement: <null>
             staticType: bool
       static const vNegate @52
         type: int
         constantInitializer
           PrefixExpression
+            operator: - @62
             operand: IntegerLiteral
               literal: 1 @63
               staticType: int
-            operator: - @62
             staticElement: dart:core::@class::int::@method::unary-
             staticType: int
       static const vComplement @72
         type: int
         constantInitializer
           PrefixExpression
+            operator: ~ @86
             operand: IntegerLiteral
               literal: 1 @87
               staticType: int
-            operator: ~ @86
             staticElement: dart:core::@class::int::@method::~
             staticType: int
     accessors
@@ -15085,8 +15017,8 @@ library
         type: dynamic
         constantInitializer
           SuperExpression
-            staticType: dynamic
             superKeyword: super @15
+            staticType: dynamic
     accessors
       synthetic static get vSuper @-1
         returnType: dynamic
@@ -15105,8 +15037,8 @@ library
         type: dynamic
         constantInitializer
           ThisExpression
-            staticType: dynamic
             thisKeyword: this @14
+            staticType: dynamic
     accessors
       synthetic static get vThis @-1
         returnType: dynamic
@@ -15125,6 +15057,7 @@ library
         type: Never
         constantInitializer
           ThrowExpression
+            throwKeyword: throw @10
             expression: IntegerLiteral
               literal: 42 @16
               staticType: int
@@ -15148,6 +15081,7 @@ library
         type: dynamic
         constantInitializer
           ThrowExpression
+            throwKeyword: throw @10
             expression: IntegerLiteral
               literal: 42 @16
               staticType: int*
@@ -15176,24 +15110,35 @@ library
         constantInitializer
           ListLiteral
             constKeyword: const @14
-            leftBracket: [ @26
-            rightBracket: ] @27
-            staticType: List<Null>
             typeArguments: TypeArgumentList
+              leftBracket: < @20
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: Null @21
                     staticElement: dart:core::@class::Null
                     staticType: null
-                    token: Null @21
                   type: Null
-              leftBracket: < @20
               rightBracket: > @25
+            leftBracket: [ @26
+            rightBracket: ] @27
+            staticType: List<Null>
       static const vDynamic @36
         type: List<dynamic>
         constantInitializer
           ListLiteral
             constKeyword: const @47
+            typeArguments: TypeArgumentList
+              leftBracket: < @53
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: dynamic @54
+                    staticElement: dynamic@-1
+                    staticType: null
+                  type: dynamic
+              rightBracket: > @61
+            leftBracket: [ @62
             elements
               IntegerLiteral
                 literal: 1 @63
@@ -15204,24 +15149,24 @@ library
               IntegerLiteral
                 literal: 3 @69
                 staticType: int
-            leftBracket: [ @62
             rightBracket: ] @70
             staticType: List<dynamic>
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dynamic@-1
-                    staticType: null
-                    token: dynamic @54
-                  type: dynamic
-              leftBracket: < @53
-              rightBracket: > @61
       static const vInterfaceNoTypeParameters @79
         type: List<int>
         constantInitializer
           ListLiteral
             constKeyword: const @108
+            typeArguments: TypeArgumentList
+              leftBracket: < @114
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @115
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @118
+            leftBracket: [ @119
             elements
               IntegerLiteral
                 literal: 1 @120
@@ -15232,109 +15177,98 @@ library
               IntegerLiteral
                 literal: 3 @126
                 staticType: int
-            leftBracket: [ @119
             rightBracket: ] @127
             staticType: List<int>
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @115
-                  type: int
-              leftBracket: < @114
-              rightBracket: > @118
       static const vInterfaceNoTypeArguments @136
         type: List<List<dynamic>>
         constantInitializer
           ListLiteral
             constKeyword: const @164
-            leftBracket: [ @176
-            rightBracket: ] @177
-            staticType: List<List<dynamic>>
             typeArguments: TypeArgumentList
+              leftBracket: < @170
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: List @171
                     staticElement: dart:core::@class::List
                     staticType: null
-                    token: List @171
                   type: List<dynamic>
-              leftBracket: < @170
               rightBracket: > @175
+            leftBracket: [ @176
+            rightBracket: ] @177
+            staticType: List<List<dynamic>>
       static const vInterfaceWithTypeArguments @186
         type: List<List<String>>
         constantInitializer
           ListLiteral
             constKeyword: const @216
-            leftBracket: [ @236
-            rightBracket: ] @237
-            staticType: List<List<String>>
             typeArguments: TypeArgumentList
+              leftBracket: < @222
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: List @223
                     staticElement: dart:core::@class::List
                     staticType: null
-                    token: List @223
-                  type: List<String>
                   typeArguments: TypeArgumentList
+                    leftBracket: < @227
                     arguments
                       NamedType
                         name: SimpleIdentifier
+                          token: String @228
                           staticElement: dart:core::@class::String
                           staticType: null
-                          token: String @228
                         type: String
-                    leftBracket: < @227
                     rightBracket: > @234
-              leftBracket: < @222
+                  type: List<String>
               rightBracket: > @235
+            leftBracket: [ @236
+            rightBracket: ] @237
+            staticType: List<List<String>>
       static const vInterfaceWithTypeArguments2 @246
         type: List<Map<int, List<String>>>
         constantInitializer
           ListLiteral
             constKeyword: const @277
-            leftBracket: [ @307
-            rightBracket: ] @308
-            staticType: List<Map<int, List<String>>>
             typeArguments: TypeArgumentList
+              leftBracket: < @283
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: Map @284
                     staticElement: dart:core::@class::Map
                     staticType: null
-                    token: Map @284
-                  type: Map<int, List<String>>
                   typeArguments: TypeArgumentList
+                    leftBracket: < @287
                     arguments
                       NamedType
                         name: SimpleIdentifier
+                          token: int @288
                           staticElement: dart:core::@class::int
                           staticType: null
-                          token: int @288
                         type: int
                       NamedType
                         name: SimpleIdentifier
+                          token: List @293
                           staticElement: dart:core::@class::List
                           staticType: null
-                          token: List @293
-                        type: List<String>
                         typeArguments: TypeArgumentList
+                          leftBracket: < @297
                           arguments
                             NamedType
                               name: SimpleIdentifier
+                                token: String @298
                                 staticElement: dart:core::@class::String
                                 staticType: null
-                                token: String @298
                               type: String
-                          leftBracket: < @297
                           rightBracket: > @304
-                    leftBracket: < @287
+                        type: List<String>
                     rightBracket: > @305
-              leftBracket: < @283
+                  type: Map<int, List<String>>
               rightBracket: > @306
+            leftBracket: [ @307
+            rightBracket: ] @308
+            staticType: List<Map<int, List<String>>>
     accessors
       synthetic static get vNull @-1
         returnType: List<Null>
@@ -15368,19 +15302,19 @@ library
         constantInitializer
           ListLiteral
             constKeyword: const @27
-            leftBracket: [ @36
-            rightBracket: ] @37
-            staticType: List<C>
             typeArguments: TypeArgumentList
+              leftBracket: < @33
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: C @34
                     staticElement: a.dart::@class::C
                     staticType: null
-                    token: C @34
                   type: C
-              leftBracket: < @33
               rightBracket: > @35
+            leftBracket: [ @36
+            rightBracket: ] @37
+            staticType: List<C>
     accessors
       synthetic static get v @-1
         returnType: List<C>
@@ -15404,27 +15338,27 @@ library
         constantInitializer
           ListLiteral
             constKeyword: const @32
-            leftBracket: [ @43
-            rightBracket: ] @44
-            staticType: List<C>
             typeArguments: TypeArgumentList
+              leftBracket: < @38
               arguments
                 NamedType
                   name: PrefixedIdentifier
-                    identifier: SimpleIdentifier
-                      staticElement: a.dart::@class::C
-                      staticType: null
-                      token: C @41
-                    period: . @40
                     prefix: SimpleIdentifier
+                      token: p @39
                       staticElement: self::@prefix::p
                       staticType: null
-                      token: p @39
+                    period: . @40
+                    identifier: SimpleIdentifier
+                      token: C @41
+                      staticElement: a.dart::@class::C
+                      staticType: null
                     staticElement: a.dart::@class::C
                     staticType: null
                   type: C
-              leftBracket: < @38
               rightBracket: > @42
+            leftBracket: [ @43
+            rightBracket: ] @44
+            staticType: List<C>
     accessors
       synthetic static get v @-1
         returnType: List<C>
@@ -15453,19 +15387,19 @@ library
         constantInitializer
           ListLiteral
             constKeyword: const @36
-            leftBracket: [ @45
-            rightBracket: ] @46
-            staticType: List<int Function(String)>
             typeArguments: TypeArgumentList
+              leftBracket: < @42
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: F @43
                     staticElement: self::@typeAlias::F
                     staticType: null
-                    token: F @43
                   type: int Function(String)
-              leftBracket: < @42
               rightBracket: > @44
+            leftBracket: [ @45
+            rightBracket: ] @46
+            staticType: List<int Function(String)>
     accessors
       synthetic static get v @-1
         returnType: List<int Function(String)>
@@ -15488,111 +15422,111 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @18
-            isMap: true
-            leftBracket: { @38
-            rightBracket: } @39
-            staticType: Map<dynamic, int>
             typeArguments: TypeArgumentList
+              leftBracket: < @24
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: dynamic @25
                     staticElement: dynamic@-1
                     staticType: null
-                    token: dynamic @25
                   type: dynamic
                 NamedType
                   name: SimpleIdentifier
+                    token: int @34
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @34
                   type: int
-              leftBracket: < @24
               rightBracket: > @37
+            leftBracket: { @38
+            rightBracket: } @39
+            isMap: true
+            staticType: Map<dynamic, int>
       static const vDynamic2 @48
         type: Map<int, dynamic>
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @60
-            isMap: true
-            leftBracket: { @80
-            rightBracket: } @81
-            staticType: Map<int, dynamic>
             typeArguments: TypeArgumentList
+              leftBracket: < @66
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: int @67
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @67
                   type: int
                 NamedType
                   name: SimpleIdentifier
+                    token: dynamic @72
                     staticElement: dynamic@-1
                     staticType: null
-                    token: dynamic @72
                   type: dynamic
-              leftBracket: < @66
               rightBracket: > @79
+            leftBracket: { @80
+            rightBracket: } @81
+            isMap: true
+            staticType: Map<int, dynamic>
       static const vInterface @90
         type: Map<int, String>
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @103
-            isMap: true
-            leftBracket: { @122
-            rightBracket: } @123
-            staticType: Map<int, String>
             typeArguments: TypeArgumentList
+              leftBracket: < @109
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: int @110
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @110
                   type: int
                 NamedType
                   name: SimpleIdentifier
+                    token: String @115
                     staticElement: dart:core::@class::String
                     staticType: null
-                    token: String @115
                   type: String
-              leftBracket: < @109
               rightBracket: > @121
+            leftBracket: { @122
+            rightBracket: } @123
+            isMap: true
+            staticType: Map<int, String>
       static const vInterfaceWithTypeArguments @132
         type: Map<int, List<String>>
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @162
-            isMap: true
-            leftBracket: { @187
-            rightBracket: } @188
-            staticType: Map<int, List<String>>
             typeArguments: TypeArgumentList
+              leftBracket: < @168
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: int @169
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @169
                   type: int
                 NamedType
                   name: SimpleIdentifier
+                    token: List @174
                     staticElement: dart:core::@class::List
                     staticType: null
-                    token: List @174
-                  type: List<String>
                   typeArguments: TypeArgumentList
+                    leftBracket: < @178
                     arguments
                       NamedType
                         name: SimpleIdentifier
+                          token: String @179
                           staticElement: dart:core::@class::String
                           staticType: null
-                          token: String @179
                         type: String
-                    leftBracket: < @178
                     rightBracket: > @185
-              leftBracket: < @168
+                  type: List<String>
               rightBracket: > @186
+            leftBracket: { @187
+            rightBracket: } @188
+            isMap: true
+            staticType: Map<int, List<String>>
     accessors
       synthetic static get vDynamic1 @-1
         returnType: Map<dynamic, int>
@@ -15620,68 +15554,68 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @18
-            isMap: false
-            leftBracket: { @33
-            rightBracket: } @34
-            staticType: Set<dynamic>
             typeArguments: TypeArgumentList
+              leftBracket: < @24
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: dynamic @25
                     staticElement: dynamic@-1
                     staticType: null
-                    token: dynamic @25
                   type: dynamic
-              leftBracket: < @24
               rightBracket: > @32
+            leftBracket: { @33
+            rightBracket: } @34
+            isMap: false
+            staticType: Set<dynamic>
       static const vInterface @43
         type: Set<int>
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @56
-            isMap: false
-            leftBracket: { @67
-            rightBracket: } @68
-            staticType: Set<int>
             typeArguments: TypeArgumentList
+              leftBracket: < @62
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: int @63
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @63
                   type: int
-              leftBracket: < @62
               rightBracket: > @66
+            leftBracket: { @67
+            rightBracket: } @68
+            isMap: false
+            staticType: Set<int>
       static const vInterfaceWithTypeArguments @77
         type: Set<List<String>>
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @107
-            isMap: false
-            leftBracket: { @127
-            rightBracket: } @128
-            staticType: Set<List<String>>
             typeArguments: TypeArgumentList
+              leftBracket: < @113
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: List @114
                     staticElement: dart:core::@class::List
                     staticType: null
-                    token: List @114
-                  type: List<String>
                   typeArguments: TypeArgumentList
+                    leftBracket: < @118
                     arguments
                       NamedType
                         name: SimpleIdentifier
+                          token: String @119
                           staticElement: dart:core::@class::String
                           staticType: null
-                          token: String @119
                         type: String
-                    leftBracket: < @118
                     rightBracket: > @125
-              leftBracket: < @113
+                  type: List<String>
               rightBracket: > @126
+            leftBracket: { @127
+            rightBracket: } @128
+            isMap: false
+            staticType: Set<List<String>>
     accessors
       synthetic static get vDynamic1 @-1
         returnType: Set<dynamic>
@@ -15705,6 +15639,7 @@ library
         constantInitializer
           ListLiteral
             constKeyword: const @10
+            leftBracket: [ @16
             elements
               IntegerLiteral
                 literal: 1 @17
@@ -15715,7 +15650,6 @@ library
               IntegerLiteral
                 literal: 3 @23
                 staticType: int
-            leftBracket: [ @16
             rightBracket: ] @24
             staticType: List<int>
     accessors
@@ -15737,28 +15671,31 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @10
+            leftBracket: { @16
             elements
               SetOrMapLiteral
                 key: IntegerLiteral
                   literal: 0 @17
                   staticType: int
+                separator: : @18
                 value: SimpleStringLiteral
                   literal: 'aaa' @20
               SetOrMapLiteral
                 key: IntegerLiteral
                   literal: 1 @27
                   staticType: int
+                separator: : @28
                 value: SimpleStringLiteral
                   literal: 'bbb' @30
               SetOrMapLiteral
                 key: IntegerLiteral
                   literal: 2 @37
                   staticType: int
+                separator: : @38
                 value: SimpleStringLiteral
                   literal: 'ccc' @40
-            isMap: true
-            leftBracket: { @16
             rightBracket: } @45
+            isMap: true
             staticType: Map<int, String>
     accessors
       synthetic static get v @-1
@@ -15779,6 +15716,7 @@ library
         constantInitializer
           SetOrMapLiteral
             constKeyword: const @10
+            leftBracket: { @16
             elements
               IntegerLiteral
                 literal: 0 @17
@@ -15789,9 +15727,8 @@ library
               IntegerLiteral
                 literal: 2 @23
                 staticType: int
-            isMap: false
-            leftBracket: { @16
             rightBracket: } @24
+            isMap: false
             staticType: Set<int>
     accessors
       synthetic static get v @-1
@@ -15811,23 +15748,23 @@ library
         type: Type
         constantInitializer
           TypeLiteral
-            staticType: Type
             type: NamedType
               name: SimpleIdentifier
+                token: List @10
                 staticElement: dart:core::@class::List
                 staticType: List<int>
-                token: List @10
-              type: List<int>
               typeArguments: TypeArgumentList
+                leftBracket: < @14
                 arguments
                   NamedType
                     name: SimpleIdentifier
+                      token: int @15
                       staticElement: dart:core::@class::int
                       staticType: null
-                      token: int @15
                     type: int
-                leftBracket: < @14
                 rightBracket: > @18
+              type: List<int>
+            staticType: Type
     accessors
       synthetic static get v @-1
         returnType: Type
@@ -15852,87 +15789,70 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant b @11
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant c @14
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: a @-1
                     staticElement: self::@enum::E::@getter::a
                     staticType: E
-                    token: a @-1
                   SimpleIdentifier
+                    token: b @-1
                     staticElement: self::@enum::E::@getter::b
                     staticType: E
-                    token: b @-1
                   SimpleIdentifier
+                    token: c @-1
                     staticElement: self::@enum::E::@getter::c
                     staticType: E
-                    token: c @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -15944,11 +15864,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static final vValue @23
         type: E
@@ -15982,37 +15897,30 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: a @-1
                     staticElement: self::@enum::E::@getter::a
                     staticType: E
-                    token: a @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -16020,11 +15928,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static final vToString @17
         type: String
@@ -16051,9 +15954,9 @@ library
             type: dynamic
             constantInitializer
               SimpleIdentifier
+                token: b @29
                 staticElement: self::@class::C::@getter::b
                 staticType: dynamic
-                token: b @29
           static const b @47
             type: dynamic
             constantInitializer
@@ -16087,9 +15990,9 @@ library
             type: dynamic Function()
             constantInitializer
               SimpleIdentifier
+                token: m @29
                 staticElement: self::@class::C::@method::m
                 staticType: dynamic Function()
-                token: m @29
         constructors
           synthetic @-1
         accessors
@@ -16197,9 +16100,9 @@ library
                 constantInitializer
                   FunctionReference
                     function: SimpleIdentifier
+                      token: defaultF @93
                       staticElement: self::@function::defaultF
                       staticType: void Function<T>(T)
-                      token: defaultF @93
                     staticType: void Function(dynamic)
                     typeArgumentTypes
                       dynamic
@@ -16261,34 +16164,34 @@ library
                 type: dynamic
                 constantInitializer
                   InstanceCreationExpression
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @72
-                      rightParenthesis: ) @73
+                    keyword: const @53
                     constructorName: ConstructorName
-                      staticElement: ConstructorMember
-                        base: self::@class::A::@constructor::•
-                        substitution: {T: dynamic Function()}
                       type: NamedType
                         name: SimpleIdentifier
+                          token: A @59
                           staticElement: self::@class::A
                           staticType: null
-                          token: A @59
-                        type: A<dynamic Function()>
                         typeArguments: TypeArgumentList
+                          leftBracket: < @60
                           arguments
                             GenericFunctionType
-                              declaredElement: GenericFunctionTypeElement
-                                parameters
-                                returnType: dynamic
-                                type: dynamic Function()
                               functionKeyword: Function @61
                               parameters: FormalParameterList
                                 leftParenthesis: ( @69
                                 rightParenthesis: ) @70
+                              declaredElement: GenericFunctionTypeElement
+                                parameters
+                                returnType: dynamic
+                                type: dynamic Function()
                               type: dynamic Function()
-                          leftBracket: < @60
                           rightBracket: > @71
-                    keyword: const @53
+                        type: A<dynamic Function()>
+                      staticElement: ConstructorMember
+                        base: self::@class::A::@constructor::•
+                        substitution: {T: dynamic Function()}
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @72
+                      rightParenthesis: ) @73
                     staticType: A<dynamic Function()>
             returnType: void
 ''');
@@ -16315,13 +16218,13 @@ library
                       literal: 0 @14
                       staticType: int
                     isOperator: is @16
-                    staticType: bool
                     type: NamedType
                       name: SimpleIdentifier
+                        token: int @19
                         staticElement: dart:core::@class::int
                         staticType: null
-                        token: int @19
                       type: int
+                    staticType: bool
         returnType: void
 ''');
   }
@@ -16344,20 +16247,20 @@ library
                 dynamic
             constantInitializer
               PrefixedIdentifier
-                identifier: SimpleIdentifier
-                  staticElement: MethodMember
-                    base: dart:core::@class::Comparable::@method::compare
-                    substitution: {}
-                  staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
-                  token: compare @43
-                period: . @42
                 prefix: SimpleIdentifier
+                  token: Comparable @32
                   staticElement: dart:core::@class::Comparable
                   staticType: null
-                  token: Comparable @32
+                period: . @42
+                identifier: SimpleIdentifier
+                  token: compare @43
+                  staticElement: MethodMember
+                    base: dart:core::@class::Comparable::@method::compare
+                    isLegacy: true
+                  staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
                 staticElement: MethodMember
                   base: dart:core::@class::Comparable::@method::compare
-                  substitution: {}
+                  isLegacy: true
                 staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
         returnType: void
 ''');
@@ -16390,9 +16293,9 @@ library
                 type: Object
                 constantInitializer
                   SimpleIdentifier
+                    token: f @79
                     staticElement: self::@extension::E::@method::f
                     staticType: void Function()
-                    token: f @79
             returnType: void
 ''');
   }
@@ -16428,20 +16331,20 @@ library
                 type: B<int, double>
                 constantInitializer
                   InstanceCreationExpression
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @81
-                      rightParenthesis: ) @82
+                    keyword: const @74
                     constructorName: ConstructorName
+                      type: NamedType
+                        name: SimpleIdentifier
+                          token: B @80
+                          staticElement: self::@class::B
+                          staticType: null
+                        type: B<int, double>
                       staticElement: ConstructorMember
                         base: self::@class::B::@constructor::•
                         substitution: {T1: int, T2: double}
-                      type: NamedType
-                        name: SimpleIdentifier
-                          staticElement: self::@class::B
-                          staticType: null
-                          token: B @80
-                        type: B<int, double>
-                    keyword: const @74
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @81
+                      rightParenthesis: ) @82
                     staticType: B<int, double>
             returnType: void
 ''');
@@ -16477,20 +16380,20 @@ library
                 type: B<T>
                 constantInitializer
                   InstanceCreationExpression
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @68
-                      rightParenthesis: ) @69
+                    keyword: const @61
                     constructorName: ConstructorName
+                      type: NamedType
+                        name: SimpleIdentifier
+                          token: B @67
+                          staticElement: self::@class::B
+                          staticType: null
+                        type: B<Never>
                       staticElement: ConstructorMember
                         base: self::@class::B::@constructor::•
                         substitution: {T: Never}
-                      type: NamedType
-                        name: SimpleIdentifier
-                          staticElement: self::@class::B
-                          staticType: null
-                          token: B @67
-                        type: B<Never>
-                    keyword: const @61
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @68
+                      rightParenthesis: ) @69
                     staticType: B<Never>
 ''');
   }
@@ -16536,20 +16439,20 @@ library
                 type: A<T>
                 constantInitializer
                   InstanceCreationExpression
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @133
-                      rightParenthesis: ) @134
+                    keyword: const @126
                     constructorName: ConstructorName
+                      type: NamedType
+                        name: SimpleIdentifier
+                          token: B @132
+                          staticElement: self::@class::B
+                          staticType: null
+                        type: B<Never>
                       staticElement: ConstructorMember
                         base: self::@class::B::@constructor::•
                         substitution: {T: Never}
-                      type: NamedType
-                        name: SimpleIdentifier
-                          staticElement: self::@class::B
-                          staticType: null
-                          token: B @132
-                        type: B<Never>
-                    keyword: const @126
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @133
+                      rightParenthesis: ) @134
                     staticType: B<Never>
 ''');
   }
@@ -16596,20 +16499,20 @@ library
                 type: A<T*>*
                 constantInitializer
                   InstanceCreationExpression
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @133
-                      rightParenthesis: ) @134
+                    keyword: const @126
                     constructorName: ConstructorName
+                      type: NamedType
+                        name: SimpleIdentifier
+                          token: B @132
+                          staticElement: self::@class::B
+                          staticType: null
+                        type: B<Null*>*
                       staticElement: ConstructorMember
                         base: self::@class::B::@constructor::•
                         substitution: {T: Null*}
-                      type: NamedType
-                        name: SimpleIdentifier
-                          staticElement: self::@class::B
-                          staticType: null
-                          token: B @132
-                        type: B<Null*>*
-                    keyword: const @126
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @133
+                      rightParenthesis: ) @134
                     staticType: B<Null*>*
 ''');
   }
@@ -16645,20 +16548,20 @@ library
                 type: B<T*>*
                 constantInitializer
                   InstanceCreationExpression
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @68
-                      rightParenthesis: ) @69
+                    keyword: const @61
                     constructorName: ConstructorName
+                      type: NamedType
+                        name: SimpleIdentifier
+                          token: B @67
+                          staticElement: self::@class::B
+                          staticType: null
+                        type: B<Null*>*
                       staticElement: ConstructorMember
                         base: self::@class::B::@constructor::•
                         substitution: {T: Null*}
-                      type: NamedType
-                        name: SimpleIdentifier
-                          staticElement: self::@class::B
-                          staticType: null
-                          token: B @67
-                        type: B<Null*>*
-                    keyword: const @61
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @68
+                      rightParenthesis: ) @69
                     staticType: B<Null*>*
 ''');
   }
@@ -16689,20 +16592,20 @@ library
             type: B<T>
             constantInitializer
               InstanceCreationExpression
-                argumentList: ArgumentList
-                  leftParenthesis: ( @57
-                  rightParenthesis: ) @58
+                keyword: const @50
                 constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: B @56
+                      staticElement: self::@class::B
+                      staticType: null
+                    type: B<Never>
                   staticElement: ConstructorMember
                     base: self::@class::B::@constructor::•
                     substitution: {T: Never}
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@class::B
-                      staticType: null
-                      token: B @56
-                    type: B<Never>
-                keyword: const @50
+                argumentList: ArgumentList
+                  leftParenthesis: ( @57
+                  rightParenthesis: ) @58
                 staticType: B<Never>
         returnType: void
 ''');
@@ -16739,20 +16642,20 @@ library
                 type: B<T>
                 constantInitializer
                   InstanceCreationExpression
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @69
-                      rightParenthesis: ) @70
+                    keyword: const @62
                     constructorName: ConstructorName
+                      type: NamedType
+                        name: SimpleIdentifier
+                          token: B @68
+                          staticElement: self::@class::B
+                          staticType: null
+                        type: B<Never>
                       staticElement: ConstructorMember
                         base: self::@class::B::@constructor::•
                         substitution: {T: Never}
-                      type: NamedType
-                        name: SimpleIdentifier
-                          staticElement: self::@class::B
-                          staticType: null
-                          token: B @68
-                        type: B<Never>
-                    keyword: const @62
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @69
+                      rightParenthesis: ) @70
                     staticType: B<Never>
             returnType: void
 ''');
@@ -16794,20 +16697,20 @@ library
                 type: B<E1, E2>
                 constantInitializer
                   InstanceCreationExpression
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @84
-                      rightParenthesis: ) @85
+                    keyword: const @77
                     constructorName: ConstructorName
+                      type: NamedType
+                        name: SimpleIdentifier
+                          token: B @83
+                          staticElement: self::@class::B
+                          staticType: null
+                        type: B<Never, Never>
                       staticElement: ConstructorMember
                         base: self::@class::B::@constructor::•
                         substitution: {T1: Never, T2: Never}
-                      type: NamedType
-                        name: SimpleIdentifier
-                          staticElement: self::@class::B
-                          staticType: null
-                          token: B @83
-                        type: B<Never, Never>
-                    keyword: const @77
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @84
+                      rightParenthesis: ) @85
                     staticType: B<Never, Never>
             returnType: void
 ''');
@@ -16845,20 +16748,20 @@ library
                 type: B<T>
                 constantInitializer
                   InstanceCreationExpression
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @69
-                      rightParenthesis: ) @70
+                    keyword: const @62
                     constructorName: ConstructorName
+                      type: NamedType
+                        name: SimpleIdentifier
+                          token: B @68
+                          staticElement: self::@class::B
+                          staticType: null
+                        type: B<Never>
                       staticElement: ConstructorMember
                         base: self::@class::B::@constructor::•
                         substitution: {T: Never}
-                      type: NamedType
-                        name: SimpleIdentifier
-                          staticElement: self::@class::B
-                          staticType: null
-                          token: B @68
-                        type: B<Never>
-                    keyword: const @62
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @69
+                      rightParenthesis: ) @70
                     staticType: B<Never>
             returnType: void
 ''');
@@ -16938,11 +16841,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::A::@constructor::•
       class alias X @48
         supertype: B
@@ -16952,11 +16855,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::B::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::B::@constructor::•
     mixins
       mixin M @68
@@ -16983,62 +16886,50 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant b @11
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: a @-1
                     staticElement: self::@enum::E::@getter::a
                     staticType: E
-                    token: a @-1
                   SimpleIdentifier
+                    token: b @-1
                     staticElement: self::@enum::E::@getter::b
                     staticType: E
-                    token: b @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -17048,11 +16939,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
       enum E @19
         supertype: Enum
         fields
@@ -17060,87 +16946,70 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant d @25
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant e @28
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: c @-1
                     staticElement: self::@enum::E::@getter::c
                     staticType: E
-                    token: c @-1
                   SimpleIdentifier
+                    token: d @-1
                     staticElement: self::@enum::E::@getter::d
                     staticType: E
-                    token: d @-1
                   SimpleIdentifier
+                    token: e @-1
                     staticElement: self::@enum::E::@getter::e
                     staticType: E
-                    token: e @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -17152,11 +17021,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17396,77 +17260,61 @@ library
             type: E<int>
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<int>
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: int}
                 argumentList: ArgumentList
+                  leftParenthesis: ( @0
                   arguments
                     IntegerLiteral
                       literal: 1 @18
                       staticType: int
-                  leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: int}
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
-                    substitution: {T: int}
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E<int>
                 staticType: E<int>
           static const enumConstant string @22
             type: E<String>
             constantInitializer
               InstanceCreationExpression
-                argumentList: ArgumentList
-                  arguments
-                    SimpleStringLiteral
-                      literal: '2' @29
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
                 constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: String}
-                    staticType: null
-                    token:  @-1
-                  period: . @0
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<String>
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {T: String}
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E<String>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleStringLiteral
+                      literal: '2' @29
+                  rightParenthesis: ) @0
                 staticType: E<String>
           synthetic static const values @-1
             type: List<E<dynamic>>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: int @-1
                     staticElement: self::@enum::E::@getter::int
                     staticType: E<int>
-                    token: int @-1
                   SimpleIdentifier
+                    token: string @-1
                     staticElement: self::@enum::E::@getter::string
                     staticType: E<String>
-                    token: string @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           const @43
             parameters
@@ -17479,11 +17327,6 @@ library
             returnType: E<String>
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17505,37 +17348,30 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: _name @-1
                     staticElement: self::@enum::E::@getter::_name
                     staticType: E
-                    token: _name @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -17543,11 +17379,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17572,55 +17403,46 @@ library
             type: E<double>
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    typeArguments: TypeArgumentList
+                      leftBracket: < @15
+                      arguments
+                        NamedType
+                          name: SimpleIdentifier
+                            token: double @16
+                            staticElement: dart:core::@class::double
+                            staticType: null
+                          type: double
+                      rightBracket: > @22
+                    type: E<double>
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: double}
                 argumentList: ArgumentList
+                  leftParenthesis: ( @0
                   arguments
                     IntegerLiteral
                       literal: 42 @24
                       staticType: double
-                  leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: double}
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
-                    substitution: {T: double}
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E<double>
-                    typeArguments: TypeArgumentList
-                      arguments
-                        NamedType
-                          name: SimpleIdentifier
-                            staticElement: dart:core::@class::double
-                            staticType: null
-                            token: double @16
-                          type: double
-                      leftBracket: < @15
-                      rightBracket: > @22
                 staticType: E<double>
           synthetic static const values @-1
             type: List<E<dynamic>>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E<double>
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           const @37
             parameters
@@ -17631,11 +17453,6 @@ library
             returnType: E<double>
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17656,37 +17473,30 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: _ @-1
                     staticElement: self::@enum::E::@getter::_
                     staticType: E
-                    token: _ @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -17694,15 +17504,486 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
+''');
+  }
+
+  test_enum_constructor_factory_named() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v;
+  factory E.named() => v;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          factory named @26
+            periodOffset: 25
+            nameEnd: 31
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+''');
+  }
+
+  test_enum_constructor_factory_unnamed() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v;
+  factory E() => v;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          factory @24
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+''');
+  }
+
+  test_enum_constructor_fieldFormal_functionTyped_withReturnType() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v;
+  final x;
+  const E(int this.x(double a));
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+          final x @22
+            type: dynamic
+        constructors
+          const @33
+            parameters
+              requiredPositional final this.x @44
+                type: int Function(double)
+                parameters
+                  requiredPositional a @53
+                    type: double
+                field: self::@enum::E::@field::x
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get x @-1
+            returnType: dynamic
+''');
+  }
+
+  test_enum_constructor_fieldFormal_multiple_matching_fields() async {
+    var library = await checkLibrary('''
+enum E {
+  v;
+  final int x;
+  final String x;
+  const E(this.x);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+          final x @26
+            type: int
+          final x @44
+            type: String
+        constructors
+          const @55
+            parameters
+              requiredPositional final this.x @62
+                type: int
+                field: self::@enum::E::@field::x
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get x @-1
             returnType: int
-        methods
-          synthetic toString @-1
+          synthetic get x @-1
             returnType: String
 ''');
   }
 
-  test_enum_constructor_named() async {
+  test_enum_constructor_fieldFormal_no_matching_field() async {
+    var library = await checkLibrary('''
+enum E {
+  v;
+  const E(this.x);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          const @22
+            parameters
+              requiredPositional final this.x @29
+                type: dynamic
+                field: <null>
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+''');
+  }
+
+  test_enum_constructor_fieldFormal_typed_typed() async {
+    var library = await checkLibrary('''
+enum E {
+  v;
+  final num x;
+  const E(int this.x);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+          final x @26
+            type: num
+        constructors
+          const @37
+            parameters
+              requiredPositional final this.x @48
+                type: int
+                field: self::@enum::E::@field::x
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get x @-1
+            returnType: num
+''');
+  }
+
+  test_enum_constructor_fieldFormal_untyped_typed() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v;
+  final x;
+  E(int this.x);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+          final x @22
+            type: dynamic
+        constructors
+          @27
+            parameters
+              requiredPositional final this.x @38
+                type: int
+                field: self::@enum::E::@field::x
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get x @-1
+            returnType: dynamic
+''');
+  }
+
+  test_enum_constructor_fieldFormal_untyped_untyped() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v;
+  final x;
+  E(this.x);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+          final x @22
+            type: dynamic
+        constructors
+          @27
+            parameters
+              requiredPositional final this.x @34
+                type: dynamic
+                field: self::@enum::E::@field::x
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get x @-1
+            returnType: dynamic
+''');
+  }
+
+  test_enum_constructor_generative_named() async {
     var library = await checkLibrary(r'''
 enum E {
   v.named(42);
@@ -17720,41 +18001,39 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  period: . @0
+                  name: SimpleIdentifier
+                    token: named @-1
+                    staticElement: self::@enum::E::@constructor::named
+                    staticType: null
+                  staticElement: self::@enum::E::@constructor::named
                 argumentList: ArgumentList
+                  leftParenthesis: ( @0
                   arguments
                     IntegerLiteral
                       literal: 42 @19
                       staticType: int
-                  leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::named
-                    staticType: null
-                    token: named @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::named
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           const named @34
             periodOffset: 33
@@ -17767,15 +18046,10 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
-  test_enum_constructor_unnamed() async {
+  test_enum_constructor_generative_unnamed() async {
     var library = await checkLibrary(r'''
 enum E {
   v(42);
@@ -17793,41 +18067,34 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
+                  leftParenthesis: ( @0
                   arguments
                     IntegerLiteral
                       literal: 42 @13
                       staticType: int
-                  leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           const @26
             parameters
@@ -17838,11 +18105,98 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
+''');
+  }
+
+  test_enum_constructor_initializer() async {
+    var library = await checkLibrary(r'''
+enum E<T> {
+  v;
+  final int x;
+  const E(T? a) : assert(a is T), x = 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          static const enumConstant v @14
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<dynamic>
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: dynamic}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          final x @29
+            type: int
+        constructors
+          const @40
+            parameters
+              requiredPositional a @45
+                type: T?
+            constantInitializers
+              AssertInitializer
+                assertKeyword: assert @50
+                leftParenthesis: ( @56
+                condition: IsExpression
+                  expression: SimpleIdentifier
+                    token: a @57
+                    staticElement: a@45
+                    staticType: T?
+                  isOperator: is @59
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: T @62
+                      staticElement: T@7
+                      staticType: null
+                    type: T
+                  staticType: bool
+                rightParenthesis: ) @63
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x @66
+                  staticElement: self::@enum::E::@field::x
+                  staticType: null
+                equals: = @68
+                expression: IntegerLiteral
+                  literal: 0 @70
+                  staticType: int
+        accessors
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get x @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17865,37 +18219,30 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -17903,11 +18250,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -17929,37 +18271,30 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
           final foo @22
             type: int
             constantInitializer
@@ -17973,13 +18308,251 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
           synthetic get foo @-1
             returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
+''');
+  }
+
+  test_enum_getter() async {
+    var library = await checkLibrary(r'''
+enum E{
+  v;
+  int get foo => 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @10
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          get foo @23
+            returnType: int
+''');
+  }
+
+  test_enum_interfaces() async {
+    var library = await checkLibrary(r'''
+class I {}
+enum E implements I {
+  v;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I @6
+        constructors
+          synthetic @-1
+    enums
+      enum E @16
+        supertype: Enum
+        interfaces
+          I
+        fields
+          static const enumConstant v @35
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+''');
+  }
+
+  test_enum_interfaces_generic() async {
+    var library = await checkLibrary(r'''
+class I<T> {}
+enum E<U> implements I<U> {
+  v;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    enums
+      enum E @19
+        typeParameters
+          covariant U @21
+            defaultType: dynamic
+        supertype: Enum
+        interfaces
+          I<U>
+        fields
+          static const enumConstant v @44
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<dynamic>
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {U: dynamic}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+''');
+  }
+
+  test_enum_interfaces_unresolved() async {
+    var library = await checkLibrary('''
+class X {}
+class Z {}
+enum E implements X, Y, Z {
+  v
+}
+''', allowErrors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class X @6
+        constructors
+          synthetic @-1
+      class Z @17
+        constructors
+          synthetic @-1
+    enums
+      enum E @27
+        supertype: Enum
+        interfaces
+          X
+          Z
+        fields
+          static const enumConstant v @52
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
 ''');
   }
 
@@ -18004,41 +18577,32 @@ library
             type: E<dynamic>
             constantInitializer
               InstanceCreationExpression
-                argumentList: ArgumentList
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
                 constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: dynamic}
-                    staticType: null
-                    token:  @-1
-                  period: . @0
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<dynamic>
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {T: dynamic}
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E<dynamic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
                 staticType: E<dynamic>
           synthetic static const values @-1
             type: List<E<dynamic>>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E<dynamic>
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18046,8 +18610,6 @@ library
             returnType: E<dynamic>
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
         methods
           foo @23
             typeParameters
@@ -18058,8 +18620,6 @@ library
               requiredPositional u @37
                 type: U
             returnType: int
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18081,36 +18641,219 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+        methods
+          toString @23
+            returnType: String
+''');
+  }
+
+  test_enum_mixins() async {
+    var library = await checkLibrary(r'''
+mixin M {}
+enum E with M {
+  v;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @16
+        supertype: Enum
+        mixins
+          M
+        fields
+          static const enumConstant v @29
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_enum_mixins_inference() async {
+    var library = await checkLibrary(r'''
+mixin M1<T> {}
+mixin M2<T> on M1<T> {}
+enum E with M1<int>, M2 {
+  v;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @44
+        supertype: Enum
+        mixins
+          M1<int>
+          M2<int>
+        fields
+          static const enumConstant v @67
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+    mixins
+      mixin M1 @6
+        typeParameters
+          covariant T @9
+            defaultType: dynamic
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+      mixin M2 @21
+        typeParameters
+          covariant T @24
+            defaultType: dynamic
+        superclassConstraints
+          M1<T>
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_enum_setter() async {
+    var library = await checkLibrary(r'''
+enum E{
+  v;
+  set foo(int _) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @10
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic foo @-1
             type: int
         constructors
           synthetic const @-1
@@ -18119,11 +18862,11 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          toString @23
-            returnType: String
+          set foo @19
+            parameters
+              requiredPositional _ @27
+                type: int
+            returnType: void
 ''');
   }
 
@@ -18147,41 +18890,32 @@ library
             type: E<dynamic>
             constantInitializer
               InstanceCreationExpression
-                argumentList: ArgumentList
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
                 constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: dynamic}
-                    staticType: null
-                    token:  @-1
-                  period: . @0
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<dynamic>
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {T: dynamic}
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E<dynamic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
                 staticType: E<dynamic>
           synthetic static const values @-1
             type: List<E<dynamic>>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E<dynamic>
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18189,11 +18923,6 @@ library
             returnType: E<dynamic>
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18221,41 +18950,32 @@ library
             type: E<num, num>
             constantInitializer
               InstanceCreationExpression
-                argumentList: ArgumentList
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
                 constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: num, U: num}
-                    staticType: null
-                    token:  @-1
-                  period: . @0
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<num, num>
                   staticElement: ConstructorMember
                     base: self::@enum::E::@constructor::•
                     substitution: {T: num, U: num}
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E<num, num>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
                 staticType: E<num, num>
           synthetic static const values @-1
             type: List<E<num, num>>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E<num, num>
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<num, num>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18263,11 +18983,6 @@ library
             returnType: E<num, num>
           synthetic static get values @-1
             returnType: List<E<num, num>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18293,18 +19008,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18336,18 +19044,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic, num, dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic, num, dynamic>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18373,18 +19074,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18409,18 +19103,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18445,18 +19132,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18481,18 +19161,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18521,18 +19194,11 @@ library
                 leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E<dynamic, dynamic, dynamic>>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic, dynamic, dynamic>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18558,63 +19224,51 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant b @47
             documentationComment: /// bbb
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: a @-1
                     staticElement: self::@enum::E::@getter::a
                     staticType: E
-                    token: a @-1
                   SimpleIdentifier
+                    token: b @-1
                     staticElement: self::@enum::E::@getter::b
                     staticType: E
-                    token: b @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18624,11 +19278,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18659,79 +19308,67 @@ library
             metadata
               Annotation
                 atSign: @ @32
-                element: self::@getter::annotation
                 name: SimpleIdentifier
+                  token: annotation @33
                   staticElement: self::@getter::annotation
                   staticType: null
-                  token: annotation @33
+                element: self::@getter::annotation
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant b @75
             documentationComment: /// bbb
             metadata
               Annotation
                 atSign: @ @61
-                element: self::@getter::annotation
                 name: SimpleIdentifier
+                  token: annotation @62
                   staticElement: self::@getter::annotation
                   staticType: null
-                  token: annotation @62
+                element: self::@getter::annotation
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: a @-1
                     staticElement: self::@enum::E::@getter::a
                     staticType: E
-                    token: a @-1
                   SimpleIdentifier
+                    token: b @-1
                     staticElement: self::@enum::E::@getter::b
                     staticType: E
-                    token: b @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18741,11 +19378,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static const annotation @91
         type: int
@@ -18772,62 +19404,50 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant v2 @13
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v1 @-1
                     staticElement: self::@enum::E::@getter::v1
                     staticType: E
-                    token: v1 @-1
                   SimpleIdentifier
+                    token: v2 @-1
                     staticElement: self::@enum::E::@getter::v2
                     staticType: E
-                    token: v2 @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18837,11 +19457,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -18858,37 +19473,30 @@ library
             type: E1
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E1 @-1
+                      staticElement: self::@enum::E1
+                      staticType: null
+                    type: E1
+                  staticElement: self::@enum::E1::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E1::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E1::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E1
-                      staticType: null
-                      token: E1 @-1
-                    type: E1
                 staticType: E1
           synthetic static const values @-1
             type: List<E1>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v1 @-1
                     staticElement: self::@enum::E1::@getter::v1
                     staticType: E1
-                    token: v1 @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E1>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18896,11 +19504,6 @@ library
             returnType: E1
           synthetic static get values @-1
             returnType: List<E1>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
       enum E2 @20
         supertype: Enum
         fields
@@ -18908,37 +19511,30 @@ library
             type: E2
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E2 @-1
+                      staticElement: self::@enum::E2
+                      staticType: null
+                    type: E2
+                  staticElement: self::@enum::E2::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E2::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E2::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E2
-                      staticType: null
-                      token: E2 @-1
-                    type: E2
                 staticType: E2
           synthetic static const values @-1
             type: List<E2>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v2 @-1
                     staticElement: self::@enum::E2::@getter::v2
                     staticType: E2
-                    token: v2 @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E2>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -18946,11 +19542,6 @@ library
             returnType: E2
           synthetic static get values @-1
             returnType: List<E2>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -19012,11 +19603,11 @@ library
           synthetic const @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: dart:core::@class::Object::@constructor::•
-                superKeyword: super @0
     enums
       enum E @5
         supertype: Enum
@@ -19025,87 +19616,70 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant b @11
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant c @14
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: a @-1
                     staticElement: self::@enum::E::@getter::a
                     staticType: E
-                    token: a @-1
                   SimpleIdentifier
+                    token: b @-1
                     staticElement: self::@enum::E::@getter::b
                     staticType: E
-                    token: b @-1
                   SimpleIdentifier
+                    token: c @-1
                     staticElement: self::@enum::E::@getter::c
                     staticType: E
-                    token: c @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -19117,11 +19691,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -20403,9 +20972,9 @@ library
         type: Type
         constantInitializer
           SimpleIdentifier
+            token: FutureOr @31
             staticElement: dart:async::@class::FutureOr
             staticType: Type
-            token: FutureOr @31
     accessors
       synthetic static get x @-1
         returnType: Type
@@ -20690,20 +21259,38 @@ library
       class B @64
         metadata
           Annotation
-            arguments: ArgumentList
-              leftParenthesis: ( @55
-              rightParenthesis: ) @56
             atSign: @ @29
-            element: ConstructorMember
-              base: self::@class::A::@constructor::•
-              substitution: {T: int Function(String)}
             name: SimpleIdentifier
+              token: A @30
               staticElement: self::@class::A
               staticType: null
-              token: A @30
             typeArguments: TypeArgumentList
+              leftBracket: < @31
               arguments
                 GenericFunctionType
+                  returnType: NamedType
+                    name: SimpleIdentifier
+                      token: int @32
+                      staticElement: dart:core::@class::int
+                      staticType: null
+                    type: int
+                  functionKeyword: Function @36
+                  parameters: FormalParameterList
+                    leftParenthesis: ( @44
+                    parameter: SimpleFormalParameter
+                      type: NamedType
+                        name: SimpleIdentifier
+                          token: String @45
+                          staticElement: dart:core::@class::String
+                          staticType: null
+                        type: String
+                      identifier: SimpleIdentifier
+                        token: a @52
+                        staticElement: a@52
+                        staticType: null
+                      declaredElement: a@52
+                      declaredElementType: String
+                    rightParenthesis: ) @53
                   declaredElement: GenericFunctionTypeElement
                     parameters
                       a
@@ -20711,33 +21298,14 @@ library
                         type: String
                     returnType: int
                     type: int Function(String)
-                  functionKeyword: Function @36
-                  parameters: FormalParameterList
-                    leftParenthesis: ( @44
-                    parameters
-                      SimpleFormalParameter
-                        declaredElement: a@52
-                        declaredElementType: String
-                        identifier: SimpleIdentifier
-                          staticElement: a@52
-                          staticType: null
-                          token: a @52
-                        type: NamedType
-                          name: SimpleIdentifier
-                            staticElement: dart:core::@class::String
-                            staticType: null
-                            token: String @45
-                          type: String
-                    rightParenthesis: ) @53
-                  returnType: NamedType
-                    name: SimpleIdentifier
-                      staticElement: dart:core::@class::int
-                      staticType: null
-                      token: int @32
-                    type: int
                   type: int Function(String)
-              leftBracket: < @31
               rightBracket: > @54
+            arguments: ArgumentList
+              leftParenthesis: ( @55
+              rightParenthesis: ) @56
+            element: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int Function(String)}
         constructors
           synthetic @-1
 ''');
@@ -20766,20 +21334,38 @@ library
       static v @62
         metadata
           Annotation
-            arguments: ArgumentList
-              leftParenthesis: ( @55
-              rightParenthesis: ) @56
             atSign: @ @29
-            element: ConstructorMember
-              base: self::@class::A::@constructor::•
-              substitution: {T: int Function(String)}
             name: SimpleIdentifier
+              token: A @30
               staticElement: self::@class::A
               staticType: null
-              token: A @30
             typeArguments: TypeArgumentList
+              leftBracket: < @31
               arguments
                 GenericFunctionType
+                  returnType: NamedType
+                    name: SimpleIdentifier
+                      token: int @32
+                      staticElement: dart:core::@class::int
+                      staticType: null
+                    type: int
+                  functionKeyword: Function @36
+                  parameters: FormalParameterList
+                    leftParenthesis: ( @44
+                    parameter: SimpleFormalParameter
+                      type: NamedType
+                        name: SimpleIdentifier
+                          token: String @45
+                          staticElement: dart:core::@class::String
+                          staticType: null
+                        type: String
+                      identifier: SimpleIdentifier
+                        token: a @52
+                        staticElement: a@52
+                        staticType: null
+                      declaredElement: a@52
+                      declaredElementType: String
+                    rightParenthesis: ) @53
                   declaredElement: GenericFunctionTypeElement
                     parameters
                       a
@@ -20787,33 +21373,14 @@ library
                         type: String
                     returnType: int
                     type: int Function(String)
-                  functionKeyword: Function @36
-                  parameters: FormalParameterList
-                    leftParenthesis: ( @44
-                    parameters
-                      SimpleFormalParameter
-                        declaredElement: a@52
-                        declaredElementType: String
-                        identifier: SimpleIdentifier
-                          staticElement: a@52
-                          staticType: null
-                          token: a @52
-                        type: NamedType
-                          name: SimpleIdentifier
-                            staticElement: dart:core::@class::String
-                            staticType: null
-                            token: String @45
-                          type: String
-                    rightParenthesis: ) @53
-                  returnType: NamedType
-                    name: SimpleIdentifier
-                      staticElement: dart:core::@class::int
-                      staticType: null
-                      token: int @32
-                    type: int
                   type: int Function(String)
-              leftBracket: < @31
               rightBracket: > @54
+            arguments: ArgumentList
+              leftParenthesis: ( @55
+              rightParenthesis: ) @56
+            element: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int Function(String)}
         type: int
     accessors
       synthetic static get v @-1
@@ -20849,22 +21416,45 @@ library
         type: A<String Function({int? a})>
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @67
-              rightParenthesis: ) @68
             constructorName: ConstructorName
-              staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
-                substitution: {T: String Function({int? a})}
               type: NamedType
                 name: SimpleIdentifier
+                  token: A @39
                   staticElement: self::@class::A
                   staticType: null
-                  token: A @39
-                type: A<String Function({int? a})>
                 typeArguments: TypeArgumentList
+                  leftBracket: < @40
                   arguments
                     GenericFunctionType
+                      returnType: NamedType
+                        name: SimpleIdentifier
+                          token: String @41
+                          staticElement: dart:core::@class::String
+                          staticType: null
+                        type: String
+                      functionKeyword: Function @48
+                      parameters: FormalParameterList
+                        leftParenthesis: ( @56
+                        leftDelimiter: { @57
+                        parameter: DefaultFormalParameter
+                          parameter: SimpleFormalParameter
+                            type: NamedType
+                              name: SimpleIdentifier
+                                token: int @58
+                                staticElement: dart:core::@class::int
+                                staticType: null
+                              question: ? @61
+                              type: int?
+                            identifier: SimpleIdentifier
+                              token: a @63
+                              staticElement: a@63
+                              staticType: null
+                            declaredElement: a@63
+                            declaredElementType: int?
+                          declaredElement: a@63
+                          declaredElementType: int?
+                        rightDelimiter: } @64
+                        rightParenthesis: ) @65
                       declaredElement: GenericFunctionTypeElement
                         parameters
                           a
@@ -20872,40 +21462,15 @@ library
                             type: int?
                         returnType: String
                         type: String Function({int? a})
-                      functionKeyword: Function @48
-                      parameters: FormalParameterList
-                        leftParenthesis: ( @56
-                        parameters
-                          DefaultFormalParameter
-                            declaredElement: a@63
-                            declaredElementType: int?
-                            identifier: SimpleIdentifier
-                              staticElement: a@63
-                              staticType: null
-                              token: a @63
-                            parameter: SimpleFormalParameter
-                              declaredElement: a@63
-                              declaredElementType: int?
-                              identifier: SimpleIdentifier
-                                staticElement: a@63
-                                staticType: null
-                                token: a @63
-                              type: NamedType
-                                name: SimpleIdentifier
-                                  staticElement: dart:core::@class::int
-                                  staticType: null
-                                  token: int @58
-                                type: int?
-                        rightParenthesis: ) @65
-                      returnType: NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::String
-                          staticType: null
-                          token: String @41
-                        type: String
                       type: String Function({int? a})
-                  leftBracket: < @40
                   rightBracket: > @66
+                type: A<String Function({int? a})>
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::•
+                substitution: {T: String Function({int? a})}
+            argumentList: ArgumentList
+              leftParenthesis: ( @67
+              rightParenthesis: ) @68
             staticType: A<String Function({int? a})>
     accessors
       synthetic static get v @-1
@@ -20936,22 +21501,45 @@ library
         type: A<String Function([int?])>
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @67
-              rightParenthesis: ) @68
             constructorName: ConstructorName
-              staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
-                substitution: {T: String Function([int?])}
               type: NamedType
                 name: SimpleIdentifier
+                  token: A @39
                   staticElement: self::@class::A
                   staticType: null
-                  token: A @39
-                type: A<String Function([int?])>
                 typeArguments: TypeArgumentList
+                  leftBracket: < @40
                   arguments
                     GenericFunctionType
+                      returnType: NamedType
+                        name: SimpleIdentifier
+                          token: String @41
+                          staticElement: dart:core::@class::String
+                          staticType: null
+                        type: String
+                      functionKeyword: Function @48
+                      parameters: FormalParameterList
+                        leftParenthesis: ( @56
+                        leftDelimiter: [ @57
+                        parameter: DefaultFormalParameter
+                          parameter: SimpleFormalParameter
+                            type: NamedType
+                              name: SimpleIdentifier
+                                token: int @58
+                                staticElement: dart:core::@class::int
+                                staticType: null
+                              question: ? @61
+                              type: int?
+                            identifier: SimpleIdentifier
+                              token: a @63
+                              staticElement: a@63
+                              staticType: null
+                            declaredElement: a@63
+                            declaredElementType: int?
+                          declaredElement: a@63
+                          declaredElementType: int?
+                        rightDelimiter: ] @64
+                        rightParenthesis: ) @65
                       declaredElement: GenericFunctionTypeElement
                         parameters
                           a
@@ -20959,40 +21547,15 @@ library
                             type: int?
                         returnType: String
                         type: String Function([int?])
-                      functionKeyword: Function @48
-                      parameters: FormalParameterList
-                        leftParenthesis: ( @56
-                        parameters
-                          DefaultFormalParameter
-                            declaredElement: a@63
-                            declaredElementType: int?
-                            identifier: SimpleIdentifier
-                              staticElement: a@63
-                              staticType: null
-                              token: a @63
-                            parameter: SimpleFormalParameter
-                              declaredElement: a@63
-                              declaredElementType: int?
-                              identifier: SimpleIdentifier
-                                staticElement: a@63
-                                staticType: null
-                                token: a @63
-                              type: NamedType
-                                name: SimpleIdentifier
-                                  staticElement: dart:core::@class::int
-                                  staticType: null
-                                  token: int @58
-                                type: int?
-                        rightParenthesis: ) @65
-                      returnType: NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::String
-                          staticType: null
-                          token: String @41
-                        type: String
                       type: String Function([int?])
-                  leftBracket: < @40
                   rightBracket: > @66
+                type: A<String Function([int?])>
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::•
+                substitution: {T: String Function([int?])}
+            argumentList: ArgumentList
+              leftParenthesis: ( @67
+              rightParenthesis: ) @68
             staticType: A<String Function([int?])>
     accessors
       synthetic static get v @-1
@@ -21023,22 +21586,45 @@ library
         type: A<String Function({required int a})>
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @75
-              rightParenthesis: ) @76
             constructorName: ConstructorName
-              staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
-                substitution: {T: String Function({required int a})}
               type: NamedType
                 name: SimpleIdentifier
+                  token: A @39
                   staticElement: self::@class::A
                   staticType: null
-                  token: A @39
-                type: A<String Function({required int a})>
                 typeArguments: TypeArgumentList
+                  leftBracket: < @40
                   arguments
                     GenericFunctionType
+                      returnType: NamedType
+                        name: SimpleIdentifier
+                          token: String @41
+                          staticElement: dart:core::@class::String
+                          staticType: null
+                        type: String
+                      functionKeyword: Function @48
+                      parameters: FormalParameterList
+                        leftParenthesis: ( @56
+                        leftDelimiter: { @57
+                        parameter: DefaultFormalParameter
+                          parameter: SimpleFormalParameter
+                            requiredKeyword: required @58
+                            type: NamedType
+                              name: SimpleIdentifier
+                                token: int @67
+                                staticElement: dart:core::@class::int
+                                staticType: null
+                              type: int
+                            identifier: SimpleIdentifier
+                              token: a @71
+                              staticElement: a@71
+                              staticType: null
+                            declaredElement: a@71
+                            declaredElementType: int
+                          declaredElement: a@71
+                          declaredElementType: int
+                        rightDelimiter: } @72
+                        rightParenthesis: ) @73
                       declaredElement: GenericFunctionTypeElement
                         parameters
                           a
@@ -21046,41 +21632,15 @@ library
                             type: int
                         returnType: String
                         type: String Function({required int a})
-                      functionKeyword: Function @48
-                      parameters: FormalParameterList
-                        leftParenthesis: ( @56
-                        parameters
-                          DefaultFormalParameter
-                            declaredElement: a@71
-                            declaredElementType: int
-                            identifier: SimpleIdentifier
-                              staticElement: a@71
-                              staticType: null
-                              token: a @71
-                            parameter: SimpleFormalParameter
-                              declaredElement: a@71
-                              declaredElementType: int
-                              identifier: SimpleIdentifier
-                                staticElement: a@71
-                                staticType: null
-                                token: a @71
-                              requiredKeyword: required @58
-                              type: NamedType
-                                name: SimpleIdentifier
-                                  staticElement: dart:core::@class::int
-                                  staticType: null
-                                  token: int @67
-                                type: int
-                        rightParenthesis: ) @73
-                      returnType: NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::String
-                          staticType: null
-                          token: String @41
-                        type: String
                       type: String Function({required int a})
-                  leftBracket: < @40
                   rightBracket: > @74
+                type: A<String Function({required int a})>
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::•
+                substitution: {T: String Function({required int a})}
+            argumentList: ArgumentList
+              leftParenthesis: ( @75
+              rightParenthesis: ) @76
             staticType: A<String Function({required int a})>
     accessors
       synthetic static get v @-1
@@ -21111,22 +21671,39 @@ library
         type: A<String Function(int)>
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @64
-              rightParenthesis: ) @65
             constructorName: ConstructorName
-              staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
-                substitution: {T: String Function(int)}
               type: NamedType
                 name: SimpleIdentifier
+                  token: A @39
                   staticElement: self::@class::A
                   staticType: null
-                  token: A @39
-                type: A<String Function(int)>
                 typeArguments: TypeArgumentList
+                  leftBracket: < @40
                   arguments
                     GenericFunctionType
+                      returnType: NamedType
+                        name: SimpleIdentifier
+                          token: String @41
+                          staticElement: dart:core::@class::String
+                          staticType: null
+                        type: String
+                      functionKeyword: Function @48
+                      parameters: FormalParameterList
+                        leftParenthesis: ( @56
+                        parameter: SimpleFormalParameter
+                          type: NamedType
+                            name: SimpleIdentifier
+                              token: int @57
+                              staticElement: dart:core::@class::int
+                              staticType: null
+                            type: int
+                          identifier: SimpleIdentifier
+                            token: a @61
+                            staticElement: a@61
+                            staticType: null
+                          declaredElement: a@61
+                          declaredElementType: int
+                        rightParenthesis: ) @62
                       declaredElement: GenericFunctionTypeElement
                         parameters
                           a
@@ -21134,33 +21711,15 @@ library
                             type: int
                         returnType: String
                         type: String Function(int)
-                      functionKeyword: Function @48
-                      parameters: FormalParameterList
-                        leftParenthesis: ( @56
-                        parameters
-                          SimpleFormalParameter
-                            declaredElement: a@61
-                            declaredElementType: int
-                            identifier: SimpleIdentifier
-                              staticElement: a@61
-                              staticType: null
-                              token: a @61
-                            type: NamedType
-                              name: SimpleIdentifier
-                                staticElement: dart:core::@class::int
-                                staticType: null
-                                token: int @57
-                              type: int
-                        rightParenthesis: ) @62
-                      returnType: NamedType
-                        name: SimpleIdentifier
-                          staticElement: dart:core::@class::String
-                          staticType: null
-                          token: String @41
-                        type: String
                       type: String Function(int)
-                  leftBracket: < @40
                   rightBracket: > @63
+                type: A<String Function(int)>
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::•
+                substitution: {T: String Function(int)}
+            argumentList: ArgumentList
+              leftParenthesis: ( @64
+              rightParenthesis: ) @65
             staticType: A<String Function(int)>
     accessors
       synthetic static get v @-1
@@ -21212,11 +21771,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
-                superKeyword: super @0
             superConstructor: ConstructorMember
               base: self::@class::A::@constructor::•
               substitution: {T: void Function()}
@@ -21318,7 +21877,7 @@ library
       synthetic static foo @-1
         type: Future<int>
     accessors
-      get foo @16 async
+      static get foo @16 async
         returnType: Future<int>
 ''');
   }
@@ -21337,7 +21896,7 @@ library
       synthetic static foo @-1
         type: Stream<int>
     accessors
-      get foo @37 async*
+      static get foo @37 async*
         returnType: Stream<int>
 ''');
   }
@@ -21356,7 +21915,7 @@ library
       synthetic static x @-1
         type: dynamic
     accessors
-      get x @64
+      static get x @64
         documentationComment: /**\n * Docs\n */
         returnType: dynamic
 ''');
@@ -21371,7 +21930,7 @@ library
       synthetic static x @-1
         type: int
     accessors
-      external get x @17
+      static external get x @17
         returnType: int
 ''');
   }
@@ -21417,7 +21976,7 @@ library
       synthetic static foo @-1
         type: Iterator<int>
     accessors
-      get foo @18 sync*
+      static get foo @18 sync*
         returnType: Iterator<int>
 ''');
   }
@@ -21433,9 +21992,9 @@ library
       synthetic static y @-1
         type: dynamic
     accessors
-      get x @8
+      static get x @8
         returnType: int
-      get y @23
+      static get y @23
         returnType: dynamic
 ''');
   }
@@ -21470,23 +22029,24 @@ library
                 type: C
             constantInitializers
               RedirectingConstructorInvocation
+                thisKeyword: this @57
+                period: . @61
+                constructorName: SimpleIdentifier
+                  token: named @62
+                  staticElement: self::@class::D::@constructor::named
+                  staticType: null
                 argumentList: ArgumentList
+                  leftParenthesis: ( @67
                   arguments
                     ImplicitCallReference
                       expression: SimpleIdentifier
+                        token: c @68
                         staticElement: c@52
                         staticType: C
-                        token: c @68
+                      staticElement: self::@class::C::@method::call
                       staticType: void Function()
-                  leftParenthesis: ( @67
                   rightParenthesis: ) @69
-                constructorName: SimpleIdentifier
-                  staticElement: self::@class::D::@constructor::named
-                  staticType: null
-                  token: named @62
-                period: . @61
                 staticElement: self::@class::D::@constructor::named
-                thisKeyword: this @57
             redirectedConstructor: self::@class::D::@constructor::named
           const named @83
             periodOffset: 82
@@ -21529,26 +22089,26 @@ library
         type: C
         constantInitializer
           InstanceCreationExpression
+            constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @65
+                  staticElement: self::@class::C
+                  staticType: null
+                type: C
+              period: . @66
+              name: SimpleIdentifier
+                token: named @67
+                staticElement: self::@class::C::@constructor::named
+                staticType: null
+              staticElement: self::@class::C::@constructor::named
             argumentList: ArgumentList
+              leftParenthesis: ( @72
               arguments
                 IntegerLiteral
                   literal: 42 @73
                   staticType: int
-              leftParenthesis: ( @72
               rightParenthesis: ) @75
-            constructorName: ConstructorName
-              name: SimpleIdentifier
-                staticElement: self::@class::C::@constructor::named
-                staticType: null
-                token: named @67
-              period: . @66
-              staticElement: self::@class::C::@constructor::named
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: self::@class::C
-                  staticType: null
-                  token: C @65
-                type: C
             staticType: C
     accessors
       synthetic static get x @-1
@@ -21566,9 +22126,9 @@ library
       synthetic static x @-1
         type: int
     accessors
-      get x @8
+      static get x @8
         returnType: int
-      set x @25
+      static set x @25
         parameters
           requiredPositional value @31
             type: int
@@ -21586,12 +22146,12 @@ library
       synthetic static x @-1
         type: int
     accessors
-      set x @9
+      static set x @9
         parameters
           requiredPositional value @15
             type: int
         returnType: void
-      get x @33
+      static get x @33
         returnType: int
 ''');
   }
@@ -21850,21 +22410,21 @@ library
   metadata
     Annotation
       atSign: @ @0
-      element: <null>
       name: SimpleIdentifier
+        token: foo @1
         staticElement: <null>
         staticType: null
-        token: foo @1
+      element: <null>
   imports
     <unresolved>
       metadata
         Annotation
           atSign: @ @0
-          element: <null>
           name: SimpleIdentifier
+            token: foo @1
             staticElement: <null>
             staticType: null
-            token: foo @1
+          element: <null>
   definingUnit
 ''');
   }
@@ -22111,25 +22671,25 @@ library
         type: C<int>
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              arguments
-                SimpleIdentifier
-                  staticElement: self::@function::f
-                  staticType: D<int, U> Function<U>()
-                  token: f @130
-              leftParenthesis: ( @129
-              rightParenthesis: ) @131
+            keyword: const @122
             constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: C @128
+                  staticElement: self::@class::C
+                  staticType: null
+                type: C<int>
               staticElement: ConstructorMember
                 base: self::@class::C::@constructor::•
                 substitution: {V: int}
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: self::@class::C
-                  staticType: null
-                  token: C @128
-                type: C<int>
-            keyword: const @122
+            argumentList: ArgumentList
+              leftParenthesis: ( @129
+              arguments
+                SimpleIdentifier
+                  token: f @130
+                  staticElement: self::@function::f
+                  staticType: D<int, U> Function<U>()
+              rightParenthesis: ) @131
             staticType: C<int>
     accessors
       synthetic static get x @-1
@@ -22181,23 +22741,23 @@ library
         type: C
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              arguments
-                SimpleIdentifier
-                  staticElement: self::@function::f
-                  staticType: D<T> Function<T>()
-                  token: f @113
-              leftParenthesis: ( @112
-              rightParenthesis: ) @114
+            keyword: const @105
             constructorName: ConstructorName
-              staticElement: self::@class::C::@constructor::•
               type: NamedType
                 name: SimpleIdentifier
+                  token: C @111
                   staticElement: self::@class::C
                   staticType: null
-                  token: C @111
                 type: C
-            keyword: const @105
+              staticElement: self::@class::C::@constructor::•
+            argumentList: ArgumentList
+              leftParenthesis: ( @112
+              arguments
+                SimpleIdentifier
+                  token: f @113
+                  staticElement: self::@function::f
+                  staticType: D<T> Function<T>()
+              rightParenthesis: ) @114
             staticType: C
     accessors
       synthetic static get x @-1
@@ -24193,23 +24753,24 @@ library
         metadata
           Annotation
             atSign: @ @22
-            constructorName: SimpleIdentifier
-              staticElement: package:test/a.dart::@class::A::@constructor::named
-              staticType: null
-              token: named @27
-            element: package:test/a.dart::@class::A::@constructor::named
             name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: package:test/a.dart::@class::A
-                staticType: null
-                token: A @25
-              period: . @24
               prefix: SimpleIdentifier
+                token: a @23
                 staticElement: self::@prefix::a
                 staticType: null
-                token: a @23
+              period: . @24
+              identifier: SimpleIdentifier
+                token: A @25
+                staticElement: package:test/a.dart::@class::A
+                staticType: null
               staticElement: package:test/a.dart::@class::A
               staticType: null
+            period: . @26
+            constructorName: SimpleIdentifier
+              token: named @27
+              staticElement: package:test/a.dart::@class::A::@constructor::named
+              staticType: null
+            element: package:test/a.dart::@class::A::@constructor::named
         constructors
           synthetic @-1
 ''');
@@ -24237,19 +24798,19 @@ library
         metadata
           Annotation
             atSign: @ @17
-            element: package:test/a.dart::@class::A::@constructor::named
             name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: package:test/a.dart::@class::A::@constructor::named
-                staticType: null
-                token: named @20
-              period: . @19
               prefix: SimpleIdentifier
+                token: A @18
                 staticElement: package:test/a.dart::@class::A
                 staticType: null
-                token: A @18
+              period: . @19
+              identifier: SimpleIdentifier
+                token: named @20
+                staticElement: package:test/a.dart::@class::A::@constructor::named
+                staticType: null
               staticElement: package:test/a.dart::@class::A::@constructor::named
               staticType: null
+            element: package:test/a.dart::@class::A::@constructor::named
         constructors
           synthetic @-1
 ''');
@@ -24306,9 +24867,9 @@ library
             type: dynamic
             constantInitializer
               SimpleIdentifier
+                token: V @43
                 staticElement: <null>
                 staticType: dynamic
-                token: V @43
         returnType: dynamic
 ''');
   }
@@ -24336,9 +24897,9 @@ library
             type: dynamic
             constantInitializer
               SimpleIdentifier
+                token: V @26
                 staticElement: a.dart::@function::V
                 staticType: dynamic Function()
-                token: V @26
         returnType: dynamic
 ''');
   }
@@ -24370,9 +24931,9 @@ library
             type: dynamic
             constantInitializer
               SimpleIdentifier
+                token: V @9
                 staticElement: self::@getter::V
                 staticType: dynamic
-                token: V @9
         returnType: dynamic
       V @16
         returnType: dynamic
@@ -24608,7 +25169,7 @@ library
       synthetic static g @-1
         type: dynamic
     accessors
-      get g @4
+      static get g @4
         returnType: dynamic
 ''');
   }
@@ -24706,11 +25267,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::C::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::C::@constructor::•
       class C @29
         constructors
@@ -24752,7 +25313,7 @@ library
       synthetic static main @-1
         type: dynamic
     accessors
-      get main @4
+      static get main @4
         returnType: dynamic
 ''');
   }
@@ -24845,11 +25406,11 @@ library
             metadata
               Annotation
                 atSign: @ @25
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @26
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @26
+                element: self::@getter::a
             type: int
         constructors
           synthetic @-1
@@ -24893,22 +25454,22 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         typeParameters
           covariant T @34
             defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @29
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @30
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @30
+                element: self::@getter::foo
         fields
           static const foo @54
             type: int
@@ -24926,11 +25487,11 @@ library
             metadata
               Annotation
                 atSign: @ @65
-                element: self::@class::C::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @66
                   staticElement: self::@class::C::@getter::foo
                   staticType: null
-                  token: foo @66
+                element: self::@class::C::@getter::foo
             returnType: void
     topLevelVariables
       static const foo @6
@@ -24960,18 +25521,18 @@ library
         metadata
           Annotation
             atSign: @ @32
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @33
               staticElement: self::@getter::a
               staticType: null
-              token: a @33
+            element: self::@getter::a
           Annotation
             atSign: @ @35
-            element: self::@getter::b
             name: SimpleIdentifier
+              token: b @36
               staticElement: self::@getter::b
               staticType: null
-              token: b @36
+            element: self::@getter::b
         constructors
           synthetic @-1
     topLevelVariables
@@ -25006,11 +25567,11 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @17
               staticElement: self::@getter::a
               staticType: null
-              token: a @17
+            element: self::@getter::a
         supertype: D
         mixins
           E
@@ -25018,11 +25579,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::D::@constructor::•
       class D @45
         constructors
@@ -25067,27 +25628,27 @@ library
       class C @54
         metadata
           Annotation
+            atSign: @ @36
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: A @37
+                staticElement: self::@class::A
+                staticType: null
+              period: . @38
+              identifier: SimpleIdentifier
+                token: named @39
+                staticElement: self::@class::A::@constructor::named
+                staticType: null
+              staticElement: self::@class::A::@constructor::named
+              staticType: null
             arguments: ArgumentList
+              leftParenthesis: ( @44
               arguments
                 IntegerLiteral
                   literal: 0 @45
                   staticType: int
-              leftParenthesis: ( @44
               rightParenthesis: ) @46
-            atSign: @ @36
             element: self::@class::A::@constructor::named
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: self::@class::A::@constructor::named
-                staticType: null
-                token: named @39
-              period: . @38
-              prefix: SimpleIdentifier
-                staticElement: self::@class::A
-                staticType: null
-                token: A @37
-              staticElement: self::@class::A::@constructor::named
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -25120,33 +25681,33 @@ library
       class C @56
         metadata
           Annotation
-            arguments: ArgumentList
-              arguments
-                IntegerLiteral
-                  literal: 0 @47
-                  staticType: int
-              leftParenthesis: ( @46
-              rightParenthesis: ) @48
             atSign: @ @38
-            element: ConstructorMember
-              base: self::@class::A::@constructor::named
-              substitution: {T: int}
             name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: A @39
+                staticElement: self::@class::A
+                staticType: null
+              period: . @40
               identifier: SimpleIdentifier
+                token: named @41
                 staticElement: ConstructorMember
                   base: self::@class::A::@constructor::named
                   substitution: {T: int}
                 staticType: null
-                token: named @41
-              period: . @40
-              prefix: SimpleIdentifier
-                staticElement: self::@class::A
-                staticType: null
-                token: A @39
               staticElement: ConstructorMember
                 base: self::@class::A::@constructor::named
                 substitution: {T: int}
               staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @46
+              arguments
+                IntegerLiteral
+                  literal: 0 @47
+                  staticType: int
+              rightParenthesis: ) @48
+            element: ConstructorMember
+              base: self::@class::A::@constructor::named
+              substitution: {T: int}
         constructors
           synthetic @-1
 ''');
@@ -25176,33 +25737,34 @@ library
       class C @57
         metadata
           Annotation
-            arguments: ArgumentList
-              leftParenthesis: ( @48
-              rightParenthesis: ) @49
             atSign: @ @35
+            name: SimpleIdentifier
+              token: A @36
+              staticElement: self::@class::A
+              staticType: null
+            typeArguments: TypeArgumentList
+              leftBracket: < @37
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @38
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @41
+            period: . @42
             constructorName: SimpleIdentifier
+              token: named @43
               staticElement: ConstructorMember
                 base: self::@class::A::@constructor::named
                 substitution: {T: int}
               staticType: null
-              token: named @43
+            arguments: ArgumentList
+              leftParenthesis: ( @48
+              rightParenthesis: ) @49
             element: ConstructorMember
               base: self::@class::A::@constructor::named
               substitution: {T: int}
-            name: SimpleIdentifier
-              staticElement: self::@class::A
-              staticType: null
-              token: A @36
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @38
-                  type: int
-              leftBracket: < @37
-              rightBracket: > @41
         constructors
           synthetic @-1
 ''');
@@ -25232,33 +25794,34 @@ library
       class C @57
         metadata
           Annotation
-            arguments: ArgumentList
-              leftParenthesis: ( @48
-              rightParenthesis: ) @49
             atSign: @ @35
+            name: SimpleIdentifier
+              token: A @36
+              staticElement: self::@class::A
+              staticType: null
+            typeArguments: TypeArgumentList
+              leftBracket: < @37
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @38
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @41
+            period: . @42
             constructorName: SimpleIdentifier
+              token: named @43
               staticElement: ConstructorMember
                 base: self::@class::A::@constructor::named
                 substitution: {T: int}
               staticType: null
-              token: named @43
+            arguments: ArgumentList
+              leftParenthesis: ( @48
+              rightParenthesis: ) @49
             element: ConstructorMember
               base: self::@class::A::@constructor::named
               substitution: {T: int}
-            name: SimpleIdentifier
-              staticElement: self::@class::A
-              staticType: null
-              token: A @36
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @38
-                  type: int
-              leftBracket: < @37
-              rightBracket: > @41
         constructors
           synthetic @-1
 ''');
@@ -25285,31 +25848,32 @@ library
       class C @48
         metadata
           Annotation
+            atSign: @ @26
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: foo @27
+                staticElement: self::@prefix::foo
+                staticType: null
+              period: . @30
+              identifier: SimpleIdentifier
+                token: A @31
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
+              staticElement: package:test/foo.dart::@class::A
+              staticType: null
+            period: . @32
+            constructorName: SimpleIdentifier
+              token: named @33
+              staticElement: package:test/foo.dart::@class::A::@constructor::named
+              staticType: null
             arguments: ArgumentList
+              leftParenthesis: ( @38
               arguments
                 IntegerLiteral
                   literal: 0 @39
                   staticType: int
-              leftParenthesis: ( @38
               rightParenthesis: ) @40
-            atSign: @ @26
-            constructorName: SimpleIdentifier
-              staticElement: package:test/foo.dart::@class::A::@constructor::named
-              staticType: null
-              token: named @33
             element: package:test/foo.dart::@class::A::@constructor::named
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: package:test/foo.dart::@class::A
-                staticType: null
-                token: A @31
-              period: . @30
-              prefix: SimpleIdentifier
-                staticElement: self::@prefix::foo
-                staticType: null
-                token: foo @27
-              staticElement: package:test/foo.dart::@class::A
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -25336,35 +25900,36 @@ library
       class C @48
         metadata
           Annotation
-            arguments: ArgumentList
-              arguments
-                IntegerLiteral
-                  literal: 0 @39
-                  staticType: int
-              leftParenthesis: ( @38
-              rightParenthesis: ) @40
             atSign: @ @26
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: foo @27
+                staticElement: self::@prefix::foo
+                staticType: null
+              period: . @30
+              identifier: SimpleIdentifier
+                token: A @31
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
+              staticElement: package:test/foo.dart::@class::A
+              staticType: null
+            period: . @32
             constructorName: SimpleIdentifier
+              token: named @33
               staticElement: ConstructorMember
                 base: package:test/foo.dart::@class::A::@constructor::named
                 substitution: {T: int}
               staticType: null
-              token: named @33
+            arguments: ArgumentList
+              leftParenthesis: ( @38
+              arguments
+                IntegerLiteral
+                  literal: 0 @39
+                  staticType: int
+              rightParenthesis: ) @40
             element: ConstructorMember
               base: package:test/foo.dart::@class::A::@constructor::named
               substitution: {T: int}
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: package:test/foo.dart::@class::A
-                staticType: null
-                token: A @31
-              period: . @30
-              prefix: SimpleIdentifier
-                staticElement: self::@prefix::foo
-                staticType: null
-                token: foo @27
-              staticElement: package:test/foo.dart::@class::A
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -25391,41 +25956,42 @@ library
       class C @52
         metadata
           Annotation
-            arguments: ArgumentList
-              leftParenthesis: ( @43
-              rightParenthesis: ) @44
             atSign: @ @26
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: foo @27
+                staticElement: self::@prefix::foo
+                staticType: null
+              period: . @30
+              identifier: SimpleIdentifier
+                token: A @31
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
+              staticElement: package:test/foo.dart::@class::A
+              staticType: null
+            typeArguments: TypeArgumentList
+              leftBracket: < @32
+              arguments
+                NamedType
+                  name: SimpleIdentifier
+                    token: int @33
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+              rightBracket: > @36
+            period: . @37
             constructorName: SimpleIdentifier
+              token: named @38
               staticElement: ConstructorMember
                 base: package:test/foo.dart::@class::A::@constructor::named
                 substitution: {T: int}
               staticType: null
-              token: named @38
+            arguments: ArgumentList
+              leftParenthesis: ( @43
+              rightParenthesis: ) @44
             element: ConstructorMember
               base: package:test/foo.dart::@class::A::@constructor::named
               substitution: {T: int}
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: package:test/foo.dart::@class::A
-                staticType: null
-                token: A @31
-              period: . @30
-              prefix: SimpleIdentifier
-                staticElement: self::@prefix::foo
-                staticType: null
-                token: foo @27
-              staticElement: package:test/foo.dart::@class::A
-              staticType: null
-            typeArguments: TypeArgumentList
-              arguments
-                NamedType
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::int
-                    staticType: null
-                    token: int @33
-                  type: int
-              leftBracket: < @32
-              rightBracket: > @36
         constructors
           synthetic @-1
 ''');
@@ -25464,43 +26030,43 @@ library
           synthetic const named @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
+                period: . @0
+                constructorName: SimpleIdentifier
+                  token: named @-1
+                  staticElement: self::@class::A::@constructor::named
+                  staticType: null
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: SimpleIdentifier
-                  staticElement: self::@class::A::@constructor::named
-                  staticType: null
-                  token: named @-1
-                period: . @0
                 staticElement: self::@class::A::@constructor::named
-                superKeyword: super @0
             superConstructor: self::@class::A::@constructor::named
       class D @85
         metadata
           Annotation
-            arguments: ArgumentList
-              leftParenthesis: ( @76
-              rightParenthesis: ) @77
             atSign: @ @68
-            element: ConstructorMember
-              base: self::@class::C::@constructor::named
-              substitution: {T: dynamic}
             name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: C @69
+                staticElement: self::@class::C
+                staticType: null
+              period: . @70
               identifier: SimpleIdentifier
+                token: named @71
                 staticElement: ConstructorMember
                   base: self::@class::C::@constructor::named
                   substitution: {T: dynamic}
                 staticType: null
-                token: named @71
-              period: . @70
-              prefix: SimpleIdentifier
-                staticElement: self::@class::C
-                staticType: null
-                token: C @69
               staticElement: ConstructorMember
                 base: self::@class::C::@constructor::named
                 substitution: {T: dynamic}
               staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @76
+              rightParenthesis: ) @77
+            element: ConstructorMember
+              base: self::@class::C::@constructor::named
+              substitution: {T: dynamic}
         constructors
           synthetic @-1
     mixins
@@ -25534,19 +26100,19 @@ library
       class C @42
         metadata
           Annotation
+            atSign: @ @30
+            name: SimpleIdentifier
+              token: A @31
+              staticElement: self::@class::A
+              staticType: null
             arguments: ArgumentList
+              leftParenthesis: ( @32
               arguments
                 IntegerLiteral
                   literal: 0 @33
                   staticType: int
-              leftParenthesis: ( @32
               rightParenthesis: ) @34
-            atSign: @ @30
             element: self::@class::A::@constructor::•
-            name: SimpleIdentifier
-              staticElement: self::@class::A
-              staticType: null
-              token: A @31
         constructors
           synthetic @-1
 ''');
@@ -25577,21 +26143,21 @@ library
       class C @44
         metadata
           Annotation
+            atSign: @ @32
+            name: SimpleIdentifier
+              token: A @33
+              staticElement: self::@class::A
+              staticType: null
             arguments: ArgumentList
+              leftParenthesis: ( @34
               arguments
                 IntegerLiteral
                   literal: 0 @35
                   staticType: int
-              leftParenthesis: ( @34
               rightParenthesis: ) @36
-            atSign: @ @32
             element: ConstructorMember
               base: self::@class::A::@constructor::•
               substitution: {T: int}
-            name: SimpleIdentifier
-              staticElement: self::@class::A
-              staticType: null
-              token: A @33
         constructors
           synthetic @-1
 ''');
@@ -25619,27 +26185,27 @@ library
       class C @45
         metadata
           Annotation
-            arguments: ArgumentList
-              leftParenthesis: ( @36
-              rightParenthesis: ) @37
             atSign: @ @29
-            element: ConstructorMember
-              base: self::@class::A::@constructor::•
-              substitution: {T: int}
             name: SimpleIdentifier
+              token: A @30
               staticElement: self::@class::A
               staticType: null
-              token: A @30
             typeArguments: TypeArgumentList
+              leftBracket: < @31
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: int @32
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @32
                   type: int
-              leftBracket: < @31
               rightBracket: > @35
+            arguments: ArgumentList
+              leftParenthesis: ( @36
+              rightParenthesis: ) @37
+            element: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int}
         constructors
           synthetic @-1
 ''');
@@ -25659,27 +26225,27 @@ library
       class C @42
         metadata
           Annotation
+            atSign: @ @26
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: foo @27
+                staticElement: self::@prefix::foo
+                staticType: null
+              period: . @30
+              identifier: SimpleIdentifier
+                token: A @31
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
+              staticElement: package:test/foo.dart::@class::A
+              staticType: null
             arguments: ArgumentList
+              leftParenthesis: ( @32
               arguments
                 IntegerLiteral
                   literal: 0 @33
                   staticType: int
-              leftParenthesis: ( @32
               rightParenthesis: ) @34
-            atSign: @ @26
             element: package:test/foo.dart::@class::A::@constructor::•
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: package:test/foo.dart::@class::A
-                staticType: null
-                token: A @31
-              period: . @30
-              prefix: SimpleIdentifier
-                staticElement: self::@prefix::foo
-                staticType: null
-                token: foo @27
-              staticElement: package:test/foo.dart::@class::A
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -25706,29 +26272,29 @@ library
       class C @42
         metadata
           Annotation
+            atSign: @ @26
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: foo @27
+                staticElement: self::@prefix::foo
+                staticType: null
+              period: . @30
+              identifier: SimpleIdentifier
+                token: A @31
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
+              staticElement: package:test/foo.dart::@class::A
+              staticType: null
             arguments: ArgumentList
+              leftParenthesis: ( @32
               arguments
                 IntegerLiteral
                   literal: 0 @33
                   staticType: int
-              leftParenthesis: ( @32
               rightParenthesis: ) @34
-            atSign: @ @26
             element: ConstructorMember
               base: package:test/foo.dart::@class::A::@constructor::•
               substitution: {T: int}
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: package:test/foo.dart::@class::A
-                staticType: null
-                token: A @31
-              period: . @30
-              prefix: SimpleIdentifier
-                staticElement: self::@prefix::foo
-                staticType: null
-                token: foo @27
-              staticElement: package:test/foo.dart::@class::A
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -25755,35 +26321,35 @@ library
       class C @46
         metadata
           Annotation
-            arguments: ArgumentList
-              leftParenthesis: ( @37
-              rightParenthesis: ) @38
             atSign: @ @26
-            element: ConstructorMember
-              base: package:test/foo.dart::@class::A::@constructor::•
-              substitution: {T: int}
             name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: package:test/foo.dart::@class::A
-                staticType: null
-                token: A @31
-              period: . @30
               prefix: SimpleIdentifier
+                token: foo @27
                 staticElement: self::@prefix::foo
                 staticType: null
-                token: foo @27
+              period: . @30
+              identifier: SimpleIdentifier
+                token: A @31
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
               staticElement: package:test/foo.dart::@class::A
               staticType: null
             typeArguments: TypeArgumentList
+              leftBracket: < @32
               arguments
                 NamedType
                   name: SimpleIdentifier
+                    token: int @33
                     staticElement: dart:core::@class::int
                     staticType: null
-                    token: int @33
                   type: int
-              leftBracket: < @32
               rightBracket: > @36
+            arguments: ArgumentList
+              leftParenthesis: ( @37
+              rightParenthesis: ) @38
+            element: ConstructorMember
+              base: package:test/foo.dart::@class::A::@constructor::•
+              substitution: {T: int}
         constructors
           synthetic @-1
 ''');
@@ -25820,26 +26386,26 @@ library
           synthetic const @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::A::@constructor::•
       class D @73
         metadata
           Annotation
+            atSign: @ @62
+            name: SimpleIdentifier
+              token: C @63
+              staticElement: self::@class::C
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @64
               rightParenthesis: ) @65
-            atSign: @ @62
             element: ConstructorMember
               base: self::@class::C::@constructor::•
               substitution: {T: dynamic}
-            name: SimpleIdentifier
-              staticElement: self::@class::C
-              staticType: null
-              token: C @63
         constructors
           synthetic @-1
     mixins
@@ -25867,19 +26433,19 @@ library
       class C @39
         metadata
           Annotation
+            atSign: @ @24
+            name: SimpleIdentifier
+              token: A @25
+              staticElement: self::@class::A
+              staticType: null
             arguments: ArgumentList
+              leftParenthesis: ( @26
               arguments
                 NullLiteral
                   literal: null @27
                   staticType: Null
-              leftParenthesis: ( @26
               rightParenthesis: ) @31
-            atSign: @ @24
             element: self::@class::A::@constructor::•
-            name: SimpleIdentifier
-              staticElement: self::@class::A
-              staticType: null
-              token: A @25
         constructors
           synthetic @-1
 ''');
@@ -25898,11 +26464,11 @@ library
             metadata
               Annotation
                 atSign: @ @26
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @27
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @27
+                element: self::@getter::a
             periodOffset: 30
             nameEnd: 36
     topLevelVariables
@@ -25930,11 +26496,11 @@ library
             metadata
               Annotation
                 atSign: @ @26
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @27
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @27
+                element: self::@getter::a
     topLevelVariables
       static const a @6
         type: dynamic
@@ -25948,7 +26514,7 @@ library
 ''');
   }
 
-  test_metadata_enumConstantDeclaration() async {
+  test_metadata_enum_constant() async {
     var library = await checkLibrary('const a = 42; enum E { @a v }');
     checkElementText(library, r'''
 library
@@ -25961,45 +26527,38 @@ library
             metadata
               Annotation
                 atSign: @ @23
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @24
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @24
+                element: self::@getter::a
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -26007,11 +26566,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static const a @6
         type: int
@@ -26025,7 +26579,7 @@ library
 ''');
   }
 
-  test_metadata_enumConstantDeclaration_instanceCreation() async {
+  test_metadata_enum_constant_instanceCreation() async {
     var library = await checkLibrary('''
 class A {
   final dynamic value;
@@ -26062,118 +26616,101 @@ library
           static const enumConstant a @78
             metadata
               Annotation
+                atSign: @ @70
+                name: SimpleIdentifier
+                  token: A @71
+                  staticElement: self::@class::A
+                  staticType: null
                 arguments: ArgumentList
+                  leftParenthesis: ( @72
                   arguments
                     IntegerLiteral
                       literal: 100 @73
                       staticType: int
-                  leftParenthesis: ( @72
                   rightParenthesis: ) @76
-                atSign: @ @70
                 element: self::@class::A::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: self::@class::A
-                  staticType: null
-                  token: A @71
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant b @83
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant c @96
             metadata
               Annotation
+                atSign: @ @88
+                name: SimpleIdentifier
+                  token: A @89
+                  staticElement: self::@class::A
+                  staticType: null
                 arguments: ArgumentList
+                  leftParenthesis: ( @90
                   arguments
                     IntegerLiteral
                       literal: 300 @91
                       staticType: int
-                  leftParenthesis: ( @90
                   rightParenthesis: ) @94
-                atSign: @ @88
                 element: self::@class::A::@constructor::•
-                name: SimpleIdentifier
-                  staticElement: self::@class::A
-                  staticType: null
-                  token: A @89
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: a @-1
                     staticElement: self::@enum::E::@getter::a
                     staticType: E
-                    token: a @-1
                   SimpleIdentifier
+                    token: b @-1
                     staticElement: self::@enum::E::@getter::b
                     staticType: E
-                    token: b @-1
                   SimpleIdentifier
+                    token: c @-1
                     staticElement: self::@enum::E::@getter::c
                     staticType: E
-                    token: c @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -26185,11 +26722,395 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
+''');
+  }
+
+  test_metadata_enum_constant_self() async {
+    var library = await checkLibrary(r'''
+enum E {
+  @v
+  v
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @16
+            metadata
+              Annotation
+                atSign: @ @11
+                name: SimpleIdentifier
+                  token: v @12
+                  staticElement: self::@enum::E::@getter::v
+                  staticType: null
+                element: self::@enum::E::@getter::v
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+''');
+  }
+
+  test_metadata_enum_constructor() async {
+    var library = await checkLibrary(r'''
+const a = 42;
+enum E {
+  v;
+  @a
+  const E();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @19
+        supertype: Enum
+        fields
+          static const enumConstant v @25
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          const @41
+            metadata
+              Annotation
+                atSign: @ @30
+                name: SimpleIdentifier
+                  token: a @31
+                  staticElement: self::@getter::a
+                  staticType: null
+                element: self::@getter::a
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @-1
+        returnType: int
+''');
+  }
+
+  test_metadata_enum_method() async {
+    var library = await checkLibrary(r'''
+const a = 42;
+enum E {
+  v;
+  @a
+  void foo() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @19
+        supertype: Enum
+        fields
+          static const enumConstant v @25
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+        methods
+          foo @40
+            metadata
+              Annotation
+                atSign: @ @30
+                name: SimpleIdentifier
+                  token: a @31
+                  staticElement: self::@getter::a
+                  staticType: null
+                element: self::@getter::a
+            returnType: void
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @-1
+        returnType: int
+''');
+  }
+
+  test_metadata_enum_scope() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+enum E<@foo T> {
+  v;
+  static const foo = 1;
+  @foo
+  void bar() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @26
+        metadata
+          Annotation
+            atSign: @ @16
+            name: SimpleIdentifier
+              token: foo @17
+              staticElement: self::@getter::foo
+              staticType: null
+            element: self::@getter::foo
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign: @ @28
+                name: SimpleIdentifier
+                  token: foo @29
+                  staticElement: self::@getter::foo
+                  staticType: null
+                element: self::@getter::foo
+        supertype: Enum
+        fields
+          static const enumConstant v @40
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<dynamic>
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: dynamic}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          static const foo @58
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 1 @64
+                staticType: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic static get foo @-1
             returnType: int
         methods
-          synthetic toString @-1
-            returnType: String
+          bar @81
+            metadata
+              Annotation
+                atSign: @ @69
+                name: SimpleIdentifier
+                  token: foo @70
+                  staticElement: self::@enum::E::@getter::foo
+                  staticType: null
+                element: self::@enum::E::@getter::foo
+            returnType: void
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+''');
+  }
+
+  test_metadata_enum_typeParameter() async {
+    var library = await checkLibrary('''
+const a = 42;
+enum E<@a T> {
+  v
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @19
+        typeParameters
+          covariant T @24
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign: @ @21
+                name: SimpleIdentifier
+                  token: a @22
+                  staticElement: self::@getter::a
+                  staticType: null
+                element: self::@getter::a
+        supertype: Enum
+        fields
+          static const enumConstant v @31
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E<dynamic>
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: dynamic}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @-1
+        returnType: int
 ''');
   }
 
@@ -26203,48 +27124,41 @@ library
         metadata
           Annotation
             atSign: @ @14
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @15
               staticElement: self::@getter::a
               staticType: null
-              token: a @15
+            element: self::@getter::a
         supertype: Enum
         fields
           static const enumConstant v @26
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -26252,11 +27166,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static const a @6
         type: int
@@ -26278,21 +27187,21 @@ library
   metadata
     Annotation
       atSign: @ @0
-      element: self::@getter::a
       name: SimpleIdentifier
+        token: a @1
         staticElement: self::@getter::a
         staticType: null
-        token: a @1
+      element: self::@getter::a
   exports
     foo.dart
       metadata
         Annotation
           atSign: @ @0
-          element: self::@getter::a
           name: SimpleIdentifier
+            token: a @1
             staticElement: self::@getter::a
             staticType: null
-            token: a @1
+          element: self::@getter::a
   definingUnit
     topLevelVariables
       static const a @28
@@ -26326,21 +27235,21 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         typeParameters
           covariant T @38
             metadata
               Annotation
                 atSign: @ @33
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @34
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @34
+                element: self::@getter::foo
         extendedType: int
         fields
           static const foo @65
@@ -26357,11 +27266,11 @@ library
             metadata
               Annotation
                 atSign: @ @76
-                element: self::@extension::E::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @77
                   staticElement: self::@extension::E::@getter::foo
                   staticType: null
-                  token: foo @77
+                element: self::@extension::E::@getter::foo
             returnType: void
     topLevelVariables
       static const foo @6
@@ -26395,21 +27304,21 @@ library
         metadata
           Annotation
             atSign: @ @27
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @28
               staticElement: self::@getter::a
               staticType: null
-              token: a @28
+            element: self::@getter::a
           Annotation
+            atSign: @ @30
+            name: SimpleIdentifier
+              token: Object @31
+              staticElement: dart:core::@class::Object
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @37
               rightParenthesis: ) @38
-            atSign: @ @30
             element: dart:core::@class::Object::@constructor::•
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::Object
-              staticType: null
-              token: Object @31
         extendedType: A
     topLevelVariables
       static const a @6
@@ -26436,11 +27345,11 @@ library
             metadata
               Annotation
                 atSign: @ @26
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @27
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @27
+                element: self::@getter::a
             type: int
         constructors
           synthetic @-1
@@ -26489,11 +27398,11 @@ library
                 metadata
                   Annotation
                     atSign: @ @39
-                    element: self::@getter::a
                     name: SimpleIdentifier
+                      token: a @40
                       staticElement: self::@getter::a
                       staticType: null
-                      token: a @40
+                    element: self::@getter::a
                 field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
@@ -26535,11 +27444,11 @@ library
                 metadata
                   Annotation
                     atSign: @ @36
-                    element: self::@getter::a
                     name: SimpleIdentifier
+                      token: a @37
                       staticElement: self::@getter::a
                       staticType: null
-                      token: a @37
+                    element: self::@getter::a
                 constantInitializer
                   NullLiteral
                     literal: null @48
@@ -26590,11 +27499,11 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @17
               staticElement: self::@getter::a
               staticType: null
-              token: a @17
+            element: self::@getter::a
         returnType: dynamic
 ''');
   }
@@ -26616,15 +27525,15 @@ library
     accessors
       synthetic static get a @-1
         returnType: dynamic
-      get f @23
+      static get f @23
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @17
               staticElement: self::@getter::a
               staticType: null
-              token: a @17
+            element: self::@getter::a
         returnType: dynamic
 ''');
   }
@@ -26646,15 +27555,15 @@ library
     accessors
       synthetic static get a @-1
         returnType: dynamic
-      set f @23
+      static set f @23
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @17
               staticElement: self::@getter::a
               staticType: null
-              token: a @17
+            element: self::@getter::a
         parameters
           requiredPositional value @25
             type: dynamic
@@ -26672,11 +27581,11 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @17
               staticElement: self::@getter::a
               staticType: null
-              token: a @17
+            element: self::@getter::a
         aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: dynamic
@@ -26716,11 +27625,11 @@ library
             metadata
               Annotation
                 atSign: @ @18
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @19
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @19
+                element: self::@getter::a
         returnType: dynamic
 ''');
   }
@@ -26748,11 +27657,11 @@ library
             metadata
               Annotation
                 atSign: @ @19
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @20
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @20
+                element: self::@getter::a
             constantInitializer
               NullLiteral
                 literal: null @28
@@ -26776,18 +27685,18 @@ library
         metadata
           Annotation
             atSign: @ @32
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @33
               staticElement: self::@getter::a
               staticType: null
-              token: a @33
+            element: self::@getter::a
           Annotation
             atSign: @ @35
-            element: self::@getter::b
             name: SimpleIdentifier
+              token: b @36
               staticElement: self::@getter::b
               staticType: null
-              token: b @36
+            element: self::@getter::b
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: void
@@ -26823,21 +27732,21 @@ library
   metadata
     Annotation
       atSign: @ @0
-      element: self::@getter::a
       name: SimpleIdentifier
+        token: a @1
         staticElement: self::@getter::a
         staticType: null
-        token: a @1
+      element: self::@getter::a
   imports
     dart:math
       metadata
         Annotation
           atSign: @ @0
-          element: self::@getter::a
           name: SimpleIdentifier
+            token: a @1
             staticElement: self::@getter::a
             staticType: null
-            token: a @1
+          element: self::@getter::a
   definingUnit
     topLevelVariables
       static const a @29
@@ -26864,21 +27773,21 @@ library
   metadata
     Annotation
       atSign: @ @0
-      element: self::@getter::a
       name: SimpleIdentifier
+        token: a @1
         staticElement: self::@getter::a
         staticType: null
-        token: a @1
+      element: self::@getter::a
   imports
     dart:math
       metadata
         Annotation
           atSign: @ @0
-          element: self::@getter::a
           name: SimpleIdentifier
+            token: a @1
             staticElement: self::@getter::a
             staticType: null
-            token: a @1
+          element: self::@getter::a
       combinators
         show: Random
   definingUnit
@@ -26913,11 +27822,11 @@ library
               metadata
                 Annotation
                   atSign: @ @40
-                  element: self::@getter::a
                   name: SimpleIdentifier
+                    token: a @41
                     staticElement: self::@getter::a
                     staticType: null
-                    token: a @41
+                  element: self::@getter::a
           returnType: void
     topLevelVariables
       static const a @6
@@ -26953,11 +27862,11 @@ library
                   metadata
                     Annotation
                       atSign: @ @48
-                      element: self::@getter::a
                       name: SimpleIdentifier
+                        token: a @49
                         staticElement: self::@getter::a
                         staticType: null
-                        token: a @49
+                      element: self::@getter::a
           returnType: void
     topLevelVariables
       static const a @6
@@ -26989,11 +27898,11 @@ library
               metadata
                 Annotation
                   atSign: @ @40
-                  element: self::@getter::a
                   name: SimpleIdentifier
+                    token: a @41
                     staticElement: self::@getter::a
                     staticType: null
-                    token: a @41
+                  element: self::@getter::a
           parameters
             requiredPositional first @50
               type: int
@@ -27020,19 +27929,19 @@ library
       class C @21
         metadata
           Annotation
+            atSign: @ @8
+            name: SimpleIdentifier
+              token: f @9
+              staticElement: self::@function::f
+              staticType: null
             arguments: ArgumentList
+              leftParenthesis: ( @10
               arguments
                 IntegerLiteral
                   literal: 42 @11
                   staticType: int
-              leftParenthesis: ( @10
               rightParenthesis: ) @13
-            atSign: @ @8
             element: self::@function::f
-            name: SimpleIdentifier
-              staticElement: self::@function::f
-              staticType: null
-              token: f @9
         constructors
           synthetic @-1
     functions
@@ -27053,11 +27962,11 @@ library
   metadata
     Annotation
       atSign: @ @0
-      element: self::@getter::a
       name: SimpleIdentifier
+        token: a @1
         staticElement: self::@getter::a
         staticType: null
-        token: a @1
+      element: self::@getter::a
   definingUnit
     topLevelVariables
       static const a @20
@@ -27090,11 +27999,11 @@ library
             metadata
               Annotation
                 atSign: @ @26
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @27
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @27
+                element: self::@getter::a
             returnType: dynamic
     topLevelVariables
       static const a @6
@@ -27131,18 +28040,18 @@ library
             metadata
               Annotation
                 atSign: @ @44
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @45
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @45
+                element: self::@getter::a
               Annotation
                 atSign: @ @49
-                element: self::@getter::b
                 name: SimpleIdentifier
+                  token: b @50
                   staticElement: self::@getter::b
                   staticType: null
-                  token: b @50
+                element: self::@getter::b
             returnType: dynamic
     topLevelVariables
       static const a @6
@@ -27189,18 +28098,18 @@ library
             metadata
               Annotation
                 atSign: @ @44
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @45
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @45
+                element: self::@getter::a
               Annotation
                 atSign: @ @49
-                element: self::@getter::b
                 name: SimpleIdentifier
+                  token: b @50
                   staticElement: self::@getter::b
                   staticType: null
-                  token: b @50
+                element: self::@getter::b
             returnType: dynamic
     topLevelVariables
       static const a @6
@@ -27246,11 +28155,11 @@ library
             metadata
               Annotation
                 atSign: @ @28
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @29
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @29
+                element: self::@getter::a
             parameters
               requiredPositional value @39
                 type: dynamic
@@ -27287,22 +28196,22 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         typeParameters
           covariant T @34
             defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @29
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @30
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @30
+                element: self::@getter::foo
         superclassConstraints
           Object
         fields
@@ -27322,11 +28231,11 @@ library
             metadata
               Annotation
                 atSign: @ @65
-                element: self::@mixin::M::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @66
                   staticElement: self::@mixin::M::@getter::foo
                   staticType: null
-                  token: foo @66
+                element: self::@mixin::M::@getter::foo
             returnType: void
     topLevelVariables
       static const foo @6
@@ -27356,18 +28265,18 @@ library
         metadata
           Annotation
             atSign: @ @32
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @33
               staticElement: self::@getter::a
               staticType: null
-              token: a @33
+            element: self::@getter::a
           Annotation
             atSign: @ @35
-            element: self::@getter::b
             name: SimpleIdentifier
+              token: b @36
               staticElement: self::@getter::b
               staticType: null
-              token: b @36
+            element: self::@getter::b
         superclassConstraints
           Object
         constructors
@@ -27408,22 +28317,22 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         typeParameters
           covariant T @34
             defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @29
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @30
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @30
+                element: self::@getter::foo
         constructors
           synthetic @-1
     topLevelVariables
@@ -27458,22 +28367,22 @@ library
             metadata
               Annotation
                 atSign: @ @28
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @29
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @29
+                element: self::@getter::foo
             parameters
               requiredPositional a @46
                 type: int
                 metadata
                   Annotation
                     atSign: @ @37
-                    element: self::@getter::foo
                     name: SimpleIdentifier
+                      token: foo @38
                       staticElement: self::@getter::foo
                       staticType: null
-                      token: foo @38
+                    element: self::@getter::foo
     topLevelVariables
       static const foo @6
         type: int
@@ -27511,11 +28420,11 @@ library
             metadata
               Annotation
                 atSign: @ @28
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @29
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @29
+                element: self::@getter::foo
             returnType: int
     topLevelVariables
       static const foo @6
@@ -27551,32 +28460,32 @@ library
             metadata
               Annotation
                 atSign: @ @28
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @29
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @29
+                element: self::@getter::foo
             typeParameters
               covariant T @52
                 metadata
                   Annotation
                     atSign: @ @47
-                    element: self::@getter::foo
                     name: SimpleIdentifier
+                      token: foo @48
                       staticElement: self::@getter::foo
                       staticType: null
-                      token: foo @48
+                    element: self::@getter::foo
             parameters
               requiredPositional a @64
                 type: int
                 metadata
                   Annotation
                     atSign: @ @55
-                    element: self::@getter::foo
                     name: SimpleIdentifier
+                      token: foo @56
                       staticElement: self::@getter::foo
                       staticType: null
-                      token: foo @56
+                    element: self::@getter::foo
             returnType: void
     topLevelVariables
       static const foo @6
@@ -27615,22 +28524,22 @@ library
             metadata
               Annotation
                 atSign: @ @28
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @29
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @29
+                element: self::@getter::foo
             parameters
               requiredPositional a @55
                 type: int
                 metadata
                   Annotation
                     atSign: @ @46
-                    element: self::@getter::foo
                     name: SimpleIdentifier
+                      token: foo @47
                       staticElement: self::@getter::foo
                       staticType: null
-                      token: foo @47
+                    element: self::@getter::foo
             returnType: void
     topLevelVariables
       static const foo @6
@@ -27666,22 +28575,22 @@ library
         metadata
           Annotation
             atSign: @ @39
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @40
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @40
+            element: self::@getter::foo
         typeParameters
           covariant T @57
             defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @52
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @53
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @53
+                element: self::@getter::foo
         supertype: A
         mixins
           M
@@ -27689,11 +28598,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::A::@constructor::•
     mixins
       mixin M @33
@@ -27733,114 +28642,97 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         supertype: Enum
         fields
           static const enumConstant e1 @37
             metadata
               Annotation
                 atSign: @ @32
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @33
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @33
+                element: self::@getter::foo
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant e2 @43
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant e3 @54
             metadata
               Annotation
                 atSign: @ @49
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @50
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @50
+                element: self::@getter::foo
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: e1 @-1
                     staticElement: self::@enum::E::@getter::e1
                     staticType: E
-                    token: e1 @-1
                   SimpleIdentifier
+                    token: e2 @-1
                     staticElement: self::@enum::E::@getter::e2
                     staticType: E
-                    token: e2 @-1
                   SimpleIdentifier
+                    token: e3 @-1
                     staticElement: self::@enum::E::@getter::e3
                     staticType: E
-                    token: e3 @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -27852,11 +28744,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static const foo @6
         type: int
@@ -27885,21 +28772,21 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         typeParameters
           covariant T @38
             metadata
               Annotation
                 atSign: @ @33
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @34
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @34
+                element: self::@getter::foo
         extendedType: List<T>
     topLevelVariables
       static const foo @6
@@ -27939,21 +28826,21 @@ library
             metadata
               Annotation
                 atSign: @ @28
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @29
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @29
+                element: self::@getter::foo
             type: int
           static const isStaticConst @79
             metadata
               Annotation
                 atSign: @ @59
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @60
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @60
+                element: self::@getter::foo
             type: int
             constantInitializer
               IntegerLiteral
@@ -27963,11 +28850,11 @@ library
             metadata
               Annotation
                 atSign: @ @101
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @102
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @102
+                element: self::@getter::foo
             type: int
         constructors
           synthetic @-1
@@ -28017,11 +28904,11 @@ library
   metadata
     Annotation
       atSign: @ @24
-      element: self::@getter::foo
       name: SimpleIdentifier
+        token: foo @25
         staticElement: self::@getter::foo
         staticType: null
-        token: foo @25
+      element: self::@getter::foo
   definingUnit
     topLevelVariables
       static const foo @52
@@ -28051,22 +28938,22 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         typeParameters
           covariant T @34
             defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @29
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @30
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @30
+                element: self::@getter::foo
         superclassConstraints
           Object
         constructors
@@ -28099,22 +28986,22 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         typeParameters
           unrelated T @41
             defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @36
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @37
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @37
+                element: self::@getter::foo
         aliasedType: void Function(int)
         aliasedElement: GenericFunctionTypeElement
           parameters
@@ -28123,11 +29010,11 @@ library
               metadata
                 Annotation
                   atSign: @ @44
-                  element: self::@getter::foo
                   name: SimpleIdentifier
+                    token: foo @45
                     staticElement: self::@getter::foo
                     staticType: null
-                    token: foo @45
+                  element: self::@getter::foo
           returnType: void
     topLevelVariables
       static const foo @6
@@ -28157,22 +29044,22 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         typeParameters
           unrelated T @36
             defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @31
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @32
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @32
+                element: self::@getter::foo
         aliasedType: void Function<U>(int)
         aliasedElement: GenericFunctionTypeElement
           typeParameters
@@ -28180,22 +29067,22 @@ library
               metadata
                 Annotation
                   atSign: @ @55
-                  element: self::@getter::foo
                   name: SimpleIdentifier
+                    token: foo @56
                     staticElement: self::@getter::foo
                     staticType: null
-                    token: foo @56
+                  element: self::@getter::foo
           parameters
             requiredPositional a @72
               type: int
               metadata
                 Annotation
                   atSign: @ @63
-                  element: self::@getter::foo
                   name: SimpleIdentifier
+                    token: foo @64
                     staticElement: self::@getter::foo
                     staticType: null
-                    token: foo @64
+                  element: self::@getter::foo
           returnType: void
     topLevelVariables
       static const foo @6
@@ -28250,20 +29137,20 @@ library
       metadata
         Annotation
           atSign: @ @17
-          element: self::@getter::foo
           name: SimpleIdentifier
+            token: foo @18
             staticElement: self::@getter::foo
             staticType: null
-            token: foo @18
+          element: self::@getter::foo
     b.dart
       metadata
         Annotation
           atSign: @ @38
-          element: self::@getter::foo
           name: SimpleIdentifier
+            token: foo @39
             staticElement: self::@getter::foo
             staticType: null
-            token: foo @39
+          element: self::@getter::foo
 ''');
   }
 
@@ -28292,32 +29179,32 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         typeParameters
           covariant T @33
             metadata
               Annotation
                 atSign: @ @28
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @29
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @29
+                element: self::@getter::foo
         parameters
           optionalNamed a @47
             type: int?
             metadata
               Annotation
                 atSign: @ @37
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @38
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @38
+                element: self::@getter::foo
             constantInitializer
               IntegerLiteral
                 literal: 42 @51
@@ -28348,15 +29235,15 @@ library
     accessors
       synthetic static get foo @-1
         returnType: int
-      get getter @29
+      static get getter @29
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         returnType: int
 ''');
   }
@@ -28383,26 +29270,26 @@ library
     accessors
       synthetic static get foo @-1
         returnType: int
-      set setter @25
+      static set setter @25
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         parameters
           requiredPositional a @41
             type: int
             metadata
               Annotation
                 atSign: @ @32
-                element: self::@getter::foo
                 name: SimpleIdentifier
+                  token: foo @33
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @33
+                element: self::@getter::foo
         returnType: void
 ''');
   }
@@ -28431,21 +29318,21 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @17
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @17
+            element: self::@getter::foo
         type: int
       static const isConst @53
         metadata
           Annotation
             atSign: @ @42
-            element: self::@getter::foo
             name: SimpleIdentifier
+              token: foo @43
               staticElement: self::@getter::foo
               staticType: null
-              token: foo @43
+            element: self::@getter::foo
         type: int
         constantInitializer
           IntegerLiteral
@@ -28493,11 +29380,11 @@ library
       metadata
         Annotation
           atSign: @ @11
-          element: self::@getter::a
           name: SimpleIdentifier
+            token: a @12
             staticElement: self::@getter::a
             staticType: null
-            token: a @12
+          element: self::@getter::a
 ''');
   }
 
@@ -28531,19 +29418,19 @@ library
         metadata
           Annotation
             atSign: @ @22
-            element: a.dart::@getter::b
             name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: a.dart::@getter::b
-                staticType: null
-                token: b @25
-              period: . @24
               prefix: SimpleIdentifier
+                token: a @23
                 staticElement: self::@prefix::a
                 staticType: null
-                token: a @23
+              period: . @24
+              identifier: SimpleIdentifier
+                token: b @25
+                staticElement: a.dart::@getter::b
+                staticType: null
               staticElement: a.dart::@getter::b
               staticType: null
+            element: a.dart::@getter::b
         constructors
           synthetic @-1
 ''');
@@ -28572,11 +29459,11 @@ library
             metadata
               Annotation
                 atSign: @ @18
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @19
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @19
+                element: self::@getter::a
         returnType: dynamic
 ''');
   }
@@ -28604,11 +29491,11 @@ library
                 metadata
                   Annotation
                     atSign: @ @31
-                    element: self::@getter::a
                     name: SimpleIdentifier
+                      token: a @32
                       staticElement: self::@getter::a
                       staticType: null
-                      token: a @32
+                    element: self::@getter::a
             returnType: dynamic
     topLevelVariables
       static const a @6
@@ -28644,18 +29531,18 @@ library
     accessors
       synthetic static get a @-1
         returnType: dynamic
-      set foo @21
+      static set foo @21
         parameters
           requiredPositional x @32
             type: int
             metadata
               Annotation
                 atSign: @ @25
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @26
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @26
+                element: self::@getter::a
         returnType: void
 ''');
   }
@@ -28683,11 +29570,11 @@ library
             metadata
               Annotation
                 atSign: @ @19
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @20
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @20
+                element: self::@getter::a
             constantInitializer
               NullLiteral
                 literal: null @26
@@ -28728,11 +29615,11 @@ library
                 metadata
                   Annotation
                     atSign: @ @66
-                    element: self::@getter::a
                     name: SimpleIdentifier
+                      token: a @67
                       staticElement: self::@getter::a
                       staticType: null
-                      token: a @67
+                    element: self::@getter::a
                 superConstructorParameter: x@35
             superConstructor: self::@class::A::@constructor::•
     topLevelVariables
@@ -28764,11 +29651,11 @@ library
         metadata
           Annotation
             atSign: @ @16
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @17
               staticElement: self::@getter::a
               staticType: null
-              token: a @17
+            element: self::@getter::a
         type: int
     accessors
       synthetic static get a @-1
@@ -28796,11 +29683,11 @@ library
             metadata
               Annotation
                 atSign: @ @24
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @25
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @25
+                element: self::@getter::a
         constructors
           synthetic @-1
     topLevelVariables
@@ -28833,11 +29720,11 @@ library
             metadata
               Annotation
                 atSign: @ @24
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @25
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @25
+                element: self::@getter::a
         supertype: D
         mixins
           E
@@ -28845,11 +29732,11 @@ library
           synthetic @-1
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
-                superKeyword: super @0
             superConstructor: self::@class::D::@constructor::•
       class D @48
         constructors
@@ -28867,95 +29754,6 @@ library
     accessors
       synthetic static get a @-1
         returnType: dynamic
-''');
-  }
-
-  test_metadata_typeParameter_ofEnum() async {
-    var library = await checkLibrary('''
-const a = 42;
-enum E<@a T> {
-  v
-}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    enums
-      enum E @19
-        typeParameters
-          covariant T @24
-            defaultType: dynamic
-            metadata
-              Annotation
-                atSign: @ @21
-                element: <null>
-                name: SimpleIdentifier
-                  staticElement: <null>
-                  staticType: null
-                  token: a @22
-        supertype: Enum
-        fields
-          static const enumConstant v @31
-            type: E<dynamic>
-            constantInitializer
-              InstanceCreationExpression
-                argumentList: ArgumentList
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: ConstructorMember
-                      base: self::@enum::E::@constructor::•
-                      substitution: {T: dynamic}
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
-                    substitution: {T: dynamic}
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E<dynamic>
-                staticType: E<dynamic>
-          synthetic static const values @-1
-            type: List<E<dynamic>>
-            constantInitializer
-              ListLiteral
-                elements
-                  SimpleIdentifier
-                    staticElement: self::@enum::E::@getter::v
-                    staticType: E<dynamic>
-                    token: v @-1
-                leftBracket: [ @0
-                rightBracket: ] @0
-                staticType: List<E<dynamic>>
-          synthetic final index @-1
-            type: int
-        constructors
-          synthetic const @-1
-        accessors
-          synthetic static get v @-1
-            returnType: E<dynamic>
-          synthetic static get values @-1
-            returnType: List<E<dynamic>>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
-    topLevelVariables
-      static const a @6
-        type: int
-        constantInitializer
-          IntegerLiteral
-            literal: 42 @10
-            staticType: int
-    accessors
-      synthetic static get a @-1
-        returnType: int
 ''');
   }
 
@@ -28981,11 +29779,11 @@ library
             metadata
               Annotation
                 atSign: @ @18
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @19
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @19
+                element: self::@getter::a
         returnType: dynamic
 ''');
   }
@@ -29003,11 +29801,11 @@ library
             metadata
               Annotation
                 atSign: @ @26
-                element: self::@getter::a
                 name: SimpleIdentifier
+                  token: a @27
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @27
+                element: self::@getter::a
         aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: dynamic
@@ -29049,11 +29847,11 @@ library
         metadata
           Annotation
             atSign: @ @13
-            element: self::@getter::a
             name: SimpleIdentifier
+              token: a @14
               staticElement: self::@getter::a
               staticType: null
-              token: a @14
+            element: self::@getter::a
         type: int
     accessors
       synthetic static get a @-1
@@ -29098,19 +29896,19 @@ library
         metadata
           Annotation
             atSign: @ @34
-            element: self::@class::A::@getter::x
             name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: self::@class::A::@getter::x
-                staticType: null
-                token: x @37
-              period: . @36
               prefix: SimpleIdentifier
+                token: A @35
                 staticElement: self::@class::A
                 staticType: null
-                token: A @35
+              period: . @36
+              identifier: SimpleIdentifier
+                token: x @37
+                staticElement: self::@class::A::@getter::x
+                staticType: null
               staticElement: self::@class::A::@getter::x
               staticType: null
+            element: self::@class::A::@getter::x
         constructors
           synthetic @-1
 ''');
@@ -29131,19 +29929,19 @@ library
         metadata
           Annotation
             atSign: @ @17
-            element: self::@enum::E::@getter::b
             name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: self::@enum::E::@getter::b
-                staticType: null
-                token: b @20
-              period: . @19
               prefix: SimpleIdentifier
+                token: E @18
                 staticElement: self::@enum::E
                 staticType: null
-                token: E @18
+              period: . @19
+              identifier: SimpleIdentifier
+                token: b @20
+                staticElement: self::@enum::E::@getter::b
+                staticType: null
               staticElement: self::@enum::E::@getter::b
               staticType: null
+            element: self::@enum::E::@getter::b
         constructors
           synthetic @-1
     enums
@@ -29154,87 +29952,70 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant b @11
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           static const enumConstant c @14
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: a @-1
                     staticElement: self::@enum::E::@getter::a
                     staticType: E
-                    token: a @-1
                   SimpleIdentifier
+                    token: b @-1
                     staticElement: self::@enum::E::@getter::b
                     staticType: E
-                    token: b @-1
                   SimpleIdentifier
+                    token: c @-1
                     staticElement: self::@enum::E::@getter::c
                     staticType: E
-                    token: c @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -29246,11 +30027,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
 ''');
   }
 
@@ -29271,19 +30047,19 @@ library
         metadata
           Annotation
             atSign: @ @45
-            element: self::@extension::E::@getter::x
             name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: self::@extension::E::@getter::x
-                staticType: null
-                token: x @48
-              period: . @47
               prefix: SimpleIdentifier
+                token: E @46
                 staticElement: self::@extension::E
                 staticType: null
-                token: E @46
+              period: . @47
+              identifier: SimpleIdentifier
+                token: x @48
+                staticElement: self::@extension::E::@getter::x
+                staticType: null
               staticElement: self::@extension::E::@getter::x
               staticType: null
+            element: self::@extension::E::@getter::x
         constructors
           synthetic @-1
     extensions
@@ -29324,23 +30100,24 @@ library
         metadata
           Annotation
             atSign: @ @26
-            constructorName: SimpleIdentifier
-              staticElement: package:test/foo.dart::@extension::E::@getter::x
-              staticType: null
-              token: x @33
-            element: package:test/foo.dart::@extension::E::@getter::x
             name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: package:test/foo.dart::@extension::E
-                staticType: null
-                token: E @31
-              period: . @30
               prefix: SimpleIdentifier
+                token: foo @27
                 staticElement: self::@prefix::foo
                 staticType: null
-                token: foo @27
+              period: . @30
+              identifier: SimpleIdentifier
+                token: E @31
+                staticElement: package:test/foo.dart::@extension::E
+                staticType: null
               staticElement: package:test/foo.dart::@extension::E
               staticType: null
+            period: . @32
+            constructorName: SimpleIdentifier
+              token: x @33
+              staticElement: package:test/foo.dart::@extension::E::@getter::x
+              staticType: null
+            element: package:test/foo.dart::@extension::E::@getter::x
         constructors
           synthetic @-1
 ''');
@@ -30192,7 +30969,7 @@ library
       synthetic static foo @-1
         type: int
     accessors
-      get foo @8
+      static get foo @8
         returnType: int
 ''');
   }
@@ -30542,65 +31319,52 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
             nonSynthetic: self::@enum::E::@field::a
           static const enumConstant b @14
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
             nonSynthetic: self::@enum::E::@field::b
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: a @-1
                     staticElement: self::@enum::E::@getter::a
                     staticType: E
-                    token: a @-1
                   SimpleIdentifier
+                    token: b @-1
                     staticElement: self::@enum::E::@getter::b
                     staticType: E
-                    token: b @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-            nonSynthetic: self::@enum::E
-          synthetic final index @-1
-            type: int
             nonSynthetic: self::@enum::E
         constructors
           synthetic const @-1
@@ -30614,13 +31378,6 @@ library
             nonSynthetic: self::@enum::E::@field::b
           synthetic static get values @-1
             returnType: List<E>
-            nonSynthetic: self::@enum::E
-          synthetic get index @-1
-            returnType: int
-            nonSynthetic: self::@enum::E
-        methods
-          synthetic toString @-1
-            returnType: String
             nonSynthetic: self::@enum::E
 ''',
         withNonSynthetic: true);
@@ -30797,7 +31554,7 @@ library
         type: int
         nonSynthetic: self::@getter::foo
     accessors
-      get foo @8
+      static get foo @8
         returnType: int
         nonSynthetic: self::@getter::foo
 ''',
@@ -30819,10 +31576,10 @@ library
         type: int
         nonSynthetic: self::@getter::foo
     accessors
-      get foo @8
+      static get foo @8
         returnType: int
         nonSynthetic: self::@getter::foo
-      set foo @22
+      static set foo @22
         parameters
           requiredPositional value @30
             type: int
@@ -30847,7 +31604,7 @@ library
         type: int
         nonSynthetic: self::@setter::foo
     accessors
-      set foo @4
+      static set foo @4
         parameters
           requiredPositional value @12
             type: int
@@ -31415,7 +32172,7 @@ library
       synthetic static x @-1
         type: dynamic
     accessors
-      set x @69
+      static set x @69
         documentationComment: /**\n * Docs\n */
         parameters
           requiredPositional value @71
@@ -31433,7 +32190,7 @@ library
       synthetic static x @-1
         type: int
     accessors
-      external set x @18
+      static external set x @18
         parameters
           requiredPositional value @24
             type: int
@@ -31450,7 +32207,7 @@ library
       synthetic static f @-1
         type: int
     accessors
-      set f @4
+      static set f @4
         parameters
           requiredPositional value @10
             type: int
@@ -31470,12 +32227,12 @@ library
       synthetic static y @-1
         type: dynamic
     accessors
-      set x @9
+      static set x @9
         parameters
           requiredPositional value @15
             type: int
         returnType: void
-      set y @29
+      static set y @29
         parameters
           requiredPositional value @31
             type: dynamic
@@ -32018,16 +32775,16 @@ library
                 type: T
             constantInitializers
               SuperConstructorInvocation
+                superKeyword: super @0
                 argumentList: ArgumentList
+                  leftParenthesis: ( @0
                   arguments
                     SimpleIdentifier
+                      token: value @-1
                       staticElement: value@-1
                       staticType: T
-                      token: value @-1
-                  leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
-                superKeyword: super @0
             superConstructor: ConstructorMember
               base: self::@class::A::@constructor::•
               substitution: {T: T}
@@ -32598,37 +33355,30 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -32636,11 +33386,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     typeAliases
       functionTypeAliasBased F @32
         aliasedType: dynamic Function()
@@ -32736,37 +33481,30 @@ library
               type: E
               constantInitializer
                 InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: SimpleIdentifier
+                        token: E @-1
+                        staticElement: self::@enum::E
+                        staticType: null
+                      type: E
+                    staticElement: self::@enum::E::@constructor::•
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  constructorName: ConstructorName
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E::@constructor::•
-                      staticType: null
-                      token:  @-1
-                    period: . @0
-                    staticElement: self::@enum::E::@constructor::•
-                    type: NamedType
-                      name: SimpleIdentifier
-                        staticElement: self::@enum::E
-                        staticType: null
-                        token: E @-1
-                      type: E
                   staticType: E
             synthetic static const values @-1
               type: List<E>
               constantInitializer
                 ListLiteral
+                  leftBracket: [ @0
                   elements
                     SimpleIdentifier
+                      token: v @-1
                       staticElement: self::@enum::E::@getter::v
                       staticType: E
-                      token: v @-1
-                  leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E>
-            synthetic final index @-1
-              type: int
           constructors
             synthetic const @-1
           accessors
@@ -32774,11 +33512,6 @@ library
               returnType: E
             synthetic static get values @-1
               returnType: List<E>
-            synthetic get index @-1
-              returnType: int
-          methods
-            synthetic toString @-1
-              returnType: String
       typeAliases
         functionTypeAliasBased F @43
           aliasedType: dynamic Function()
@@ -32808,37 +33541,30 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -32846,11 +33572,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     typeAliases
       functionTypeAliasBased F @58
         aliasedType: dynamic Function()
@@ -32917,37 +33638,30 @@ library
               type: E
               constantInitializer
                 InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: SimpleIdentifier
+                        token: E @-1
+                        staticElement: self::@enum::E
+                        staticType: null
+                      type: E
+                    staticElement: self::@enum::E::@constructor::•
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  constructorName: ConstructorName
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E::@constructor::•
-                      staticType: null
-                      token:  @-1
-                    period: . @0
-                    staticElement: self::@enum::E::@constructor::•
-                    type: NamedType
-                      name: SimpleIdentifier
-                        staticElement: self::@enum::E
-                        staticType: null
-                        token: E @-1
-                      type: E
                   staticType: E
             synthetic static const values @-1
               type: List<E>
               constantInitializer
                 ListLiteral
+                  leftBracket: [ @0
                   elements
                     SimpleIdentifier
+                      token: v @-1
                       staticElement: self::@enum::E::@getter::v
                       staticType: E
-                      token: v @-1
-                  leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E>
-            synthetic final index @-1
-              type: int
           constructors
             synthetic const @-1
           accessors
@@ -32955,11 +33669,6 @@ library
               returnType: E
             synthetic static get values @-1
               returnType: List<E>
-            synthetic get index @-1
-              returnType: int
-          methods
-            synthetic toString @-1
-              returnType: String
       typeAliases
         functionTypeAliasBased F @43
           aliasedType: dynamic Function()
@@ -33024,37 +33733,30 @@ library
               type: E
               constantInitializer
                 InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: SimpleIdentifier
+                        token: E @-1
+                        staticElement: self::@enum::E
+                        staticType: null
+                      type: E
+                    staticElement: self::@enum::E::@constructor::•
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  constructorName: ConstructorName
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E::@constructor::•
-                      staticType: null
-                      token:  @-1
-                    period: . @0
-                    staticElement: self::@enum::E::@constructor::•
-                    type: NamedType
-                      name: SimpleIdentifier
-                        staticElement: self::@enum::E
-                        staticType: null
-                        token: E @-1
-                      type: E
                   staticType: E
             synthetic static const values @-1
               type: List<E>
               constantInitializer
                 ListLiteral
+                  leftBracket: [ @0
                   elements
                     SimpleIdentifier
+                      token: v @-1
                       staticElement: self::@enum::E::@getter::v
                       staticType: E
-                      token: v @-1
-                  leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E>
-            synthetic final index @-1
-              type: int
           constructors
             synthetic const @-1
           accessors
@@ -33062,11 +33764,6 @@ library
               returnType: E
             synthetic static get values @-1
               returnType: List<E>
-            synthetic get index @-1
-              returnType: int
-          methods
-            synthetic toString @-1
-              returnType: String
       typeAliases
         functionTypeAliasBased F @43
           aliasedType: dynamic Function()
@@ -33199,37 +33896,30 @@ library
             type: E
             constantInitializer
               InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                constructorName: ConstructorName
-                  name: SimpleIdentifier
-                    staticElement: self::@enum::E::@constructor::•
-                    staticType: null
-                    token:  @-1
-                  period: . @0
-                  staticElement: self::@enum::E::@constructor::•
-                  type: NamedType
-                    name: SimpleIdentifier
-                      staticElement: self::@enum::E
-                      staticType: null
-                      token: E @-1
-                    type: E
                 staticType: E
           synthetic static const values @-1
             type: List<E>
             constantInitializer
               ListLiteral
+                leftBracket: [ @0
                 elements
                   SimpleIdentifier
+                    token: v @-1
                     staticElement: self::@enum::E::@getter::v
                     staticType: E
-                    token: v @-1
-                leftBracket: [ @0
                 rightBracket: ] @0
                 staticType: List<E>
-          synthetic final index @-1
-            type: int
         constructors
           synthetic const @-1
         accessors
@@ -33237,11 +33927,6 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-          synthetic get index @-1
-            returnType: int
-        methods
-          synthetic toString @-1
-            returnType: String
     topLevelVariables
       static e @15
         type: E
@@ -35864,9 +36549,9 @@ library
       synthetic static x @-1
         type: int
     accessors
-      get x @8
+      static get x @8
         returnType: int
-      set x @25
+      static set x @25
         parameters
           requiredPositional value @31
             type: int
@@ -35886,12 +36571,12 @@ library
       synthetic static x @-1
         type: int
     accessors
-      set x @9
+      static set x @9
         parameters
           requiredPositional value @15
             type: int
         returnType: void
-      get x @33
+      static get x @33
         returnType: int
 ''');
   }
@@ -35910,7 +36595,7 @@ library
     accessors
       synthetic static get foo @-1
         returnType: int
-      set foo @23
+      static set foo @23
         parameters
           requiredPositional newValue @31
             type: int
@@ -35940,19 +36625,19 @@ library
       class C @43
         metadata
           Annotation
-            arguments: ArgumentList
-              arguments
-                SuperExpression
-                  staticType: dynamic
-                  superKeyword: super @30
-              leftParenthesis: ( @29
-              rightParenthesis: ) @35
             atSign: @ @27
-            element: self::@class::A::@constructor::•
             name: SimpleIdentifier
+              token: A @28
               staticElement: self::@class::A
               staticType: null
-              token: A @28
+            arguments: ArgumentList
+              leftParenthesis: ( @29
+              arguments
+                SuperExpression
+                  superKeyword: super @30
+                  staticType: dynamic
+              rightParenthesis: ) @35
+            element: self::@class::A::@constructor::•
         constructors
           synthetic @-1
 ''');
@@ -35980,19 +36665,19 @@ library
       class C @42
         metadata
           Annotation
-            arguments: ArgumentList
-              arguments
-                ThisExpression
-                  staticType: dynamic
-                  thisKeyword: this @30
-              leftParenthesis: ( @29
-              rightParenthesis: ) @34
             atSign: @ @27
-            element: self::@class::A::@constructor::•
             name: SimpleIdentifier
+              token: A @28
               staticElement: self::@class::A
               staticType: null
-              token: A @28
+            arguments: ArgumentList
+              leftParenthesis: ( @29
+              arguments
+                ThisExpression
+                  thisKeyword: this @30
+                  staticType: dynamic
+              rightParenthesis: ) @34
+            element: self::@class::A::@constructor::•
         constructors
           synthetic @-1
 ''');
@@ -36008,23 +36693,23 @@ library
       class C @17
         metadata
           Annotation
+            atSign: @ @0
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: foo @1
+                staticElement: <null>
+                staticType: null
+              period: . @4
+              identifier: SimpleIdentifier
+                token: bar @5
+                staticElement: <null>
+                staticType: null
+              staticElement: <null>
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @8
               rightParenthesis: ) @9
-            atSign: @ @0
             element: <null>
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: bar @5
-              period: . @4
-              prefix: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: foo @1
-              staticElement: <null>
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -36040,23 +36725,23 @@ library
       class C @20
         metadata
           Annotation
+            atSign: @ @0
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: String @1
+                staticElement: dart:core::@class::String
+                staticType: null
+              period: . @7
+              identifier: SimpleIdentifier
+                token: foo @8
+                staticElement: <null>
+                staticType: null
+              staticElement: <null>
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @11
               rightParenthesis: ) @12
-            atSign: @ @0
             element: <null>
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: foo @8
-              period: . @7
-              prefix: SimpleIdentifier
-                staticElement: dart:core::@class::String
-                staticType: null
-                token: String @1
-              staticElement: <null>
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -36072,19 +36757,19 @@ library
         metadata
           Annotation
             atSign: @ @0
-            element: <null>
             name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: bar @5
-              period: . @4
               prefix: SimpleIdentifier
+                token: foo @1
                 staticElement: <null>
                 staticType: null
-                token: foo @1
+              period: . @4
+              identifier: SimpleIdentifier
+                token: bar @5
+                staticElement: <null>
+                staticType: null
               staticElement: <null>
               staticType: null
+            element: <null>
         constructors
           synthetic @-1
 ''');
@@ -36104,19 +36789,19 @@ library
         metadata
           Annotation
             atSign: @ @28
-            element: <null>
             name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: bar @33
-              period: . @32
               prefix: SimpleIdentifier
+                token: foo @29
                 staticElement: self::@prefix::foo
                 staticType: null
-                token: foo @29
+              period: . @32
+              identifier: SimpleIdentifier
+                token: bar @33
+                staticElement: <null>
+                staticType: null
               staticElement: <null>
               staticType: null
+            element: <null>
         constructors
           synthetic @-1
 ''');
@@ -36132,27 +36817,28 @@ library
       class C @21
         metadata
           Annotation
+            atSign: @ @0
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: foo @1
+                staticElement: <null>
+                staticType: null
+              period: . @4
+              identifier: SimpleIdentifier
+                token: bar @5
+                staticElement: <null>
+                staticType: null
+              staticElement: <null>
+              staticType: null
+            period: . @8
+            constructorName: SimpleIdentifier
+              token: baz @9
+              staticElement: <null>
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @12
               rightParenthesis: ) @13
-            atSign: @ @0
-            constructorName: SimpleIdentifier
-              staticElement: <null>
-              staticType: null
-              token: baz @9
             element: <null>
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: bar @5
-              period: . @4
-              prefix: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: foo @1
-              staticElement: <null>
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -36171,27 +36857,28 @@ library
       class C @49
         metadata
           Annotation
+            atSign: @ @28
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: foo @29
+                staticElement: self::@prefix::foo
+                staticType: null
+              period: . @32
+              identifier: SimpleIdentifier
+                token: bar @33
+                staticElement: <null>
+                staticType: null
+              staticElement: <null>
+              staticType: null
+            period: . @36
+            constructorName: SimpleIdentifier
+              token: baz @37
+              staticElement: <null>
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @40
               rightParenthesis: ) @41
-            atSign: @ @28
-            constructorName: SimpleIdentifier
-              staticElement: <null>
-              staticType: null
-              token: baz @37
             element: <null>
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: bar @33
-              period: . @32
-              prefix: SimpleIdentifier
-                staticElement: self::@prefix::foo
-                staticType: null
-                token: foo @29
-              staticElement: <null>
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -36210,27 +36897,28 @@ library
       class C @52
         metadata
           Annotation
+            atSign: @ @28
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: foo @29
+                staticElement: self::@prefix::foo
+                staticType: null
+              period: . @32
+              identifier: SimpleIdentifier
+                token: Future @33
+                staticElement: dart:async::@class::Future
+                staticType: null
+              staticElement: dart:async::@class::Future
+              staticType: null
+            period: . @39
+            constructorName: SimpleIdentifier
+              token: bar @40
+              staticElement: <null>
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @43
               rightParenthesis: ) @44
-            atSign: @ @28
-            constructorName: SimpleIdentifier
-              staticElement: <null>
-              staticType: null
-              token: bar @40
             element: <null>
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: dart:async::@class::Future
-                staticType: null
-                token: Future @33
-              period: . @32
-              prefix: SimpleIdentifier
-                staticElement: self::@prefix::foo
-                staticType: null
-                token: foo @29
-              staticElement: dart:async::@class::Future
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -36246,23 +36934,23 @@ library
       class C @17
         metadata
           Annotation
+            atSign: @ @0
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: foo @1
+                staticElement: <null>
+                staticType: null
+              period: . @4
+              identifier: SimpleIdentifier
+                token: bar @5
+                staticElement: <null>
+                staticType: null
+              staticElement: <null>
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @8
               rightParenthesis: ) @9
-            atSign: @ @0
             element: <null>
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: bar @5
-              period: . @4
-              prefix: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: foo @1
-              staticElement: <null>
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -36281,23 +36969,23 @@ library
       class C @45
         metadata
           Annotation
+            atSign: @ @28
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: foo @29
+                staticElement: self::@prefix::foo
+                staticType: null
+              period: . @32
+              identifier: SimpleIdentifier
+                token: bar @33
+                staticElement: <null>
+                staticType: null
+              staticElement: <null>
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @36
               rightParenthesis: ) @37
-            atSign: @ @28
             element: <null>
-            name: PrefixedIdentifier
-              identifier: SimpleIdentifier
-                staticElement: <null>
-                staticType: null
-                token: bar @33
-              period: . @32
-              prefix: SimpleIdentifier
-                staticElement: self::@prefix::foo
-                staticType: null
-                token: foo @29
-              staticElement: <null>
-              staticType: null
         constructors
           synthetic @-1
 ''');
@@ -36313,11 +37001,11 @@ library
         metadata
           Annotation
             atSign: @ @0
-            element: <null>
             name: SimpleIdentifier
+              token: foo @1
               staticElement: <null>
               staticType: null
-              token: foo @1
+            element: <null>
         constructors
           synthetic @-1
 ''');
@@ -36344,11 +37032,11 @@ library
         metadata
           Annotation
             atSign: @ @35
-            element: <null>
             name: SimpleIdentifier
+              token: v @36
               staticElement: <null>
               staticType: null
-              token: v @36
+            element: <null>
         constructors
           synthetic @-1
 ''');
@@ -36363,15 +37051,15 @@ library
       class C @13
         metadata
           Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: foo @1
+              staticElement: <null>
+              staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @4
               rightParenthesis: ) @5
-            atSign: @ @0
             element: <null>
-            name: SimpleIdentifier
-              staticElement: <null>
-              staticType: null
-              token: foo @1
         constructors
           synthetic @-1
 ''');
@@ -36567,7 +37255,7 @@ library
       synthetic static x @-1
         type: int
     accessors
-      get x @39
+      static get x @39
         returnType: int
   parts
     a.dart
@@ -36575,7 +37263,7 @@ library
         synthetic static x @-1
           type: int
       accessors
-        set x @25
+        static set x @25
           parameters
             requiredPositional _ @31
               type: int
@@ -36602,7 +37290,7 @@ library
       synthetic static x @-1
         type: int
     accessors
-      set x @40
+      static set x @40
         parameters
           requiredPositional _ @46
             type: int
@@ -36613,7 +37301,7 @@ library
         synthetic static x @-1
           type: int
       accessors
-        get x @24
+        static get x @24
           returnType: int
 ''');
   }
@@ -36634,14 +37322,14 @@ library
         synthetic static x @-1
           type: int
       accessors
-        get x @24
+        static get x @24
           returnType: int
     b.dart
       topLevelVariables
         synthetic static x @-1
           type: int
       accessors
-        set x @25
+        static set x @25
           parameters
             requiredPositional _ @31
               type: int
@@ -36965,7 +37653,7 @@ library
         synthetic static x @-1
           type: int
       accessors
-        set x @25
+        static set x @25
           parameters
             requiredPositional _ @31
               type: int
@@ -36975,7 +37663,7 @@ library
         synthetic static x @-1
           type: int
       accessors
-        get x @24
+        static get x @24
           returnType: int
 ''');
   }
@@ -37076,19 +37764,19 @@ library
         type: A<int>
         constantInitializer
           InstanceCreationExpression
-            argumentList: ArgumentList
-              leftParenthesis: ( @46
-              rightParenthesis: ) @47
             constructorName: ConstructorName
+              type: NamedType
+                name: SimpleIdentifier
+                  token: A @45
+                  staticElement: self::@class::A
+                  staticType: null
+                type: A<int>
               staticElement: ConstructorMember
                 base: self::@class::A::@constructor::•
                 substitution: {T: int}
-              type: NamedType
-                name: SimpleIdentifier
-                  staticElement: self::@class::A
-                  staticType: null
-                  token: A @45
-                type: A<int>
+            argumentList: ArgumentList
+              leftParenthesis: ( @46
+              rightParenthesis: ) @47
             staticType: A<int>
     accessors
       synthetic static get a @-1

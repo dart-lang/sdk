@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/src/printer.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
+import '../environment.dart';
 import '../kernel/dart2js_target.dart';
 
 typedef ReportErrorFunction = void Function(
@@ -20,7 +21,7 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
 
   Dart2jsConstantEvaluator(ir.Component component,
       ir.TypeEnvironment typeEnvironment, ReportErrorFunction reportError,
-      {Map<String, String> environment = const {},
+      {Environment environment,
       bool supportReevaluationForTesting = false,
       ir.EvaluationMode evaluationMode})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
@@ -29,7 +30,7 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
             const Dart2jsDartLibrarySupport(),
             const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
             component,
-            environment,
+            environment?.definitions ?? const {},
             typeEnvironment,
             ErrorReporter(reportError),
             enableTripleShift: true,

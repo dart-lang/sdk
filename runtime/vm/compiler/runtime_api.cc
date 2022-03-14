@@ -389,6 +389,9 @@ const word UntaggedType::kTypeClassIdBitSize =
 const word UntaggedObject::kBarrierOverlapShift =
     dart::UntaggedObject::kBarrierOverlapShift;
 
+const word UntaggedObject::kGenerationalBarrierMask =
+    dart::UntaggedObject::kGenerationalBarrierMask;
+
 bool IsTypedDataClassId(intptr_t cid) {
   return dart::IsTypedDataClassId(cid);
 }
@@ -434,6 +437,8 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return UnhandledException::InstanceSize();
     case kWeakPropertyCid:
       return WeakProperty::InstanceSize();
+    case kWeakReferenceCid:
+      return WeakReference::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
     case kPointerCid:
@@ -506,7 +511,7 @@ word Instance::DataOffsetFor(intptr_t cid) {
     return 0;
   }
   if (dart::IsTypedDataClassId(cid)) {
-    return TypedData::data_offset();
+    return TypedData::payload_offset();
   }
   switch (cid) {
     case kArrayCid:

@@ -11,7 +11,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 import 'package:compiler/src/dart2js.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/null_compiler_output.dart';

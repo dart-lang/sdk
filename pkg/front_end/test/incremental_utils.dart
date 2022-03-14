@@ -77,7 +77,7 @@ Future<void> throwOnInsufficientUriToSource(Component component,
     for (Uri uri in uris) {
       // ignore: unnecessary_null_comparison
       if (uri == null) continue;
-      if (uri.scheme != "org-dartlang-test") continue;
+      if (!uri.isScheme("org-dartlang-test")) continue;
       // The file system doesn't have the sources for any modules.
       // For now assume that that is always what's going on.
       if (!await fileSystem.entityForUri(uri).exists()) continue;

@@ -4,7 +4,7 @@
 
 library dart2js.js_emitter.instantiation_stub_generator;
 
-import '../common_elements.dart' show JCommonElements, JElementEnvironment;
+import '../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;

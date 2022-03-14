@@ -157,7 +157,7 @@ Future<TestResult> runTests(
       .process(['--csp', Flags.disableInlining, ...options], verbose: verbose);
   TestResult result = new TestResult(config, filename, processor);
   for (SourceMapInfo info in sourceMaps.elementSourceMapInfos.values) {
-    if (info.element.library.canonicalUri.scheme == 'dart') continue;
+    if (info.element.library.canonicalUri.isScheme('dart')) continue;
     result.userInfoList.add(info);
     Iterable<CodePoint> missingCodePoints =
         info.codePoints.where((c) => c.isMissing);

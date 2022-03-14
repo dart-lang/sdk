@@ -8,6 +8,7 @@ import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/values.dart';
 import '../elements/entities.dart' show ClassEntity, MemberEntity;
 import '../elements/types.dart';
+import '../native/behavior.dart' show NativeBehavior;
 import '../universe/feature.dart';
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import '../util/enumset.dart' show EnumSet;
@@ -24,7 +25,7 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   Setlet<ListLiteralUse> _listLiterals;
   Setlet<String> _constSymbolNames;
   Setlet<ConstantValue> _constantLiterals;
-  Setlet<dynamic> _nativeData;
+  Setlet<NativeBehavior> _nativeData;
   Setlet<ClassEntity> _seenClasses;
   Set<RuntimeTypeUse> _runtimeTypeUses;
   Set<GenericInstantiation> _genericInstantiations;
@@ -98,14 +99,14 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   @override
   Iterable<ConstantValue> get constantLiterals => _constantLiterals ?? const [];
 
-  void registerNativeData(dynamic nativeData) {
+  void registerNativeData(NativeBehavior nativeData) {
     assert(nativeData != null);
     _nativeData ??= Setlet();
     _nativeData.add(nativeData);
   }
 
   @override
-  Iterable<dynamic> get nativeData => _nativeData ?? const [];
+  Iterable<NativeBehavior> get nativeData => _nativeData ?? const [];
 
   void registerSeenClass(ClassEntity seenClass) {
     _seenClasses ??= Setlet();

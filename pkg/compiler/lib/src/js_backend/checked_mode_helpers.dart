@@ -5,7 +5,7 @@
 // TODO(39733): This file exists now just to register the use of
 // 'boolConversionCheck'. Fix the registration and remove this file.
 
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse;
 

@@ -568,7 +568,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor {
   void visitLibrary(Library node) {
     _staticTypeContext.enterLibrary(node);
     if (librariesFromDill.contains(node) ||
-        node.importUri.scheme == 'package' &&
+        node.importUri.isScheme('package') &&
             node.importUri.pathSegments[0] == 'meta') {
       return;
     }

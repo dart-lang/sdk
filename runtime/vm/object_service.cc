@@ -1687,6 +1687,19 @@ void WeakProperty::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("propertyValue", value_handle);
 }
 
+void WeakReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "WeakReference");
+  jsobj.AddServiceId(*this);
+  if (ref) {
+    return;
+  }
+
+  const Object& target_handle = Object::Handle(target());
+  jsobj.AddProperty("target", target_handle);
+}
+
 void MirrorReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);

@@ -4,11 +4,11 @@
 
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
+import '../common/elements.dart' show JCommonElements;
 import '../common/names.dart' show Selectors;
 import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
@@ -39,12 +39,14 @@ import 'logging.dart';
 import 'nodes.dart';
 import 'types.dart';
 import 'types_propagation.dart';
+import 'validate.dart' show NoUnusedPhiValidator;
 import 'value_range_analyzer.dart';
 import 'value_set.dart';
 
 abstract class OptimizationPhase {
   String get name;
   void visitGraph(HGraph graph);
+  bool validPostcondition(HGraph graph);
 }
 
 class SsaOptimizerTask extends CompilerTask {
@@ -70,6 +72,8 @@ class SsaOptimizerTask extends CompilerTask {
       measureSubtask(phase.name, () => phase.visitGraph(graph));
       codegen.tracer.traceGraph(phase.name, graph);
       assert(graph.isValid(), 'Graph not valid after ${phase.name}');
+      assert(phase.validPostcondition(graph),
+          'Graph does not satify phase postcondition after ${phase.name}');
     }
 
     SsaCodeMotion codeMotion;
@@ -242,6 +246,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
     _graph = visitee;
     visitDominatorTree(visitee);
   }
+
+  @override
+  bool validPostcondition(HGraph graph) => true;
 
   @override
   visitBasicBlock(HBasicBlock block) {
@@ -1486,15 +1493,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIndex(HIndex node) {
-    if (node.receiver.isConstantList() && node.index.isConstantInteger()) {
-      HConstant instruction = node.receiver;
-      ListConstantValue list = instruction.constant;
-      List<ConstantValue> entries = list.entries;
-      HConstant indexInstruction = node.index;
-      IntConstantValue indexConstant = indexInstruction.constant;
-      int index = indexConstant.intValue.toInt();
-      if (index >= 0 && index < entries.length) {
-        return _graph.addConstant(entries[index], _closedWorld);
+    HInstruction receiver = node.receiver;
+    if (receiver is HConstant) {
+      HInstruction index = node.index;
+      if (index is HConstant) {
+        ConstantValue foldedValue =
+            constant_system.index.fold(receiver.constant, index.constant);
+        if (foldedValue != null) {
+          return _graph.addConstant(foldedValue, _closedWorld);
+        }
       }
     }
     return node;
@@ -1916,6 +1923,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return result;
       }
       return null;
+    }
+
+    // For primitives we know the stringifier is effect-free and never throws.
+    if (input.isNumberOrNull(_abstractValueDomain).isDefinitelyTrue ||
+        input.isStringOrNull(_abstractValueDomain).isDefinitelyTrue ||
+        input.isBooleanOrNull(_abstractValueDomain).isDefinitelyTrue) {
+      node.setPure();
     }
 
     return tryConstant() ?? tryToString() ?? node;
@@ -2511,6 +2525,11 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   @override
+  bool validPostcondition(HGraph graph) {
+    return NoUnusedPhiValidator.containsNoUnusedPhis(graph);
+  }
+
+  @override
   void visitBasicBlock(HBasicBlock block) {
     bool isDeadBlock = analyzer.isDeadBlock(block);
     block.isLive = !isDeadBlock;
@@ -2534,6 +2553,11 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void simplifyPhi(HPhi phi) {
+    // Remove an unused HPhi so that the inputs can become potentially dead.
+    if (phi.usedBy.isEmpty) {
+      phi.block.removePhi(phi);
+      return;
+    }
     // If the phi is of the form `phi(x, HTypeKnown(x))`, it does not strengthen
     // `x`.  We can replace the phi with `x` to potentially make the HTypeKnown
     // refinement node dead and potentially make a HIf control no HPhis.
@@ -2815,27 +2839,33 @@ class SsaDeadPhiEliminator implements OptimizationPhase {
       }
     }
 
-    // Remove phis that are not live.
-    // Traverse in reverse order to remove phis with no uses before the
-    // phis that they might use.
-    // NOTICE: Doesn't handle circular references, but we don't currently
-    // create any.
-    List<HBasicBlock> blocks = graph.blocks;
-    for (int i = blocks.length - 1; i >= 0; i--) {
-      HBasicBlock block = blocks[i];
-      HPhi current = block.phis.first;
-      HPhi next = null;
-      while (current != null) {
-        next = current.next;
-        if (!livePhis.contains(current)
-            // TODO(ahe): Not sure the following is correct.
-            &&
-            current.usedBy.isEmpty) {
-          block.removePhi(current);
-        }
-        current = next;
-      }
+    // Collect dead phis.
+    List<HPhi> deadPhis = [];
+    for (final block in graph.blocks) {
+      block.forEachPhi((phi) {
+        if (!livePhis.contains(phi)) deadPhis.add(phi);
+      });
     }
+
+    // Two-phase removal, phase 1: unlink all the input nodes.
+    for (final phi in deadPhis) {
+      for (final input in phi.inputs) {
+        input.removeUser(phi);
+      }
+      phi.inputs.clear();
+    }
+
+    // Two-phase removal, phase 2: remove the now-disconnected phis.
+    for (final phi in deadPhis) {
+      assert(phi.inputs.isEmpty);
+      assert(phi.usedBy.isEmpty);
+      phi.block.removePhi(phi);
+    }
+  }
+
+  @override
+  bool validPostcondition(HGraph graph) {
+    return NoUnusedPhiValidator.containsNoUnusedPhis(graph);
   }
 }
 
@@ -2891,6 +2921,9 @@ class SsaRedundantPhiEliminator implements OptimizationPhase {
       }
     }
   }
+
+  @override
+  bool validPostcondition(HGraph graph) => true;
 }
 
 class GvnWorkItem {
@@ -2920,6 +2953,9 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       visitBasicBlock(item.block, item.valueSet, workQueue);
     } while (!workQueue.isEmpty);
   }
+
+  @override
+  bool validPostcondition(HGraph graph) => true;
 
   void moveLoopInvariantCode(HGraph graph) {
     for (int i = graph.blocks.length - 1; i >= 0; i--) {
@@ -3146,6 +3182,9 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
   }
 
   @override
+  bool validPostcondition(HGraph graph) => true;
+
+  @override
   void visitBasicBlock(HBasicBlock block) {
     List<HBasicBlock> successors = block.successors;
 
@@ -3248,6 +3287,9 @@ class SsaTypeConversionInserter extends HBaseVisitor
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
+
+  @override
+  bool validPostcondition(HGraph graph) => true;
 
   // Update users of [input] that are dominated by [:dominator.first:]
   // to use [TypeKnown] of [input] instead. As the type information depends
@@ -3430,6 +3472,9 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
       }
     }
   }
+
+  @override
+  bool validPostcondition(HGraph graph) => true;
 
   @override
   void visitBasicBlock(HBasicBlock block) {

@@ -9,12 +9,12 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/compiler.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -248,13 +248,13 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
 
   bool excludeLibrary(LibraryEntity library) {
     return forUserLibrariesOnly &&
-        (library.canonicalUri.scheme == 'dart' ||
-            library.canonicalUri.scheme == 'package');
+        (library.canonicalUri.isScheme('dart') ||
+            library.canonicalUri.isScheme('package'));
   }
 
   ir.Library getIrLibrary(LibraryEntity library) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
-    KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+    KernelToElementMap elementMap = frontendStrategy.elementMap;
     LibraryEntity kLibrary =
         elementMap.elementEnvironment.lookupLibrary(library.canonicalUri);
     return elementMap.getLibraryNode(kLibrary);

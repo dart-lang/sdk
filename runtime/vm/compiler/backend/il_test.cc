@@ -390,6 +390,49 @@ static void WriteCidTo(intptr_t cid, BaseTextBuffer* buffer) {
   }
 }
 
+static void TestNullAwareEqualityCompareCanonicalization(
+    Thread* thread,
+    bool allow_representation_change) {
+  using compiler::BlockBuilder;
+
+  CompilerState S(thread, /*is_aot=*/true, /*is_optimizing=*/true);
+
+  FlowGraphBuilderHelper H;
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+
+  EqualityCompareInstr* compare = nullptr;
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    Definition* v0 =
+        builder.AddParameter(0, 0, /*with_frame=*/true, kUnboxedInt64);
+    Definition* v1 =
+        builder.AddParameter(1, 1, /*with_frame=*/true, kUnboxedInt64);
+    Definition* box0 = builder.AddDefinition(new BoxInt64Instr(new Value(v0)));
+    Definition* box1 = builder.AddDefinition(new BoxInt64Instr(new Value(v1)));
+
+    compare = builder.AddDefinition(new EqualityCompareInstr(
+        InstructionSource(), Token::kEQ, new Value(box0), new Value(box1),
+        kMintCid, S.GetNextDeoptId(), /*null_aware=*/true));
+    builder.AddReturn(new Value(compare));
+  }
+
+  H.FinishGraph();
+
+  if (!allow_representation_change) {
+    H.flow_graph()->disallow_unmatched_representations();
+  }
+
+  H.flow_graph()->Canonicalize();
+
+  EXPECT(compare->is_null_aware() == !allow_representation_change);
+}
+
+ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_EqualityCompare) {
+  TestNullAwareEqualityCompareCanonicalization(thread, true);
+  TestNullAwareEqualityCompareCanonicalization(thread, false);
+}
+
 static void WriteCidRangeVectorTo(const CidRangeVector& ranges,
                                   BaseTextBuffer* buffer) {
   if (ranges.is_empty()) {

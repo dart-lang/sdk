@@ -6,22 +6,16 @@ library dart2js.enqueue;
 
 import 'dart:collection' show Queue;
 
-import 'common/codegen.dart';
+import 'common.dart';
+import 'common/elements.dart' show ElementEnvironment;
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
-import 'common.dart';
-import 'common_elements.dart' show ElementEnvironment;
 import 'constants/values.dart';
-import 'compiler.dart' show Compiler;
 import 'elements/entities.dart';
 import 'elements/types.dart';
-import 'inferrer/types.dart';
 import 'js_backend/annotations.dart';
-import 'js_backend/backend.dart' show CodegenInputs;
-import 'js_backend/enqueuer.dart';
 import 'universe/member_usage.dart';
 import 'universe/resolution_world_builder.dart';
-import 'universe/world_builder.dart';
 import 'universe/use.dart'
     show
         ConstantUse,
@@ -30,93 +24,9 @@ import 'universe/use.dart'
         StaticUseKind,
         TypeUse,
         TypeUseKind;
-import 'universe/world_impact.dart'
-    show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
+import 'universe/world_impact.dart' show WorldImpact, WorldImpactVisitor;
 import 'util/enumset.dart';
 import 'util/util.dart' show Setlet;
-import 'world.dart' show JClosedWorld;
-
-class EnqueueTask extends CompilerTask {
-  ResolutionEnqueuer resolutionEnqueuerForTesting;
-  bool _resolutionEnqueuerCreated = false;
-  CodegenEnqueuer codegenEnqueuerForTesting;
-  final Compiler compiler;
-
-  @override
-  String get name => 'Enqueue';
-
-  EnqueueTask(Compiler compiler)
-      : this.compiler = compiler,
-        super(compiler.measurer);
-
-  ResolutionEnqueuer createResolutionEnqueuer() {
-    assert(!_resolutionEnqueuerCreated);
-    _resolutionEnqueuerCreated = true;
-    ResolutionEnqueuer enqueuer = compiler.frontendStrategy
-        .createResolutionEnqueuer(this, compiler)
-      ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
-    if (retainDataForTesting) {
-      resolutionEnqueuerForTesting = enqueuer;
-    }
-    return enqueuer;
-  }
-
-  Enqueuer createCodegenEnqueuer(
-      JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults,
-      CodegenInputs codegenInputs,
-      CodegenResults codegenResults) {
-    Enqueuer enqueuer = compiler.backendStrategy.createCodegenEnqueuer(this,
-        closedWorld, globalInferenceResults, codegenInputs, codegenResults)
-      ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;
-    if (retainDataForTesting) {
-      codegenEnqueuerForTesting = enqueuer;
-    }
-    return enqueuer;
-  }
-}
-
-abstract class Enqueuer {
-  /// If `true` the checking for unenqueued members is skipped. The current
-  /// implementation registers parameter usages as a side-effect so unit
-  /// testing of member usage we need to test both with and without the
-  /// enqueuer check.
-  // TODO(johnniwinther): [checkEnqueuerConsistency] should not have
-  // side-effects.
-  static bool skipEnqueuerCheckForTesting = false;
-
-  WorldBuilder get worldBuilder;
-
-  void open(ImpactStrategy impactStrategy, FunctionEntity mainMethod,
-      Iterable<Uri> libraries);
-  void close();
-
-  /// Returns [:true:] if this enqueuer is the resolution enqueuer.
-  bool get isResolutionQueue;
-
-  bool queueIsClosed;
-
-  bool get queueIsEmpty;
-
-  ImpactUseCase get impactUse;
-
-  void forEach(void f(WorkItem work));
-
-  /// Apply the [worldImpact] to this enqueuer. If the [impactSource] is
-  /// provided the impact strategy will remove it from the element impact cache,
-  /// if it is no longer needed.
-  void applyImpact(WorldImpact worldImpact, {var impactSource});
-  bool checkNoEnqueuedInvokedInstanceMethods(
-      ElementEnvironment elementEnvironment);
-
-  /// Check the enqueuer queue is empty or fail otherwise.
-  void checkQueueIsEmpty();
-  void logSummary(void log(String message));
-
-  Iterable<MemberEntity> get processedEntities;
-
-  Iterable<ClassEntity> get processedClasses;
-}
 
 abstract class EnqueuerListener {
   /// Called to instruct to the backend that [type] has been instantiated.
@@ -176,7 +86,40 @@ abstract class EnqueuerListener {
   void logSummary(void log(String message));
 }
 
-abstract class EnqueuerImpl extends Enqueuer {
+abstract class Enqueuer {
+  /// If `true` the checking for unenqueued members is skipped. The current
+  /// implementation registers parameter usages as a side-effect so unit
+  /// testing of member usage we need to test both with and without the
+  /// enqueuer check.
+  // TODO(johnniwinther): [checkEnqueuerConsistency] should not have
+  // side-effects.
+  static bool skipEnqueuerCheckForTesting = false;
+
+  WorldImpactVisitor get impactVisitor;
+
+  bool queueIsClosed;
+
+  bool get queueIsEmpty;
+
+  void forEach(void f(WorkItem work));
+
+  /// Apply the [worldImpact] to this enqueuer.
+  void applyImpact(WorldImpact worldImpact) {
+    if (worldImpact.isEmpty) return;
+    worldImpact.apply(impactVisitor);
+  }
+
+  bool checkNoEnqueuedInvokedInstanceMethods(
+      ElementEnvironment elementEnvironment);
+
+  /// Check the enqueuer queue is empty or fail otherwise.
+  void checkQueueIsEmpty();
+  void logSummary(void log(String message));
+
+  Iterable<MemberEntity> get processedEntities;
+
+  Iterable<ClassEntity> get directlyInstantiatedClasses;
+
   CompilerTask get task;
   void checkClass(ClassEntity cls);
   void processStaticUse(MemberEntity member, StaticUse staticUse);
@@ -185,23 +128,11 @@ abstract class EnqueuerImpl extends Enqueuer {
   void processConstantUse(ConstantUse constantUse);
   EnqueuerListener get listener;
 
-  // TODO(johnniwinther): Initialize [_impactStrategy] to `null`.
-  ImpactStrategy _impactStrategy = const ImpactStrategy();
-
-  ImpactStrategy get impactStrategy => _impactStrategy;
-
-  @override
-  void open(ImpactStrategy impactStrategy, FunctionEntity mainMethod,
-      Iterable<Uri> libraries) {
-    _impactStrategy = impactStrategy;
+  void open(FunctionEntity mainMethod, Iterable<Uri> libraries) {
     listener.onQueueOpen(this, mainMethod, libraries);
   }
 
-  @override
   void close() {
-    // TODO(johnniwinther): Set [_impactStrategy] to `null` and [queueIsClosed]
-    // to `true` here.
-    _impactStrategy = const ImpactStrategy();
     listener.onQueueClosed();
   }
 
@@ -209,8 +140,7 @@ abstract class EnqueuerImpl extends Enqueuer {
   bool checkEnqueuerConsistency(ElementEnvironment elementEnvironment) {
     task.measureSubtask('resolution.check', () {
       // Run through the classes and see if we need to enqueue more methods.
-      for (ClassEntity classElement
-          in worldBuilder.directlyInstantiatedClasses) {
+      for (ClassEntity classElement in directlyInstantiatedClasses) {
         for (ClassEntity currentClass = classElement;
             currentClass != null;
             currentClass = elementEnvironment.getSuperClass(currentClass)) {
@@ -223,9 +153,7 @@ abstract class EnqueuerImpl extends Enqueuer {
 }
 
 /// [Enqueuer] which is specific to resolution.
-class ResolutionEnqueuer extends EnqueuerImpl {
-  static const ImpactUseCase IMPACT_USE = ImpactUseCase('ResolutionEnqueuer');
-
+class ResolutionEnqueuer extends Enqueuer {
   @override
   final CompilerTask task;
   final String name;
@@ -234,7 +162,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   final Set<ClassEntity> _recentClasses = Setlet<ClassEntity>();
   bool _recentConstants = false;
-  final ResolutionEnqueuerWorldBuilder _worldBuilder;
+  final ResolutionWorldBuilder worldBuilder;
   WorkItemBuilder _workItemBuilder;
   final DiagnosticReporter _reporter;
   final AnnotationsData _annotationsData;
@@ -242,7 +170,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   @override
   bool queueIsClosed = false;
 
-  WorldImpactVisitor _impactVisitor;
+  @override
+  WorldImpactVisitor impactVisitor;
 
   final Queue<WorkItem> _queue = Queue<WorkItem>();
 
@@ -251,13 +180,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   void Function() onEmptyForTesting;
 
   ResolutionEnqueuer(this.task, this._reporter, this.listener,
-      this._worldBuilder, this._workItemBuilder, this._annotationsData,
+      this.worldBuilder, this._workItemBuilder, this._annotationsData,
       [this.name = 'resolution enqueuer']) {
-    _impactVisitor = EnqueuerImplImpactVisitor(this);
+    impactVisitor = EnqueuerImpactVisitor(this);
   }
 
   @override
-  ResolutionWorldBuilder get worldBuilder => _worldBuilder;
+  Iterable<ClassEntity> get directlyInstantiatedClasses =>
+      worldBuilder.directlyInstantiatedClasses;
 
   @override
   bool get queueIsEmpty => _queue.isEmpty;
@@ -269,22 +199,12 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     }
   }
 
-  @override
-  Iterable<ClassEntity> get processedClasses => _worldBuilder.processedClasses;
-
-  @override
-  void applyImpact(WorldImpact worldImpact, {var impactSource}) {
-    if (worldImpact.isEmpty) return;
-    impactStrategy.visitImpact(
-        impactSource, worldImpact, _impactVisitor, impactUse);
-  }
-
   void _registerInstantiatedType(InterfaceType type,
       {ConstructorEntity constructor,
       bool nativeUsage = false,
       bool globalDependency = false}) {
     task.measureSubtask('resolution.typeUse', () {
-      _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
+      worldBuilder.registerTypeInstantiation(type, _applyClassUse,
           constructor: constructor);
       listener.registerInstantiatedType(type,
           isGlobal: globalDependency, nativeUsage: nativeUsage);
@@ -300,7 +220,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   @override
   void checkClass(ClassEntity cls) {
-    _worldBuilder.processClassMembers(cls,
+    worldBuilder.processClassMembers(cls,
         (MemberEntity member, EnumSet<MemberUse> useSet) {
       if (useSet.isNotEmpty) {
         _reporter.internalError(member,
@@ -318,8 +238,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       _registerClosurizedMember(member);
     }
     if (useSet.contains(MemberUse.CLOSURIZE_STATIC)) {
-      applyImpact(listener.registerGetOfStaticFunction(),
-          impactSource: 'get of static function');
+      applyImpact(listener.registerGetOfStaticFunction());
     }
   }
 
@@ -327,32 +246,29 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   void _applyClassUse(ClassEntity cls, EnumSet<ClassUse> useSet) {
     if (useSet.contains(ClassUse.INSTANTIATED)) {
       _recentClasses.add(cls);
-      _worldBuilder.processClassMembers(cls, _applyMemberUse);
+      worldBuilder.processClassMembers(cls, _applyMemberUse);
       // We only tell the backend once that [cls] was instantiated, so
       // any additional dependencies must be treated as global
       // dependencies.
-      applyImpact(listener.registerInstantiatedClass(cls),
-          impactSource: 'instantiated class');
+      applyImpact(listener.registerInstantiatedClass(cls));
     }
     if (useSet.contains(ClassUse.IMPLEMENTED)) {
-      applyImpact(listener.registerImplementedClass(cls),
-          impactSource: 'implemented class');
+      applyImpact(listener.registerImplementedClass(cls));
     }
   }
 
   @override
   void processDynamicUse(DynamicUse dynamicUse) {
     task.measureSubtask('resolution.dynamicUse', () {
-      _worldBuilder.registerDynamicUse(dynamicUse, _applyMemberUse);
+      worldBuilder.registerDynamicUse(dynamicUse, _applyMemberUse);
     });
   }
 
   @override
   void processConstantUse(ConstantUse constantUse) {
     task.measureSubtask('resolution.constantUse', () {
-      if (_worldBuilder.registerConstantUse(constantUse)) {
-        applyImpact(listener.registerUsedConstant(constantUse.value),
-            impactSource: 'constant use');
+      if (worldBuilder.registerConstantUse(constantUse)) {
+        applyImpact(listener.registerUsedConstant(constantUse.value));
         _recentConstants = true;
       }
     });
@@ -361,7 +277,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   @override
   void processStaticUse(MemberEntity member, StaticUse staticUse) {
     task.measureSubtask('resolution.staticUse', () {
-      _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
+      worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
       // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
       // for these:
       switch (staticUse.kind) {
@@ -410,7 +326,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         break;
       case TypeUseKind.TYPE_LITERAL:
         if (type is TypeVariableType) {
-          _worldBuilder.registerTypeVariableTypeLiteral(type);
+          worldBuilder.registerTypeVariableTypeLiteral(type);
         }
         break;
       case TypeUseKind.RTI_VALUE:
@@ -426,18 +342,17 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   void _registerIsCheck(DartType type) {
-    _worldBuilder.registerIsCheck(type);
+    worldBuilder.registerIsCheck(type);
   }
 
   void _registerNamedTypeVariableNewRti(TypeVariableType type) {
-    _worldBuilder.registerNamedTypeVariableNewRti(type);
+    worldBuilder.registerNamedTypeVariableNewRti(type);
   }
 
   void _registerClosurizedMember(MemberEntity element) {
     assert(element.isInstanceMember);
-    applyImpact(listener.registerClosurizedMember(element),
-        impactSource: 'closurized member');
-    _worldBuilder.registerClosurizedMember(element);
+    applyImpact(listener.registerClosurizedMember(element));
+    worldBuilder.registerClosurizedMember(element);
   }
 
   void _forEach(void f(WorkItem work)) {
@@ -445,9 +360,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
         WorkItem work = _queue.removeLast();
-        if (!_worldBuilder.isMemberProcessed(work.element)) {
+        if (!worldBuilder.isMemberProcessed(work.element)) {
           f(work);
-          _worldBuilder.registerProcessedMember(work.element);
+          worldBuilder.registerProcessedMember(work.element);
         }
       }
       List<ClassEntity> recents = _recentClasses.toList(growable: false);
@@ -479,14 +394,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   String toString() => 'Enqueuer($name)';
 
   @override
-  Iterable<MemberEntity> get processedEntities =>
-      _worldBuilder.processedMembers;
-
-  @override
-  ImpactUseCase get impactUse => IMPACT_USE;
-
-  @override
-  bool get isResolutionQueue => true;
+  Iterable<MemberEntity> get processedEntities => worldBuilder.processedMembers;
 
   @override
   void close() {
@@ -499,13 +407,13 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// Registers [entity] as processed by the resolution enqueuer. Used only for
   /// testing.
   void registerProcessedElementInternal(MemberEntity entity) {
-    _worldBuilder.registerProcessedMember(entity);
+    worldBuilder.registerProcessedMember(entity);
   }
 
   /// Create a [WorkItem] for [entity] and add it to the work list if it has not
   /// already been processed.
   void _addToWorkList(MemberEntity entity) {
-    if (_worldBuilder.isMemberProcessed(entity)) return;
+    if (worldBuilder.isMemberProcessed(entity)) return;
     WorkItem workItem = _workItemBuilder.createWorkItem(entity);
     if (workItem == null) return;
 
@@ -514,9 +422,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
           entity, "Resolution work list is closed. Trying to add $entity.");
     }
 
-    applyImpact(listener.registerUsedElement(entity),
-        impactSource: 'used element');
-    _worldBuilder.registerUsedElement(entity);
+    applyImpact(listener.registerUsedElement(entity));
+    worldBuilder.registerUsedElement(entity);
     _queue.add(workItem);
   }
 
@@ -531,10 +438,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 }
 
-class EnqueuerImplImpactVisitor implements WorldImpactVisitor {
-  final EnqueuerImpl enqueuer;
+class EnqueuerImpactVisitor implements WorldImpactVisitor {
+  final Enqueuer enqueuer;
 
-  EnqueuerImplImpactVisitor(this.enqueuer);
+  EnqueuerImpactVisitor(this.enqueuer);
 
   @override
   void visitDynamicUse(MemberEntity member, DynamicUse dynamicUse) {

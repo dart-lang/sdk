@@ -45,6 +45,10 @@ class TestProject {
 
   String get dirPath => dir.path;
 
+  String get pubCachePath => path.join(dirPath, 'pub_cache');
+
+  String get pubCacheBinPath => path.join(pubCachePath, 'bin');
+
   String get mainPath => path.join(dirPath, relativeFilePath);
 
   final String name;
@@ -122,19 +126,23 @@ dev_dependencies:
     List<String> arguments, {
     String? workingDir,
   }) async {
-    _process = await Process.start(
+    final process = await Process.start(
         Platform.resolvedExecutable,
         [
           '--no-analytics',
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,
-        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
-    final stdoutContents = _process!.stdout.transform(utf8.decoder).join();
-    final stderrContents = _process!.stderr.transform(utf8.decoder).join();
-    final code = await _process!.exitCode;
+        environment: {
+          if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true',
+          'PUB_CACHE': pubCachePath,
+        });
+    _process = process;
+    final stdoutContents = process.stdout.transform(utf8.decoder).join();
+    final stderrContents = process.stderr.transform(utf8.decoder).join();
+    final code = await process.exitCode;
     return ProcessResult(
-      _process!.pid,
+      process.pid,
       code,
       await stdoutContents,
       await stderrContents,
@@ -152,7 +160,10 @@ dev_dependencies:
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,
-        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'})
+        environment: {
+          if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true',
+          'PUB_CACHE': pubCachePath,
+        })
       ..then((p) => _process = p);
   }
 

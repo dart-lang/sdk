@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [InstanceCreationExpression] nodes.
@@ -20,7 +20,8 @@ class InstanceCreationExpressionResolver {
 
   InstanceCreationExpressionResolver(this._resolver);
 
-  void resolve(InstanceCreationExpressionImpl node) {
+  void resolve(InstanceCreationExpressionImpl node,
+      {required DartType? contextType}) {
     // The parser can parse certain code as [InstanceCreationExpression] when it
     // might be an invocation of a method on a [FunctionReference] or
     // [ConstructorReference]. In such a case, it is this resolver's
@@ -36,92 +37,40 @@ class InstanceCreationExpressionResolver {
     // InstanceCreationExpression needs to be rewritten as a MethodInvocation
     // with a target of `a.m<int>` (a FunctionReference) and a name of `apply`.
     if (node.keyword == null) {
-      var typeNameTypeArguments = node.constructorName.type2.typeArguments;
+      var typeNameTypeArguments = node.constructorName.type.typeArguments;
       if (typeNameTypeArguments != null) {
         // This could be a method call on a function reference or a constructor
         // reference.
-        _resolveWithTypeNameWithTypeArguments(node, typeNameTypeArguments);
+        _resolveWithTypeNameWithTypeArguments(node, typeNameTypeArguments,
+            contextType: contextType);
         return;
       }
     }
 
-    _resolveInstanceCreationExpression(node);
+    _resolveInstanceCreationExpression(node, contextType: contextType);
   }
 
-  void _inferArgumentTypes(covariant InstanceCreationExpressionImpl node) {
+  void _resolveInstanceCreationExpression(InstanceCreationExpressionImpl node,
+      {required DartType? contextType}) {
+    var whyNotPromotedList = <WhyNotPromotedGetter>[];
     var constructorName = node.constructorName;
-    var typeName = constructorName.type2;
-    var typeArguments = typeName.typeArguments;
+    constructorName.accept(_resolver);
+    // Re-assign constructorName in case the node got replaced.
+    constructorName = node.constructorName;
+    _resolver.elementResolver.visitInstanceCreationExpression(node);
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       constructorName: constructorName,
       definingLibrary: _resolver.definingLibrary,
     );
-    FunctionType? inferred;
-
-    // If the constructor is generic, we'll have a ConstructorMember that
-    // substitutes in type arguments (possibly `dynamic`) from earlier in
-    // resolution.
-    //
-    // Otherwise we'll have a ConstructorElement, and we can skip inference
-    // because there's nothing to infer in a non-generic type.
-    if (elementToInfer != null) {
-      // TODO(leafp): Currently, we may re-infer types here, since we
-      // sometimes resolve multiple times.  We should really check that we
-      // have not already inferred something.  However, the obvious ways to
-      // check this don't work, since we may have been instantiated
-      // to bounds in an earlier phase, and we *do* want to do inference
-      // in that case.
-
-      // Get back to the uninstantiated generic constructor.
-      // TODO(jmesserly): should we store this earlier in resolution?
-      // Or look it up, instead of jumping backwards through the Member?
-      var rawElement = elementToInfer.element;
-      var constructorType = elementToInfer.asType;
-
-      inferred = _resolver.inferenceHelper.inferArgumentTypesForGeneric(
-          node, constructorType, typeArguments,
-          isConst: node.isConst, errorNode: node.constructorName);
-
-      if (inferred != null) {
-        var arguments = node.argumentList;
-        InferenceContext.setType(arguments, inferred);
-        // Fix up the parameter elements based on inferred method.
-        arguments.correspondingStaticParameters =
-            ResolverVisitor.resolveArgumentsToParameters(
-          argumentList: arguments,
-          parameters: inferred.parameters,
-        );
-
-        constructorName.type2.type = inferred.returnType;
-
-        // Update the static element as well. This is used in some cases, such
-        // as computing constant values. It is stored in two places.
-        var constructorElement = ConstructorMember.from(
-          rawElement,
-          inferred.returnType as InterfaceType,
-        );
-        constructorName.staticElement = constructorElement;
-      }
-    }
-
-    if (inferred == null) {
-      var constructorElement = constructorName.staticElement;
-      if (constructorElement != null) {
-        var type = constructorElement.type;
-        type = _resolver.toLegacyTypeIfOptOut(type) as FunctionType;
-        InferenceContext.setType(node.argumentList, type);
-      }
-    }
-  }
-
-  void _resolveInstanceCreationExpression(InstanceCreationExpressionImpl node) {
-    var whyNotPromotedList = <WhyNotPromotedGetter>[];
-    node.constructorName.accept(_resolver);
-    _inferArgumentTypes(node);
-    _resolver.visitArgumentList(node.argumentList,
+    const InstanceCreationInferrer().resolveInvocation(
+        resolver: _resolver,
+        node: node,
+        rawType: elementToInfer?.asType,
+        contextType: contextType,
         whyNotPromotedList: whyNotPromotedList);
-    _resolver.elementResolver.visitInstanceCreationExpression(node);
-    _resolver.typeAnalyzer.visitInstanceCreationExpression(node);
+    _resolver.inferenceHelper.recordStaticType(
+        node, node.constructorName.type.type!,
+        contextType: contextType);
     _resolver.checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
@@ -132,23 +81,23 @@ class InstanceCreationExpressionResolver {
   /// The instance creation expression may actually be a method call on a
   /// type-instantiated function reference or constructor reference.
   void _resolveWithTypeNameWithTypeArguments(
-    InstanceCreationExpressionImpl node,
-    TypeArgumentListImpl typeNameTypeArguments,
-  ) {
-    var typeNameName = node.constructorName.type2.name;
+      InstanceCreationExpressionImpl node,
+      TypeArgumentListImpl typeNameTypeArguments,
+      {required DartType? contextType}) {
+    var typeNameName = node.constructorName.type.name;
     if (typeNameName is SimpleIdentifierImpl) {
       // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
       // [MethodInvocation].
-      _resolveInstanceCreationExpression(node);
+      _resolveInstanceCreationExpression(node, contextType: contextType);
       return;
     } else if (typeNameName is PrefixedIdentifierImpl) {
       // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
       // [MethodInvocation].
-      _resolveInstanceCreationExpression(node);
+      _resolveInstanceCreationExpression(node, contextType: contextType);
     } else {
       assert(
           false, 'Unexpected typeNameName type: ${typeNameName.runtimeType}');
-      _resolveInstanceCreationExpression(node);
+      _resolveInstanceCreationExpression(node, contextType: contextType);
     }
   }
 }

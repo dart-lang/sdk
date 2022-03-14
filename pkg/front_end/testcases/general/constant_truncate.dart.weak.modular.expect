@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -305,103 +305,103 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static const field core::int* a0 = invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* a1 = invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* a2 = invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* a3 = invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* a4 = invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* a5 = invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* b0 = invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* b1 = invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* b2 = invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* b3 = invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* b4 = invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* b5 = invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* c0 = invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* c1 = invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* c2 = invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* c3 = invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* c4 = invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* c5 = invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.";
-static const field core::int* d0 = invalid-expression "Binary operator '0 ~/ NaN' results is Infinity or NaN.";
-static const field core::int* d1 = invalid-expression "Binary operator '0.0 ~/ NaN' results is Infinity or NaN.";
-static const field core::int* d2 = invalid-expression "Binary operator '-0.0 ~/ NaN' results is Infinity or NaN.";
-static const field core::int* d3 = invalid-expression "Binary operator 'NaN ~/ NaN' results is Infinity or NaN.";
-static const field core::int* d4 = invalid-expression "Binary operator 'Infinity ~/ NaN' results is Infinity or NaN.";
-static const field core::int* d5 = invalid-expression "Binary operator '-Infinity ~/ NaN' results is Infinity or NaN.";
-static const field core::int* e0 = #C1;
-static const field core::int* e1 = #C1;
-static const field core::int* e2 = #C1;
-static const field core::int* e3 = invalid-expression "Binary operator 'NaN ~/ Infinity' results is Infinity or NaN.";
-static const field core::int* e4 = invalid-expression "Binary operator 'Infinity ~/ Infinity' results is Infinity or NaN.";
-static const field core::int* e5 = invalid-expression "Binary operator '-Infinity ~/ Infinity' results is Infinity or NaN.";
-static const field core::int* f0 = #C1;
-static const field core::int* f1 = #C1;
-static const field core::int* f2 = #C1;
-static const field core::int* f3 = invalid-expression "Binary operator 'NaN ~/ -Infinity' results is Infinity or NaN.";
-static const field core::int* f4 = invalid-expression "Binary operator 'Infinity ~/ -Infinity' results is Infinity or NaN.";
-static const field core::int* f5 = invalid-expression "Binary operator '-Infinity ~/ -Infinity' results is Infinity or NaN.";
+static const field core::int a0 = invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int a1 = invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int a2 = invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int a3 = invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.";
+static const field core::int a4 = invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int a5 = invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int b0 = invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int b1 = invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int b2 = invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int b3 = invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.";
+static const field core::int b4 = invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int b5 = invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int c0 = invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int c1 = invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int c2 = invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int c3 = invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.";
+static const field core::int c4 = invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int c5 = invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int d0 = invalid-expression "Binary operator '0 ~/ NaN' results is Infinity or NaN.";
+static const field core::int d1 = invalid-expression "Binary operator '0.0 ~/ NaN' results is Infinity or NaN.";
+static const field core::int d2 = invalid-expression "Binary operator '-0.0 ~/ NaN' results is Infinity or NaN.";
+static const field core::int d3 = invalid-expression "Binary operator 'NaN ~/ NaN' results is Infinity or NaN.";
+static const field core::int d4 = invalid-expression "Binary operator 'Infinity ~/ NaN' results is Infinity or NaN.";
+static const field core::int d5 = invalid-expression "Binary operator '-Infinity ~/ NaN' results is Infinity or NaN.";
+static const field core::int e0 = #C1;
+static const field core::int e1 = #C1;
+static const field core::int e2 = #C1;
+static const field core::int e3 = invalid-expression "Binary operator 'NaN ~/ Infinity' results is Infinity or NaN.";
+static const field core::int e4 = invalid-expression "Binary operator 'Infinity ~/ Infinity' results is Infinity or NaN.";
+static const field core::int e5 = invalid-expression "Binary operator '-Infinity ~/ Infinity' results is Infinity or NaN.";
+static const field core::int f0 = #C1;
+static const field core::int f1 = #C1;
+static const field core::int f2 = #C1;
+static const field core::int f3 = invalid-expression "Binary operator 'NaN ~/ -Infinity' results is Infinity or NaN.";
+static const field core::int f4 = invalid-expression "Binary operator 'Infinity ~/ -Infinity' results is Infinity or NaN.";
+static const field core::int f5 = invalid-expression "Binary operator '-Infinity ~/ -Infinity' results is Infinity or NaN.";
 static method main() → dynamic {
-  self::test(0, 0, () → core::int* => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
-  self::test(0.0, 0, () → core::int* => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
-  self::test(0.0.{core::double::unary-}(){() →* core::double*}, 0, () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C2, 0, () → core::int* => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C3, 0, () → core::int* => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C4, 0, () → core::int* => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
-  self::test(0, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
-  self::test(0.0, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
-  self::test(0.0.{core::double::unary-}(){() →* core::double*}, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C2, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C3, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C4, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
-  self::test(0, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
-  self::test(0.0, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
-  self::test(0.0.{core::double::unary-}(){() →* core::double*}, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C2, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C3, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C4, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
-  self::test(0, #C2, () → core::int* => invalid-expression "Binary operator '0 ~/ NaN' results is Infinity or NaN.");
-  self::test(0.0, #C2, () → core::int* => invalid-expression "Binary operator '0.0 ~/ NaN' results is Infinity or NaN.");
-  self::test(0.0.{core::double::unary-}(){() →* core::double*}, #C2, () → core::int* => invalid-expression "Binary operator '-0.0 ~/ NaN' results is Infinity or NaN.");
-  self::test(#C2, #C2, () → core::int* => invalid-expression "Binary operator 'NaN ~/ NaN' results is Infinity or NaN.");
-  self::test(#C3, #C2, () → core::int* => invalid-expression "Binary operator 'Infinity ~/ NaN' results is Infinity or NaN.");
-  self::test(#C4, #C2, () → core::int* => invalid-expression "Binary operator '-Infinity ~/ NaN' results is Infinity or NaN.");
-  self::test(0, #C3, () → core::int* => #C1);
-  self::test(0.0, #C3, () → core::int* => #C1);
-  self::test(0.0.{core::double::unary-}(){() →* core::double*}, #C3, () → core::int* => #C1);
-  self::test(#C2, #C3, () → core::int* => invalid-expression "Binary operator 'NaN ~/ Infinity' results is Infinity or NaN.");
-  self::test(#C3, #C3, () → core::int* => invalid-expression "Binary operator 'Infinity ~/ Infinity' results is Infinity or NaN.");
-  self::test(#C4, #C3, () → core::int* => invalid-expression "Binary operator '-Infinity ~/ Infinity' results is Infinity or NaN.");
-  self::test(0, #C4, () → core::int* => #C1);
-  self::test(0.0, #C4, () → core::int* => #C1);
-  self::test(0.0.{core::double::unary-}(){() →* core::double*}, #C4, () → core::int* => #C1);
-  self::test(#C2, #C4, () → core::int* => invalid-expression "Binary operator 'NaN ~/ -Infinity' results is Infinity or NaN.");
-  self::test(#C3, #C4, () → core::int* => invalid-expression "Binary operator 'Infinity ~/ -Infinity' results is Infinity or NaN.");
-  self::test(#C4, #C4, () → core::int* => invalid-expression "Binary operator '-Infinity ~/ -Infinity' results is Infinity or NaN.");
+  self::test(0, 0, () → core::int => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0, 0, () → core::int => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0.{core::double::unary-}(){() → core::double}, 0, () → core::int => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C2, 0, () → core::int => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C3, 0, () → core::int => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C4, 0, () → core::int => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(0, 0.0, () → core::int => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0, 0.0, () → core::int => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0.{core::double::unary-}(){() → core::double}, 0.0, () → core::int => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C2, 0.0, () → core::int => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C3, 0.0, () → core::int => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C4, 0.0, () → core::int => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(0, 0.0.{core::double::unary-}(){() → core::double}, () → core::int => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0, 0.0.{core::double::unary-}(){() → core::double}, () → core::int => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0.{core::double::unary-}(){() → core::double}, 0.0.{core::double::unary-}(){() → core::double}, () → core::int => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C2, 0.0.{core::double::unary-}(){() → core::double}, () → core::int => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C3, 0.0.{core::double::unary-}(){() → core::double}, () → core::int => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C4, 0.0.{core::double::unary-}(){() → core::double}, () → core::int => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(0, #C2, () → core::int => invalid-expression "Binary operator '0 ~/ NaN' results is Infinity or NaN.");
+  self::test(0.0, #C2, () → core::int => invalid-expression "Binary operator '0.0 ~/ NaN' results is Infinity or NaN.");
+  self::test(0.0.{core::double::unary-}(){() → core::double}, #C2, () → core::int => invalid-expression "Binary operator '-0.0 ~/ NaN' results is Infinity or NaN.");
+  self::test(#C2, #C2, () → core::int => invalid-expression "Binary operator 'NaN ~/ NaN' results is Infinity or NaN.");
+  self::test(#C3, #C2, () → core::int => invalid-expression "Binary operator 'Infinity ~/ NaN' results is Infinity or NaN.");
+  self::test(#C4, #C2, () → core::int => invalid-expression "Binary operator '-Infinity ~/ NaN' results is Infinity or NaN.");
+  self::test(0, #C3, () → core::int => #C1);
+  self::test(0.0, #C3, () → core::int => #C1);
+  self::test(0.0.{core::double::unary-}(){() → core::double}, #C3, () → core::int => #C1);
+  self::test(#C2, #C3, () → core::int => invalid-expression "Binary operator 'NaN ~/ Infinity' results is Infinity or NaN.");
+  self::test(#C3, #C3, () → core::int => invalid-expression "Binary operator 'Infinity ~/ Infinity' results is Infinity or NaN.");
+  self::test(#C4, #C3, () → core::int => invalid-expression "Binary operator '-Infinity ~/ Infinity' results is Infinity or NaN.");
+  self::test(0, #C4, () → core::int => #C1);
+  self::test(0.0, #C4, () → core::int => #C1);
+  self::test(0.0.{core::double::unary-}(){() → core::double}, #C4, () → core::int => #C1);
+  self::test(#C2, #C4, () → core::int => invalid-expression "Binary operator 'NaN ~/ -Infinity' results is Infinity or NaN.");
+  self::test(#C3, #C4, () → core::int => invalid-expression "Binary operator 'Infinity ~/ -Infinity' results is Infinity or NaN.");
+  self::test(#C4, #C4, () → core::int => invalid-expression "Binary operator '-Infinity ~/ -Infinity' results is Infinity or NaN.");
 }
-static method test(core::num* a, core::num* b, () →* core::num* f) → void {
-  core::num* result;
+static method test(core::num a, core::num b, () → core::num f) → void {
+  core::num result;
   try {
-    result = a.{core::num::~/}(b){(core::num*) →* core::int*};
+    result = a.{core::num::~/}(b){(core::num) → core::int};
     core::print("${a} ~/ ${b} = ${result}");
   }
-  on dynamic catch(final dynamic e) {
+  on core::Object catch(final core::Object e) {
     core::print("${a} ~/ ${b} throws ${e}");
     self::throws(f);
     return;
   }
-  self::expect(f(){() →* core::num*}, result);
+  self::expect(f(){() → core::num}, result);
 }
 static method expect(dynamic expected, dynamic actual) → void {
-  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {
     throw "Expected ${expected}, actual ${actual}";
   }
 }
-static method throws(() →* core::num* f) → void {
+static method throws(() → core::num f) → void {
   try {
-    f(){() →* core::num*};
+    f(){() → core::num};
   }
-  on dynamic catch(final dynamic e) {
+  on core::Object catch(final core::Object e) {
     return;
   }
   throw "Expected exception";

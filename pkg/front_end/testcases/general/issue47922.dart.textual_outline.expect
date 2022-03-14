@@ -1,0 +1,5 @@
+class A {
+  final String foo;
+  A(const this.foo);
+}
+main() {}

@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Version;
+import 'package:kernel/ast.dart' show Component, Version;
 
 import 'package:kernel/default_language_version.dart' as kernel
     show defaultLanguageVersion;
@@ -19,6 +19,7 @@ import 'package:kernel/target/targets.dart' show Target;
 import '../base/nnbd_mode.dart';
 
 import '../fasta/kernel/macro.dart';
+import '../macro_serializer.dart';
 import 'experimental_flags.dart'
     show
         AllowedExperimentalFlags,
@@ -113,15 +114,31 @@ class CompilerOptions {
 
   /// Function that creates a [MacroExecutor] if supported.
   ///
-  /// This is an experimental feature.
+  /// This is part of the experimental macro feature.
   Future<MacroExecutor> Function() macroExecutorProvider =
       () async => throw 'Macro execution is not supported.';
 
   /// Map from [MacroClass] to [Uri] for the precompiled dill that contains
   /// the macro code.
   ///
-  /// This is an experimental feature.
+  /// This is part of the experimental macro feature.
   Map<MacroClass, Uri>? precompiledMacroUris;
+
+  /// The [Target] used for compiling macros.
+  ///
+  /// If `null`, macro declarations will not be precompiled, even when other
+  /// libraries depend on them.
+  /// This is part of the experimental macro feature.
+  Target? macroTarget;
+
+  /// Function that can create a [Uri] for the serialized result of a
+  /// [Component].
+  ///
+  /// This is used to turn a precompiled macro into a [Uri] that can be loaded
+  /// by the macro executor provided by [macroExecutorProvider].
+  ///
+  /// This is part of the experimental macro feature.
+  MacroSerializer? macroSerializer;
 
   /// Whether to generate code for the SDK.
   ///

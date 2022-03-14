@@ -925,9 +925,10 @@ class _SyncStarClosureContext implements ClosureContext {
         ? inferrer.wrapType(_yieldElementContext,
             inferrer.coreTypes.iterableClass, inferrer.library.nonNullable)
         : _yieldElementContext;
-    Expression expression = inferrer.ensureAssignableResult(
-        expectedType, expressionResult,
-        fileOffset: node.fileOffset);
+    Expression expression = inferrer
+        .ensureAssignableResult(expectedType, expressionResult,
+            fileOffset: node.fileOffset)
+        .expression;
     node.expression = expression..parent = node;
     DartType type = expressionResult.inferredType;
     if (!identical(expressionResult.expression, expression)) {
@@ -1057,9 +1058,10 @@ class _AsyncStarClosureContext implements ClosureContext {
             inferrer.coreTypes.streamClass, inferrer.library.nonNullable)
         : _yieldElementContext;
 
-    Expression expression = inferrer.ensureAssignableResult(
-        expectedType, expressionResult,
-        fileOffset: node.fileOffset);
+    Expression expression = inferrer
+        .ensureAssignableResult(expectedType, expressionResult,
+            fileOffset: node.fileOffset)
+        .expression;
     node.expression = expression..parent = node;
     DartType type = expressionResult.inferredType;
     if (!identical(expressionResult.expression, expression)) {

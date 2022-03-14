@@ -11,8 +11,8 @@ import 'dart:typed_data';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../compiler_new.dart' as api;
-import '../compiler_new.dart';
+import '../compiler.dart' as api;
+import '../compiler.dart';
 import 'colors.dart' as colors;
 import 'dart2js.dart' show AbortLeg;
 import 'io/source_file.dart';
@@ -40,9 +40,9 @@ abstract class SourceFileProvider implements CompilerInput {
     }
     if (input != null) return Future.value(input);
 
-    if (resourceUri.scheme == 'file') {
+    if (resourceUri.isScheme('file')) {
       return _readFromFile(resourceUri, inputKind);
-    } else if (resourceUri.scheme == 'http' || resourceUri.scheme == 'https') {
+    } else if (resourceUri.isScheme('http') || resourceUri.isScheme('https')) {
       return _readFromHttp(resourceUri, inputKind);
     } else {
       throw ArgumentError("Unknown scheme in uri '$resourceUri'");
@@ -50,7 +50,7 @@ abstract class SourceFileProvider implements CompilerInput {
   }
 
   api.Input _readFromFileSync(Uri resourceUri, api.InputKind inputKind) {
-    assert(resourceUri.scheme == 'file');
+    assert(resourceUri.isScheme('file'));
     List<int> source;
     try {
       source = readAll(resourceUri.toFilePath(),
@@ -99,7 +99,7 @@ abstract class SourceFileProvider implements CompilerInput {
 
   Future<api.Input<List<int>>> _readFromHttp(
       Uri resourceUri, api.InputKind inputKind) {
-    assert(resourceUri.scheme == 'http');
+    assert(resourceUri.isScheme('http'));
     HttpClient client = HttpClient();
     return client
         .getUrl(resourceUri)
@@ -136,12 +136,6 @@ abstract class SourceFileProvider implements CompilerInput {
     });
   }
 
-  // TODO(johnniwinther): Remove this when no longer needed for the old compiler
-  // API.
-  Future /* <List<int> | String> */ call(Uri resourceUri) {
-    throw "unimplemented";
-  }
-
   relativizeUri(Uri uri) => fe.relativizeUri(cwd, uri, isWindows);
 
   SourceFile<List<int>> getUtf8SourceFile(Uri resourceUri) {
@@ -171,12 +165,6 @@ List<int> readAll(String filename, {bool zeroTerminated = true}) {
 }
 
 class CompilerSourceFileProvider extends SourceFileProvider {
-  // TODO(johnniwinther): Remove this when no longer needed for the old compiler
-  // API.
-  @override
-  Future<List<int>> call(Uri resourceUri) =>
-      readFromUri(resourceUri).then((input) => input.data);
-
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
           {InputKind inputKind = InputKind.UTF8}) =>
@@ -252,7 +240,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
     if (kind != api.Diagnostic.INFO) {
       lastKind = kind;
     }
-    var color;
+    String Function(String) color;
     if (kind == api.Diagnostic.ERROR) {
       color = colors.red;
     } else if (kind == api.Diagnostic.WARNING) {
@@ -279,7 +267,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
       api.Input file = provider.getUtf8SourceFile(uri);
       if (file == null &&
           autoReadFileUri &&
-          (uri.scheme == 'file' || !uri.isAbsolute) &&
+          (uri.isScheme('file') || !uri.isAbsolute) &&
           uri.path.endsWith('.dart')) {
         if (!uri.isAbsolute) {
           uri = provider.cwd.resolveUri(uri);
@@ -301,12 +289,6 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
       isAborting = true;
       throw AbortLeg(message);
     }
-  }
-
-  // TODO(johnniwinther): Remove this when no longer needed for the old compiler
-  // API.
-  void call(Uri uri, int begin, int end, String message, api.Diagnostic kind) {
-    return report(null, uri, begin, end, message, kind);
   }
 }
 
@@ -379,7 +361,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
     Uri uri = createUri(name, extension, type);
     bool isPrimaryOutput = uri == out;
 
-    if (uri.scheme != 'file') {
+    if (!uri.isScheme('file')) {
       onFailure('Unhandled scheme ${uri.scheme} in $uri.');
     }
 
@@ -428,7 +410,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
 
     allOutputFiles.add(fe.relativizeUri(Uri.base, uri, Platform.isWindows));
 
-    if (uri.scheme != 'file') {
+    if (!uri.isScheme('file')) {
       onFailure('Unhandled scheme ${uri.scheme} in $uri.');
     }
 
@@ -608,7 +590,7 @@ class MultiRootInputProvider extends SourceFileProvider {
   Future<api.Input<List<int>>> readFromUri(Uri uri,
       {InputKind inputKind = InputKind.UTF8}) async {
     var resolvedUri = uri;
-    if (resolvedUri.scheme == markerScheme) {
+    if (resolvedUri.isScheme(markerScheme)) {
       var path = resolvedUri.path;
       if (path.startsWith('/')) path = path.substring(1);
       for (var dir in roots) {
@@ -634,7 +616,7 @@ class MultiRootInputProvider extends SourceFileProvider {
 
   @override
   api.Input autoReadFromFile(Uri resourceUri) {
-    if (resourceUri.scheme == markerScheme) {
+    if (resourceUri.isScheme(markerScheme)) {
       var path = resourceUri.path;
       for (var dir in roots) {
         var file = dir.resolve(path);

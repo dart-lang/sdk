@@ -16,13 +16,25 @@ main() {
 @reflectiveTest
 class RedirectGenerativeToNonGenerativeConstructorTest
     extends PubPackageResolutionTest {
-  test_missing() async {
+  test_class_missing() async {
     await assertErrorsInCode(r'''
 class A {
   A() : this.noSuchConstructor();
 }
 ''', [
       error(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, 18,
+          24),
+    ]);
+  }
+
+  test_enum_missing() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  const E() : this.noSuchConstructor();
+}
+''', [
+      error(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, 28,
           24),
     ]);
   }

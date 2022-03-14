@@ -23,7 +23,7 @@ class EA extends self::_EA&_Enum&A /*isEnum*/  {
     : super self::_EA&_Enum&A::•(index, name)
     ;
   method toString() → core::String
-    ;
+    return "EA.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class B extends core::Object implements core::Enum {
   synthetic constructor •() → self::B
@@ -46,7 +46,7 @@ class EB extends self::_EB&_Enum&B /*isEnum*/  {
     : super self::_EB&_Enum&B::•(index, name)
     ;
   method toString() → core::String
-    ;
+    return "EB.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M extends core::Enum /*isMixinDeclaration*/  {
   get foo() → core::int
@@ -66,7 +66,7 @@ class EM extends self::_EM&_Enum&M /*isEnum*/  {
     : super self::_EM&_Enum&M::•(index, name)
     ;
   method toString() → core::String
-    ;
+    return "EM.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class N extends core::Object implements core::Enum /*isMixinDeclaration*/  {
   get foo() → core::int
@@ -86,7 +86,7 @@ class EN extends self::_EN&_Enum&N /*isEnum*/  {
     : super self::_EN&_Enum&N::•(index, name)
     ;
   method toString() → core::String
-    ;
+    return "EN.${this.{core::_Enum::_name}{core::String}}";
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
   if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
@@ -118,7 +118,7 @@ Constructor coverage from constants:
 org-dartlang-testcase:///enum_as_supertype.dart:
 - EA. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
 - _EA&_Enum&A. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - EB. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)
 - _EB&_Enum&B. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)

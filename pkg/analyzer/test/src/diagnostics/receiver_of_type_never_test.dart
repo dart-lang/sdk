@@ -26,13 +26,28 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 25, 6),
     ]);
 
-    assertBinaryExpression(
-      findNode.binary('x =='),
-      element: null,
-      type: 'Never',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.binary('x =='), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: Never
+  operator: ==
+  rightOperand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      staticType: int
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: Never
+''');
   }
 
   test_binaryExpression_never_plus() async {
@@ -45,13 +60,32 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 24, 8),
     ]);
 
-    assertBinaryExpression(
-      findNode.binary('x +'),
-      element: null,
-      type: 'Never',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.binary('x +'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: Never
+  operator: +
+  rightOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
+        literal: 2
+        staticType: int
+      staticElement: dart:core::@class::num::@method::+
+      staticInvokeType: num Function(num)
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: Never
+''');
   }
 
   test_binaryExpression_neverQ_eqEq() async {
@@ -61,13 +95,28 @@ void f(Never? x) {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('x =='),
-      element: objectElement.getMethod('=='),
-      type: 'bool',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.binary('x =='), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: Never?
+  operator: ==
+  rightOperand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      staticType: int
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  staticElement: dart:core::@class::Object::@method::==
+  staticInvokeType: bool Function(Object)
+  staticType: bool
+''');
   }
 
   test_binaryExpression_neverQ_plus() async {
@@ -82,13 +131,32 @@ void f(Never? x) {
           1),
     ]);
 
-    assertBinaryExpression(
-      findNode.binary('x +'),
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.binary('x +'), r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: Never?
+  operator: +
+  rightOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
+        literal: 2
+        staticType: int
+      staticElement: dart:core::@class::num::@method::+
+      staticInvokeType: num Function(num)
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
   }
 
   test_conditionalExpression_falseBranch() async {
@@ -138,12 +206,20 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 22, 3),
     ]);
 
-    assertIndexExpression(
-      findNode.index('x[0]'),
-      readElement: null,
-      writeElement: null,
-      type: 'Never',
-    );
+    assertResolvedNodeText(findNode.index('x[0]'), r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: Never
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightBracket: ]
+  staticElement: <null>
+  staticType: Never
+''');
   }
 
   test_indexExpression_never_readWrite() async {
@@ -166,15 +242,6 @@ void f(Never x) {
       type: 'dynamic',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertIndexExpression(
-        findNode.index('x[0]'),
-        readElement: null,
-        writeElement: null,
-        type: 'dynamic',
-      );
-    }
-
     assertType(findNode.binary('1 + 2'), 'int');
   }
 
@@ -188,14 +255,39 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 22, 11),
     ]);
 
-    assertIndexExpression(
-      findNode.index('x[0]'),
-      readElement: null,
-      writeElement: null,
-      type: 'Never',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.assignment('x[0]'), r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: x
+      staticElement: x@13
+      staticType: Never
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      staticType: int
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_indexExpression_neverQ_read() async {
@@ -208,12 +300,20 @@ void f(Never? x) {
           22, 1),
     ]);
 
-    assertIndexExpression(
-      findNode.index('x[0]'),
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
-    );
+    assertResolvedNodeText(findNode.index('x[0]'), r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: Never?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightBracket: ]
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_indexExpression_neverQ_readWrite() async {
@@ -236,15 +336,6 @@ void f(Never? x) {
       type: 'dynamic',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertIndexExpression(
-        findNode.index('x[0]'),
-        readElement: null,
-        writeElement: null,
-        type: 'dynamic',
-      );
-    }
-
     assertType(findNode.binary('1 + 2'), 'int');
   }
 
@@ -258,14 +349,39 @@ void f(Never? x) {
           22, 1),
     ]);
 
-    assertIndexExpression(
-      findNode.index('x[0]'),
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.assignment('x[0]'), r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: x
+      staticElement: x@14
+      staticType: Never?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      staticType: int
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_invocationArgument() async {
@@ -347,15 +463,20 @@ void f(Never x) {
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
     ]);
 
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.parameter('x'),
-      readType: 'Never',
-      writeElement: findElement.parameter('x'),
-      writeType: 'Never',
-      element: null,
-      type: 'Never',
-    );
+    assertResolvedNodeText(findNode.postfix('x++'), r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: null
+  operator: ++
+  readElement: x@13
+  readType: Never
+  writeElement: x@13
+  writeType: Never
+  staticElement: <null>
+  staticType: Never
+''');
   }
 
   test_postfixExpression_neverQ_plusPlus() async {
@@ -368,15 +489,20 @@ void f(Never? x) {
           22, 2),
     ]);
 
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.parameter('x'),
-      readType: 'Never?',
-      writeElement: findElement.parameter('x'),
-      writeType: 'Never?',
-      element: null,
-      type: 'Never?',
-    );
+    assertResolvedNodeText(findNode.postfix('x++'), r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: null
+  operator: ++
+  readElement: x@14
+  readType: Never?
+  writeElement: x@14
+  writeType: Never?
+  staticElement: <null>
+  staticType: Never?
+''');
   }
 
   test_prefixExpression_never_plusPlus() async {
@@ -389,15 +515,20 @@ void f(Never x) {
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
     ]);
 
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      readElement: findElement.parameter('x'),
-      readType: 'Never',
-      writeElement: findElement.parameter('x'),
-      writeType: 'Never',
-      element: null,
-      type: 'Never',
-    );
+    assertResolvedNodeText(findNode.prefix('++x'), r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: null
+  readElement: x@13
+  readType: Never
+  writeElement: x@13
+  writeType: Never
+  staticElement: <null>
+  staticType: Never
+''');
   }
 
   test_prefixExpression_neverQ_plusPlus() async {
@@ -410,15 +541,20 @@ void f(Never? x) {
           21, 2),
     ]);
 
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      readElement: findElement.parameter('x'),
-      readType: 'Never?',
-      writeElement: findElement.parameter('x'),
-      writeType: 'Never?',
-      element: null,
-      type: 'dynamic',
-    );
+    assertResolvedNodeText(findNode.prefix('++x'), r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: null
+  readElement: x@14
+  readType: Never?
+  writeElement: x@14
+  writeType: Never?
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_propertyAccess_never_read() async {
@@ -567,16 +703,37 @@ void f() {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('=='),
-      element: elementMatcher(
-        objectElement.getMethod('=='),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'bool',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertResolvedNodeText(findNode.binary('=='), r'''
+BinaryExpression
+  leftOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never*
+    rightParenthesis: )
+    staticType: Never*
+  operator: ==
+  rightOperand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int*
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      staticType: int*
+    staticElement: MethodMember
+      base: dart:core::@class::num::@method::+
+      isLegacy: true
+    staticInvokeType: num* Function(num*)*
+    staticType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::Object::@method::==
+    isLegacy: true
+  staticInvokeType: bool* Function(Object*)*
+  staticType: bool*
+''');
   }
 
   test_binaryExpression_plus() async {
@@ -586,11 +743,39 @@ void f() {
 }
 ''');
 
-    assertBinaryExpression(
-      findNode.binary('+ ('),
-      element: null,
-      type: 'dynamic',
-    );
+    assertResolvedNodeText(findNode.binary('+ ('), r'''
+BinaryExpression
+  leftOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never*
+    rightParenthesis: )
+    staticType: Never*
+  operator: +
+  rightOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int*
+      operator: +
+      rightOperand: IntegerLiteral
+        literal: 2
+        staticType: int*
+      staticElement: MethodMember
+        base: dart:core::@class::num::@method::+
+        isLegacy: true
+      staticInvokeType: num* Function(num*)*
+      staticType: int*
+    rightParenthesis: )
+    staticType: int*
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
 
     assertType(findNode.binary('1 + 2'), 'int');
   }

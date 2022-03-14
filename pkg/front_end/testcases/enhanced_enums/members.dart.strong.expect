@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 class E extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E> values = #C9;
-  static const field self::E one = #C5;
-  static const field self::E two = #C8;
   final field core::int foo;
   final field core::int bar = 42;
   static field self::E staticFoo = self::E::f();
+  static const field self::E one = #C5;
+  static const field self::E two = #C8;
   const constructor •(core::int index, core::String name, core::int foo) → self::E
     : self::E::foo = foo, super core::_Enum::•(index, name)
     ;
@@ -23,11 +23,11 @@ class E extends core::_Enum /*isEnum*/  {
 }
 class E2<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E2<dynamic>> values = #C14;
-  static const field self::E2<core::num> one = #C11;
-  static const field self::E2<core::String> two = #C13;
   final field self::E2::X% foo;
   final field self::E2::X? bar = null;
   static field () → self::E2<dynamic> staticFoo = () → self::E2<dynamic> => self::E2::f<dynamic>();
+  static const field self::E2<core::num> one = #C11;
+  static const field self::E2<core::String> two = #C13;
   const constructor •(core::int index, core::String name, self::E2::X% foo) → self::E2<self::E2::X%>
     : self::E2::foo = foo, super core::_Enum::•(index, name)
     ;
@@ -63,6 +63,6 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///members.dart:
 - E. (from org-dartlang-testcase:///members.dart:14:9)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - E2. (from org-dartlang-testcase:///members.dart:32:9)

@@ -14,8 +14,8 @@ import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart' show BoxLocal, ThisLocal;
 import '../common.dart';
+import '../common/elements.dart';
 import '../common/names.dart';
-import '../common_elements.dart';
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart';
 import '../elements/entities.dart';
@@ -37,7 +37,7 @@ import '../ir/util.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
 import '../kernel/dart2js_target.dart' show allowedNativeTest;
-import '../kernel/element_map_impl.dart';
+import '../kernel/element_map.dart';
 import '../kernel/env.dart';
 import '../kernel/kelements.dart';
 import '../native/behavior.dart';
@@ -76,7 +76,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   final DiagnosticReporter reporter;
   final Environment _environment;
-  CommonElementsImpl _commonElements;
+  JCommonElements _commonElements;
   JsElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
   KernelDartTypes _types;
@@ -130,14 +130,14 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   JsKernelToElementMap(
       this.reporter,
       this._environment,
-      KernelToElementMapImpl _elementMap,
+      KernelToElementMap _elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = JsElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
-    _commonElements = CommonElementsImpl(_types, _elementEnvironment);
+    _commonElements = JCommonElements(_types, _elementEnvironment);
     _constantValuefier = ConstantValuefier(this);
 
     programEnv = _elementMap.env.convert();
@@ -297,7 +297,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _elementEnvironment = JsElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
-    _commonElements = CommonElementsImpl(_types, _elementEnvironment);
+    _commonElements = JCommonElements(_types, _elementEnvironment);
     _constantValuefier = ConstantValuefier(this);
 
     source.registerComponentLookup(ComponentLookup(component));
@@ -510,7 +510,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   JsElementEnvironment get elementEnvironment => _elementEnvironment;
 
   @override
-  CommonElementsImpl get commonElements => _commonElements;
+  JCommonElements get commonElements => _commonElements;
 
   FunctionEntity get _mainFunction {
     return programEnv.mainMethod != null
@@ -1169,7 +1169,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
             (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
       reportLocatedMessage(reporter, message, context);
     },
-            environment: _environment.toMap(),
+            environment: _environment,
             evaluationMode: options.useLegacySubtyping
                 ? ir.EvaluationMode.weak
                 : ir.EvaluationMode.strong);

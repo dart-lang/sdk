@@ -1,4 +1,3 @@
-// @dart = 2.9
 import 'import_conflicting_type_member_lib1.dart';
 import 'import_conflicting_type_member_lib2.dart';
 

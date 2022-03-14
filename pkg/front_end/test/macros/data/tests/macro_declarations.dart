@@ -38,20 +38,20 @@ macro class ImplementsAlias implements Alias {}
 
 macro class MixinAlias with Alias {}
 
-class ExtendsNoKeyword extends Macro {}
+class /*error: error=MacroClassNotDeclaredMacro*/ExtendsNoKeyword extends Macro {}
 
-class ImplementsNoKeyword implements Macro {}
+class /*error: error=MacroClassNotDeclaredMacro*/ImplementsNoKeyword implements Macro {}
 
-class MixinNoKeyword with Macro {}
+class /*error: error=MacroClassNotDeclaredMacro*/MixinNoKeyword with Macro {}
 
-class ExtendsAliasNoKeyword extends Alias {}
+class /*error: error=MacroClassNotDeclaredMacro*/ExtendsAliasNoKeyword extends Alias {}
 
-class ImplementsAliasNoKeyword implements Alias {}
+class /*error: error=MacroClassNotDeclaredMacro*/ImplementsAliasNoKeyword implements Alias {}
 
-class MixinAliasNoKeyword with Alias {}
+class /*error: error=MacroClassNotDeclaredMacro*/MixinAliasNoKeyword with Alias {}
 
-class NamedMixin1NoKeyword = Macro with _Mixin;
+class /*error: error=MacroClassNotDeclaredMacro*/NamedMixin1NoKeyword = Macro with _Mixin;
 
-class NamedMixin2NoKeyword = Object with Macro;
+class /*error: error=MacroClassNotDeclaredMacro*/NamedMixin2NoKeyword = Object with Macro;
 
 void main() {}

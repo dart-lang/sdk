@@ -325,6 +325,11 @@ class _InternalImmutableLinkedHashMap<K, V> extends _HashVMImmutableBase
     // Publish new index, uses store release semantics.
     _index = newIndex;
   }
+
+  Iterable<K> get keys =>
+      new _CompactIterableImmutable<K>(this, _data, _usedData, -2, 2);
+  Iterable<V> get values =>
+      new _CompactIterableImmutable<V>(this, _data, _usedData, -1, 2);
 }
 
 // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
@@ -619,6 +624,9 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   V? operator [](Object? o) => _validKey(o) ? super[o] : null;
   V? remove(Object? o) => _validKey(o) ? super.remove(o) : null;
 
+  @pragma("wasm:entry-point")
+  void operator []=(K key, V value);
+
   _CompactLinkedCustomHashMap(this._equality, this._hasher, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test,
         super(_HashBase._INITIAL_INDEX_SIZE);
@@ -628,6 +636,7 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
 // and checks for concurrent modification.
 class _CompactIterable<E> extends Iterable<E> {
   final _HashBase _table;
+  // dart:core#_List (sdk/lib/_internal/vm/lib/array.dart).
   final List _data;
   final int _len;
   final int _offset;
@@ -646,6 +655,7 @@ class _CompactIterable<E> extends Iterable<E> {
 
 class _CompactIterator<E> implements Iterator<E> {
   final _HashBase _table;
+  // dart:core#_List (sdk/lib/_internal/vm/lib/array.dart).
   final List _data;
   final int _len;
   int _offset;
@@ -665,6 +675,58 @@ class _CompactIterator<E> implements Iterator<E> {
     do {
       _offset += _step;
     } while (_offset < _len && _HashBase._isDeleted(_data, _data[_offset]));
+    if (_offset < _len) {
+      _current = internal.unsafeCast<E>(_data[_offset]);
+      return true;
+    } else {
+      _current = null;
+      return false;
+    }
+  }
+
+  E get current => _current as E;
+}
+
+// Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
+// and checks for concurrent modification.
+class _CompactIterableImmutable<E> extends Iterable<E> {
+  // _HashBase with _HashVMImmutableBase.
+  final _HashBase _table;
+  // dart:core#_ImmutableList (sdk/lib/_internal/vm/lib/array.dart).
+  final List _data;
+  final int _len;
+  final int _offset;
+  final int _step;
+
+  _CompactIterableImmutable(
+      this._table, this._data, this._len, this._offset, this._step);
+
+  Iterator<E> get iterator =>
+      new _CompactIteratorImmutable<E>(_table, _data, _len, _offset, _step);
+
+  int get length => _table.length;
+  bool get isEmpty => length == 0;
+  bool get isNotEmpty => !isEmpty;
+}
+
+class _CompactIteratorImmutable<E> implements Iterator<E> {
+  // _HashBase with _HashVMImmutableBase.
+  final _HashBase _table;
+  // dart:core#_ImmutableList (sdk/lib/_internal/vm/lib/array.dart).
+  final List _data;
+  final int _len;
+  int _offset;
+  final int _step;
+  final int _checkSum;
+  E? _current;
+
+  _CompactIteratorImmutable(
+      _HashBase table, this._data, this._len, this._offset, this._step)
+      : _table = table,
+        _checkSum = table._checkSum;
+
+  bool moveNext() {
+    _offset += _step;
     if (_offset < _len) {
       _current = internal.unsafeCast<E>(_data[_offset]);
       return true;
@@ -959,6 +1021,9 @@ class _CompactImmutableLinkedHashSet<E> extends _HashVMImmutableBase
 
   // Returns a mutable set.
   Set<E> toSet() => new _CompactLinkedHashSet<E>()..addAll(this);
+
+  Iterator<E> get iterator =>
+      new _CompactIteratorImmutable<E>(this, _data, _usedData, -1, 1);
 }
 
 class _CompactLinkedIdentityHashSet<E> extends _HashFieldBase

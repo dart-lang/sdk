@@ -6,8 +6,7 @@
 
 import '../helpers/memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, ClassEntity;
 import 'package:compiler/src/kernel/dart2js_target.dart';
@@ -38,7 +37,7 @@ main() {
 
     List<int> kernelBinary =
         serializeComponent((await kernelForProgram(uri, options)).component);
-    CompilerImpl compiler = compilerFor(
+    var compiler = compilerFor(
         entryPoint: uri,
         memorySourceFiles: {'main.dill': kernelBinary},
         diagnosticHandler: diagnostics,

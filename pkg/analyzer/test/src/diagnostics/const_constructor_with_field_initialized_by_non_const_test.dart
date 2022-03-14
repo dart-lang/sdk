@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ConstConstructorWithFieldInitializedByNonConstTest
     extends PubPackageResolutionTest {
-  test_factoryConstructor() async {
+  test_class_factoryConstructor() async {
     await assertNoErrorsInCode(r'''
 class A {
   final List<int> list = f();
@@ -32,7 +32,7 @@ List<int> f() {
 ''');
   }
 
-  test_instanceField() async {
+  test_class_instanceField() async {
     await assertErrorsInCode(r'''
 class A {
   final int i = f();
@@ -50,7 +50,7 @@ int f() {
     ]);
   }
 
-  test_staticField() async {
+  test_class_staticField() async {
     await assertNoErrorsInCode(r'''
 class A {
   static final int i = f();
@@ -59,6 +59,34 @@ class A {
 int f() {
   return 3;
 }
+''');
+  }
+
+  test_enum_instanceField() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int i = f();
+  const E();
+}
+int f() => 0;
+''', [
+      error(
+          CompileTimeErrorCode
+              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+          37,
+          5),
+    ]);
+  }
+
+  test_enum_staticField() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static final int i = f();
+  const E();
+}
+int f() => 0;
 ''');
   }
 }

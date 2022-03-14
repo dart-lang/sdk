@@ -29,7 +29,7 @@ abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
 
   void _assertArgumentRange(int index, SourceRange expectedRange) {
     var list = _argumentList;
-    expect(range.nodeInListWithComments(testUnit.lineInfo!, list, list[index]),
+    expect(range.nodeInListWithComments(testUnit.lineInfo, list, list[index]),
         expectedRange);
   }
 
@@ -37,7 +37,7 @@ abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
     var class_ = findNode.classDeclaration('class');
     var list = class_.members;
     for (var entry in expectedRanges.entries) {
-      expect(range.nodeWithComments(testUnit.lineInfo!, list[entry.key]),
+      expect(range.nodeWithComments(testUnit.lineInfo, list[entry.key]),
           entry.value);
     }
   }
@@ -45,7 +45,7 @@ abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
   void _assertUnitRanges(Map<int, SourceRange> expectedRanges) {
     var list = testUnit.declarations;
     for (var entry in expectedRanges.entries) {
-      expect(range.nodeWithComments(testUnit.lineInfo!, list[entry.key]),
+      expect(range.nodeWithComments(testUnit.lineInfo, list[entry.key]),
           entry.value);
     }
   }

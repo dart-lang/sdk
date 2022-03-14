@@ -1317,7 +1317,7 @@ class _File {
   }
 
   void _buildFileDeclarations(CompilationUnit unit) {
-    lineInfo = unit.lineInfo!;
+    lineInfo = unit.lineInfo;
     lineStarts = lineInfo.lineStarts;
 
     isLibrary = true;

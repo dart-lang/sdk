@@ -57,7 +57,6 @@ import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_member_builder.dart';
-import 'source_procedure_builder.dart';
 
 Class initializeClass(
     Class? cls,
@@ -103,7 +102,10 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   final bool isMacro;
 
-  SourceClassBuilder? _patchBuilder;
+  @override
+  final bool isAugmentation;
+
+  List<SourceClassBuilder>? _patches;
 
   SourceClassBuilder(
       List<MetadataBuilder>? metadata,
@@ -124,7 +126,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       {Class? cls,
       this.mixedInTypeBuilder,
       this.isMixinDeclaration = false,
-      this.isMacro: false})
+      this.isMacro = false,
+      this.isAugmentation = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
@@ -132,7 +135,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
-  SourceClassBuilder? get patchForTesting => _patchBuilder;
+  List<SourceClassBuilder>? get patchesForTesting => _patches;
 
   SourceClassBuilder? actualOrigin;
 
@@ -155,15 +158,17 @@ class SourceClassBuilder extends ClassBuilderImpl
     void buildBuilders(String name, Builder? declaration) {
       while (declaration != null) {
         if (declaration.parent != this) {
-          if (fileUri != declaration.parent?.fileUri) {
-            unexpected("$fileUri", "${declaration.parent?.fileUri}", charOffset,
-                fileUri);
-          } else {
-            unexpected(
-                fullNameForErrors,
-                declaration.parent?.fullNameForErrors ?? '',
-                charOffset,
-                fileUri);
+          if (declaration.parent?.origin != this) {
+            if (fileUri != declaration.parent?.fileUri) {
+              unexpected("$fileUri", "${declaration.parent?.fileUri}",
+                  charOffset, fileUri);
+            } else {
+              unexpected(
+                  fullNameForErrors,
+                  declaration.parent?.fullNameForErrors ?? '',
+                  charOffset,
+                  fileUri);
+            }
           }
         } else if (declaration is SourceMemberBuilder) {
           SourceMemberBuilder memberBuilder = declaration;
@@ -172,7 +177,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             member.parent = cls;
             if (!memberBuilder.isPatch &&
                 !memberBuilder.isDuplicate &&
-                !memberBuilder.isConflictingSetter) {
+                !memberBuilder.isConflictingSetter &&
+                !memberBuilder.isConflictingAugmentationMember) {
               if (member is Procedure) {
                 cls.addProcedure(member);
               } else if (member is Field) {
@@ -196,7 +202,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     scope.forEach(buildBuilders);
-    constructors.forEach(buildBuilders);
+    constructorScope.forEach(buildBuilders);
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
@@ -270,8 +276,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    constructors.forEach((String name, Builder constructor) {
-      Builder? member = scopeBuilder[name];
+    constructorScope.forEach((String name, Builder constructor) {
+      Builder? member = scope.lookupLocalMember(name, setter: false);
       if (member == null) return;
       if (!member.isStatic) return;
       // TODO(ahe): Revisit these messages. It seems like the last two should
@@ -293,7 +299,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     });
 
     scope.forEachLocalSetter((String name, Builder setter) {
-      Builder? constructor = constructorScopeBuilder[name];
+      Builder? constructor = constructorScope.lookupLocalMember(name);
       if (constructor == null || !setter.isStatic) return;
       addProblem(templateConflictsWithConstructor.withArguments(name),
           setter.charOffset, noLength);
@@ -344,25 +350,45 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    constructors.forEach(build);
+    constructorScope.forEach(build);
     scope.forEach(build);
   }
 
   @override
-  void forEachConstructor(void Function(String, MemberBuilder) f,
-      {bool includeInjectedConstructors: false}) {
+  void forEach(void f(String name, Builder builder)) {
     if (isPatch) {
-      actualOrigin!.forEachConstructor(f,
-          includeInjectedConstructors: includeInjectedConstructors);
+      actualOrigin!.forEach(f);
     } else {
-      constructors.forEach(f);
-      if (includeInjectedConstructors) {
-        _patchBuilder?.constructors
-            .forEach((String name, MemberBuilder builder) {
-          if (!builder.isPatch) {
-            f(name, builder);
-          }
-        });
+      scope.forEach(f);
+      List<SourceClassBuilder>? patchClasses = _patches;
+      if (patchClasses != null) {
+        for (SourceClassBuilder patchClass in patchClasses) {
+          patchClass.scope.forEach((String name, Builder builder) {
+            if (!builder.isPatch) {
+              f(name, builder);
+            }
+          });
+        }
+      }
+    }
+  }
+
+  @override
+  void forEachConstructor(void Function(String, MemberBuilder) f) {
+    if (isPatch) {
+      actualOrigin!.forEachConstructor(f);
+    } else {
+      constructorScope.forEach(f);
+      List<SourceClassBuilder>? patchClasses = _patches;
+      if (patchClasses != null) {
+        for (SourceClassBuilder patchClass in patchClasses) {
+          patchClass.constructorScope
+              .forEach((String name, MemberBuilder builder) {
+            if (!builder.isPatch) {
+              f(name, builder);
+            }
+          });
+        }
       }
     }
   }
@@ -382,8 +408,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     // assert checks that the names of the fields from the original declaration
     // and from the patch don't intersect.
     assert(
-        _patchBuilder == null ||
-            _patchBuilder!.scope.localMembers
+        _patches == null ||
+            _patches!.every((patchClass) => patchClass.scope.localMembers
                 .where((b) => b is SourceFieldBuilder)
                 .map((b) => (b as SourceFieldBuilder).name)
                 .toSet()
@@ -391,9 +417,14 @@ class SourceClassBuilder extends ClassBuilderImpl
                     .where((b) => b is SourceFieldBuilder)
                     .map((b) => (b as SourceFieldBuilder).name)
                     .toSet())
-                .isEmpty,
+                .isEmpty),
         "Detected an attempt to patch a field.");
-    _patchBuilder?.scope.forEach(callbackFilteringFieldBuilders);
+    List<SourceClassBuilder>? patchClasses = _patches;
+    if (patchClasses != null) {
+      for (SourceClassBuilder patchClass in patchClasses) {
+        patchClass.scope.forEach(callbackFilteringFieldBuilders);
+      }
+    }
     scope.forEach(callbackFilteringFieldBuilders);
   }
 
@@ -412,8 +443,13 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Constructors can be patched, so iterate first over constructors in the
     // patch, and then over constructors in the original declaration skipping
     // those with the names that are in the patch.
-    _patchBuilder?.constructors.forEach(callbackFilteringFieldBuilders);
-    constructors.forEach(callbackFilteringFieldBuilders);
+    List<SourceClassBuilder>? patchClasses = _patches;
+    if (patchClasses != null) {
+      for (SourceClassBuilder patchClass in patchClasses) {
+        patchClass.constructorScope.forEach(callbackFilteringFieldBuilders);
+      }
+    }
+    constructorScope.forEach(callbackFilteringFieldBuilders);
   }
 
   /// Looks up the constructor by [name] on the class built by this class
@@ -569,26 +605,85 @@ class SourceClassBuilder extends ClassBuilderImpl
   void applyPatch(Builder patch) {
     if (patch is SourceClassBuilder) {
       patch.actualOrigin = this;
-      _patchBuilder = patch;
-      // TODO(ahe): Complain if `patch.supertype` isn't null.
-      scope.forEachLocalMember((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: false);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+      (_patches ??= []).add(patch);
+
+      void applyAugmentation(String name, SourceMemberBuilder patchMember,
+          {required bool setter}) {
+        Builder? originMember = scope.lookupLocalMember(name, setter: setter);
+        if (patch.isAugmentation) {
+          if (originMember != null) {
+            if (patchMember.isAugmentation) {
+              originMember.applyPatch(patchMember);
+            } else {
+              patchMember.isConflictingAugmentationMember = true;
+              library.addProblem(
+                  templateNonAugmentationClassMemberConflict
+                      .withArguments(name),
+                  patchMember.charOffset,
+                  name.length,
+                  patchMember.fileUri,
+                  context: [
+                    messageNonAugmentationClassMemberConflictCause.withLocation(
+                        originMember.fileUri!,
+                        originMember.charOffset,
+                        name.length)
+                  ]);
+            }
+          } else {
+            if (patchMember.isAugmentation) {
+              library.addProblem(
+                  templateUnmatchedAugmentationClassMember.withArguments(name),
+                  patchMember.charOffset,
+                  name.length,
+                  patchMember.fileUri);
+            } else {
+              scope.addLocalMember(name, patchMember, setter: setter);
+            }
+          }
+        } else {
+          if (originMember != null) {
+            // Patch class implicitly assume matching members are patch
+            // members.
+            originMember.applyPatch(patchMember);
+          } else {
+            // Members injected into patch are not part of the origin scope.
+          }
+        }
+      }
+
+      patch.scope.forEachLocalMember((String name, Builder patchMember) {
+        if (patchMember is SourceMemberBuilder) {
+          applyAugmentation(name, patchMember, setter: false);
+        } else {
+          assert(false,
+              "Unexpected member ${patchMember} (${patchMember.runtimeType})");
         }
       });
-      scope.forEachLocalSetter((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: true);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+
+      patch.scope.forEachLocalSetter((String name, Builder patchMember) {
+        if (patchMember is SourceMemberBuilder) {
+          applyAugmentation(name, patchMember, setter: true);
+        } else {
+          assert(false,
+              "Unexpected member ${patchMember} (${patchMember.runtimeType})");
         }
       });
-      constructors.local.forEach((String name, Builder member) {
-        Builder? memberPatch = patch.constructors.local[name];
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+
+      patch.constructorScope.local
+          .forEach((String name, MemberBuilder patchConstructor) {
+        MemberBuilder? originConstructor = constructorScope.local[name];
+        if (patch.isAugmentation) {
+          if (originConstructor != null) {
+            // TODO(johnniwinther): Should we support constructor augmentation?
+            // Currently the syntax doesn't allow it.
+            originConstructor.applyPatch(patchConstructor);
+          } else {
+            constructorScope.addLocalMember(name, patchConstructor);
+          }
+        } else {
+          if (originConstructor != null) {
+            originConstructor.applyPatch(patchConstructor);
+          }
         }
       });
 
@@ -614,31 +709,88 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  void checkSupertypes(CoreTypes coreTypes,
-      ClassHierarchyBuilder hierarchyBuilder, Class enumClass) {
+  void checkSupertypes(
+      CoreTypes coreTypes,
+      ClassHierarchyBuilder hierarchyBuilder,
+      Class enumClass,
+      Class? macroClass) {
     // This method determines whether the class (that's being built) its super
     // class appears both in 'extends' and 'implements' clauses and whether any
     // interface appears multiple times in the 'implements' clause.
     // Moreover, it checks that `FutureOr` and `void` are not among the
     // supertypes and that `Enum` is not implemented by non-abstract classes.
 
-    if (!cls.isAbstract && !cls.isEnum) {
-      bool isEnumFound = false;
+    if (library.enableEnhancedEnumsInLibrary) {
+      bool hasEnumSuperinterface = false;
       List<Supertype> interfaces =
           hierarchyBuilder.getNodeFromClass(cls).superclasses;
-      for (int i = 0; !isEnumFound && i < interfaces.length; i++) {
+      for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
         if (interfaces[i].classNode == enumClass) {
-          isEnumFound = true;
+          hasEnumSuperinterface = true;
         }
       }
       interfaces = hierarchyBuilder.getNodeFromClass(cls).interfaces;
-      for (int i = 0; !isEnumFound && i < interfaces.length; i++) {
+      for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
         if (interfaces[i].classNode == enumClass) {
-          isEnumFound = true;
+          hasEnumSuperinterface = true;
         }
       }
-      if (isEnumFound) {
+      if (!cls.isAbstract && !cls.isEnum && hasEnumSuperinterface) {
         addProblem(templateEnumSupertypeOfNonAbstractClass.withArguments(name),
+            charOffset, noLength);
+      }
+
+      if (hasEnumSuperinterface) {
+        Builder? customValuesDeclaration =
+            scope.lookupLocalMember("values", setter: false);
+        if (customValuesDeclaration != null &&
+            !customValuesDeclaration.isStatic) {
+          // Retrieve the earliest declaration for error reporting.
+          while (customValuesDeclaration?.next != null) {
+            customValuesDeclaration = customValuesDeclaration?.next;
+          }
+          library.addProblem(
+              templateEnumImplementerContainsValuesDeclaration
+                  .withArguments(this.name),
+              customValuesDeclaration!.charOffset,
+              customValuesDeclaration.fullNameForErrors.length,
+              fileUri);
+        }
+        customValuesDeclaration =
+            scope.lookupLocalMember("values", setter: true);
+        if (customValuesDeclaration != null &&
+            !customValuesDeclaration.isStatic) {
+          // Retrieve the earliest declaration for error reporting.
+          while (customValuesDeclaration?.next != null) {
+            customValuesDeclaration = customValuesDeclaration?.next;
+          }
+          library.addProblem(
+              templateEnumImplementerContainsValuesDeclaration
+                  .withArguments(this.name),
+              customValuesDeclaration!.charOffset,
+              customValuesDeclaration.fullNameForErrors.length,
+              fileUri);
+        }
+      }
+    }
+    if (macroClass != null && !cls.isMacro && !cls.isAbstract) {
+      // TODO(johnniwinther): Merge this check with the loop above.
+      bool isMacroFound = false;
+      List<Supertype> interfaces =
+          hierarchyBuilder.getNodeFromClass(cls).superclasses;
+      for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
+        if (interfaces[i].classNode == macroClass) {
+          isMacroFound = true;
+        }
+      }
+      interfaces = hierarchyBuilder.getNodeFromClass(cls).interfaces;
+      for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
+        if (interfaces[i].classNode == macroClass) {
+          isMacroFound = true;
+        }
+      }
+      if (isMacroFound) {
+        addProblem(templateMacroClassNotDeclaredMacro.withArguments(name),
             charOffset, noLength);
       }
     }
@@ -714,7 +866,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 this.charOffset,
                 noLength);
           } else if (interface.cls.name == "FutureOr" &&
-              interface.cls.enclosingLibrary.importUri.scheme == "dart" &&
+              interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
               interface.cls.enclosingLibrary.importUri.path == "async") {
             addProblem(messageImplementsFutureOr, this.charOffset, noLength);
           } else if (implemented.contains(interface)) {
@@ -952,30 +1104,35 @@ class SourceClassBuilder extends ClassBuilderImpl
       return;
     }
 
-    // Check whether [redirecteeType] <: [factoryType].
-    if (!typeEnvironment.isSubtypeOf(
-        redirecteeType, factoryType, SubtypeCheckMode.ignoringNullabilities)) {
-      _addProblemForRedirectingFactory(
-          factory,
-          templateIncompatibleRedirecteeFunctionType.withArguments(
-              redirecteeType, factoryType, library.isNonNullableByDefault),
-          factory.redirectionTarget.charOffset,
-          noLength);
-    } else if (library.isNonNullableByDefault) {
-      if (!typeEnvironment.isSubtypeOf(
-          redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
+    // Redirection to generative enum constructors is forbidden and is reported
+    // as an error elsewhere.
+    if (!(cls.isEnum &&
+        (factory.redirectionTarget.target?.isConstructor ?? false))) {
+      // Check whether [redirecteeType] <: [factoryType].
+      if (!typeEnvironment.isSubtypeOf(redirecteeType, factoryType,
+          SubtypeCheckMode.ignoringNullabilities)) {
         _addProblemForRedirectingFactory(
             factory,
             templateIncompatibleRedirecteeFunctionType.withArguments(
                 redirecteeType, factoryType, library.isNonNullableByDefault),
             factory.redirectionTarget.charOffset,
             noLength);
+      } else if (library.isNonNullableByDefault) {
+        if (!typeEnvironment.isSubtypeOf(
+            redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
+          _addProblemForRedirectingFactory(
+              factory,
+              templateIncompatibleRedirecteeFunctionType.withArguments(
+                  redirecteeType, factoryType, library.isNonNullableByDefault),
+              factory.redirectionTarget.charOffset,
+              noLength);
+        }
       }
     }
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    Map<String, MemberBuilder> constructors = this.constructors.local;
+    Map<String, MemberBuilder> constructors = this.constructorScope.local;
     for (Builder? constructor in constructors.values) {
       do {
         if (constructor is RedirectingFactoryBuilder) {
@@ -1236,45 +1393,32 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     forEach((String name, Builder builder) {
-      if (builder is SourceFieldBuilder) {
-        // Check fields.
-        checkVarianceInField(builder, typeEnvironment, cls.typeParameters);
-        library.checkTypesInField(builder, typeEnvironment);
-      } else if (builder is SourceProcedureBuilder) {
-        // Check procedures
-        checkVarianceInFunction(
-            builder.procedure, typeEnvironment, cls.typeParameters);
-        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
+      if (builder is SourceMemberBuilder) {
+        builder.checkVariance(this, typeEnvironment);
+        builder.checkTypes(library, typeEnvironment);
       } else {
         assert(
-            builder is _RedirectingConstructorsFieldBuilder &&
-                builder.name == redirectingName,
-            "Unexpected member: $builder.");
+            false,
+            "Unexpected class member builder $builder "
+            "(${builder.runtimeType})");
       }
     });
 
     forEachConstructor((String name, MemberBuilder builder) {
-      if (builder is DeclaredSourceConstructorBuilder) {
-        library.checkTypesInConstructorBuilder(builder, typeEnvironment);
-      } else if (builder is RedirectingFactoryBuilder) {
-        library.checkTypesInRedirectingFactoryBuilder(builder, typeEnvironment);
-      } else if (builder is SourceFactoryBuilder) {
-        assert(builder.isFactory, "Unexpected constructor $builder.");
-        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
+      if (builder is SourceMemberBuilder) {
+        builder.checkTypes(library, typeEnvironment);
       } else {
-        assert(
-            // This is a synthesized constructor.
-            builder is SyntheticSourceConstructorBuilder,
-            "Unexpected constructor: $builder.");
+        assert(false,
+            "Unexpected constructor builder $builder (${builder.runtimeType})");
       }
-    }, includeInjectedConstructors: true);
+    });
   }
 
   void addSyntheticConstructor(
       SyntheticSourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
-    constructorBuilder.next = constructorScopeBuilder[name];
-    constructorScopeBuilder.addMember(name, constructorBuilder);
+    constructorBuilder.next = constructorScope.lookupLocalMember(name);
+    constructorScope.addLocalMember(name, constructorBuilder);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
     cls.addConstructor(constructorBuilder.invokeTarget);
@@ -1299,7 +1443,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     scope.forEach((String name, Builder declaration) {
       count += declaration.finishPatch();
     });
-    constructors.forEach((String name, Builder declaration) {
+    constructorScope.forEach((String name, Builder declaration) {
       count += declaration.finishPatch();
     });
     return count;
@@ -1382,6 +1526,22 @@ class SourceClassBuilder extends ClassBuilderImpl
     return noSuchMethod != null && noSuchMethod.enclosingClass != objectClass;
   }
 
+  List<Member> _getStaticMembers() {
+    List<Member> staticMembers = <Member>[];
+    for (Field field in cls.fields) {
+      if (field.isStatic) {
+        staticMembers.add(field);
+      }
+    }
+    for (Procedure procedure in cls.procedures) {
+      if (procedure.isStatic) {
+        staticMembers.add(procedure);
+      }
+    }
+    staticMembers.sort(ClassHierarchy.compareMembers);
+    return staticMembers;
+  }
+
   bool _addMissingNoSuchMethodForwarders(
       KernelTarget target, Set<Member> existingForwarders,
       {required bool forSetters}) {
@@ -1396,6 +1556,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         hierarchy.getDispatchTargets(cls, setters: forSetters);
     List<Member> declaredMembers =
         hierarchy.getDeclaredMembers(cls, setters: forSetters);
+    List<Member> staticMembers = _getStaticMembers();
 
     Procedure noSuchMethod = ClassHierarchy.findMemberByName(
         hierarchy.getInterfaceMembers(cls), noSuchMethodName) as Procedure;
@@ -1421,8 +1582,8 @@ class SourceClassBuilder extends ClassBuilderImpl
               forSetter: forSetters);
       Member? member = combinedMemberSignature.canonicalMember;
       if (member != null) {
-        if (_isForwarderRequired(
-                clsHasUserDefinedNoSuchMethod, member, cls, concreteMembers,
+        if (_isForwarderRequired(clsHasUserDefinedNoSuchMethod, member, cls,
+                concreteMembers, staticMembers,
                 isPatch: member.fileUri != member.enclosingClass!.fileUri) &&
             !existingForwarders.contains(member)) {
           assert(!combinedMemberSignature.needsCovarianceMerging,
@@ -1473,12 +1634,13 @@ class SourceClassBuilder extends ClassBuilderImpl
         bool superHasUserDefinedNoSuchMethod = _hasUserDefinedNoSuchMethod(
             nearestConcreteSuperclass, hierarchy, target.objectClass);
         {
-          List<Member> concrete =
+          List<Member> concreteMembers =
               hierarchy.getDispatchTargets(nearestConcreteSuperclass);
+          List<Member> staticMembers = _getStaticMembers();
           for (Member member
               in hierarchy.getInterfaceMembers(nearestConcreteSuperclass)) {
             if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
-                nearestConcreteSuperclass, concrete,
+                nearestConcreteSuperclass, concreteMembers, staticMembers,
                 isPatch: member.fileUri != member.enclosingClass!.fileUri)) {
               existingForwarders.add(member);
             }
@@ -1488,10 +1650,11 @@ class SourceClassBuilder extends ClassBuilderImpl
         {
           List<Member> concreteSetters = hierarchy
               .getDispatchTargets(nearestConcreteSuperclass, setters: true);
+          List<Member> staticSetters = _getStaticMembers();
           for (Member member in hierarchy
               .getInterfaceMembers(nearestConcreteSuperclass, setters: true)) {
             if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
-                nearestConcreteSuperclass, concreteSetters)) {
+                nearestConcreteSuperclass, concreteSetters, staticSetters)) {
               existingSetterForwarders.add(member);
             }
           }
@@ -1517,7 +1680,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   /// Tells if a noSuchMethod forwarder is required for [member] in [cls].
   bool _isForwarderRequired(bool hasUserDefinedNoSuchMethod, Member member,
-      Class cls, List<Member> concreteMembers,
+      Class cls, List<Member> concreteMembers, List<Member> staticMembers,
       {bool isPatch = false}) {
     // A noSuchMethod forwarder is allowed for an abstract member if the class
     // has a user-defined noSuchMethod or if the member is private and is
@@ -1531,7 +1694,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     // A noSuchMethod forwarder is required if it's allowed and if there's no
     // concrete implementation or a forwarder already.
     bool isForwarderRequired = isForwarderAllowed &&
-        ClassHierarchy.findMemberByName(concreteMembers, member.name) == null;
+        ClassHierarchy.findMemberByName(concreteMembers, member.name) == null &&
+        ClassHierarchy.findMemberByName(staticMembers, member.name) == null;
     return isForwarderRequired;
   }
 
@@ -1625,7 +1789,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     int count = constructorReferences!.length;
     if (count != 0) {
-      Map<String, MemberBuilder> constructors = this.constructors.local;
+      Map<String, MemberBuilder> constructors = this.constructorScope.local;
       // Copy keys to avoid concurrent modification error.
       for (MapEntry<String, MemberBuilder> entry in constructors.entries) {
         Builder? declaration = entry.value;
@@ -1686,6 +1850,16 @@ class SourceClassBuilder extends ClassBuilderImpl
                     declaration,
                     templateAbstractRedirectedClassInstantiation
                         .withArguments(redirectionTarget.fullNameForErrors),
+                    redirectionTarget.charOffset,
+                    noLength);
+                targetNode = null;
+              }
+              if (targetNode != null &&
+                  targetNode is Constructor &&
+                  targetNode.enclosingClass.isEnum) {
+                _addProblemForRedirectingFactory(
+                    declaration,
+                    messageEnumFactoryRedirectsToConstructor,
                     redirectionTarget.charOffset,
                     noLength);
                 targetNode = null;
@@ -2642,4 +2816,12 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     // Do nothing.
   }
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
 }

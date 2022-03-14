@@ -7,8 +7,8 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../closure.dart';
 import '../common.dart';
+import '../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../common/names.dart';
-import '../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../deferred_load/output_unit.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;

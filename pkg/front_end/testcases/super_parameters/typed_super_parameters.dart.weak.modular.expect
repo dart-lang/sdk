@@ -1,0 +1,60 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  final field core::int foo;
+  constructor •(core::int foo) → self::A1
+    : self::A1::foo = foo, super core::Object::•()
+    ;
+}
+class B1 extends self::A1 {
+  constructor •(core::int foo) → self::B1
+    : super self::A1::•(foo)
+    ;
+}
+class A2 extends core::Object {
+  final field (core::int) → core::int foo;
+  constructor •((core::int) → core::int foo) → self::A2
+    : self::A2::foo = foo, super core::Object::•()
+    ;
+}
+class B2 extends self::A2 {
+  constructor •((core::int) → core::int foo) → self::B2
+    : super self::A2::•(foo)
+    ;
+}
+class A3 extends core::Object {
+  final field (core::int) → core::int foo;
+  constructor •((dynamic) → core::int foo) → self::A3
+    : self::A3::foo = foo, super core::Object::•()
+    ;
+}
+class B3 extends self::A3 {
+  constructor •((dynamic) → core::int foo) → self::B3
+    : super self::A3::•(foo)
+    ;
+}
+class A4 extends core::Object {
+  final field (() → void) → () → void foo;
+  constructor •((() → void) → () → void foo) → self::A4
+    : self::A4::foo = foo, super core::Object::•()
+    ;
+}
+class B4 extends self::A4 {
+  constructor •((() → void) → () → void foo) → self::B4
+    : super self::A4::•(foo)
+    ;
+}
+class A5 extends core::Object {
+  final field (() → void) → () → void foo;
+  constructor •((() → void) → () → void foo) → self::A5
+    : self::A5::foo = foo, super core::Object::•()
+    ;
+}
+class B5 extends self::A5 {
+  constructor •((() → void) → () → void foo) → self::B5
+    : super self::A5::•(foo)
+    ;
+}
+static method main() → dynamic {}

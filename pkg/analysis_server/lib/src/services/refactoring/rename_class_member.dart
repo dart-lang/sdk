@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/refactoring/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -149,20 +150,23 @@ class _BaseClassMemberValidator {
     // check if there is a member with "newName" in the same ClassElement
     for (var newNameMember in getChildren(elementClass, name)) {
       result.addError(
-          format(
-              "Class '{0}' already declares {1} with name '{2}'.",
-              elementClass.displayName,
-              getElementKindName(newNameMember),
-              name),
-          newLocation_fromElement(newNameMember));
+        format(
+          "{0} '{1}' already declares {2} with name '{3}'.",
+          capitalize(elementClass.kind.displayName),
+          elementClass.displayName,
+          getElementKindName(newNameMember),
+          name,
+        ),
+        newLocation_fromElement(newNameMember),
+      );
     }
   }
 
   Future<void> _checkHierarchy({
     required bool isRename,
-    required Set<ClassElement> superClasses,
     required Set<ClassElement> subClasses,
   }) async {
+    var superClasses = elementClass.allSupertypes.map((e) => e.element).toSet();
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
@@ -212,19 +216,18 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
   Future<RefactoringStatus> validate() async {
     _checkClassAlreadyDeclares();
     // do chained computations
-    var superClasses = getSuperClasses(elementClass);
     var subClasses = await searchEngine.searchAllSubtypes(elementClass);
     // check shadowing of class names
     if (elementClass.name == name) {
       result.addError(
-          format("Created {0} has the same name as the declaring class '{1}'.",
-              elementKind.displayName, name),
-          newLocation_fromElement(elementClass));
+        'Created ${elementKind.displayName} has the same name as the '
+        "declaring ${elementClass.kind.displayName} '$name'.",
+        newLocation_fromElement(elementClass),
+      );
     }
     // check shadowing in the hierarchy
     await _checkHierarchy(
       isRename: false,
-      superClasses: superClasses,
       subClasses: subClasses,
     );
     // done
@@ -272,7 +275,6 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   Future<RefactoringStatus> validate() async {
     _checkClassAlreadyDeclares();
     // do chained computations
-    var superClasses = getSuperClasses(elementClass);
     await _prepareReferences();
     var subClasses = await searchEngine.searchAllSubtypes(elementClass);
     // check shadowing of class names
@@ -280,11 +282,8 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement && enclosingElement.name == name) {
         result.addError(
-          format(
-            "Renamed {0} has the same name as the declaring class '{1}'.",
-            elementKind.displayName,
-            name,
-          ),
+          'Renamed ${elementKind.displayName} has the same name as the '
+          "declaring ${enclosingElement.kind.displayName} '$name'.",
           newLocation_fromElement(element),
         );
       }
@@ -306,7 +305,6 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     // check shadowing in the hierarchy
     await _checkHierarchy(
       isRename: true,
-      superClasses: superClasses,
       subClasses: subClasses,
     );
     // visibility

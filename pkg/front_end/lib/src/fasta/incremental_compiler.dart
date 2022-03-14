@@ -1272,7 +1272,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _platformBuilders = <LibraryBuilder>[];
       for (DillLibraryBuilder builder
           in dillLoadedData.loader.libraryBuilders) {
-        if (builder.importUri.scheme == "dart") {
+        if (builder.importUri.isScheme("dart")) {
           _platformBuilders!.add(builder);
         } else {
           _userBuilders![builder.importUri] = builder;
@@ -1425,7 +1425,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         _platformBuilders = <LibraryBuilder>[];
         for (DillLibraryBuilder builder
             in _dillLoadedData!.loader.libraryBuilders) {
-          if (builder.importUri.scheme == "dart") {
+          if (builder.importUri.isScheme("dart")) {
             _platformBuilders!.add(builder);
           } else {
             _userBuilders![builder.importUri] = builder;
@@ -1492,7 +1492,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           partUriToLibraryImportUri[partUri] = library.importUri;
         }
       }
-      if (library.importUri.scheme == "dart") {
+      if (library.importUri.isScheme("dart")) {
         result.add(library);
         inputLibrariesFiltered?.add(library);
       } else {
@@ -1501,7 +1501,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
     for (LibraryBuilder libraryBuilder in reusedLibraries) {
-      if (libraryBuilder.importUri.scheme == "dart" &&
+      if (libraryBuilder.importUri.isScheme("dart") &&
           !libraryBuilder.isSynthetic) {
         continue;
       }
@@ -1550,7 +1550,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Library> removedLibraries = <Library>[];
     bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
-      if (uri.scheme == "package") continue;
+      if (uri.isScheme("package")) continue;
       LibraryBuilder? builder =
           currentKernelTarget.loader.deregisterLibraryBuilder(uri);
       if (builder != null) {
@@ -1672,8 +1672,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Class? cls;
       if (className != null) {
-        ClassBuilder? classBuilder =
-            libraryBuilder.scopeBuilder[className] as ClassBuilder?;
+        ClassBuilder? classBuilder = libraryBuilder.scope
+            .lookupLocalMember(className, setter: false) as ClassBuilder?;
         cls = classBuilder?.cls;
         if (cls == null) return null;
       }
@@ -1684,11 +1684,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (indexOfDot >= 0) {
           String beforeDot = methodName.substring(0, indexOfDot);
           String afterDot = methodName.substring(indexOfDot + 1);
-          Builder? builder = libraryBuilder.scopeBuilder[beforeDot];
+          Builder? builder =
+              libraryBuilder.scope.lookupLocalMember(beforeDot, setter: false);
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
             extension = builder.extension;
-            Builder? subBuilder = builder.scopeBuilder[afterDot];
+            Builder? subBuilder =
+                builder.lookupLocalMember(afterDot, setter: false);
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionInstanceMember) {
                 isStatic = false;
@@ -1731,6 +1733,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
+      // Setup scope first in two-step process:
+      // 1) Create a new SourceLibraryBuilder, add imports and setup (import)
+      //    scope.
+      // 2) Create a new SourceLibraryBuilder, using a nested scope of the scope
+      //    we just created as the scope. The import scopes have been setup via
+      //    the parent chain.
+      // This is done to create the correct "layering" (i.e. definitions from
+      // the "self" library first, then imports while not having dill builders
+      // directly in the scope of a source builder (which can crash things in
+      // some circumstances).
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
         importUri: libraryUri,
         fileUri: debugExprUri,
@@ -1739,6 +1751,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         loader: lastGoodKernelTarget.loader,
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
+        isAugmentation: false,
       );
       libraryBuilder.scope.forEachLocalMember((name, member) {
         debugLibrary.scope.addLocalMember(name, member, setter: false);
@@ -1769,21 +1782,33 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
 
           debugLibrary.addImport(
-              null,
-              dependency.importedLibraryReference.canonicalName!.name,
-              null,
-              dependency.name,
-              combinators,
-              dependency.isDeferred,
-              -1,
-              -1,
-              -1,
-              -1);
+              metadata: null,
+              isAugmentationImport: false,
+              uri: dependency.importedLibraryReference.canonicalName!.name,
+              configurations: null,
+              prefix: dependency.name,
+              combinators: combinators,
+              deferred: dependency.isDeferred,
+              charOffset: -1,
+              prefixCharOffset: -1,
+              uriOffset: -1,
+              importIndex: -1);
         }
 
         debugLibrary.addImportsToScope();
         _ticker.logMs("Added imports");
       }
+      debugLibrary = new SourceLibraryBuilder(
+        importUri: libraryUri,
+        fileUri: debugExprUri,
+        packageLanguageVersion:
+            new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
+        loader: lastGoodKernelTarget.loader,
+        scope: debugLibrary.scope.createNestedScope("expression"),
+        nameOrigin: libraryBuilder,
+        isUnsupported: libraryBuilder.isUnsupported,
+        isAugmentation: false,
+      );
 
       HybridFileSystem hfs =
           lastGoodKernelTarget.fileSystem as HybridFileSystem;
@@ -1893,7 +1918,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
         return true;
       }
-      if (_hasToCheckPackageUris && importUri.scheme == "package") {
+      if (_hasToCheckPackageUris && importUri.isScheme("package")) {
         // Get package name, check if the base URI has changed for the package,
         // if it has, translate the URI again,
         // otherwise the URI cannot have changed.
@@ -1915,7 +1940,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     void addBuilderAndInvalidateUris(Uri uri, LibraryBuilder libraryBuilder) {
-      if (uri.scheme == "dart" && !libraryBuilder.isSynthetic) {
+      if (uri.isScheme("dart") && !libraryBuilder.isSynthetic) {
         if (seenUris.add(libraryBuilder.importUri)) {
           reusedLibraries.add(libraryBuilder);
         }
@@ -2335,7 +2360,7 @@ class _InitializationFromComponent extends _InitializationStrategy {
     bool foundDartCore = false;
     for (int i = 0; i < component.libraries.length; i++) {
       Library library = component.libraries[i];
-      if (library.importUri.scheme == "dart" &&
+      if (library.importUri.isScheme("dart") &&
           library.importUri.path == "core") {
         foundDartCore = true;
         break;
@@ -2481,7 +2506,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
         // (e.g. the package still exists and hasn't been updated).
         // Also verify NNBD settings.
         for (Library lib in data.component!.libraries) {
-          if (lib.importUri.scheme == "package" &&
+          if (lib.importUri.isScheme("package") &&
               uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
             // Package has been removed or updated.
             // This library should be thrown away.
@@ -2629,7 +2654,7 @@ class _ComponentProblems {
 extension on UriTranslator {
   Uri? getPartFileUri(Uri parentFileUri, LibraryPart part) {
     Uri? fileUri = getPartUri(parentFileUri, part);
-    if (fileUri.scheme == "package") {
+    if (fileUri.isScheme("package")) {
       // Part was specified via package URI and the resolve above thus
       // did not go as expected. Translate the package URI to get the
       // actual file URI.

@@ -362,7 +362,7 @@ class JsInteropChecks extends RecursiveVisitor {
   /// or a from environment constructor.
   bool _isAllowedExternalUsage(Member member) {
     Uri uri = member.enclosingLibrary.importUri;
-    return uri.scheme == 'dart' &&
+    return uri.isScheme('dart') &&
             _pathsWithAllowedDartExternalUsage.contains(uri.path) ||
         _allowedNativeTestPatterns.any((pattern) => uri.path.contains(pattern));
   }

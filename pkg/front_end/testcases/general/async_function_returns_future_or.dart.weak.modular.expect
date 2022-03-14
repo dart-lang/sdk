@@ -1,0 +1,43 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method main() → dynamic async {
+  await self::returnsString();
+  await self::returnsFutureOrString();
+  await self::returnsAwaitFutureOrString();
+  await self::returnsFutureString();
+  await self::returnsAwaitFutureString();
+  await self::returnsObject();
+  await self::returnsFutureOrObject();
+  await self::returnsAwaitFutureOrObject();
+  await self::returnsFutureObject();
+  await self::returnsAwaitFutureObject();
+}
+static method returnsString() → asy::Future<core::String> async 
+  return "a";
+static method returnsFutureOrString() → asy::Future<core::String> async 
+  return self::getFutureOr<core::String>("a");
+static method returnsAwaitFutureOrString() → asy::Future<core::String> async 
+  return await self::getFutureOr<core::String>("a");
+static method returnsFutureString() → asy::Future<core::String> async 
+  return self::getFuture<core::String>("a");
+static method returnsAwaitFutureString() → FutureOr<core::String> async 
+  return await self::getFuture<core::String>("a");
+static method returnsObject() → asy::Future<core::Object> async 
+  return new core::Object::•();
+static method returnsFutureOrObject() → asy::Future<core::Object> async 
+  return self::getFutureOr<core::Object>(new core::Object::•());
+static method returnsAwaitFutureOrObject() → asy::Future<core::Object> async 
+  return await self::getFutureOr<core::Object>(new core::Object::•());
+static method returnsFutureObject() → asy::Future<core::Object> async 
+  return self::getFuture<core::Object>(new core::Object::•());
+static method returnsAwaitFutureObject() → FutureOr<core::Object> async 
+  return await self::getFuture<core::Object>(new core::Object::•());
+static method getFutureOr<T extends core::Object? = dynamic>(self::getFutureOr::T% v) → FutureOr<self::getFutureOr::T%> async 
+  return v;
+static method getFuture<T extends core::Object? = dynamic>(self::getFuture::T% v) → asy::Future<self::getFuture::T%> async 
+  return v;

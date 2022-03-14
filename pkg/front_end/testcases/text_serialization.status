@@ -9,6 +9,8 @@
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError
 enhanced_enums/simple_mixins: RuntimeError
+enhanced_enums/named_arguments_anywhere/issue48276: TextSerializationFailure # Issue 47524.
+enhanced_enums/named_arguments_anywhere/redirecting_constructor: TextSerializationFailure # Issue 47524.
 extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
 extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
@@ -37,6 +39,7 @@ general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError
 general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError
+general/covariant_generic2: RuntimeError
 general/crashes/crash_02/main: Crash
 general/crashes/crash_06/main: Crash
 general/duplicated_declarations: TypeCheckError
@@ -79,9 +82,10 @@ general/implement_semi_stub: TypeCheckError
 general/implicit_super_call: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
+general/infer_field_from_multiple2: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invalid_operator_override: TypeCheckError
-general/invocations: RuntimeError
+general/invocations: TypeCheckError
 general/issue37776: RuntimeError
 general/issue38938: RuntimeError
 general/issue38944: RuntimeError

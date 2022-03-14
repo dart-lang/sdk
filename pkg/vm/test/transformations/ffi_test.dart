@@ -48,14 +48,21 @@ runTestCase(Uri source) async {
   compareResultWithExpectationsFile(source, actual);
 }
 
-main() {
+void main(List<String> args) {
+  assert(args.length == 0 || args.length == 1);
+  String? filter;
+  if (args.length > 0) {
+    filter = args.first;
+  }
+
   group('ffi-transformations', () {
     final testCasesDir = Directory(pkgVmDir + '/testcases/transformations/ffi');
 
     for (var entry in testCasesDir
         .listSync(recursive: true, followLinks: false)
         .reversed) {
-      if (entry.path.endsWith(".dart")) {
+      if (entry.path.endsWith(".dart") &&
+          (filter == null || entry.path.contains(filter))) {
         test(entry.path, () => runTestCase(entry.uri));
       }
     }

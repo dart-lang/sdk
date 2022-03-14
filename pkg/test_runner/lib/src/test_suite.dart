@@ -597,6 +597,7 @@ class StandardTestSuite extends TestSuite {
       '$directory/${name}_analyzer.status',
       '$directory/${name}_analyzer2.status',
       '$directory/${name}_dart2js.status',
+      '$directory/${name}_dart2wasm.status',
       '$directory/${name}_dartdevc.status',
       '$directory/${name}_kernel.status',
       '$directory/${name}_precompiled.status',
@@ -956,6 +957,7 @@ class StandardTestSuite extends TestSuite {
     var commands = <Command>[];
     const supportedCompilers = {
       Compiler.dart2js,
+      Compiler.dart2wasm,
       Compiler.dartdevc,
       Compiler.dartdevk
     };

@@ -20,9 +20,9 @@ import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E1> values = #C8;
+  final field core::int foo;
   static const field self::E1 one = #C4;
   static const field self::E1 two = #C7;
-  final field core::int foo;
   const constructor •(core::int index, core::String name, core::int foo) → self::E1
     : self::E1::foo = foo, super core::_Enum::•(index, name)
     ;
@@ -37,12 +37,12 @@ class E2 extends core::_Enum /*isEnum*/  {
 Try removing the extra positional arguments.
   const E2.named(int value) : this(value, value); // Error.
                                   ^";
+  final field core::int foo;
   static const field self::E2 one = #C9;
   static const field self::E2 two = invalid-expression "pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:22:35: Error: Too many positional arguments: 3 allowed, but 4 found.
 Try removing the extra positional arguments.
   const E2.named(int value) : this(value, value); // Error.
                                   ^";
-  final field core::int foo;
   const constructor •(core::int index, core::String name, core::int foo) → self::E2
     : self::E2::foo = foo, super core::_Enum::•(index, name)
     ;
@@ -73,7 +73,7 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///redirecting_initializers.dart:
 - E1. (from org-dartlang-testcase:///redirecting_initializers.dart:11:9)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - E1.named (from org-dartlang-testcase:///redirecting_initializers.dart:12:9)
 - E2. (from org-dartlang-testcase:///redirecting_initializers.dart:21:9)

@@ -14,7 +14,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' show CompilationUnitImpl;
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -28,6 +27,7 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 
+import '../util/feature_sets.dart';
 import 'parser_fasta_listener.dart';
 import 'test_support.dart';
 
@@ -221,25 +221,6 @@ class FastaParserTestCase
     implements AbstractParserTestCase {
   static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
 
-  final constructorTearoffs = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: ExperimentStatus.currentVersion,
-    flags: [EnableString.constructor_tearoffs],
-  );
-
-  final controlFlow = FeatureSet.latestLanguageVersion();
-
-  final spread = FeatureSet.latestLanguageVersion();
-
-  final nonNullable = FeatureSet.latestLanguageVersion();
-
-  final preConstructorTearoffs = FeatureSet.fromEnableFlags2(
-      sdkLanguageVersion: Version.parse('2.13.0'), flags: []);
-
-  final preNonNullable = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.9.0'),
-    flags: [],
-  );
-
   late ParserProxy parserProxy;
 
   late Token _fastaTokens;
@@ -298,10 +279,12 @@ class FastaParserTestCase
             ? ScannerConfiguration.nonNullable
             : ScannerConfiguration.classic,
         includeComments: true);
+    var lineInfo = LineInfo(result.lineStarts);
     _fastaTokens = result.tokens;
     parserProxy = ParserProxy(_fastaTokens, featureSet,
         allowNativeClause: allowNativeClause,
-        expectedEndOffset: expectedEndOffset);
+        expectedEndOffset: expectedEndOffset,
+        lineInfo: lineInfo);
   }
 
   @override
@@ -435,8 +418,8 @@ class FastaParserTestCase
       source,
       isNonNullableByDefault: false,
     );
-    AstBuilder astBuilder =
-        AstBuilder(errorReporter, source.uri, true, featureSet!);
+    AstBuilder astBuilder = AstBuilder(errorReporter, source.uri, true,
+        featureSet!, LineInfo.fromContent(content));
     fasta.Parser parser = fasta.Parser(astBuilder);
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -762,19 +745,26 @@ class ParserProxy extends analyzer.Parser {
   /// Creates a [ParserProxy] which is prepared to begin parsing at the given
   /// Fasta token.
   factory ParserProxy(Token firstToken, FeatureSet featureSet,
-      {bool allowNativeClause = false, int? expectedEndOffset}) {
+      {bool allowNativeClause = false,
+      int? expectedEndOffset,
+      required LineInfo lineInfo}) {
     TestSource source = TestSource();
     var errorListener = GatheringErrorListener(checkRanges: true);
     return ParserProxy._(firstToken, source, errorListener, featureSet,
         allowNativeClause: allowNativeClause,
-        expectedEndOffset: expectedEndOffset);
+        expectedEndOffset: expectedEndOffset,
+        lineInfo: lineInfo);
   }
 
   ParserProxy._(Token firstToken, Source source, this.errorListener,
       FeatureSet featureSet,
-      {bool allowNativeClause = false, this.expectedEndOffset})
+      {bool allowNativeClause = false,
+      this.expectedEndOffset,
+      required LineInfo lineInfo})
       : super(source, errorListener,
-            featureSet: featureSet, allowNativeClause: allowNativeClause) {
+            featureSet: featureSet,
+            allowNativeClause: allowNativeClause,
+            lineInfo: lineInfo) {
     _eventListener = ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;
     currentToken = firstToken;
@@ -811,6 +801,7 @@ class ParserProxy extends analyzer.Parser {
   ClassMember? parseClassMemberOrNull(String className) {
     return _run('ClassOrMixinBody', () {
       astBuilder.classDeclaration = astFactory.classDeclaration(
+        null,
         null,
         null,
         null,
@@ -1047,12 +1038,14 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
     fasta.ScannerResult result =
         fasta.scanString(content, includeComments: true);
-    listener.setLineInfo(source, result.lineStarts);
+    LineInfo lineInfo = LineInfo(result.lineStarts);
+    listener.setLineInfo(source, lineInfo);
 
     parser = analyzer.Parser(
       source,
       listener,
       featureSet: featureSet,
+      lineInfo: lineInfo,
     );
     parser.allowNativeClause = allowNativeClause;
     parser.parseFunctionBodies = parseFunctionBodies;
@@ -1165,12 +1158,14 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
     fasta.ScannerResult result =
         fasta.scanString(content, includeComments: true);
-    listener.setLineInfo(source, result.lineStarts);
+    LineInfo lineInfo = LineInfo(result.lineStarts);
+    listener.setLineInfo(source, lineInfo);
 
     analyzer.Parser parser = analyzer.Parser(
       source,
       listener,
-      featureSet: FeatureSet.latestLanguageVersion(),
+      featureSet: FeatureSets.latestWithExperiments,
+      lineInfo: lineInfo,
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(result.tokens);
@@ -1193,15 +1188,16 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
     fasta.ScannerResult result =
         fasta.scanString(content, includeComments: true);
+    LineInfo lineInfo = LineInfo(result.lineStarts);
 
     analyzer.Parser parser = analyzer.Parser(
       source,
       listener,
       featureSet: FeatureSet.latestLanguageVersion(),
+      lineInfo: lineInfo,
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     var unit = parser.parseCompilationUnit(result.tokens);
-    unit.lineInfo = LineInfo(result.lineStarts);
     return unit;
   }
 
@@ -1470,12 +1466,14 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
     fasta.ScannerResult result =
         fasta.scanString(content, includeComments: true);
-    listener.setLineInfo(source, result.lineStarts);
+    LineInfo lineInfo = LineInfo(result.lineStarts);
+    listener.setLineInfo(source, lineInfo);
 
     analyzer.Parser parser = analyzer.Parser(
       source,
       listener,
       featureSet: FeatureSet.latestLanguageVersion(),
+      lineInfo: lineInfo,
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     Statement statement = parser.parseStatement(result.tokens);

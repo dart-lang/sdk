@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class MixinClassDeclaresConstructorTest extends PubPackageResolutionTest {
-  test_classDeclaration() async {
+  test_class() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -29,7 +29,7 @@ class B extends Object with A {}
     );
   }
 
-  test_typeAlias() async {
+  test_classTypeAlias() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -39,6 +39,23 @@ class B = Object with A;
 ''',
       [
         error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 43, 1),
+      ],
+    );
+  }
+
+  test_enum() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A() {}
+}
+
+enum E with A {
+  v
+}
+''',
+      [
+        error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 34, 1),
       ],
     );
   }

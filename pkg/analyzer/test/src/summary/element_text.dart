@@ -213,7 +213,6 @@ class _ElementWriter {
       selfUriStr: selfUriStr,
       sink: buffer,
       indent: indent,
-      withNullability: true,
       withOffsets: true,
     );
   }
@@ -509,6 +508,8 @@ class _ElementWriter {
   }
 
   void _writeFunctionElement(FunctionElement e) {
+    expect(e.isStatic, isTrue);
+
     _writeIndentedLine(() {
       _writeIf(e.isExternal, 'external ');
       _writeName(e);

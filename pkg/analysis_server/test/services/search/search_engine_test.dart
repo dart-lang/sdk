@@ -61,7 +61,7 @@ class SearchEngineImplTest extends PubPackageResolutionTest {
     return SearchEngineImpl(allDrivers);
   }
 
-  Future<void> test_membersOfSubtypes_hasMembers() async {
+  Future<void> test_membersOfSubtypes_classByClass_hasMembers() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   void a() {}
@@ -89,6 +89,40 @@ class C extends A {
 
     var members = await searchEngine.membersOfSubtypes(A);
     expect(members, unorderedEquals(['a', 'b']));
+  }
+
+  Future<void> test_membersOfSubtypes_enum_implements_hasMembers() async {
+    await resolveTestCode('''
+class A {
+  void foo() {}
+}
+
+enum E implements A {
+  v;
+  void foo() {}
+}
+''');
+
+    var A = findElement.class_('A');
+    var members = await searchEngine.membersOfSubtypes(A);
+    expect(members, unorderedEquals(['foo']));
+  }
+
+  Future<void> test_membersOfSubtypes_enum_with_hasMembers() async {
+    await resolveTestCode('''
+mixin M {
+  void foo() {}
+}
+
+enum E with M {
+  v;
+  void foo() {}
+}
+''');
+
+    var M = findElement.mixin('M');
+    var members = await searchEngine.membersOfSubtypes(M);
+    expect(members, unorderedEquals(['foo']));
   }
 
   Future<void> test_membersOfSubtypes_noMembers() async {
@@ -344,6 +378,68 @@ int t;
     assertHasOne(a, 'a');
   }
 
+  Future<void> test_searchReferences_enum_constructor_named() async {
+    var code = '''
+enum E {
+  v.named(); // 1
+  const E.named();
+}
+''';
+    await resolveTestCode(code);
+
+    var element = findElement.constructor('named');
+    var matches = await searchEngine.searchReferences(element);
+    expect(
+      matches,
+      unorderedEquals([
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.INVOCATION &&
+              identical(m.element, findElement.field('v')) &&
+              m.sourceRange.offset == code.indexOf('.named(); // 1') &&
+              m.sourceRange.length == '.named'.length;
+        }),
+      ]),
+    );
+  }
+
+  Future<void> test_searchReferences_enum_constructor_unnamed() async {
+    var code = '''
+enum E {
+  v1, // 1
+  v2(), // 2
+  v3.new(), // 3
+}
+''';
+    await resolveTestCode(code);
+
+    var element = findElement.unnamedConstructor('E');
+    var matches = await searchEngine.searchReferences(element);
+    expect(
+      matches,
+      unorderedEquals([
+        predicate((SearchMatch m) {
+          return m.kind ==
+                  MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS &&
+              identical(m.element, findElement.field('v1')) &&
+              m.sourceRange.offset == code.indexOf(', // 1') &&
+              m.sourceRange.length == 0;
+        }),
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.INVOCATION &&
+              identical(m.element, findElement.field('v2')) &&
+              m.sourceRange.offset == code.indexOf('(), // 2') &&
+              m.sourceRange.length == 0;
+        }),
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.INVOCATION &&
+              identical(m.element, findElement.field('v3')) &&
+              m.sourceRange.offset == code.indexOf('.new(), // 3') &&
+              m.sourceRange.length == '.new'.length;
+        }),
+      ]),
+    );
+  }
+
   Future<void>
       test_searchReferences_parameter_ofConstructor_super_named() async {
     var code = '''
@@ -369,6 +465,32 @@ class B extends A {
               ) &&
               m.sourceRange.offset == code.indexOf('a}); // ref') &&
               m.sourceRange.length == 1;
+        }),
+      ]),
+    );
+  }
+
+  Future<void>
+      test_searchReferences_topFunction_parameter_optionalNamed_anywhere() async {
+    var code = '''
+void foo(int a, int b, {int? test}) {}
+
+void g() {
+  foo(1, test: 0, 2);
+}
+''';
+    await resolveTestCode(code);
+
+    var element = findElement.parameter('test');
+    var matches = await searchEngine.searchReferences(element);
+    expect(
+      matches,
+      unorderedEquals([
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.REFERENCE &&
+              identical(m.element, findElement.topFunction('g')) &&
+              m.sourceRange.offset == code.indexOf('test: 0') &&
+              m.sourceRange.length == 'test'.length;
         }),
       ]),
     );

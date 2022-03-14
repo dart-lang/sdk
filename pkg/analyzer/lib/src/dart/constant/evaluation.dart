@@ -28,6 +28,12 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/api/model.dart';
 
+/// During evaluation of enum constants we might need to report an error
+/// that is associated with the [InstanceCreationExpression], but this
+/// expression is synthetic. Instead, we remember the corresponding
+/// [EnumConstantDeclaration] and report the error on it.
+final enumConstantErrorNodes = Expando<EnumConstantDeclaration>();
+
 /// Helper class encapsulating the methods for evaluating constants and
 /// constant instance creation expressions.
 class ConstantEvaluationEngine {
@@ -187,6 +193,18 @@ class ConstantEvaluationEngine {
   /// [callback].
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
+    if (constant is ConstFieldElementImpl && constant.isEnumConstant) {
+      var enclosing = constant.enclosingElement;
+      if (enclosing is EnumElementImpl) {
+        if (enclosing.name == 'values') {
+          return;
+        }
+        if (constant.name == enclosing.name) {
+          return;
+        }
+      }
+    }
+
     ReferenceFinder referenceFinder = ReferenceFinder(callback);
     if (constant is ConstructorElement) {
       constant = constant.declaration;
@@ -662,7 +680,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     // The result is already instantiated during resolution;
     // [_dartObjectComputer.typeInstantiate] is unnecessary.
     var typeElement =
-        node.constructorName.type2.name.staticElement as TypeDefiningElement;
+        node.constructorName.type.name.staticElement as TypeDefiningElement;
 
     TypeAliasElement? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl) {
@@ -2541,7 +2559,7 @@ class _InstanceCreationEvaluator {
       declaredVariables,
       errorReporter,
       library,
-      node,
+      enumConstantErrorNodes[node] ?? node,
       constructor,
       typeArguments,
       namedNodes: namedNodes,
@@ -2605,7 +2623,7 @@ extension RuntimeExtensions on TypeSystemImpl {
     DartType type,
   ) {
     if (!isNonNullableByDefault) {
-      type = toLegacyType(type);
+      type = toLegacyTypeIfOptOut(type);
     }
     var objType = obj.type;
     return isSubtypeOf(objType, type);

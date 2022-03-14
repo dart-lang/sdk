@@ -496,10 +496,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   String jsLibraryAlias(Library library) {
     var uri = library.importUri.normalizePath();
-    if (uri.scheme == 'dart') return null;
+    if (uri.isScheme('dart')) return null;
 
     Iterable<String> segments;
-    if (uri.scheme == 'package') {
+    if (uri.isScheme('package')) {
       // Strip the package name.
       segments = uri.pathSegments.skip(1);
     } else {
@@ -518,6 +518,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   Iterable<String> jsPartDebuggerNames(Library library) =>
       library.parts.map((part) => part.partUri);
 
+  /// True when [library] is the sdk internal library 'dart:_internal'.
+  bool _isDartInternal(Library library) {
+    var importUri = library.importUri;
+    return importUri.isScheme('dart') && importUri.path == '_internal';
+  }
+
   @override
   bool isSdkInternalRuntime(Library l) {
     return isSdkInternalRuntimeUri(l.importUri);
@@ -525,7 +531,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   String libraryToModule(Library library) {
-    if (library.importUri.scheme == 'dart') {
+    if (library.importUri.isScheme('dart')) {
       // TODO(jmesserly): we need to split out HTML.
       return js_ast.dartSdkModule;
     }
@@ -1934,7 +1940,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _isForwardingStub(Procedure member) {
     if (member.isForwardingStub || member.isForwardingSemiStub) {
-      if (_currentLibrary.importUri.scheme != 'dart') return true;
+      if (!_currentLibrary.importUri.isScheme('dart')) return true;
       // TODO(jmesserly): external methods in the SDK seem to get incorrectly
       // tagged as forwarding stubs even if they are patched. Perhaps there is
       // an ordering issue in CFE. So for now we pattern match to see if it
@@ -2248,7 +2254,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _hierarchy.getClassAsInstanceOf(c.superclass, _coreTypes.iterableClass);
     if (parentIterable != null) return null;
 
-    if (c.enclosingLibrary.importUri.scheme == 'dart' &&
+    if (c.enclosingLibrary.importUri.isScheme('dart') &&
         c.procedures.any((m) => _jsExportName(m) == 'Symbol.iterator')) {
       return null;
     }
@@ -2758,7 +2764,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fn = _emitFunction(p.function, p.name.text)
       ..sourceInformation = _nodeEnd(p.fileEndOffset);
 
-    if (_currentLibrary.importUri.scheme == 'dart' &&
+    if (_currentLibrary.importUri.isScheme('dart') &&
         _isInlineJSFunction(p.function.body)) {
       fn = js_ast.simplifyPassThroughArrowFunCallBody(fn);
     }
@@ -3007,14 +3013,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //   * `class A extends B {...}` where B is the InterfaceType.
     //   * Emitting non-null constructor calls.
     // * The InterfaceType is the Null type.
-    // * The types were written in JS context or as part of the dart:_runtime
-    //   library.
-    if (!emitNullability ||
-        type == _coreTypes.deprecatedNullType ||
-        // TODO(38701) Remove these once the SDK has unforked and is running
-        // "opted-in"
-        !coreLibrary.isNonNullableByDefault &&
-            (_isInForeignJS || isSdkInternalRuntime(currentLibrary))) {
+    if (!emitNullability || type == _coreTypes.deprecatedNullType) {
       return typeRep;
     }
 
@@ -3738,7 +3737,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _reifyGenericFunction(Member m) =>
       m == null ||
-      m.enclosingLibrary.importUri.scheme != 'dart' ||
+      !m.enclosingLibrary.importUri.isScheme('dart') ||
       !m.annotations
           .any((a) => isBuiltinAnnotation(a, '_js_helper', 'NoReifyGeneric'));
 
@@ -5465,6 +5464,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (target.isFactory) return _emitFactoryInvocation(node);
 
     // Optimize some internal SDK calls.
+    if (_isDartInternal(target.enclosingLibrary)) {
+      var args = node.arguments;
+      if (args.positional.length == 1 &&
+          args.types.length == 1 &&
+          args.named.isEmpty &&
+          target.name.text == 'unsafeCast') {
+        return args.positional.single.accept(this);
+      }
+    }
     if (isSdkInternalRuntime(target.enclosingLibrary)) {
       var name = target.name.text;
       if (node.arguments.positional.isEmpty &&
@@ -5684,7 +5692,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _isWebLibrary(Uri importUri) =>
       importUri != null &&
-      importUri.scheme == 'dart' &&
+      importUri.isScheme('dart') &&
       (importUri.path == 'html' ||
           importUri.path == 'svg' ||
           importUri.path == 'indexed_db' ||
@@ -5784,7 +5792,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (args.positional.isEmpty &&
         args.named.isEmpty &&
-        ctorClass.enclosingLibrary.importUri.scheme == 'dart') {
+        ctorClass.enclosingLibrary.importUri.isScheme('dart')) {
       // Skip the slow SDK factory constructors when possible.
       switch (ctorClass.name) {
         case 'Map':
@@ -6300,7 +6308,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ]);
 
   bool _reifyFunctionType(FunctionNode f) {
-    if (_currentLibrary.importUri.scheme != 'dart') return true;
+    if (!_currentLibrary.importUri.isScheme('dart')) return true;
     var parent = f.parent;
 
     // SDK libraries can skip reification if they request it.
@@ -6329,7 +6337,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// under which functions are compiled and exported.
   String _jsExportName(NamedNode n) {
     var library = getLibrary(n);
-    if (library == null || library.importUri.scheme != 'dart') return null;
+    if (library == null || !library.importUri.isScheme('dart')) return null;
 
     return _annotationName(n, isJSExportNameAnnotation);
   }
@@ -6355,7 +6363,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitConstant(Constant node) {
     if (node is StaticTearOffConstant) {
       // JS() or external JS consts should not be lazily loaded.
-      var isSdk = node.target.enclosingLibrary.importUri.scheme == 'dart';
+      var isSdk = node.target.enclosingLibrary.importUri.isScheme('dart');
       if (_isInForeignJS) {
         return _emitStaticTarget(node.target);
       }

@@ -827,7 +827,8 @@ has been specified on the command line.''',
       // Expand architectures.
       var architectures = data["arch"] as String;
       if (architectures == "all") {
-        architectures = "ia32,x64,x64c,simarm,simarm64,simarm64c";
+        architectures =
+            "ia32,x64,x64c,simarm,simarm64,simarm64c,simriscv32,simriscv64";
       }
 
       for (var architectureName in architectures.split(",")) {

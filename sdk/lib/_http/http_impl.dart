@@ -1094,7 +1094,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
       {_HttpHeaders? initialHeaders})
       : _uri = uri,
         headers = _HttpHeaders(protocolVersion,
-            defaultPortForScheme: uri.scheme == 'https'
+            defaultPortForScheme: uri.isScheme('https')
                 ? HttpClient.defaultHttpsPort
                 : HttpClient.defaultHttpPort,
             initialHeaders: initialHeaders),
@@ -2338,14 +2338,16 @@ class _ConnectionTarget {
   final int port;
   final bool isSecure;
   final SecurityContext? context;
+  final Future<ConnectionTask<Socket>> Function(Uri, String?, int?)?
+      connectionFactory;
   final Set<_HttpClientConnection> _idle = HashSet();
   final Set<_HttpClientConnection> _active = HashSet();
-  final Set<ConnectionTask> _socketTasks = HashSet();
+  final Set<ConnectionTask<Socket>> _socketTasks = HashSet();
   final _pending = ListQueue<void Function()>();
   int _connecting = 0;
 
-  _ConnectionTarget(
-      this.key, this.host, this.port, this.isSecure, this.context);
+  _ConnectionTarget(this.key, this.host, this.port, this.isSecure, this.context,
+      this.connectionFactory);
 
   bool get isEmpty => _idle.isEmpty && _active.isEmpty && _connecting == 0;
 
@@ -2410,8 +2412,8 @@ class _ConnectionTarget {
     }
   }
 
-  Future<_ConnectionInfo> connect(String uriHost, int uriPort, _Proxy proxy,
-      _HttpClient client, _HttpProfileData? profileData) {
+  Future<_ConnectionInfo> connect(Uri uri, String uriHost, int uriPort,
+      _Proxy proxy, _HttpClient client, _HttpProfileData? profileData) {
     if (hasIdle) {
       var connection = takeIdle();
       client._connectionsChanged();
@@ -2422,8 +2424,8 @@ class _ConnectionTarget {
         _active.length + _connecting >= maxConnectionsPerHost) {
       var completer = Completer<_ConnectionInfo>();
       _pending.add(() {
-        completer
-            .complete(connect(uriHost, uriPort, proxy, client, profileData));
+        completer.complete(
+            connect(uri, uriHost, uriPort, proxy, client, profileData));
       });
       return completer.future;
     }
@@ -2434,14 +2436,26 @@ class _ConnectionTarget {
       return currentBadCertificateCallback(certificate, uriHost, uriPort);
     }
 
-    Future<ConnectionTask> connectionTask = (isSecure && proxy.isDirect
-        ? SecureSocket.startConnect(host, port,
-            context: context, onBadCertificate: callback)
-        : Socket.startConnect(host, port));
+    Future<ConnectionTask<Socket>> connectionTask;
+    final cf = connectionFactory;
+    if (cf != null) {
+      if (proxy.isDirect) {
+        connectionTask = cf(uri, null, null);
+      } else {
+        connectionTask = cf(uri, host, port);
+      }
+    } else {
+      connectionTask = (isSecure && proxy.isDirect
+          ? SecureSocket.startConnect(host, port,
+              context: context,
+              onBadCertificate: callback,
+              keyLog: client._keyLog)
+          : Socket.startConnect(host, port));
+    }
     _connecting++;
-    return connectionTask.then((ConnectionTask task) {
+    return connectionTask.then((ConnectionTask<Socket> task) {
       _socketTasks.add(task);
-      Future socketFuture = task.socket;
+      Future<Socket> socketFuture = task.socket;
       final Duration? connectionTimeout = client.connectionTimeout;
       if (connectionTimeout != null) {
         socketFuture = socketFuture.timeout(connectionTimeout);
@@ -2506,12 +2520,15 @@ class _HttpClient implements HttpClient {
   final List<_Credentials> _credentials = [];
   final List<_ProxyCredentials> _proxyCredentials = [];
   final SecurityContext? _context;
+  Future<ConnectionTask<Socket>> Function(Uri, String?, int?)?
+      _connectionFactory;
   Future<bool> Function(Uri, String scheme, String? realm)? _authenticate;
   Future<bool> Function(String host, int port, String scheme, String? realm)?
       _authenticateProxy;
   String Function(Uri)? _findProxy = HttpClient.findProxyFromEnvironment;
   Duration _idleTimeout = const Duration(seconds: 15);
   BadCertificateCallback? _badCertificateCallback;
+  Function(String line)? _keyLog;
 
   Duration get idleTimeout => _idleTimeout;
 
@@ -2539,6 +2556,10 @@ class _HttpClient implements HttpClient {
   set badCertificateCallback(
       bool Function(X509Certificate cert, String host, int port)? callback) {
     _badCertificateCallback = callback;
+  }
+
+  void set keyLog(Function(String line)? callback) {
+    _keyLog = callback;
   }
 
   Future<HttpClientRequest> open(
@@ -2631,6 +2652,12 @@ class _HttpClient implements HttpClient {
         _ProxyCredentials(host, port, realm, cr as _HttpClientCredentials));
   }
 
+  void set connectionFactory(
+          Future<ConnectionTask<Socket>> Function(
+                  Uri url, String? proxyHost, int? proxyPort)?
+              f) =>
+      _connectionFactory = f;
+
   set findProxy(String Function(Uri uri)? f) => _findProxy = f;
 
   static void _startRequestTimelineEvent(
@@ -2665,7 +2692,9 @@ class _HttpClient implements HttpClient {
     if (method != "CONNECT") {
       if (uri.host.isEmpty) {
         throw ArgumentError("No host specified in URI $uri");
-      } else if (uri.scheme != "http" && uri.scheme != "https") {
+      } else if (this._connectionFactory == null &&
+          !uri.isScheme("http") &&
+          !uri.isScheme("https")) {
         throw ArgumentError("Unsupported scheme '${uri.scheme}' in URI $uri");
       }
     }
@@ -2695,7 +2724,7 @@ class _HttpClient implements HttpClient {
     if (HttpClient.enableTimelineLogging) {
       profileData = HttpProfiler.startRequest(method, uri);
     }
-    return _getConnection(uri.host, port, proxyConf, isSecure, profileData)
+    return _getConnection(uri, uri.host, port, proxyConf, isSecure, profileData)
         .then((_ConnectionInfo info) {
       _HttpClientRequest send(_ConnectionInfo info) {
         profileData?.requestEvent('Connection established');
@@ -2706,7 +2735,8 @@ class _HttpClient implements HttpClient {
       // If the connection was closed before the request was sent, create
       // and use another connection.
       if (info.connection.closed) {
-        return _getConnection(uri.host, port, proxyConf, isSecure, profileData)
+        return _getConnection(
+                uri, uri.host, port, proxyConf, isSecure, profileData)
             .then(send);
       }
       return send(info);
@@ -2717,13 +2747,14 @@ class _HttpClient implements HttpClient {
   }
 
   static bool _isSubdomain(Uri subdomain, Uri domain) {
-    return (subdomain.scheme == domain.scheme &&
+    return (subdomain.isScheme(domain.scheme) &&
         subdomain.port == domain.port &&
         (subdomain.host == domain.host ||
             subdomain.host.endsWith("." + domain.host)));
   }
 
-  static bool _shouldCopyHeaderOnRedirect(
+  // Only visible for testing.
+  static bool shouldCopyHeaderOnRedirect(
       String headerKey, Uri originalUrl, Uri redirectUri) {
     if (_isSubdomain(redirectUri, originalUrl)) {
       return true;
@@ -2754,7 +2785,7 @@ class _HttpClient implements HttpClient {
       for (var header in previous.headers._headers.keys) {
         if (request.headers[header] == null &&
             (!isRedirect ||
-                _shouldCopyHeaderOnRedirect(header, resolved, previous.uri))) {
+                shouldCopyHeaderOnRedirect(header, resolved, previous.uri))) {
           request.headers.set(header, previous.headers[header]!);
         }
       }
@@ -2812,12 +2843,14 @@ class _HttpClient implements HttpClient {
   _ConnectionTarget _getConnectionTarget(String host, int port, bool isSecure) {
     String key = _HttpClientConnection.makeKey(isSecure, host, port);
     return _connectionTargets.putIfAbsent(key, () {
-      return _ConnectionTarget(key, host, port, isSecure, _context);
+      return _ConnectionTarget(
+          key, host, port, isSecure, _context, _connectionFactory);
     });
   }
 
   // Get a new _HttpClientConnection, from the matching _ConnectionTarget.
   Future<_ConnectionInfo> _getConnection(
+      Uri uri,
       String uriHost,
       int uriPort,
       _ProxyConfiguration proxyConf,
@@ -2831,7 +2864,7 @@ class _HttpClient implements HttpClient {
       String host = proxy.isDirect ? uriHost : proxy.host!;
       int port = proxy.isDirect ? uriPort : proxy.port!;
       return _getConnectionTarget(host, port, isSecure)
-          .connect(uriHost, uriPort, proxy, this, profileData)
+          .connect(uri, uriHost, uriPort, proxy, this, profileData)
           // On error, continue with next proxy.
           .catchError(connect);
     }
@@ -2928,13 +2961,13 @@ class _HttpClient implements HttpClient {
       return proxyCfg;
     }
 
-    if (url.scheme == "http") {
+    if (url.isScheme("http")) {
       String? proxy = environment["http_proxy"] ?? environment["HTTP_PROXY"];
       proxyCfg = checkProxy(proxy);
       if (proxyCfg != null) {
         return proxyCfg;
       }
-    } else if (url.scheme == "https") {
+    } else if (url.isScheme("https")) {
       String? proxy = environment["https_proxy"] ?? environment["HTTPS_PROXY"];
       proxyCfg = checkProxy(proxy);
       if (proxyCfg != null) {

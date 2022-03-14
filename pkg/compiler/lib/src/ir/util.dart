@@ -251,7 +251,7 @@ bool containsFreeVariables(ir.DartType type) =>
 
 /// Returns true if [importUri] corresponds to dart:html and related libraries.
 bool _isWebLibrary(Uri importUri) =>
-    importUri.scheme == 'dart' &&
+    importUri.isScheme('dart') &&
         (importUri.path == 'html' ||
             importUri.path == 'svg' ||
             importUri.path == 'indexed_db' ||

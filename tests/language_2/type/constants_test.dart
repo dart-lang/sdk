@@ -17,6 +17,9 @@ main(args) {
 
 const Type numType = num;
 
+const bool fromEnvironment =
+    const bool.fromEnvironment("foo", defaultValue: true);
+
 Type argumentType<T>() => T;
 
 void testSwitch<T extends MyType>(args) {
@@ -24,7 +27,7 @@ void testSwitch<T extends MyType>(args) {
   for (int i = 0; i < types.length; i++) {
     switch (types[i]) {
       // Must be type literal or not override `==`.
-      case const MyType(): //# 01: compile-time error
+      case const MyType(0): //# 01: compile-time error
 
       // Must not be type variable.
       case T: //# 02: compile-time error
@@ -41,6 +44,8 @@ void testSwitch<T extends MyType>(args) {
         throw "unreachable: num #$i";
       case MyType:
         break;
+      // Must be type literal or not override `==`.
+      case fromEnvironment ? const MyType(1) : Type: //# 07: compile-time error
       default:
         throw "unreachable: default #$i";
     }
@@ -50,7 +55,7 @@ void testSwitch<T extends MyType>(args) {
 void testMaps<T extends MyType>(args) {
   const map = {
     // Must be type literal or not override `==`.
-    MyType(): 0, //# 04: compile-time error
+    MyType(0): 0, //# 04: compile-time error
 
     // Must not be type variable.
     T: 0, //# 05: compile-time error
@@ -63,6 +68,8 @@ void testMaps<T extends MyType>(args) {
     int: 1,
     String: 2,
     numType: 3,
+    // Must be type literal or not override `==`.
+    fromEnvironment ? const MyType(1) : Type: 4, //# 08: compile-time error
   };
   if (map[MyType] != 0) throw "Map Error: ${MyType} as literal";
   if (map[T] != 0) throw "Map Error: ${T} as type argument";
@@ -78,7 +85,8 @@ void testMaps<T extends MyType>(args) {
 // An implementation of `Type` which overrides `==`,
 // but is not the value of a constant type literal.
 class MyType implements Type {
-  const MyType();
+  final int value;
+  const MyType(this.value);
   int get hashCode => 0;
   bool operator ==(Object other) => identical(this, other);
 }

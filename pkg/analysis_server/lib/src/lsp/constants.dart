@@ -208,12 +208,17 @@ abstract class ServerErrorCodes {
   static const InvalidFileLineCol = ErrorCodes(-32004);
   static const UnknownCommand = ErrorCodes(-32005);
   static const InvalidCommandArguments = ErrorCodes(-32006);
+
+  /// A file that is not part of the analyzed set.
   static const FileNotAnalyzed = ErrorCodes(-32007);
   static const FileHasErrors = ErrorCodes(-32008);
   static const ClientFailedToApplyEdit = ErrorCodes(-32009);
   static const RenameNotValid = ErrorCodes(-32010);
   static const RefactorFailed = ErrorCodes(-32011);
   static const FeatureDisabled = ErrorCodes(-32012);
+
+  /// A file that is expected to be analyzed, but failed.
+  static const FileAnalysisFailed = ErrorCodes(-32013);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification

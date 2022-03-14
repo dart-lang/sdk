@@ -226,7 +226,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -469,10 +469,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 16;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 24;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 12;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    12;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 16;
-static constexpr dart::compiler::target::word TypedData_data_offset = 12;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 12;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 4;
 static constexpr dart::compiler::target::word
@@ -484,6 +485,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -576,6 +580,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
@@ -792,7 +797,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -1041,10 +1046,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 32;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 44;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    24;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -1056,6 +1062,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -1150,6 +1159,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
@@ -1363,7 +1373,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -1606,10 +1616,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 16;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 24;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 12;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    12;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 16;
-static constexpr dart::compiler::target::word TypedData_data_offset = 12;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 12;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 4;
 static constexpr dart::compiler::target::word
@@ -1621,6 +1632,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 12;
@@ -1710,6 +1724,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
@@ -1926,7 +1941,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -2175,10 +2190,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 32;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 44;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    24;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -2190,6 +2206,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -2285,6 +2304,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
@@ -2498,7 +2518,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -2747,10 +2767,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 28;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 36;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 20;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    24;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 28;
-static constexpr dart::compiler::target::word TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -2762,6 +2783,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -2856,6 +2880,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 24;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 24;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
@@ -3069,7 +3094,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -3318,10 +3343,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 28;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 36;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 20;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    24;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 28;
-static constexpr dart::compiler::target::word TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -3333,6 +3359,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -3428,6 +3457,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 24;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 24;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
@@ -3641,7 +3671,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -3884,10 +3914,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 16;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 24;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 12;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    12;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 16;
-static constexpr dart::compiler::target::word TypedData_data_offset = 12;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 12;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 4;
 static constexpr dart::compiler::target::word
@@ -3899,6 +3930,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -3993,6 +4027,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_RISCV32) && !defined(DART_COMPRESSED_POINTERS)
@@ -4209,7 +4244,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -4458,10 +4493,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 32;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 44;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    24;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -4473,6 +4509,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -4568,6 +4607,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_RISCV64) && !defined(DART_COMPRESSED_POINTERS)
@@ -4777,7 +4817,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -5020,10 +5060,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 16;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 24;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 12;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    12;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 16;
-static constexpr dart::compiler::target::word TypedData_data_offset = 12;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 12;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 4;
 static constexpr dart::compiler::target::word
@@ -5035,6 +5076,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -5127,6 +5171,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
@@ -5337,7 +5382,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -5586,10 +5631,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 32;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 44;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    24;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -5601,6 +5647,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -5695,6 +5744,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
@@ -5902,7 +5952,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -6145,10 +6195,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 16;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 24;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 12;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    12;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 16;
-static constexpr dart::compiler::target::word TypedData_data_offset = 12;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 12;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 4;
 static constexpr dart::compiler::target::word
@@ -6160,6 +6211,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 12;
@@ -6249,6 +6303,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
@@ -6459,7 +6514,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -6708,10 +6763,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 32;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 44;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    24;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -6723,6 +6779,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -6818,6 +6877,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
@@ -7025,7 +7085,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -7274,10 +7334,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 28;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 36;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 20;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    24;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 28;
-static constexpr dart::compiler::target::word TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -7289,6 +7350,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -7383,6 +7447,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 24;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 24;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
@@ -7590,7 +7655,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -7839,10 +7904,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 28;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 36;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 20;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    24;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 28;
-static constexpr dart::compiler::target::word TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -7854,6 +7920,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -7949,6 +8018,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 24;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 24;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
@@ -8156,7 +8226,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -8399,10 +8469,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 16;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 24;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 12;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    12;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 16;
-static constexpr dart::compiler::target::word TypedData_data_offset = 12;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 12;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 4;
 static constexpr dart::compiler::target::word
@@ -8414,6 +8485,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 4;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -8508,6 +8582,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_RISCV32) && !defined(DART_COMPRESSED_POINTERS)
@@ -8718,7 +8793,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -8967,10 +9042,11 @@ static constexpr dart::compiler::target::word TypeParameter_bound_offset = 32;
 static constexpr dart::compiler::target::word TypeParameter_flags_offset = 44;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
-static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
+static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
+    24;
 static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -8982,6 +9058,9 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
+static constexpr dart::compiler::target::word WeakReference_target_offset = 8;
+static constexpr dart::compiler::target::word
+    WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -9077,6 +9156,7 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word WeakReference_InstanceSize = 32;
 static constexpr dart::compiler::target::word
     WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_RISCV64) && !defined(DART_COMPRESSED_POINTERS)
@@ -9318,8 +9398,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 4;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
@@ -9589,11 +9668,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 12;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     8;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    12;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 16;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 12;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 4;
 static constexpr dart::compiler::target::word
@@ -9605,6 +9684,10 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    4;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -9711,6 +9794,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    16;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 12;
@@ -9950,8 +10035,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -10222,11 +10306,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -10239,6 +10323,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -10346,6 +10434,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;
@@ -10588,8 +10678,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -10860,11 +10949,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -10877,6 +10966,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -10985,6 +11078,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;
@@ -11223,8 +11318,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -11495,11 +11589,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     20;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 28;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -11512,6 +11606,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -11619,6 +11717,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    24;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     24;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 16;
@@ -11857,8 +11957,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -12129,11 +12228,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     20;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 28;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -12146,6 +12245,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -12254,6 +12357,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    24;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     24;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 16;
@@ -12492,8 +12597,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 4;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
@@ -12763,11 +12867,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 12;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     8;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    12;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 16;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 12;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 4;
 static constexpr dart::compiler::target::word
@@ -12779,6 +12883,10 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    4;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -12887,6 +12995,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    16;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 12;
@@ -13126,8 +13236,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -13398,11 +13507,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -13415,6 +13524,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -13523,6 +13636,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;
@@ -13756,8 +13871,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 4;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
@@ -14027,11 +14141,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 12;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     8;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    12;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 16;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 12;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 4;
 static constexpr dart::compiler::target::word
@@ -14043,6 +14157,10 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    4;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -14149,6 +14267,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    16;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 12;
@@ -14381,8 +14501,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -14653,11 +14772,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -14670,6 +14789,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -14777,6 +14900,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;
@@ -15012,8 +15137,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -15284,11 +15408,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -15301,6 +15425,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -15409,6 +15537,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;
@@ -15640,8 +15770,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -15912,11 +16041,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     20;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 28;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -15929,6 +16058,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -16036,6 +16169,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    24;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     24;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 16;
@@ -16267,8 +16402,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -16539,11 +16673,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     20;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 28;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -16556,6 +16690,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 12;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -16664,6 +16802,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    24;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     24;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 16;
@@ -16895,8 +17035,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 4;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
@@ -17166,11 +17305,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 12;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     8;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    12;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 16;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 12;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 4;
 static constexpr dart::compiler::target::word
@@ -17182,6 +17321,10 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    4;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -17290,6 +17433,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    16;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 12;
@@ -17522,8 +17667,7 @@ static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word
-    AOT_PointerBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -17794,11 +17938,11 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_flags_offset =
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
-static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
-    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_typed_data_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_TypedDataView_offset_in_bytes_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_TypedData_payload_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_UnhandledException_exception_offset = 8;
 static constexpr dart::compiler::target::word
@@ -17811,6 +17955,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
+static constexpr dart::compiler::target::word AOT_WeakReference_target_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_WeakReference_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -17919,6 +18067,8 @@ static constexpr dart::compiler::target::word AOT_UnlinkedCall_InstanceSize =
 static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
+    32;
+static constexpr dart::compiler::target::word AOT_WeakReference_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_WeakSerializationReference_InstanceSize = 24;

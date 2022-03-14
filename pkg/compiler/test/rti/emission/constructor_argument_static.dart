@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 /*spec.class: A1:checkedInstance,checks=[],instance*/
 /*prod.class: A1:checks=[],instance*/
 class A1 {}
@@ -33,7 +35,7 @@ class B2 implements A2 {}
 abstract class Test2 {
   @pragma('dart2js:noInline')
   Test2(A2 x) {
-    print(x);
+    makeLive(x);
   }
 }
 

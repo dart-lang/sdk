@@ -14,7 +14,7 @@ class E<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> ex
   static const field self::E<core::int, core::String> one = #C3;
   static const field self::E<core::double, core::num> two = #C6;
   static const field self::E<core::int, core::int> three = #C9;
-  static const field self::E<dynamic, dynamic> four = #C12;
+  static const field self::E<core::num, core::bool> four = #C12;
   const constructor •(core::int index, core::String name) → self::E<self::E::X%, self::E::Y%>
     : super core::_Enum::•(index, name)
     ;
@@ -46,6 +46,6 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///entries_with_type_arguments.dart:
 - E. (from org-dartlang-testcase:///entries_with_type_arguments.dart:11:9)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - E.named (from org-dartlang-testcase:///entries_with_type_arguments.dart:12:9)

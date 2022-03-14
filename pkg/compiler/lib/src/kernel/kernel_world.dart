@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
+import '../common/elements.dart';
 import '../common/names.dart';
-import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/annotations.dart';
@@ -20,53 +20,29 @@ import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 import '../world.dart';
 
-import 'element_map_impl.dart';
+import 'element_map.dart';
 
-class KClosedWorldImpl implements KClosedWorld {
-  final KernelToElementMapImpl elementMap;
-
-  @override
+/// The immutable result of the [ResolutionWorldBuilder].
+class KClosedWorld implements BuiltWorld {
+  final KernelToElementMap elementMap;
   final KElementEnvironment elementEnvironment;
-
-  @override
   final DartTypes dartTypes;
-
-  @override
   final KCommonElements commonElements;
-
-  @override
   final NativeData nativeData;
-
-  @override
   final InterceptorData interceptorData;
-
-  @override
   final BackendUsage backendUsage;
-
-  @override
   final NoSuchMethodData noSuchMethodData;
-
-  @override
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
-
-  @override
   final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
 
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> _implementedClasses;
-
-  @override
   final Iterable<MemberEntity> liveInstanceMembers;
 
-  @override
+  /// Members that are written either directly or through a setter selector.
   final Iterable<MemberEntity> assignedInstanceMembers;
-  @override
   final KFieldAnalysis fieldAnalysis;
-
-  @override
   final Iterable<ClassEntity> liveNativeClasses;
-
-  @override
   final Map<MemberEntity, MemberUsage> liveMemberUsage;
 
   @override
@@ -93,19 +69,23 @@ class KClosedWorldImpl implements KClosedWorld {
   @override
   final Set<Local> genericLocalFunctions;
 
-  @override
+  /// Set of live closurized members whose signatures reference type variables.
+  ///
+  /// A closurized method is considered live if the enclosing class has been
+  /// instantiated.
   final Set<FunctionEntity> closurizedMembersWithFreeTypeVariables;
 
-  @override
+  /// Set of (live) local functions (closures).
+  ///
+  /// A live function is one whose enclosing member function has been enqueued.
   final Iterable<Local> localFunctions;
 
   @override
   final Iterable<InterfaceType> instantiatedTypes;
 
-  @override
   RuntimeTypesNeed get rtiNeed => _rtiNeed;
 
-  KClosedWorldImpl(this.elementMap,
+  KClosedWorld(this.elementMap,
       {CompilerOptions options,
       this.elementEnvironment,
       this.dartTypes,
@@ -155,7 +135,7 @@ class KClosedWorldImpl implements KClosedWorld {
     return true;
   }
 
-  @override
+  /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls) {
     return _implementedClasses.contains(cls);
   }
@@ -175,7 +155,8 @@ class KClosedWorldImpl implements KClosedWorld {
     dynamicTypeArgumentDependencies.forEach(f);
   }
 
-  @override
+  /// Returns `true` if [member] has been marked as used (called, read, etc.) in
+  /// this world builder.
   bool isMemberUsed(MemberEntity member) => liveMemberUsage.containsKey(member);
 
   @override

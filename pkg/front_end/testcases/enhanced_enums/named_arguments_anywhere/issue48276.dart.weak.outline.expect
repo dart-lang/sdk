@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::String log;
+  constructor •(core::int x, core::int y, {core::int z = 42}) → self::C
+    ;
+  constructor named1(core::int x, core::int y, core::int z) → self::C
+    ;
+  constructor named2(core::int x, core::int y, core::int z) → self::C
+    ;
+  constructor named3(core::int x, core::int y, core::int z) → self::C
+    ;
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

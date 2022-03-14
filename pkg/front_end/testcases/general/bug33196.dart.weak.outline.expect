@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
@@ -6,5 +6,5 @@ import "dart:async";
 
 static method main() → dynamic
   ;
-static method returnsString() → FutureOr<core::String*>* async 
+static method returnsString() → FutureOr<core::String> async 
   ;

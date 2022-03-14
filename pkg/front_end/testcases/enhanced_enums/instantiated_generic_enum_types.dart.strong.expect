@@ -49,9 +49,9 @@ import "dart:core" as core;
 
 class E<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E<dynamic>> values = #C8;
+  final field self::E::X% field;
   static const field self::E<core::int> one = #C4;
   static const field self::E<core::String> two = #C7;
-  final field self::E::X% field;
   const constructor •(core::int index, core::String name, self::E::X% field) → self::E<self::E::X%>
     : self::E::field = field, super core::_Enum::•(index, name)
     ;
@@ -137,5 +137,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///instantiated_generic_enum_types.dart:
 - E. (from org-dartlang-testcase:///instantiated_generic_enum_types.dart:11:9)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

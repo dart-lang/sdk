@@ -55,7 +55,8 @@ intptr_t FindPcOffset(const PcDescriptors& pc_descs, intptr_t yield_index) {
 // Instance caches library and field references.
 // This way we don't have to do the look-ups for every frame in the stack.
 CallerClosureFinder::CallerClosureFinder(Zone* zone)
-    : receiver_context_(Context::Handle(zone)),
+    : closure_(Closure::Handle(zone)),
+      receiver_context_(Context::Handle(zone)),
       receiver_function_(Function::Handle(zone)),
       parent_function_(Function::Handle(zone)),
       context_entry_(Object::Handle(zone)),
@@ -210,6 +211,12 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
 
 ClosurePtr CallerClosureFinder::GetCallerInFutureListener(
     const Object& future_listener) {
+  closure_ = GetCallerInFutureListenerInternal(future_listener);
+  return UnwrapAsyncThen(closure_);
+}
+
+ClosurePtr CallerClosureFinder::GetCallerInFutureListenerInternal(
+    const Object& future_listener) {
   auto value = GetFutureListenerState(future_listener);
 
   // If the _FutureListener is a `then`, `catchError`, or `whenComplete`
@@ -227,6 +234,26 @@ ClosurePtr CallerClosureFinder::GetCallerInFutureListener(
 }
 
 ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
+  closure_ = FindCallerInternal(receiver_closure);
+  return UnwrapAsyncThen(closure_);
+}
+
+ClosurePtr CallerClosureFinder::UnwrapAsyncThen(const Closure& closure) {
+  if (closure.IsNull()) return closure.ptr();
+
+  receiver_function_ = closure.function();
+  receiver_function_ = receiver_function_.parent_function();
+  if (receiver_function_.recognized_kind() ==
+      MethodRecognizer::kAsyncThenWrapperHelper) {
+    receiver_context_ = closure.context();
+    RELEASE_ASSERT(receiver_context_.num_variables() == 1);
+    return Closure::RawCast(receiver_context_.At(0));
+  }
+  return closure.ptr();
+}
+
+ClosurePtr CallerClosureFinder::FindCallerInternal(
+    const Closure& receiver_closure) {
   receiver_function_ = receiver_closure.function();
   receiver_context_ = receiver_closure.context();
 
@@ -358,23 +385,18 @@ ClosurePtr StackTraceUtils::FindClosureInFrame(ObjectPtr* last_object_in_caller,
   ASSERT(function.IsAsyncClosure() || function.IsAsyncGenClosure());
 
   // The callee has function signature
-  //   :async_op([result, exception, stack])
-  // So we are guaranteed to
-  //   a) have only tagged arguments on the stack until we find the :async_op
-  //      closure, and
-  //   b) find the async closure.
-  const intptr_t kNumClosureAndArgs = 4;
-  auto& closure = Closure::Handle();
-  for (intptr_t i = 0; i < kNumClosureAndArgs; i++) {
-    ObjectPtr arg = last_object_in_caller[i];
-    if (arg->IsHeapObject() && arg->GetClassId() == kClosureCid) {
-      closure = Closure::RawCast(arg);
-      if (closure.function() == function.ptr()) {
-        return closure.ptr();
-      }
+  //   :async_op(result_or_exception, stack)
+  // so the "this" closure is the 3rd argument.
+  ObjectPtr arg = last_object_in_caller[2];
+  if (arg->IsHeapObject() && arg->GetClassId() == kClosureCid) {
+    auto& closure = Closure::Handle();
+    closure = Closure::RawCast(arg);
+    if (closure.function() == function.ptr()) {
+      return closure.ptr();
     }
   }
-  UNREACHABLE();
+  ASSERT(arg == Symbols::OptimizedOut().ptr());
+  return Closure::null();
 }
 
 ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
@@ -395,13 +417,10 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
   if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
     // Next, look up caller's closure on the stack and walk backwards
     // through the yields.
-    //
-    // Due the async/async* closures having optional parameters, the
-    // caller-frame's pushed arguments includes the closure and should never be
-    // modified (even in the event of deopts).
     ObjectPtr* last_caller_obj =
         reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
     closure = FindClosureInFrame(last_caller_obj, function);
+    if (closure.IsNull()) return Closure::null();
 
     // If this async function hasn't yielded yet, we're still dealing with a
     // normal stack. Continue to next frame as usual.
@@ -589,13 +608,11 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
         function.parent_function() != Function::null()) {
       if (async_function.ptr() == function.parent_function()) {
         if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-          // Due the async/async* closures having optional parameters, the
-          // caller-frame's pushed arguments includes the closure and should
-          // never be modified (even in the event of deopts).
           ObjectPtr* last_caller_obj =
               reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
           closure = FindClosureInFrame(last_caller_obj, function);
-          if (CallerClosureFinder::IsRunningAsync(closure)) {
+          if (!closure.IsNull() &&
+              CallerClosureFinder::IsRunningAsync(closure)) {
             *sync_async_end = false;
             return frame_count;
           }

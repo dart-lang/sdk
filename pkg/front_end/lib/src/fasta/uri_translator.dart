@@ -22,7 +22,7 @@ class UriTranslator {
       dartLibraries.libraryInfoFor(libraryName)?.patches;
 
   bool isPlatformImplementation(Uri uri) {
-    if (uri.scheme != "dart") return false;
+    if (!uri.isScheme("dart")) return false;
     String path = uri.path;
     return dartLibraries.libraryInfoFor(path) == null || path.startsWith("_");
   }
@@ -31,8 +31,8 @@ class UriTranslator {
   // callback, so we can provide an error location when one is available. For
   // example, if the error occurs in an `import`.
   Uri? translate(Uri uri, [bool reportMessage = true]) {
-    if (uri.scheme == "dart") return _translateDartUri(uri);
-    if (uri.scheme == "package") {
+    if (uri.isScheme("dart")) return _translateDartUri(uri);
+    if (uri.isScheme("package")) {
       return _translatePackageUri(uri, reportMessage);
     }
     return null;
@@ -42,7 +42,7 @@ class UriTranslator {
   Package? getPackage(Uri uri) {
     // ignore: unnecessary_null_comparison
     if (packages == null) return null;
-    if (uri.scheme != "package") return null;
+    if (!uri.isScheme("package")) return null;
     int firstSlash = uri.path.indexOf('/');
     if (firstSlash == -1) return null;
     String packageName = uri.path.substring(0, firstSlash);

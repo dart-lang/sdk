@@ -67,6 +67,7 @@ const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
 extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 
 // Register aliases.
@@ -206,6 +207,7 @@ struct RangeErrorABI {
 struct AllocateObjectABI {
   static const Register kResultReg = EAX;
   static const Register kTypeArgumentsReg = EDX;
+  static const Register kTagsReg = kNoRegister;  // Not used.
 };
 
 // ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.

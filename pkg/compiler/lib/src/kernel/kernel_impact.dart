@@ -8,7 +8,7 @@ import 'package:kernel/type_environment.dart' as ir;
 import '../common.dart';
 import '../common/names.dart';
 import '../common/resolution.dart';
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -216,7 +216,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerFeature(Feature.SYNC_STAR);
     impactBuilder.registerStaticUse(StaticUse.staticInvoke(
         commonElements.syncStarIterableFactory,
-        const CallStructure.unnamed(1, 1),
+        CallStructure.unnamed(1, 1),
         <DartType>[elementMap.getDartType(elementType)]));
   }
 
@@ -225,7 +225,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerFeature(Feature.ASYNC);
     impactBuilder.registerStaticUse(StaticUse.staticInvoke(
         commonElements.asyncAwaitCompleterFactory,
-        const CallStructure.unnamed(0, 1),
+        CallStructure.unnamed(0, 1),
         <DartType>[elementMap.getDartType(elementType)]));
   }
 
@@ -234,7 +234,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerFeature(Feature.ASYNC_STAR);
     impactBuilder.registerStaticUse(StaticUse.staticInvoke(
         commonElements.asyncStarStreamControllerFactory,
-        const CallStructure.unnamed(1, 1),
+        CallStructure.unnamed(1, 1),
         <DartType>[elementMap.getDartType(elementType)]));
   }
 

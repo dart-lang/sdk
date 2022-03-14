@@ -430,13 +430,6 @@ m(B b) {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      var assignment1 = findNode.assignment('b.a?.x = 1');
-      var assignment2 = findNode.assignment('b.a.x = 2');
-      assertType(assignment1.leftHandSide, 'int');
-      assertType(assignment2.leftHandSide, 'int');
-    }
   }
 
   test_assignment_eq_simpleIdentifier() async {
@@ -466,13 +459,6 @@ m(int x, int? y) {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      var assignment1 = findNode.assignment('x =');
-      var assignment2 = findNode.assignment('y =');
-      assertType(assignment1.leftHandSide, 'int');
-      assertType(assignment2.leftHandSide, 'int?');
-    }
   }
 
   test_assignment_plusEq_propertyAccess3() async {
@@ -522,13 +508,6 @@ m(B b) {
       ),
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      var assignment1 = findNode.assignment('b.a.x +=');
-      var assignment2 = findNode.assignment('b.a.y +=');
-      assertType(assignment1.leftHandSide, 'int');
-      assertType(assignment2.leftHandSide, 'int?');
-    }
   }
 
   test_assignment_plusEq_propertyAccess3_short1() async {
@@ -578,13 +557,6 @@ m(B b) {
       ),
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      var assignment1 = findNode.assignment('b.a?.x += 1');
-      var assignment2 = findNode.assignment('b.a.x += 2');
-      assertType(assignment1.leftHandSide, 'int');
-      assertType(assignment2.leftHandSide, 'int');
-    }
   }
 
   test_assignment_plusEq_simpleIdentifier() async {
@@ -597,8 +569,6 @@ m(int x, int? y) {
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
           33, 2),
     ]);
-    var assignment1 = findNode.assignment('x +=');
-    var assignment2 = findNode.assignment('y +=');
 
     assertAssignment(
       findNode.assignment('x +='),
@@ -625,11 +595,6 @@ m(int x, int? y) {
       ),
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertType(assignment1.leftHandSide, 'int');
-      assertType(assignment2.leftHandSide, 'int?');
-    }
   }
 
   test_await_nonNullable() async {

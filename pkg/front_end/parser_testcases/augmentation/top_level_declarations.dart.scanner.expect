@@ -1,0 +1,39 @@
+augment method() {}
+augment void method() {}
+augment get getter => null;
+augment int get getter => 0;
+augment set setter(value) {}
+augment void set setter(value) {}
+augment var field;
+augment final field = 0;
+augment const field = 0;
+augment int field;
+augment late var field;
+augment late final field;
+augment late int field;
+augment class Class {}
+augment abstract class Class {}
+augment class Class = Object with Mixin;
+augment abstract class Class = Object with Mixin;
+augment mixin Mixin {}
+
+
+augment[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] void[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] null[KeywordToken];[SimpleToken]
+augment[KeywordToken] int[StringToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] void[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] final[KeywordToken] field[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] const[KeywordToken] field[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] late[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] late[KeywordToken] final[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] late[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] abstract[KeywordToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken]
+augment[KeywordToken] abstract[KeywordToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken]
+augment[KeywordToken] mixin[KeywordToken] Mixin[StringToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

@@ -56,6 +56,11 @@ class CallerClosureFinder {
   static bool IsRunningAsync(const Closure& receiver_closure);
 
  private:
+  ClosurePtr FindCallerInternal(const Closure& receiver_closure);
+  ClosurePtr GetCallerInFutureListenerInternal(const Object& future_listener);
+  ClosurePtr UnwrapAsyncThen(const Closure& closure);
+
+  Closure& closure_;
   Context& receiver_context_;
   Function& receiver_function_;
   Function& parent_function_;

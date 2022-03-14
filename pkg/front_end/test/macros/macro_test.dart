@@ -6,7 +6,7 @@ import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -17,6 +17,7 @@ import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/kernel/macro.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
+import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Arguments;
 
 Future<void> main(List<String> args) async {
@@ -78,6 +79,17 @@ class MacroDataComputer extends DataComputer<Features> {
   }
 
   @override
+  bool get supportsErrors => true;
+
+  @override
+  Features? computeErrorData(
+      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+    Features features = new Features();
+    features[Tags.error] = errorsToText(errors, useCodes: true);
+    return features;
+  }
+
+  @override
   DataInterpreter<Features> get dataValidator =>
       const FeaturesDataInterpreter();
 }
@@ -91,6 +103,7 @@ class Tags {
   static const String appliedMacros = 'appliedMacros';
   static const String macroClassIds = 'macroClassIds';
   static const String macroInstanceIds = 'macroInstanceIds';
+  static const String error = 'error';
 }
 
 String constructorNameToString(String constructorName) {
@@ -98,9 +111,9 @@ String constructorNameToString(String constructorName) {
 }
 
 String importUriToString(Uri importUri) {
-  if (importUri.scheme == 'package') {
+  if (importUri.isScheme('package')) {
     return importUri.toString();
-  } else if (importUri.scheme == 'dart') {
+  } else if (importUri.isScheme('dart')) {
     return importUri.toString();
   } else {
     return importUri.pathSegments.last;
@@ -126,6 +139,7 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
 
   MacroDeclarationData get macroDeclarationData => testResultData.compilerResult
       .kernelTargetForTesting!.loader.dataForTesting!.macroDeclarationData;
+
   MacroApplicationDataForTesting get macroApplicationData => testResultData
       .compilerResult
       .kernelTargetForTesting!
@@ -280,10 +294,9 @@ class TestMacroExecutor implements MacroExecutor {
   List<_MacroInstanceIdentifier> macroInstances = [];
 
   @override
-  Future<String> buildAugmentationLibrary(
-      Iterable<MacroExecutionResult> macroResults) {
-    // TODO: implement buildAugmentationLibrary
-    throw UnimplementedError();
+  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
+      ResolvedIdentifier Function(Identifier) resolveIdentifier) {
+    return '';
   }
 
   @override
@@ -295,6 +308,7 @@ class TestMacroExecutor implements MacroExecutor {
   Future<MacroExecutionResult> executeDeclarationsPhase(
       MacroInstanceIdentifier macro,
       Declaration declaration,
+      IdentifierResolver identifierResolver,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector) async {
     return new _MacroExecutionResult();
@@ -304,6 +318,7 @@ class TestMacroExecutor implements MacroExecutor {
   Future<MacroExecutionResult> executeDefinitionsPhase(
       MacroInstanceIdentifier macro,
       Declaration declaration,
+      IdentifierResolver identifierResolver,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector,
       TypeDeclarationResolver typeDeclarationResolver) async {
@@ -311,8 +326,8 @@ class TestMacroExecutor implements MacroExecutor {
   }
 
   @override
-  Future<MacroExecutionResult> executeTypesPhase(
-      MacroInstanceIdentifier macro, Declaration declaration) async {
+  Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
+      Declaration declaration, IdentifierResolver identifierResolver) async {
     return new _MacroExecutionResult();
   }
 
@@ -383,11 +398,16 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
 
 class _MacroExecutionResult implements MacroExecutionResult {
   @override
-  Iterable<DeclarationCode> augmentations = const [];
+  Map<String, Iterable<DeclarationCode>> classAugmentations = const {};
 
   @override
-  Iterable<DeclarationCode> imports = const [];
+  Iterable<DeclarationCode> libraryAugmentations = const [];
 
   @override
-  void serialize(Serializer serializer) {}
+  Iterable<String> newTypeNames = const [];
+
+  @override
+  void serialize(Serializer serializer) {
+    throw UnimplementedError();
+  }
 }

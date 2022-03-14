@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -42,6 +43,7 @@ import 'package:analyzer/src/dart/resolver/function_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/instance_creation_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
@@ -69,6 +71,7 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/this_access_tracker.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
@@ -80,11 +83,6 @@ typedef WhyNotPromotedGetter = Map<DartType, NonPromotionReason> Function();
 /// Maintains and manages contextual type information used for
 /// inferring types.
 class InferenceContext {
-  // TODO(leafp): Consider replacing these node properties with a
-  // hash table help in an instance of this class.
-  static const String _typeProperty =
-      'analyzer.src.generated.InferenceContext.contextType';
-
   final ResolverVisitor _resolver;
 
   /// The type system in use.
@@ -105,20 +103,17 @@ class InferenceContext {
     }
   }
 
-  void popFunctionBodyContext(FunctionBody node) {
+  DartType popFunctionBodyContext(FunctionBody node) {
     var context = _bodyContexts.removeLast();
 
     var flow = _resolver.flowAnalysis.flow;
 
-    var resultType = context.computeInferredReturnType(
+    return context.computeInferredReturnType(
       endOfBlockIsReachable: flow == null || flow.isReachable,
     );
-
-    setType(node, resultType);
   }
 
-  void pushFunctionBodyContext(FunctionBody node) {
-    var imposedType = getContext(node);
+  void pushFunctionBodyContext(FunctionBody node, DartType? imposedType) {
     _bodyContexts.add(
       BodyInferenceContext(
         typeSystem: _typeSystem,
@@ -126,38 +121,6 @@ class InferenceContext {
         imposedType: imposedType,
       ),
     );
-  }
-
-  /// Clear the type information associated with [node].
-  static void clearType(AstNode? node) {
-    node?.setProperty(_typeProperty, null);
-  }
-
-  /// Look for contextual type information attached to [node], and returns
-  /// the type if found.
-  ///
-  /// The returned type may be partially or completely unknown, denoted with an
-  /// unknown type `_`, for example `List<_>` or `(_, int) -> void`.
-  /// You can use [TypeSystemImpl.upperBoundForType] or
-  /// [TypeSystemImpl.lowerBoundForType] if you would prefer a known type
-  /// that represents the bound of the context type.
-  static DartType? getContext(AstNode? node) =>
-      node?.getProperty(_typeProperty);
-
-  /// Attach contextual type information [type] to [node] for use during
-  /// inference.
-  static void setType(AstNode? node, DartType? type) {
-    if (type == null || type.isDynamic) {
-      clearType(node);
-    } else {
-      node?.setProperty(_typeProperty, type);
-    }
-  }
-
-  /// Attach contextual type information [type] to [node] for use during
-  /// inference.
-  static void setTypeFromNode(AstNode innerNode, AstNode outerNode) {
-    setType(innerNode, getContext(outerNode));
   }
 }
 
@@ -286,6 +249,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final AnnotationResolver _annotationResolver = AnnotationResolver(this);
 
+  final bool genericMetadataIsEnabled;
+
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// The [definingLibrary] is the element for the library containing the node
@@ -338,7 +303,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
         ),
         _featureSet = featureSet,
-        migrationResolutionHooks = migrationResolutionHooks {
+        migrationResolutionHooks = migrationResolutionHooks,
+        genericMetadataIsEnabled =
+            definingLibrary.featureSet.isEnabled(Feature.generic_metadata) {
     var analysisOptions =
         definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
 
@@ -441,19 +408,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
 
+  void analyzeExpression(Expression expression, DartType? contextType) {
+    if (contextType != null && contextType.isDynamic) {
+      contextType = null;
+    }
+    (expression as ExpressionImpl).resolveExpression(this, contextType);
+  }
+
   /// Verify that the arguments in the given [argumentList] can be assigned to
   /// their corresponding parameters.
   ///
   /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypesNotAssignableInList(ArgumentList argumentList,
       List<WhyNotPromotedGetter> whyNotPromotedList) {
-    for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression) {
-        insertImplicitCallReference(argument.expression);
-      } else {
-        insertImplicitCallReference(argument);
-      }
-    }
     var arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       checkForArgumentTypeNotAssignableForArgument(arguments[i],
@@ -664,7 +631,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ///
   /// If an [FunctionReference] is inserted, returns it; otherwise, returns
   /// [expression].
-  ExpressionImpl insertGenericFunctionInstantiation(Expression expression) {
+  ExpressionImpl insertGenericFunctionInstantiation(Expression expression,
+      {required DartType? contextType}) {
     expression as ExpressionImpl;
     if (!isConstructorTearoffsEnabled) {
       // Temporarily, only create [ImplicitCallReference] nodes under the
@@ -675,7 +643,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var staticType = expression.staticType;
-    var context = InferenceContext.getContext(expression);
+    var context = contextType;
     if (context == null ||
         staticType is! FunctionType ||
         staticType.typeFormals.isEmpty) {
@@ -713,70 +681,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     genericFunctionInstantiation.staticType = staticType;
 
     return genericFunctionInstantiation;
-  }
-
-  /// If `expression` should be treated as `expression.call`, inserts an
-  /// [ImplicitCallReferece] node which wraps [expression].
-  ///
-  /// If an [ImplicitCallReferece] is inserted, returns it; otherwise, returns
-  /// [expression].
-  ExpressionImpl insertImplicitCallReference(Expression expression) {
-    expression as ExpressionImpl;
-    if (!isConstructorTearoffsEnabled) {
-      // Temporarily, only create [ImplicitCallReference] nodes under the
-      // 'constructor-tearoffs' feature.
-      // TODO(srawlins): When we are ready to make a breaking change release to
-      // the analyzer package, remove this exception.
-      return expression;
-    }
-
-    var parent = expression.parent;
-    if (parent is CascadeExpression && parent.target == expression) {
-      // Do not perform an "implicit tear-off conversion" here. It should only
-      // be performed on [parent]. See
-      // https://github.com/dart-lang/language/issues/1873.
-      return expression;
-    }
-    var context = InferenceContext.getContext(expression);
-    var callMethod =
-        getImplicitCallMethod(expression.typeOrThrow, context, expression);
-    if (callMethod == null || context == null) {
-      return expression;
-    }
-
-    // `expression` is to be treated as `expression.call`.
-    context = typeSystem.flatten(context);
-    var callMethodType = callMethod.type;
-    List<DartType> typeArgumentTypes;
-    if (isConstructorTearoffsEnabled &&
-        callMethodType.typeFormals.isNotEmpty &&
-        context is FunctionType) {
-      typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
-        context,
-        callMethodType,
-        errorReporter: errorReporter,
-        errorNode: expression,
-        // If the constructor-tearoffs feature is enabled, then so is
-        // generic-metadata.
-        genericMetadataIsEnabled: true,
-      )!;
-      if (typeArgumentTypes.isNotEmpty) {
-        callMethodType = callMethodType.instantiate(typeArgumentTypes);
-      }
-    } else {
-      typeArgumentTypes = [];
-    }
-    var callReference = astFactory.implicitCallReference(
-      expression: expression,
-      staticElement: callMethod,
-      typeArguments: null,
-      typeArgumentTypes: typeArgumentTypes,
-    );
-    NodeReplacer.replace(expression, callReference, parent: parent);
-
-    callReference.staticType = callMethodType;
-
-    return callReference;
   }
 
   /// If we reached a null-shorting termination, and the [node] has null
@@ -875,8 +779,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         hasWrite: true,
       );
 
-      InferenceContext.setType(node.index, result.indexContextType);
-      node.index.accept(this);
+      analyzeExpression(node.index, result.indexContextType);
       var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
       checkIndexExpressionIndex(
         node.index,
@@ -1059,10 +962,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitAdjacentStrings(AdjacentStrings node) {
+  void visitAdjacentStrings(AdjacentStrings node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitAdjacentStrings(node as AdjacentStringsImpl);
+    typeAnalyzer.visitAdjacentStrings(node as AdjacentStringsImpl,
+        contextType: contextType);
   }
 
   @override
@@ -1076,97 +980,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitArgumentList(ArgumentList node,
-      {bool isIdentical = false,
-      List<WhyNotPromotedGetter>? whyNotPromotedList}) {
-    whyNotPromotedList ??= [];
-    var callerType = InferenceContext.getContext(node);
-    NodeList<Expression> arguments = node.arguments;
-    if (callerType is FunctionType) {
-      var parameters = callerType.parameters;
-
-      var namedParameters = <String, ParameterElement>{};
-      for (var i = 0; i < parameters.length; i++) {
-        var parameter = parameters[i];
-        if (parameter.isNamed) {
-          namedParameters[parameter.name] = parameter;
-        }
-      }
-
-      var parent = node.parent;
-      DartType? targetType;
-      Element? methodElement;
-      DartType? invocationContext;
-      if (parent is MethodInvocation) {
-        targetType = parent.realTarget?.staticType;
-        methodElement = parent.methodName.staticElement;
-        invocationContext = InferenceContext.getContext(parent);
-      }
-
-      //TODO(leafp): Consider using the parameter elements here instead.
-      //TODO(leafp): Make sure that the parameter elements are getting
-      // setup correctly with inference.
-      var positionalParameterIndex = 0;
-      for (var i = 0; i < arguments.length; i++) {
-        var argument = arguments[i];
-        ParameterElement? parameter;
-        if (argument is NamedExpression) {
-          parameter = namedParameters[argument.name.label.name];
-        } else {
-          while (positionalParameterIndex < parameters.length) {
-            parameter = parameters[positionalParameterIndex++];
-            if (!parameter.isNamed) {
-              break;
-            }
-          }
-        }
-        if (parameter != null) {
-          var parameterType = parameter.type;
-          if (targetType != null) {
-            InferenceContext.setType(
-                argument,
-                typeSystem.refineNumericInvocationContext(targetType,
-                    methodElement, invocationContext, parameterType));
-          } else {
-            InferenceContext.setType(argument, parameterType);
-          }
-        }
-      }
-    }
-    checkUnreachableNode(node);
-    int length = arguments.length;
-    var flow = flowAnalysis.flow;
-    for (var i = 0; i < length; i++) {
-      if (isIdentical && length > 1 && i == 1) {
-        var firstArg = arguments[0];
-        flow?.equalityOp_rightBegin(firstArg, firstArg.typeOrThrow);
-      }
-      arguments[i].accept(this);
-      if (flow != null) {
-        whyNotPromotedList.add(flow.whyNotPromoted(arguments[i]));
-      }
-    }
-    if (isIdentical && length > 1) {
-      var secondArg = arguments[1];
-      flow?.equalityOp_end(
-          node.parent as Expression, secondArg, secondArg.typeOrThrow);
-    }
-  }
-
-  @override
-  void visitAsExpression(AsExpression node) {
+  void visitAsExpression(AsExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitAsExpression(node as AsExpressionImpl);
+    typeAnalyzer.visitAsExpression(node as AsExpressionImpl,
+        contextType: contextType);
     flowAnalysis.asExpression(node);
-    insertGenericFunctionInstantiation(node);
+    _insertImplicitCallReference(
+        insertGenericFunctionInstantiation(node, contextType: contextType),
+        contextType: contextType);
   }
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
-    InferenceContext.setType(node.condition, typeProvider.boolType);
     flowAnalysis.flow?.assert_begin();
-    node.condition.accept(this);
+    analyzeExpression(node.condition, typeProvider.boolType);
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
@@ -1179,9 +1007,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAssertStatement(AssertStatement node) {
-    InferenceContext.setType(node.condition, typeProvider.boolType);
     flowAnalysis.flow?.assert_begin();
-    node.condition.accept(this);
+    analyzeExpression(node.condition, typeProvider.boolType);
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
@@ -1193,33 +1020,41 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _assignmentExpressionResolver.resolve(node as AssignmentExpressionImpl);
-    insertGenericFunctionInstantiation(node);
+  void visitAssignmentExpression(AssignmentExpression node,
+      {DartType? contextType}) {
+    _assignmentExpressionResolver.resolve(node as AssignmentExpressionImpl,
+        contextType: contextType);
+    _insertImplicitCallReference(
+        insertGenericFunctionInstantiation(node, contextType: contextType),
+        contextType: contextType);
   }
 
   @override
-  void visitAwaitExpression(AwaitExpression node) {
-    var contextType = InferenceContext.getContext(node);
+  void visitAwaitExpression(AwaitExpression node, {DartType? contextType}) {
+    DartType? futureUnion;
     if (contextType != null) {
-      var futureUnion = _createFutureOr(contextType);
-      InferenceContext.setType(node.expression, futureUnion);
+      futureUnion = _createFutureOr(contextType);
     }
     checkUnreachableNode(node);
-    node.visitChildren(this);
-    typeAnalyzer.visitAwaitExpression(node as AwaitExpressionImpl);
-    insertGenericFunctionInstantiation(node);
+    analyzeExpression(node.expression, futureUnion);
+    typeAnalyzer.visitAwaitExpression(node as AwaitExpressionImpl,
+        contextType: contextType);
+    _insertImplicitCallReference(
+        insertGenericFunctionInstantiation(node, contextType: contextType),
+        contextType: contextType);
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node, {DartType? contextType}) {
     var migrationResolutionHooks = this.migrationResolutionHooks;
     if (migrationResolutionHooks != null) {
-      migrationResolutionHooks.reportBinaryExpressionContext(
-          node, InferenceContext.getContext(node));
+      migrationResolutionHooks.reportBinaryExpressionContext(node, contextType);
     }
-    _binaryExpressionResolver.resolve(node as BinaryExpressionImpl);
-    insertGenericFunctionInstantiation(node);
+    _binaryExpressionResolver.resolve(node as BinaryExpressionImpl,
+        contextType: contextType);
+    _insertImplicitCallReference(
+        insertGenericFunctionInstantiation(node, contextType: contextType),
+        contextType: contextType);
   }
 
   @override
@@ -1229,24 +1064,27 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {
+  DartType visitBlockFunctionBody(BlockFunctionBody node,
+      {DartType? imposedType}) {
     try {
-      inferenceContext.pushFunctionBodyContext(node);
+      inferenceContext.pushFunctionBodyContext(node, imposedType);
       _thisAccessTracker.enterFunctionBody(node);
       checkUnreachableNode(node);
       node.visitChildren(this);
     } finally {
       _thisAccessTracker.exitFunctionBody(node);
-      inferenceContext.popFunctionBodyContext(node);
+      imposedType = inferenceContext.popFunctionBodyContext(node);
     }
+    return imposedType;
   }
 
   @override
-  void visitBooleanLiteral(BooleanLiteral node) {
+  void visitBooleanLiteral(BooleanLiteral node, {DartType? contextType}) {
     flowAnalysis.flow?.booleanLiteral(node, node.value);
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitBooleanLiteral(node as BooleanLiteralImpl);
+    typeAnalyzer.visitBooleanLiteral(node as BooleanLiteralImpl,
+        contextType: contextType);
   }
 
   @override
@@ -1260,9 +1098,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitCascadeExpression(covariant CascadeExpressionImpl node) {
-    InferenceContext.setTypeFromNode(node.target, node);
-    node.target.accept(this);
+  void visitCascadeExpression(covariant CascadeExpressionImpl node,
+      {DartType? contextType}) {
+    analyzeExpression(node.target, contextType);
 
     if (node.isNullAware) {
       flowAnalysis.flow!.nullAwareAccess_rightBegin(
@@ -1272,9 +1110,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     node.cascadeSections.accept(this);
 
-    typeAnalyzer.visitCascadeExpression(node);
+    typeAnalyzer.visitCascadeExpression(node, contextType: contextType);
 
     nullShortingTermination(node);
+    _insertImplicitCallReference(node, contextType: contextType);
   }
 
   @override
@@ -1336,43 +1175,42 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitConditionalExpression(ConditionalExpression node) {
+  void visitConditionalExpression(ConditionalExpression node,
+      {DartType? contextType}) {
     Expression condition = node.condition;
     var flow = flowAnalysis.flow;
     flow?.conditional_conditionBegin();
 
     // TODO(scheglov) Do we need these checks for null?
-    InferenceContext.setType(node.condition, typeProvider.boolType);
-    condition.accept(this);
+    analyzeExpression(node.condition, typeProvider.boolType);
     condition = node.condition;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
     boolExpressionVerifier.checkForNonBoolCondition(condition,
         whyNotPromoted: whyNotPromoted);
 
-    InferenceContext.setTypeFromNode(node.thenExpression, node);
-
     if (flow != null) {
       flow.conditional_thenBegin(condition, node);
       checkUnreachableNode(node.thenExpression);
     }
-    node.thenExpression.accept(this);
+    analyzeExpression(node.thenExpression, contextType);
     nullSafetyDeadCodeVerifier.flowEnd(node.thenExpression);
 
     Expression elseExpression = node.elseExpression;
-    InferenceContext.setTypeFromNode(elseExpression, node);
 
     if (flow != null) {
       flow.conditional_elseBegin(node.thenExpression);
       checkUnreachableNode(elseExpression);
-      elseExpression.accept(this);
+      analyzeExpression(elseExpression, contextType);
       flow.conditional_end(node, elseExpression);
       nullSafetyDeadCodeVerifier.flowEnd(elseExpression);
     } else {
-      elseExpression.accept(this);
+      analyzeExpression(elseExpression, contextType);
     }
     elseExpression = node.elseExpression;
 
-    typeAnalyzer.visitConditionalExpression(node as ConditionalExpressionImpl);
+    typeAnalyzer.visitConditionalExpression(node as ConditionalExpressionImpl,
+        contextType: contextType);
+    _insertImplicitCallReference(node, contextType: contextType);
   }
 
   @override
@@ -1382,12 +1220,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
 
     var returnType = node.declaredElement!.type.returnType;
-    InferenceContext.setType(node.body, returnType);
 
     var outerFunction = _enclosingFunction;
     try {
@@ -1395,7 +1232,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
-      node.visitChildren(this);
+      node.documentationComment?.accept(this);
+      node.metadata.accept(this);
+      node.returnType.accept(this);
+      node.name?.accept(this);
+      node.parameters.accept(this);
+      node.initializers.accept(this);
+      node.redirectedConstructor?.accept(this);
+      node.body.resolve(this, returnType.isDynamic ? null : returnType);
       elementResolver.visitConstructorDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -1422,20 +1266,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var fieldElement = enclosingClass!.getField(node.fieldName.name);
     var fieldType = fieldElement?.type;
     var expression = node.expression;
-    InferenceContext.setType(expression, fieldType);
-    expression.accept(this);
+    analyzeExpression(expression, fieldType);
     expression = node.expression;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
     elementResolver.visitConstructorFieldInitializer(
         node as ConstructorFieldInitializerImpl);
     if (fieldElement != null) {
-      if (fieldType != null && expression.staticType != null) {
-        var callReference = insertImplicitCallReference(expression);
-        if (expression != callReference) {
-          checkForInvalidAssignment(node.fieldName, callReference,
-              whyNotPromoted: whyNotPromoted);
-        }
-      }
       var enclosingConstructor = enclosingFunction as ConstructorElement;
       checkForFieldInitializerNotAssignable(node, fieldElement,
           isConstConstructor: enclosingConstructor.isConst,
@@ -1445,13 +1281,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitConstructorName(ConstructorName node) {
-    node.type2.accept(this);
+    node.type.accept(this);
     elementResolver.visitConstructorName(node as ConstructorNameImpl);
   }
 
   @override
-  void visitConstructorReference(covariant ConstructorReferenceImpl node) {
-    _constructorReferenceResolver.resolve(node);
+  void visitConstructorReference(covariant ConstructorReferenceImpl node,
+      {DartType? contextType}) {
+    _constructorReferenceResolver.resolve(node, contextType: contextType);
+    _insertImplicitCallReference(node, contextType: contextType);
   }
 
   @override
@@ -1479,13 +1317,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    InferenceContext.setType(node.defaultValue, node.declaredElement?.type);
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    node.parameter.accept(this);
+    var defaultValue = node.defaultValue;
+    if (defaultValue != null) {
+      analyzeExpression(defaultValue, node.declaredElement?.type);
+    }
     ParameterElement element = node.declaredElement!;
 
     if (element is DefaultParameterElementImpl && node.isOfLocalFunction) {
-      element.constantInitializer = node.defaultValue;
+      element.constantInitializer = defaultValue;
     }
   }
 
@@ -1499,8 +1340,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.body.accept(this);
 
     flowAnalysis.flow?.doStatement_conditionBegin();
-    InferenceContext.setType(condition, typeProvider.boolType);
-    condition.accept(this);
+    analyzeExpression(condition, typeProvider.boolType);
     condition = node.condition;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
     boolExpressionVerifier.checkForNonBoolCondition(condition,
@@ -1510,19 +1350,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitDoubleLiteral(DoubleLiteral node) {
+  void visitDoubleLiteral(DoubleLiteral node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitDoubleLiteral(node as DoubleLiteralImpl);
+    typeAnalyzer.visitDoubleLiteral(node as DoubleLiteralImpl,
+        contextType: contextType);
   }
 
   @override
-  void visitEmptyFunctionBody(EmptyFunctionBody node) {
-    if (resolveOnlyCommentInFunctionBody) {
-      return;
+  DartType visitEmptyFunctionBody(EmptyFunctionBody node,
+      {DartType? imposedType}) {
+    if (!resolveOnlyCommentInFunctionBody) {
+      checkUnreachableNode(node);
+      node.visitChildren(this);
     }
-    checkUnreachableNode(node);
-    node.visitChildren(this);
+    return imposedType ?? typeProvider.dynamicType;
   }
 
   @override
@@ -1548,27 +1390,66 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var element = node.declaredElement as ConstFieldElementImpl;
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpression) {
-      var constructor = initializer.constructorName.staticElement;
-      node.constructorElement = constructor;
-      var arguments = node.arguments;
-      if (arguments != null) {
-        var argumentList = arguments.argumentList;
-        if (constructor != null) {
-          InferenceContext.setType(argumentList, constructor.type);
+      var constructorName = initializer.constructorName;
+      var constructorElement = constructorName.staticElement;
+      if (constructorElement != null) {
+        node.constructorElement = constructorElement;
+        if (!constructorElement.isConst && constructorElement.isFactory) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR,
+            node.arguments?.constructorSelector?.name ?? node.name,
+          );
+        }
+      } else {
+        var typeName = constructorName.type.name;
+        if (typeName.staticElement is EnumElementImpl) {
+          var nameNode = node.arguments?.constructorSelector?.name;
+          if (nameNode != null) {
+            errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED,
+              nameNode,
+              [nameNode.name],
+            );
+          } else {
+            errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED,
+              node.name,
+            );
+          }
+        }
+      }
+      if (constructorElement != null) {
+        var arguments = node.arguments;
+        if (arguments != null) {
+          var argumentList = arguments.argumentList;
           argumentList.correspondingStaticParameters =
               ResolverVisitor.resolveArgumentsToParameters(
             argumentList: argumentList,
-            parameters: constructor.parameters,
+            parameters: constructorElement.parameters,
+            errorReporter: errorReporter,
           );
           for (var argument in argumentList.arguments) {
-            var parameter = argument.staticParameterElement;
-            if (parameter != null) {
-              InferenceContext.setType(argument, parameter.type);
-            }
-            argument.accept(this);
+            analyzeExpression(argument, argument.staticParameterElement?.type);
+          }
+          arguments.typeArguments?.accept(this);
+
+          var whyNotPromotedList =
+              <Map<DartType, NonPromotionReason> Function()>[];
+          checkForArgumentTypesNotAssignableInList(
+              argumentList, whyNotPromotedList);
+        } else if (definingLibrary.featureSet
+            .isEnabled(Feature.enhanced_enums)) {
+          var requiredParameterCount = constructorElement.parameters
+              .where((e) => e.isRequiredPositional)
+              .length;
+          if (requiredParameterCount != 0) {
+            errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
+              node.name,
+              [requiredParameterCount, 0],
+            );
           }
         }
-        arguments.typeArguments?.accept(this);
       }
     }
 
@@ -1599,30 +1480,30 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  DartType visitExpressionFunctionBody(ExpressionFunctionBody node,
+      {DartType? imposedType}) {
     if (resolveOnlyCommentInFunctionBody) {
-      return;
+      return imposedType ?? typeProvider.dynamicType;
     }
 
     try {
-      inferenceContext.pushFunctionBodyContext(node);
-      InferenceContext.setType(
-        node.expression,
-        inferenceContext.bodyContext!.contextType,
-      );
+      inferenceContext.pushFunctionBodyContext(node, imposedType);
       _thisAccessTracker.enterFunctionBody(node);
 
       checkUnreachableNode(node);
-      node.visitChildren(this);
-      insertImplicitCallReference(node.expression);
+      analyzeExpression(
+        node.expression,
+        inferenceContext.bodyContext!.contextType,
+      );
 
       flowAnalysis.flow?.handleExit();
 
       inferenceContext.bodyContext!.addReturnExpression(node.expression);
     } finally {
       _thisAccessTracker.exitFunctionBody(node);
-      inferenceContext.popFunctionBodyContext(node);
+      imposedType = inferenceContext.popFunctionBodyContext(node);
     }
+    return imposedType;
   }
 
   @override
@@ -1651,13 +1532,28 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitExtensionOverride(ExtensionOverride node) {
+  void visitExtensionOverride(covariant ExtensionOverrideImpl node,
+      {DartType? contextType}) {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     node.extensionName.accept(this);
     node.typeArguments?.accept(this);
 
-    ExtensionMemberResolver(this).setOverrideReceiverContextType(node);
-    visitArgumentList(node.argumentList,
+    var receiverContextType =
+        ExtensionMemberResolver(this).computeOverrideReceiverContextType(node);
+    const ExtensionOverrideInferrer().resolveInvocation(
+        resolver: this,
+        node: node,
+        rawType: receiverContextType == null
+            ? null
+            : FunctionTypeImpl(
+                typeFormals: const [],
+                parameters: [
+                    ParameterElementImpl.synthetic(
+                        null, receiverContextType, ParameterKind.REQUIRED)
+                  ],
+                returnType: DynamicTypeImpl.instance,
+                nullabilitySuffix: NullabilitySuffix.none),
+        contextType: null,
         whyNotPromotedList: whyNotPromotedList);
 
     extensionResolver.resolveOverride(node, whyNotPromotedList);
@@ -1686,8 +1582,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitForElement(ForElement node) {
-    _forResolver.resolveElement(node as ForElementImpl);
+  void visitForElement(ForElement node, {CollectionLiteralContext? context}) {
+    _forResolver.resolveElement(node as ForElementImpl, context);
   }
 
   @override
@@ -1719,13 +1615,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     var functionType = node.declaredElement!.type;
-    InferenceContext.setType(node.functionExpression, functionType);
 
     var outerFunction = _enclosingFunction;
     try {
       _enclosingFunction = node.declaredElement;
       checkUnreachableNode(node);
-      node.visitChildren(this);
+      node.documentationComment?.accept(this);
+      node.metadata.accept(this);
+      node.returnType?.accept(this);
+      node.name.accept(this);
+      analyzeExpression(node.functionExpression, functionType);
       elementResolver.visitFunctionDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -1756,30 +1655,35 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitFunctionExpression(covariant FunctionExpressionImpl node) {
+  void visitFunctionExpression(covariant FunctionExpressionImpl node,
+      {DartType? contextType}) {
     var outerFunction = _enclosingFunction;
     _enclosingFunction = node.declaredElement;
 
-    _functionExpressionResolver.resolve(node);
-    insertGenericFunctionInstantiation(node);
+    _functionExpressionResolver.resolve(node, contextType: contextType);
+    insertGenericFunctionInstantiation(node, contextType: contextType);
 
     _enclosingFunction = outerFunction;
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node,
+      {DartType? contextType}) {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     node.function.accept(this);
     _functionExpressionInvocationResolver.resolve(
-        node as FunctionExpressionInvocationImpl, whyNotPromotedList);
+        node as FunctionExpressionInvocationImpl, whyNotPromotedList,
+        contextType: contextType);
     nullShortingTermination(node);
-    insertGenericFunctionInstantiation(node);
+    var replacement =
+        insertGenericFunctionInstantiation(node, contextType: contextType);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
+    _insertImplicitCallReference(replacement, contextType: contextType);
   }
 
   @override
-  void visitFunctionReference(FunctionReference node) {
+  void visitFunctionReference(FunctionReference node, {DartType? contextType}) {
     _functionReferenceResolver.resolve(node as FunctionReferenceImpl);
   }
 
@@ -1814,11 +1718,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitHideCombinator(HideCombinator node) {}
 
   @override
-  void visitIfElement(IfElement node) {
+  void visitIfElement(IfElement node, {CollectionLiteralContext? context}) {
     flowAnalysis.flow?.ifStatement_conditionBegin();
     Expression condition = node.condition;
-    InferenceContext.setType(condition, typeProvider.boolType);
-    condition.accept(this);
+    analyzeExpression(condition, typeProvider.boolType);
     condition = node.condition;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
 
@@ -1826,13 +1729,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         whyNotPromoted: whyNotPromoted);
 
     flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
-    node.thenElement.accept(this);
+    (node.thenElement as CollectionElementImpl).resolveElement(this, context);
     nullSafetyDeadCodeVerifier.flowEnd(node.thenElement);
 
     var elseElement = node.elseElement;
     if (elseElement != null) {
       flowAnalysis.flow?.ifStatement_elseBegin();
-      elseElement.accept(this);
+      (elseElement as CollectionElementImpl).resolveElement(this, context);
       nullSafetyDeadCodeVerifier.flowEnd(elseElement);
     }
 
@@ -1846,8 +1749,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     Expression condition = node.condition;
 
-    InferenceContext.setType(condition, typeProvider.boolType);
-    condition.accept(this);
+    analyzeExpression(condition, typeProvider.boolType);
     condition = node.condition;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
 
@@ -1875,9 +1777,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitImplicitCallReference(ImplicitCallReference node) {
+  void visitImplicitCallReference(ImplicitCallReference node,
+      {DartType? contextType}) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    analyzeExpression(node.expression, null);
+    node.typeArguments?.accept(this);
   }
 
   @override
@@ -1888,7 +1792,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitIndexExpression(covariant IndexExpressionImpl node) {
+  void visitIndexExpression(covariant IndexExpressionImpl node,
+      {DartType? contextType}) {
     node.target?.accept(this);
     startNullAwareIndexExpression(node);
 
@@ -1901,8 +1806,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var element = result.readElement;
     node.staticElement = element as MethodElement?;
 
-    InferenceContext.setType(node.index, result.indexContextType);
-    node.index.accept(this);
+    analyzeExpression(node.index, result.indexContextType);
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
     checkIndexExpressionIndex(
       node.index,
@@ -1919,23 +1823,28 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } else {
       type = DynamicTypeImpl.instance;
     }
-    inferenceHelper.recordStaticType(node, type);
-    insertGenericFunctionInstantiation(node);
+    inferenceHelper.recordStaticType(node, type, contextType: contextType);
+    var replacement =
+        insertGenericFunctionInstantiation(node, contextType: contextType);
 
     nullShortingTermination(node);
+    _insertImplicitCallReference(replacement, contextType: contextType);
   }
 
   @override
   void visitInstanceCreationExpression(
-      covariant InstanceCreationExpressionImpl node) {
-    _instanceCreationExpressionResolver.resolve(node);
+      covariant InstanceCreationExpressionImpl node,
+      {DartType? contextType}) {
+    _instanceCreationExpressionResolver.resolve(node, contextType: contextType);
+    _insertImplicitCallReference(node, contextType: contextType);
   }
 
   @override
-  void visitIntegerLiteral(IntegerLiteral node) {
+  void visitIntegerLiteral(IntegerLiteral node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitIntegerLiteral(node);
+    typeAnalyzer.visitIntegerLiteral(node as IntegerLiteralImpl,
+        contextType: contextType);
   }
 
   @override
@@ -1951,10 +1860,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitIsExpression(IsExpression node) {
+  void visitIsExpression(IsExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitIsExpression(node as IsExpressionImpl);
+    typeAnalyzer.visitIsExpression(node as IsExpressionImpl,
+        contextType: contextType);
     flowAnalysis.isExpression(node);
   }
 
@@ -1977,27 +1887,30 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {}
+  void visitLibraryIdentifier(LibraryIdentifier node,
+      {DartType? contextType}) {}
 
   @override
-  void visitListLiteral(covariant ListLiteralImpl node) {
+  void visitListLiteral(covariant ListLiteralImpl node,
+      {DartType? contextType}) {
     checkUnreachableNode(node);
-    _typedLiteralResolver.resolveListLiteral(node);
+    _typedLiteralResolver.resolveListLiteral(node, contextType: contextType);
   }
 
   @override
-  void visitMapLiteralEntry(MapLiteralEntry node) {
+  void visitMapLiteralEntry(MapLiteralEntry node,
+      {CollectionLiteralContext? context}) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    analyzeExpression(node.key, context?.keyType);
+    analyzeExpression(node.value, context?.valueType);
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
 
     DartType returnType = node.declaredElement!.returnType;
-    InferenceContext.setType(node.body, returnType);
 
     var outerFunction = _enclosingFunction;
     try {
@@ -2005,7 +1918,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
-      node.visitChildren(this);
+      node.documentationComment?.accept(this);
+      node.metadata.accept(this);
+      node.returnType?.accept(this);
+      node.name.accept(this);
+      node.typeParameters?.accept(this);
+      node.parameters?.accept(this);
+      node.body.resolve(this, returnType.isDynamic ? null : returnType);
       elementResolver.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -2024,7 +1943,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitMethodInvocation(covariant MethodInvocationImpl node) {
+  void visitMethodInvocation(covariant MethodInvocationImpl node,
+      {DartType? contextType}) {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     var target = node.target;
     target?.accept(this);
@@ -2046,19 +1966,22 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     node.typeArguments?.accept(this);
     elementResolver.visitMethodInvocation(node,
-        whyNotPromotedList: whyNotPromotedList);
+        whyNotPromotedList: whyNotPromotedList, contextType: contextType);
 
     var functionRewrite = MethodInvocationResolver.getRewriteResult(node);
     if (functionRewrite != null) {
       _resolveRewrittenFunctionExpressionInvocation(
-          functionRewrite, whyNotPromotedList);
+          functionRewrite, whyNotPromotedList,
+          contextType: contextType);
       nullShortingTermination(node, discardType: true);
     } else {
       nullShortingTermination(node);
     }
-    insertGenericFunctionInstantiation(node);
+    var replacement =
+        insertGenericFunctionInstantiation(node, contextType: contextType);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
+    _insertImplicitCallReference(replacement, contextType: contextType);
   }
 
   @override
@@ -2078,11 +2001,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
-    InferenceContext.setTypeFromNode(node.expression, node);
+  void visitNamedExpression(NamedExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
-    typeAnalyzer.visitNamedExpression(node as NamedExpressionImpl);
+    node.name.accept(this);
+    analyzeExpression(node.expression, contextType);
+    typeAnalyzer.visitNamedExpression(node as NamedExpressionImpl,
+        contextType: contextType);
     // Any "why not promoted" information that flow analysis had associated with
     // `node.expression` now needs to be forwarded to `node`, so that when
     // `visitArgumentList` iterates through the arguments, it will find it.
@@ -2105,17 +2029,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitNativeFunctionBody(NativeFunctionBody node) {
+  DartType visitNativeFunctionBody(NativeFunctionBody node,
+      {DartType? imposedType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
+    return imposedType ?? typeProvider.dynamicType;
   }
 
   @override
-  void visitNullLiteral(NullLiteral node) {
+  void visitNullLiteral(NullLiteral node, {DartType? contextType}) {
     flowAnalysis.flow?.nullLiteral(node);
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitNullLiteral(node as NullLiteralImpl);
+    typeAnalyzer.visitNullLiteral(node as NullLiteralImpl,
+        contextType: contextType);
   }
 
   @override
@@ -2125,12 +2052,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitParenthesizedExpression(ParenthesizedExpression node) {
-    InferenceContext.setTypeFromNode(node.expression, node);
+  void visitParenthesizedExpression(ParenthesizedExpression node,
+      {DartType? contextType}) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
-    typeAnalyzer
-        .visitParenthesizedExpression(node as ParenthesizedExpressionImpl);
+    analyzeExpression(node.expression, contextType);
+    typeAnalyzer.visitParenthesizedExpression(
+        node as ParenthesizedExpressionImpl,
+        contextType: contextType);
     flowAnalysis.flow?.parenthesizedExpression(node, node.expression);
   }
 
@@ -2149,25 +2077,35 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    _postfixExpressionResolver.resolve(node as PostfixExpressionImpl);
-    insertGenericFunctionInstantiation(node);
+  void visitPostfixExpression(PostfixExpression node, {DartType? contextType}) {
+    _postfixExpressionResolver.resolve(node as PostfixExpressionImpl,
+        contextType: contextType);
+    _insertImplicitCallReference(
+        insertGenericFunctionInstantiation(node, contextType: contextType),
+        contextType: contextType);
   }
 
   @override
-  void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
-    _prefixedIdentifierResolver.resolve(node);
-    insertGenericFunctionInstantiation(node);
+  void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node,
+      {DartType? contextType}) {
+    _prefixedIdentifierResolver.resolve(node, contextType: contextType);
+    _insertImplicitCallReference(
+        insertGenericFunctionInstantiation(node, contextType: contextType),
+        contextType: contextType);
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    _prefixExpressionResolver.resolve(node as PrefixExpressionImpl);
-    insertGenericFunctionInstantiation(node);
+  void visitPrefixExpression(PrefixExpression node, {DartType? contextType}) {
+    _prefixExpressionResolver.resolve(node as PrefixExpressionImpl,
+        contextType: contextType);
+    _insertImplicitCallReference(
+        insertGenericFunctionInstantiation(node, contextType: contextType),
+        contextType: contextType);
   }
 
   @override
-  void visitPropertyAccess(covariant PropertyAccessImpl node) {
+  void visitPropertyAccess(covariant PropertyAccessImpl node,
+      {DartType? contextType}) {
     node.target?.accept(this);
     startNullAwarePropertyAccess(node);
 
@@ -2200,14 +2138,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // sites.
       // TODO(srawlins): Switch all resolution to use the latter method, in a
       // breaking change release.
-      type = inferenceHelper.inferTearOff(node, propertyName, type);
+      type = inferenceHelper.inferTearOff(node, propertyName, type,
+          contextType: contextType);
     }
 
-    inferenceHelper.recordStaticType(propertyName, type);
-    inferenceHelper.recordStaticType(node, type);
-    insertGenericFunctionInstantiation(node);
+    inferenceHelper.recordStaticType(propertyName, type, contextType: null);
+    inferenceHelper.recordStaticType(node, type, contextType: contextType);
+    var replacement =
+        insertGenericFunctionInstantiation(node, contextType: contextType);
 
     nullShortingTermination(node);
+    _insertImplicitCallReference(replacement, contextType: contextType);
   }
 
   @override
@@ -2221,44 +2162,47 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitRedirectingConstructorInvocation(
         node as RedirectingConstructorInvocationImpl);
-    InferenceContext.setType(node.argumentList, node.staticElement?.type);
-    visitArgumentList(node.argumentList,
+    const RedirectingConstructorInvocationInferrer().resolveInvocation(
+        resolver: this,
+        node: node,
+        rawType: node.staticElement?.type,
+        contextType: null,
         whyNotPromotedList: whyNotPromotedList);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
 
   @override
-  void visitRethrowExpression(RethrowExpression node) {
+  void visitRethrowExpression(RethrowExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitRethrowExpression(node as RethrowExpressionImpl);
+    typeAnalyzer.visitRethrowExpression(node as RethrowExpressionImpl,
+        contextType: contextType);
     flowAnalysis.flow?.handleExit();
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    InferenceContext.setType(
-      node.expression,
-      inferenceContext.bodyContext?.contextType,
-    );
-
     checkUnreachableNode(node);
-    node.visitChildren(this);
-
-    inferenceContext.bodyContext?.addReturnExpression(node.expression);
-    flowAnalysis.flow?.handleExit();
-
     var expression = node.expression;
     if (expression != null) {
-      insertImplicitCallReference(expression);
+      analyzeExpression(
+        expression,
+        inferenceContext.bodyContext?.contextType,
+      );
+      // Pick up the expression again in case it was rewritten.
+      expression = node.expression;
     }
+
+    inferenceContext.bodyContext?.addReturnExpression(expression);
+    flowAnalysis.flow?.handleExit();
   }
 
   @override
-  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+  void visitSetOrMapLiteral(SetOrMapLiteral node, {DartType? contextType}) {
     checkUnreachableNode(node);
-    _typedLiteralResolver.resolveSetOrMapLiteral(node);
+    _typedLiteralResolver.resolveSetOrMapLiteral(node,
+        contextType: contextType);
   }
 
   @override
@@ -2272,22 +2216,32 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
-    _simpleIdentifierResolver.resolve(node);
-    insertGenericFunctionInstantiation(node);
+  void visitSimpleIdentifier(covariant SimpleIdentifierImpl node,
+      {DartType? contextType}) {
+    _simpleIdentifierResolver.resolve(node, contextType: contextType);
+    _insertImplicitCallReference(
+        insertGenericFunctionInstantiation(node, contextType: contextType),
+        contextType: contextType);
   }
 
   @override
-  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+  void visitSimpleStringLiteral(SimpleStringLiteral node,
+      {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitSimpleStringLiteral(node as SimpleStringLiteralImpl);
+    typeAnalyzer.visitSimpleStringLiteral(node as SimpleStringLiteralImpl,
+        contextType: contextType);
   }
 
   @override
-  void visitSpreadElement(SpreadElement node) {
+  void visitSpreadElement(SpreadElement node,
+      {CollectionLiteralContext? context}) {
+    var iterableType = context?.iterableType;
+    if (iterableType != null && _isNonNullableByDefault && node.isNullAware) {
+      iterableType = typeSystem.makeNullable(iterableType);
+    }
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    analyzeExpression(node.expression, iterableType);
 
     if (!node.isNullAware) {
       nullableDereferenceVerifier.expression(
@@ -2298,10 +2252,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitStringInterpolation(StringInterpolation node) {
+  void visitStringInterpolation(StringInterpolation node,
+      {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitStringInterpolation(node as StringInterpolationImpl);
+    typeAnalyzer.visitStringInterpolation(node as StringInterpolationImpl,
+        contextType: contextType);
   }
 
   @override
@@ -2314,19 +2270,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitSuperConstructorInvocation(
         node as SuperConstructorInvocationImpl);
-    InferenceContext.setType(node.argumentList, node.staticElement?.type);
-    visitArgumentList(node.argumentList,
+    const SuperConstructorInvocationInferrer().resolveInvocation(
+        resolver: this,
+        node: node,
+        rawType: node.staticElement?.type,
+        contextType: null,
         whyNotPromotedList: whyNotPromotedList);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
 
   @override
-  void visitSuperExpression(SuperExpression node) {
+  void visitSuperExpression(SuperExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitSuperExpression(node);
-    typeAnalyzer.visitSuperExpression(node as SuperExpressionImpl);
+    typeAnalyzer.visitSuperExpression(node as SuperExpressionImpl,
+        contextType: contextType);
   }
 
   @override
@@ -2339,10 +2299,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitSwitchCase(SwitchCase node) {
     checkUnreachableNode(node);
 
-    InferenceContext.setType(
-        node.expression, _enclosingSwitchStatementExpressionType);
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    node.labels.accept(this);
+    analyzeExpression(node.expression, _enclosingSwitchStatementExpressionType);
+    node.statements.accept(this);
 
     var flow = flowAnalysis.flow;
     if (flow != null && flow.isReachable && _isNonNullableByDefault) {
@@ -2400,24 +2360,28 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitSymbolLiteral(SymbolLiteral node) {
+  void visitSymbolLiteral(SymbolLiteral node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitSymbolLiteral(node as SymbolLiteralImpl);
+    typeAnalyzer.visitSymbolLiteral(node as SymbolLiteralImpl,
+        contextType: contextType);
   }
 
   @override
-  void visitThisExpression(ThisExpression node) {
+  void visitThisExpression(ThisExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitThisExpression(node as ThisExpressionImpl);
+    typeAnalyzer.visitThisExpression(node as ThisExpressionImpl,
+        contextType: contextType);
+    _insertImplicitCallReference(node, contextType: contextType);
   }
 
   @override
-  void visitThrowExpression(ThrowExpression node) {
+  void visitThrowExpression(ThrowExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitThrowExpression(node as ThrowExpressionImpl);
+    typeAnalyzer.visitThrowExpression(node as ThrowExpressionImpl,
+        contextType: contextType);
     flowAnalysis.flow?.handleExit();
   }
 
@@ -2445,10 +2409,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flow.tryCatchStatement_bodyBegin();
     }
     body.accept(this);
+    nullSafetyDeadCodeVerifier.flowEnd(node.body);
+    nullSafetyDeadCodeVerifier.tryStatementEnter(node);
     if (catchClauses.isNotEmpty) {
       flow.tryCatchStatement_bodyEnd(body);
-      nullSafetyDeadCodeVerifier.flowEnd(node.body);
-      nullSafetyDeadCodeVerifier.tryStatementEnter(node);
 
       var catchLength = catchClauses.length;
       for (var i = 0; i < catchLength; ++i) {
@@ -2464,8 +2428,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
 
       flow.tryCatchStatement_end();
-      nullSafetyDeadCodeVerifier.tryStatementExit(node);
     }
+    nullSafetyDeadCodeVerifier.tryStatementExit(node);
 
     if (finallyBlock != null) {
       flow.tryFinallyStatement_finallyBegin(
@@ -2482,7 +2446,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitTypeLiteral(TypeLiteral node) {
+  void visitTypeLiteral(TypeLiteral node, {DartType? contextType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
   }
@@ -2522,10 +2486,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     flowAnalysis.variableDeclarationList(node);
-    for (VariableDeclaration decl in node.variables) {
-      VariableElement variableElement = decl.declaredElement!;
-      InferenceContext.setType(decl, variableElement.type);
-    }
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitVariableDeclarationList(node);
@@ -2542,10 +2502,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     checkUnreachableNode(node);
 
     Expression condition = node.condition;
-    InferenceContext.setType(condition, typeProvider.boolType);
 
     flowAnalysis.flow?.whileStatement_conditionBegin(node);
-    condition.accept(this);
+    analyzeExpression(condition, typeProvider.boolType);
     condition = node.condition;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
 
@@ -2580,6 +2539,63 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return typeProvider.futureOrType(type);
   }
 
+  /// If `expression` should be treated as `expression.call`, inserts an
+  /// [ImplicitCallReference] node which wraps [expression].
+  void _insertImplicitCallReference(ExpressionImpl expression,
+      {required DartType? contextType}) {
+    var parent = expression.parent;
+    if (_shouldSkipImplicitCallReferenceDueToForm(expression, parent)) {
+      return;
+    }
+    var staticType = expression.staticType;
+    if (staticType == null) {
+      return;
+    }
+    DartType? context;
+    if (parent is AssignmentExpression) {
+      context = parent.writeType;
+    } else {
+      context = contextType;
+    }
+    var callMethod = getImplicitCallMethod(staticType, context, expression);
+    if (callMethod == null || context == null) {
+      return;
+    }
+
+    // `expression` is to be treated as `expression.call`.
+    context = typeSystem.flatten(context);
+    var callMethodType = callMethod.type;
+    List<DartType> typeArgumentTypes;
+    if (isConstructorTearoffsEnabled &&
+        callMethodType.typeFormals.isNotEmpty &&
+        context is FunctionType) {
+      typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
+        context,
+        callMethodType,
+        errorReporter: errorReporter,
+        errorNode: expression,
+        // If the constructor-tearoffs feature is enabled, then so is
+        // generic-metadata.
+        genericMetadataIsEnabled: true,
+      )!;
+      if (typeArgumentTypes.isNotEmpty) {
+        callMethodType = callMethodType.instantiate(typeArgumentTypes);
+      }
+    } else {
+      typeArgumentTypes = [];
+    }
+
+    var callReference = astFactory.implicitCallReference(
+      expression: expression,
+      staticElement: callMethod,
+      typeArguments: null,
+      typeArgumentTypes: typeArgumentTypes,
+    );
+    NodeReplacer.replace(expression, callReference, parent: parent);
+
+    callReference.staticType = callMethodType;
+  }
+
   /// Continues resolution of a [FunctionExpressionInvocation] that was created
   /// from a rewritten [MethodInvocation]. The target function is already
   /// resolved.
@@ -2588,9 +2604,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// ordinary method invocation. So, we need to perform the same null shorting
   /// as for method invocations.
   void _resolveRewrittenFunctionExpressionInvocation(
-    FunctionExpressionInvocation node,
-    List<WhyNotPromotedGetter> whyNotPromotedList,
-  ) {
+      FunctionExpressionInvocation node,
+      List<WhyNotPromotedGetter> whyNotPromotedList,
+      {required DartType? contextType}) {
     var function = node.function;
 
     if (function is PropertyAccess &&
@@ -2607,7 +2623,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     _functionExpressionInvocationResolver.resolve(
-        node as FunctionExpressionInvocationImpl, whyNotPromotedList);
+        node as FunctionExpressionInvocationImpl, whyNotPromotedList,
+        contextType: contextType);
 
     nullShortingTermination(node);
   }
@@ -2622,6 +2639,34 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         _thisType = enclosingExtension.extendedType;
       }
     }
+  }
+
+  bool _shouldSkipImplicitCallReferenceDueToForm(
+      Expression expression, AstNode? parent) {
+    while (parent is ParenthesizedExpression) {
+      expression = parent;
+      parent = expression.parent;
+    }
+    if (parent is CascadeExpression && parent.target == expression) {
+      // Do not perform an "implicit tear-off conversion" here. It should only
+      // be performed on [parent]. See
+      // https://github.com/dart-lang/language/issues/1873.
+      return true;
+    }
+    if (parent is ConditionalExpression &&
+        (parent.thenExpression == expression ||
+            parent.elseExpression == expression)) {
+      // Do not perform an "implicit tear-off conversion" on the branches of a
+      // conditional expression.
+      return true;
+    }
+    if (parent is BinaryExpression &&
+        parent.operator.type == TokenType.QUESTION_QUESTION) {
+      // Do not perform an "implicit tear-off conversion" on the branches of a
+      // `??` operator.
+      return true;
+    }
+    return false;
   }
 
   /// Given an [argumentList] and the [parameters] related to the element that
@@ -2766,30 +2811,34 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             migrationResolutionHooks);
 
   @override
-  void visitConditionalExpression(covariant ConditionalExpressionImpl node) {
+  void visitConditionalExpression(covariant ConditionalExpressionImpl node,
+      {DartType? contextType}) {
     var conditionalKnownValue =
         _migrationResolutionHooks.getConditionalKnownValue(node);
     if (conditionalKnownValue == null) {
-      super.visitConditionalExpression(node);
+      super.visitConditionalExpression(node, contextType: contextType);
       return;
     } else {
       var subexpressionToKeep =
           conditionalKnownValue ? node.thenExpression : node.elseExpression;
       subexpressionToKeep.accept(this);
-      inferenceHelper.recordStaticType(node, subexpressionToKeep.typeOrThrow);
+      inferenceHelper.recordStaticType(node, subexpressionToKeep.typeOrThrow,
+          contextType: contextType);
     }
   }
 
   @override
-  void visitIfElement(IfElement node) {
+  void visitIfElement(IfElement node, {CollectionLiteralContext? context}) {
     var conditionalKnownValue =
         _migrationResolutionHooks.getConditionalKnownValue(node);
     if (conditionalKnownValue == null) {
-      super.visitIfElement(node);
+      super.visitIfElement(node, context: context);
       return;
     } else {
-      (conditionalKnownValue ? node.thenElement : node.elseElement)
-          ?.accept(this);
+      var element = conditionalKnownValue ? node.thenElement : node.elseElement;
+      if (element != null) {
+        (element as CollectionElementImpl).resolveElement(this, context);
+      }
     }
   }
 
@@ -2975,7 +3024,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.documentationComment?.accept(this);
     node.name.accept(this);
     node.typeParameters?.accept(this);
-    node.superclass2.accept(this);
+    node.superclass.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
   }
@@ -3059,11 +3108,25 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       ClassElement element = node.declaredElement!;
       node.metadata.accept(this);
 
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+      );
+      _setNodeNameScope(node, nameScope);
+      visitEnumDeclarationInScope(node);
+
       nameScope = ClassScope(nameScope, element);
       visitEnumMembersInScope(node);
     } finally {
       nameScope = outerScope;
     }
+  }
+
+  void visitEnumDeclarationInScope(EnumDeclaration node) {
+    node.name.accept(this);
+    node.typeParameters?.accept(this);
+    node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
   }
 
   void visitEnumMembersInScope(EnumDeclaration node) {

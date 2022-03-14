@@ -1,0 +1,43 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::C> values = const <self::C>[self::C::a, self::C::b, self::C::c, self::C::d, self::C::e, self::C::f];
+  final field core::String log;
+  static const field self::C a = const self::C::•(0, "a", 1, 2, z: 3);
+  static const field self::C b = let final core::int #t1 = 1 in let final core::String #t2 = "b" in let final core::int #t3 = 3 in const self::C::•(#t1, #t2, 1, 2, z: #t3);
+  static const field self::C c = let final core::int #t4 = 2 in let final core::String #t5 = "c" in let final core::int #t6 = 1 in let final core::int #t7 = 3 in const self::C::•(#t4, #t5, #t6, 2, z: #t7);
+  static const field self::C d = const self::C::named1(3, "d", 1, 2, 3);
+  static const field self::C e = const self::C::named2(4, "e", 1, 2, 3);
+  static const field self::C f = const self::C::named3(5, "f", 1, 2, 3);
+  const constructor •(core::int index, core::String name, core::int x, core::int y, {core::int z = 42}) → self::C
+    : self::C::log = "x=${x}, y=${y}, z=${z}", super core::_Enum::•(index, name)
+    ;
+  const constructor named1(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
+    : this self::C::•(index, name, x, y, z: z)
+    ;
+  const constructor named2(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
+    : final core::int #t8 = index, final core::String #t9 = name, final core::int #t10 = x, final core::int #t11 = z, this self::C::•(#t8, #t9, #t10, y, z: #t11)
+    ;
+  const constructor named3(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
+    : final core::int #t12 = index, final core::String #t13 = name, final core::int #t14 = z, this self::C::•(#t12, #t13, x, y, z: #t14)
+    ;
+  method toString() → core::String
+    return "C.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///redirecting_constructor.dart:5:6 -> ListConstant(const <C*>[const C{C.log: "x=1, y=2, z=3", _Enum.index: 0, _Enum._name: "a"}, const C{C.log: "x=1, y=2, z=3", _Enum.index: 1, _Enum._name: "b"}, const C{C.log: "x=1, y=2, z=3", _Enum.index: 2, _Enum._name: "c"}, const C{C.log: "x=1, y=2, z=3", _Enum.index: 3, _Enum._name: "d"}, const C{C.log: "x=1, y=2, z=3", _Enum.index: 4, _Enum._name: "e"}, const C{C.log: "x=1, y=2, z=3", _Enum.index: 5, _Enum._name: "f"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:6:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 0, _Enum._name: "a"})
+Evaluated: Let @ org-dartlang-testcase:///redirecting_constructor.dart:7:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 1, _Enum._name: "b"})
+Evaluated: Let @ org-dartlang-testcase:///redirecting_constructor.dart:8:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 2, _Enum._name: "c"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:9:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 3, _Enum._name: "d"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:10:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 4, _Enum._name: "e"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:11:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 5, _Enum._name: "f"})
+Extra constant evaluation: evaluated: 38, effectively constant: 7

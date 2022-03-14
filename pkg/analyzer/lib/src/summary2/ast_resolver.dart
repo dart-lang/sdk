@@ -93,14 +93,11 @@ class AstResolver {
       node.accept(_resolutionVisitor);
       // Node may have been rewritten so get it again.
       node = getNode();
-      if (contextType != null) {
-        InferenceContext.setType(node, contextType);
-      }
       node.accept(_scopeResolverVisitor);
     }
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
-    node.accept(_resolverVisitor);
+    _resolverVisitor.analyzeExpression(node, contextType);
     _flowAnalysis.topLevelDeclaration_exit();
   }
 

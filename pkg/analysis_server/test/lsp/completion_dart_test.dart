@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analysis_server/src/services/snippets/dart/flutter_snippet_producers.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
@@ -19,6 +20,9 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionTest);
+    defineReflectiveTests(DartSnippetCompletionTest);
+    defineReflectiveTests(FlutterSnippetCompletionTest);
+    defineReflectiveTests(FlutterSnippetCompletionWithNullSafetyTest);
     defineReflectiveTests(CompletionTestWithNullSafetyTest);
   });
 }
@@ -354,7 +358,7 @@ class _MyWidgetState extends State<MyWidget> {
     // Ensure the snippet comes through in the expected format with the expected
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals('setState(() {\n      \${0:}\n    \\});'));
+    expect(item.insertText, equals('setState(() {\n      \$0\n    });'));
     final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
@@ -396,9 +400,9 @@ class _MyWidgetState extends State<MyWidget> {
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'myFunction(…)');
-    // With no required params, there should still be parens and a tabstop inside.
+    // With no required params, there should still be parens/tab stop inside.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${0:})'));
+    expect(item.insertText, equals(r'myFunction($0)'));
     final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
@@ -1143,9 +1147,9 @@ void f() { }
     // Ensure the snippet comes through in the expected format with the expected
     // placeholder.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'one: ${0:},'));
+    expect(item.insertText, equals(r'one: $0,'));
     final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, equals(r'one: ${0:},'));
+    expect(textEdit.newText, equals(r'one: $0,'));
     expect(
       textEdit.range,
       equals(Range(
@@ -2362,4 +2366,412 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
     final completion = res.singleWhere((c) => c.label.startsWith('foo'));
     expect(completion.detail, '(int? a, [int b = 1]) → String?');
   }
+}
+
+@reflectiveTest
+class DartSnippetCompletionTest extends SnippetCompletionTest {
+  Future<void> test_snippets_disabled() async {
+    final content = '^';
+
+    // Advertise support (this is done by the editor), but with the user
+    // preference disabled.
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'enableSnippets': true},
+    );
+
+    await expectNoSnippet(
+      content,
+      FlutterStatelessWidgetSnippetProducer.prefix,
+    );
+  }
+
+  Future<void>
+      test_snippets_flutterStateless_notAvailable_notFlutterProject() async {
+    final content = '''
+class A {}
+
+stle^
+
+class B {}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    await expectNoSnippet(
+      content,
+      FlutterStatelessWidgetSnippetProducer.prefix,
+    );
+  }
+
+  Future<void> test_snippets_notSupported() async {
+    final content = '^';
+
+    // If we don't send support for Snippet CompletionItem kinds, we don't
+    // expect any snippets at all.
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.kind == CompletionItemKind.Snippet), isFalse);
+  }
+}
+
+@reflectiveTest
+class FlutterSnippetCompletionTest extends SnippetCompletionTest {
+  /// Nullability suffix expected in this test class.
+  ///
+  /// Used to allow all tests to be run in both modes without having to
+  /// duplicate all tests ([FlutterSnippetCompletionWithNullSafetyTest]
+  /// overrides this).
+  String get questionSuffix => '';
+
+  @override
+  void setUp() {
+    super.setUp();
+    writePackageConfig(
+      projectFolderPath,
+      flutter: true,
+    );
+  }
+
+  Future<void> test_snippets_flutterStateful() async {
+    final content = '''
+import 'package:flutter/widgets.dart';
+
+class A {}
+
+stful^
+
+class B {}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: FlutterStatefulWidgetSnippetProducer.prefix,
+      label: FlutterStatefulWidgetSnippetProducer.label,
+    );
+
+    expect(updated, '''
+import 'package:flutter/widgets.dart';
+
+class A {}
+
+class \${1:MyWidget} extends StatefulWidget {
+  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+
+  @override
+  State<\${1:MyWidget}> createState() => _\${1:MyWidget}State();
+}
+
+class _\${1:MyWidget}State extends State<\${1:MyWidget}> {
+  @override
+  Widget build(BuildContext context) {
+    \$0
+  }
+}
+
+class B {}
+''');
+  }
+
+  Future<void> test_snippets_flutterStatefulWithAnimationController() async {
+    final content = '''
+import 'package:flutter/widgets.dart';
+
+class A {}
+
+stanim^
+
+class B {}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix:
+          FlutterStatefulWidgetWithAnimationControllerSnippetProducer.prefix,
+      label: FlutterStatefulWidgetWithAnimationControllerSnippetProducer.label,
+    );
+
+    expect(updated, '''
+import 'package:flutter/widgets.dart';
+
+class A {}
+
+class \${1:MyWidget} extends StatefulWidget {
+  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+
+  @override
+  State<\${1:MyWidget}> createState() => _\${1:MyWidget}State();
+}
+
+class _\${1:MyWidget}State extends State<\${1:MyWidget}>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    \$0
+  }
+}
+
+class B {}
+''');
+  }
+
+  Future<void> test_snippets_flutterStateless() async {
+    final content = '''
+import 'package:flutter/widgets.dart';
+
+class A {}
+
+stle^
+
+class B {}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
+      label: FlutterStatelessWidgetSnippetProducer.label,
+    );
+
+    expect(updated, '''
+import 'package:flutter/widgets.dart';
+
+class A {}
+
+class \${1:MyWidget} extends StatelessWidget {
+  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    \$0
+  }
+}
+
+class B {}
+''');
+  }
+
+  Future<void> test_snippets_flutterStateless_addsImports() async {
+    final content = '''
+class A {}
+
+stle^
+
+class B {}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
+      label: FlutterStatelessWidgetSnippetProducer.label,
+    );
+
+    expect(updated, '''
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';
+
+class A {}
+
+class \${1:MyWidget} extends StatelessWidget {
+  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    \$0
+  }
+}
+
+class B {}
+''');
+  }
+
+  Future<void> test_snippets_flutterStateless_addsImports_onlyPrefix() async {
+    final content = '''
+stless^
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
+      label: FlutterStatelessWidgetSnippetProducer.label,
+    );
+
+    expect(updated, '''
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';
+
+class \${1:MyWidget} extends StatelessWidget {
+  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    \$0
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_flutterStateless_addsImports_zeroOffset() async {
+    final content = '''
+^
+'''; // Deliberate trailing newline to ensure imports aren't inserted at "end".
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
+      label: FlutterStatelessWidgetSnippetProducer.label,
+    );
+
+    expect(updated, '''
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';
+
+class \${1:MyWidget} extends StatelessWidget {
+  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    \$0
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_flutterStateless_notAvailable_notTopLevel() async {
+    final content = '''
+class A {
+
+  stle^
+
+}
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    await expectNoSnippet(
+      content,
+      FlutterStatelessWidgetSnippetProducer.prefix,
+    );
+  }
+
+  Future<void> test_snippets_flutterStateless_outsideAnalysisRoot() async {
+    final content = '''
+stle^
+''';
+
+    await initializeWithSnippetSupportAndPreviewFlag();
+    final otherFileUri = Uri.file(convertPath('/other/file.dart'));
+    await openFile(otherFileUri, withoutMarkers(content));
+    final res = await getCompletion(otherFileUri, positionFromMarker(content));
+    final snippetItems = res.where((c) => c.kind == CompletionItemKind.Snippet);
+    expect(snippetItems, hasLength(0));
+  }
+}
+
+@reflectiveTest
+class FlutterSnippetCompletionWithNullSafetyTest
+    extends FlutterSnippetCompletionTest {
+  @override
+  String get questionSuffix => '?';
+
+  @override
+  String get testPackageLanguageVersion => latestLanguageVersion;
+}
+
+abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
+    with CompletionTestMixin {
+  /// Expect that there is a snippet for [prefix] at [position] with the label
+  /// [label] and return the results of applying it to [content].
+  Future<String> expectAndApplySnippet(
+    String content, {
+    required String prefix,
+    required String label,
+  }) async {
+    final snippet = await expectSnippet(
+      content,
+      prefix: prefix,
+      label: label,
+    );
+
+    // Also apply the edit and check that it went in the right place with the
+    // correct formatting. Edit groups will just appear in the raw textmate
+    // snippet syntax here, as we don't do any special handling of them (and
+    // assume what's coded here is correct, and that the client will correctly
+    // interpret them).
+    final updated = applyTextEdits(
+      withoutMarkers(content),
+      [toTextEdit(snippet.textEdit!)]
+          .followedBy(snippet.additionalTextEdits!)
+          .toList(),
+    );
+    return updated;
+  }
+
+  /// Expect that there is no snippet for [prefix] at the position of `^` within
+  /// [content].
+  Future<void> expectNoSnippet(
+    String content,
+    String prefix,
+  ) async {
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final hasSnippet = res.any((c) => c.filterText == prefix);
+    expect(hasSnippet, isFalse);
+  }
+
+  /// Expect that there is a snippet for [prefix] with the label [label] at
+  /// [position] in [content].
+  Future<CompletionItem> expectSnippet(
+    String content, {
+    required String prefix,
+    required String label,
+  }) async {
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere(
+      (c) => c.filterText == prefix && c.label == label,
+    );
+    expect(item.insertTextFormat, InsertTextFormat.Snippet);
+    expect(item.insertText, isNull);
+    expect(item.textEdit, isNotNull);
+    return item;
+  }
+
+  Future<void> initializeWithSnippetSupport() => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+      );
+
+  Future<void> initializeWithSnippetSupportAndPreviewFlag() => provideConfig(
+        () => initialize(
+          textDocumentCapabilities: withCompletionItemSnippetSupport(
+              emptyTextDocumentClientCapabilities),
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities),
+        ),
+        {'previewEnableSnippets': true},
+      );
 }

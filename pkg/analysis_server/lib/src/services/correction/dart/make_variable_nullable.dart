@@ -38,6 +38,8 @@ class MakeVariableNullable extends CorrectionProducer {
         await _forFunctionTypedFormalParameter(builder, node, parent);
       } else if (node is SimpleIdentifier && parent is FieldFormalParameter) {
         await _forFieldFormalParameter(builder, node, parent);
+      } else if (node is SimpleIdentifier && parent is SuperFormalParameter) {
+        await _forSuperFormalParameter(builder, node, parent);
       } else if (node is Expression &&
           parent is AssignmentExpression &&
           parent.rightHandSide == node) {
@@ -162,6 +164,31 @@ class MakeVariableNullable extends CorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(type.end, '?');
     });
+  }
+
+  /// Makes [parameter] nullable if possible.
+  Future<void> _forSuperFormalParameter(ChangeBuilder builder,
+      SimpleIdentifier name, SuperFormalParameter parameter) async {
+    if (parameter.parameters != null) {
+      // A function-typed field formal parameter.
+      if (parameter.question != null) {
+        return;
+      }
+      _variableName = parameter.identifier.name;
+      await builder.addDartFileEdit(file, (builder) {
+        // Add '?' after `)`.
+        builder.addSimpleInsertion(parameter.endToken.end, '?');
+      });
+    } else {
+      var type = parameter.type;
+      if (type == null || !_typeCanBeMadeNullable(type)) {
+        return;
+      }
+      _variableName = parameter.identifier.name;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(type.end, '?');
+      });
+    }
   }
 
   Future<void> _forVariableDeclaration(ChangeBuilder builder, Expression node,

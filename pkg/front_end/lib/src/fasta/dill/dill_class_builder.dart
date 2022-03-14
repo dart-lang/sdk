@@ -47,6 +47,9 @@ class DillClassBuilder extends ClassBuilderImpl {
             cls.fileOffset);
 
   @override
+  bool get isEnum => cls.isEnum;
+
+  @override
   DillClassBuilder get origin => this;
 
   @override
@@ -54,6 +57,9 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   bool get isMacro => cls.isMacro;
+
+  @override
+  bool get isAugmentation => false;
 
   @override
   List<TypeVariableBuilder>? get typeVariables {
@@ -83,19 +89,19 @@ class DillClassBuilder extends ClassBuilderImpl {
   void addField(Field field) {
     DillFieldBuilder builder = new DillFieldBuilder(field, this);
     String name = field.name.text;
-    scopeBuilder.addMember(name, builder);
+    scope.addLocalMember(name, builder, setter: false);
   }
 
   void addConstructor(Constructor constructor, Procedure? constructorTearOff) {
     DillConstructorBuilder builder =
         new DillConstructorBuilder(constructor, constructorTearOff, this);
     String name = constructor.name.text;
-    constructorScopeBuilder.addMember(name, builder);
+    constructorScope.addLocalMember(name, builder);
   }
 
   void addFactory(Procedure factory, Procedure? factoryTearOff) {
     String name = factory.name.text;
-    constructorScopeBuilder.addMember(
+    constructorScope.addLocalMember(
         name, new DillFactoryBuilder(factory, factoryTearOff, this));
   }
 
@@ -105,16 +111,20 @@ class DillClassBuilder extends ClassBuilderImpl {
       case ProcedureKind.Factory:
         throw new UnsupportedError("Use addFactory for adding factories");
       case ProcedureKind.Setter:
-        scopeBuilder.addSetter(name, new DillSetterBuilder(procedure, this));
+        scope.addLocalMember(name, new DillSetterBuilder(procedure, this),
+            setter: true);
         break;
       case ProcedureKind.Getter:
-        scopeBuilder.addMember(name, new DillGetterBuilder(procedure, this));
+        scope.addLocalMember(name, new DillGetterBuilder(procedure, this),
+            setter: false);
         break;
       case ProcedureKind.Operator:
-        scopeBuilder.addMember(name, new DillOperatorBuilder(procedure, this));
+        scope.addLocalMember(name, new DillOperatorBuilder(procedure, this),
+            setter: false);
         break;
       case ProcedureKind.Method:
-        scopeBuilder.addMember(name, new DillMethodBuilder(procedure, this));
+        scope.addLocalMember(name, new DillMethodBuilder(procedure, this),
+            setter: false);
         break;
     }
   }
@@ -174,7 +184,7 @@ class DillClassBuilder extends ClassBuilderImpl {
   @override
   void forEachConstructor(void Function(String, MemberBuilder) f,
       {bool includeInjectedConstructors: false}) {
-    constructors.forEach(f);
+    constructorScope.forEach(f);
   }
 
   void clearCachedValues() {

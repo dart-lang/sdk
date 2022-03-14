@@ -31,25 +31,6 @@ class SubprocessLauncherTest {
     await tempDir.delete(recursive: true);
   }
 
-  Future<void> test_subprocessWorksViaParallelSubprocessLimit() async {
-    SubprocessLauncher launcher =
-        SubprocessLauncher('test_subprocessWorksViaParallelSubprocessLimit');
-
-    await launcher.runStreamed(Platform.resolvedExecutable, ['--version'],
-        perLine: outputCallback);
-    expect(output, anyElement(contains('Dart')));
-  }
-
-  Future<void> test_subprocessRunsValidExecutable() async {
-    SubprocessLauncher launcher =
-        SubprocessLauncher('test_subprocessRunsValidExecutable');
-
-    await launcher.runStreamedImmediate(
-        Platform.resolvedExecutable, ['--version'],
-        perLine: outputCallback);
-    expect(output, anyElement(contains('Dart')));
-  }
-
   Future<void> test_subprocessPassesArgs() async {
     SubprocessLauncher launcher =
         SubprocessLauncher('test_subprocessPassesArgs');
@@ -90,6 +71,16 @@ class SubprocessLauncherTest {
             '^environment: .*__SUBPROCESS_PASSES_ENVIRONMENT_TEST: yes'))));
   }
 
+  Future<void> test_subprocessRunsValidExecutable() async {
+    SubprocessLauncher launcher =
+        SubprocessLauncher('test_subprocessRunsValidExecutable');
+
+    await launcher.runStreamedImmediate(
+        Platform.resolvedExecutable, ['--version'],
+        perLine: outputCallback);
+    expect(output, anyElement(contains('Dart')));
+  }
+
   Future<void> test_subprocessSetsWorkingDirectory() async {
     SubprocessLauncher launcher =
         SubprocessLauncher('test_subprocessSetsWorkingDirectory');
@@ -127,5 +118,14 @@ class SubprocessLauncherTest {
             Platform.resolvedExecutable, [testScript.path],
             perLine: outputCallback),
         throwsA(TypeMatcher<ProcessException>()));
+  }
+
+  Future<void> test_subprocessWorksViaParallelSubprocessLimit() async {
+    SubprocessLauncher launcher =
+        SubprocessLauncher('test_subprocessWorksViaParallelSubprocessLimit');
+
+    await launcher.runStreamed(Platform.resolvedExecutable, ['--version'],
+        perLine: outputCallback);
+    expect(output, anyElement(contains('Dart')));
   }
 }

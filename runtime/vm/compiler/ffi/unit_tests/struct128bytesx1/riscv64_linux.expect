@@ -1,0 +1,4 @@
+P(a1 int64) Struct(size: 128)
+a2 int32
+=>
+P(a0 int64) Struct(size: 128)

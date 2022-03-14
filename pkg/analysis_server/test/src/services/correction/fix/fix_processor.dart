@@ -236,6 +236,7 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   void setUp() {
     super.setUp();
     createAnalysisOptionsFile(
+      experiments: experiments,
       lints: [lintCode],
     );
   }
@@ -246,6 +247,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// Return the kind of fixes being tested by this test class.
   FixKind get kind;
 
+  /// Asserts that the resolved compilation unit has a fix which produces [expected] output.
   Future<void> assertHasFix(String expected,
       {bool Function(AnalysisError)? errorFilter,
       int? length,

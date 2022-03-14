@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../util/ast_type_matchers.dart';
+import '../util/feature_sets.dart';
 import 'parser_test_base.dart';
 
 main() {
@@ -1683,9 +1684,9 @@ class Wrong<T> {
 
   void test_invalidTypedef() {
     parseCompilationUnit("typedef var Function(var arg);", errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 7),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 3),
       expectedError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 8, 3),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 3),
       expectedError(ParserErrorCode.VAR_RETURN_TYPE, 8, 3),
       expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 29, 1),
     ]);
@@ -2431,7 +2432,7 @@ class Wrong<T> {
   }
 
   void test_positionalAfterNamedArgument() {
-    createParser('(x: 1, 2)');
+    createParser('(x: 1, 2)', featureSet: FeatureSets.language_2_16);
     ArgumentList list = parser.parseArgumentList();
     expectNotNullIfNoErrors(list);
     listener.assertErrors(

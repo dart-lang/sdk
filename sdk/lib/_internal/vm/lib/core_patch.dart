@@ -23,7 +23,7 @@ import "dart:_internal"
         Lists,
         POWERS_OF_TEN,
         SubListIterable,
-        UnmodifiableListBase,
+        UnmodifiableListMixin,
         has63BitSmis,
         makeFixedListUnmodifiable,
         makeListFixedLength,
@@ -66,6 +66,7 @@ import "dart:typed_data"
 // part "double_patch.dart";
 // part "errors_patch.dart";
 // part "expando_patch.dart";
+// part "finalizer_patch.dart";
 // part "function.dart";
 // part "function_patch.dart";
 // part "growable_array.dart";

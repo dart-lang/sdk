@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/dart/arglist_contributor
 import 'package:analysis_server/src/services/completion/dart/closure_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
+import 'package:analysis_server/src/services/completion/dart/enum_constant_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
@@ -117,7 +118,7 @@ class DartCompletionManager {
                 includedElementNames == null &&
                 includedSuggestionRelevanceTags == null));
 
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<List<CompletionSuggestionBuilder>> computeSuggestions(
     DartCompletionRequest request,
     OperationPerformanceImpl performance, {
     bool enableOverrideContributor = true,
@@ -126,12 +127,12 @@ class DartCompletionManager {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
     if (!file_paths.isDart(pathContext, request.path)) {
-      return const <CompletionSuggestion>[];
+      return const <CompletionSuggestionBuilder>[];
     }
 
     // Don't suggest in comments.
     if (request.target.isCommentText) {
-      return const <CompletionSuggestion>[];
+      return const <CompletionSuggestionBuilder>[];
     }
 
     request.checkAborted();
@@ -142,6 +143,7 @@ class DartCompletionManager {
       ArgListContributor(request, builder),
       ClosureContributor(request, builder),
       CombinatorContributor(request, builder),
+      EnumConstantConstructorContributor(request, builder),
       ExtensionMemberContributor(request, builder),
       FieldFormalContributor(request, builder),
       KeywordContributor(request, builder),
@@ -503,8 +505,6 @@ class DartCompletionRequest {
 
 /// Information provided by [NotImportedContributor] in addition to suggestions.
 class NotImportedSuggestions {
-  final Set<protocol.CompletionSuggestion> set = Set.identity();
-
   /// This flag is set to `true` if the contributor decided to stop before it
   /// processed all available libraries, e.g. we ran out of budget.
   bool isIncomplete = false;

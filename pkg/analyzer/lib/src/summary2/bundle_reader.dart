@@ -276,6 +276,9 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
       unitElement: element.enclosingElement,
     );
     _readTypeParameters(reader, element.typeParameters);
+    element.supertype = reader._readOptionalInterfaceType();
+    element.mixins = reader._readInterfaceTypeList();
+    element.interfaces = reader._readInterfaceTypeList();
     applyConstantOffsets?.perform();
   }
 }

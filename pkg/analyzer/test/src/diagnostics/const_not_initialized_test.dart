@@ -16,25 +16,37 @@ main() {
 
 @reflectiveTest
 class ConstNotInitializedTest extends PubPackageResolutionTest
-    with ConstNotInitializedTestCases {}
-
-mixin ConstNotInitializedTestCases on PubPackageResolutionTest {
-  test_extension_static() async {
+    with ConstNotInitializedTestCases {
+  test_enum_static() async {
     await assertErrorsInCode('''
-extension E on String {
+enum E {
+  v;
   static const F;
-}''', [
-      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 39, 1),
+}
+''', [
+      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 29, 1),
     ]);
   }
+}
 
-  test_instanceField_static() async {
+mixin ConstNotInitializedTestCases on PubPackageResolutionTest {
+  test_class_static() async {
     await assertErrorsInCode(r'''
 class A {
   static const F;
 }
 ''', [
       error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 25, 1),
+    ]);
+  }
+
+  test_extension_static() async {
+    await assertErrorsInCode('''
+extension E on String {
+  static const F;
+}
+''', [
+      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 39, 1),
     ]);
   }
 
@@ -49,7 +61,7 @@ f() {
     ]);
   }
 
-  test_top_level() async {
+  test_topLevel() async {
     await assertErrorsInCode('''
 const F;
 ''', [

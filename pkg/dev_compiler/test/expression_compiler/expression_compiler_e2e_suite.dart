@@ -9,9 +9,9 @@ import 'dart:convert';
 import 'dart:io' show Directory, File, Platform;
 
 import 'package:browser_launcher/browser_launcher.dart' as browser;
-import 'package:cli_util/cli_util.dart';
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/compiler/module_builder.dart';
+import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:dev_compiler/src/kernel/module_metadata.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/compute_platform_binaries_location.dart' as fe;
@@ -111,11 +111,17 @@ class TestCompiler {
       this.sourceMap);
 
   static Future<TestCompiler> init(SetupCompilerOptions setup,
-      {Uri input, Uri output, Uri packages}) async {
+      {Uri input,
+      Uri output,
+      Uri packages,
+      Map<String, bool> experiments = const {}}) async {
     // Initialize the incremental compiler and module component.
     // TODO: extend this for multi-module compilations by storing separate
     // compilers/components/names per module.
     setup.options.packagesFileUri = packages;
+    setup.options.explicitExperimentalFlags.addAll(fe.parseExperimentalFlags(
+        experiments,
+        onError: (message) => throw Exception(message)));
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
     var compilerResult = await compiler.computeDelta();
     var component = compilerResult.component;
@@ -127,6 +133,7 @@ class TestCompiler {
     var compilerOptions = SharedCompilerOptions(
         replCompile: true,
         moduleName: moduleName,
+        experiments: experiments,
         soundNullSafety: setup.soundNullSafety,
         emitDebugMetadata: true);
     var coreTypes = compilerResult.coreTypes;
@@ -271,7 +278,8 @@ class TestDriver {
   ///
   /// Depends on SDK artifacts (such as the sound and unsound dart_sdk.js
   /// files) generated from the 'dartdevc_test' target.
-  Future<void> initSource(SetupCompilerOptions setup, String source) async {
+  Future<void> initSource(SetupCompilerOptions setup, String source,
+      {Map<String, bool> experiments}) async {
     // Perform setup sanity checks.
     var summaryPath = setup.options.sdkSummary.toFilePath();
     if (!File(summaryPath).existsSync()) {
@@ -310,7 +318,10 @@ class TestDriver {
 
     // Initialize DDC and the incremental compiler, then perform a full compile.
     compiler = await TestCompiler.init(setup,
-        input: input, output: output, packages: packagesFile);
+        input: input,
+        output: output,
+        packages: packagesFile,
+        experiments: experiments);
 
     htmlBootstrapper = testDir.uri.resolve('bootstrapper.html');
     var bootstrapFile = File(htmlBootstrapper.toFilePath())..createSync();

@@ -51,8 +51,7 @@ below.
 
 ## Format
 
-There are several formats of info files. Dart2js today produces a JSON format,
-but very soon will switch to produce a binary format by default.
+Dart2js info files are produced in either a binary or JSON format.
 
 ## Info API
 
@@ -134,6 +133,12 @@ The following tools are a available today:
     another. Accepted inputs are JSON or the internal binary form, outputs can
     be JSON, backward-compatible JSON, binary, or protobuf schema (as defined in
     `info.proto`).
+
+  * [`runtime_coverage`][runtime_coverage]:
+    dart2js has an experimental feature to gather runtime coverage data of your
+    application. This tool correlates that with the info file and can output a
+    package-level breakdown of which files were not used during the runtime of
+    your app.
 
   * [`show`][show]: a tool that dumps info files in a readable text format.
 
@@ -502,7 +507,7 @@ application size. This means that if you somehow can remove your dependency on
 `myMethodName`, you will save at least that 13.97%, and possibly some more from
 the reachable size, but how much of that we are not certain.
 
-### Coverage tools
+### Coverage Server Analysis
 
 Coverage information requires a bit more setup and work to get them running. The
 steps are as follows:
@@ -539,6 +544,75 @@ $ dart2js_info coverage_server main.dart.js
 $ dart2js_info coverage_analysis main.dart.info.data main.dart.coverage.json
 ```
 
+### Runtime Code Analysis
+
+Runtime code analysis requires both an info file and a runtime data file. 
+
+The info file is emitted by compiling a dart2js app with `--dump-info`:
+
+```console
+$ dart2js --dump-info main.dart
+```
+
+Enable the collection of runtime data by compiling a dart2js app with an
+experimental flag:
+
+```console
+$ dart2js --experimental-track-allocations main.dart
+```
+
+After using your app (manually or via integration tests), dump the top-level
+window object below to a text file:
+
+```javascript
+JSON.stringify($__dart_deferred_initializers__.allocations)
+```
+
+Finally run this tool:
+
+```console
+$ dart2js_info runtime_coverage main.dart.info.data main.runtime.data.txt
+```
+
+And with the following to view package-level information:
+
+```console
+$ dart2js_info runtime_coverage --show-packages main.dart.info.data main.runtime.data.txt
+```
+
+Here's an example output snippet:
+```
+Runtime Coverage Summary
+========================================================================
+                                   bytes      %
+ Program size                   96860754 100.00%
+ Libraries (excluding statics)  94394961  97.45%
+ Code (classes + closures)      91141701  94.10%
+ Used                            3519239   3.63%
+
+                                   count      %
+ Classes + closures                15902 100.00%
+ Used                               5661  35.60%
+
+Runtime Coverage Breakdown (packages) (87622462 bytes)
+========================================================================
+ package:angular_components.material_datepicker (29881 bytes unused)
+   proportion of package used:                      43394/73275 (59.22%)
+   proportion of unused code to all code:           29881/91141701 (0.03%)
+   proportion of unused code to all unused code:    29881/87622462 (0.03%)
+   proportion of main unit code to package code:    8142/73275 (11.11%)
+   proportion of main unit code that is unused:     3088/8142 (37.93%)
+   package breakdown:
+     [-D] package:angular_components.material_datepicker/material_datepicker.dart:_ViewMaterialDatepickerComponent5: 656 bytes (0.90% of package)
+     [+D] package:angular_components.material_datepicker/calendar.dart:CalendarSelection: 645 bytes (0.88% of package)
+     [+M] package:angular_components.material_datepicker/range.dart:MonthRange: 629 bytes (0.86% of package)
+     [-M] package:angular_components.material_datepicker/range.dart:QuarterRange: 629 bytes (0.86% of package)
+...
+```
+
+A `+`/`-` indicates whether or not the element was used at runtime.
+A `M`/`D` indicates whether or not the element was in the main or deferred output unit.
+
 ## Code location, features and bugs
 
 This package is developed in [github][repo].  Please file feature requests and
@@ -557,5 +631,6 @@ bugs at the [issue tracker][tracker].
 [function_size]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/function_size_analysis.dart
 [library_size]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/library_size_split.dart
 [repo]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/
+[runtime_coverage]: https://github.com/dart-lang/sdk/blob/main/pkg/dart2js_info/bin/src/runtime_coverage_analysis.dart
 [show]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/text_print.dart
 [tracker]: https://github.com/dart-lang/sdk/issues

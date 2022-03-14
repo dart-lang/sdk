@@ -1,7 +1,9 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // @dart=2.9
+
 typedef E1<T> = void Function();
 typedef E2<T extends num> = void Function();
 typedef E3<T, S> = void Function();

@@ -1,0 +1,16 @@
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+entry_point: "main.dart"
+definitions: []
+definition_types: []
+type_definitions: ["E"]
+# Object?
+type_bounds: ["dart:core", "Object", "0", "0"]
+# null (because dynamic).
+type_defaults: ["null"]
+position: "main.dart"
+method: "withBound2"
+expression: |
+  print(E)

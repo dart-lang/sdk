@@ -8,9 +8,13 @@ import 'common.dart' as common;
 /// A generator for a simple command-line application.
 class ConsoleSimpleGenerator extends DefaultGenerator {
   ConsoleSimpleGenerator()
-      : super('console-simple', 'Simple Console Application',
-            'A simple command-line application.',
-            categories: const ['dart', 'console']) {
+      : super(
+          'console-simple',
+          'Simple Console Application',
+          'A simple command-line application.',
+          deprecated: true,
+          categories: const ['dart', 'console'],
+        ) {
     addFile('.gitignore', common.gitignore);
     addFile('analysis_options.yaml', common.analysisOptions);
     addFile('CHANGELOG.md', common.changelog);
@@ -36,7 +40,7 @@ version: 1.0.0
 # homepage: https://www.example.com
 
 environment:
-${common.sdkConstraint}
+  ${common.sdkConstraint}
 
 # dependencies:
 #   path: ^1.8.0

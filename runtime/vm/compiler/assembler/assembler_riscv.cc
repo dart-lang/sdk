@@ -3142,6 +3142,11 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   ASSERT(memory_order == kRelaxedNonAtomic);
   sx(value, dest);
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   beq(object, value, &done, kNearJump);
   BranchIfSmi(value, &done, kNearJump);
@@ -3149,7 +3154,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
   srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
   and_(TMP, TMP, TMP2);
-  and_(TMP, TMP, WRITE_BARRIER_MASK);
+  andi(TMP, TMP, target::UntaggedObject::kGenerationalBarrierMask);
   beqz(TMP, &done, kNearJump);
   Stop("Store buffer update is required");
   Bind(&done);
@@ -3171,6 +3176,11 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
     StoreToOffset(value, object, offset - kHeapObjectTag);
   }
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   beq(object, value, &done, kNearJump);
   BranchIfSmi(value, &done, kNearJump);
@@ -3178,7 +3188,7 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
   srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
   and_(TMP, TMP, TMP2);
-  and_(TMP, TMP, WRITE_BARRIER_MASK);
+  andi(TMP, TMP, target::UntaggedObject::kGenerationalBarrierMask);
   beqz(TMP, &done, kNearJump);
   Stop("Store buffer update is required");
   Bind(&done);
@@ -4156,6 +4166,10 @@ void Assembler::LoadObjectHelper(Register dst,
   LoadImmediate(dst, target::ToRawSmi(object));
 }
 
+static const RegisterSet kRuntimeCallSavedRegisters(
+    kAbiVolatileCpuRegs | (1 << CALLEE_SAVED_TEMP) | (1 << CALLEE_SAVED_TEMP2),
+    kAbiVolatileFpuRegs);
+
 // Note: leaf call sequence uses some abi callee save registers as scratch
 // so they should be manually preserved.
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
@@ -4176,9 +4190,7 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
     addi(FP, SP, 2 * target::kWordSize + frame_size);
   }
 
-  const RegisterSet kVolatileRegisterSet(kAbiVolatileCpuRegs,
-                                         kAbiVolatileFpuRegs);
-  PushRegisters(kVolatileRegisterSet);
+  PushRegisters(kRuntimeCallSavedRegisters);
 
   if (!is_leaf) {  // Leaf calling sequence aligns the stack itself.
     ReserveAlignedFrameSpace(0);
@@ -4186,18 +4198,15 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
 }
 
 void Assembler::LeaveCallRuntimeFrame(bool is_leaf) {
-  const RegisterSet kVolatileRegisterSet(kAbiVolatileCpuRegs,
-                                         kAbiVolatileFpuRegs);
-
   const intptr_t kPushedRegistersSize =
-      kVolatileRegisterSet.CpuRegisterCount() * target::kWordSize +
-      kVolatileRegisterSet.FpuRegisterCount() * kFpuRegisterSize +
+      kRuntimeCallSavedRegisters.CpuRegisterCount() * target::kWordSize +
+      kRuntimeCallSavedRegisters.FpuRegisterCount() * kFpuRegisterSize +
       (target::frame_layout.dart_fixed_frame_size - 2) *
           target::kWordSize;  // From EnterStubFrame (excluding PC / FP)
 
   subi(SP, FP, kPushedRegistersSize);
 
-  PopRegisters(kVolatileRegisterSet);
+  PopRegisters(kRuntimeCallSavedRegisters);
 
   LeaveStubFrame();
 }

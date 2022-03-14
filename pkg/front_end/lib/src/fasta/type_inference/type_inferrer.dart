@@ -27,6 +27,7 @@ import '../../testing/id_testing_utils.dart';
 import '../builder/extension_builder.dart';
 import '../builder/member_builder.dart';
 import '../fasta_codes.dart';
+import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/inference_visitor.dart';
@@ -115,6 +116,8 @@ abstract class TypeInferrer {
 
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
 
+  InferenceHelper? helper;
+
   /// Performs full type inference on the given field initializer.
   ExpressionInferenceResult inferFieldInitializer(
       InferenceHelper helper, DartType declaredType, Expression initializer);
@@ -158,6 +161,19 @@ abstract class TypeInferrer {
   // TODO(johnniwinther): We are still parameters on synthesized mixin
   //  application constructors.
   void inferConstructorParameterTypes(Constructor constructor);
+
+  InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
+      FunctionType calleeType, ArgumentsImpl arguments,
+      {List<VariableDeclaration>? hoistedExpressions,
+      bool isSpecialCasedBinaryOperator: false,
+      bool isSpecialCasedTernaryOperator: false,
+      DartType? receiverType,
+      bool skipTypeArgumentInference: false,
+      bool isConst: false,
+      bool isImplicitExtensionMember: false,
+      bool isImplicitCall: false,
+      Member? staticTarget,
+      bool isExtensionMemberInvocation = false});
 }
 
 /// Concrete implementation of [TypeInferrer] specialized to work with kernel
@@ -207,6 +223,7 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   final SourceLibraryBuilder library;
 
+  @override
   InferenceHelper? helper;
 
   /// Context information for the current closure, or `null` if we are not
@@ -395,7 +412,7 @@ class TypeInferrerImpl implements TypeInferrer {
     } else if ((constructor = engine.toBeInferred[target]) != null) {
       engine.toBeInferred.remove(target);
       engine.beingInferred[target] = constructor!;
-      constructor.inferFormalTypes(classHierarchy);
+      constructor.inferFormalTypes(typeSchemaEnvironment);
       engine.beingInferred.remove(target);
     }
   }
@@ -447,29 +464,6 @@ class TypeInferrerImpl implements TypeInferrer {
         .isSubtypeWhenIgnoringNullabilities();
   }
 
-  Expression ensureAssignableResult(
-      DartType expectedType, ExpressionInferenceResult result,
-      {int? fileOffset,
-      bool isVoidAllowed: false,
-      Template<Message Function(DartType, DartType, bool)>? errorTemplate,
-      Template<Message Function(DartType, DartType, bool)>?
-          nullabilityErrorTemplate,
-      Template<Message Function(DartType, bool)>? nullabilityNullErrorTemplate,
-      Template<Message Function(DartType, DartType, bool)>?
-          nullabilityNullTypeErrorTemplate,
-      Template<Message Function(DartType, DartType, DartType, DartType, bool)>?
-          nullabilityPartErrorTemplate}) {
-    return ensureAssignable(
-        expectedType, result.inferredType, result.expression,
-        fileOffset: fileOffset,
-        isVoidAllowed: isVoidAllowed,
-        errorTemplate: errorTemplate,
-        nullabilityErrorTemplate: nullabilityErrorTemplate,
-        nullabilityNullErrorTemplate: nullabilityNullErrorTemplate,
-        nullabilityNullTypeErrorTemplate: nullabilityNullTypeErrorTemplate,
-        nullabilityPartErrorTemplate: nullabilityPartErrorTemplate);
-  }
-
   /// Ensures that [expressionType] is assignable to [contextType].
   ///
   /// Checks whether [expressionType] can be assigned to the greatest closure of
@@ -489,7 +483,40 @@ class TypeInferrerImpl implements TypeInferrer {
   /// before returned and therefore shouldn't be checked to be a `Future`
   /// directly.
   Expression ensureAssignable(
-      DartType contextType, DartType expressionType, Expression expression,
+      DartType expectedType, DartType expressionType, Expression expression,
+      {int? fileOffset,
+      DartType? declaredContextType,
+      DartType? runtimeCheckedType,
+      bool isVoidAllowed: false,
+      Template<Message Function(DartType, DartType, bool)>? errorTemplate,
+      Template<Message Function(DartType, DartType, bool)>?
+          nullabilityErrorTemplate,
+      Template<Message Function(DartType, bool)>? nullabilityNullErrorTemplate,
+      Template<Message Function(DartType, DartType, bool)>?
+          nullabilityNullTypeErrorTemplate,
+      Template<Message Function(DartType, DartType, DartType, DartType, bool)>?
+          nullabilityPartErrorTemplate,
+      Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+    return ensureAssignableResult(expectedType,
+            new ExpressionInferenceResult(expressionType, expression),
+            fileOffset: fileOffset,
+            declaredContextType: declaredContextType,
+            runtimeCheckedType: runtimeCheckedType,
+            isVoidAllowed: isVoidAllowed,
+            errorTemplate: errorTemplate,
+            nullabilityErrorTemplate: nullabilityErrorTemplate,
+            nullabilityNullErrorTemplate: nullabilityNullErrorTemplate,
+            nullabilityNullTypeErrorTemplate: nullabilityNullTypeErrorTemplate,
+            nullabilityPartErrorTemplate: nullabilityPartErrorTemplate,
+            whyNotPromoted: whyNotPromoted)
+        .expression;
+  }
+
+  /// Same as [ensureAssignable], but accepts an [ExpressionInferenceResult]
+  /// rather than an expression and a type separately.  If no change is made,
+  /// [inferenceResult] is returned unchanged.
+  ExpressionInferenceResult ensureAssignableResult(
+      DartType contextType, ExpressionInferenceResult inferenceResult,
       {int? fileOffset,
       DartType? declaredContextType,
       DartType? runtimeCheckedType,
@@ -531,35 +558,37 @@ class TypeInferrerImpl implements TypeInferrer {
     // We don't need to insert assignability checks when doing top level type
     // inference since top level type inference only cares about the type that
     // is inferred (the kernel code is discarded).
-    if (isTopLevel) return expression;
+    if (isTopLevel) return inferenceResult;
 
-    fileOffset ??= expression.fileOffset;
+    fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
 
     DartType initialContextType = runtimeCheckedType ?? contextType;
 
     Template<Message Function(DartType, DartType, bool)>?
-        preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(expression);
+        preciseTypeErrorTemplate =
+        _getPreciseTypeErrorTemplate(inferenceResult.expression);
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
-        contextType, expressionType,
+        contextType, inferenceResult.inferredType,
         isNonNullableByDefault: isNonNullableByDefault,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null);
 
     if (assignabilityResult.needsTearOff) {
-      TypedTearoff typedTearoff =
-          _tearOffCall(expression, expressionType as InterfaceType, fileOffset);
-      expression = typedTearoff.tearoff;
-      expressionType = typedTearoff.tearoffType;
+      TypedTearoff typedTearoff = _tearOffCall(inferenceResult.expression,
+          inferenceResult.inferredType as InterfaceType, fileOffset);
+      inferenceResult = new ExpressionInferenceResult(
+          typedTearoff.tearoffType, typedTearoff.tearoff);
     }
     if (assignabilityResult.implicitInstantiation != null) {
-      ExpressionInferenceResult instantiationResult =
-          _applyImplicitInstantiation(assignabilityResult.implicitInstantiation,
-              expressionType, expression);
-      expression = instantiationResult.expression;
-      expressionType = instantiationResult.inferredType;
+      inferenceResult = _applyImplicitInstantiation(
+          assignabilityResult.implicitInstantiation,
+          inferenceResult.inferredType,
+          inferenceResult.expression);
     }
 
+    DartType expressionType = inferenceResult.inferredType;
+    Expression expression = inferenceResult.expression;
     Expression result;
     switch (assignabilityResult.kind) {
       case AssignabilityKind.assignable:
@@ -656,8 +685,10 @@ class TypeInferrerImpl implements TypeInferrer {
 
     if (!identical(result, expression)) {
       flowAnalysis.forwardExpression(result, expression);
+      return new ExpressionInferenceResult(expressionType, result);
+    } else {
+      return inferenceResult;
     }
-    return result;
   }
 
   Expression _wrapTearoffErrorExpression(Expression expression,
@@ -1064,7 +1095,7 @@ class TypeInferrerImpl implements TypeInferrer {
               onType,
               onTypeInstantiateToBounds,
               target,
-              isPlatform: extensionBuilder.library.importUri.scheme == 'dart');
+              isPlatform: extensionBuilder.library.importUri.isScheme('dart'));
           if (noneMoreSpecific.isNotEmpty) {
             bool isMostSpecific = true;
             for (ExtensionAccessCandidate other in noneMoreSpecific) {
@@ -2033,19 +2064,18 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   ExpressionInferenceResult inferFieldInitializer(
     InferenceHelper helper,
-    DartType context,
+    DartType declaredType,
     Expression initializer,
   ) {
     assert(closureContext == null);
     assert(!isTopLevel);
     this.helper = helper;
     ExpressionInferenceResult initializerResult =
-        inferExpression(initializer, context, true, isVoidAllowed: true);
-    initializer = ensureAssignableResult(context, initializerResult,
-        isVoidAllowed: context is VoidType);
+        inferExpression(initializer, declaredType, true, isVoidAllowed: true);
+    initializerResult = ensureAssignableResult(declaredType, initializerResult,
+        isVoidAllowed: declaredType is VoidType);
     this.helper = null;
-    return new ExpressionInferenceResult(
-        initializerResult.inferredType, initializer);
+    return initializerResult;
   }
 
   @override
@@ -2079,6 +2109,7 @@ class TypeInferrerImpl implements TypeInferrer {
         result.hasChanged ? result.statement : body, futureValueType);
   }
 
+  @override
   InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
       FunctionType calleeType, ArgumentsImpl arguments,
       {List<VariableDeclaration>? hoistedExpressions,
@@ -2546,7 +2577,8 @@ class TypeInferrerImpl implements TypeInferrer {
             argMessage.charOffset,
             argMessage.length,
             helper!,
-            isInapplicable: true);
+            isInapplicable: true,
+            hoistedArguments: localHoistedExpressions);
       } else {
         // Argument counts and names match. Compare types.
         int positionalShift = isImplicitExtensionMember ? 1 : 0;
@@ -3985,7 +4017,7 @@ class TypeInferrerImpl implements TypeInferrer {
     ExpressionInferenceResult result =
         inferExpression(initializer, declaredType, true);
     if (hasDeclaredInitializer) {
-      initializer = ensureAssignableResult(declaredType, result);
+      initializer = ensureAssignableResult(declaredType, result).expression;
     }
     this.helper = null;
     return initializer;
@@ -4641,6 +4673,167 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 }
 
+class TypeInferrerImplBenchmarked implements TypeInferrer {
+  final TypeInferrerImpl impl;
+  final Benchmarker benchmarker;
+
+  TypeInferrerImplBenchmarked(
+      TypeInferenceEngine engine,
+      Uri uriForInstrumentation,
+      bool topLevel,
+      InterfaceType? thisType,
+      SourceLibraryBuilder library,
+      AssignedVariables<TreeNode, VariableDeclaration> assignedVariables,
+      InferenceDataForTesting? dataForTesting,
+      this.benchmarker)
+      : impl = new TypeInferrerImpl(engine, uriForInstrumentation, topLevel,
+            thisType, library, assignedVariables, dataForTesting);
+
+  @override
+  AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
+      impl.assignedVariables;
+
+  @override
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration, DartType>
+      get flowAnalysis => impl.flowAnalysis;
+
+  @override
+  SourceLibraryBuilder get library => impl.library;
+
+  @override
+  TypeSchemaEnvironment get typeSchemaEnvironment => impl.typeSchemaEnvironment;
+
+  @override
+  Uri get uriForInstrumentation => impl.uriForInstrumentation;
+
+  @override
+  void inferConstructorParameterTypes(Constructor constructor) {
+    benchmarker
+        .beginSubdivide(BenchmarkSubdivides.inferConstructorParameterTypes);
+    impl.inferConstructorParameterTypes(constructor);
+    benchmarker.endSubdivide();
+  }
+
+  @override
+  DartType inferDeclarationType(DartType initializerType) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferDeclarationType);
+    DartType result = impl.inferDeclarationType(initializerType);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  ExpressionInferenceResult inferExpression(
+      Expression expression, DartType typeContext, bool typeNeeded,
+      {bool isVoidAllowed = false, bool forEffect = false}) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferExpression);
+    ExpressionInferenceResult result = impl.inferExpression(
+        expression, typeContext, typeNeeded,
+        isVoidAllowed: isVoidAllowed, forEffect: forEffect);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  ExpressionInferenceResult inferFieldInitializer(
+      InferenceHelper helper, DartType declaredType, Expression initializer) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferFieldInitializer);
+    ExpressionInferenceResult result =
+        impl.inferFieldInitializer(helper, declaredType, initializer);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
+      DartType returnType, AsyncMarker asyncMarker, Statement body) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
+    InferredFunctionBody result = impl.inferFunctionBody(
+        helper, fileOffset, returnType, asyncMarker, body);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  InitializerInferenceResult inferInitializer(
+      InferenceHelper helper, Initializer initializer) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferInitializer);
+    InitializerInferenceResult result =
+        impl.inferInitializer(helper, initializer);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  void inferMetadata(
+      InferenceHelper helper, TreeNode? parent, List<Expression>? annotations) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferMetadata);
+    impl.inferMetadata(helper, parent, annotations);
+    benchmarker.endSubdivide();
+  }
+
+  @override
+  void inferMetadataKeepingHelper(
+      TreeNode parent, List<Expression> annotations) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferMetadataKeepingHelper);
+    impl.inferMetadataKeepingHelper(parent, annotations);
+    benchmarker.endSubdivide();
+  }
+
+  @override
+  Expression inferParameterInitializer(
+      InferenceHelper helper,
+      Expression initializer,
+      DartType declaredType,
+      bool hasDeclaredInitializer) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferParameterInitializer);
+    Expression result = impl.inferParameterInitializer(
+        helper, initializer, declaredType, hasDeclaredInitializer);
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
+      FunctionType calleeType, ArgumentsImpl arguments,
+      {List<VariableDeclaration>? hoistedExpressions,
+      bool isSpecialCasedBinaryOperator = false,
+      bool isSpecialCasedTernaryOperator = false,
+      DartType? receiverType,
+      bool skipTypeArgumentInference = false,
+      bool isConst = false,
+      bool isImplicitExtensionMember = false,
+      bool isImplicitCall = false,
+      Member? staticTarget,
+      bool isExtensionMemberInvocation = false}) {
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferInvocation);
+    InvocationInferenceResult result = impl.inferInvocation(
+      typeContext,
+      offset,
+      calleeType,
+      arguments,
+      hoistedExpressions: hoistedExpressions,
+      isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
+      isSpecialCasedTernaryOperator: isSpecialCasedTernaryOperator,
+      receiverType: receiverType,
+      skipTypeArgumentInference: skipTypeArgumentInference,
+      isConst: isConst,
+      isImplicitExtensionMember: isImplicitExtensionMember,
+      isImplicitCall: isImplicitCall,
+      staticTarget: staticTarget,
+      isExtensionMemberInvocation: isExtensionMemberInvocation,
+    );
+    benchmarker.endSubdivide();
+    return result;
+  }
+
+  @override
+  InferenceHelper? get helper => impl.helper;
+
+  @override
+  void set helper(InferenceHelper? helper) => impl.helper = helper;
+}
+
 abstract class MixinInferrer {
   final CoreTypes coreTypes;
   final TypeConstraintGatherer gatherer;
@@ -4874,6 +5067,16 @@ abstract class InvocationInferenceResult {
   /// Returns `true` if the arguments of the call where not applicable to the
   /// target.
   bool get isInapplicable;
+
+  static Expression _insertHoistedExpressions(
+      Expression expression, List<VariableDeclaration> hoistedExpressions) {
+    if (hoistedExpressions.isNotEmpty) {
+      for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
+        expression = createLet(hoistedExpressions[index], expression);
+      }
+    }
+    return expression;
+  }
 }
 
 class SuccessfulInferenceResult implements InvocationInferenceResult {
@@ -4888,7 +5091,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
   final DartType? inferredReceiverType;
 
   SuccessfulInferenceResult(this.inferredType, this.functionType,
-      {this.hoistedArguments, this.inferredReceiverType});
+      {required this.hoistedArguments, this.inferredReceiverType});
 
   @override
   Expression applyResult(Expression expression) {
@@ -4898,17 +5101,23 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
     } else {
       assert(expression is InvocationExpression);
       if (expression is FactoryConstructorInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is TypeAliasedConstructorInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is TypeAliasedFactoryInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is ConstructorInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is DynamicInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is FunctionInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is InstanceGetterInvocation) {
         // The hoisting of InstanceGetterInvocation is performed elsewhere.
         return expression;
@@ -4917,28 +5126,23 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
             expression.receiver, inferredReceiverType ?? const DynamicType());
         expression.receiver = createVariableGet(receiver)..parent = expression;
         return createLet(
-            receiver, _insertHoistedExpressions(expression, hoistedArguments));
+            receiver,
+            InvocationInferenceResult._insertHoistedExpressions(
+                expression, hoistedArguments));
       } else if (expression is LocalFunctionInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is StaticInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else if (expression is SuperMethodInvocation) {
-        return _insertHoistedExpressions(expression, hoistedArguments);
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
       } else {
         throw new StateError(
             "Unhandled invocation kind '${expression.runtimeType}'.");
       }
     }
-  }
-
-  static Expression _insertHoistedExpressions(
-      Expression expression, List<VariableDeclaration> hoistedExpressions) {
-    if (hoistedExpressions.isNotEmpty) {
-      for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
-        expression = createLet(hoistedExpressions[index], expression);
-      }
-    }
-    return expression;
   }
 
   @override
@@ -4963,15 +5167,24 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   @override
   final bool isInapplicable;
 
+  final List<VariableDeclaration>? hoistedArguments;
+
   WrapInProblemInferenceResult(this.inferredType, this.functionType,
       this.message, this.fileOffset, this.length, this.helper,
-      {required this.isInapplicable})
+      {required this.isInapplicable, required this.hoistedArguments})
       // ignore: unnecessary_null_comparison
       : assert(isInapplicable != null);
 
   @override
   Expression applyResult(Expression expression) {
-    return helper.wrapInProblem(expression, message, fileOffset, length);
+    expression = helper.wrapInProblem(expression, message, fileOffset, length);
+    List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
+    if (hoistedArguments == null || hoistedArguments.isEmpty) {
+      return expression;
+    } else {
+      return InvocationInferenceResult._insertHoistedExpressions(
+          expression, hoistedArguments);
+    }
   }
 }
 

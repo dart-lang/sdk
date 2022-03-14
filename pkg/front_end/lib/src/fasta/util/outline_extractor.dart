@@ -116,7 +116,7 @@ class _Processor {
   Future<TopLevel> preprocessUri(Uri importUri, {Uri? partOf}) async {
     if (verbosityLevel >= 20) log("$importUri =>");
     Uri fileUri = importUri;
-    if (importUri.scheme == "package") {
+    if (importUri.isScheme("package")) {
       fileUri = uriTranslator.translate(importUri)!;
     }
     if (verbosityLevel >= 20) log("$fileUri");
@@ -202,14 +202,14 @@ class _Processor {
       worklist.add(new _TopLevelAndAstNode(entrypointish, child));
 
       if (child is Part) {
-        if (child.uri.scheme != "dart") {
+        if (!child.uri.isScheme("dart")) {
           TopLevel partTopLevel = parsed[child.uri] ??
               await preprocessUri(child.uri, partOf: entrypointish.uri);
           await _premarkTopLevel(worklist, closed, partTopLevel);
         }
       } else if (child is Export) {
         for (Uri importedUri in child.uris) {
-          if (importedUri.scheme != "dart") {
+          if (!importedUri.isScheme("dart")) {
             TopLevel exportTopLevel =
                 parsed[importedUri] ?? await preprocessUri(importedUri);
             await _premarkTopLevel(worklist, closed, exportTopLevel);
@@ -230,7 +230,7 @@ class _Processor {
         if (child is Import) {
           child.marked = Coloring.Marked;
           for (Uri importedUri in child.uris) {
-            if (importedUri.scheme != "dart") {
+            if (!importedUri.isScheme("dart")) {
               TopLevel importedTopLevel =
                   parsed[importedUri] ?? await preprocessUri(importedUri);
               imported.add(importedTopLevel);
@@ -238,7 +238,7 @@ class _Processor {
           }
         } else if (child is PartOf) {
           child.marked = Coloring.Marked;
-          if (child.partOfUri.scheme != "dart") {
+          if (!child.partOfUri.isScheme("dart")) {
             TopLevel part = parsed[child.partOfUri]!;
             List<TopLevel> importsFromPart =
                 await _preprocessImportsAsNeeded(imports, part);
@@ -392,7 +392,7 @@ class _Processor {
           if (child is Part) {
             child.marked = Coloring.Marked;
             // do stuff to part.
-            if (child.uri.scheme != "dart") {
+            if (!child.uri.isScheme("dart")) {
               other = parsed[child.uri] ??
                   await preprocessUri(child.uri, partOf: topLevel.uri);
             }
@@ -400,7 +400,7 @@ class _Processor {
             child.marked = Coloring.Marked;
             // do stuff to export.
             for (Uri importedUri in child.uris) {
-              if (importedUri.scheme != "dart") {
+              if (!importedUri.isScheme("dart")) {
                 other = parsed[importedUri] ?? await preprocessUri(importedUri);
               }
             }
@@ -468,7 +468,7 @@ class _Processor {
           }
           if (child is Import) {
             for (Uri importedUri in child.uris) {
-              if (importedUri.scheme != "dart") {
+              if (!importedUri.isScheme("dart")) {
                 imported.add(importedUri);
               }
             }
@@ -478,7 +478,7 @@ class _Processor {
       if (sb.isNotEmpty) count++;
       Uri uri = entry.key;
       Uri fileUri = uri;
-      if (uri.scheme == "package") {
+      if (uri.isScheme("package")) {
         fileUri = uriTranslator.translate(uri)!;
       }
       result[fileUri] = sb.toString();
@@ -489,7 +489,7 @@ class _Processor {
       // uri imports a file we haven't read. Check if it exists and include it
       // as an empty file if it does.
       Uri fileUri = uri;
-      if (uri.scheme == "package") {
+      if (uri.isScheme("package")) {
         fileUri = uriTranslator.translate(uri)!;
       }
       if (await fileSystem.entityForUri(fileUri).exists()) {

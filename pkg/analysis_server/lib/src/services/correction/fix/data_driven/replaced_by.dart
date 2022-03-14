@@ -99,7 +99,7 @@ class ReplacedBy extends Change<_Data> {
         }
       }
     } else if (node is ConstructorName) {
-      var typeName = node.type2.name;
+      var typeName = node.type.name;
       SimpleIdentifier classNameNode;
       if (typeName is SimpleIdentifier) {
         classNameNode = typeName;

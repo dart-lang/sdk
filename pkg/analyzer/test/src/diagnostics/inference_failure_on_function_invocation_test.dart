@@ -47,6 +47,7 @@ void f(void Function() m) {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_functionType_optionalTypeArgs() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';

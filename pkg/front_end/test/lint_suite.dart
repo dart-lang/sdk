@@ -259,6 +259,7 @@ class ExplicitTypeLintListener extends LintListener {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -306,7 +307,7 @@ class ImportsTwiceLintListener extends LintListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     Token importUriToken = importKeyword.next!;
     String importUri = importUriToken.lexeme;
     if (importUri.startsWith("r")) {
@@ -315,7 +316,7 @@ class ImportsTwiceLintListener extends LintListener {
       importUri = importUri.substring(1, importUri.length - 1);
     }
     Uri resolved = uri.resolve(importUri);
-    if (resolved.scheme == "package") {
+    if (resolved.isScheme("package")) {
       if (description.cache.packages != null) {
         resolved = description.cache.packages!.resolve(resolved)!;
       }
@@ -345,7 +346,7 @@ class ExportsLintListener extends LintListener {
       exportUri = exportUri.substring(1, exportUri.length - 1);
     }
     Uri resolved = uri.resolve(exportUri);
-    if (resolved.scheme == "package") {
+    if (resolved.isScheme("package")) {
       if (description.cache.packages != null) {
         resolved = description.cache.packages!.resolve(resolved)!;
       }

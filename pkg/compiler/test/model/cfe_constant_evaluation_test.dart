@@ -10,16 +10,17 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/indexed.dart';
 import 'package:compiler/src/elements/types.dart';
+import 'package:compiler/src/environment.dart';
 import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/visitors.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
@@ -573,7 +574,7 @@ Future testData(TestData data) async {
         options: [Flags.enableAsserts]);
     Compiler compiler = result.compiler;
     KernelFrontendStrategy frontEndStrategy = compiler.frontendStrategy;
-    KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
+    KernelToElementMap elementMap = frontEndStrategy.elementMap;
     DartTypes dartTypes = elementMap.types;
     ir.TypeEnvironment typeEnvironment = elementMap.typeEnvironment;
     KElementEnvironment elementEnvironment =
@@ -606,7 +607,7 @@ Future testData(TestData data) async {
             errors.add(context.first.code.name);
             reportLocatedMessage(elementMap.reporter, message, context);
           },
-              environment: environment,
+              environment: Environment(environment),
               supportReevaluationForTesting: true,
               evaluationMode: compiler.options.useLegacySubtyping
                   ? ir.EvaluationMode.weak

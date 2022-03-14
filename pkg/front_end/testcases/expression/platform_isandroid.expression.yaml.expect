@@ -1,0 +1,4 @@
+Errors: {
+}
+static method /*isLegacy, from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return dart.io::Platform::isAndroid;

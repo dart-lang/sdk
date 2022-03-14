@@ -10,13 +10,21 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MainHasRequiredNamedParametersTest);
-    defineReflectiveTests(MainHasRequiredNamedParametersWithNullSafetyTest);
+    defineReflectiveTests(MainHasRequiredNamedParametersWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class MainHasRequiredNamedParametersTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, MainHasRequiredNamedParametersTestCases {}
+    with MainHasRequiredNamedParametersTestCases {
+  test_namedRequired() async {
+    await assertErrorsInCode('''
+void main({required List<String> a}) {}
+''', [
+      error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4),
+    ]);
+  }
+}
 
 mixin MainHasRequiredNamedParametersTestCases on PubPackageResolutionTest {
   test_namedOptional() async {
@@ -28,14 +36,6 @@ void main({int a = 0}) {}
 }
 
 @reflectiveTest
-class MainHasRequiredNamedParametersWithNullSafetyTest
+class MainHasRequiredNamedParametersWithoutNullSafetyTest
     extends PubPackageResolutionTest
-    with MainHasRequiredNamedParametersTestCases {
-  test_namedRequired() async {
-    await assertErrorsInCode('''
-void main({required List<String> a}) {}
-''', [
-      error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4),
-    ]);
-  }
-}
+    with WithoutNullSafetyMixin, MainHasRequiredNamedParametersTestCases {}

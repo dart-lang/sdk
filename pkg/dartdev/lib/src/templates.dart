@@ -8,25 +8,30 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import 'templates/console_full.dart';
+import 'templates/console.dart';
 import 'templates/console_simple.dart';
-import 'templates/package_simple.dart';
+import 'templates/package.dart';
 import 'templates/server_shelf.dart';
-import 'templates/web_simple.dart';
+import 'templates/web.dart';
 
 final _substituteRegExp = RegExp(r'__([a-zA-Z]+)__');
 final _nonValidSubstituteRegExp = RegExp(r'[^a-zA-Z]');
 
 final List<Generator> generators = [
-  ConsoleSimpleGenerator(),
-  ConsoleFullGenerator(),
-  PackageSimpleGenerator(),
+  ConsoleGenerator(),
+  PackageGenerator(),
   ServerShelfGenerator(),
-  WebSimpleGenerator(),
+  WebGenerator(),
+  // Deprecated generators:
+  ConsoleSimpleGenerator(),
 ];
 
-Generator? getGenerator(String id) =>
-    generators.firstWhereOrNull((g) => g.id == id);
+Generator? getGenerator(String id) {
+  Generator? result;
+  result = generators.firstWhereOrNull((g) => g.id == id);
+  result ??= generators.firstWhereOrNull((g) => g.alternateId == id);
+  return result;
+}
 
 /// An abstract class which both defines a template generator and can generate a
 /// user project based on this template.
@@ -34,7 +39,9 @@ abstract class Generator implements Comparable<Generator> {
   final String id;
   final String label;
   final String description;
+  final String? alternateId;
   final List<String> categories;
+  final bool deprecated;
 
   final List<TemplateFile> files = [];
   TemplateFile? _entrypoint;
@@ -49,6 +56,8 @@ abstract class Generator implements Comparable<Generator> {
     this.label,
     this.description, {
     this.categories = const [],
+    this.alternateId,
+    this.deprecated = false,
   });
 
   String get lowerCaseId => _lowerCaseId ??= id.toLowerCase();
@@ -134,8 +143,17 @@ abstract class DefaultGenerator extends Generator {
     String id,
     String label,
     String description, {
+    String? alternateId,
     List<String> categories = const [],
-  }) : super(id, label, description, categories: categories);
+    bool deprecated = false,
+  }) : super(
+          id,
+          label,
+          description,
+          categories: categories,
+          alternateId: alternateId,
+          deprecated: deprecated,
+        );
 }
 
 /// A target for a [Generator]. This class knows how to create files given a

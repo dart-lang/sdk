@@ -4,18 +4,31 @@
 
 library fasta.tool.entry_points;
 
-import 'dart:convert' show LineSplitter, jsonDecode, jsonEncode, utf8;
+import 'dart:convert' show JsonEncoder, LineSplitter, jsonDecode, utf8;
 
 import 'dart:io' show File, Platform, exitCode, stderr, stdin, stdout;
+
+import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 
+import 'package:front_end/src/api_prototype/kernel_generator.dart';
+
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show LocatedMessage, codeInternalProblemVerificationError;
 
+import 'package:front_end/src/fasta/kernel/benchmarker.dart'
+    show BenchmarkPhases, Benchmarker;
+
 import 'package:kernel/kernel.dart'
-    show CanonicalName, Library, Component, Source, loadComponentFromBytes;
+    show
+        CanonicalName,
+        Component,
+        Library,
+        RecursiveVisitor,
+        Source,
+        loadComponentFromBytes;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
@@ -55,7 +68,11 @@ import 'bench_maker.dart' show BenchMaker;
 
 import 'command_line.dart' show runProtectedFromAbort, withGlobalOptions;
 
-const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
+const bool benchmark =
+    const bool.fromEnvironment("benchmark", defaultValue: false);
+
+const bool summary =
+    const bool.fromEnvironment("summary", defaultValue: false) || benchmark;
 
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
@@ -64,13 +81,20 @@ Future<void> compileEntryPoint(List<String> arguments) async {
 
   // Timing results for each iteration
   List<double> elapsedTimes = <double>[];
+  List<Benchmarker> benchmarkers = <Benchmarker>[];
 
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
       print("\n\n=== Iteration ${i + 1} of $iterations");
     }
-    var stopwatch = new Stopwatch()..start();
-    await compile(arguments);
+    Stopwatch stopwatch = new Stopwatch()..start();
+    Benchmarker? benchmarker;
+    if (benchmark) {
+      benchmarker = new Benchmarker();
+      benchmarkers.add(benchmarker);
+    }
+    await compile(arguments, benchmarker: benchmarker);
+    benchmarker?.stop();
     stopwatch.stop();
 
     elapsedTimes.add(stopwatch.elapsedMilliseconds.toDouble());
@@ -80,20 +104,47 @@ Future<void> compileEntryPoint(List<String> arguments) async {
     }
   }
 
-  if (summary) {
-    var json = jsonEncode(<String, dynamic>{'elapsedTimes': elapsedTimes});
-    print('\nSummary: $json');
-  }
+  summarize(elapsedTimes, benchmarkers);
 }
 
 Future<void> outlineEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
 
+  // Timing results for each iteration
+  List<double> elapsedTimes = <double>[];
+  List<Benchmarker> benchmarkers = <Benchmarker>[];
+
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
-      print("\n");
+      print("\n\n=== Iteration ${i + 1} of $iterations");
     }
-    await outline(arguments);
+    Stopwatch stopwatch = new Stopwatch()..start();
+    Benchmarker? benchmarker;
+    if (benchmark) {
+      benchmarker = new Benchmarker();
+      benchmarkers.add(benchmarker);
+    }
+    await outline(arguments, benchmarker: benchmarker);
+    benchmarker?.stop();
+    stopwatch.stop();
+
+    elapsedTimes.add(stopwatch.elapsedMilliseconds.toDouble());
+  }
+
+  summarize(elapsedTimes, benchmarkers);
+}
+
+void summarize(List<double> elapsedTimes, List<Benchmarker> benchmarkers) {
+  if (summary) {
+    Map<String, dynamic> map = <String, dynamic>{
+      'elapsedTimes': elapsedTimes,
+      if (benchmarkers.isNotEmpty) 'benchmarkers': benchmarkers
+    };
+    JsonEncoder encoder = new JsonEncoder.withIndent("  ");
+    String json = encoder.convert(map);
+    print('\nSummary:\n\n$json\n');
+  } else {
+    assert(benchmarkers.isEmpty);
   }
 }
 
@@ -218,7 +269,8 @@ Future<void> incrementalEntryPoint(List<String> arguments) async {
   });
 }
 
-Future<KernelTarget> outline(List<String> arguments) async {
+Future<KernelTarget> outline(List<String> arguments,
+    {Benchmarker? benchmarker}) async {
   return await runProtectedFromAbort<KernelTarget>(() async {
     return await withGlobalOptions("outline", arguments, true,
         (CompilerContext c, _) async {
@@ -228,12 +280,14 @@ Future<KernelTarget> outline(List<String> arguments) async {
       CompileTask task =
           new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
       return await task.buildOutline(
-          output: c.options.output, omitPlatform: c.options.omitPlatform);
+          output: c.options.output,
+          omitPlatform: c.options.omitPlatform,
+          benchmarker: benchmarker);
     });
   });
 }
 
-Future<Uri> compile(List<String> arguments) async {
+Future<Uri> compile(List<String> arguments, {Benchmarker? benchmarker}) async {
   return await runProtectedFromAbort<Uri>(() async {
     return await withGlobalOptions("compile", arguments, true,
         (CompilerContext c, _) async {
@@ -242,7 +296,8 @@ Future<Uri> compile(List<String> arguments) async {
       }
       CompileTask task =
           new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
-      return await task.compile(omitPlatform: c.options.omitPlatform);
+      return await task.compile(
+          omitPlatform: c.options.omitPlatform, benchmarker: benchmarker);
     });
   });
 }
@@ -267,8 +322,10 @@ class CompileTask {
 
   CompileTask(this.c, this.ticker);
 
-  DillTarget createDillTarget(UriTranslator uriTranslator) {
-    return new DillTarget(ticker, uriTranslator, c.options.target);
+  DillTarget createDillTarget(UriTranslator uriTranslator,
+      {Benchmarker? benchmarker}) {
+    return new DillTarget(ticker, uriTranslator, c.options.target,
+        benchmarker: benchmarker);
   }
 
   KernelTarget createKernelTarget(
@@ -303,8 +360,10 @@ class CompileTask {
   Future<KernelTarget> buildOutline(
       {Uri? output,
       bool omitPlatform: false,
-      bool supportAdditionalDills: true}) async {
-    KernelTarget kernelTarget = await _createKernelTarget();
+      bool supportAdditionalDills: true,
+      Benchmarker? benchmarker}) async {
+    KernelTarget kernelTarget =
+        await _createKernelTarget(benchmarker: benchmarker);
     BuildResult buildResult = await _buildOutline(kernelTarget,
         output: output,
         omitPlatform: omitPlatform,
@@ -313,10 +372,11 @@ class CompileTask {
     return kernelTarget;
   }
 
-  Future<KernelTarget> _createKernelTarget() async {
+  Future<KernelTarget> _createKernelTarget({Benchmarker? benchmarker}) async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     ticker.logMs("Read packages file");
-    DillTarget dillTarget = createDillTarget(uriTranslator);
+    DillTarget dillTarget =
+        createDillTarget(uriTranslator, benchmarker: benchmarker);
     return createKernelTarget(dillTarget, uriTranslator);
   }
 
@@ -325,19 +385,23 @@ class CompileTask {
       bool omitPlatform: false,
       bool supportAdditionalDills: true}) async {
     DillTarget dillTarget = kernelTarget.dillTarget;
+    Benchmarker? benchmarker = dillTarget.benchmarker;
 
     if (supportAdditionalDills) {
+      benchmarker?.enterPhase(BenchmarkPhases.loadSDK);
       Component? sdkSummary = await c.options.loadSdkSummary(null);
       if (sdkSummary != null) {
         dillTarget.loader.appendLibraries(sdkSummary);
       }
 
+      benchmarker?.enterPhase(BenchmarkPhases.loadAdditionalDills);
       CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
       for (Component additionalDill
           in await c.options.loadAdditionalDills(nameRoot)) {
         dillTarget.loader.appendLibraries(additionalDill);
       }
     } else {
+      benchmarker?.enterPhase(BenchmarkPhases.loadSDK);
       Component? sdkSummary = await c.options.loadSdkSummary(null);
       if (sdkSummary != null) {
         dillTarget.loader.appendLibraries(sdkSummary);
@@ -349,11 +413,13 @@ class CompileTask {
     BuildResult buildResult = await kernelTarget.buildOutlines();
     Component? outline = buildResult.component;
     if (c.options.debugDump && output != null) {
+      benchmarker?.enterPhase(BenchmarkPhases.printComponentText);
       printComponentText(outline,
           libraryFilter: kernelTarget.isSourceLibraryForDebugging);
     }
     if (output != null) {
       if (omitPlatform) {
+        benchmarker?.enterPhase(BenchmarkPhases.omitPlatform);
         outline!.computeCanonicalNames();
         Component userCode = new Component(
             nameRoot: outline.root,
@@ -361,23 +427,28 @@ class CompileTask {
         userCode.setMainMethodAndMode(
             outline.mainMethodName, true, outline.mode);
         for (Library library in outline.libraries) {
-          if (library.importUri.scheme != "dart") {
+          if (!library.importUri.isScheme("dart")) {
             userCode.libraries.add(library);
           }
         }
         outline = userCode;
       }
 
+      benchmarker?.enterPhase(BenchmarkPhases.writeComponent);
       await writeComponentToFile(outline!, output);
       ticker.logMs("Wrote outline to ${output.toFilePath()}");
     }
+    benchmarker?.enterPhase(BenchmarkPhases.unknown);
     return buildResult;
   }
 
   Future<Uri> compile(
-      {bool omitPlatform: false, bool supportAdditionalDills: true}) async {
+      {bool omitPlatform: false,
+      bool supportAdditionalDills: true,
+      Benchmarker? benchmarker}) async {
     c.options.reportNullSafetyCompilationModeInfo();
-    KernelTarget kernelTarget = await _createKernelTarget();
+    KernelTarget kernelTarget =
+        await _createKernelTarget(benchmarker: benchmarker);
     BuildResult buildResult = await _buildOutline(kernelTarget,
         supportAdditionalDills: supportAdditionalDills);
     Uri uri = c.options.output!;
@@ -387,10 +458,12 @@ class CompileTask {
     buildResult.macroApplications?.close();
     Component component = buildResult.component!;
     if (c.options.debugDump) {
+      benchmarker?.enterPhase(BenchmarkPhases.printComponentText);
       printComponentText(component,
           libraryFilter: kernelTarget.isSourceLibraryForDebugging);
     }
     if (omitPlatform) {
+      benchmarker?.enterPhase(BenchmarkPhases.omitPlatform);
       component.computeCanonicalNames();
       Component userCode = new Component(
           nameRoot: component.root,
@@ -398,25 +471,37 @@ class CompileTask {
       userCode.setMainMethodAndMode(
           component.mainMethodName, true, component.mode);
       for (Library library in component.libraries) {
-        if (library.importUri.scheme != "dart") {
+        if (!library.importUri.isScheme("dart")) {
           userCode.libraries.add(library);
         }
       }
       component = userCode;
     }
-    if (uri.scheme == "file") {
+    if (uri.isScheme("file")) {
+      benchmarker?.enterPhase(BenchmarkPhases.writeComponent);
       await writeComponentToFile(component, uri);
       ticker.logMs("Wrote component to ${uri.toFilePath()}");
     }
+    if (benchmarker != null) {
+      // When benchmarking also do a recursive visit of the produced component
+      // that does nothing other than visiting everything. Do this to produce
+      // a reference point for comparing inference time and serialization time.
+      benchmarker.enterPhase(BenchmarkPhases.benchmarkAstVisit);
+      Component component = buildResult.component!;
+      component.accept(new EmptyRecursiveVisitorForBenchmarking());
+    }
+    benchmarker?.enterPhase(BenchmarkPhases.unknown);
     return uri;
   }
 }
 
+class EmptyRecursiveVisitorForBenchmarking extends RecursiveVisitor {}
+
 /// Load the [Component] from the given [uri] and append its libraries
 /// to the [dillTarget].
 Component _appendDillForUri(DillTarget dillTarget, Uri uri) {
-  var bytes = new File.fromUri(uri).readAsBytesSync();
-  var platformComponent = loadComponentFromBytes(bytes);
+  Uint8List bytes = new File.fromUri(uri).readAsBytesSync();
+  Component platformComponent = loadComponentFromBytes(bytes);
   dillTarget.loader.appendLibraries(platformComponent, byteCount: bytes.length);
   return platformComponent;
 }
@@ -439,7 +524,7 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
     print("Compiling ${c.options.sdkRoot} to $fullOutput");
   }
 
-  var result =
+  CompilerResult result =
       await generateKernelInternal(buildSummary: true, buildComponent: true);
   // ignore: unnecessary_null_comparison
   if (result == null) {

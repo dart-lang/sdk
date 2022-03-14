@@ -75,6 +75,7 @@ import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_on_type_test.dart' as convert_to_on_type;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
+import 'convert_to_raw_string_test.dart' as convert_to_raw_string;
 import 'convert_to_relative_import_test.dart' as convert_to_relative_import;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
@@ -143,6 +144,7 @@ import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
+import 'remove_leading_underscore_test.dart' as remove_leading_underscore;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
 import 'remove_non_null_assertion_test.dart' as remove_non_null_assertion_test;
@@ -158,6 +160,7 @@ import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
 import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
+import 'remove_unnecessary_late_test.dart' as remove_unnecessary_late;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'remove_unnecessary_parentheses_test.dart'
     as remove_unnecessary_parentheses;
@@ -185,6 +188,7 @@ import 'replace_container_with_sized_box_test.dart'
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
 import 'replace_final_with_var_test.dart' as replace_final_with_var;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
+import 'replace_null_check_with_cast_test.dart' as replace_null_check_with_cast;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
 import 'replace_return_type_iterable_test.dart' as replace_return_type_iterable;
@@ -206,6 +210,9 @@ import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
+import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
+import 'sort_unnamed_constructor_first_test.dart'
+    as sort_unnamed_constructor_first_test;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_const_test.dart' as use_const;
 import 'use_curly_braces_test.dart' as use_curly_braces;
@@ -278,6 +285,7 @@ void main() {
     convert_to_null_aware_spread.main();
     convert_to_on_type.main();
     convert_to_package_import.main();
+    convert_to_raw_string.main();
     convert_to_relative_import.main();
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
@@ -341,6 +349,7 @@ void main() {
     remove_if_null_operator.main();
     remove_initializer.main();
     remove_interpolation_braces.main();
+    remove_leading_underscore.main();
     remove_method_declaration.main();
     remove_name_from_combinator.main();
     remove_non_null_assertion_test.main();
@@ -354,6 +363,7 @@ void main() {
     remove_type_arguments.main();
     remove_unnecessary_cast.main();
     remove_unnecessary_const.main();
+    remove_unnecessary_late.main();
     remove_unnecessary_new.main();
     remove_unnecessary_parentheses.main();
     remove_unnecessary_raw_string.main();
@@ -375,6 +385,7 @@ void main() {
     replace_final_with_const.main();
     replace_final_with_var.main();
     replace_new_with_const.main();
+    replace_null_check_with_cast.main();
     replace_null_with_closure.main();
     replace_null_with_void.main();
     replace_return_type.main();
@@ -396,6 +407,8 @@ void main() {
     replace_with_tear_off.main();
     replace_with_var.main();
     sort_properties_last.main();
+    sort_constructor_first_test.main();
+    sort_unnamed_constructor_first_test.main();
     update_sdk_constraints.main();
     use_const.main();
     use_curly_braces.main();

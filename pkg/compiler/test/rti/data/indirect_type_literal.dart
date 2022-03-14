@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import "package:expect/expect.dart";
+import 'package:compiler/src/util/testing.dart';
 
 class A<T> {}
 
@@ -16,10 +16,10 @@ class Indirect<T> {
 }
 
 void main() {
-  Expect.equals(A, new Indirect<A>().type);
-  Expect.equals(A, new Indirect<A<dynamic>>().type);
-  Expect.notEquals(A, new Indirect<A<num>>().type);
-  Expect.equals(B, new Indirect<B>().type);
-  Expect.equals(B, new Indirect<B<num>>().type);
-  Expect.notEquals(B, new Indirect<B<int>>().type);
+  makeLive(A == new Indirect<A>().type);
+  makeLive(A == new Indirect<A<dynamic>>().type);
+  makeLive(A == new Indirect<A<num>>().type);
+  makeLive(B == new Indirect<B>().type);
+  makeLive(B == new Indirect<B<num>>().type);
+  makeLive(B == new Indirect<B<int>>().type);
 }

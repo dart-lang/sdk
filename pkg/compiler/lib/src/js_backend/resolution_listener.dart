@@ -4,8 +4,8 @@
 
 library js_backend.backend.resolution_listener;
 
+import '../common/elements.dart' show KCommonElements, KElementEnvironment;
 import '../common/names.dart' show Identifiers;
-import '../common_elements.dart' show KCommonElements, KElementEnvironment;
 import '../constants/values.dart';
 import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';
@@ -44,9 +44,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
   final KFieldAnalysis _fieldAnalysis;
-
-  /// True when we enqueue the loadLibrary code.
-  bool _isLoadLibraryFunctionResolved = false;
 
   ResolutionEnqueuerListener(
       this._options,
@@ -140,18 +137,15 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   void onQueueOpen(
       Enqueuer enqueuer, FunctionEntity mainMethod, Iterable<Uri> libraries) {
     if (_deferredLoadTask.isProgramSplit) {
-      enqueuer.applyImpact(_computeDeferredLoadingImpact(),
-          impactSource: 'deferred load');
+      enqueuer.applyImpact(_computeDeferredLoadingImpact());
     }
-    enqueuer.applyImpact(_nativeEnqueuer.processNativeClasses(libraries),
-        impactSource: 'native classes');
+    enqueuer.applyImpact(_nativeEnqueuer.processNativeClasses(libraries));
     if (mainMethod != null) {
-      enqueuer.applyImpact(_computeMainImpact(mainMethod),
-          impactSource: 'main impact');
+      enqueuer.applyImpact(_computeMainImpact(mainMethod));
     }
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
-    enqueuer.applyImpact(computeHelpersImpact(), impactSource: 'helpers');
+    enqueuer.applyImpact(computeHelpersImpact());
   }
 
   @override
@@ -161,8 +155,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
-    enqueuer.applyImpact(_customElementsAnalysis.flush(),
-        impactSource: _customElementsAnalysis);
+    enqueuer.applyImpact(_customElementsAnalysis.flush());
 
     for (ClassEntity cls in recentClasses) {
       MemberEntity element = _elementEnvironment.lookupLocalClassMember(
@@ -294,14 +287,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
     if (_commonElements.isCreateInvocationMirrorHelper(member)) {
       _registerBackendImpact(worldImpact, _impacts.noSuchMethodSupport);
-    }
-
-    if (_elementEnvironment.isDeferredLoadLibraryGetter(member)) {
-      // TODO(sigurdm): Create a function registerLoadLibraryAccess.
-      if (!_isLoadLibraryFunctionResolved) {
-        _isLoadLibraryFunctionResolved = true;
-        _registerBackendImpact(worldImpact, _impacts.loadLibrary);
-      }
     }
 
     if (member.isGetter && member.name == Identifiers.runtimeType_) {

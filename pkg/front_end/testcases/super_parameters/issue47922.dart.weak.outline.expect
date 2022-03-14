@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/super_parameters/issue47922.dart:12:5: Error: Can't have modifier 'const' here.
+// Try removing 'const'.
+//   B(const super.foo);
+//     ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::String foo;
+  constructor •(core::String foo) → self::A
+    ;
+}
+class B extends self::A {
+  constructor •(core::String foo) → self::B
+    ;
+}
+static method main() → dynamic
+  ;

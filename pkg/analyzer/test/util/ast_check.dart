@@ -6,6 +6,99 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_utilities/check/check.dart';
 
+import 'token_check.dart';
+
+extension ArgumentListExtension on CheckTarget<ArgumentList> {
+  CheckTarget<List<Expression>> get arguments {
+    return nest(
+      value.arguments,
+      (selected) => 'has arguments ${valueStr(selected)}',
+    );
+  }
+
+  void get isSynthetic {
+    leftParenthesis
+      ..isOpenParenthesis
+      ..isSynthetic;
+    rightParenthesis
+      ..isCloseParenthesis
+      ..isSynthetic;
+    arguments.isEmpty;
+  }
+
+  CheckTarget<Token> get leftParenthesis {
+    return nest(
+      value.leftParenthesis,
+      (selected) => 'has leftParenthesis ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<Token> get rightParenthesis {
+    return nest(
+      value.rightParenthesis,
+      (selected) => 'has rightParenthesis ${valueStr(selected)}',
+    );
+  }
+}
+
+extension ConstructorSelectorExtension on CheckTarget<ConstructorSelector> {
+  CheckTarget<SimpleIdentifier> get name {
+    return nest(
+      value.name,
+      (selected) => 'has name ${valueStr(selected)}',
+    );
+  }
+}
+
+extension EnumConstantArgumentsExtension on CheckTarget<EnumConstantArguments> {
+  CheckTarget<ArgumentList> get argumentList {
+    return nest(
+      value.argumentList,
+      (selected) => 'has argumentList ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<ConstructorSelector?> get constructorSelector {
+    return nest(
+      value.constructorSelector,
+      (selected) => 'has constructorSelector ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<TypeArgumentList?> get typeArguments {
+    return nest(
+      value.typeArguments,
+      (selected) => 'has typeArguments ${valueStr(selected)}',
+    );
+  }
+}
+
+extension EnumConstantDeclarationExtension
+    on CheckTarget<EnumConstantDeclaration> {
+  CheckTarget<EnumConstantArguments?> get arguments {
+    return nest(
+      value.arguments,
+      (selected) => 'has arguments ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<SimpleIdentifier> get name {
+    return nest(
+      value.name,
+      (selected) => 'has name ${valueStr(selected)}',
+    );
+  }
+}
+
+extension EnumDeclarationExtension on CheckTarget<EnumDeclaration> {
+  CheckTarget<Token?> get semicolon {
+    return nest(
+      value.semicolon,
+      (selected) => 'has semicolon ${valueStr(selected)}',
+    );
+  }
+}
+
 extension FormalParameterExtension on CheckTarget<FormalParameter> {
   CheckTarget<SimpleIdentifier?> get identifier {
     return nest(
@@ -37,6 +130,12 @@ extension SimpleIdentifierExtension on CheckTarget<SimpleIdentifier> {
       value.inDeclarationContext(),
       (selected) => 'has inDeclarationContext() ${valueStr(selected)}',
     );
+  }
+
+  void get isSynthetic {
+    if (!value.token.isSynthetic) {
+      fail('Is not synthetic');
+    }
   }
 
   CheckTarget<String> get name {

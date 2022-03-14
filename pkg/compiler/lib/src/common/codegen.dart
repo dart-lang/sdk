@@ -7,7 +7,7 @@ library dart2js.common.codegen;
 import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
 
 import '../common.dart';
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart';
 import '../elements/entities.dart';

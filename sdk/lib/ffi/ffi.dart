@@ -18,6 +18,7 @@ import 'dart:typed_data';
 part 'abi.dart';
 part 'abi_specific.dart';
 part 'native_type.dart';
+part 'native_finalizer.dart';
 part 'allocation.dart';
 part 'annotations.dart';
 part 'c_type.dart';

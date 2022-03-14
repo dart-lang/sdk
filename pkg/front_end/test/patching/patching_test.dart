@@ -12,7 +12,10 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/builder/builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
+import 'package:front_end/src/fasta/source/source_constructor_builder.dart';
+import 'package:front_end/src/fasta/source/source_factory_builder.dart';
 import 'package:front_end/src/fasta/source/source_member_builder.dart';
+import 'package:front_end/src/fasta/source/source_procedure_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
@@ -171,8 +174,17 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
     SourceMemberBuilder? memberBuilder =
         lookupMemberBuilder(compilerResult, member, required: false)
             as SourceMemberBuilder?;
-    MemberBuilder? patchMember = memberBuilder?.dataForTesting?.patchForTesting;
-    if (patchMember != null) {
+    List<MemberBuilder>? patchMembers;
+    if (memberBuilder is SourceProcedureBuilder) {
+      patchMembers = memberBuilder.patchesForTesting;
+    }
+    if (memberBuilder is DeclaredSourceConstructorBuilder) {
+      patchMembers = memberBuilder.patchesForTesting;
+    }
+    if (memberBuilder is SourceFactoryBuilder) {
+      patchMembers = memberBuilder.patchesForTesting;
+    }
+    if (patchMembers != null) {
       features.add(Tags.patch);
     }
 

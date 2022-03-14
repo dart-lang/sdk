@@ -125,7 +125,7 @@ class MyWidget extends StatelessWidget {
       var statement = statements[0] as ExpressionStatement;
       var creation = statement.expression as InstanceCreationExpression;
       var constructorName = creation.constructorName;
-      var namedType = constructorName.type2;
+      var namedType = constructorName.type;
       var argumentList = creation.argumentList;
       expect(_flutter.identifyWidgetExpression(creation), creation);
       expect(_flutter.identifyWidgetExpression(constructorName), creation);
@@ -142,7 +142,7 @@ class MyWidget extends StatelessWidget {
       var statement = statements[1] as ExpressionStatement;
       var creation = statement.expression as InstanceCreationExpression;
       var constructorName = creation.constructorName;
-      var namedType = constructorName.type2;
+      var namedType = constructorName.type;
       var argumentList = creation.argumentList;
       expect(_flutter.identifyWidgetExpression(creation), creation);
       expect(_flutter.identifyWidgetExpression(constructorName), creation);

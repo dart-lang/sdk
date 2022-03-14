@@ -1,0 +1,4 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::List<dart.core::String> x, dart.core::int y) → dynamic
+  return x.{dart.core::Iterable::fold}<dart.core::int*>(0, (dart.core::int* previousValue, dart.core::String* element) → dart.core::int* => previousValue.{dart.core::num::+}(element.{dart.core::String::length}{dart.core::int*}){(dart.core::num*) →* dart.core::int*}){(dart.core::int*, (dart.core::int*, dart.core::String*) →* dart.core::int*) →* dart.core::int*};

@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 T method1a<T>() => null;
 T method1b<T>() => null;
 
@@ -20,5 +22,5 @@ main() {
   c.method2a();
   T Function<T>() f2 = c.method2b;
 
-  print(f1.runtimeType == f2.runtimeType);
+  makeLive(f1.runtimeType == f2.runtimeType);
 }

@@ -17,7 +17,7 @@ class SummaryBasedDartSdk implements DartSdk {
   late final InSummaryUriResolver _uriResolver;
 
   SummaryBasedDartSdk.forBundle(this._bundle) {
-    var dataStore = SummaryDataStore([]);
+    var dataStore = SummaryDataStore.tmp();
     // TODO(scheglov) We need a solution to avoid these paths at all.
     dataStore.addBundle('', bundle);
 

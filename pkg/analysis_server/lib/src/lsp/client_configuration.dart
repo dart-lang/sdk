@@ -165,6 +165,18 @@ class LspResourceClientConfiguration {
       _fallback?.enableSdkFormatter ??
       true;
 
+  /// Whether to include Snippets in code completion results.
+  bool get enableSnippets =>
+      // TODO(dantup): Change this setting to `enableSnippets`
+      //    and default to `true`
+      //    and remove `initializeWithSnippetSupportAndPreviewFlag` from tests
+      //    once all snippets are implemented and VS Code has shipped a
+      //    version that maps `enableServerSnippets` to `enableSnippets` in
+      //    middleware to avoid dupes.
+      _settings['previewEnableSnippets'] as bool? ??
+      _fallback?.enableSnippets ??
+      false;
+
   /// The line length used when formatting documents.
   ///
   /// If null, the formatters default will be used.

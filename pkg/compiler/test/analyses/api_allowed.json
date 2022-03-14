@@ -1,13 +1,30 @@
 {
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_number.dart": {
-    "Dynamic invocation of '[]'.": 5
+  "org-dartlang-sdk:///lib/_http/http_impl.dart": {
+    "Dynamic access of 'message'.": 3,
+    "Dynamic invocation of 'destroy'.": 1,
+    "Dynamic access of 'address'.": 2,
+    "Dynamic access of 'host'.": 2,
+    "Dynamic access of 'port'.": 2,
+    "Dynamic access of 'remoteAddress'.": 1,
+    "Dynamic access of 'remotePort'.": 1,
+    "Dynamic invocation of 'dart._http::_toJSON'.": 3,
+    "Dynamic invocation of 'listen'.": 1,
+    "Dynamic invocation of 'close'.": 1
+  },
+  "org-dartlang-sdk:///lib/_http/websocket_impl.dart": {
+    "Dynamic invocation of 'dart._http::_toJSON'.": 1
   },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_helper.dart": {
     "Dynamic access of 'length'.": 1
   },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/async_patch.dart": {
-    "Dynamic access of 'iterator'.": 1,
-    "Dynamic invocation of 'then'.": 1
+    "Dynamic access of 'iterator'.": 1
+  },
+  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/convert_patch.dart": {
+    "Dynamic invocation of 'clear'.": 1
+  },
+  "org-dartlang-sdk:///lib/convert/json.dart": {
+    "Dynamic invocation of 'toJson'.": 1
   },
   "org-dartlang-sdk:///lib/html/dart2js/html_dart2js.dart": {
     "Dynamic access of 'style'.": 1,
@@ -87,28 +104,5 @@
   },
   "org-dartlang-sdk:///lib/core/errors.dart": {
     "Dynamic access of 'length'.": 2
-  },
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/convert_patch.dart": {
-    "Dynamic invocation of 'clear'.": 1
-  },
-  "org-dartlang-sdk:///lib/convert/json.dart": {
-    "Dynamic invocation of 'toJson'.": 1
-  },
-  "org-dartlang-sdk:///lib/_http/http_impl.dart": {
-    "Dynamic access of 'message'.": 3,
-    "Dynamic invocation of 'destroy'.": 2,
-    "Dynamic access of 'address'.": 3,
-    "Dynamic access of 'type'.": 1,
-    "Dynamic invocation of 'setOption'.": 1,
-    "Dynamic access of 'host'.": 2,
-    "Dynamic access of 'port'.": 2,
-    "Dynamic access of 'remoteAddress'.": 1,
-    "Dynamic access of 'remotePort'.": 1,
-    "Dynamic invocation of 'dart._http::_toJSON'.": 3,
-    "Dynamic invocation of 'listen'.": 1,
-    "Dynamic invocation of 'close'.": 1
-  },
-  "org-dartlang-sdk:///lib/_http/websocket_impl.dart": {
-    "Dynamic invocation of 'dart._http::_toJSON'.": 1
   }
 }

@@ -281,24 +281,6 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
     }
     {
-      var engineElement = findElement.field('index', of: 'E2');
-      // create notification Element
-      var element = convertElement(engineElement, withNullability: true);
-      expect(element.kind, ElementKind.FIELD);
-      expect(element.name, 'index');
-      {
-        var location = element.location!;
-        expect(location.file, testFile);
-        expect(location.offset, -1);
-        expect(location.length, 'index'.length);
-        expect(location.startLine, 1);
-        expect(location.startColumn, 0);
-      }
-      expect(element.parameters, isNull);
-      expect(element.returnType, 'int');
-      expect(element.flags, Element.FLAG_FINAL);
-    }
-    {
       var engineElement = findElement.field('values', of: 'E2');
       // create notification Element
       var element = convertElement(engineElement, withNullability: true);

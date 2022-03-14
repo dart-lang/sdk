@@ -35,6 +35,23 @@ part 'symbol.dart';
 // execution mode.
 external bool typeAcceptsNull<T>();
 
+/// Unsafely treats [value] as type [T].
+///
+/// An unsafe cast allows casting any value to any type,
+/// without any runtime type checks.
+///
+/// Can be used internally in platform library implementations of
+/// data structures, where a value is known to have a type different
+/// from its static type (like knowing that a string is definitely
+/// a "_OneByteString" or that the value stored into a heterogenous
+/// list is really a value of the surrounding map).
+///
+/// Must only be used for casts which would definitely *succeed*
+/// as a normal cast.
+///
+/// Should only be used for performance in performance critical code.
+external T unsafeCast<T>(dynamic value);
+
 // Powers of 10 up to 10^22 are representable as doubles.
 // Powers of 10 above that are only approximate due to lack of precission.
 // Used by double-parsing.

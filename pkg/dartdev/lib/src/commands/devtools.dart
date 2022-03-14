@@ -14,7 +14,10 @@ class DevToolsCommand extends DartdevCommand {
   DevToolsCommand({
     this.customDevToolsPath,
     bool verbose = false,
-  })  : _argParser = DevToolsServer.buildArgParser(verbose: verbose),
+  })  : _argParser = DevToolsServer.buildArgParser(
+          verbose: verbose,
+          includeHelpOption: false,
+        ),
         super(
           'devtools',
           DevToolsServer.commandDescription,

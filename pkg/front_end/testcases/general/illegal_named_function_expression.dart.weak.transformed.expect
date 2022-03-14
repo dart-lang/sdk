@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -14,7 +14,7 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  <T extends core::Object* = dynamic>(T*) →* Null x = let final <T extends core::Object* = dynamic>(T*) →* Null f = <T extends core::Object* = dynamic>(T* t) → Null {} in f;
-  core::print(x.{core::Object::runtimeType}{core::Type*});
-  core::print(let final <T extends core::Object* = dynamic>(T*) →* Null g = <T extends core::Object* = dynamic>(T* t) → Null {} in g);
+  <T extends core::Object? = dynamic>(T%) → Null x = let final <T extends core::Object? = dynamic>(T%) → Null f = <T extends core::Object? = dynamic>(T% t) → Null {} in f;
+  core::print(x.{core::Object::runtimeType}{core::Type});
+  core::print(let final <T extends core::Object? = dynamic>(T%) → Null g = <T extends core::Object? = dynamic>(T% t) → Null {} in g);
 }

@@ -4,13 +4,13 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../../compiler_new.dart';
+import '../../compiler.dart';
 import '../closure.dart';
 import '../common.dart';
+import '../common/elements.dart';
 import '../common/metrics.dart';
 import '../common/names.dart';
 import '../compiler.dart';
-import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
@@ -167,7 +167,7 @@ class InferrerEngine {
   /// [NativeBehavior].
   TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior) {
     if (nativeBehavior == null) return types.dynamicType;
-    List typesReturned = nativeBehavior.typesReturned;
+    List<Object> typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return types.dynamicType;
     TypeInformation returnType;
     for (var type in typesReturned) {

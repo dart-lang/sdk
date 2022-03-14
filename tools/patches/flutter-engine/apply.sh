@@ -62,7 +62,7 @@ if [ $need_runhooks = true ]; then
   # DEPS file might have been patched with new version of packages that
   # Dart SDK depends on. Get information about dependencies from the
   # DEPS file and forcefully update checkouts of those dependencies.
-  gclient.py revinfo --ignore-dep-type=cipd | grep 'src/third_party/dart/third_party' | while read -r line; do
+  gclient revinfo --ignore-dep-type=cipd | grep 'src/third_party/dart/third_party' | while read -r line; do
     # revinfo would produce lines in the following format:
     #     path: git-url@tag-or-hash
     # Where no spaces occur inside path, git-url or tag-or-hash.
@@ -97,5 +97,5 @@ if [ $need_runhooks = true ]; then
     fi
     popd > /dev/null
   done
-  gclient.py runhooks
+  gclient runhooks
 fi

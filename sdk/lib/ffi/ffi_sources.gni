@@ -12,6 +12,7 @@ ffi_sdk_sources = [
   "annotations.dart",
   "c_type.dart",
   "dynamic_library.dart",
+  "native_finalizer.dart",
   "native_type.dart",
   "struct.dart",
   "union.dart",

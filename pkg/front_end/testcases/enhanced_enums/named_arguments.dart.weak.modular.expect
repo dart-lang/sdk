@@ -4,10 +4,10 @@ import "dart:core" as core;
 
 class E0 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E0> values = #C8;
-  static const field self::E0 one = #C4;
-  static const field self::E0 two = #C7;
   final field core::int foo;
   final field core::int bar;
+  static const field self::E0 one = #C4;
+  static const field self::E0 two = #C7;
   const constructor •(core::int index, core::String name = #C9, core::int foo, {required core::int bar = #C9}) → self::E0
     : self::E0::foo = foo, self::E0::bar = bar, super core::_Enum::•(index, name)
     ;
@@ -16,9 +16,9 @@ class E0 extends core::_Enum /*isEnum*/  {
 }
 class E1<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E1<dynamic>> values = #C13;
+  final field self::E1::X% foo;
   static const field self::E1<core::String> one = #C11;
   static const field self::E1<core::int> two = #C12;
-  final field self::E1::X% foo;
   const constructor •(core::int index = #C9, core::String name, {required self::E1::X% foo = #C9}) → self::E1<self::E1::X%>
     : self::E1::foo = foo, super core::_Enum::•(index, name)
     ;
@@ -27,12 +27,12 @@ class E1<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
 }
 class E2<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E2<dynamic, dynamic, dynamic>> values = #C22;
-  static const field self::E2<core::int, core::String, core::double> one = #C15;
-  static const field self::E2<core::String, core::int, core::double> two = #C17;
-  static const field self::E2<core::double, core::bool, dynamic> three = #C21;
   final field self::E2::X% foo;
   final field self::E2::Y% bar;
   final field self::E2::Z? baz;
+  static const field self::E2<core::int, core::String, core::double> one = #C15;
+  static const field self::E2<core::String, core::int, core::double> two = #C17;
+  static const field self::E2<core::double, core::bool, dynamic> three = #C21;
   const constructor •(core::int index, core::String name = #C9, self::E2::X% foo, {required self::E2::Y% bar = #C9, self::E2::Z? baz = #C9}) → self::E2<self::E2::X%, self::E2::Y%, self::E2::Z%>
     : self::E2::foo = foo, self::E2::bar = bar, self::E2::baz = baz, super core::_Enum::•(index, name)
     ;
@@ -70,7 +70,7 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///named_arguments.dart:
 - E0. (from org-dartlang-testcase:///named_arguments.dart:12:9)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - E1. (from org-dartlang-testcase:///named_arguments.dart:21:9)
 - E2. (from org-dartlang-testcase:///named_arguments.dart:33:9)

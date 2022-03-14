@@ -1935,6 +1935,14 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_weak_property_class(cls);
     RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
 
+    cls = Class::New<WeakReference, RTN::WeakReference>(isolate_group);
+    cls.set_type_arguments_field_offset(
+        WeakReference::type_arguments_offset(),
+        RTN::WeakReference::type_arguments_offset());
+    cls.set_num_type_arguments_unsafe(1);
+    object_store->set_weak_reference_class(cls);
+    RegisterPrivateClass(cls, Symbols::_WeakReferenceImpl(), core_lib);
+
     // Pre-register the mirrors library so we can place the vm class
     // MirrorReference there rather than the core library.
     lib = Library::LookupLibrary(thread, Symbols::DartMirrors());
@@ -2333,6 +2341,18 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiDynamicLibrary(), lib);
 
+    // Pre-register the internal library so we can place the vm class
+    // FinalizerEntry there rather than the core library.
+    lib = Library::LookupLibrary(thread, Symbols::DartInternal());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartInternal(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kInternal, lib);
+    ASSERT(!lib.IsNull());
+    ASSERT(lib.ptr() == Library::InternalLibrary());
+
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
     const Error& error = Error::Handle(
@@ -2498,6 +2518,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     cls = Class::New<WeakProperty, RTN::WeakProperty>(isolate_group);
     object_store->set_weak_property_class(cls);
+    cls = Class::New<WeakReference, RTN::WeakReference>(isolate_group);
+    object_store->set_weak_reference_class(cls);
 
     cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
     cls = Class::New<UserTag, RTN::UserTag>(isolate_group);
@@ -5843,108 +5865,13 @@ static uword Hash64To32(uint64_t v) {
   return static_cast<uint32_t>(v);
 }
 
-class CanonicalDoubleKey {
- public:
-  explicit CanonicalDoubleKey(const Double& key)
-      : key_(&key), value_(key.value()) {}
-  explicit CanonicalDoubleKey(const double value) : key_(NULL), value_(value) {}
-  bool Matches(const Double& obj) const {
-    return obj.BitwiseEqualsToDouble(value_);
-  }
-  uword Hash() const { return Hash(value_); }
-  static uword Hash(double value) {
-    return Hash64To32(bit_cast<uint64_t>(value));
-  }
-
-  const Double* key_;
-  const double value_;
-
- private:
-  DISALLOW_ALLOCATION();
-};
-
-class CanonicalMintKey {
- public:
-  explicit CanonicalMintKey(const Mint& key)
-      : key_(&key), value_(key.value()) {}
-  explicit CanonicalMintKey(const int64_t value) : key_(NULL), value_(value) {}
-  bool Matches(const Mint& obj) const { return obj.value() == value_; }
-  uword Hash() const { return Hash(value_); }
-  static uword Hash(int64_t value) {
-    return Hash64To32(bit_cast<uint64_t>(value));
-  }
-
-  const Mint* key_;
-  const int64_t value_;
-
- private:
-  DISALLOW_ALLOCATION();
-};
-
-// Traits for looking up Canonical numbers based on a hash of the value.
-template <typename ObjectType, typename KeyType>
-class CanonicalNumberTraits {
- public:
-  static const char* Name() { return "CanonicalNumberTraits"; }
-  static bool ReportStats() { return false; }
-
-  // Called when growing the table.
-  static bool IsMatch(const Object& a, const Object& b) {
-    return a.ptr() == b.ptr();
-  }
-  static bool IsMatch(const KeyType& a, const Object& b) {
-    return a.Matches(ObjectType::Cast(b));
-  }
-  static uword Hash(const Object& key) {
-    return KeyType::Hash(ObjectType::Cast(key).value());
-  }
-  static uword Hash(const KeyType& key) { return key.Hash(); }
-  static ObjectPtr NewKey(const KeyType& obj) {
-    if (obj.key_ != NULL) {
-      return obj.key_->ptr();
-    } else {
-      UNIMPLEMENTED();
-      return NULL;
-    }
-  }
-};
-typedef UnorderedHashSet<CanonicalNumberTraits<Double, CanonicalDoubleKey> >
-    CanonicalDoubleSet;
-typedef UnorderedHashSet<CanonicalNumberTraits<Mint, CanonicalMintKey> >
-    CanonicalMintSet;
-
-// Returns an instance of Double or Double::null().
-DoublePtr Class::LookupCanonicalDouble(Zone* zone, double value) const {
-  ASSERT(this->ptr() ==
-         IsolateGroup::Current()->object_store()->double_class());
-  if (this->constants() == Array::null()) return Double::null();
-
-  Double& canonical_value = Double::Handle(zone);
-  CanonicalDoubleSet constants(zone, this->constants());
-  canonical_value ^= constants.GetOrNull(CanonicalDoubleKey(value));
-  this->set_constants(constants.Release());
-  return canonical_value.ptr();
-}
-
-// Returns an instance of Mint or Mint::null().
-MintPtr Class::LookupCanonicalMint(Zone* zone, int64_t value) const {
-  ASSERT(this->ptr() == IsolateGroup::Current()->object_store()->mint_class());
-  if (this->constants() == Array::null()) return Mint::null();
-
-  Mint& canonical_value = Mint::Handle(zone);
-  CanonicalMintSet constants(zone, this->constants());
-  canonical_value ^= constants.GetOrNull(CanonicalMintKey(value));
-  this->set_constants(constants.Release());
-  return canonical_value.ptr();
-}
-
 class CanonicalInstanceKey {
  public:
   explicit CanonicalInstanceKey(const Instance& key) : key_(key) {
-    ASSERT(!(key.IsString() || key.IsInteger() || key.IsAbstractType()));
+    ASSERT(!(key.IsString() || key.IsAbstractType()));
   }
   bool Matches(const Instance& obj) const {
-    ASSERT(!(obj.IsString() || obj.IsInteger() || obj.IsAbstractType()));
+    ASSERT(!(obj.IsString() || obj.IsAbstractType()));
     if (key_.CanonicalizeEquals(obj)) {
       ASSERT(obj.IsCanonical());
       return true;
@@ -5966,15 +5893,15 @@ class CanonicalInstanceTraits {
 
   // Called when growing the table.
   static bool IsMatch(const Object& a, const Object& b) {
-    ASSERT(!(a.IsString() || a.IsInteger() || a.IsAbstractType()));
-    ASSERT(!(b.IsString() || b.IsInteger() || b.IsAbstractType()));
+    ASSERT(!(a.IsString() || a.IsAbstractType()));
+    ASSERT(!(b.IsString() || b.IsAbstractType()));
     return a.ptr() == b.ptr();
   }
   static bool IsMatch(const CanonicalInstanceKey& a, const Object& b) {
     return a.Matches(Instance::Cast(b));
   }
   static uword Hash(const Object& key) {
-    ASSERT(!(key.IsString() || key.IsNumber() || key.IsAbstractType()));
+    ASSERT(!(key.IsString() || key.IsAbstractType()));
     ASSERT(key.IsInstance());
     return Instance::Cast(key).CanonicalizeHash();
   }
@@ -6015,26 +5942,6 @@ InstancePtr Class::InsertCanonicalConstant(Zone* zone,
     this->set_constants(constants.Release());
   }
   return canonical_value.ptr();
-}
-
-void Class::InsertCanonicalDouble(Zone* zone, const Double& constant) const {
-  if (this->constants() == Array::null()) {
-    this->set_constants(Array::Handle(
-        zone, HashTables::New<CanonicalDoubleSet>(128, Heap::kOld)));
-  }
-  CanonicalDoubleSet constants(zone, this->constants());
-  constants.InsertNewOrGet(CanonicalDoubleKey(constant));
-  this->set_constants(constants.Release());
-}
-
-void Class::InsertCanonicalMint(Zone* zone, const Mint& constant) const {
-  if (this->constants() == Array::null()) {
-    this->set_constants(Array::Handle(
-        zone, HashTables::New<CanonicalMintSet>(128, Heap::kOld)));
-  }
-  CanonicalMintSet constants(zone, this->constants());
-  constants.InsertNewOrGet(CanonicalMintKey(constant));
-  this->set_constants(constants.Release());
 }
 
 void Class::RehashConstants(Zone* zone) const {
@@ -8125,8 +8032,7 @@ bool Function::IsOptimizable() const {
     // Native methods don't need to be optimized.
     return false;
   }
-  if (is_optimizable() && (script() != Script::null()) &&
-      SourceSize() < FLAG_huge_method_cutoff_in_tokens) {
+  if (is_optimizable() && (script() != Script::null())) {
     // Additional check needed for implicit getters.
     return (unoptimized_code() == Object::null()) ||
            (Code::Handle(unoptimized_code()).Size() <
@@ -14469,10 +14375,6 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
 
-  all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
-
 #undef CHECK_FINGERPRINTS_INNER
 #undef CHECK_FINGERPRINTS
 #undef CHECK_FINGERPRINTS_ASM_INTRINSIC
@@ -14497,6 +14399,8 @@ void Library::CheckFunctionFingerprints() {
 #undef CHECK_FACTORY_FINGERPRINTS
 
   if (!fingerprints_match) {
+    // Private names are mangled. Mangling depends on Library::private_key_.
+    // If registering a new bootstrap library, add at the end.
     FATAL(
         "FP mismatch while recognizing methods. If the behavior of "
         "these functions has changed, then changes are also needed in "
@@ -18664,11 +18568,18 @@ const char* UnhandledException::ToErrorCString() const {
     }
   }
   const Instance& stack = Instance::Handle(stacktrace());
-  strtmp = DartLibraryCalls::ToString(stack);
-  const char* stack_str =
-      "<Received error while converting stack trace to string>";
-  if (!strtmp.IsError()) {
-    stack_str = strtmp.ToCString();
+  const char* stack_str;
+  if (stack.IsNull()) {
+    stack_str = "null";
+  } else if (stack.IsStackTrace()) {
+    stack_str = StackTrace::Cast(stack).ToCString();
+  } else {
+    strtmp = DartLibraryCalls::ToString(stack);
+    if (!strtmp.IsError()) {
+      stack_str = strtmp.ToCString();
+    } else {
+      stack_str = "<Received error while converting stack trace to string>";
+    }
   }
   return OS::SCreate(thread->zone(), "Unhandled exception:\n%s\n%s", exc_str,
                      stack_str);
@@ -19138,7 +19049,7 @@ InstancePtr Instance::Canonicalize(Thread* thread) const {
 }
 
 InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
-  if (this->IsCanonical()) {
+  if (!this->ptr()->IsHeapObject() || this->IsCanonical()) {
     return this->ptr();
   }
   ASSERT(!IsNull());
@@ -19685,7 +19596,7 @@ intptr_t Instance::DataOffsetFor(intptr_t cid) {
     return 0;
   }
   if (IsTypedDataClassId(cid)) {
-    return TypedData::data_offset();
+    return TypedData::payload_offset();
   }
   switch (cid) {
     case kArrayCid:
@@ -22155,46 +22066,6 @@ const char* TypeParameter::ToCString() const {
   return printer.buffer();
 }
 
-InstancePtr Number::CanonicalizeLocked(Thread* thread) const {
-  intptr_t cid = GetClassId();
-  switch (cid) {
-    case kSmiCid:
-      return static_cast<SmiPtr>(raw_value());
-    case kMintCid:
-      return Mint::NewCanonicalLocked(thread, Mint::Cast(*this).value());
-    case kDoubleCid:
-      return Double::NewCanonicalLocked(thread, Double::Cast(*this).value());
-    default:
-      UNREACHABLE();
-  }
-  return Instance::null();
-}
-
-#if defined(DEBUG)
-bool Number::CheckIsCanonical(Thread* thread) const {
-  intptr_t cid = GetClassId();
-  Zone* zone = thread->zone();
-  const Class& cls = Class::Handle(zone, this->clazz());
-  switch (cid) {
-    case kSmiCid:
-      return true;
-    case kMintCid: {
-      Mint& result = Mint::Handle(zone);
-      result ^= cls.LookupCanonicalMint(zone, Mint::Cast(*this).value());
-      return (result.ptr() == this->ptr());
-    }
-    case kDoubleCid: {
-      Double& dbl = Double::Handle(zone);
-      dbl ^= cls.LookupCanonicalDouble(zone, Double::Cast(*this).value());
-      return (dbl.ptr() == this->ptr());
-    }
-    default:
-      UNREACHABLE();
-  }
-  return false;
-}
-#endif  // DEBUG
-
 const char* Number::ToCString() const {
   // Number is an interface. No instances of Number should exist.
   UNREACHABLE();
@@ -22541,29 +22412,9 @@ MintPtr Mint::New(int64_t val, Heap::Space space) {
 
 MintPtr Mint::NewCanonical(int64_t value) {
   Thread* thread = Thread::Current();
-  SafepointMutexLocker ml(
-      thread->isolate_group()->constant_canonicalization_mutex());
-  return NewCanonicalLocked(thread, value);
-}
-
-MintPtr Mint::NewCanonicalLocked(Thread* thread, int64_t value) {
-  // Do not allocate a Mint if Smi would do.
-  ASSERT(!Smi::IsValid(value));
-  Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-  const Class& cls =
-      Class::Handle(zone, isolate_group->object_store()->mint_class());
-  Mint& canonical_value =
-      Mint::Handle(zone, cls.LookupCanonicalMint(zone, value));
-  if (!canonical_value.IsNull()) {
-    return canonical_value.ptr();
-  }
-  canonical_value = Mint::New(value, Heap::kOld);
-  canonical_value.SetCanonical();
-  // The value needs to be added to the constants list. Grow the list if
-  // it is full.
-  cls.InsertCanonicalMint(zone, canonical_value);
-  return canonical_value.ptr();
+  Mint& mint = Mint::Handle(thread->zone(), Mint::New(value, Heap::kOld));
+  mint ^= mint.Canonicalize(thread);
+  return mint.ptr();
 }
 
 bool Mint::Equals(const Instance& other) const {
@@ -22672,28 +22523,9 @@ DoublePtr Double::New(const String& str, Heap::Space space) {
 
 DoublePtr Double::NewCanonical(double value) {
   Thread* thread = Thread::Current();
-  SafepointMutexLocker ml(
-      thread->isolate_group()->constant_canonicalization_mutex());
-  return NewCanonicalLocked(thread, value);
-}
-
-DoublePtr Double::NewCanonicalLocked(Thread* thread, double value) {
-  Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-  const Class& cls =
-      Class::Handle(zone, isolate_group->object_store()->double_class());
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Double& canonical_value =
-      Double::Handle(zone, cls.LookupCanonicalDouble(zone, value));
-  if (!canonical_value.IsNull()) {
-    return canonical_value.ptr();
-  }
-  canonical_value = Double::New(value, Heap::kOld);
-  canonical_value.SetCanonical();
-  // The value needs to be added to the constants list.
-  cls.InsertCanonicalDouble(zone, canonical_value);
-  return canonical_value.ptr();
+  Double& dbl = Double::Handle(thread->zone(), Double::New(value, Heap::kOld));
+  dbl ^= dbl.Canonicalize(thread);
+  return dbl.ptr();
 }
 
 DoublePtr Double::NewCanonical(const String& str) {
@@ -25863,9 +25695,11 @@ const char* StackTrace::ToCString() const {
         for (intptr_t j = inlined_functions.length() - 1; j >= 0; j--) {
           const auto& inlined = *inlined_functions[j];
           auto const pos = inlined_token_positions[j];
-          PrintSymbolicStackFrame(zone, &buffer, inlined, pos, frame_index,
-                                  /*is_line=*/FLAG_precompiled_mode);
-          frame_index++;
+          if (FLAG_show_invisible_frames || inlined.is_visible()) {
+            PrintSymbolicStackFrame(zone, &buffer, inlined, pos, frame_index,
+                                    /*is_line=*/FLAG_precompiled_mode);
+            frame_index++;
+          }
         }
         continue;
       }
@@ -26071,6 +25905,22 @@ WeakPropertyPtr WeakProperty::New(Heap::Space space) {
 
 const char* WeakProperty::ToCString() const {
   return "_WeakProperty";
+}
+
+WeakReferencePtr WeakReference::New(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->weak_reference_class() !=
+         Class::null());
+  ObjectPtr raw =
+      Object::Allocate(WeakReference::kClassId, WeakReference::InstanceSize(),
+                       space, WeakReference::ContainsCompressedPointers());
+  return static_cast<WeakReferencePtr>(raw);
+}
+
+const char* WeakReference::ToCString() const {
+  TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
+  String& type_args_name = String::Handle(type_args.UserVisibleName());
+  return OS::SCreate(Thread::Current()->zone(), "WeakReference%s",
+                     type_args_name.ToCString());
 }
 
 AbstractTypePtr MirrorReference::GetAbstractTypeReferent() const {

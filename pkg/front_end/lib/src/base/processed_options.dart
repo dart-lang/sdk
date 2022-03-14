@@ -563,7 +563,7 @@ class ProcessedOptions {
     }
 
     // When compiling the SDK the input files are normally `dart:` URIs.
-    if (inputs.every((uri) => uri.scheme == 'dart')) {
+    if (inputs.every((uri) => uri.isScheme('dart'))) {
       return _packages = PackageConfig.empty;
     }
 
@@ -577,7 +577,7 @@ class ProcessedOptions {
 
     Uri input = inputs.first;
 
-    if (input.scheme == 'packages') {
+    if (input.isScheme('package')) {
       report(
           messageCantInferPackagesFromPackageUri.withLocation(
               input, -1, noLength),

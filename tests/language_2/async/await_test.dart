@@ -2261,15 +2261,15 @@ class FakeErrorFuture implements Future {
   Future<S> then<S>(callback(value), {Function onError}) {
     if (onError != null) {
       if (onError is OnErrorCallback2) {
-        return new Future<S>.microtask(() => onError(_error, null));
+        return new Future<S>.microtask(() => onError(_error, StackTrace.empty));
       } else if (onError is OnErrorCallback1) {
         return new Future<S>.microtask(() => onError(_error));
       } else {
         throw new ArgumentError.value(
-          onError,
-          "onError",
-          "Error handler must accept one Object or one Object and a StackTrace"
-          " as arguments, and return a valid result");
+            onError,
+            "onError",
+            "Error handler must accept one Object or one Object and a StackTrace"
+                " as arguments, and return a valid result");
       }
     }
     return new Future<S>.error(_error);

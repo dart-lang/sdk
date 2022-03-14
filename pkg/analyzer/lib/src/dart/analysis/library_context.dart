@@ -39,7 +39,7 @@ class LibraryContext {
   final LibraryContextTestView testView;
   final PerformanceLog logger;
   final ByteStore byteStore;
-  final SummaryDataStore store = SummaryDataStore([]);
+  final SummaryDataStore store = SummaryDataStore.tmp();
 
   late final AnalysisContextImpl analysisContext;
   late LinkedElementFactory elementFactory;

@@ -12,7 +12,7 @@ import '../utils.dart';
 const int compileErrorExitCode = 64;
 
 void main() {
-  group('compile', defineCompileTests, timeout: longTimeout);
+  group('compile -', defineCompileTests, timeout: longTimeout);
 }
 
 const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
@@ -97,6 +97,37 @@ void defineCompileTests() {
     expect(result.stdout, contains('I love jit'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+  });
+
+  test('Compile and run jit snapshot with environment variables', () async {
+    final p = project(mainSrc: '''
+        void main() {
+          print('1: ' + const String.fromEnvironment('foo'));
+          print('2: ' + const String.fromEnvironment('bar'));
+        }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'main.jit'));
+
+    var result = await p.run([
+      'compile',
+      'jit-snapshot',
+      '-Dfoo=bar',
+      '--define=bar=foo',
+      '-o',
+      outFile,
+      '-v',
+      inFile,
+    ]);
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    final file = File(outFile);
+    expect(file.existsSync(), true, reason: 'File not found: $outFile');
+
+    result = await p.run(['run', 'main.jit']);
+
+    // Ensure the -D and --define arguments were processed correctly.
+    expect(result.stdout, contains('1: bar'));
+    expect(result.stdout, contains('2: foo'));
   });
 
   test('Compile and run executable', () async {

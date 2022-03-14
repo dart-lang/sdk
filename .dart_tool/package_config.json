@@ -11,7 +11,6 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2022-01-12T18:16:46.198227",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -136,7 +135,7 @@
       "name": "boolean_selector",
       "rootUri": "../third_party/pkg/boolean_selector",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "browser_launcher",
@@ -172,7 +171,7 @@
       "name": "clock",
       "rootUri": "../third_party/pkg/clock",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "collection",
@@ -229,6 +228,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "dart2wasm",
+      "rootUri": "../pkg/dart2wasm",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "dart_internal",
       "rootUri": "../pkg/dart_internal",
       "packageUri": "lib/",
@@ -271,22 +276,10 @@
       "languageVersion": "2.15"
     },
     {
-      "name": "devtools_server",
-      "rootUri": "../third_party/devtools/devtools_server",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
       "name": "devtools_shared",
       "rootUri": "../third_party/devtools/devtools_shared",
       "packageUri": "lib/",
       "languageVersion": "2.12"
-    },
-    {
-      "name": "diagnostic",
-      "rootUri": "../pkg/diagnostic",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
     },
     {
       "name": "expect",
@@ -310,7 +303,7 @@
       "name": "file_testing",
       "rootUri": "../third_party/pkg/file/packages/file_testing",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.12"
     },
     {
       "name": "fixnum",
@@ -345,7 +338,7 @@
       "name": "glob",
       "rootUri": "../third_party/pkg/glob",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.15"
     },
     {
       "name": "html",
@@ -623,7 +616,7 @@
       "name": "source_map_stack_trace",
       "rootUri": "../third_party/pkg/source_map_stack_trace",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "source_maps",
@@ -671,7 +664,7 @@
       "name": "string_scanner",
       "rootUri": "../third_party/pkg/string_scanner",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "sync_http",
@@ -689,7 +682,7 @@
       "name": "term_glyph",
       "rootUri": "../third_party/pkg/term_glyph",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "test",
@@ -760,7 +753,7 @@
       "name": "vector_math",
       "rootUri": "../third_party/pkg/vector_math",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.14"
     },
     {
       "name": "vm",
@@ -777,6 +770,12 @@
     {
       "name": "vm_snapshot_analysis",
       "rootUri": "../pkg/vm_snapshot_analysis",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "wasm_builder",
+      "rootUri": "../pkg/wasm_builder",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },

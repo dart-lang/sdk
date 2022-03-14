@@ -351,6 +351,7 @@ class _InitializerInference {
         _unitElement = unit as CompilationUnitElementImpl;
         unit.classes.forEach(_addClassConstructorFieldFormals);
         unit.classes.forEach(_addClassElementFields);
+        unit.enums.forEach(_addClassConstructorFieldFormals);
         unit.enums.forEach(_addClassElementFields);
         unit.extensions.forEach(_addExtensionElementFields);
         unit.mixins.forEach(_addClassElementFields);

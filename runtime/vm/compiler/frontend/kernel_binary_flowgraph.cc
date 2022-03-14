@@ -1105,6 +1105,7 @@ Fragment StreamingFlowGraphBuilder::BuildStatementAt(intptr_t kernel_offset) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
+  ++num_ast_nodes_;
   uint8_t payload = 0;
   Tag tag = ReadTag(&payload);  // read tag.
   switch (tag) {
@@ -1242,6 +1243,7 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStatement(TokenPosition* position) {
+  ++num_ast_nodes_;
   intptr_t offset = ReaderOffset();
   Tag tag = ReadTag();  // read tag.
   switch (tag) {
@@ -5210,36 +5212,35 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
   yield_continuations().Add(YieldContinuation(anchor, CurrentTryIndex()));
 
   Fragment continuation(instructions.entry, anchor);
-
   RELEASE_ASSERT(parsed_function()->function().IsAsyncClosure() ||
                  parsed_function()->function().IsAsyncGenClosure() ||
                  parsed_function()->function().IsSyncGenClosure());
 
   // TODO(43900): Only emit this when needed.
   {
-    // If function is {async, async gen, sync yielding} closure it takes three
-    // parameters where the second and the third are exception and stack_trace.
-    // Check if exception is non-null and rethrow it.
+    // Our sync-yielding functions can be invoked with either a yield result or
+    // with an non-null exception & stacktrace.
     //
-    //   :sync_op(:iterator, [:exception, :stack_trace]) {
+    // We detect the case we're in based on the nullability of stacktrace in
+    //
+    //   :sync_op(:iterator, [:exception, :stack_trace]) { }
+    //
     // or:
-    //   :async_op(:result, [:exception, :stack_trace]) {
-    //     ...
-    //     Continuation<index>:
-    //       if (:exception != null) rethrow(:exception, :stack_trace);
-    //     ...
-    //   }
     //
-    LocalVariable* exception_var = parsed_function()->ParameterVariable(2);
-    LocalVariable* stack_trace_var = parsed_function()->ParameterVariable(3);
-    ASSERT(exception_var->name().ptr() == Symbols::ExceptionParameter().ptr());
+    //   :async_op(:result_or_exception, :stack_trace) { }
+    //
+    const auto& fun = parsed_function()->function();
+    LocalVariable* exception_var =
+        parsed_function()->ParameterVariable(fun.IsSyncGenClosure() ? 2 : 1);
+    LocalVariable* stack_trace_var =
+        parsed_function()->ParameterVariable(fun.IsSyncGenClosure() ? 3 : 2);
     ASSERT(stack_trace_var->name().ptr() ==
            Symbols::StackTraceParameter().ptr());
 
     TargetEntryInstr* no_error;
     TargetEntryInstr* error;
 
-    continuation += LoadLocal(exception_var);
+    continuation += LoadLocal(stack_trace_var);
     continuation += BranchIfNull(&no_error, &error);
 
     Fragment rethrow(/*instruction=*/error);
@@ -5470,6 +5471,13 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         FunctionType& signature = FunctionType::Handle(Z, function.signature());
         signature ^= ClassFinalizer::FinalizeType(signature);
         function.SetSignature(signature);
+
+        if (has_pragma) {
+          if (Library::FindPragma(thread(), /*only_core=*/false, function,
+                                  Symbols::vm_invisible())) {
+            function.set_is_visible(false);
+          }
+        }
 
         ClosureFunctionsCache::AddClosureFunctionLocked(function);
         break;

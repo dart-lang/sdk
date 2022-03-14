@@ -136,7 +136,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
     if (object is ConstructorInvocation) {
       Class cls = object.target.enclosingClass;
       return cls.name == 'ReachabilityError' &&
-          cls.enclosingLibrary.importUri.scheme == 'dart' &&
+          cls.enclosingLibrary.importUri.isScheme('dart') &&
           cls.enclosingLibrary.importUri.path == '_internal';
     }
     return false;

@@ -13389,10 +13389,14 @@ class Element extends Node
     } else if (alignment == ScrollAlignment.BOTTOM) {
       this._scrollIntoView(false);
     } else if (hasScrollIntoViewIfNeeded) {
+      // TODO(srujzs): This method shouldn't be calling out to
+      // `scrollIntoViewIfNeeded`. Remove this and make `scrollIntoView` match
+      // the browser definition. If you intend to use `scrollIntoViewIfNeeded`,
+      // use the `Element.scrollIntoViewIfNeeded` method.
       if (alignment == ScrollAlignment.CENTER) {
-        this._scrollIntoViewIfNeeded(true);
+        this.scrollIntoViewIfNeeded(true);
       } else {
-        this._scrollIntoViewIfNeeded();
+        this.scrollIntoViewIfNeeded();
       }
     } else {
       this._scrollIntoView();
@@ -14896,8 +14900,18 @@ class Element extends Node
   @JSName('scrollIntoView')
   void _scrollIntoView([Object? arg]) native;
 
-  @JSName('scrollIntoViewIfNeeded')
-  void _scrollIntoViewIfNeeded([bool? centerIfNeeded]) native;
+  /**
+   * Nonstandard version of `scrollIntoView` that scrolls the current element
+   * into the visible area of the browser window if it's not already within the
+   * visible area of the browser window. If the element is already within the
+   * visible area of the browser window, then no scrolling takes place.
+   *
+   * ## Other resources
+   *
+   * * [Element.scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)
+   *   from MDN.
+   */
+  void scrollIntoViewIfNeeded([bool? centerIfNeeded]) native;
 
   void scrollTo([options_OR_x, num? y]) {
     if (options_OR_x == null && y == null) {
@@ -33703,7 +33717,7 @@ class Window extends EventTarget
    * See [EventStreamProvider] for usage information.
    */
   static const EventStreamProvider<BeforeUnloadEvent> beforeUnloadEvent =
-      const _BeforeUnloadEventStreamProvider('beforeunload');
+      const EventStreamProvider('beforeunload');
 
   /// Stream of `beforeunload` events handled by this [Window].
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
@@ -33758,65 +33772,6 @@ class Window extends EventTarget
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
       ? JS<num>('num', '#.scrollY', this).round()
       : document.documentElement!.scrollTop;
-}
-
-class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
-  String _returnValue;
-
-  _BeforeUnloadEvent(Event base)
-      : _returnValue = '',
-        super(base);
-
-  String get returnValue => _returnValue;
-
-  set returnValue(String? value) {
-    // Typed as nullable only to be compatible with the overriden method.
-    _returnValue = value!;
-    // FF and IE use the value as the return value, Chrome will return this from
-    // the event callback function.
-    if (JS<bool>('bool', '("returnValue" in #)', wrapped)) {
-      JS('void', '#.returnValue = #', wrapped, value);
-    }
-  }
-}
-
-class _BeforeUnloadEventStreamProvider
-    implements EventStreamProvider<BeforeUnloadEvent> {
-  final String _eventType;
-
-  const _BeforeUnloadEventStreamProvider(this._eventType);
-
-  Stream<BeforeUnloadEvent> forTarget(EventTarget? e,
-      {bool useCapture: false}) {
-    // Specify the generic type for EventStream only in dart2js.
-    var stream = new _EventStream<BeforeUnloadEvent>(e, _eventType, useCapture);
-    var controller = new StreamController<BeforeUnloadEvent>(sync: true);
-
-    stream.listen((event) {
-      var wrapped = new _BeforeUnloadEvent(event);
-      controller.add(wrapped);
-    });
-
-    return controller.stream;
-  }
-
-  String getEventType(EventTarget target) {
-    return _eventType;
-  }
-
-  ElementStream<BeforeUnloadEvent> forElement(Element e,
-      {bool useCapture: false}) {
-    // Specify the generic type for _ElementEventStreamImpl only in dart2js.
-    return new _ElementEventStreamImpl<BeforeUnloadEvent>(
-        e, _eventType, useCapture);
-  }
-
-  ElementStream<BeforeUnloadEvent> _forElementList(ElementList<Element> e,
-      {bool useCapture: false}) {
-    // Specify the generic type for _ElementEventStreamImpl only in dart2js.
-    return new _ElementListEventStreamImpl<BeforeUnloadEvent>(
-        e, _eventType, useCapture);
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34133,8 +34088,6 @@ class WorkletGlobalScope extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathEvaluator
-@deprecated // experimental
 @Native("XPathEvaluator")
 class XPathEvaluator extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
@@ -34161,8 +34114,6 @@ class XPathEvaluator extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathExpression
-@deprecated // experimental
 @Native("XPathExpression")
 class XPathExpression extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
@@ -34176,8 +34127,6 @@ class XPathExpression extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathNSResolver
-@deprecated // experimental
 @Native("XPathNSResolver")
 class XPathNSResolver extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
@@ -34192,8 +34141,6 @@ class XPathNSResolver extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathResult
-@deprecated // experimental
 @Native("XPathResult")
 class XPathResult extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.

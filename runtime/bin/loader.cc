@@ -83,8 +83,8 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (tag == Dart_kKernelTag) {
     uint8_t* kernel_buffer = NULL;
     intptr_t kernel_buffer_size = 0;
-    if (!DFE::TryReadKernelFile(url_string, &kernel_buffer,
-                                &kernel_buffer_size)) {
+    if (!dfe.TryReadKernelFile(url_string, &kernel_buffer,
+                               &kernel_buffer_size)) {
       return DartUtils::NewError("'%s' is not a kernel file", url_string);
     }
     result = Dart_NewExternalTypedData(Dart_TypedData_kUint8, kernel_buffer,

@@ -12,7 +12,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/cached_static_type.dart';
 import 'package:compiler/src/ir/static_type_base.dart';
 import 'package:compiler/src/ir/static_type_cache.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -34,7 +34,7 @@ class StaticTypeDataComputer extends DataComputer<String> {
   ir.TypeEnvironment _typeEnvironment;
 
   ir.StaticTypeContext getStaticTypeContext(
-      KernelToElementMapImpl elementMap, ir.Member node) {
+      KernelToElementMap elementMap, ir.Member node) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
       ir.CoreTypes coreTypes = new ir.CoreTypes(component);
@@ -52,7 +52,7 @@ class StaticTypeDataComputer extends DataComputer<String> {
       Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
-    KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+    KernelToElementMap elementMap = frontendStrategy.elementMap;
     StaticTypeCache staticTypeCache = elementMap.getCachedStaticTypes(member);
     ir.Member node = elementMap.getMemberNode(member);
     new StaticTypeIrComputer(

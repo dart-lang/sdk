@@ -114,7 +114,7 @@ Error: No Dart file specified.
     "dump-ir": {
       "exitCode": 2,
       "stdout": "",
-      "stderr": "Usage: dump-ir dillfile [output]\n",
+      "stderr": "Usage: dump-ir dillFile [output]\n",
     },
   };
 

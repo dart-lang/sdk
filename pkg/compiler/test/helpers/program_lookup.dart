@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/deferred_load/output_unit.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js/js.dart' as js;

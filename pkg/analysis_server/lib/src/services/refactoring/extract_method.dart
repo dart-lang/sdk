@@ -435,8 +435,13 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       return validateCreateFunction(searchEngine, libraryElement, name);
     }
     // method of class
+    ClassElement? classElement;
     if (parent is ClassDeclaration) {
-      var classElement = parent.declaredElement!;
+      classElement = parent.declaredElement!;
+    } else if (parent is EnumDeclaration) {
+      classElement = parent.declaredElement!;
+    }
+    if (classElement != null) {
       return validateCreateMethod(searchEngine,
           AnalysisSessionHelper(resolveResult.session), classElement, name);
     }

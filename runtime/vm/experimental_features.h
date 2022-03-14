@@ -24,6 +24,9 @@ enum class ExperimentalFeature {
   spread_collections,
   triple_shift,
   constructor_tearoffs,
+  enhanced_enums,
+  named_arguments_anywhere,
+  super_parameters,
 };
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature);

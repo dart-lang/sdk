@@ -156,7 +156,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
 
   Uri uri = member.enclosingLibrary.importUri;
   bool platformAnnotationsAllowed =
-      options.testMode || uri.scheme == 'dart' || maybeEnableNative(uri);
+      options.testMode || uri.isScheme('dart') || maybeEnableNative(uri);
 
   for (PragmaAnnotationData data in pragmaAnnotationData) {
     String name = data.name;

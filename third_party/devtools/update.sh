@@ -30,9 +30,8 @@ git checkout -b cipd_release $1
 # Copy the build output as well as the devtools packages needed
 # to serve from DDS.
 mkdir cipd_package
-cp -R packages/devtools/build/ cipd_package/web
+cp -R packages/devtools_app/build/web cipd_package/web
 cp -r packages/devtools_shared cipd_package
-cp -r packages/devtools_server cipd_package
 
 cipd create \
   -name dart/third_party/flutter/devtools \

@@ -41,6 +41,17 @@ main() {
     ]);
   }
 
+  test_enumConstant() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v(a: 0);
+  const E();
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 13, 1),
+    ]);
+  }
+
   test_function() async {
     await assertErrorsInCode('''
 f({a, b}) {}

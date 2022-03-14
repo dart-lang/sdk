@@ -4,9 +4,7 @@
 
 import '../sdk.dart';
 
-String get sdkConstraint => '''
-  sdk: '>=${sdk.version} <3.0.0'
-''';
+String get sdkConstraint => "sdk: '>=${sdk.version} <3.0.0'";
 
 const String gitignore = '''
 # Files and directories created by pub.

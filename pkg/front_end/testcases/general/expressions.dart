@@ -1,7 +1,7 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 foo({fisk}) {
   print(fisk);
 }
@@ -41,7 +41,7 @@ main() {
   print(i++);
   print(new Object());
   print(const Object());
-  print((new List<String>.filled(2, null)).runtimeType);
+  print((new List<String>.filled(2, '')).runtimeType);
   foo(fisk: "Blorp gulp");
   f() {
     print("f was called");

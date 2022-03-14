@@ -668,7 +668,7 @@ class Object {
                             Heap::Space space,
                             bool compressed);
 
-  static intptr_t RoundedAllocationSize(intptr_t size) {
+  static constexpr intptr_t RoundedAllocationSize(intptr_t size) {
     return Utils::RoundUp(size, kObjectAlignment);
   }
 
@@ -1497,16 +1497,11 @@ class Class : public Object {
   FieldPtr LookupInstanceFieldAllowPrivate(const String& name) const;
   FieldPtr LookupStaticFieldAllowPrivate(const String& name) const;
 
-  DoublePtr LookupCanonicalDouble(Zone* zone, double value) const;
-  MintPtr LookupCanonicalMint(Zone* zone, int64_t value) const;
-
   // The methods above are more efficient than this generic one.
   InstancePtr LookupCanonicalInstance(Zone* zone, const Instance& value) const;
 
   InstancePtr InsertCanonicalConstant(Zone* zone,
                                       const Instance& constant) const;
-  void InsertCanonicalDouble(Zone* zone, const Double& constant) const;
-  void InsertCanonicalMint(Zone* zone, const Mint& constant) const;
 
   void RehashConstants(Zone* zone) const;
 
@@ -9117,15 +9112,6 @@ class Number : public Instance {
   // TODO(iposva): Add more useful Number methods.
   StringPtr ToString(Heap::Space space) const;
 
-  // Numbers are canonicalized differently from other instances/strings.
-  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
-  virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
-
-#if defined(DEBUG)
-  // Check if number is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
-
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
 
@@ -9329,7 +9315,6 @@ class Mint : public Integer {
   static MintPtr New(int64_t value, Heap::Space space = Heap::kNew);
 
   static MintPtr NewCanonical(int64_t value);
-  static MintPtr NewCanonicalLocked(Thread* thread, int64_t value);
 
  private:
   void set_value(int64_t value) const;
@@ -9356,7 +9341,6 @@ class Double : public Number {
 
   // Returns a canonical double object allocated in the old gen space.
   static DoublePtr NewCanonical(double d);
-  static DoublePtr NewCanonicalLocked(Thread* thread, double d);
 
   // Returns a canonical double object (allocated in the old gen space) or
   // Double::null() if str points to a string that does not convert to a
@@ -10244,9 +10228,16 @@ class Bool : public Instance {
 class Array : public Instance {
  public:
   // Returns `true` if we use card marking for arrays of length [array_length].
-  static bool UseCardMarkingForAllocation(const intptr_t array_length) {
+  static constexpr bool UseCardMarkingForAllocation(
+      const intptr_t array_length) {
     return Array::InstanceSize(array_length) > Heap::kNewAllocatableSize;
   }
+
+  // WB invariant restoration code only applies to arrives which have at most
+  // this many elements. Consequently WB elimination code should not eliminate
+  // WB on arrays of larger lengths across instructions that can cause GC.
+  // Note: we also can't restore WB invariant for arrays which use card marking.
+  static constexpr intptr_t kMaxLengthForWriteBarrierElimination = 8;
 
   intptr_t Length() const { return LengthOf(ptr()); }
   static intptr_t LengthOf(const ArrayPtr array) {
@@ -10343,7 +10334,7 @@ class Array : public Instance {
     return OFFSET_OF(UntaggedArray, type_arguments_);
   }
 
-  static bool IsValidLength(intptr_t len) {
+  static constexpr bool IsValidLength(intptr_t len) {
     return 0 <= len && len <= kMaxElements;
   }
 
@@ -10353,7 +10344,7 @@ class Array : public Instance {
     return 0;
   }
 
-  static intptr_t InstanceSize(intptr_t len) {
+  static constexpr intptr_t InstanceSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
     ASSERT(sizeof(UntaggedArray) ==
            (sizeof(UntaggedInstance) + (2 * kBytesPerElement)));
@@ -10686,7 +10677,7 @@ class Float64x2 : public Instance {
 
 class PointerBase : public Instance {
  public:
-  static intptr_t data_field_offset() {
+  static intptr_t data_offset() {
     return OFFSET_OF(UntaggedPointerBase, data_);
   }
 };
@@ -10830,7 +10821,9 @@ class TypedData : public TypedDataBase {
 
 #undef TYPED_GETTER_SETTER
 
-  static intptr_t data_offset() { return UntaggedTypedData::payload_offset(); }
+  static intptr_t payload_offset() {
+    return UntaggedTypedData::payload_offset();
+  }
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedTypedData) ==
@@ -10940,10 +10933,6 @@ class ExternalTypedData : public TypedDataBase {
                                             Dart_HandleFinalizer callback,
                                             intptr_t external_size) const;
 
-  static intptr_t data_offset() {
-    return OFFSET_OF(UntaggedExternalTypedData, data_);
-  }
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedExternalTypedData));
   }
@@ -11016,7 +11005,7 @@ class TypedDataView : public TypedDataBase {
     return IsExternalTypedDataClassId(cid);
   }
 
-  static intptr_t data_offset() {
+  static intptr_t typed_data_offset() {
     return OFFSET_OF(UntaggedTypedDataView, typed_data_);
   }
 
@@ -12009,6 +11998,38 @@ class WeakProperty : public Instance {
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakProperty, Instance);
+  friend class Class;
+};
+
+class WeakReference : public Instance {
+ public:
+  ObjectPtr target() const { return untag()->target(); }
+  void set_target(const Object& target) const {
+    untag()->set_target(target.ptr());
+  }
+  static intptr_t target_offset() {
+    return OFFSET_OF(UntaggedWeakReference, target_);
+  }
+
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(UntaggedWeakReference, type_arguments_);
+  }
+
+  static WeakReferencePtr New(Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedWeakReference));
+  }
+
+  static void Clear(WeakReferencePtr raw_weak) {
+    ASSERT(raw_weak->untag()->next_ ==
+           CompressedWeakReferencePtr(WeakReference::null()));
+    // This action is performed by the GC. No barrier.
+    raw_weak->untag()->target_ = Object::null();
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakReference, Instance);
   friend class Class;
 };
 

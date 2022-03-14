@@ -624,6 +624,8 @@ class Symbol {
 
 class Type {}
 
+class TypeError extends Error {}
+
 class UnsupportedError {
   UnsupportedError(String message);
 }

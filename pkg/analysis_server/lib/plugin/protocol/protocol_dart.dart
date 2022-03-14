@@ -36,7 +36,6 @@ Element convertElement(engine.Element element,
     aliasedType: aliasedType,
     parameters: elementParameters,
     returnType: elementReturnType,
-    libraryUri: element.library?.source.uri.toString(),
   );
 }
 

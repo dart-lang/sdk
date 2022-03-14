@@ -23,7 +23,10 @@ class WillRenameFilesHandler
   Future<ErrorOr<WorkspaceEdit?>> handle(
       RenameFilesParams params, CancellationToken token) async {
     final files = params.files;
-    // For performance reasons, only single-file rename/moves are currently supported.
+    // Only single-file rename/moves are currently supported.
+    // TODO(dantup): Tweak this when VS Code can correctly pass us cancellation
+    // requests to not check for .dart to also support folders (although we
+    // may still only support a single entry initially).
     if (files.length > 1 || files.any((f) => !f.oldUri.endsWith('.dart'))) {
       return success(null);
     }
@@ -31,20 +34,17 @@ class WillRenameFilesHandler
     final file = files.single;
     final oldPath = pathOfUri(Uri.tryParse(file.oldUri));
     final newPath = pathOfUri(Uri.tryParse(file.newUri));
+
     return oldPath.mapResult((oldPath) =>
-        newPath.mapResult((newPath) => _renameFile(oldPath, newPath)));
+        newPath.mapResult((newPath) => _renameFile(oldPath, newPath, token)));
   }
 
   Future<ErrorOr<WorkspaceEdit?>> _renameFile(
-      String oldPath, String newPath) async {
-    final resolvedUnit = await server.getResolvedUnit(oldPath);
-    if (resolvedUnit == null) {
-      return success(null);
-    }
-
-    final refactoring = MoveFileRefactoring(server.resourceProvider,
-        server.refactoringWorkspace, resolvedUnit, oldPath)
-      ..newFile = newPath;
+      String oldPath, String newPath, CancellationToken token) async {
+    final refactoring = MoveFileRefactoring(
+        server.resourceProvider, server.refactoringWorkspace, oldPath)
+      ..newFile = newPath
+      ..cancellationToken = token;
 
     // If we're unable to update imports for a rename, we should silently do
     // nothing rather than interrupt the users file rename with an error.

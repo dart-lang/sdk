@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -40,9 +41,9 @@ class PostfixExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(PostfixExpressionImpl node) {
+  void resolve(PostfixExpressionImpl node, {required DartType? contextType}) {
     if (node.operator.type == TokenType.BANG) {
-      _resolveNullCheck(node);
+      _resolveNullCheck(node, contextType: contextType);
       return;
     }
 
@@ -65,7 +66,7 @@ class PostfixExpressionResolver {
 
     var receiverType = node.readType!;
     _resolve1(node, receiverType);
-    _resolve2(node, receiverType);
+    _resolve2(node, receiverType, contextType: contextType);
   }
 
   /// Check that the result [type] of a prefix or postfix `++` or `--`
@@ -97,11 +98,11 @@ class PostfixExpressionResolver {
       // We are invoking a getter and then invoking the returned function.
       //
       FunctionType propertyType = element.type;
-      return _resolver.inferenceHelper.computeInvokeReturnType(
+      return InvocationInferrer.computeInvokeReturnType(
         propertyType.returnType,
       );
     } else if (element is ExecutableElement) {
-      return _resolver.inferenceHelper.computeInvokeReturnType(element.type);
+      return InvocationInferrer.computeInvokeReturnType(element.type);
     }
     return DynamicTypeImpl.instance;
   }
@@ -155,11 +156,13 @@ class PostfixExpressionResolver {
     }
   }
 
-  void _resolve2(PostfixExpressionImpl node, DartType receiverType) {
+  void _resolve2(PostfixExpressionImpl node, DartType receiverType,
+      {required DartType? contextType}) {
     Expression operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
+      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance,
+          contextType: contextType);
     } else {
       DartType operatorReturnType;
       if (receiverType.isDartCoreInt) {
@@ -179,11 +182,13 @@ class PostfixExpressionResolver {
       }
     }
 
-    _inferenceHelper.recordStaticType(node, receiverType);
+    _inferenceHelper.recordStaticType(node, receiverType,
+        contextType: contextType);
     _resolver.nullShortingTermination(node);
   }
 
-  void _resolveNullCheck(PostfixExpressionImpl node) {
+  void _resolveNullCheck(PostfixExpressionImpl node,
+      {required DartType? contextType}) {
     var operand = node.operand;
 
     if (operand is SuperExpression) {
@@ -191,26 +196,24 @@ class PostfixExpressionResolver {
         ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
         node,
       );
-      _inferenceHelper.recordStaticType(operand, DynamicTypeImpl.instance);
-      _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance);
+      _inferenceHelper.recordStaticType(operand, DynamicTypeImpl.instance,
+          contextType: contextType);
+      _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance,
+          contextType: contextType);
       return;
     }
 
-    var contextType = InferenceContext.getContext(node);
-    if (contextType != null) {
-      if (_isNonNullableByDefault) {
-        contextType = _typeSystem.makeNullable(contextType);
-      }
-      InferenceContext.setType(operand, contextType);
+    if (contextType != null && _isNonNullableByDefault) {
+      contextType = _typeSystem.makeNullable(contextType);
     }
 
-    operand.accept(_resolver);
+    _resolver.analyzeExpression(operand, contextType);
     operand = node.operand;
 
     var operandType = operand.typeOrThrow;
 
     var type = _typeSystem.promoteToNonNull(operandType);
-    _inferenceHelper.recordStaticType(node, type);
+    _inferenceHelper.recordStaticType(node, type, contextType: contextType);
 
     _resolver.nullShortingTermination(node);
     _resolver.flowAnalysis.flow?.nonNullAssert_end(operand);

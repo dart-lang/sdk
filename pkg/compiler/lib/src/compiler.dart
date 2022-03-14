@@ -7,18 +7,16 @@ library dart2js.compiler_base;
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
 
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show clearStringTokenCanonicalizer;
 import 'package:kernel/ast.dart' as ir;
 
-import '../compiler_new.dart' as api;
-import 'backend_strategy.dart';
+import '../compiler.dart' as api;
+import 'common.dart';
 import 'common/codegen.dart';
+import 'common/elements.dart' show ElementEnvironment;
+import 'common/metrics.dart' show Metric;
 import 'common/names.dart' show Selectors;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
-import 'common.dart';
-import 'common_elements.dart' show ElementEnvironment;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'deferred_load/program_split_constraints/nodes.dart' as psc
@@ -28,9 +26,8 @@ import 'diagnostics/code_location.dart';
 import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/entities.dart';
-import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
+import 'enqueue.dart' show Enqueuer, ResolutionEnqueuer;
 import 'environment.dart';
-import 'frontend_strategy.dart';
 import 'inferrer/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
 import 'inferrer/powersets/wrapped.dart' show WrappedAbstractValueStrategy;
@@ -40,13 +37,15 @@ import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'io/source_information.dart' show SourceInformation;
 import 'ir/modular.dart';
-import 'js_backend/backend.dart' show CodegenInputs, JavaScriptImpactStrategy;
+import 'js_backend/backend.dart' show CodegenInputs;
+import 'js_backend/enqueuer.dart';
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart';
 import 'js_model/locals.dart';
 import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
+import 'kernel/kernel_world.dart';
 import 'kernel/loader.dart' show KernelLoaderTask, KernelResult;
 import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions;
@@ -57,25 +56,25 @@ import 'ssa/nodes.dart' show HInstruction;
 import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
-import 'universe/world_impact.dart'
-    show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
-import 'world.dart' show JClosedWorld, KClosedWorld;
+import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
+import 'world.dart' show JClosedWorld;
 
 typedef MakeReporterFunction = CompilerDiagnosticReporter Function(
     Compiler compiler, CompilerOptions options);
 
-abstract class Compiler {
-  Measurer get measurer;
+/// Implementation of the compiler using  a [api.CompilerInput] for supplying
+/// the sources.
+class Compiler {
+  final Measurer measurer;
+  final api.CompilerInput provider;
+  final api.CompilerDiagnostics handler;
 
-  api.CompilerInput get provider;
-
-  FrontendStrategy frontendStrategy;
-  BackendStrategy backendStrategy;
+  KernelFrontendStrategy frontendStrategy;
+  JsBackendStrategy backendStrategy;
   CompilerDiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
-  ImpactCacheDeleter _impactCacheDeleter;
-
-  ImpactStrategy impactStrategy = const ImpactStrategy();
+  GenericTask userHandlerTask;
+  GenericTask userProviderTask;
 
   /// Options provided from command-line arguments.
   final CompilerOptions options;
@@ -95,10 +94,11 @@ abstract class Compiler {
   ir.Component componentForTesting;
   JClosedWorld backendClosedWorldForTesting;
   DataSourceIndices closedWorldIndicesForTesting;
+  ResolutionEnqueuer resolutionEnqueuerForTesting;
+  CodegenEnqueuer codegenEnqueuerForTesting;
 
   DiagnosticReporter get reporter => _reporter;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
-  ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
 
   final Environment environment;
 
@@ -113,7 +113,7 @@ abstract class Compiler {
 
   GenericTask selfTask;
 
-  EnqueueTask enqueuer;
+  GenericTask enqueueTask;
   DeferredLoadTask deferredLoadTask;
   DumpInfoTask dumpInfoTask;
   SerializationTask serializationTask;
@@ -138,12 +138,12 @@ abstract class Compiler {
   // Callback function used for testing codegen enqueuing.
   void Function() onCodegenQueueEmptyForTesting;
 
-  Compiler(
-      {CompilerOptions options,
-      api.CompilerOutput outputProvider,
-      this.environment = const _EmptyEnvironment(),
-      MakeReporterFunction makeReporter})
-      : this.options = options {
+  Compiler(this.provider, this._outputProvider, this.handler, this.options,
+      {MakeReporterFunction makeReporter})
+      // NOTE: allocating measurer is done upfront to ensure the wallclock is
+      // started before other computations.
+      : measurer = Measurer(enableTaskMeasurements: options.verbose),
+        this.environment = Environment(options.environment) {
     options.deriveOptions();
     options.validate();
 
@@ -170,35 +170,33 @@ abstract class Compiler {
         kernelFrontEndTask, options, reporter, environment);
     backendStrategy = createBackendStrategy();
     _impactCache = <Entity, WorldImpact>{};
-    _impactCacheDeleter = _MapImpactCacheDeleter(_impactCache);
 
     if (options.showInternalProgress) {
       progress = InteractiveProgress();
     }
 
-    enqueuer = EnqueueTask(this);
-
     tasks = [
+      // [enqueueTask] is created earlier because it contains the resolution
+      // world objects needed by other tasks.
+      enqueueTask = GenericTask('Enqueue', measurer),
       kernelLoader = KernelLoaderTask(options, provider, reporter, measurer),
       kernelFrontEndTask,
       globalInference = GlobalTypeInferenceTask(this),
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
-      // [enqueuer] is created earlier because it contains the resolution world
-      // objects needed by other tasks.
-      enqueuer,
       dumpInfoTask = DumpInfoTask(this),
       selfTask,
       serializationTask = SerializationTask(
           options, reporter, provider, outputProvider, measurer),
+      ...backendStrategy.tasks,
+      userHandlerTask = GenericTask('Diagnostic handler', measurer),
+      userProviderTask = GenericTask('Input provider', measurer)
     ];
-
-    tasks.addAll(backendStrategy.tasks);
   }
 
   /// Creates the backend strategy.
   ///
   /// Override this to mock the backend strategy for testing.
-  BackendStrategy createBackendStrategy() {
+  JsBackendStrategy createBackendStrategy() {
     return JsBackendStrategy(this);
   }
 
@@ -226,8 +224,8 @@ abstract class Compiler {
   // succeeded.
   Future<bool> run() => selfTask.measureSubtask("run", () {
         measurer.startWallClock();
-
-        return Future.sync(() => runInternal())
+        var setupDuration = measurer.elapsedWallClock;
+        var success = Future.sync(() => runInternal())
             .catchError((error, StackTrace stackTrace) =>
                 _reporter.onError(options.compilationTarget, error, stackTrace))
             .whenComplete(() {
@@ -235,6 +233,17 @@ abstract class Compiler {
         }).then((_) {
           return !compilationFailed;
         });
+        if (options.verbose) {
+          var timings = StringBuffer();
+          computeTimings(setupDuration, timings);
+          logVerbose('$timings');
+        }
+        if (options.reportPrimaryMetrics || options.reportSecondaryMetrics) {
+          var metrics = StringBuffer();
+          collectMetrics(metrics);
+          logInfo('$metrics');
+        }
+        return success;
       });
 
   bool get onlyPerformGlobalTypeInference {
@@ -402,7 +411,6 @@ abstract class Compiler {
   // such caches in the compiler and get access to them through a
   // suitably maintained static reference to the current compiler.
   void clearState() {
-    clearStringTokenCanonicalizer();
     Selector.canonicalizedValues.clear();
 
     // The selector objects held in static fields must remain canonical.
@@ -414,8 +422,11 @@ abstract class Compiler {
   }
 
   JClosedWorld computeClosedWorld(Uri rootLibraryUri, Iterable<Uri> libraries) {
-    ResolutionEnqueuer resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
+    ResolutionEnqueuer resolutionEnqueuer = frontendStrategy
+        .createResolutionEnqueuer(enqueueTask, this)
+      ..onEmptyForTesting = onResolutionQueueEmptyForTesting;
     if (retainDataForTesting) {
+      resolutionEnqueuerForTesting = resolutionEnqueuer;
       resolutionWorldBuilderForTesting = resolutionEnqueuer.worldBuilder;
     }
     frontendStrategy.onResolutionStart();
@@ -437,10 +448,6 @@ abstract class Compiler {
     // this until after the resolution queue is processed.
     deferredLoadTask.beforeResolution(rootLibraryUri, libraries);
 
-    impactStrategy = JavaScriptImpactStrategy(impactCacheDeleter, dumpInfoTask,
-        supportDeferredLoad: deferredLoadTask.isProgramSplit,
-        supportDumpInfo: options.dumpInfo);
-
     phase = PHASE_RESOLVING;
     resolutionEnqueuer.applyImpact(mainImpact);
     if (options.showInternalProgress) reporter.log('Computing closed world');
@@ -448,7 +455,6 @@ abstract class Compiler {
     processQueue(
         frontendStrategy.elementEnvironment, resolutionEnqueuer, mainFunction,
         onProgress: showResolutionProgress);
-    frontendStrategy.onResolutionEnd();
     resolutionEnqueuer.logSummary(reporter.log);
 
     _reporter.reportSuppressedMessagesSummary();
@@ -469,11 +475,8 @@ abstract class Compiler {
     _userCodeLocations
         .addAll(result.moduleLibraries.map((module) => CodeLocation(module)));
     selfTask.measureSubtask('runModularAnalysis', () {
-      impactStrategy = JavaScriptImpactStrategy(
-          impactCacheDeleter, dumpInfoTask,
-          supportDeferredLoad: true, supportDumpInfo: true);
       var included = result.moduleLibraries.toSet();
-      var elementMap = (frontendStrategy as KernelFrontendStrategy).elementMap;
+      var elementMap = frontendStrategy.elementMap;
       var moduleData = computeModuleData(result.component, included, options,
           reporter, environment, elementMap);
       if (compilationFailed) return;
@@ -500,8 +503,16 @@ abstract class Compiler {
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
     CodegenInputs codegenInputs = codegenResults.codegenInputs;
-    Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(
-        closedWorld, globalInferenceResults, codegenInputs, codegenResults);
+    CodegenEnqueuer codegenEnqueuer = backendStrategy.createCodegenEnqueuer(
+        enqueueTask,
+        closedWorld,
+        globalInferenceResults,
+        codegenInputs,
+        codegenResults)
+      ..onEmptyForTesting = onCodegenQueueEmptyForTesting;
+    if (retainDataForTesting) {
+      codegenEnqueuerForTesting = codegenEnqueuer;
+    }
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
 
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
@@ -590,6 +601,11 @@ abstract class Compiler {
 
     KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);
     OutputUnitData result = deferredLoadTask.run(mainFunction, kClosedWorld);
+
+    // Impact data is no longer needed.
+    if (!retainDataForTesting) {
+      _impactCache.clear();
+    }
     JClosedWorld jClosedWorld =
         backendStrategy.createJClosedWorld(kClosedWorld, result);
     return jClosedWorld;
@@ -606,8 +622,7 @@ abstract class Compiler {
             work.element,
             () => selfTask.measureSubtask("applyImpact", () {
                   enqueuer.applyImpact(
-                      selfTask.measureSubtask("work.run", () => work.run()),
-                      impactSource: work.element);
+                      selfTask.measureSubtask("work.run", () => work.run()));
                 }));
       });
     });
@@ -618,7 +633,6 @@ abstract class Compiler {
       {void onProgress(Enqueuer enqueuer)}) {
     selfTask.measureSubtask("processQueue", () {
       enqueuer.open(
-          impactStrategy,
           mainMethod,
           elementEnvironment.libraries
               .map((LibraryEntity library) => library.canonicalUri));
@@ -626,9 +640,6 @@ abstract class Compiler {
       emptyQueue(enqueuer, onProgress: onProgress);
       enqueuer.queueIsClosed = true;
       enqueuer.close();
-      // Notify the impact strategy impacts are no longer needed for this
-      // enqueuer.
-      impactStrategy.onImpactUsed(enqueuer.impactUse);
       assert(compilationFailed ||
           enqueuer.checkNoEnqueuedInvokedInstanceMethods(elementEnvironment));
     });
@@ -653,7 +664,48 @@ abstract class Compiler {
   }
 
   void reportDiagnostic(DiagnosticMessage message,
-      List<DiagnosticMessage> infos, api.Diagnostic kind);
+      List<DiagnosticMessage> infos, api.Diagnostic kind) {
+    _reportDiagnosticMessage(message, kind);
+    for (DiagnosticMessage info in infos) {
+      _reportDiagnosticMessage(info, api.Diagnostic.INFO);
+    }
+  }
+
+  void _reportDiagnosticMessage(
+      DiagnosticMessage diagnosticMessage, api.Diagnostic kind) {
+    // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
+    // instance in the [Types] constructor in typechecker.dart.
+    var span = diagnosticMessage.sourceSpan;
+    var message = diagnosticMessage.message;
+    if (span == null || span.uri == null) {
+      callUserHandler(message, null, null, null, '$message', kind);
+    } else {
+      callUserHandler(
+          message, span.uri, span.begin, span.end, '$message', kind);
+    }
+  }
+
+  void callUserHandler(Message message, Uri uri, int begin, int end,
+      String text, api.Diagnostic kind) {
+    try {
+      userHandlerTask.measure(() {
+        handler.report(message, uri, begin, end, text, kind);
+      });
+    } catch (ex, s) {
+      reportCrashInUserCode('Uncaught exception in diagnostic handler', ex, s);
+      rethrow;
+    }
+  }
+
+  Future<api.Input> callUserProvider(Uri uri, api.InputKind inputKind) {
+    try {
+      return userProviderTask
+          .measureIo(() => provider.readFromUri(uri, inputKind: inputKind));
+    } catch (ex, s) {
+      reportCrashInUserCode('Uncaught exception in input provider', ex, s);
+      rethrow;
+    }
+  }
 
   void reportCrashInUserCode(String message, exception, stackTrace) {
     reporter.onCrashInUserCode(message, exception, stackTrace);
@@ -726,7 +778,7 @@ abstract class Compiler {
   Uri getCanonicalUri(Entity element) {
     Uri libraryUri = _uriFromElement(element);
     if (libraryUri == null) return null;
-    if (libraryUri.scheme == 'package') {
+    if (libraryUri.isScheme('package')) {
       int slashPos = libraryUri.path.indexOf('/');
       if (slashPos != -1) {
         String packageName = libraryUri.path.substring(0, slashPos);
@@ -745,6 +797,89 @@ abstract class Compiler {
       return element.library.canonicalUri;
     }
     return null;
+  }
+
+  void logInfo(String message) {
+    callUserHandler(null, null, null, null, message, api.Diagnostic.INFO);
+  }
+
+  void logVerbose(String message) {
+    callUserHandler(
+        null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
+  }
+
+  String _formatMs(int ms) {
+    return (ms / 1000).toStringAsFixed(3) + 's';
+  }
+
+  void computeTimings(Duration setupDuration, StringBuffer timings) {
+    timings.writeln("Timings:");
+    var totalDuration = measurer.elapsedWallClock;
+    var asyncDuration = measurer.elapsedAsyncWallClock;
+    var cumulatedDuration = Duration.zero;
+    var timingData = <_TimingData>[];
+    for (final task in tasks) {
+      var running = task.isRunning ? "*" : " ";
+      var duration = task.duration;
+      if (duration != Duration.zero) {
+        cumulatedDuration += duration;
+        var milliseconds = duration.inMilliseconds;
+        timingData.add(_TimingData('   $running${task.name}:', milliseconds,
+            milliseconds * 100 / totalDuration.inMilliseconds));
+        for (String subtask in task.subtasks) {
+          var subtime = task.getSubtaskTime(subtask);
+          var running = task.getSubtaskIsRunning(subtask) ? "*" : " ";
+          timingData.add(_TimingData('   $running${task.name} > $subtask:',
+              subtime, subtime * 100 / totalDuration.inMilliseconds));
+        }
+      }
+    }
+    int longestDescription = timingData
+        .map((d) => d.description.length)
+        .fold(0, (a, b) => a < b ? b : a);
+    for (var data in timingData) {
+      var ms = _formatMs(data.milliseconds);
+      var padding =
+          " " * (longestDescription + 10 - data.description.length - ms.length);
+      var percentPadding = data.percent < 10 ? " " : "";
+      timings.writeln('${data.description}$padding $ms '
+          '$percentPadding(${data.percent.toStringAsFixed(1)}%)');
+    }
+    var unaccountedDuration =
+        totalDuration - cumulatedDuration - setupDuration - asyncDuration;
+    var percent =
+        unaccountedDuration.inMilliseconds * 100 / totalDuration.inMilliseconds;
+    timings.write(
+        '    Total compile-time ${_formatMs(totalDuration.inMilliseconds)};'
+        ' setup ${_formatMs(setupDuration.inMilliseconds)};'
+        ' async ${_formatMs(asyncDuration.inMilliseconds)};'
+        ' unaccounted ${_formatMs(unaccountedDuration.inMilliseconds)}'
+        ' (${percent.toStringAsFixed(2)}%)');
+  }
+
+  void collectMetrics(StringBuffer buffer) {
+    buffer.writeln('Metrics:');
+    for (final task in tasks) {
+      var metrics = task.metrics;
+      var namespace = metrics.namespace;
+      if (namespace == '') {
+        namespace =
+            task.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+      }
+      void report(Metric metric) {
+        buffer
+            .writeln('  ${namespace}.${metric.name}: ${metric.formatValue()}');
+      }
+
+      for (final metric in metrics.primary) {
+        report(metric);
+      }
+      if (options.reportSecondaryMetrics) {
+        for (final metric in metrics.secondary) {
+          report(metric);
+        }
+      }
+    }
   }
 }
 
@@ -828,14 +963,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   void reportInfo(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     reportDiagnosticInternal(message, infos, api.Diagnostic.INFO);
-  }
-
-  @deprecated
-  @override
-  void reportInfoMessage(Spannable node, MessageKind messageKind,
-      [Map<String, String> arguments = const {}]) {
-    reportDiagnosticInternal(createMessage(node, messageKind, arguments),
-        const <DiagnosticMessage>[], api.Diagnostic.INFO);
   }
 
   void reportDiagnosticInternal(DiagnosticMessage message,
@@ -1066,28 +1193,12 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   }
 }
 
-class _MapImpactCacheDeleter implements ImpactCacheDeleter {
-  final Map<Entity, WorldImpact> _impactCache;
-  _MapImpactCacheDeleter(this._impactCache);
+class _TimingData {
+  final String description;
+  final int milliseconds;
+  final double percent;
 
-  @override
-  void uncacheWorldImpact(Entity element) {
-    if (retainDataForTesting) return;
-    _impactCache.remove(element);
-  }
-
-  @override
-  void emptyCache() {
-    if (retainDataForTesting) return;
-    _impactCache.clear();
-  }
-}
-
-class _EmptyEnvironment implements Environment {
-  const _EmptyEnvironment();
-
-  @override
-  Map<String, String> toMap() => const {};
+  _TimingData(this.description, this.milliseconds, this.percent);
 }
 
 /// Interface for showing progress during compilation.

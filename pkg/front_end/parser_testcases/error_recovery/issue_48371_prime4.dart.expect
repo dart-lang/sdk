@@ -1,0 +1,318 @@
+Problems reported:
+
+parser/error_recovery/issue_48371_prime4:1:24: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" show enum;
+                       ^^^^
+
+parser/error_recovery/issue_48371_prime4:2:24: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" hide enum;
+                       ^^^^
+
+parser/error_recovery/issue_48371_prime4:3:22: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" as enum show enum hide enum;
+                     ^^^^
+
+parser/error_recovery/issue_48371_prime4:3:32: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" as enum show enum hide enum;
+                               ^^^^
+
+parser/error_recovery/issue_48371_prime4:3:42: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" as enum show enum hide enum;
+                                         ^^^^
+
+parser/error_recovery/issue_48371_prime4:4:24: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" show enum hide enum as enum;
+                       ^^^^
+
+parser/error_recovery/issue_48371_prime4:4:34: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" show enum hide enum as enum;
+                                 ^^^^
+
+parser/error_recovery/issue_48371_prime4:4:42: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" show enum hide enum as enum;
+                                         ^^^^
+
+parser/error_recovery/issue_48371_prime4:4:39: The prefix ('as' clause) should come before any show/hide combinators.
+import "lib.dart" show enum hide enum as enum;
+                                      ^^
+
+parser/error_recovery/issue_48371_prime4:5:24: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" show enum, x, enum;
+                       ^^^^
+
+parser/error_recovery/issue_48371_prime4:5:33: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" show enum, x, enum;
+                                ^^^^
+
+parser/error_recovery/issue_48371_prime4:6:24: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" hide enum, x, enum;
+                       ^^^^
+
+parser/error_recovery/issue_48371_prime4:6:33: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" hide enum, x, enum;
+                                ^^^^
+
+parser/error_recovery/issue_48371_prime4:7:22: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" as enum show enum, x, enum hide enum, x, enum;
+                     ^^^^
+
+parser/error_recovery/issue_48371_prime4:7:32: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" as enum show enum, x, enum hide enum, x, enum;
+                               ^^^^
+
+parser/error_recovery/issue_48371_prime4:7:41: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" as enum show enum, x, enum hide enum, x, enum;
+                                        ^^^^
+
+parser/error_recovery/issue_48371_prime4:7:51: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" as enum show enum, x, enum hide enum, x, enum;
+                                                  ^^^^
+
+parser/error_recovery/issue_48371_prime4:7:60: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" as enum show enum, x, enum hide enum, x, enum;
+                                                           ^^^^
+
+parser/error_recovery/issue_48371_prime4:8:24: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" show enum, x, enum hide enum, x, enum as enum;
+                       ^^^^
+
+parser/error_recovery/issue_48371_prime4:8:33: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" show enum, x, enum hide enum, x, enum as enum;
+                                ^^^^
+
+parser/error_recovery/issue_48371_prime4:8:43: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" show enum, x, enum hide enum, x, enum as enum;
+                                          ^^^^
+
+parser/error_recovery/issue_48371_prime4:8:52: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" show enum, x, enum hide enum, x, enum as enum;
+                                                   ^^^^
+
+parser/error_recovery/issue_48371_prime4:8:60: 'enum' can't be used as an identifier because it's a keyword.
+import "lib.dart" show enum, x, enum hide enum, x, enum as enum;
+                                                           ^^^^
+
+parser/error_recovery/issue_48371_prime4:8:57: The prefix ('as' clause) should come before any show/hide combinators.
+import "lib.dart" show enum, x, enum hide enum, x, enum as enum;
+                                                        ^^
+
+beginCompilationUnit(import)
+  beginMetadataStar(import)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(import)
+    beginImport(import)
+      beginLiteralString("lib.dart")
+      endLiteralString(0, show)
+      beginConditionalUris(show)
+      endConditionalUris(0)
+      handleImportPrefix(null, null)
+      beginCombinators(show)
+        beginShow(show)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(1)
+        endShow(show)
+      endCombinators(1)
+    endImport(import, null, ;)
+  endTopLevelDeclaration(import)
+  beginMetadataStar(import)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(import)
+    beginImport(import)
+      beginLiteralString("lib.dart")
+      endLiteralString(0, hide)
+      beginConditionalUris(hide)
+      endConditionalUris(0)
+      handleImportPrefix(null, null)
+      beginCombinators(hide)
+        beginHide(hide)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(1)
+        endHide(hide)
+      endCombinators(1)
+    endImport(import, null, ;)
+  endTopLevelDeclaration(import)
+  beginMetadataStar(import)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(import)
+    beginImport(import)
+      beginLiteralString("lib.dart")
+      endLiteralString(0, as)
+      beginConditionalUris(as)
+      endConditionalUris(0)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+      handleIdentifier(enum, importPrefixDeclaration)
+      handleImportPrefix(null, as)
+      beginCombinators(show)
+        beginShow(show)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(1)
+        endShow(show)
+        beginHide(hide)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(1)
+        endHide(hide)
+      endCombinators(2)
+    endImport(import, null, ;)
+  endTopLevelDeclaration(import)
+  beginMetadataStar(import)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(import)
+    beginImport(import)
+      beginLiteralString("lib.dart")
+      endLiteralString(0, show)
+      beginConditionalUris(show)
+      endConditionalUris(0)
+      handleImportPrefix(null, null)
+      beginCombinators(show)
+        beginShow(show)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(1)
+        endShow(show)
+        beginHide(hide)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(1)
+        endHide(hide)
+      endCombinators(2)
+    endImport(import, null, null)
+    beginConditionalUris(as)
+    endConditionalUris(0)
+    handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+    handleIdentifier(enum, importPrefixDeclaration)
+    handleImportPrefix(null, as)
+    handleRecoverableError(PrefixAfterCombinator, as, as)
+    beginCombinators(;)
+    endCombinators(0)
+    handleRecoverImport(;)
+  endTopLevelDeclaration(import)
+  beginMetadataStar(import)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(import)
+    beginImport(import)
+      beginLiteralString("lib.dart")
+      endLiteralString(0, show)
+      beginConditionalUris(show)
+      endConditionalUris(0)
+      handleImportPrefix(null, null)
+      beginCombinators(show)
+        beginShow(show)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifier(x, combinator)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(3)
+        endShow(show)
+      endCombinators(1)
+    endImport(import, null, ;)
+  endTopLevelDeclaration(import)
+  beginMetadataStar(import)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(import)
+    beginImport(import)
+      beginLiteralString("lib.dart")
+      endLiteralString(0, hide)
+      beginConditionalUris(hide)
+      endConditionalUris(0)
+      handleImportPrefix(null, null)
+      beginCombinators(hide)
+        beginHide(hide)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifier(x, combinator)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(3)
+        endHide(hide)
+      endCombinators(1)
+    endImport(import, null, ;)
+  endTopLevelDeclaration(import)
+  beginMetadataStar(import)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(import)
+    beginImport(import)
+      beginLiteralString("lib.dart")
+      endLiteralString(0, as)
+      beginConditionalUris(as)
+      endConditionalUris(0)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+      handleIdentifier(enum, importPrefixDeclaration)
+      handleImportPrefix(null, as)
+      beginCombinators(show)
+        beginShow(show)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifier(x, combinator)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(3)
+        endShow(show)
+        beginHide(hide)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifier(x, combinator)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(3)
+        endHide(hide)
+      endCombinators(2)
+    endImport(import, null, ;)
+  endTopLevelDeclaration(import)
+  beginMetadataStar(import)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(import)
+    beginImport(import)
+      beginLiteralString("lib.dart")
+      endLiteralString(0, show)
+      beginConditionalUris(show)
+      endConditionalUris(0)
+      handleImportPrefix(null, null)
+      beginCombinators(show)
+        beginShow(show)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifier(x, combinator)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(3)
+        endShow(show)
+        beginHide(hide)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifier(x, combinator)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, combinator)
+          handleIdentifierList(3)
+        endHide(hide)
+      endCombinators(2)
+    endImport(import, null, null)
+    beginConditionalUris(as)
+    endConditionalUris(0)
+    handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+    handleIdentifier(enum, importPrefixDeclaration)
+    handleImportPrefix(null, as)
+    handleRecoverableError(PrefixAfterCombinator, as, as)
+    beginCombinators(;)
+    endCombinators(0)
+    handleRecoverImport(;)
+  endTopLevelDeclaration(main)
+  beginMetadataStar(main)
+  endMetadataStar(0)
+  beginTopLevelMember(main)
+    beginTopLevelMethod(;, null, null)
+      handleNoType(;)
+      handleIdentifier(main, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+      endBlockFunctionBody(0, {, })
+    endTopLevelMethod(main, null, })
+  endTopLevelDeclaration()
+endCompilationUnit(9, )

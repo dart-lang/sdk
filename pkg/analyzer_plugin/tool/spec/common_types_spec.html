@@ -380,6 +380,29 @@
           omitted if the parameterName field is omitted.
         </p>
       </field>
+      <field name="libraryUri" experimental="true" optional="true">
+        <ref>String</ref>
+        <p>
+          This field  is omitted if <tt>getSuggestions</tt> was used rather
+          than <tt>getSuggestions2</tt>.
+        </p>
+        <p>
+          This field  is omitted if this suggestion corresponds to a locally
+          declared element.
+        </p>
+        <p>
+          If this suggestion corresponds to an already imported element,
+          then this field is the URI of a library that provides this element,
+          not the URI of the library where the element is declared.
+        </p>
+        <p>
+          If this suggestion corresponds to an element from a not yet
+          imported library, this field is the URI of a library that could be
+          imported to make this suggestion  accessible in the file where
+          completion was requested, such as <tt>package:foo/bar.dart</tt> or
+          <tt>file:///home/me/workspace/foo/test/bar_test.dart</tt>.
+        </p>
+      </field>
       <field name="isNotImported" optional="true" experimental="true">
         <ref>bool</ref>
         <p>
@@ -561,13 +584,6 @@
         <p>
           If the element is a type alias, this field is the aliased type.
           Otherwise this field will not be defined.
-        </p>
-      </field>
-      <field name="libraryUri" optional="true" experimental="true">
-        <ref>String</ref>
-        <p>
-          If the element belongs to a library, the URI of the library.
-          Otherwise, this field will not be defined.
         </p>
       </field>
     </object>
@@ -998,7 +1014,8 @@
           <ref>Position</ref>
         </list>
         <p>
-          The positions of the regions that should be edited simultaneously.
+          The positions of the regions (after applying the relevant edits) that
+          should be edited simultaneously.
         </p>
       </field>
       <field name="length">

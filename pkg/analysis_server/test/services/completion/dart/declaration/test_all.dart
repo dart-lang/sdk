@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'enum_test.dart' as enum_;
+import 'library_test.dart' as library_;
 
 /// Tests suggestions produced for various kinds of declarations.
 void main() {
   defineReflectiveSuite(() {
     enum_.main();
+    library_.main();
   });
 }

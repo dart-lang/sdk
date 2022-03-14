@@ -12,15 +12,15 @@ parser/error_recovery/issue_39060:3:1: Expected '[' before this.
 }
 ^
 
-parser/error_recovery/issue_39060:3:1: Expected ';' after this.
-}
-^
+parser/error_recovery/issue_39060:2:9: Expected ';' after this.
+  {s A<}>
+        ^
 
 beginCompilationUnit(main)
   beginMetadataStar(main)
   endMetadataStar(0)
   beginTopLevelMember(main)
-    beginTopLevelMethod(, null)
+    beginTopLevelMethod(, null, null)
       handleNoType()
       handleIdentifier(main, topLevelFunctionDeclaration)
       handleNoTypeVariables(()
@@ -49,7 +49,7 @@ beginCompilationUnit(main)
           endTypeArguments(1, <, >)
           handleRecoverableError(Message[ExpectedButGot, Expected '[' before this., null, {string: [}], }, })
           handleLiteralList(0, [, null, ])
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], }, })
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], >, >)
           handleExpressionStatement(;)
         endBlock(2, {, }, BlockKind(statement))
       endBlockFunctionBody(1, {, )

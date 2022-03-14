@@ -16,7 +16,54 @@ main() {
 
 @reflectiveTest
 class InvalidImplementationOverrideTest extends PubPackageResolutionTest
-    with InvalidImplementationOverrideTestCases {}
+    with InvalidImplementationOverrideTestCases {
+  test_enum_getter_abstractOverridesConcrete() async {
+    await assertErrorsInCode('''
+mixin M {
+  num get foo => 0;
+}
+enum E with M {
+  v;
+  int get foo;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 37, 1),
+    ]);
+  }
+
+  test_enum_method_abstractOverridesConcrete() async {
+    await assertErrorsInCode('''
+mixin M {
+  num foo() => 0;
+}
+enum E with M {
+  v;
+  int foo();
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 35, 1),
+    ]);
+  }
+
+  test_enum_method_mixin_toString() async {
+    await assertErrorsInCode('''
+abstract class I {
+  String toString([int? value]);
+}
+
+enum E1 implements I {
+  v
+}
+
+enum E2 implements I {
+  v;
+  String toString([int? value]) => '';
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 60, 2),
+    ]);
+  }
+}
 
 mixin InvalidImplementationOverrideTestCases on PubPackageResolutionTest {
   test_class_generic_method_generic_hasCovariantParameter() async {
@@ -28,7 +75,7 @@ class B extends A<int> {}
 ''');
   }
 
-  test_getter_abstractOverridesConcrete() async {
+  test_class_getter_abstractOverridesConcrete() async {
     await assertErrorsInCode('''
 class A {
   num get g => 7;
@@ -41,7 +88,7 @@ class B	extends A {
     ]);
   }
 
-  test_method_abstractOverridesConcrete() async {
+  test_class_method_abstractOverridesConcrete() async {
     await assertErrorsInCode('''
 class A	{
   int add(int a, int b) => a + b;
@@ -56,7 +103,7 @@ class B	extends A {
     ]);
   }
 
-  test_method_abstractOverridesConcrete_expandedParameterType() async {
+  test_class_method_abstractOverridesConcrete_expandedParameterType() async {
     await assertErrorsInCode('''
 class A {
   int add(int a) => a;
@@ -69,7 +116,7 @@ class B	extends A {
     ]);
   }
 
-  test_method_abstractOverridesConcrete_expandedParameterType_covariant() async {
+  test_class_method_abstractOverridesConcrete_expandedParameterType_covariant() async {
     await assertNoErrorsInCode('''
 class A {
   int add(covariant int a) => a;
@@ -80,7 +127,7 @@ class B	extends A {
 ''');
   }
 
-  test_method_abstractOverridesConcrete_withOptional() async {
+  test_class_method_abstractOverridesConcrete_withOptional() async {
     await assertErrorsInCode('''
 class A {
   int add() => 7;
@@ -93,7 +140,7 @@ class B	extends A {
     ]);
   }
 
-  test_method_abstractOverridesConcreteInMixin() async {
+  test_class_method_abstractOverridesConcreteInMixin() async {
     await assertErrorsInCode('''
 mixin M {
   int add(int a, int b) => a + b;
@@ -108,7 +155,7 @@ class A with M {
     ]);
   }
 
-  test_method_abstractOverridesConcreteViaMixin() async {
+  test_class_method_abstractOverridesConcreteViaMixin() async {
     await assertErrorsInCode('''
 class A {
   int add(int a, int b) => a + b;
@@ -124,7 +171,7 @@ class B	extends A with M {}
     ]);
   }
 
-  test_method_covariant_inheritance_merge() async {
+  test_class_method_covariant_inheritance_merge() async {
     await assertNoErrorsInCode(r'''
 class A {}
 class B extends A {}

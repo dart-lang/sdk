@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*spec.class: C:checkedInstance,checks=[],instance,typeArgument*/
 /*prod.class: C:checks=[],instance,typeArgument*/
@@ -25,8 +25,8 @@ test1(o) => o is Function(int);
 test2(o) => o is List<Function(int)>;
 
 main() {
-  Expect.isFalse(test1(new C()));
-  Expect.isFalse(test1(new D()));
-  Expect.isFalse(test2(<C>[]));
-  Expect.isFalse(test2(<D>[]));
+  makeLive(test1(new C()));
+  makeLive(test1(new D()));
+  makeLive(test2(<C>[]));
+  makeLive(test2(<D>[]));
 }

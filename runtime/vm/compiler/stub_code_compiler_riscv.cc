@@ -1276,7 +1276,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
 
-  __ PushRegister(RA);  // Marker for the profiler.
+  NOT_IN_PRODUCT(__ PushRegister(RA));  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1396,7 +1396,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
-  __ Drop(1);
+  __ NOT_IN_PRODUCT(__ Drop(1));  // Drop profiler marker.
   __ ret();
 }
 
@@ -1831,7 +1831,7 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 
 static void GenerateAllocateObjectHelper(Assembler* assembler,
                                          bool is_cls_parameterized) {
-  const Register kTagsReg = T2;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
 
   {
     Label slow_case;
@@ -1936,8 +1936,6 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 }
 
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
-  const Register kTagsToClsIdReg = T2;
-
   if (!FLAG_precompiled_mode) {
     __ lx(CODE_REG,
           Address(THR, target::Thread::call_to_runtime_stub_offset()));
@@ -1947,8 +1945,9 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
 
-  __ ExtractClassIdFromTags(kTagsToClsIdReg, kTagsToClsIdReg);
-  __ LoadClassById(A0, kTagsToClsIdReg);
+  __ ExtractClassIdFromTags(AllocateObjectABI::kTagsReg,
+                            AllocateObjectABI::kTagsReg);
+  __ LoadClassById(A0, AllocateObjectABI::kTagsReg);
 
   __ subi(SP, SP, 3 * target::kWordSize);
   __ sx(ZR, Address(SP, 2 * target::kWordSize));  // Result slot.
@@ -1993,7 +1992,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
   // Note: Keep in sync with helper function.
-  const Register kTagsReg = T2;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
   ASSERT(kTagsReg != AllocateObjectABI::kTypeArgumentsReg);
 
   __ LoadImmediate(kTagsReg, tags);
@@ -3619,7 +3618,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* data area to be initialized. */
     __ AddImmediate(T3, A0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
-        A0, FieldAddress(A0, target::TypedDataBase::data_field_offset()), T3);
+        A0, FieldAddress(A0, target::PointerBase::data_offset()), T3);
     Label init_loop, done;
     __ Bind(&init_loop);
     __ bgeu(T3, T4, &done);

@@ -49,12 +49,10 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
       negatable: false,
       help: 'Try to generate the docs without saving them.',
     );
-    argParser.addFlag('fatal-warnings',
-        help: 'Treat warning level issues as fatal.', defaultsTo: false);
   }
 
   @override
-  String get invocation => '${super.invocation} <input directory>';
+  String get invocation => '${super.invocation} [<directory>]';
 
   @override
   FutureOr<int> run() async {
@@ -64,18 +62,19 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     if (args['sdk-docs']) {
       options.add('--sdk-docs');
     } else {
-      // At least one argument, the input directory, is required,
-      // when we're not generating docs for the Dart SDK.
-      if (args.rest.isEmpty) {
-        usageException("Error: Input directory not specified");
+      if (args.rest.length > 1) {
+        usageException("'dart doc' only supports one input directory.'");
       }
 
-      // Determine input directory.
-      final dir = io.Directory(args.rest[0]);
-      if (!dir.existsSync()) {
-        usageException("Error: Input directory doesn't exist: ${dir.path}");
+      // Determine input directory; default to the cwd if no explicit input dir
+      // is passed in.
+      final directory = args.rest.isEmpty
+          ? io.Directory.current
+          : io.Directory(args.rest.first);
+      if (!directory.existsSync()) {
+        usageException('Input directory doesn\'t exist: ${directory.path}');
       }
-      options.add('--input=${dir.path}');
+      options.add('--input=${directory.path}');
     }
 
     // Specify where dartdoc resources are located.
@@ -86,12 +85,12 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     options.addAll([
       '--output=${args['output']}',
       '--resources-dir=$resourcesPath',
-      if (args['validate-links']) '--validate-links',
+      args['validate-links'] ? '--validate-links' : '--no-validate-links',
       if (args['dry-run']) '--no-generate-docs',
-      if (verbose) '--no-quiet',
+      if (verbose) ...['--verbose-warnings', '--show-stats'],
     ]);
 
-    final config = await parseOptions(pubPackageMetaProvider, options);
+    final config = parseOptions(pubPackageMetaProvider, options);
     if (config == null) {
       // There was an error while parsing options.
       return 2;
@@ -106,7 +105,7 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
         config, pubPackageMetaProvider, packageConfigProvider);
     final dartdoc = config.generateDocs
         ? await Dartdoc.fromContext(config, packageBuilder)
-        : await Dartdoc.withEmptyGenerator(config, packageBuilder);
+        : Dartdoc.withEmptyGenerator(config, packageBuilder);
     dartdoc.executeGuarded();
     return 0;
   }

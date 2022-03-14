@@ -12,9 +12,10 @@ dart2js/late_statics: SemiFuzzFailure
 dart2js/mixin_from_opt_in/main: SemiFuzzFailure
 dart2js/mixin_from_opt_in/main.no_link: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
-general/error_recovery/issue_39202.crash: SemiFuzzCrash
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
+general/error_recovery/issue_39202.crash: SemiFuzzCrash
 general/platform_invalid_uris/main: SemiFuzzFailure
+general/supported_libraries/main: SemiFuzzFailure
 nnbd_mixed/mixin_from_opt_in/main: SemiFuzzFailure
 nnbd_mixed/mixin_from_opt_in/main.no_link: SemiFuzzFailure
 regress/utf_16_le_content.crash: SemiFuzzCrash
@@ -51,6 +52,7 @@ general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
 general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError
+general/covariant_generic2: RuntimeError
 general/crashes/crash_02/main: Crash
 general/crashes/crash_06/main: Crash
 general/duplicated_declarations: TypeCheckError
@@ -93,9 +95,10 @@ general/implement_semi_stub: TypeCheckError
 general/implicit_super_call: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
+general/infer_field_from_multiple2: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invalid_operator_override: TypeCheckError
-general/invocations: RuntimeError
+general/invocations: TypeCheckError
 general/issue37776: RuntimeError
 general/issue38938: RuntimeError # no main and compile time errors.
 general/issue38944: RuntimeError # no main and compile time errors.

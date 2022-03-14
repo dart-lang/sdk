@@ -25,6 +25,7 @@ CompilationUnit parseText(
       featureSet: featureSet,
     );
   Token token = scanner.tokenize();
+  LineInfo lineInfo = LineInfo(scanner.lineStarts);
   // Pass the feature set from the scanner to the parser
   // because the scanner may have detected a language version comment
   // and downgraded the feature set it holds.
@@ -32,10 +33,9 @@ CompilationUnit parseText(
     source,
     AnalysisErrorListener.NULL_LISTENER,
     featureSet: scanner.featureSet,
+    lineInfo: lineInfo,
   );
   var unit = parser.parseCompilationUnit(token);
-  unit.lineInfo = LineInfo(scanner.lineStarts);
-
   unit.languageVersion = LibraryLanguageVersion(
     package: ExperimentStatus.currentVersion,
     override: null,

@@ -392,7 +392,9 @@ class ActivationFrame : public ZoneAllocated {
   TypeArgumentsPtr BuildParameters(
       const GrowableObjectArray& param_names,
       const GrowableObjectArray& param_values,
-      const GrowableObjectArray& type_params_names);
+      const GrowableObjectArray& type_params_names,
+      const GrowableObjectArray& type_params_bounds,
+      const GrowableObjectArray& type_params_defaults);
 
   ObjectPtr EvaluateCompiledExpression(const ExternalTypedData& kernel_data,
                                        const Array& arguments,

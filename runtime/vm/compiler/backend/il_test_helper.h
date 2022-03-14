@@ -65,6 +65,9 @@ TypeParameterPtr GetFunctionTypeParameter(const Function& fun, intptr_t index);
 
 ObjectPtr Invoke(const Library& lib, const char* name);
 
+InstructionsPtr BuildInstructions(
+    std::function<void(compiler::Assembler* assembler)> fun);
+
 class TestPipeline : public ValueObject {
  public:
   explicit TestPipeline(const Function& function,
@@ -85,6 +88,8 @@ class TestPipeline : public ValueObject {
   //   - [pass_state_]
   //   - [flow_graph_]
   FlowGraph* RunPasses(std::initializer_list<CompilerPass::Id> passes);
+
+  void RunAdditionalPasses(std::initializer_list<CompilerPass::Id> passes);
 
   void CompileGraphAndAttachFunction();
 

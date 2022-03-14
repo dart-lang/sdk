@@ -9,7 +9,7 @@ library source_map_name_test;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common_elements.dart' show JElementEnvironment;
+import 'package:compiler/src/common/elements.dart' show JElementEnvironment;
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/kernel_source_information.dart';

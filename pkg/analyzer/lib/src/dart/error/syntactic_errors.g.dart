@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
 import "package:analyzer/error/error.dart";
 
@@ -135,6 +135,9 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR,
   ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR,
+  ParserErrorCode.MULTIPLE_CLAUSES,
+  ParserErrorCode.OUT_OF_ORDER_CLAUSES,
+  ParserErrorCode.UNEXPECTED_TOKENS,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -456,6 +459,13 @@ class ParserErrorCode extends ErrorCode {
     'EMPTY_ENUM_BODY',
     "An enum must declare at least one constant name.",
     correctionMessage: "Try declaring a constant.",
+  );
+
+  static const ParserErrorCode
+      ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS = ParserErrorCode(
+    'ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS',
+    "Missing arguments in enum constructor invocation.",
+    correctionMessage: "Try adding an argument list.",
   );
 
   static const ParserErrorCode ENUM_IN_CLASS = ParserErrorCode(
@@ -781,6 +791,7 @@ class ParserErrorCode extends ErrorCode {
     'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
     "Field formal parameters can only be used in a constructor.",
     correctionMessage: "Try removing 'this.'.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode FINAL_AND_COVARIANT = ParserErrorCode(
@@ -1287,6 +1298,13 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try re-ordering the modifiers.",
   );
 
+  static const ParserErrorCode MULTIPLE_CLAUSES = ParserErrorCode(
+    'MULTIPLE_CLAUSES',
+    "Each '{0}' definition can have at most one '{1}' clause.",
+    correctionMessage:
+        "Try combining all of the '{1}' clauses into a single clause.",
+  );
+
   static const ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = ParserErrorCode(
     'MULTIPLE_EXTENDS_CLAUSES',
     "Each class definition can have at most one extends clause.",
@@ -1461,6 +1479,12 @@ class ParserErrorCode extends ErrorCode {
         "sequence.",
   );
 
+  static const ParserErrorCode OUT_OF_ORDER_CLAUSES = ParserErrorCode(
+    'OUT_OF_ORDER_CLAUSES',
+    "The '{0}' clause must come before the '{1}' clause.",
+    correctionMessage: "Try moving the '{0}' clause before the '{1}' clause.",
+  );
+
   static const ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT =
       ParserErrorCode(
     'POSITIONAL_AFTER_NAMED_ARGUMENT',
@@ -1627,6 +1651,11 @@ class ParserErrorCode extends ErrorCode {
     'UNEXPECTED_TOKEN',
     "Unexpected text '{0}'.",
     correctionMessage: "Try removing the text.",
+  );
+
+  static const ParserErrorCode UNEXPECTED_TOKENS = ParserErrorCode(
+    'UNEXPECTED_TOKENS',
+    "Unexpected tokens.",
   );
 
   static const ParserErrorCode VAR_AND_TYPE = ParserErrorCode(

@@ -72,6 +72,7 @@ import '../target_implementation.dart' show TargetImplementation;
 import '../ticker.dart' show Ticker;
 import '../type_inference/type_schema.dart';
 import '../uri_translator.dart' show UriTranslator;
+import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'constant_evaluator.dart' as constants
     show
         EvaluationMode,
@@ -182,12 +183,15 @@ class KernelTarget extends TargetImplementation {
 
   final ProcessedOptions _options;
 
+  final Benchmarker? benchmarker;
+
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       this.uriTranslator)
       : dillTarget = dillTarget,
         backendTarget = dillTarget.backendTarget,
         _options = CompilerContext.current.options,
-        ticker = dillTarget.ticker {
+        ticker = dillTarget.ticker,
+        benchmarker = dillTarget.benchmarker {
     loader = createLoader();
   }
 
@@ -223,9 +227,11 @@ class KernelTarget extends TargetImplementation {
   Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
 
   /// Returns a reference to the constructor of
-  /// [AbstractClassInstantiationError] error.  The constructor is expected to
+  /// `AbstractClassInstantiationError` error.  The constructor is expected to
   /// accept a single argument of type String, which is the name of the
   /// abstract class.
+  // TODO: Use some other error before `AbstractClassInstantiationError`
+  // is removed.
   MemberBuilder getAbstractClassInstantiationError(Loader loader) {
     return _cachedAbstractClassInstantiationError ??=
         loader.coreLibrary.getConstructor("AbstractClassInstantiationError");
@@ -391,62 +397,225 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInTypeBuilder = null;
   }
 
+  bool _hasComputedNeededPrecompilations = false;
+
+  Future<NeededPrecompilations?> computeNeededPrecompilations() async {
+    assert(!_hasComputedNeededPrecompilations,
+        "Needed precompilations have already been computed.");
+    _hasComputedNeededPrecompilations = true;
+    if (loader.first == null) return null;
+    return withCrashReporting<NeededPrecompilations?>(() async {
+      benchmarker?.enterPhase(BenchmarkPhases.outline_kernelBuildOutlines);
+      await loader.buildOutlines();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_becomeCoreLibrary);
+      loader.coreLibrary.becomeCoreLibrary();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_resolveParts);
+      loader.resolveParts();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
+      NeededPrecompilations? result = loader.computeMacroDeclarations();
+
+      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+      return result;
+    }, () => loader.currentUriForCrashReporting);
+  }
+
+  /// Builds [augmentationLibraries] to the state expected after applying phase
+  /// 1 macros.
+  Future<void> _buildForPhase1(
+      Iterable<SourceLibraryBuilder> augmentationLibraries) async {
+    await loader.buildOutlines();
+    // Normally patch libraries are applied in [SourceLoader.resolveParts].
+    // For augmentation libraries we instead apply them directly here.
+    for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+      augmentationLibrary.applyPatches();
+    }
+    loader.computeLibraryScopes(augmentationLibraries);
+    // TODO(johnniwinther): Support computation of macro applications in
+    // augmentation libraries?
+    loader.resolveTypes(augmentationLibraries);
+  }
+
+  /// Builds [augmentationLibraries] to the state expected after applying phase
+  /// 2 macros.
+  void _buildForPhase2(List<SourceLibraryBuilder> augmentationLibraries) {
+    loader.finishTypeVariables(
+        augmentationLibraries, objectClassBuilder, dynamicType);
+    for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+      augmentationLibrary.build(loader.coreLibrary, modifyTarget: false);
+    }
+    loader.resolveConstructors(augmentationLibraries);
+  }
+
+  /// Builds [augmentationLibraries] to the state expected after applying phase
+  /// 3 macros.
+  void _buildForPhase3(List<SourceLibraryBuilder> augmentationLibraries) {
+    // Currently there nothing to do here. The method is left in for symmetry.
+  }
+
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
     if (loader.first == null) return new BuildResult();
     return withCrashReporting<BuildResult>(() async {
-      await loader.buildOutlines();
-      loader.coreLibrary.becomeCoreLibrary();
-      loader.resolveParts();
-      loader.computeMacroDeclarations();
-      loader.computeLibraryScopes();
+      if (!_hasComputedNeededPrecompilations) {
+        NeededPrecompilations? neededPrecompilations =
+            await computeNeededPrecompilations();
+        // To support macros, the needed macro libraries must be compiled be
+        // they are applied. Any supporting pipeline must therefore call
+        // [computeNeededPrecompilations] before calling [buildOutlines] in
+        // order to perform any need compilation in advance.
+        //
+        // If [neededPrecompilations] is non-null here, it means that macro
+        // compilation was needed but not performed.
+        if (neededPrecompilations != null) {
+          throw new UnsupportedError('Macro precompilation is not supported.');
+        }
+      }
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_computeLibraryScopes);
+      loader.computeLibraryScopes(loader.libraryBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroApplications);
       MacroApplications? macroApplications =
           await loader.computeMacroApplications();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_setupTopAndBottomTypes);
       setupTopAndBottomTypes();
-      loader.resolveTypes();
-      loader.computeVariances();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_resolveTypes);
+      loader.resolveTypes(loader.sourceLibraryBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_computeVariances);
+      loader.computeVariances(loader.sourceLibraryBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_computeDefaultTypes);
       loader.computeDefaultTypes(
           dynamicType, nullType, bottomType, objectClassBuilder);
+
       if (macroApplications != null) {
-        await macroApplications.applyTypeMacros();
+        benchmarker?.enterPhase(BenchmarkPhases.outline_applyTypeMacros);
+        List<SourceLibraryBuilder> augmentationLibraries =
+            await macroApplications.applyTypeMacros(loader);
+        benchmarker
+            ?.enterPhase(BenchmarkPhases.outline_buildMacroTypesForPhase1);
+        await _buildForPhase1(augmentationLibraries);
       }
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_checkSemantics);
       List<SourceClassBuilder>? sourceClassBuilders =
           loader.checkSemantics(objectClassBuilder);
-      loader.finishTypeVariables(objectClassBuilder, dynamicType);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_finishTypeVariables);
+      loader.finishTypeVariables(
+          loader.sourceLibraryBuilders, objectClassBuilder, dynamicType);
+
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_createTypeInferenceEngine);
       loader.createTypeInferenceEngine();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_buildComponent);
       loader.buildComponent();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_installDefaultSupertypes);
       installDefaultSupertypes();
+
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_installSyntheticConstructors);
       installSyntheticConstructors(sourceClassBuilders);
-      loader.resolveConstructors();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_resolveConstructors);
+      loader.resolveConstructors(loader.sourceLibraryBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_link);
       component =
           link(new List<Library>.of(loader.libraries), nameRoot: nameRoot);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_computeCoreTypes);
       computeCoreTypes();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_buildClassHierarchy);
       loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
       loader.checkSupertypes(sourceClassBuilders, enumClass);
+
       if (macroApplications != null) {
-        await macroApplications.applyDeclarationMacros();
+        benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
+        await macroApplications.applyDeclarationsMacros(loader.hierarchyBuilder,
+            (SourceLibraryBuilder augmentationLibrary) async {
+          List<SourceLibraryBuilder> augmentationLibraries = [
+            augmentationLibrary
+          ];
+          benchmarker?.enterPhase(
+              BenchmarkPhases.outline_buildMacroDeclarationsForPhase1);
+          await _buildForPhase1(augmentationLibraries);
+          benchmarker?.enterPhase(
+              BenchmarkPhases.outline_buildMacroDeclarationsForPhase2);
+          _buildForPhase2(augmentationLibraries);
+        });
       }
+
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_buildClassHierarchyMembers);
       loader.buildClassHierarchyMembers(sourceClassBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_computeHierarchy);
       loader.computeHierarchy();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_computeShowHideElements);
       loader.computeShowHideElements();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
       loader.installTypedefTearOffs();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
       loader.performTopLevelInference(sourceClassBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_checkOverrides);
       loader.checkOverrides(sourceClassBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_checkAbstractMembers);
       loader.checkAbstractMembers(sourceClassBuilders);
+
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_addNoSuchMethodForwarders);
       loader.addNoSuchMethodForwarders(sourceClassBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_checkMixins);
       loader.checkMixins(sourceClassBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
       loader.buildOutlineExpressions(
           loader.hierarchy, synthesizedFunctionNodes);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_checkTypes);
       loader.checkTypes();
+
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_checkRedirectingFactories);
       loader.checkRedirectingFactories(sourceClassBuilders);
+
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_finishSynthesizedParameters);
       finishSynthesizedParameters(forOutline: true);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_checkMainMethods);
       loader.checkMainMethods();
+
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_installAllComponentProblems);
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
+
+      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+
       // For whatever reason sourceClassBuilders is kept alive for some amount
       // of time, meaning that all source library builders will be kept alive
       // (for whatever amount of time) even though we convert them to dill
       // library builders. To avoid it we null it out here.
       sourceClassBuilders = null;
+
       return new BuildResult(
           component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
@@ -468,22 +637,59 @@ class KernelTarget extends TargetImplementation {
     }
     return withCrashReporting<BuildResult>(() async {
       ticker.logMs("Building component");
-      await loader.buildBodies();
-      finishSynthesizedParameters();
-      loader.finishDeferredLoadTearoffs();
-      loader.finishNoSuchMethodForwarders();
-      List<SourceClassBuilder>? sourceClasses = loader.collectSourceClasses();
+
       if (macroApplications != null) {
-        await macroApplications.applyDefinitionMacros(
-            loader.coreTypes, loader.hierarchy);
+        benchmarker?.enterPhase(BenchmarkPhases.body_applyDefinitionMacros);
+        List<SourceLibraryBuilder> augmentationLibraries =
+            await macroApplications.applyDefinitionMacros();
+        benchmarker
+            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase1);
+        await _buildForPhase1(augmentationLibraries);
+        benchmarker
+            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase2);
+        _buildForPhase2(augmentationLibraries);
+        benchmarker
+            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase3);
+        _buildForPhase3(augmentationLibraries);
       }
+
+      benchmarker?.enterPhase(BenchmarkPhases.body_buildBodies);
+      await loader.buildBodies(loader.sourceLibraryBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.body_finishSynthesizedParameters);
+      finishSynthesizedParameters();
+
+      benchmarker?.enterPhase(BenchmarkPhases.body_finishDeferredLoadTearoffs);
+      loader.finishDeferredLoadTearoffs();
+
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.body_finishNoSuchMethodForwarders);
+      loader.finishNoSuchMethodForwarders();
+
+      benchmarker?.enterPhase(BenchmarkPhases.body_collectSourceClasses);
+      List<SourceClassBuilder>? sourceClasses = loader.collectSourceClasses();
+
+      benchmarker?.enterPhase(BenchmarkPhases.body_finishNativeMethods);
       loader.finishNativeMethods();
+
+      benchmarker?.enterPhase(BenchmarkPhases.body_finishPatchMethods);
       loader.finishPatchMethods();
+
+      benchmarker?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
       finishAllConstructors(sourceClasses);
+
+      benchmarker?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
 
-      if (verify) this.verify();
+      if (verify) {
+        benchmarker?.enterPhase(BenchmarkPhases.body_verify);
+        this.verify();
+      }
+
+      benchmarker?.enterPhase(BenchmarkPhases.body_installAllComponentProblems);
       installAllComponentProblems(loader.allComponentProblems);
+
+      benchmarker?.enterPhase(BenchmarkPhases.unknown);
 
       // For whatever reason sourceClasses is kept alive for some amount
       // of time, meaning that all source library builders will be kept alive
@@ -798,8 +1004,7 @@ class KernelTarget extends TargetImplementation {
         }
       }
 
-      superclassBuilder.forEachConstructor(addSyntheticConstructor,
-          includeInjectedConstructors: true);
+      superclassBuilder.forEachConstructor(addSyntheticConstructor);
 
       if (!isConstructorAdded) {
         builder.addSyntheticConstructor(_makeDefaultConstructor(
@@ -881,7 +1086,8 @@ class KernelTarget extends TargetImplementation {
         superConstructor, new Arguments(positional, named: named));
     SynthesizedFunctionNode synthesizedFunctionNode =
         new SynthesizedFunctionNode(
-            substitutionMap, superConstructor.function, function);
+            substitutionMap, superConstructor.function, function,
+            libraryBuilder: classBuilder.library);
     if (!isConst) {
       // For constant constructors default values are computed and cloned part
       // of the outline expression and therefore passed to the
@@ -939,7 +1145,7 @@ class KernelTarget extends TargetImplementation {
     for (SynthesizedFunctionNode synthesizedFunctionNode
         in synthesizedFunctionNodes) {
       if (!forOutline || synthesizedFunctionNode.isOutlineNode) {
-        synthesizedFunctionNode.cloneDefaultValues();
+        synthesizedFunctionNode.cloneDefaultValues(loader.typeEnvironment);
       }
     }
     if (!forOutline) {
@@ -1117,7 +1323,7 @@ class KernelTarget extends TargetImplementation {
           patchConstructorNames.add(name);
         }
       });
-      builder.constructors.forEach((String name, Builder builder) {
+      builder.constructorScope.forEach((String name, Builder builder) {
         if (builder is ConstructorBuilder) {
           patchConstructorNames.remove(name);
         }
@@ -1521,7 +1727,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   void readPatchFiles(SourceLibraryBuilder library) {
-    assert(library.importUri.scheme == "dart");
+    assert(library.importUri.isScheme("dart"));
     List<Uri>? patches = uriTranslator.getDartPatches(library.importUri.path);
     if (patches != null) {
       SourceLibraryBuilder? first;
@@ -1587,7 +1793,9 @@ class KernelDiagnosticReporter
 
 class BuildResult {
   final Component? component;
+  final NeededPrecompilations? neededPrecompilations;
   final MacroApplications? macroApplications;
 
-  BuildResult({this.component, this.macroApplications});
+  BuildResult(
+      {this.component, this.macroApplications, this.neededPrecompilations});
 }

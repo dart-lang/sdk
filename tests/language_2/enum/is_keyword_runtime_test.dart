@@ -10,6 +10,4 @@
 // Test that `enum` is considered a keyword and therefore invalid as the name of
 // declarations.
 
-main() {
-
-}
+main() {}

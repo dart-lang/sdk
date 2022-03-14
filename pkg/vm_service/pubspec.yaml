@@ -3,7 +3,7 @@ description: >-
   A library to communicate with a service implementing the Dart VM
   service protocol.
 
-version: 8.2.0-dev
+version: 8.2.0
 
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/vm_service
 
@@ -14,6 +14,7 @@ dependencies:
 
 dev_dependencies:
   async: ^2.5.0
+  expect: any
   markdown: ^4.0.0-nullsafety.0
   mockito: ^5.0.0-nullsafety.1
   path: ^1.8.0

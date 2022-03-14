@@ -11,8 +11,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'package:compiler/compiler_new.dart' as api;
-import 'package:compiler/src/backend_strategy.dart';
+import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/common/work.dart';
@@ -22,7 +21,6 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
-import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/null_compiler_output.dart';
@@ -33,7 +31,7 @@ import 'package:compiler/src/world.dart';
 import 'diagnostic_reporter_helper.dart';
 import '../helpers/memory_compiler.dart';
 
-class TestCompiler extends CompilerImpl {
+class TestCompiler extends Compiler {
   final String testMarker;
   final String testType;
   final Function onTest;
@@ -56,7 +54,7 @@ class TestCompiler extends CompilerImpl {
   }
 
   @override
-  BackendStrategy createBackendStrategy() {
+  JsBackendStrategy createBackendStrategy() {
     return new TestBackendStrategy(this);
   }
 

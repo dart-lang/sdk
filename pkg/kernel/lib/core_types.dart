@@ -164,6 +164,9 @@ class CoreTypes {
   late final Procedure completeOnAsyncReturn =
       index.getTopLevelProcedure('dart:async', '_completeOnAsyncReturn');
 
+  late final Procedure completeWithNoFutureOnAsyncReturn = index
+      .getTopLevelProcedure('dart:async', '_completeWithNoFutureOnAsyncReturn');
+
   late final Procedure completeOnAsyncError =
       index.getTopLevelProcedure('dart:async', '_completeOnAsyncError');
 

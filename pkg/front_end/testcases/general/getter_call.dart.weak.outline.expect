@@ -1,103 +1,93 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  field core::Function* field1a;
-  field () →* core::int* field1b;
-  field (core::int*) →* core::int* field2;
-  field (core::int*, core::int*) →* core::int* field3;
-  field (core::int*, [core::int*]) →* core::int* field4;
-  field ([core::int*, core::int*]) →* core::int* field5;
-  field (core::int*, {b: core::int*}) →* core::int* field6;
-  field ({a: core::int*, b: core::int*}) →* core::int* field7;
-  synthetic constructor •() → self::Class*
+  field core::Function field1a;
+  field () → core::int field1b;
+  field (core::int) → core::int field2;
+  field (core::int, core::int) → core::int field3;
+  field (core::int, [core::int]) → core::int field4;
+  field ([core::int, core::int]) → core::int field5;
+  field (core::int, {b: core::int}) → core::int field6;
+  field ({a: core::int, b: core::int}) → core::int field7;
+  synthetic constructor •() → self::Class
     ;
-  get getter1a() → core::Function*
+  get getter1a() → core::Function
     ;
-  get getter1b() → () →* core::int*
+  get getter1b() → () → core::int
     ;
-  get getter2() → (core::int*) →* core::int*
+  get getter2() → (core::int) → core::int
     ;
-  get getter3() → (core::int*, core::int*) →* core::int*
+  get getter3() → (core::int, core::int) → core::int
     ;
-  get getter4() → (core::int*, [core::int*]) →* core::int*
+  get getter4() → (core::int, [core::int]) → core::int
     ;
-  get getter5() → ([core::int*, core::int*]) →* core::int*
+  get getter5() → ([core::int, core::int]) → core::int
     ;
-  get getter6() → (core::int*, {b: core::int*}) →* core::int*
+  get getter6() → (core::int, {b: core::int}) → core::int
     ;
-  get getter7() → ({a: core::int*, b: core::int*}) →* core::int*
+  get getter7() → ({a: core::int, b: core::int}) → core::int
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Subclass extends self::Class {
-  synthetic constructor •() → self::Subclass*
+  synthetic constructor •() → self::Subclass
     ;
-  get field1a() → core::Function*
+  get field1a() → core::Function
     ;
-  get field1b() → () →* core::int*
+  get field1b() → () → core::int
     ;
-  get field2() → (core::int*) →* core::int*
+  get field2() → (core::int) → core::int
     ;
-  get field3() → (core::int*, core::int*) →* core::int*
+  get field3() → (core::int, core::int) → core::int
     ;
-  get field4() → (core::int*, [core::int*]) →* core::int*
+  get field4() → (core::int, [core::int]) → core::int
     ;
-  get field5() → ([core::int*, core::int*]) →* core::int*
+  get field5() → ([core::int, core::int]) → core::int
     ;
-  get field6() → (core::int*, {b: core::int*}) →* core::int*
+  get field6() → (core::int, {b: core::int}) → core::int
     ;
-  get field7() → ({a: core::int*, b: core::int*}) →* core::int*
+  get field7() → ({a: core::int, b: core::int}) → core::int
     ;
-  get getter1a() → core::Function*
+  get getter1a() → core::Function
     ;
-  get getter1b() → () →* core::int*
+  get getter1b() → () → core::int
     ;
-  get getter2() → (core::int*) →* core::int*
+  get getter2() → (core::int) → core::int
     ;
-  get getter3() → (core::int*, core::int*) →* core::int*
+  get getter3() → (core::int, core::int) → core::int
     ;
-  get getter4() → (core::int*, [core::int*]) →* core::int*
+  get getter4() → (core::int, [core::int]) → core::int
     ;
-  get getter5() → ([core::int*, core::int*]) →* core::int*
+  get getter5() → ([core::int, core::int]) → core::int
     ;
-  get getter6() → (core::int*, {b: core::int*}) →* core::int*
+  get getter6() → (core::int, {b: core::int}) → core::int
     ;
-  get getter7() → ({a: core::int*, b: core::int*}) →* core::int*
+  get getter7() → ({a: core::int, b: core::int}) → core::int
     ;
 }
-static field core::bool* enableRead;
-static method read(core::int* value) → core::int*
+static field core::bool enableRead;
+static method read(core::int value) → core::int
   ;
-static method method1() → core::int*
+static method method1() → core::int
   ;
-static method method2(core::int* a) → core::int*
+static method method2(core::int a) → core::int
   ;
-static method method3(core::int* a, core::int* b) → core::int*
+static method method3(core::int a, core::int b) → core::int
   ;
-static method method4(core::int* a, [core::int* b]) → core::int*
+static method method4(core::int a, [core::int b]) → core::int
   ;
-static method method5([core::int* a, core::int* b]) → core::int*
+static method method5([core::int a, core::int b]) → core::int
   ;
-static method method6(core::int* a, {core::int* b}) → core::int*
+static method method6(core::int a, {core::int b}) → core::int
   ;
-static method method7({core::int* a, core::int* b}) → core::int*
+static method method7({core::int a, core::int b}) → core::int
   ;
 static method main() → dynamic
   ;
-static method callField(self::Class* c) → dynamic
+static method callField(self::Class c) → dynamic
   ;
-static method callGetter(self::Class* c) → dynamic
+static method callGetter(self::Class c) → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;

@@ -1217,11 +1217,14 @@ class CompletionMetricsComputer {
     var budget = CompletionBudget(Duration(seconds: 30));
     if (declarationsTracker == null) {
       // available suggestions == false
-      suggestions = await DartCompletionManager(
-              budget: budget,
-              listener: listener,
-              notImportedSuggestions: notImportedSuggestions)
-          .computeSuggestions(dartRequest, performance);
+      var serverSuggestions = await DartCompletionManager(
+        budget: budget,
+        listener: listener,
+        notImportedSuggestions: notImportedSuggestions,
+      ).computeSuggestions(dartRequest, performance);
+      suggestions = serverSuggestions.map((serverSuggestion) {
+        return serverSuggestion.build();
+      }).toList();
     } else {
       // available suggestions == true
       var includedElementKinds = <protocol.ElementKind>{};
@@ -1229,13 +1232,16 @@ class CompletionMetricsComputer {
       var includedSuggestionRelevanceTagList =
           <protocol.IncludedSuggestionRelevanceTag>[];
       var includedSuggestionSetList = <protocol.IncludedSuggestionSet>[];
-      suggestions = await DartCompletionManager(
+      var serverSuggestions = await DartCompletionManager(
         budget: budget,
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
       ).computeSuggestions(dartRequest, performance);
+      suggestions = serverSuggestions.map((serverSuggestion) {
+        return serverSuggestion.build();
+      }).toList();
 
       computeIncludedSetList(declarationsTracker, dartRequest,
           includedSuggestionSetList, includedElementNames);
@@ -1923,7 +1929,8 @@ class MetricsSuggestionListener implements SuggestionListener {
   String? missingCompletionLocationTable;
 
   @override
-  void builtSuggestion(protocol.CompletionSuggestion suggestion) {
+  void builtSuggestion(CompletionSuggestionBuilder suggestionBuilder) {
+    var suggestion = suggestionBuilder.build();
     featureMap[suggestion] = cachedFeatures;
     cachedFeatures = noFeatures;
   }

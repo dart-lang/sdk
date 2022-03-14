@@ -1,0 +1,241 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:7:13: Error: 'element' is already declared in this scope.
+//   final int element = 42; // Error.
+//             ^^^^^^^
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:6:3: Context: Previous declaration of 'element'.
+//   element;
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:12:3: Error: 'element' is already declared in this scope.
+//   element; // Error.
+//   ^^^^^^^
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:11:3: Context: Previous declaration of 'element'.
+//   element,
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:18:8: Error: 'element' is already declared in this scope.
+//   void element() {} // Error.
+//        ^^^^^^^
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:16:3: Context: Previous declaration of 'element'.
+//   element;
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:24:15: Error: 'element' is already declared in this scope.
+//   static void element() {} // Error.
+//               ^^^^^^^
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:22:3: Context: Previous declaration of 'element'.
+//   element;
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:30:14: Error: 'element' is already declared in this scope.
+//   static int element = 42; // Error.
+//              ^^^^^^^
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:28:3: Context: Previous declaration of 'element'.
+//   element;
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:34:3: Error: This static member conflicts with an instance member.
+//   element; // Error.
+//   ^^^^^^^
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:36:12: Context: This is the instance member.
+//   void set element(E6 value) {}
+//            ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:50:3: Error: Can't declare a member that conflicts with an inherited one.
+//   element // Error.
+//   ^^^^^^^
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:46:12: Context: This is the inherited member.
+//   void set element(dynamic value) {}
+//            ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:58:3: Error: Can't declare a member that conflicts with an inherited one.
+//   element // Error.
+//   ^^^^^^^
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:54:7: Context: This is the inherited member.
+//   int element = 42;
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:66:3: Error: Can't declare a member that conflicts with an inherited one.
+//   element // Error.
+//   ^^^^^^^
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:62:8: Context: This is the inherited member.
+//   void element() {}
+//        ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:57:6: Error: A constant constructor can't call a non-constant super constructor.
+// enum E9 with A9 {
+//      ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1> values = #C1;
+  final field core::int element = null;
+  const constructor •(core::int index, core::String name) → self::E1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2> values = #C5;
+  static const field self::E2 element = #C4;
+  const constructor •(core::int index, core::String name) → self::E2
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E3> values = #C6;
+  const constructor •(core::int index, core::String name) → self::E3
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+  method element() → void {}
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E4> values = #C7;
+  const constructor •(core::int index, core::String name) → self::E4
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+  static method element() → void {}
+}
+class E5 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E5> values = #C8;
+  static field core::int element = null;
+  const constructor •(core::int index, core::String name) → self::E5
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E6> values = #C10;
+  static const field self::E6 element = #C9;
+  const constructor •(core::int index, core::String name) → self::E6
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+  set element(self::E6 value) → void {}
+}
+class E7 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E7> values = #C12;
+  static const field self::E7 element = #C11;
+  const constructor •(core::int index, core::String name) → self::E7
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E7.${this.{core::_Enum::_name}{core::String}}";
+  static set element(self::E7 value) → void {}
+}
+class A8 extends core::Object {
+  synthetic constructor •() → self::A8
+    : super core::Object::•()
+    ;
+  set element(dynamic value) → void {}
+}
+abstract class _E8&_Enum&A8 = core::_Enum with self::A8 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&A8
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub set element(dynamic value) → void
+    return super.{self::A8::element} = value;
+}
+class E8 extends self::_E8&_Enum&A8 /*isEnum*/  {
+  static const field core::List<self::E8> values = #C14;
+  static const field self::E8 element = #C13;
+  const constructor •(core::int index, core::String name) → self::E8
+    : super self::_E8&_Enum&A8::•(index, name)
+    ;
+  method toString() → core::String
+    return "E8.${this.{core::_Enum::_name}{core::String}}";
+}
+class A9 extends core::Object {
+  field core::int element = 42;
+  synthetic constructor •() → self::A9
+    : super core::Object::•()
+    ;
+}
+abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin*/  {
+  synthetic constructor •(core::int index, core::String _name) → self::_E9&_Enum&A9
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get element() → core::int
+    return super.{self::A9::element};
+  mixin-super-stub set element(core::int value) → void
+    return super.{self::A9::element} = value;
+}
+class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
+  static const field core::List<self::E9> values = invalid-expression "A constant constructor can't call a non-constant super constructor.";
+  static const field self::E9 element = invalid-expression "A constant constructor can't call a non-constant super constructor.";
+  const constructor •(core::int index, core::String name) → self::E9
+    : super self::_E9&_Enum&A9::•(index, name)
+    ;
+  method toString() → core::String
+    return "E9.${this.{core::_Enum::_name}{core::String}}";
+}
+class A10 extends core::Object {
+  synthetic constructor •() → self::A10
+    : super core::Object::•()
+    ;
+  method element() → void {}
+}
+abstract class _E10&_Enum&A10 = core::_Enum with self::A10 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E10&_Enum&A10
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub method element() → void
+    return super.{self::A10::element}();
+}
+class E10 extends self::_E10&_Enum&A10 /*isEnum*/  {
+  static const field core::List<self::E10> values = #C16;
+  static const field self::E10 element = #C15;
+  const constructor •(core::int index, core::String name) → self::E10
+    : super self::_E10&_Enum&A10::•(index, name)
+    ;
+  method toString() → core::String
+    return "E10.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = <self::E1>[]
+  #C2 = 0
+  #C3 = "element"
+  #C4 = self::E2 {index:#C2, _name:#C3}
+  #C5 = <self::E2>[#C4]
+  #C6 = <self::E3>[]
+  #C7 = <self::E4>[]
+  #C8 = <self::E5>[]
+  #C9 = self::E6 {index:#C2, _name:#C3}
+  #C10 = <self::E6>[#C9]
+  #C11 = self::E7 {index:#C2, _name:#C3}
+  #C12 = <self::E7>[#C11]
+  #C13 = self::E8 {index:#C2, _name:#C3}
+  #C14 = <self::E8>[#C13]
+  #C15 = self::E10 {index:#C2, _name:#C3}
+  #C16 = <self::E10>[#C15]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///conflicting_elements.dart:
+- E2. (from org-dartlang-testcase:///conflicting_elements.dart:10:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- E6. (from org-dartlang-testcase:///conflicting_elements.dart:33:6)
+- E7. (from org-dartlang-testcase:///conflicting_elements.dart:39:6)
+- E8. (from org-dartlang-testcase:///conflicting_elements.dart:49:6)
+- _E8&_Enum&A8. (from org-dartlang-testcase:///conflicting_elements.dart:49:6)
+- E9. (from org-dartlang-testcase:///conflicting_elements.dart:57:6)
+- E10. (from org-dartlang-testcase:///conflicting_elements.dart:65:6)
+- _E10&_Enum&A10. (from org-dartlang-testcase:///conflicting_elements.dart:65:6)

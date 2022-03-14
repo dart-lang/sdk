@@ -11,7 +11,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:kernel/ast.dart' as kernel show Location, Source;
 
 import 'location_provider.dart' show LocationProvider;
-import '../../compiler_new.dart';
+import '../../compiler.dart';
 
 /// Represents a file of source code. The content can be either a [String] or
 /// a UTF-8 encoded [List<int>] of bytes.

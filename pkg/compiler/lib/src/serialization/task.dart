@@ -7,8 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import 'package:front_end/src/fasta/util/bytes_sink.dart';
-import '../../compiler_new.dart' as api;
-import '../backend_strategy.dart';
+import '../../compiler.dart' as api;
 import '../commandline_options.dart' show Flags;
 import '../common/codegen.dart';
 import '../common/tasks.dart';
@@ -22,6 +21,7 @@ import '../js_backend/backend.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/js_world.dart';
 import '../js_model/element_map_impl.dart';
+import '../js_model/js_strategy.dart';
 import '../js_model/locals.dart';
 import '../options.dart';
 import '../util/sink_adapter.dart';
@@ -287,7 +287,7 @@ class SerializationTask extends CompilerTask {
     });
   }
 
-  void serializeCodegen(BackendStrategy backendStrategy,
+  void serializeCodegen(JsBackendStrategy backendStrategy,
       CodegenResults codegenResults, DataSourceIndices indices) {
     GlobalTypeInferenceResults globalTypeInferenceResults =
         codegenResults.globalTypeInferenceResults;
@@ -321,7 +321,7 @@ class SerializationTask extends CompilerTask {
   }
 
   Future<CodegenResults> deserializeCodegen(
-      BackendStrategy backendStrategy,
+      JsBackendStrategy backendStrategy,
       GlobalTypeInferenceResults globalTypeInferenceResults,
       CodegenInputs codegenInputs,
       DataSourceIndices indices) async {
@@ -346,7 +346,7 @@ class SerializationTask extends CompilerTask {
   }
 
   void _deserializeCodegenInput(
-      BackendStrategy backendStrategy,
+      JsBackendStrategy backendStrategy,
       JClosedWorld closedWorld,
       Uri uri,
       api.Input<List<int>> dataInput,

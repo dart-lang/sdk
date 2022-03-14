@@ -24,10 +24,9 @@ abstract class TypeAnnotation {
   /// trailing `?`)
   bool get isNullable;
 
-  /// A convenience method to get a [Code] object representation of this full
-  /// type annotation, including support for generic type arguments as well as
-  /// function types.
-  Code get code;
+  /// A convenience method to get a [Code] object equivalent to this type
+  /// annotation.
+  TypeAnnotationCode get code;
 }
 
 /// The base class for function type declarations.
@@ -83,6 +82,9 @@ abstract class Declaration {
 abstract class ClassMemberDeclaration implements Declaration {
   /// The class that defines this method.
   Identifier get definingClass;
+
+  /// Whether or not this is a static member.
+  bool get isStatic;
 }
 
 /// A declaration that defines a new type in the program.
@@ -131,6 +133,9 @@ abstract class FunctionDeclaration implements Declaration {
   /// Whether this function has an `external` modifier.
   bool get isExternal;
 
+  /// Whether this function is an operator.
+  bool get isOperator;
+
   /// Whether this function is actually a getter.
   bool get isGetter;
 
@@ -173,10 +178,6 @@ abstract class VariableDeclaration implements Declaration {
 
   /// The type of this field.
   TypeAnnotation get type;
-
-  /// A [ExpressionCode] object representing the initializer for this field, if
-  /// present.
-  ExpressionCode? get initializer;
 }
 
 /// Field introspection information.
@@ -195,13 +196,19 @@ abstract class ParameterDeclaration implements Declaration {
   /// parameter or an optional parameter with the `required` keyword.
   bool get isRequired;
 
-  /// A [Code] object representing the default value for this parameter, if
-  /// present. Can be used to copy default values to other parameters.
-  Code? get defaultValue;
+  /// A convenience method to get a `code` object equivalent to this parameter.
+  ///
+  /// Note that the original default value will not be included, as it is not a
+  /// part of this API.
+  ParameterCode get code;
 }
 
 /// Type parameter introspection information.
 abstract class TypeParameterDeclaration implements Declaration {
-  /// The bounds for this type parameter, if it has any.
-  TypeAnnotation? get bounds;
+  /// The bound for this type parameter, if it has any.
+  TypeAnnotation? get bound;
+
+  /// A convenience method to get a `code` object equivalent to this type
+  /// parameter.
+  TypeParameterCode get code;
 }

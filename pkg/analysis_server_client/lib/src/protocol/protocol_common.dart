@@ -612,6 +612,23 @@ class CompletionSuggestion implements HasToJson {
   /// if the parameterName field is omitted.
   String? parameterType;
 
+  /// This field is omitted if getSuggestions was used rather than
+  /// getSuggestions2.
+  ///
+  /// This field is omitted if this suggestion corresponds to a locally
+  /// declared element.
+  ///
+  /// If this suggestion corresponds to an already imported element, then this
+  /// field is the URI of a library that provides this element, not the URI of
+  /// the library where the element is declared.
+  ///
+  /// If this suggestion corresponds to an element from a not yet imported
+  /// library, this field is the URI of a library that could be imported to
+  /// make this suggestion accessible in the file where completion was
+  /// requested, such as package:foo/bar.dart or
+  /// file:///home/me/workspace/foo/test/bar_test.dart.
+  String? libraryUri;
+
   /// True if the suggestion is for an element from a not yet imported library.
   /// This field is omitted if the element is declared locally, or is from
   /// library is already imported, so that the suggestion can be inserted as
@@ -642,6 +659,7 @@ class CompletionSuggestion implements HasToJson {
       this.hasNamedParameters,
       this.parameterName,
       this.parameterType,
+      this.libraryUri,
       this.isNotImported});
 
   factory CompletionSuggestion.fromJson(
@@ -781,6 +799,11 @@ class CompletionSuggestion implements HasToJson {
         parameterType = jsonDecoder.decodeString(
             jsonPath + '.parameterType', json['parameterType']);
       }
+      String? libraryUri;
+      if (json.containsKey('libraryUri')) {
+        libraryUri = jsonDecoder.decodeString(
+            jsonPath + '.libraryUri', json['libraryUri']);
+      }
       bool? isNotImported;
       if (json.containsKey('isNotImported')) {
         isNotImported = jsonDecoder.decodeBool(
@@ -804,6 +827,7 @@ class CompletionSuggestion implements HasToJson {
           hasNamedParameters: hasNamedParameters,
           parameterName: parameterName,
           parameterType: parameterType,
+          libraryUri: libraryUri,
           isNotImported: isNotImported);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'CompletionSuggestion', json);
@@ -884,6 +908,10 @@ class CompletionSuggestion implements HasToJson {
     if (parameterType != null) {
       result['parameterType'] = parameterType;
     }
+    var libraryUri = this.libraryUri;
+    if (libraryUri != null) {
+      result['libraryUri'] = libraryUri;
+    }
     var isNotImported = this.isNotImported;
     if (isNotImported != null) {
       result['isNotImported'] = isNotImported;
@@ -923,6 +951,7 @@ class CompletionSuggestion implements HasToJson {
           hasNamedParameters == other.hasNamedParameters &&
           parameterName == other.parameterName &&
           parameterType == other.parameterType &&
+          libraryUri == other.libraryUri &&
           isNotImported == other.isNotImported;
     }
     return false;
@@ -953,6 +982,7 @@ class CompletionSuggestion implements HasToJson {
         hasNamedParameters,
         parameterName,
         parameterType,
+        libraryUri,
         isNotImported,
       ]);
 }
@@ -1234,17 +1264,12 @@ class Element implements HasToJson {
   /// this field will not be defined.
   String? aliasedType;
 
-  /// If the element belongs to a library, the URI of the library. Otherwise,
-  /// this field will not be defined.
-  String? libraryUri;
-
   Element(this.kind, this.name, this.flags,
       {this.location,
       this.parameters,
       this.returnType,
       this.typeParameters,
-      this.aliasedType,
-      this.libraryUri});
+      this.aliasedType});
 
   factory Element.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1294,18 +1319,12 @@ class Element implements HasToJson {
         aliasedType = jsonDecoder.decodeString(
             jsonPath + '.aliasedType', json['aliasedType']);
       }
-      String? libraryUri;
-      if (json.containsKey('libraryUri')) {
-        libraryUri = jsonDecoder.decodeString(
-            jsonPath + '.libraryUri', json['libraryUri']);
-      }
       return Element(kind, name, flags,
           location: location,
           parameters: parameters,
           returnType: returnType,
           typeParameters: typeParameters,
-          aliasedType: aliasedType,
-          libraryUri: libraryUri);
+          aliasedType: aliasedType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'Element', json);
     }
@@ -1344,10 +1363,6 @@ class Element implements HasToJson {
     if (aliasedType != null) {
       result['aliasedType'] = aliasedType;
     }
-    var libraryUri = this.libraryUri;
-    if (libraryUri != null) {
-      result['libraryUri'] = libraryUri;
-    }
     return result;
   }
 
@@ -1364,8 +1379,7 @@ class Element implements HasToJson {
           parameters == other.parameters &&
           returnType == other.returnType &&
           typeParameters == other.typeParameters &&
-          aliasedType == other.aliasedType &&
-          libraryUri == other.libraryUri;
+          aliasedType == other.aliasedType;
     }
     return false;
   }
@@ -1380,7 +1394,6 @@ class Element implements HasToJson {
         returnType,
         typeParameters,
         aliasedType,
-        libraryUri,
       );
 }
 
@@ -2702,7 +2715,8 @@ class KytheVName implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LinkedEditGroup implements HasToJson {
-  /// The positions of the regions that should be edited simultaneously.
+  /// The positions of the regions (after applying the relevant edits) that
+  /// should be edited simultaneously.
   List<Position> positions;
 
   /// The length of the regions that should be edited simultaneously.
@@ -4359,8 +4373,14 @@ class SourceChange implements HasToJson {
   }
 
   /// Adds [edit] to the [FileEdit] for the given [file].
-  void addEdit(String file, int fileStamp, SourceEdit edit) =>
-      addEditToSourceChange(this, file, fileStamp, edit);
+  ///
+  /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+  /// other edits will be inserted such that they appear before them in the
+  /// resulting document.
+  void addEdit(String file, int fileStamp, SourceEdit edit,
+          {bool insertBeforeExisting = false}) =>
+      addEditToSourceChange(this, file, fileStamp, edit,
+          insertBeforeExisting: insertBeforeExisting);
 
   /// Adds the given [FileEdit].
   void addFileEdit(SourceFileEdit edit) {
@@ -4583,10 +4603,22 @@ class SourceFileEdit implements HasToJson {
   }
 
   /// Adds the given [Edit] to the list.
-  void add(SourceEdit edit) => addEditForSource(this, edit);
+  ///
+  /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+  /// other edits will be inserted such that they appear before them in the
+  /// resulting document.
+  void add(SourceEdit edit, {bool insertBeforeExisting = false}) =>
+      addEditForSource(this, edit, insertBeforeExisting: insertBeforeExisting);
 
   /// Adds the given [Edit]s.
-  void addAll(Iterable<SourceEdit> edits) => addAllEditsForSource(this, edits);
+  ///
+  /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+  /// other edits will be inserted such that they appear before them in the
+  /// resulting document.
+  void addAll(Iterable<SourceEdit> edits,
+          {bool insertBeforeExisting = false}) =>
+      addAllEditsForSource(this, edits,
+          insertBeforeExisting: insertBeforeExisting);
 
   @override
   String toString() => json.encode(toJson());

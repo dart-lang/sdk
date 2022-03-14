@@ -238,7 +238,7 @@ class LibrariesSpecification {
               _reportError(messageIncludePathIsNotAString(targetName, specUri));
             }
             Uri uri = Uri.parse(path);
-            if (uri.scheme != '' && uri.scheme != 'file') {
+            if (uri.hasScheme && !uri.isScheme('file')) {
               return _reportError(messageUnsupportedUriScheme(path, specUri));
             }
             LibrariesSpecification specification =
@@ -269,7 +269,7 @@ class LibrariesSpecification {
                 uriString, libraryName, targetName, specUri));
           }
           Uri uri = Uri.parse(uriString);
-          if (uri.scheme != '' && uri.scheme != 'file') {
+          if (uri.hasScheme && !uri.isScheme('file')) {
             return _reportError(
                 messageUnsupportedUriScheme(uriString, specUri));
           }

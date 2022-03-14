@@ -19,17 +19,17 @@ int compareLibrariesUris(Uri a, Uri b) {
   }
 
   // Order: platform < package < other.
-  if (a.scheme == 'dart') {
-    if (b.scheme == 'dart') return byCanonicalUriPath();
+  if (a.isScheme('dart')) {
+    if (b.isScheme('dart')) return byCanonicalUriPath();
     return -1;
   }
-  if (b.scheme == 'dart') return 1;
+  if (b.isScheme('dart')) return 1;
 
-  if (a.scheme == 'package') {
-    if (b.scheme == 'package') return byCanonicalUriPath();
+  if (a.isScheme('package')) {
+    if (b.isScheme('package')) return byCanonicalUriPath();
     return -1;
   }
-  if (b.scheme == 'package') return 1;
+  if (b.isScheme('package')) return 1;
 
   return _compareCanonicalUri(a, b);
 }

@@ -55,7 +55,7 @@ bool allowedNativeTest(Uri uri) {
 
 bool maybeEnableNative(Uri uri) {
   bool allowedDartLibrary() {
-    if (uri.scheme != 'dart') return false;
+    if (!uri.isScheme('dart')) return false;
     return _allowedDartSchemePaths.contains(uri.path);
   }
 
@@ -118,7 +118,7 @@ class Dart2jsTarget extends Target {
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       maybeEnableNative(importer) ||
-      (importer.scheme == 'package' &&
+      (importer.isScheme('package') &&
           importer.path.startsWith('dart2js_runtime_metrics/'));
 
   @override

@@ -1,0 +1,44 @@
+enum E1 {
+  element;
+
+  static const List<E1> values = [E1.element];
+}
+
+enum E2 {
+  element;
+
+  int values = 42;
+}
+
+enum E3 {
+  element;
+
+  static const List<E3> values = [E3.element];
+  int values = 42;
+}
+
+enum E4 {
+  element;
+
+  static void set values(List<E4> x) {}
+}
+
+enum E5 {
+  element;
+
+  static void set values(dynamic x) {}
+}
+
+enum E6 {
+  element;
+
+  static void set values(Never x) {}
+}
+
+enum E7 {
+  element;
+
+  void values() {}
+}
+
+main() {}

@@ -32,18 +32,6 @@ class DeclarationCode extends Code {
   DeclarationCode.fromParts(List<Object> parts) : super.fromParts(parts);
 }
 
-/// A piece of code representing a syntactically valid element.
-///
-/// Should not include any trailing commas,
-class ElementCode extends Code {
-  @override
-  CodeKind get kind => CodeKind.element;
-
-  ElementCode.fromString(String code) : super.fromString(code);
-
-  ElementCode.fromParts(List<Object> parts) : super.fromParts(parts);
-}
-
 /// A piece of code representing a syntactically valid expression.
 class ExpressionCode extends Code {
   @override
@@ -69,67 +57,200 @@ class FunctionBodyCode extends Code {
   FunctionBodyCode.fromParts(List<Object> parts) : super.fromParts(parts);
 }
 
-/// A piece of code identifying a named argument.
-///
-/// This should not include any trailing commas.
-class NamedArgumentCode extends Code {
-  @override
-  CodeKind get kind => CodeKind.namedArgument;
-
-  NamedArgumentCode.fromString(String code) : super.fromString(code);
-
-  NamedArgumentCode.fromParts(List<Object> parts) : super.fromParts(parts);
-}
-
 /// A piece of code identifying a syntactically valid function parameter.
 ///
-/// This should not include any trailing commas, but may include modifiers
-/// such as `required`, and default values.
+/// There is no distinction here made between named and positional parameters.
 ///
-/// There is no distinction here made between named and positional parameters,
-/// nor between optional or required parameters. It is the job of the user to
-/// construct and combine these together in a way that creates valid parameter
-/// lists.
-class ParameterCode extends Code {
+/// It is the job of the user to construct and combine these together in a way
+/// that creates valid parameter lists.
+class ParameterCode implements Code {
+  final Code? defaultValue;
+  final List<String> keywords;
+  final String name;
+  final TypeAnnotationCode? type;
+
   @override
   CodeKind get kind => CodeKind.parameter;
 
-  ParameterCode.fromString(String code) : super.fromString(code);
-
-  ParameterCode.fromParts(List<Object> parts) : super.fromParts(parts);
-}
-
-/// A piece of code representing a syntactically valid statement.
-///
-/// Should always end with a semicolon.
-class StatementCode extends Code {
   @override
-  CodeKind get kind => CodeKind.statement;
+  List<Object> get parts => [
+        if (keywords.isNotEmpty) ...[
+          ...keywords.joinAsCode(' '),
+          ' ',
+        ],
+        if (type != null) ...[
+          type!,
+          ' ',
+        ],
+        name,
+        if (defaultValue != null) ...[
+          ' = ',
+          defaultValue!,
+        ]
+      ];
 
-  StatementCode.fromString(String code) : super.fromString(code);
-
-  StatementCode.fromParts(List<Object> parts) : super.fromParts(parts);
+  ParameterCode({
+    this.defaultValue,
+    this.keywords = const [],
+    required this.name,
+    this.type,
+  });
 }
 
-extension Join<T extends Code> on List<T> {
+/// A piece of code representing a type annotation.
+abstract class TypeAnnotationCode implements Code {
+  /// Returns a [TypeAnnotationCode] object which is a non-nullable version
+  /// of this one.
+  ///
+  /// Returns the current instance if it is already non-nullable.
+  TypeAnnotationCode get asNonNullable => this;
+
+  /// Returns a [TypeAnnotationCode] object which is a non-nullable version
+  /// of this one.
+  ///
+  /// Returns the current instance if it is already nullable.
+  NullableTypeAnnotationCode get asNullable =>
+      new NullableTypeAnnotationCode(this);
+
+  /// Whether or not this type is nullable.
+  bool get isNullable => false;
+}
+
+/// The nullable version of an underlying type annotation.
+class NullableTypeAnnotationCode implements TypeAnnotationCode {
+  /// The underlying type that is being made nullable.
+  TypeAnnotationCode underlyingType;
+
+  @override
+  CodeKind get kind => CodeKind.nullableTypeAnnotation;
+
+  @override
+  List<Object> get parts => [...underlyingType.parts, '?'];
+
+  /// Creates a nullable [underlyingType] annotation.
+  ///
+  /// If [underlyingType] is a NullableTypeAnnotationCode, returns that
+  /// same type.
+  NullableTypeAnnotationCode(this.underlyingType);
+
+  @override
+  TypeAnnotationCode get asNonNullable => underlyingType;
+
+  @override
+  NullableTypeAnnotationCode get asNullable => this;
+
+  @override
+  bool get isNullable => true;
+}
+
+/// A piece of code representing a reference to a named type.
+class NamedTypeAnnotationCode extends TypeAnnotationCode {
+  final Identifier name;
+
+  final List<TypeAnnotationCode> typeArguments;
+
+  @override
+  CodeKind get kind => CodeKind.namedTypeAnnotation;
+
+  @override
+  List<Object> get parts => [
+        name,
+        if (typeArguments.isNotEmpty) ...[
+          '<',
+          ...typeArguments.joinAsCode(', '),
+          '>',
+        ],
+      ];
+
+  NamedTypeAnnotationCode({required this.name, this.typeArguments = const []});
+}
+
+/// A piece of code representing a function type annotation.
+class FunctionTypeAnnotationCode extends TypeAnnotationCode {
+  final List<ParameterCode> namedParameters;
+
+  final List<ParameterCode> positionalParameters;
+
+  final TypeAnnotationCode? returnType;
+
+  final List<TypeParameterCode> typeParameters;
+
+  @override
+  CodeKind get kind => CodeKind.functionTypeAnnotation;
+
+  @override
+  List<Object> get parts => [
+        if (returnType != null) returnType!,
+        ' Function',
+        if (typeParameters.isNotEmpty) ...[
+          '<',
+          ...typeParameters.joinAsCode(', '),
+          '>',
+        ],
+        '(',
+        for (ParameterCode positional in positionalParameters) ...[
+          positional,
+          ', ',
+        ],
+        if (namedParameters.isNotEmpty) ...[
+          '{',
+          for (ParameterCode named in namedParameters) ...[
+            named,
+            ', ',
+          ],
+          '}',
+        ],
+        ')',
+      ];
+
+  FunctionTypeAnnotationCode({
+    this.namedParameters = const [],
+    this.positionalParameters = const [],
+    this.returnType,
+    this.typeParameters = const [],
+  });
+}
+
+/// A piece of code representing a valid named type parameter.
+class TypeParameterCode implements Code {
+  final TypeAnnotationCode? bound;
+  final String name;
+
+  @override
+  CodeKind get kind => CodeKind.typeParameter;
+
+  @override
+  List<Object> get parts => [
+        name,
+        if (bound != null) ...[
+          ' extends ',
+          bound!,
+        ]
+      ];
+
+  TypeParameterCode({this.bound, required this.name});
+}
+
+extension Join<T extends Object> on List<T> {
   /// Joins all the items in [this] with [separator], and returns
   /// a new list.
-  List<Code> joinAsCode(String separator) => [
+  List<Object> joinAsCode(String separator) => [
         for (int i = 0; i < length - 1; i++) ...[
           this[i],
-          new Code.fromString(separator),
+          separator,
         ],
         last,
       ];
 }
 
 enum CodeKind {
-  raw,
   declaration,
-  element,
   expression,
   functionBody,
-  namedArgument,
+  functionTypeAnnotation,
+  namedTypeAnnotation,
+  nullableTypeAnnotation,
   parameter,
-  statement,
+  raw,
+  typeParameter,
 }

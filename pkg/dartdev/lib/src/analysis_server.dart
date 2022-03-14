@@ -44,9 +44,13 @@ class AnalysisServer {
 
   Process? _process;
 
-  Completer<bool> _analysisFinished = Completer();
+  /// When not null, this is a [Completer] which completes when analysis has
+  /// finished, otherwise `null`.
+  Completer<bool>? _analysisFinished;
 
   int _id = 0;
+
+  bool _shutdownResponseReceived = false;
 
   Stream<bool> get onAnalyzing {
     // {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
@@ -59,7 +63,7 @@ class AnalysisServer {
   /// This future completes when we next receive an analysis finished event
   /// (unless there's no current analysis and we've already received a complete
   /// event, in which case this future completes immediately).
-  Future<bool> get analysisFinished => _analysisFinished.future;
+  Future<bool>? get analysisFinished => _analysisFinished?.future;
 
   Stream<FileAnalysisErrors> get onErrors {
     // {"event":"analysis.errors","params":{"file":"/Users/.../lib/main.dart","errors":[]}}
@@ -80,11 +84,16 @@ class AnalysisServer {
   final Map<String, StreamController<Map<String, dynamic>>> _streamControllers =
       {};
 
+  /// Completes when an analysis server crash has been detected.
+  Future<void> get onCrash => _onCrash.future;
+
+  final _onCrash = Completer<void>();
+
   final Map<String, Completer<Map<String, dynamic>>> _requestCompleters = {};
 
-  Future<void> start() async {
+  Future<void> start({bool setAnalysisRoots = true}) async {
     preAnalysisServerStart?.call(commandName, analysisRoots, argResults);
-    final List<String> command = <String>[
+    final command = [
       sdk.analysisServerSnapshot,
       '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
       '--${Driver.CLIENT_ID}=dart-$commandName',
@@ -96,16 +105,41 @@ class AnalysisServer {
       if (packagesFile != null) '--packages=${packagesFile!.path}',
     ];
 
-    _process = await startDartProcess(sdk, command);
+    final process = await startDartProcess(sdk, command);
+    _process = process;
+    _shutdownResponseReceived = false;
     // This callback hookup can't throw.
-    _process!.exitCode.whenComplete(() => _process = null);
+    process.exitCode.whenComplete(() {
+      _process = null;
 
-    final Stream<String> errorStream = _process!.stderr
+      if (!_shutdownResponseReceived) {
+        // The process exited unexpectedly. Report the crash.
+        // If `server.error` reported an error, that has been logged by
+        // `_handleServerError`.
+
+        final error = StateError('The analysis server crashed unexpectedly');
+
+        final analysisFinished = _analysisFinished;
+        if (analysisFinished != null && !analysisFinished.isCompleted) {
+          // Complete this completer in order to unstick the process.
+          analysisFinished.completeError(error);
+        }
+
+        // Complete these completers in order to unstick the process.
+        for (final completer in _requestCompleters.values) {
+          completer.completeError(error);
+        }
+
+        _onCrash.complete();
+      }
+    });
+
+    final errorStream = process.stderr
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter());
     errorStream.listen(log.stderr);
 
-    final Stream<String> inStream = _process!.stdout
+    final inStream = process.stdout
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter());
     inStream.listen(_handleServerResponse);
@@ -120,27 +154,33 @@ class AnalysisServer {
     // protocol throws an error (INVALID_FILE_PATH_FORMAT) if there is a
     // trailing slash.
     //
-    // The call to absolute.resolveSymbolicLinksSync() canonicalizes the path to
-    // be passed to the analysis server.
-    List<String> analysisRootPaths = analysisRoots.map((root) {
-      return trimEnd(
-          root.absolute.resolveSymbolicLinksSync(), path.context.separator)!;
-    }).toList();
+    // The call to `absolute.resolveSymbolicLinksSync()` canonicalizes the path
+    // to be passed to the analysis server.
+    final analysisRootPaths = [
+      for (final root in analysisRoots)
+        trimEnd(
+            root.absolute.resolveSymbolicLinksSync(), path.context.separator),
+    ];
 
-    onAnalyzing.listen((bool isAnalyzing) {
-      if (isAnalyzing && _analysisFinished.isCompleted) {
+    onAnalyzing.listen((isAnalyzing) {
+      final analysisFinished = _analysisFinished;
+      if (isAnalyzing && (analysisFinished?.isCompleted ?? true)) {
         // Start a new completer, to be completed when we receive the
         // corresponding analysis complete event.
         _analysisFinished = Completer();
-      } else if (!isAnalyzing && !_analysisFinished.isCompleted) {
-        _analysisFinished.complete(true);
+      } else if (!isAnalyzing &&
+          analysisFinished != null &&
+          !analysisFinished.isCompleted) {
+        analysisFinished.complete(true);
       }
     });
 
-    await _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
-      'included': analysisRootPaths,
-      'excluded': <String>[]
-    });
+    if (setAnalysisRoots) {
+      await _sendCommand('analysis.setAnalysisRoots', params: {
+        'included': analysisRootPaths,
+        'excluded': [],
+      });
+    }
   }
 
   Future<String> getVersion() {
@@ -162,6 +202,7 @@ class AnalysisServer {
   Future<void> shutdown({Duration timeout = const Duration(seconds: 5)}) async {
     // Request shutdown.
     await _sendCommand('server.shutdown').then((value) {
+      _shutdownResponseReceived = true;
       return null;
     }).timeout(timeout, onTimeout: () async {
       await dispose();

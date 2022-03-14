@@ -116,8 +116,30 @@ String packageName(Info info) {
     info = info.parent;
   }
   if (info is LibraryInfo) {
-    if (info.uri.scheme == 'package') {
+    if (info.uri.isScheme('package')) {
       return '${info.uri}'.split('/').first;
+    }
+  }
+  return null;
+}
+
+/// Provides the group name associated with [info].
+///
+/// This corresponds to the package name, a Dart core library, 'file' for loose
+/// files, or null otherwise.
+String libraryGroupName(Info info) {
+  while (info.parent != null) {
+    info = info.parent;
+  }
+  if (info is LibraryInfo) {
+    if (info.uri.isScheme('package')) {
+      return '${info.uri}'.split('/').first;
+    }
+    if (info.uri.isScheme('dart')) {
+      return '${info.uri}';
+    }
+    if (info.uri.hasScheme) {
+      return info.uri.scheme;
     }
   }
   return null;

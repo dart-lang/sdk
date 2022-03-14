@@ -64,7 +64,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   }
 
   @override
-  FutureOr<int> run() async {
+  Future<int> run() async {
     final args = argResults!;
     var dryRun = args['dry-run'];
     var inTestMode = args['compare-to-golden'];
@@ -102,7 +102,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       argResults: argResults,
     );
 
-    await server.start();
+    await server.start(setAnalysisRoots: false);
 
     server.onExit.then((int exitCode) {
       if (computeFixesProgress != null && exitCode != 0) {
@@ -110,6 +110,12 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
         computeFixesProgress = null;
         io.exitCode = exitCode;
       }
+    });
+
+    server.onCrash.then((_) {
+      log.stderr('The analysis server shut down unexpectedly.');
+      log.stdout('Please report this at dartbug.com.');
+      io.exit(1);
     });
 
     Future<Map<String, BulkFix>> _applyAllEdits() async {

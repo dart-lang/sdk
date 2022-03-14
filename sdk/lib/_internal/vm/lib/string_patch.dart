@@ -986,6 +986,9 @@ class _OneByteString extends _StringBase {
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
+  // Intrinsic is more efficient than an inlined body even for the small
+  // strings.
+  @pragma('vm:never-inline')
   bool operator ==(Object other) {
     return super == other;
   }
@@ -1332,6 +1335,9 @@ class _TwoByteString extends _StringBase {
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
+  // Intrinsic is more efficient than an inlined body even for the small
+  // strings.
+  @pragma('vm:never-inline')
   bool operator ==(Object other) {
     return super == other;
   }

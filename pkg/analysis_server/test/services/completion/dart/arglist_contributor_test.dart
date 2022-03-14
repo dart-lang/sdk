@@ -168,6 +168,27 @@ build() => new Row(
     });
   }
 
+  Future<void> test_flutter_InstanceCreationExpression_3() async {
+    // Ensure a trailing comma is not added when only replacing the name.
+    writeTestPackageConfig(flutter: true);
+
+    addTestSource('''
+import 'package:flutter/material.dart';
+
+build() => new Row(
+    ke^: null,
+  );
+''');
+
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).containsMatch((suggestion) {
+      suggestion
+        ..completion.isEqualTo('key')
+        ..defaultArgumentListString.isNull
+        ..hasSelection(offset: 3);
+    });
+  }
+
   Future<void>
       test_flutter_InstanceCreationExpression_children_dynamic() async {
     // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
@@ -660,17 +681,15 @@ foo({String children}) {}
       check: (response) {
         _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
-            // TODO(scheglov) This does not seem right.
-            ..completion.isEqualTo('two: ')
+            ..completion.isEqualTo('two')
             ..parameterType.isEqualTo('int')
             ..hasEmptyReplacement()
-            ..hasSelection(offset: 5),
+            ..hasSelection(offset: 3),
           (suggestion) => suggestion
-            // TODO(scheglov) This does not seem right.
-            ..completion.isEqualTo('three: ')
+            ..completion.isEqualTo('three')
             ..parameterType.isEqualTo('double')
             ..hasEmptyReplacement()
-            ..hasSelection(offset: 7),
+            ..hasSelection(offset: 5),
         ]);
       },
     );
@@ -737,6 +756,16 @@ $languageVersionLine
 import 'a.dart' as p;
 @p.A$arguments
 void f() {}
+''');
+    await computeAndCheck();
+
+    // Enum constant.
+    addTestSource2('''
+$languageVersionLine
+enum E {
+  v$arguments;
+  const E$parameters;
+}
 ''');
     await computeAndCheck();
 

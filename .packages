@@ -2,10 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
-# .package file containing links to all packages in /pkg, and checked out
-# by DEPS into /third_party/pkg and /third_party/pkg_tested.
-# Please update this file if you add a package to DEPS or /pkg
-#
+# This file is generated; do not edit. To re-generate, run:
+#   'dart tools/generate_package_config.dart'.
+
 _fe_analyzer_shared:pkg/_fe_analyzer_shared/lib
 _js_interop_checks:pkg/_js_interop_checks/lib
 analysis_server:pkg/analysis_server/lib
@@ -20,10 +19,12 @@ async_helper:pkg/async_helper/lib
 bazel_worker:third_party/pkg/bazel_worker/lib
 benchmark_harness:third_party/pkg/benchmark_harness/lib
 boolean_selector:third_party/pkg/boolean_selector/lib
-build_integration:pkg/build_integration/lib
 browser_launcher:third_party/pkg/browser_launcher/lib
+build_integration:pkg/build_integration/lib
+characters:third_party/pkg/characters/lib
 charcode:third_party/pkg/charcode/lib
 cli_util:third_party/pkg/cli_util/lib
+clock:third_party/pkg/clock/lib
 collection:third_party/pkg/collection/lib
 compiler:pkg/compiler/lib
 convert:third_party/pkg/convert/lib
@@ -33,6 +34,7 @@ dart2js_info:pkg/dart2js_info/lib
 dart2js_runtime_metrics:pkg/dart2js_runtime_metrics/lib
 dart2js_tools:pkg/dart2js_tools/lib
 dart2native:pkg/dart2native/lib
+dart2wasm:pkg/dart2wasm/lib
 dart_internal:pkg/dart_internal/lib
 dart_style:third_party/pkg_tested/dart_style/lib
 dartdev:pkg/dartdev/lib
@@ -40,14 +42,15 @@ dartdoc:third_party/pkg/dartdoc/lib
 dds:pkg/dds/lib
 dds_service_extensions:pkg/dds_service_extensions/lib
 dev_compiler:pkg/dev_compiler/lib
-devtools_server:third_party/devtools/devtools_server/lib
 devtools_shared:third_party/devtools/devtools_shared/lib
-diagnostic:pkg/diagnostic/lib
 expect:pkg/expect/lib
 ffi:third_party/pkg/ffi/lib
+file:third_party/pkg/file/packages/file/lib
+file_testing:third_party/pkg/file/packages/file_testing/lib
 fixnum:third_party/pkg/fixnum/lib
-frontend_server:pkg/frontend_server/lib
 front_end:pkg/front_end/lib
+frontend_server:pkg/frontend_server/lib
+frontend_server_client:third_party/pkg/webdev/frontend_server_client/lib
 glob:third_party/pkg/glob/lib
 html:third_party/pkg/html/lib
 http:third_party/pkg/http/lib
@@ -73,7 +76,7 @@ native_stack_traces:pkg/native_stack_traces/lib
 nnbd_migration:pkg/nnbd_migration/lib
 oauth2:third_party/pkg/oauth2/lib
 observatory:runtime/observatory/lib
-observatory_test_package:runtime/observatory/tests/service/observatory_test_package
+observatory_2:runtime/observatory_2/lib
 package_config:third_party/pkg_tested/package_config/lib
 path:third_party/pkg/path/lib
 pedantic:third_party/pkg/pedantic/lib
@@ -83,6 +86,7 @@ process:third_party/pkg/process/lib
 protobuf:third_party/pkg/protobuf/protobuf/lib
 pub:third_party/pkg/pub/lib
 pub_semver:third_party/pkg/pub_semver/lib
+scrape:pkg/scrape/lib
 sdk_library_metadata:sdk/lib/_internal/sdk_library_metadata/lib
 shelf:third_party/pkg/shelf/lib
 shelf_packages_handler:third_party/pkg/shelf_packages_handler/lib
@@ -91,9 +95,9 @@ shelf_static:third_party/pkg/shelf_static/lib
 shelf_web_socket:third_party/pkg/shelf_web_socket/lib
 smith:pkg/smith/lib
 source_map_stack_trace:third_party/pkg/source_map_stack_trace/lib
-sourcemap_testing:pkg/sourcemap_testing/lib
 source_maps:third_party/pkg/source_maps/lib
 source_span:third_party/pkg/source_span/lib
+sourcemap_testing:pkg/sourcemap_testing/lib
 sse:third_party/pkg/sse/lib
 stack_trace:third_party/pkg/stack_trace/lib
 status_file:pkg/status_file/lib
@@ -106,7 +110,6 @@ test:third_party/pkg/test/pkgs/test/lib
 test_api:third_party/pkg/test/pkgs/test_api/lib
 test_core:third_party/pkg/test/pkgs/test_core/lib
 test_descriptor:third_party/pkg/test_descriptor/lib
-test_package:pkg/vm_service/test/test_package
 test_process:third_party/pkg/test_process/lib
 test_reflective_loader:third_party/pkg/test_reflective_loader/lib
 test_runner:pkg/test_runner/lib
@@ -117,9 +120,11 @@ vector_math:third_party/pkg/vector_math/lib
 vm:pkg/vm/lib
 vm_service:pkg/vm_service/lib
 vm_snapshot_analysis:pkg/vm_snapshot_analysis/lib
+wasm_builder:pkg/wasm_builder/lib
 watcher:third_party/pkg/watcher/lib
-webdriver:third_party/pkg/webdriver/lib
-webkit_inspection_protocol:third_party/pkg/webkit_inspection_protocol/lib
 web_components:third_party/pkg/web_components/lib
 web_socket_channel:third_party/pkg/web_socket_channel/lib
+webdriver:third_party/pkg/webdriver/lib
+webkit_inspection_protocol:third_party/pkg/webkit_inspection_protocol/lib
 yaml:third_party/pkg/yaml/lib
+yaml_edit:third_party/pkg/yaml_edit/lib

@@ -10,14 +10,27 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolNegationExpressionTest);
-    defineReflectiveTests(NonBoolNegationExpressionWithNullSafetyTest);
+    defineReflectiveTests(NonBoolNegationExpressionWithoutNullSafetyTest);
     defineReflectiveTests(NonBoolNegationExpressionWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
-class NonBoolNegationExpressionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+class NonBoolNegationExpressionTest extends PubPackageResolutionTest {
+  test_null() async {
+    await assertErrorsInCode('''
+void m(Null x) {
+  !x;
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 20, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonBoolNegationExpressionWithoutNullSafetyTest
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_nonBool() async {
     await assertErrorsInCode(r'''
 f() {
@@ -44,20 +57,6 @@ f(Object o) {
   !o;
 }
 ''');
-  }
-}
-
-@reflectiveTest
-class NonBoolNegationExpressionWithNullSafetyTest
-    extends PubPackageResolutionTest {
-  test_null() async {
-    await assertErrorsInCode('''
-void m(Null x) {
-  !x;
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 20, 1),
-    ]);
   }
 }
 

@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -40,14 +41,15 @@ class PrefixExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(PrefixExpressionImpl node) {
+  void resolve(PrefixExpressionImpl node, {required DartType? contextType}) {
     var operator = node.operator.type;
 
     if (operator == TokenType.BANG) {
-      _resolveNegation(node);
+      _resolveNegation(node, contextType: contextType);
       return;
     }
 
+    var operand = node.operand;
     if (operator.isIncrementOperator) {
       var operandResolution = _resolver.resolveForWrite(
         node: node.operand,
@@ -57,7 +59,6 @@ class PrefixExpressionResolver {
       var readElement = operandResolution.readElement;
       var writeElement = operandResolution.writeElement;
 
-      var operand = node.operand;
       _resolver.setReadElement(operand, readElement);
       _resolver.setWriteElement(operand, writeElement);
       _resolver.migrationResolutionHooks
@@ -65,11 +66,18 @@ class PrefixExpressionResolver {
 
       _assignmentShared.checkFinalAlreadyAssigned(node.operand);
     } else {
-      node.operand.accept(_resolver);
+      DartType? innerContextType;
+      if (operator == TokenType.MINUS && operand is IntegerLiteralImpl) {
+        // Negated integer literals should undergo int->double conversion in the
+        // same circumstances as non-negated integer literals, so pass the
+        // context type through.
+        innerContextType = contextType;
+      }
+      _resolver.analyzeExpression(operand, innerContextType);
     }
 
     _resolve1(node);
-    _resolve2(node);
+    _resolve2(node, contextType: contextType);
   }
 
   /// Check that the result [type] of a prefix or postfix `++` or `--`
@@ -101,11 +109,11 @@ class PrefixExpressionResolver {
       // We are invoking a getter and then invoking the returned function.
       //
       var propertyType = element.type;
-      return _resolver.inferenceHelper.computeInvokeReturnType(
+      return InvocationInferrer.computeInvokeReturnType(
         propertyType.returnType,
       );
     } else if (element is ExecutableElement) {
-      return _resolver.inferenceHelper.computeInvokeReturnType(element.type);
+      return InvocationInferrer.computeInvokeReturnType(element.type);
     }
     return DynamicTypeImpl.instance;
   }
@@ -182,10 +190,11 @@ class PrefixExpressionResolver {
     }
   }
 
-  void _resolve2(PrefixExpressionImpl node) {
+  void _resolve2(PrefixExpressionImpl node, {required DartType? contextType}) {
     TokenType operator = node.operator.type;
     if (identical(node.readType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
+      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance,
+          contextType: contextType);
     } else {
       // The other cases are equivalent to invoking a method.
       var staticMethodElement = node.staticElement;
@@ -206,23 +215,25 @@ class PrefixExpressionResolver {
           }
         }
       }
-      _inferenceHelper.recordStaticType(node, staticType);
+      _inferenceHelper.recordStaticType(node, staticType,
+          contextType: contextType);
     }
     _resolver.nullShortingTermination(node);
   }
 
-  void _resolveNegation(PrefixExpressionImpl node) {
+  void _resolveNegation(PrefixExpressionImpl node,
+      {required DartType? contextType}) {
     var operand = node.operand;
-    InferenceContext.setType(operand, _typeProvider.boolType);
 
-    operand.accept(_resolver);
+    _resolver.analyzeExpression(operand, _typeProvider.boolType);
     operand = node.operand;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(operand);
 
     _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand,
         whyNotPromoted: whyNotPromoted);
 
-    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
+    _inferenceHelper.recordStaticType(node, _typeProvider.boolType,
+        contextType: contextType);
 
     _resolver.flowAnalysis.flow?.logicalNot_end(node, operand);
   }

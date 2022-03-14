@@ -565,7 +565,7 @@ class LibraryAnalyzer {
     String content = file.content;
     var unit = file.parse(errorListener);
 
-    _fileToLineInfo[file] = unit.lineInfo!;
+    _fileToLineInfo[file] = unit.lineInfo;
     _fileToIgnoreInfo[file] = IgnoreInfo.forDart(unit, content);
 
     return unit;
@@ -956,8 +956,16 @@ class LibraryAnalyzer {
         return true;
       }
 
-      // We have a contributor that looks at the type, but it is syntactic.
       if (parent is FormalParameter && parent.identifier == node) {
+        // We use elements to access fields.
+        if (parent is FieldFormalParameter) {
+          return false;
+        }
+        // We use elements to access the enclosing constructor.
+        if (parent is SuperFormalParameter) {
+          return false;
+        }
+        // We have a contributor that looks at the type, but it is syntactic.
         return true;
       }
 
@@ -972,6 +980,12 @@ class LibraryAnalyzer {
       // The name of a NamedType does not provide any context.
       // So, we don't need to resolve anything.
       if (parent is NamedType) {
+        // `{foo^ print(0);}` looks as `foo print; (0);`.
+        var parent3 = parent.parent?.parent;
+        if (parent3 is VariableDeclarationStatement &&
+            parent3.semicolon.isSynthetic) {
+          return false;
+        }
         return true;
       }
 

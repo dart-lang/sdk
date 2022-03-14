@@ -81,11 +81,9 @@ class NotImportedContributor extends DartCompletionContributor {
       var exportNamespace = element.exportNamespace;
       var exportElements = exportNamespace.definedNames.values.toList();
 
+      builder.libraryUriStr = file.uriStr;
       builder.isNotImportedLibrary = true;
       builder.laterReplacesEarlier = false;
-      builder.suggestionAdded = (suggestion) {
-        additionalData.set.add(suggestion);
-      };
 
       if (request.includeIdentifiers) {
         _buildSuggestions(exportElements);
@@ -95,9 +93,9 @@ class NotImportedContributor extends DartCompletionContributor {
         _extensions(exportElements),
       );
 
+      builder.libraryUriStr = null;
       builder.isNotImportedLibrary = false;
       builder.laterReplacesEarlier = true;
-      builder.suggestionAdded = null;
     }
   }
 

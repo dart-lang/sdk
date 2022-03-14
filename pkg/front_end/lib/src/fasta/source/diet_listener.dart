@@ -332,6 +332,7 @@ class DietListener extends StackListenerImpl {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -520,7 +521,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     debugEvent("Import");
     Object? name = pop(NullValue.Prefix);
 
@@ -530,7 +531,7 @@ class DietListener extends StackListenerImpl {
 
     // Native imports must be skipped because they aren't assigned corresponding
     // LibraryDependency nodes.
-    Token importUriToken = importKeyword.next!;
+    Token importUriToken = augmentToken?.next ?? importKeyword.next!;
     String importUri =
         unescapeString(importUriToken.lexeme, importUriToken, this);
     if (importUri.startsWith("dart-ext:")) return;
@@ -722,8 +723,18 @@ class DietListener extends StackListenerImpl {
       builder =
           lookupConstructor(beginToken, name!) as SourceFunctionBuilderImpl;
     } else {
-      builder = lookupBuilder(beginToken, getOrSet, name as String)
-          as SourceFunctionBuilderImpl;
+      Builder? memberBuilder =
+          lookupBuilder(beginToken, getOrSet, name as String);
+      if (currentClass?.isEnum == true &&
+          memberBuilder is SourceFieldBuilder &&
+          memberBuilder.name == "values") {
+        // This is the case of a method with the name 'values' declared in an
+        // Enum. In that case the method is replaced with the synthesized field
+        // in the outline building phase, and the error is reported there. At
+        // this point we skip the member.
+        return;
+      }
+      builder = memberBuilder as SourceFunctionBuilderImpl;
     }
     buildFunctionBody(
         createFunctionListener(builder),
@@ -906,8 +917,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginClassDeclaration(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginClassDeclaration(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     debugEvent("beginClassDeclaration");
     push(begin);
   }
@@ -919,7 +930,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(
+      Token? augmentToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     push(mixinKeyword);
   }
@@ -1022,6 +1034,7 @@ class DietListener extends StackListenerImpl {
   @override
   void endEnumFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1118,7 +1131,7 @@ class DietListener extends StackListenerImpl {
     } else if (getOrSet != null && optional("set", getOrSet)) {
       declaration = libraryBuilder.scope.lookupLocalMember(name, setter: true);
     } else {
-      declaration = libraryBuilder.scopeBuilder[name];
+      declaration = libraryBuilder.scope.lookupLocalMember(name, setter: false);
     }
     declaration = handleDuplicatedName(declaration, token);
     checkBuilder(token, declaration, name);
@@ -1139,7 +1152,7 @@ class DietListener extends StackListenerImpl {
     if (libraryBuilder.enableConstructorTearOffsInLibrary) {
       suffix = suffix == "new" ? "" : suffix;
     }
-    declaration = currentClass!.constructors.local[suffix];
+    declaration = currentClass!.constructorScope.local[suffix];
     declaration = handleDuplicatedName(declaration, token);
     checkBuilder(token, declaration, nameOrQualified);
     return declaration;

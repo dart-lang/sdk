@@ -122,7 +122,7 @@ class TypesBuilder {
 
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
-      var type = extendsClause.superclass2.type;
+      var type = extendsClause.superclass.type;
       if (type is InterfaceType && _isInterfaceTypeClass(type)) {
         element.supertype = type;
       } else {
@@ -135,18 +135,18 @@ class TypesBuilder {
     }
 
     element.mixins = _toInterfaceTypeList(
-      node.withClause?.mixinTypes2,
+      node.withClause?.mixinTypes,
     );
 
     element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces2,
+      node.implementsClause?.interfaces,
     );
   }
 
   void _classTypeAlias(ClassTypeAlias node) {
     var element = node.declaredElement as ClassElementImpl;
 
-    var superType = node.superclass2.type;
+    var superType = node.superclass.type;
     if (superType is InterfaceType && _isInterfaceTypeInterface(superType)) {
       element.supertype = superType;
     } else {
@@ -154,11 +154,11 @@ class TypesBuilder {
     }
 
     element.mixins = _toInterfaceTypeList(
-      node.withClause.mixinTypes2,
+      node.withClause.mixinTypes,
     );
 
     element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces2,
+      node.implementsClause?.interfaces,
     );
   }
 
@@ -223,7 +223,15 @@ class TypesBuilder {
   }
 
   void _enumDeclaration(EnumDeclaration node) {
-    // TODO(scheglov) implement
+    var element = node.declaredElement as EnumElementImpl;
+
+    element.mixins = _toInterfaceTypeList(
+      node.withClause?.mixinTypes,
+    );
+
+    element.interfaces = _toInterfaceTypeList(
+      node.implementsClause?.interfaces,
+    );
   }
 
   void _extensionDeclaration(ExtensionDeclaration node) {
@@ -294,7 +302,7 @@ class TypesBuilder {
     var element = node.declaredElement as MixinElementImpl;
 
     var constraints = _toInterfaceTypeList(
-      node.onClause?.superclassConstraints2,
+      node.onClause?.superclassConstraints,
     );
     if (constraints.isEmpty) {
       constraints = [_objectType(element)];
@@ -302,7 +310,7 @@ class TypesBuilder {
     element.superclassConstraints = constraints;
 
     element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces2,
+      node.implementsClause?.interfaces,
     );
   }
 
@@ -362,7 +370,7 @@ class TypesBuilder {
 
 /// Performs mixins inference in a [ClassDeclaration].
 class _MixinInference {
-  final ClassElementImpl element;
+  final AbstractClassElementImpl element;
   final TypeSystemImpl typeSystem;
   final FeatureSet featureSet;
   final InterfaceType classType;
@@ -387,7 +395,7 @@ class _MixinInference {
   void perform(WithClause? withClause) {
     if (withClause == null) return;
 
-    for (var mixinNode in withClause.mixinTypes2) {
+    for (var mixinNode in withClause.mixinTypes) {
       var mixinType = _inferSingle(mixinNode as NamedTypeImpl);
       interfacesMerger.addWithSupertypes(mixinType);
     }
@@ -512,14 +520,15 @@ class _MixinsInference {
   /// we are inferring the [element] now, i.e. there is a loop.
   ///
   /// This is an error. So, we return the empty list, and break the loop.
-  List<InterfaceType> _callbackWhenLoop(ClassElementImpl element) {
+  List<InterfaceType> _callbackWhenLoop(AbstractClassElementImpl element) {
     element.mixinInferenceCallback = null;
     return <InterfaceType>[];
   }
 
   /// This method is invoked when mixins are asked from the [element], and
   /// we are not inferring the [element] now, i.e. there is no loop.
-  List<InterfaceType>? _callbackWhenRecursion(ClassElementImpl element) {
+  List<InterfaceType>? _callbackWhenRecursion(
+      AbstractClassElementImpl element) {
     var node = _linker.getLinkingNode(element);
     if (node != null) {
       _inferDeclaration(node);
@@ -528,7 +537,7 @@ class _MixinsInference {
     return null;
   }
 
-  void _infer(ClassElementImpl element, WithClause? withClause) {
+  void _infer(AbstractClassElementImpl element, WithClause? withClause) {
     if (withClause != null) {
       element.mixinInferenceCallback = _callbackWhenLoop;
       try {
@@ -537,7 +546,7 @@ class _MixinsInference {
       } finally {
         element.mixinInferenceCallback = null;
         element.mixins = _toInterfaceTypeList(
-          withClause.mixinTypes2,
+          withClause.mixinTypes,
         );
       }
     }
@@ -549,6 +558,9 @@ class _MixinsInference {
       _infer(element, node.withClause);
     } else if (node is ClassTypeAlias) {
       var element = node.declaredElement as ClassElementImpl;
+      _infer(element, node.withClause);
+    } else if (node is EnumDeclaration) {
+      var element = node.declaredElement as EnumElementImpl;
       _infer(element, node.withClause);
     }
   }

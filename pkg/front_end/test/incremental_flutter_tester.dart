@@ -120,7 +120,7 @@ Future<void> main(List<String> args) async {
   List<Uri> uris = c.uriToSource.values
       .map((s) => s.importUri)
       .whereType<Uri>()
-      .where((u) => u.scheme != "dart")
+      .where((u) => !u.isScheme("dart"))
       .toSet()
       .toList();
 

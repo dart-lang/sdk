@@ -14,6 +14,7 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -37,6 +38,52 @@ void main() {
     defineReflectiveTests(CompletionDomainHandlerGetSuggestions2Test);
     defineReflectiveTests(CompletionDomainHandlerGetSuggestionsTest);
   });
+}
+
+/// TODO(scheglov) this is duplicate
+class AnalysisOptionsFileConfig {
+  final List<String> experiments;
+  final bool implicitCasts;
+  final bool implicitDynamic;
+  final List<String> lints;
+  final bool strictCasts;
+  final bool strictInference;
+  final bool strictRawTypes;
+
+  AnalysisOptionsFileConfig({
+    this.experiments = const [],
+    this.implicitCasts = true,
+    this.implicitDynamic = true,
+    this.lints = const [],
+    this.strictCasts = false,
+    this.strictInference = false,
+    this.strictRawTypes = false,
+  });
+
+  String toContent() {
+    var buffer = StringBuffer();
+
+    buffer.writeln('analyzer:');
+    buffer.writeln('  enable-experiment:');
+    for (var experiment in experiments) {
+      buffer.writeln('    - $experiment');
+    }
+    buffer.writeln('  language:');
+    buffer.writeln('    strict-casts: $strictCasts');
+    buffer.writeln('    strict-inference: $strictInference');
+    buffer.writeln('    strict-raw-types: $strictRawTypes');
+    buffer.writeln('  strong-mode:');
+    buffer.writeln('    implicit-casts: $implicitCasts');
+    buffer.writeln('    implicit-dynamic: $implicitDynamic');
+
+    buffer.writeln('linter:');
+    buffer.writeln('  rules:');
+    for (var lint in lints) {
+      buffer.writeln('    - $lint');
+    }
+
+    return buffer.toString();
+  }
 }
 
 @reflectiveTest
@@ -149,7 +196,7 @@ void f() {
             testFilePathPlatform, 0, 'Random', '[foo]:bar')
         .toRequest('0');
 
-    var response = await _handleRequest(request);
+    var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_PARAMETER);
     // TODO(scheglov) Check that says "libraryUri".
   }
@@ -161,7 +208,7 @@ void f() {
         CompletionGetSuggestionDetails2Params('foo', 0, 'Random', 'dart:math')
             .toRequest('0');
 
-    var response = await _handleRequest(request);
+    var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_FILE_PATH_FORMAT);
   }
 
@@ -1162,10 +1209,14 @@ void f(A a) {
     check(response).suggestions.matches([
       (suggestion) => suggestion
         ..completion.isEqualTo('foo01')
-        ..isGetter,
+        ..isGetter
+        ..libraryUri.isNull
+        ..isNotImported.isNull,
       (suggestion) => suggestion
         ..completion.isEqualTo('foo02')
-        ..isGetter,
+        ..isGetter
+        ..libraryUri.isNull
+        ..isNotImported.isNull,
     ]);
   }
 
@@ -1609,6 +1660,29 @@ void f() {
     ]);
   }
 
+  Future<void> test_prefixed_importPrefix_class() async {
+    await _configureWithWorkspaceRoot();
+
+    var response = await _getTestCodeSuggestions('''
+import 'dart:math' as math;
+
+void f() {
+  math.Rand^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 4);
+
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('Random')
+        ..libraryUri.isEqualTo('dart:math')
+        ..isNotImported.isNull,
+    ]);
+  }
+
   Future<void> test_unprefixed_filters() async {
     await _configureWithWorkspaceRoot();
 
@@ -1664,10 +1738,14 @@ void f() {
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
         ..completion.isEqualTo('A01')
-        ..isClass,
+        ..isClass
+        ..libraryUri.isEqualTo('package:test/a.dart')
+        ..isNotImported.isNull,
       (suggestion) => suggestion
         ..completion.isEqualTo('A02')
-        ..isClass,
+        ..isClass
+        ..libraryUri.isEqualTo('package:test/b.dart')
+        ..isNotImported.isNull,
     ]);
   }
 
@@ -1698,10 +1776,14 @@ void f() {
     check(response).suggestions.matches([
       (suggestion) => suggestion
         ..completion.isEqualTo('foo01')
-        ..isTopLevelVariable,
+        ..isTopLevelVariable
+        ..libraryUri.isEqualTo('package:test/a.dart')
+        ..isNotImported.isNull,
       (suggestion) => suggestion
         ..completion.isEqualTo('foo02')
-        ..isTopLevelVariable,
+        ..isTopLevelVariable
+        ..libraryUri.isEqualTo('package:test/b.dart')
+        ..isNotImported.isNull,
     ]);
   }
 
@@ -1724,7 +1806,8 @@ void f() {
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
         ..completion.isEqualTo('math.Random')
-        ..libraryUriToImport.isNull,
+        ..libraryUri.isEqualTo('dart:math')
+        ..isNotImported.isNull,
     ]);
   }
 
@@ -1918,7 +2001,7 @@ void f() {
       0,
       1 << 10,
     ).toRequest(id);
-    var futureResponse = _handleRequest(request);
+    var futureResponse = handleRequest(request);
     return RequestWithFutureResponse(offset, request, futureResponse);
   }
 }
@@ -2058,8 +2141,8 @@ class A {
   Future<void> test_ArgumentList_imported_function_named_param_label3() async {
     addTestFile('void f() { int.parse("16", ^: 16);}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ');
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ');
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix');
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError');
     expect(suggestions, hasLength(2));
   }
 
@@ -2846,6 +2929,12 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     return server.handlers.whereType<CompletionDomainHandler>().single;
   }
 
+  List<String> get experiments => [
+        EnableString.enhanced_enums,
+        EnableString.named_arguments_anywhere,
+        EnableString.super_parameters,
+      ];
+
   String get testFileContent => getFile(testFilePath).readAsStringSync();
 
   String get testFilePath => '$testPackageLibPath/test.dart';
@@ -2862,6 +2951,20 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   String get workspaceRootPath => '/home';
 
+  void deleteTestPackageAnalysisOptionsFile() {
+    deleteAnalysisOptionsYamlFile(testPackageRootPath);
+  }
+
+  void deleteTestPackageConfigJsonFile() {
+    deletePackageConfigJsonFile(testPackageRootPath);
+  }
+
+  Future<Response> handleRequest(Request request) async {
+    return await serverChannel.sendRequest(request);
+  }
+
+  void processNotification(Notification notification) {}
+
   Future<void> setRoots({
     required List<String> included,
     required List<String> excluded,
@@ -2877,6 +2980,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     );
   }
 
+  @mustCallSuper
   void setUp() {
     serverChannel = MockServerChannel();
 
@@ -2887,6 +2991,14 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     );
 
     writeTestPackageConfig();
+
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+      ),
+    );
+
+    serverChannel.notifications.listen(processNotification);
 
     server = AnalysisServer(
       serverChannel,
@@ -2904,6 +3016,13 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     newPackageConfigJsonFile(
       root.path,
       content: config.toContent(toUriStr: toUriStr),
+    );
+  }
+
+  void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      content: config.toContent(),
     );
   }
 
@@ -2935,13 +3054,9 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     await server.onAnalysisComplete;
   }
 
-  Future<Response> _handleRequest(Request request) async {
-    return await serverChannel.sendRequest(request);
-  }
-
   /// Validates that the given [request] is handled successfully.
   Future<Response> _handleSuccessfulRequest(Request request) async {
-    var response = await _handleRequest(request);
+    var response = await handleRequest(request);
     expect(response, isResponseSuccess(request.id));
     return response;
   }

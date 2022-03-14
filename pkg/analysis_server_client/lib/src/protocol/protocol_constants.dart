@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.32.9';
+const String PROTOCOL_VERSION = '1.32.10';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -138,6 +138,8 @@ const String COMPLETION_NOTIFICATION_RESULTS_REPLACEMENT_OFFSET =
 const String COMPLETION_NOTIFICATION_RESULTS_RESULTS = 'results';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS = 'completion.getSuggestions';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS2 = 'completion.getSuggestions2';
+const String COMPLETION_REQUEST_GET_SUGGESTIONS2_COMPLETION_CASE_MATCHING_MODE =
+    'completionCaseMatchingMode';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS2_COMPLETION_MODE =
     'completionMode';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS2_FILE = 'file';

@@ -12,12 +12,13 @@ import 'abstract_rename.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RenameConstructorTest);
+    defineReflectiveTests(RenameConstructorClassTest);
+    defineReflectiveTests(RenameConstructorEnumTest);
   });
 }
 
 @reflectiveTest
-class RenameConstructorTest extends RenameRefactoringTest {
+class RenameConstructorClassTest extends _RenameConstructorTest {
   Future<void> test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
 main() {
@@ -285,7 +286,287 @@ main() {
         RenameRefactoring.create(workspace, testAnalysisResult, null);
     expect(refactoring, isNull);
   }
+}
 
+@reflectiveTest
+class RenameConstructorEnumTest extends _RenameConstructorTest {
+  Future<void> test_checkNewName() async {
+    await indexTestUnit('''
+enum E {
+  v.test();
+  const E.test(); // 0
+}
+''');
+    createRenameRefactoringAtString('test(); // 0');
+    expect(refactoring.oldName, 'test');
+    // same
+    refactoring.newName = 'test';
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            'The new name must be different than the current name.');
+    // empty
+    refactoring.newName = '';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+    // OK
+    refactoring.newName = 'newName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_hasMember_constructor() async {
+    await indexTestUnit('''
+enum E {
+  v.test();
+  const E.test(); // 0
+  const E.newName(); // existing
+}
+''');
+    _createConstructorDeclarationRefactoring('test(); // 0');
+    // check status
+    refactoring.newName = 'newName';
+    var status = refactoring.checkNewName();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Class 'E' already declares constructor with name 'newName'.",
+        expectedContextSearch: 'newName(); // existing');
+  }
+
+  Future<void> test_checkNewName_hasMember_method() async {
+    await indexTestUnit('''
+enum E {
+  v.test();
+  const E.test(); // 0
+  void newName() {} // existing
+}
+''');
+    _createConstructorDeclarationRefactoring('test(); // 0');
+    // check status
+    refactoring.newName = 'newName';
+    var status = refactoring.checkNewName();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Class 'E' already declares method with name 'newName'.",
+        expectedContextSearch: 'newName() {} // existing');
+  }
+
+  Future<void> test_createChange_add() async {
+    await indexTestUnit('''
+/// [E.new]
+enum E {
+  v1(), v2.new(), v3, v4.other();
+  const E(); // 0
+  const E.other() : this();
+}
+''');
+    // configure refactoring
+    _createConstructorDeclarationRefactoring('(); // 0');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName(), v4.other();
+  const E.newName(); // 0
+  const E.other() : this.newName();
+}
+''');
+  }
+
+  Future<void> test_createChange_add_toSynthetic_hasConstructor() async {
+    await indexTestUnit('''
+/// [E.new]
+enum E {
+  v1(), v2.new(), v3;
+
+  factory E.other() => throw 0;
+}
+''');
+    // configure refactoring
+    _createEnumConstantRefactoring('v1()');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName();
+
+  factory E.other() => throw 0;
+
+  const E.newName();
+}
+''');
+  }
+
+  Future<void> test_createChange_add_toSynthetic_hasField() async {
+    await indexTestUnit('''
+/// [E.new]
+enum E {
+  v1(), v2.new(), v3;
+
+  final int foo = 0;
+}
+''');
+    // configure refactoring
+    _createEnumConstantRefactoring('v1()');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName();
+
+  final int foo = 0;
+
+  const E.newName();
+}
+''');
+  }
+
+  Future<void> test_createChange_add_toSynthetic_hasMethod() async {
+    await indexTestUnit('''
+/// [E.new]
+enum E {
+  v1(), v2.new(), v3;
+
+  void foo() {}
+}
+''');
+    // configure refactoring
+    _createEnumConstantRefactoring('v1()');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName();
+
+  const E.newName();
+
+  void foo() {}
+}
+''');
+  }
+
+  Future<void> test_createChange_add_toSynthetic_hasSemicolon() async {
+    await indexTestUnit('''
+/// [E.new]
+enum E {
+  v1(), v2.new(), v3;
+}
+''');
+    // configure refactoring
+    _createEnumConstantRefactoring('v1()');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName();
+
+  const E.newName();
+}
+''');
+  }
+
+  Future<void> test_createChange_add_toSynthetic_noSemicolon() async {
+    await indexTestUnit('''
+/// [E.new]
+enum E {
+  v1(), v2.new(), v3
+}
+''');
+    // configure refactoring
+    _createEnumConstantRefactoring('v1()');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName();
+
+  const E.newName();
+}
+''');
+  }
+
+  Future<void> test_createChange_change() async {
+    await indexTestUnit('''
+/// [E.test]
+enum E {
+  v1.test(), v2.other();
+  const E.test(); // 0
+  const E.other() : this.test();
+}
+''');
+    // configure refactoring
+    _createConstructorDeclarationRefactoring('test(); // 0');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, 'test');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.other();
+  const E.newName(); // 0
+  const E.other() : this.newName();
+}
+''');
+  }
+
+  Future<void> test_createChange_remove() async {
+    await indexTestUnit('''
+/// [E]
+enum E {
+  v1.test(), v2.other();
+  const E.test(); // 0
+  const E.other() : this.test();
+}
+''');
+    // configure refactoring
+    _createConstructorDeclarationRefactoring('test(); // 0');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, 'test');
+    // validate change
+    refactoring.newName = '';
+    return assertSuccessfulRefactoring('''
+/// [E]
+enum E {
+  v1(), v2.other();
+  const E(); // 0
+  const E.other() : this();
+}
+''');
+  }
+
+  void _createEnumConstantRefactoring(String search) {
+    var enumConstant = findNode.enumConstantDeclaration(search);
+    var element = enumConstant.constructorElement;
+    createRenameRefactoringForElement(element);
+  }
+}
+
+class _RenameConstructorTest extends RenameRefactoringTest {
   void _createConstructorDeclarationRefactoring(String search) {
     var element = findNode.constructor(search).declaredElement;
     createRenameRefactoringForElement(element);

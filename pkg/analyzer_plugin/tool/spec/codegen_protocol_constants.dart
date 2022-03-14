@@ -25,7 +25,7 @@ class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
     codeGeneratorSettings.languageName = 'dart';
   }
 
-  /// Generate all of the constants associates with the [api].
+  /// Generate all of the constants associated with the [api].
   void generateConstants() {
     var visitor = _ConstantVisitor(api);
     visitor.visitApi();

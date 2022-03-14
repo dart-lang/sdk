@@ -1,0 +1,33 @@
+class C {
+C() : assert = 0;
+}
+
+class C {
+C() : null = 0;
+}
+
+class C {
+C() : super = 0;
+}
+
+class C {
+C() : this = 0;
+}
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] assert[KeywordToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] null[KeywordToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] super[KeywordToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

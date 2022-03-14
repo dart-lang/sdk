@@ -2410,6 +2410,8 @@ bool FlowGraph::Canonicalize() {
 
         Definition* replacement = current->Canonicalize(this);
         ASSERT(replacement != nullptr);
+        RELEASE_ASSERT(unmatched_representations_allowed() ||
+                       !replacement->HasUnmatchedInputRepresentations());
         if (replacement != current) {
           current->ReplaceUsesWith(replacement);
           it.RemoveCurrentFromGraph();

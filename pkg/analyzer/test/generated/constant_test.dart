@@ -5,7 +5,9 @@
 @deprecated
 library analyzer.test.constant_test;
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -46,6 +48,25 @@ class ConstantEvaluatorTest extends PubPackageResolutionTest {
 
   test_bitXor_int_int() async {
     await _assertValueInt(74 ^ 42, "74 ^ 42");
+  }
+
+  test_conditionalExpression_unknownCondition_dynamic() async {
+    await assertErrorsInCode('''
+const bool kIsWeb = identical(0, 0.0);
+const x = kIsWeb ? a : b;
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 58,
+          1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 58, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 62,
+          1),
+    ]);
+
+    var x_result = findElement.topVar('x').evaluationResult;
+    assertDartObjectText(x_result.value, r'''
+dynamic <unknown>
+''');
   }
 
   test_constructorInvocation_fieldInitializer() async {
@@ -392,6 +413,92 @@ E
 ''');
   }
 
+  /// Enum constants can reference other constants.
+  test_object_enum_enhanced_constants() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v1(42), v2(v1);
+  final Object? a;
+  const E([this.a]);
+}
+''');
+
+    assertDartObjectText(findElement.field('v2').evaluationResult.value, r'''
+E
+  _name: String v2
+  a: E
+    _name: String v1
+    a: int 42
+    index: int 0
+  index: int 1
+''');
+  }
+
+  test_object_enum_enhanced_named() async {
+    await resolveTestCode('''
+enum E<T> {
+  v1<double>.named(10),
+  v2.named(20);
+  final T f;
+  const E.named(this.f);
+}
+
+const x1 = E.v1;
+const x2 = E.v2;
+''');
+
+    _assertTopVarConstValue('x1', r'''
+E<double>
+  _name: String v1
+  f: double 10.0
+  index: int 0
+''');
+
+    _assertTopVarConstValue('x2', r'''
+E<int>
+  _name: String v2
+  f: int 20
+  index: int 1
+''');
+  }
+
+  test_object_enum_enhanced_unnamed() async {
+    await resolveTestCode('''
+enum E<T> {
+  v1<int>(10),
+  v2(20),
+  v3('abc');
+  final T f;
+  const E(this.f);
+}
+
+const x1 = E.v1;
+const x2 = E.v2;
+const x3 = E.v3;
+''');
+
+    _assertTopVarConstValue('x1', r'''
+E<int>
+  _name: String v1
+  f: int 10
+  index: int 0
+''');
+
+    _assertTopVarConstValue('x2', r'''
+E<int>
+  _name: String v2
+  f: int 20
+  index: int 1
+''');
+
+    _assertTopVarConstValue('x3', r'''
+E<String>
+  _name: String v3
+  f: String abc
+  index: int 2
+''');
+  }
+
   test_parenthesizedExpression() async {
     await _assertValueString("a", "('a')");
   }
@@ -519,5 +626,16 @@ $context
   EvaluationResultImpl _topVarConstResult(String name) {
     var element = findElement.topVar(name) as ConstTopLevelVariableElementImpl;
     return element.evaluationResult!;
+  }
+}
+
+extension on VariableElement {
+  EvaluationResultImpl get evaluationResult {
+    var constVariable = this as ConstVariableElement;
+    var evaluationResult = constVariable.evaluationResult;
+    if (evaluationResult == null) {
+      fail('Not evaluated: $this');
+    }
+    return evaluationResult;
   }
 }

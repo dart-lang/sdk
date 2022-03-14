@@ -403,7 +403,6 @@ private_html_members = monitored.Set(
         'Element.getElementsByTagName',
         'Element.insertAdjacentHTML',
         'Element.scrollIntoView',
-        'Element.scrollIntoViewIfNeeded',
         'Element.getAttribute',
         'Element.getAttributeNS',
         'Element.hasAttribute',

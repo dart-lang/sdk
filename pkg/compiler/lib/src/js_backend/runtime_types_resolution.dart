@@ -5,13 +5,14 @@
 library js_backend.runtime_types_resolution;
 
 import '../common.dart';
+import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/names.dart' show Identifiers;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
 import '../kernel/kelements.dart';
+import '../kernel/kernel_world.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_hierarchy.dart';

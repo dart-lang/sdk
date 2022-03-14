@@ -69,12 +69,9 @@ class Variables {
 
   final NullabilityMigrationInstrumentation? instrumentation;
 
-  final LineInfo Function(String) _getLineInfo;
-
-  Variables(this._graph, this._typeProvider, this._getLineInfo,
-      {this.instrumentation})
+  Variables(this._graph, this._typeProvider, {this.instrumentation})
       : _alreadyMigratedCodeDecorator =
-            AlreadyMigratedCodeDecorator(_graph, _typeProvider, _getLineInfo);
+            AlreadyMigratedCodeDecorator(_graph, _typeProvider);
 
   /// Given a [class_], gets the decorated type information for the superclasses
   /// it directly implements/extends/etc.
@@ -400,7 +397,7 @@ class Variables {
       element = element.aliasedElement!;
     }
 
-    var target = NullabilityNodeTarget.element(element, _getLineInfo);
+    var target = NullabilityNodeTarget.element(element);
     if (element is FunctionTypedElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(
           element.preMigrationType, element, target);

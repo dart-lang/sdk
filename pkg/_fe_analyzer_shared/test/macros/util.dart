@@ -5,8 +5,9 @@
 import 'dart:mirrors';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
 
 import 'package:test/fake.dart';
 import 'package:test/test.dart';
@@ -61,6 +62,8 @@ class TestClassIntrospector implements ClassIntrospector {
       superclass[clazz];
 }
 
+class FakeIdentifierResolver extends Fake implements IdentifierResolver {}
+
 class FakeTypeDeclarationResolver extends Fake
     implements TypeDeclarationResolver {}
 
@@ -76,24 +79,18 @@ class TestTypeDeclarationResolver implements TypeDeclarationResolver {
 }
 
 class TestTypeResolver implements TypeResolver {
-  final Map<TypeAnnotation, StaticType> staticTypes;
+  final Map<Identifier, StaticType> staticTypes;
 
   TestTypeResolver(this.staticTypes);
 
   @override
-  Future<StaticType> instantiateType(
-      covariant TypeAnnotation typeAnnotation) async {
-    return staticTypes[typeAnnotation]!;
-  }
-
-  @override
-  Future<StaticType> instantiateCode(ExpressionCode code) {
-    // TODO: implement instantiateCode
-    throw UnimplementedError();
+  Future<StaticType> resolve(covariant TypeAnnotationCode type) async {
+    assert(type.parts.length == 1);
+    return staticTypes[type.parts.first]!;
   }
 }
 
-// Doesn't handle generics etc but thats ok for now
+/// Doesn't handle generics etc but thats ok for now
 class TestNamedStaticType implements NamedStaticType {
   final IdentifierImpl identifier;
   final String library;
@@ -112,6 +109,24 @@ class TestNamedStaticType implements NamedStaticType {
   bool _isExactly(TestNamedStaticType other) =>
       identical(other, this) ||
       (library == other.library && identifier.name == other.identifier.name);
+}
+
+/// An identifier that knows the resolved version of itself.
+class TestIdentifier extends IdentifierImpl {
+  final ResolvedIdentifier resolved;
+
+  TestIdentifier({
+    required int id,
+    required String name,
+    required IdentifierKind kind,
+    required Uri uri,
+    required String? staticScope,
+  })  : resolved = ResolvedIdentifier(
+            kind: kind, name: name, staticScope: staticScope, uri: uri),
+        super(
+          id: id,
+          name: name,
+        );
 }
 
 extension DebugCodeString on Code {
@@ -243,6 +258,7 @@ class Fixtures {
       isAbstract: false,
       isExternal: false,
       isGetter: false,
+      isOperator: false,
       isSetter: false,
       namedParameters: [],
       positionalParameters: [],
@@ -252,7 +268,6 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: '_myVariable'),
-      initializer: ExpressionCode.fromString("''"),
       isExternal: false,
       isFinal: true,
       isLate: false,
@@ -264,6 +279,7 @@ class Fixtures {
       isAbstract: false,
       isExternal: false,
       isGetter: true,
+      isOperator: false,
       isSetter: false,
       namedParameters: [],
       positionalParameters: [],
@@ -276,6 +292,7 @@ class Fixtures {
       isAbstract: false,
       isExternal: false,
       isGetter: false,
+      isOperator: false,
       isSetter: true,
       namedParameters: [],
       positionalParameters: [
@@ -283,7 +300,6 @@ class Fixtures {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'value'),
-            defaultValue: null,
             isNamed: false,
             isRequired: true,
             type: stringType)
@@ -330,6 +346,7 @@ class Fixtures {
       isAbstract: false,
       isExternal: false,
       isGetter: false,
+      isOperator: false,
       isSetter: false,
       namedParameters: [],
       positionalParameters: [],
@@ -340,12 +357,12 @@ class Fixtures {
   static final myField = FieldDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
-      initializer: null,
       isExternal: false,
       isFinal: false,
       isLate: false,
       type: stringType,
-      definingClass: myClassType.identifier);
+      definingClass: myClassType.identifier,
+      isStatic: false);
   static final myInterface = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myInterfaceType.identifier,
@@ -361,12 +378,14 @@ class Fixtures {
       isAbstract: false,
       isExternal: false,
       isGetter: false,
+      isOperator: false,
       isSetter: false,
       namedParameters: [],
       positionalParameters: [],
       returnType: stringType,
       typeParameters: [],
-      definingClass: myClassType.identifier);
+      definingClass: myClassType.identifier,
+      isStatic: false);
   static final myMixin = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myMixinType.identifier,
@@ -390,8 +409,9 @@ class Fixtures {
       myClassType.identifier, 'package:my_package/my_package.dart', []);
 
   static final testTypeResolver = TestTypeResolver({
-    stringType: TestNamedStaticType(stringType.identifier, 'dart:core', []),
-    myClassType: myClassStaticType,
+    stringType.identifier:
+        TestNamedStaticType(stringType.identifier, 'dart:core', []),
+    myClass.identifier: myClassStaticType,
   });
   static final testClassIntrospector = TestClassIntrospector(
     constructors: {

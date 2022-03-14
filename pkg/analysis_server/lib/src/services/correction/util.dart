@@ -29,6 +29,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 /// Adds edits to the given [change] that ensure that all the [libraries] are
@@ -160,6 +161,14 @@ List<SimpleIdentifier> findLocalElementReferences(
   return collector.references;
 }
 
+/// Return references to the [element] inside the [root] node.
+List<SimpleIdentifier> findPrefixElementReferences(
+    AstNode root, PrefixElement element) {
+  var collector = _ElementReferenceCollector(element);
+  root.accept(collector);
+  return collector.references;
+}
+
 /// TODO(scheglov) replace with nodes once there will be
 /// [CompilationUnit.getComments].
 ///
@@ -238,6 +247,9 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
       return member;
     }
     if (node is CompilationUnit) {
+      return member;
+    }
+    if (node is EnumDeclaration) {
       return member;
     }
     member = node;
@@ -322,7 +334,7 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
 /// Computes the best URI to import [what] into [from].
 String getLibrarySourceUri(
     path.Context pathContext, LibraryElement from, Uri what) {
-  if (what.scheme == 'file') {
+  if (what.isScheme('file')) {
     var fromFolder = pathContext.dirname(from.source.fullName);
     var relativeFile = pathContext.relative(what.path, from: fromFolder);
     return pathContext.split(relativeFile).join('/');
@@ -788,7 +800,7 @@ class CorrectionUtils {
     // end
     var endOffset = sourceRange.end;
     var afterEndLineOffset = endOffset;
-    var lineInfo = unit.lineInfo!;
+    var lineInfo = unit.lineInfo;
     var lineStart = lineInfo
         .getOffsetOfLine(lineInfo.getLocation(startLineOffset).lineNumber - 1);
     if (lineStart == startLineOffset) {
@@ -980,6 +992,39 @@ class CorrectionUtils {
       suffix = getLinePrefix(statement.offset);
     }
     return ClassMemberLocation(prefix, offset, suffix);
+  }
+
+  ClassMemberLocation? prepareEnumNewConstructorLocation(
+    EnumDeclaration enumDeclaration,
+  ) {
+    var indent = getIndent(1);
+
+    var targetMember = enumDeclaration.members
+        .where((e) => e is FieldDeclaration || e is ConstructorDeclaration)
+        .lastOrNull;
+    if (targetMember != null) {
+      return ClassMemberLocation(
+        endOfLine + endOfLine + indent,
+        targetMember.end,
+        '',
+      );
+    }
+
+    var semicolon = enumDeclaration.semicolon;
+    if (semicolon != null) {
+      return ClassMemberLocation(
+        endOfLine + endOfLine + indent,
+        semicolon.end,
+        '',
+      );
+    }
+
+    var lastConstant = enumDeclaration.constants.last;
+    return ClassMemberLocation(
+      ';' + endOfLine + endOfLine + indent,
+      lastConstant.end,
+      '',
+    );
   }
 
   ClassMemberLocation? prepareNewClassMemberLocation(

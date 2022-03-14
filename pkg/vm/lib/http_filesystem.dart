@@ -14,7 +14,7 @@ class HttpAwareFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme == 'http' || uri.scheme == 'https') {
+    if (uri.isScheme('http') || uri.isScheme('https')) {
       return new HttpFileSystemEntity(this, uri);
     } else {
       return original.entityForUri(uri);

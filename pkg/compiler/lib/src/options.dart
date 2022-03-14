@@ -24,18 +24,20 @@ enum FeatureStatus {
 }
 
 /// A [FeatureOption] is both a set of flags and an option. By default, creating
-/// a [FeatureOption] will create two flags, [--$flag] and [--no-$flag]. The
-/// default behavior for a [FeatureOption] in the [canary] set is to be
-/// disabled by default unless explicity enabled or [--canary] is passed.
-/// When the [FeatureOption] is moved to [staging], the behavior flips, and by
-/// default it is enabled unless explicitly disabled or [--no-shipping] is
-/// passed. The [isNegativeFlag] bool flips things around so while in [canary]
-/// the [FeatureOption] is enabled unless explicitly disabled, and while in
-/// [staging] it is disabled unless explicitly enabled.
+/// a [FeatureOption] will create two flags, `--$flag` and `--no-$flag`. The
+/// default behavior for a [FeatureOption] in the [FeatureOptions.canary] set is
+/// to be disabled by default unless explicity enabled or `--canary` is passed.
+/// When the [FeatureOption] is moved to [FeatureOptions.shipping], the behavior
+/// flips, and by default it is enabled unless explicitly disabled or
+/// `--no-shipping` is passed. The [FeatureOption.isNegativeFlag] bool flips
+/// things around so while in canary the [FeatureOption] is enabled unless
+/// explicitly disabled, and while in [FeatureOptions.shipping] it is disabled
+/// unless explicitly enabled.
 ///
-/// Finally, mature features can be moved to [shipped], at which point we ignore
-/// the flag, but throw if the value of the flag is unexpected(i.e. if a
-/// positive flag is disabled, or a negative flag is enabled).
+/// Finally, mature features can be moved to [FeatureOptions.shipped], at which
+/// point we ignore the flag, but throw if the value of the flag is
+/// unexpected(i.e. if a positive flag is disabled, or a negative flag is
+/// enabled).
 class FeatureOption {
   final String flag;
   final bool isNegativeFlag;
@@ -82,11 +84,11 @@ class FeatureOptions {
   /// [FeatureOption]s which are shipped and cannot be toggled.
   late final List<FeatureOption> shipped = [
     newHolders,
+    legacyJavaScript,
   ];
 
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
-    legacyJavaScript,
     useContentSecurityPolicy,
   ];
 
@@ -826,7 +828,7 @@ class CompilerOptions implements DiagnosticOptions {
       return true;
     }
     if (shownPackageWarnings != null) {
-      return uri.scheme == 'package' &&
+      return uri.isScheme('package') &&
           shownPackageWarnings!.contains(uri.pathSegments.first);
     }
     return false;
@@ -948,7 +950,7 @@ void _verifyShippedFeatures(
     }
     if (enableFeature && feature.isNegativeFlag) {
       throw ArgumentError(
-          "$disableFeatureFlag has already shipped and cannot be enabled.");
+          "$enableFeatureFlag has been removed and cannot be enabled.");
     }
     if (disableFeature && !feature.isNegativeFlag) {
       throw ArgumentError(

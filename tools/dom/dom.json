@@ -31472,18 +31472,16 @@
   },
   "XPathEvaluator": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathEvaluator",
-    "dart_action": "suppress",
     "members": {
       "XPathEvaluator": {},
       "createExpression": {},
       "createNSResolver": {},
       "evaluate": {}
     },
-    "support_level": "experimental"
+    "support_level": "untriaged"
   },
   "XPathException": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathException",
-    "dart_action": "suppress",
     "members": {
       "INVALID_EXPRESSION_ERR": {},
       "TYPE_ERR": {},
@@ -31496,27 +31494,24 @@
       },
       "toString": {}
     },
-    "support_level": "experimental"
+    "support_level": "untriaged"
   },
   "XPathExpression": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathExpression",
-    "dart_action": "suppress",
     "members": {
       "evaluate": {}
     },
-    "support_level": "experimental"
+    "support_level": "untriaged"
   },
   "XPathNSResolver": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathNSResolver",
-    "dart_action": "suppress",
     "members": {
       "lookupNamespaceURI": {}
     },
-    "support_level": "experimental"
+    "support_level": "untriaged"
   },
   "XPathResult": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathResult",
-    "dart_action": "suppress",
     "members": {
       "ANY_TYPE": {},
       "ANY_UNORDERED_NODE_TYPE": {},
@@ -31538,7 +31533,7 @@
       "snapshotLength": {},
       "stringValue": {}
     },
-    "support_level": "experimental"
+    "support_level": "untriaged"
   },
   "XSLTProcessor": {
     "dart_action": "suppress",

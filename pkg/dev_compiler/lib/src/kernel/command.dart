@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
@@ -177,7 +176,7 @@ Future<CompilerResult> _compile(List<String> args,
       options.multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
 
   Uri toCustomUri(Uri uri) {
-    if (uri.scheme == '') {
+    if (!uri.hasScheme) {
       return Uri(scheme: options.multiRootScheme, path: '/' + uri.path);
     }
     return uri;
@@ -276,7 +275,7 @@ Future<CompilerResult> _compile(List<String> args,
         additionalDills,
         DevCompilerTarget(TargetFlags(
             trackWidgetCreation: trackWidgetCreation,
-            enableNullSafety: options.enableNullSafety)),
+            enableNullSafety: options.soundNullSafety)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
@@ -315,7 +314,7 @@ Future<CompilerResult> _compile(List<String> args,
         inputDigests,
         DevCompilerTarget(TargetFlags(
             trackWidgetCreation: trackWidgetCreation,
-            enableNullSafety: options.enableNullSafety)),
+            enableNullSafety: options.soundNullSafety)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
@@ -486,7 +485,7 @@ Future<CompilerResult> _compile(List<String> args,
       compilerState.incrementalCompiler.updateNeededDillLibrariesWithHierarchy(
           neededDillLibraries, result.classHierarchy);
       for (var lib in neededDillLibraries) {
-        if (lib.importUri.scheme == 'dart') continue;
+        if (lib.importUri.isScheme('dart')) continue;
         var uri = compilerState.libraryToInputDill[lib.importUri];
         if (uri == null) {
           throw StateError('Library ${lib.importUri} was recorded as used, '
@@ -552,7 +551,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var component = loadComponentFromBinary(inputs.single);
   var invalidLibraries = <Uri>[];
   for (var library in component.libraries) {
-    if (library.importUri.scheme != 'dart') {
+    if (!library.importUri.isScheme('dart')) {
       invalidLibraries.add(library.importUri);
     }
   }
@@ -837,11 +836,14 @@ String defaultSdkSummaryPath({bool soundNullSafety}) {
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 
-/// Returns the absolute path to the default `.packages` file, or `null` if one
-/// could not be found.
+/// Return the path to the runtime Dart SDK.
+String getSdkPath() => p.dirname(p.dirname(Platform.resolvedExecutable));
+
+/// Returns the absolute path to the default `package_config.json` file, or
+/// `null` if one could not be found.
 ///
-/// Checks for a `.packages` file in the current working directory, or in any
-/// parent directory.
+/// Checks for a `.dart_tool/package_config.json` file in the current working
+/// directory, or in any parent directory.
 String _findPackagesFilePath() {
   // TODO(jmesserly): this was copied from package:package_config/discovery.dart
   // Unfortunately the relevant function is not public. CFE APIs require a URI
@@ -850,9 +852,9 @@ String _findPackagesFilePath() {
   if (!dir.isAbsolute) dir = dir.absolute;
   if (!dir.existsSync()) return null;
 
-  // Check for $cwd/.packages
+  // Check for $cwd/.dart_tool/package_config.json
   while (true) {
-    var file = File(p.join(dir.path, '.packages'));
+    var file = File.fromUri(dir.uri.resolve('.dart_tool/package_config.json'));
     if (file.existsSync()) return file.path;
 
     // If we didn't find it, search the parent directory.

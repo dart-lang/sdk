@@ -386,6 +386,35 @@ class MyWidget extends StatelessWidget {
     expect(container.codeLength, 15);
   }
 
+  Future<void> test_enum() async {
+    var unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+enum E {
+  v;
+  Widget build(BuildContext context) {
+    return const Text('A');
+  }
+}
+''');
+
+    expect(_toText(unitOutline), r'''
+(D) E
+  (D) v
+  (D) build
+    Text
+''');
+    var E = unitOutline.children![0];
+    var build = E.children![1];
+    {
+      var textOutline = build.children![0];
+      var text = "const Text('A')";
+      var offset = testCode.indexOf(text);
+      expect(textOutline.offset, offset);
+      expect(textOutline.length, text.length);
+    }
+  }
+
   Future<void> test_genericLabel_invocation() async {
     var unitOutline = await _computeOutline(r'''
 import 'package:flutter/widgets.dart';
@@ -440,6 +469,46 @@ class WidgetFactory {
       expect(text.className, 'Text');
       expect(text.label, 'WidgetFactory.createMyText()');
     }
+  }
+
+  Future<void> test_namedArgument_anywhere() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+import 'package:flutter/widgets.dart';
+
+class WidgetA extends StatelessWidget {
+  final Widget top;
+  final Widget bottom;
+  final Widget left;
+  final Widget right;
+
+  WidgetA(this.top, this.bottom, {this.left, this.right});
+}
+''');
+    var unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+import 'a.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new WidgetA(
+      const Container(),
+      left: const Text('left'),
+      const Flex(),
+      right: const Text('right'),
+    );
+  }
+}
+''');
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) build
+    WidgetA
+      Container
+      left: Text
+      Flex
+      right: Text
+''');
   }
 
   Future<void> test_parentAssociationLabel() async {

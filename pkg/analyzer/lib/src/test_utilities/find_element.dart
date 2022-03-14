@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
+import 'package:collection/src/iterable_extensions.dart';
 
 /// Helper for finding elements declared in the resolved [unit].
 class FindElement extends _FindElementBase {
@@ -406,147 +407,27 @@ abstract class _FindElementBase {
   }
 
   FieldElement field(String name, {String? of}) {
-    FieldElement? result;
-
-    void findIn(List<FieldElement> fields) {
-      for (var field in fields) {
-        if (field.name == name) {
-          if (result != null) {
-            throw StateError('Not unique: $name');
-          }
-          result = field;
-        }
-      }
-    }
-
-    for (var enum_ in unitElement.enums) {
-      if (of != null && enum_.name != of) {
-        continue;
-      }
-      findIn(enum_.fields);
-    }
-
-    for (var class_ in unitElement.classes) {
-      if (of != null && class_.name != of) {
-        continue;
-      }
-      findIn(class_.fields);
-    }
-
-    for (var mixin in unitElement.mixins) {
-      if (of != null && mixin.name != of) {
-        continue;
-      }
-      findIn(mixin.fields);
-    }
-
-    for (var extension in unitElement.extensions) {
-      if (of != null && extension.name != of) {
-        continue;
-      }
-      findIn(extension.fields);
-    }
-
-    if (result != null) {
-      return result!;
-    }
-    throw StateError('Not found: $name');
+    return _findInClassesLike(
+      className: of,
+      fromClass: (element) => element.getField(name),
+      fromExtension: (element) => element.getField(name),
+    );
   }
 
   PropertyAccessorElement getter(String name, {String? of}) {
-    PropertyAccessorElement? result;
-
-    void findIn(List<PropertyAccessorElement> accessors) {
-      for (var accessor in accessors) {
-        if (accessor.isGetter && accessor.displayName == name) {
-          if (result != null) {
-            throw StateError('Not unique: $name');
-          }
-          result = accessor;
-        }
-      }
-    }
-
-    for (var enum_ in unitElement.enums) {
-      if (of != null && enum_.name != of) {
-        continue;
-      }
-      findIn(enum_.accessors);
-    }
-
-    for (var extension_ in unitElement.extensions) {
-      if (of != null && extension_.name != of) {
-        continue;
-      }
-      findIn(extension_.accessors);
-    }
-
-    for (var class_ in unitElement.classes) {
-      if (of != null && class_.name != of) {
-        continue;
-      }
-      findIn(class_.accessors);
-    }
-
-    for (var mixin in unitElement.mixins) {
-      if (of != null && mixin.name != of) {
-        continue;
-      }
-      findIn(mixin.accessors);
-    }
-
-    if (result != null) {
-      return result!;
-    }
-    throw StateError('Not found: $name');
+    return _findInClassesLike(
+      className: of,
+      fromClass: (element) => element.getGetter(name),
+      fromExtension: (element) => element.getGetter(name),
+    );
   }
 
   MethodElement method(String name, {String? of}) {
-    MethodElement? result;
-
-    void findIn(List<MethodElement> methods) {
-      for (var method in methods) {
-        if (method.name == name) {
-          if (result != null) {
-            throw StateError('Not unique: $name');
-          }
-          result = method;
-        }
-      }
-    }
-
-    for (var class_ in unitElement.classes) {
-      if (of != null && class_.name != of) {
-        continue;
-      }
-      findIn(class_.methods);
-    }
-
-    for (var enum_ in unitElement.enums) {
-      if (of != null && enum_.name != of) {
-        continue;
-      }
-      findIn(enum_.methods);
-    }
-
-    for (var extension_ in unitElement.extensions) {
-      if (of != null && extension_.name != of) {
-        continue;
-      }
-      findIn(extension_.methods);
-    }
-
-    for (var mixin in unitElement.mixins) {
-      if (of != null && mixin.name != of) {
-        continue;
-      }
-      findIn(mixin.methods);
-    }
-
-    if (result != null) {
-      return result!;
-    }
-    throw StateError('Not found: $name');
+    return _findInClassesLike(
+      className: of,
+      fromClass: (element) => element.getMethod(name),
+      fromExtension: (element) => element.getMethod(name),
+    );
   }
 
   ClassElement mixin(String name) {
@@ -581,44 +462,11 @@ abstract class _FindElementBase {
   }
 
   PropertyAccessorElement setter(String name, {String? of}) {
-    PropertyAccessorElement? result;
-
-    void findIn(List<PropertyAccessorElement> accessors) {
-      for (var accessor in accessors) {
-        if (accessor.isSetter && accessor.displayName == name) {
-          if (result != null) {
-            throw StateError('Not unique: $name');
-          }
-          result = accessor;
-        }
-      }
-    }
-
-    for (var extension_ in unitElement.extensions) {
-      if (of != null && extension_.name != of) {
-        continue;
-      }
-      findIn(extension_.accessors);
-    }
-
-    for (var class_ in unitElement.classes) {
-      if (of != null && class_.name != of) {
-        continue;
-      }
-      findIn(class_.accessors);
-    }
-
-    for (var mixin in unitElement.mixins) {
-      if (of != null && mixin.name != of) {
-        continue;
-      }
-      findIn(mixin.accessors);
-    }
-
-    if (result != null) {
-      return result!;
-    }
-    throw StateError('Not found: $name');
+    return _findInClassesLike(
+      className: of,
+      fromClass: (element) => element.getSetter(name),
+      fromExtension: (element) => element.getSetter(name),
+    );
   }
 
   FunctionElement topFunction(String name) {
@@ -657,7 +505,43 @@ abstract class _FindElementBase {
   }
 
   ConstructorElement unnamedConstructor(String name) {
-    return class_(name).unnamedConstructor!;
+    return _findInClassesLike(
+      className: name,
+      fromClass: (e) => e.unnamedConstructor,
+      fromExtension: (_) => null,
+    );
+  }
+
+  T _findInClassesLike<T extends Element>({
+    required String? className,
+    required T? Function(ClassElement element) fromClass,
+    required T? Function(ExtensionElement element) fromExtension,
+  }) {
+    bool filter(Element element) {
+      return className == null || element.name == className;
+    }
+
+    var classes = [
+      ...unitElement.classes,
+      ...unitElement.enums,
+      ...unitElement.mixins,
+    ];
+
+    var results = [
+      ...classes.where(filter).map(fromClass),
+      ...unitElement.extensions.where(filter).map(fromExtension),
+    ].whereNotNull().toList();
+
+    var result = results.singleOrNull;
+    if (result != null) {
+      return result;
+    }
+
+    if (results.isEmpty) {
+      throw StateError('Not found');
+    } else {
+      throw StateError('Not unique');
+    }
   }
 }
 

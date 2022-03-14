@@ -42,6 +42,7 @@ enum NullValue {
   ContinueTarget,
   Deferred,
   DocumentationComment,
+  EnumConstantInfo,
   Expression,
   ExtendsClause,
   FieldInitializer,

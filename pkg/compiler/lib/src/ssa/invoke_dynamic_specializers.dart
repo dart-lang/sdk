@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common_elements.dart' show JCommonElements;
+import '../common/elements.dart' show JCommonElements;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
@@ -273,6 +273,11 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
 
 class IndexSpecializer extends InvokeDynamicSpecializer {
   const IndexSpecializer();
+
+  @override
+  constant_system.BinaryOperation operation() {
+    return constant_system.index;
+  }
 
   @override
   HInstruction tryConvertToBuiltin(

@@ -58,7 +58,8 @@ class SideEffects {
   }
 
   @override
-  bool operator ==(other) => _flags == other._flags;
+  bool operator ==(Object other) =>
+      other is SideEffects && _flags == other._flags;
 
   @override
   int get hashCode => throw UnsupportedError('SideEffects.hashCode');

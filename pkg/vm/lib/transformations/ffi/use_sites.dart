@@ -20,6 +20,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
@@ -30,6 +31,7 @@ import 'abi.dart' show wordSize;
 import 'native_type_cfe.dart';
 import 'common.dart'
     show NativeType, FfiTransformer, nativeTypeSizes, WORD_SIZE, UNKNOWN;
+import 'finalizable.dart';
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
 void transformLibraries(
@@ -51,22 +53,20 @@ void transformLibraries(
     // If dart:ffi is not loaded (for real): do not do the transformation.
     return;
   }
-  final transformer = new _FfiUseSiteTransformer(
+  final transformer = new _FfiUseSiteTransformer2(
       index, coreTypes, hierarchy, diagnosticReporter, referenceFromIndex);
   libraries.forEach(transformer.visitLibrary);
 }
 
-/// Checks and replaces calls to dart:ffi compound fields and methods.
-class _FfiUseSiteTransformer extends FfiTransformer {
-  StaticTypeContext? _staticTypeContext;
-
-  bool get isFfiLibrary => currentLibrary == ffiLibrary;
-
-  // Used to create private top-level fields with unique names for each
-  // callback.
-  int callbackCount = 0;
-
-  _FfiUseSiteTransformer(
+/// Combines [_FfiUseSiteTransformer] and [FinalizableTransformer] into a single
+/// traversal.
+///
+/// This transformation is not AST-node preserving. [Expression]s and
+/// [Statement]s can be replaced by other [Expression]s and [Statement]s
+/// respectively. This means one cannot do `visitX() { super.visitX() as X }`.
+class _FfiUseSiteTransformer2 extends FfiTransformer
+    with _FfiUseSiteTransformer, FinalizableTransformer {
+  _FfiUseSiteTransformer2(
       LibraryIndex index,
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
@@ -74,6 +74,26 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       ReferenceFromIndex? referenceFromIndex)
       : super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex);
+}
+
+/// Checks and replaces calls to dart:ffi compound fields and methods.
+///
+/// Designed to be mixed in. Calls super.visitXXX() to visit all nodes (except
+/// the ones created by this transformation).
+///
+/// This transformation is not AST-node preserving. [Expression]s and
+/// [Statement]s can be replaced by other [Expression]s and [Statement]s
+/// respectively. This means one cannot do `visitX() { super.visitX() as X }`.
+mixin _FfiUseSiteTransformer on FfiTransformer {
+  StaticTypeContext? get staticTypeContext;
+
+  bool _inFfiTearoff = false;
+
+  bool get isFfiLibrary => currentLibrary == ffiLibrary;
+
+  // Used to create private top-level fields with unique names for each
+  // callback.
+  int callbackCount = 0;
 
   @override
   TreeNode visitLibrary(Library node) {
@@ -95,42 +115,34 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   @override
-  visitField(Field node) {
-    _staticTypeContext = new StaticTypeContext(node, env);
-    var result = super.visitField(node);
-    _staticTypeContext = null;
-    return result;
-  }
-
-  @override
-  visitConstructor(Constructor node) {
-    _staticTypeContext = new StaticTypeContext(node, env);
-    var result = super.visitConstructor(node);
-    _staticTypeContext = null;
-    return result;
-  }
-
-  @override
   visitProcedure(Procedure node) {
-    if (isFfiLibrary && node.isExtensionMember) {
-      if (node == allocationTearoff ||
-          node == asFunctionTearoff ||
-          node == lookupFunctionTearoff) {
-        // Skip static checks and transformation for the tearoffs.
-        return node;
-      }
-    }
-
-    _staticTypeContext = new StaticTypeContext(node, env);
+    assert(_inFfiTearoff == false);
+    _inFfiTearoff = (isFfiLibrary &&
+        node.isExtensionMember &&
+        (node == allocationTearoff ||
+            node == asFunctionTearoff ||
+            node == lookupFunctionTearoff));
     final result = super.visitProcedure(node);
-    _staticTypeContext = null;
+    _inFfiTearoff = false;
     return result;
   }
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
-    super.visitStaticInvocation(node);
+  TreeNode visitStaticInvocation(StaticInvocation node) {
+    final modifiedExpression = _visitStaticInvocation(node);
+    if (node == modifiedExpression) {
+      return super.visitStaticInvocation(node);
+    }
+    // We've just created this node. We're likely not going to need to transform
+    // this node itself. Visit its sub exprssions.
+    return super.defaultExpression(modifiedExpression);
+  }
 
+  /// Replaces nodes if they match. Does not invoke any super visit.
+  Expression _visitStaticInvocation(StaticInvocation node) {
+    if (_inFfiTearoff) {
+      return node;
+    }
     final Member target = node.target;
     try {
       if (target == abiSpecificIntegerPointerGetValue ||
@@ -141,7 +153,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           target == abiSpecificIntegerArraySetElemAt) {
         final pointer = node.arguments.positional[0];
         final pointerType =
-            pointer.getStaticType(_staticTypeContext!) as InterfaceType;
+            pointer.getStaticType(staticTypeContext!) as InterfaceType;
         _ensureNativeTypeValid(pointerType, pointer,
             allowCompounds: true, allowInlineArray: true);
 
@@ -279,7 +291,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final Expression func = node.arguments.positional[0];
-        final DartType dartType = func.getStaticType(_staticTypeContext!);
+        final DartType dartType = func.getStaticType(staticTypeContext!);
 
         _ensureIsStaticFunction(func);
 
@@ -345,7 +357,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           }
 
           final DartType returnType =
-              exceptionalReturn.getStaticType(_staticTypeContext!);
+              exceptionalReturn.getStaticType(staticTypeContext!);
 
           if (!env.isSubtypeOf(returnType, funcType.returnType,
               SubtypeCheckMode.ignoringNullabilities)) {
@@ -746,13 +758,25 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   @override
   visitInstanceInvocation(InstanceInvocation node) {
-    super.visitInstanceInvocation(node);
+    final modifiedExpression = _visitInstanceInvocation(node);
+    if (node == modifiedExpression) {
+      return super.visitInstanceInvocation(node);
+    }
+    // We've just created this node. We're likely not going to need to transform
+    // this node itself. Visit its sub exprssions.
+    return super.defaultExpression(modifiedExpression);
+  }
 
+  /// Replaces nodes if they match. Does not invoke any super visit.
+  Expression _visitInstanceInvocation(InstanceInvocation node) {
+    if (_inFfiTearoff) {
+      return node;
+    }
     final Member target = node.interfaceTarget;
     try {
       if (target == elementAtMethod) {
         final DartType pointerType =
-            node.receiver.getStaticType(_staticTypeContext!);
+            node.receiver.getStaticType(staticTypeContext!);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType)!;
 
         _ensureNativeTypeValid(nativeType, node, allowCompounds: true);

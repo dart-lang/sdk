@@ -61,6 +61,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_null_awa
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_raw_string.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
@@ -117,6 +118,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_statem
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_non_null_assertion.dart';
@@ -129,6 +131,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_this_express
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_raw_string.dart';
@@ -150,6 +153,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_container_w
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_null_check_with_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_future.dart';
@@ -169,6 +173,8 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_null_a
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
+import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
+import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
 import 'package:analysis_server/src/services/correction/dart/use_const.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
@@ -344,6 +350,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.always_specify_types: [
       AddTypeAnnotation.newInstanceBulkFixable,
     ],
+    LintNames.always_use_package_imports: [
+      ConvertToPackageImport.newInstance,
+    ],
     LintNames.annotate_overrides: [
       AddOverride.newInstance,
     ],
@@ -406,6 +415,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_unnecessary_containers: [
       FlutterRemoveWidget.newInstance,
     ],
+    LintNames.avoid_void_async: [
+      ReplaceReturnTypeFuture.newInstance,
+    ],
     LintNames.await_only_futures: [
       RemoveAwait.newInstance,
     ],
@@ -443,8 +455,17 @@ class FixProcessor extends BaseProcessor {
     LintNames.no_duplicate_case_values: [
       RemoveDuplicateCase.newInstance,
     ],
+    LintNames.no_leading_underscores_for_library_prefixes: [
+      RemoveLeadingUnderscore.newInstance,
+    ],
+    LintNames.no_leading_underscores_for_local_identifiers: [
+      RemoveLeadingUnderscore.newInstance,
+    ],
     LintNames.non_constant_identifier_names: [
       RenameToCamelCase.newInstance,
+    ],
+    LintNames.null_check_on_nullable_type_parameter: [
+      ReplaceNullCheckWithCast.newInstance,
     ],
     LintNames.null_closures: [
       ReplaceNullWithClosure.newInstance,
@@ -567,6 +588,12 @@ class FixProcessor extends BaseProcessor {
     LintNames.sort_child_properties_last: [
       SortChildPropertyLast.newInstance,
     ],
+    LintNames.sort_constructors_first: [
+      SortConstructorFirst.newInstance,
+    ],
+    LintNames.sort_unnamed_constructors_first: [
+      SortUnnamedConstructorFirst.newInstance,
+    ],
     LintNames.type_annotate_public_apis: [
       AddTypeAnnotation.newInstanceBulkFixable,
     ],
@@ -593,6 +620,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_lambdas: [
       ReplaceWithTearOff.newInstance,
+    ],
+    LintNames.unnecessary_late: [
+      RemoveUnnecessaryLate.newInstance,
     ],
     LintNames.unnecessary_new: [
       RemoveUnnecessaryNew.newInstance,
@@ -630,6 +660,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.use_key_in_widget_constructors: [
       AddKeyToConstructors.newInstance,
     ],
+    LintNames.use_raw_strings: [
+      ConvertToRawString.newInstance,
+    ],
     LintNames.use_rethrow_when_possible: [
       UseRethrow.newInstance,
     ],
@@ -662,12 +695,7 @@ class FixProcessor extends BaseProcessor {
       DataDriven.newInstance,
       ImportLibrary.forType,
     ],
-    CompileTimeErrorCode
-        .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT: [
-      AddSuperConstructorInvocation.newInstance,
-    ],
-    CompileTimeErrorCode
-        .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+    CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
       AddSuperConstructorInvocation.newInstance,
     ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [

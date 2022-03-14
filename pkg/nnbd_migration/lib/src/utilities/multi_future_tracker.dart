@@ -37,14 +37,6 @@ class MultiFutureTracker {
 
   MultiFutureTracker(this.parallel);
 
-  /// Wait until fewer or equal to this many Futures are outstanding.
-  Future<void> _waitUntil(int max) async {
-    assert(_trackedFutures.length <= parallel);
-    while (_trackedFutures.length > max) {
-      await Future.any(_trackedFutures);
-    }
-  }
-
   /// Generates a [Future] from the given closure and adds it to the queue,
   /// once the queue is sufficiently empty.  The returned future completes
   /// when the generated [Future] has been added to the queue.
@@ -73,4 +65,12 @@ class MultiFutureTracker {
 
   /// Wait until all futures added so far have completed.
   Future<void> wait() => _waitUntil(0);
+
+  /// Wait until fewer or equal to this many Futures are outstanding.
+  Future<void> _waitUntil(int max) async {
+    assert(_trackedFutures.length <= parallel);
+    while (_trackedFutures.length > max) {
+      await Future.any(_trackedFutures);
+    }
+  }
 }

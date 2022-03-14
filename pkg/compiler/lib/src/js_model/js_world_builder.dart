@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart';
@@ -24,14 +24,13 @@ import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../kernel/kelements.dart';
-import '../native/behavior.dart';
+import '../kernel/kernel_world.dart';
 import '../options.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/feature.dart';
 import '../universe/member_usage.dart';
 import '../universe/selector.dart';
-import '../world.dart';
 import 'closure.dart';
 import 'elements.dart';
 import 'element_map_impl.dart';
@@ -59,7 +58,8 @@ class JsClosedWorldBuilder {
       OutputUnitData kOutputUnitData) {
     JsToFrontendMap map = JsToFrontendMapImpl(_elementMap);
 
-    NativeData nativeData = _convertNativeData(map, closedWorld.nativeData);
+    NativeData nativeData =
+        closedWorld.nativeData.convert(map, _elementEnvironment);
     _elementMap.nativeData = nativeData;
     InterceptorData interceptorData =
         _convertInterceptorData(map, nativeData, closedWorld.interceptorData);
@@ -187,8 +187,8 @@ class JsClosedWorldBuilder {
     BackendUsage backendUsage =
         _convertBackendUsage(map, closedWorld.backendUsage);
 
-    NoSuchMethodDataImpl oldNoSuchMethodData = closedWorld.noSuchMethodData;
-    NoSuchMethodData noSuchMethodData = NoSuchMethodDataImpl(
+    NoSuchMethodData oldNoSuchMethodData = closedWorld.noSuchMethodData;
+    NoSuchMethodData noSuchMethodData = NoSuchMethodData(
         map.toBackendFunctionSet(oldNoSuchMethodData.throwingImpls),
         map.toBackendFunctionSet(oldNoSuchMethodData.otherImpls),
         map.toBackendFunctionSet(oldNoSuchMethodData.forwardingSyntaxImpls));
@@ -270,93 +270,6 @@ class JsClosedWorldBuilder {
         isMirrorsUsed: backendUsage.isMirrorsUsed,
         isNoSuchMethodUsed: backendUsage.isNoSuchMethodUsed,
         isHtmlLoaded: backendUsage.isHtmlLoaded);
-  }
-
-  NativeBasicData _convertNativeBasicData(
-      JsToFrontendMap map, NativeBasicDataImpl nativeBasicData) {
-    Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
-        <ClassEntity, NativeClassTag>{};
-    nativeBasicData.nativeClassTagInfo
-        .forEach((ClassEntity cls, NativeClassTag tag) {
-      nativeClassTagInfo[map.toBackendClass(cls)] = tag;
-    });
-    Map<LibraryEntity, String> jsInteropLibraries =
-        map.toBackendLibraryMap(nativeBasicData.jsInteropLibraries, identity);
-    Map<ClassEntity, String> jsInteropClasses =
-        map.toBackendClassMap(nativeBasicData.jsInteropClasses, identity);
-    Set<ClassEntity> anonymousJsInteropClasses =
-        map.toBackendClassSet(nativeBasicData.anonymousJsInteropClasses);
-    Map<MemberEntity, String> jsInteropMembers =
-        map.toBackendMemberMap(nativeBasicData.jsInteropMembers, identity);
-    return NativeBasicDataImpl(
-        _elementEnvironment,
-        nativeBasicData.isAllowInteropUsed,
-        nativeClassTagInfo,
-        jsInteropLibraries,
-        jsInteropClasses,
-        anonymousJsInteropClasses,
-        jsInteropMembers);
-  }
-
-  NativeData _convertNativeData(
-      JsToFrontendMap map, NativeDataImpl nativeData) {
-    convertNativeBehaviorType(type) {
-      if (type is DartType) {
-        // TODO(johnniwinther): Avoid free variables in types. If the type
-        // pulled from a generic function type it might contain a function
-        // type variable that should probably have been replaced by its bound.
-        return map.toBackendType(type, allowFreeVariables: true);
-      }
-      assert(type is SpecialType);
-      return type;
-    }
-
-    NativeBehavior convertNativeBehavior(NativeBehavior behavior) {
-      NativeBehavior newBehavior = NativeBehavior();
-
-      for (dynamic type in behavior.typesReturned) {
-        newBehavior.typesReturned.add(convertNativeBehaviorType(type));
-      }
-      for (dynamic type in behavior.typesInstantiated) {
-        newBehavior.typesInstantiated.add(convertNativeBehaviorType(type));
-      }
-
-      newBehavior.codeTemplateText = behavior.codeTemplateText;
-      newBehavior.codeTemplate = behavior.codeTemplate;
-      newBehavior.throwBehavior = behavior.throwBehavior;
-      newBehavior.isAllocation = behavior.isAllocation;
-      newBehavior.useGvn = behavior.useGvn;
-      newBehavior.sideEffects.add(behavior.sideEffects);
-      return newBehavior;
-    }
-
-    NativeBasicData nativeBasicData = _convertNativeBasicData(map, nativeData);
-
-    Map<MemberEntity, String> nativeMemberName =
-        map.toBackendMemberMap(nativeData.nativeMemberName, identity);
-    Map<FunctionEntity, NativeBehavior> nativeMethodBehavior =
-        <FunctionEntity, NativeBehavior>{};
-    nativeData.nativeMethodBehavior
-        .forEach((FunctionEntity method, NativeBehavior behavior) {
-      FunctionEntity backendMethod = map.toBackendMember(method);
-      if (backendMethod != null) {
-        // If [method] isn't used it doesn't have a corresponding backend
-        // method.
-        nativeMethodBehavior[backendMethod] = convertNativeBehavior(behavior);
-      }
-    });
-    Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior =
-        map.toBackendMemberMap(
-            nativeData.nativeFieldLoadBehavior, convertNativeBehavior);
-    Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior =
-        map.toBackendMemberMap(
-            nativeData.nativeFieldStoreBehavior, convertNativeBehavior);
-    return NativeDataImpl(
-        nativeBasicData,
-        nativeMemberName,
-        nativeMethodBehavior,
-        nativeFieldLoadBehavior,
-        nativeFieldStoreBehavior);
   }
 
   InterceptorData _convertInterceptorData(JsToFrontendMap map,

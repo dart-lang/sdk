@@ -551,10 +551,10 @@ class GenericInferrer {
       return;
     }
     if (errorNode is ConstructorName &&
-        !(errorNode.type2.type as InterfaceType).element.hasOptionalTypeArgs) {
+        !(errorNode.type.type as InterfaceType).element.hasOptionalTypeArgs) {
       String constructorName = errorNode.name == null
-          ? errorNode.type2.name.name
-          : '${errorNode.type2}.${errorNode.name}';
+          ? errorNode.type.name.name
+          : '${errorNode.type}.${errorNode.name}';
       errorReporter.reportErrorForNode(
           HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
           errorNode,

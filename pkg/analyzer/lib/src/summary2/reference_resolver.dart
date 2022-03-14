@@ -80,7 +80,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     LinkingNodeContext(node, scope);
 
     node.typeParameters?.accept(this);
-    node.superclass2.accept(this);
+    node.superclass.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
     nodesToBuildType.addDeclaration(node);
@@ -122,10 +122,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.typeParameters?.accept(this);
-    // TODO(scheglov) implement
-    // node.extendsClause?.accept(this);
-    // node.implementsClause?.accept(this);
-    // node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
+    node.withClause?.accept(this);
 
     scope = ClassScope(scope, element);
     LinkingNodeContext(node, scope);
@@ -141,7 +139,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    node.superclass2.accept(this);
+    node.superclass.accept(this);
   }
 
   @override
@@ -289,7 +287,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    node.interfaces2.accept(this);
+    node.interfaces.accept(this);
   }
 
   @override
@@ -386,7 +384,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitOnClause(OnClause node) {
-    node.superclassConstraints2.accept(this);
+    node.superclassConstraints.accept(this);
   }
 
   @override
@@ -444,7 +442,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    node.mixinTypes2.accept(this);
+    node.mixinTypes.accept(this);
   }
 
   NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {

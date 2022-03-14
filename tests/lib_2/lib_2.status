@@ -45,6 +45,7 @@ js/external_extension_members_test: SkipByDesign # Issue 42085. CSP policy disal
 js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/is_check_and_as_cast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/async_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/js_util/implicit_downcast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/javascriptobject_extensions_test.dart: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/jsify_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/promise_reject_null_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
@@ -70,7 +71,7 @@ html/transition_event_test: Skip # Times out. Issue 22167
 [ $runtime != dart_precompiled && ($runtime != vm || $compiler != dartk && $compiler != none) ]
 isolate/vm_rehash_test: SkipByDesign
 
-[ $arch == simarm64 || $arch == simarm64c ]
+[ $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
 [ $arch != x64 || $runtime != vm ]
@@ -84,7 +85,7 @@ async/stream_timeout_test: SkipSlow # Times out. Issue 22050
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 isolate/count_test: Skip # Isolate.spawnUri
 isolate/cross_isolate_message_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate2_test: Skip # Isolate.spawnUri

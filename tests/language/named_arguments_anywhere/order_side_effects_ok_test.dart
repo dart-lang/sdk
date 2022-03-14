@@ -5,8 +5,6 @@
 // Checks that typeinference on arguments continues working after their order is
 // changed.
 
-// SharedOptions=--enable-experiment=named-arguments-anywhere
-
 import "package:expect/expect.dart";
 
 Type? argument = null;
@@ -15,7 +13,8 @@ void registerTypeArgument<X>() {
   argument = X;
 }
 
-void runAndCheckForTypeArgument(Type expectedArgument, void Function() functionToRun) {
+void runAndCheckForTypeArgument(
+    Type expectedArgument, void Function() functionToRun) {
   argument = null;
   functionToRun();
   Expect.equals(expectedArgument, argument);
@@ -44,29 +43,29 @@ void fooFunctionGeneric<X>(int x, {required void Function(X) y}) {
 
 void main() {
   runAndCheckForTypeArgument(dynamic, () {
-      fooGeneric(const BGeneric(), y: const BGeneric());
+    fooGeneric(const BGeneric(), y: const BGeneric());
   });
   runAndCheckForTypeArgument(dynamic, () {
-      fooGeneric(y: const BGeneric(), const BGeneric());
+    fooGeneric(y: const BGeneric(), const BGeneric());
   });
   runAndCheckForTypeArgument(int, () {
-      fooGeneric(const BGeneric<int>(), y: const BGeneric<List<int>>());
+    fooGeneric(const BGeneric<int>(), y: const BGeneric<List<int>>());
   });
   runAndCheckForTypeArgument(String, () {
-      fooGeneric(y: const BGeneric<List<String>>(), const BGeneric<String>());
+    fooGeneric(y: const BGeneric<List<String>>(), const BGeneric<String>());
   });
 
   runAndCheckForTypeArgument(double, () {
-      fooFunction(42, y: bar);
+    fooFunction(42, y: bar);
   });
   runAndCheckForTypeArgument(double, () {
-      fooFunction(y: bar, 42);
+    fooFunction(y: bar, 42);
   });
 
   runAndCheckForTypeArgument(String, () {
-      fooFunctionGeneric(42, y: (String x) {});
+    fooFunctionGeneric(42, y: (String x) {});
   });
   runAndCheckForTypeArgument(num, () {
-      fooFunctionGeneric(y: (num x) {}, 42);
+    fooFunctionGeneric(y: (num x) {}, 42);
   });
 }

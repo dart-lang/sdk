@@ -2,6 +2,10 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/enhanced_enums/issue48181.dart:14:5: Error: Couldn't find constructor 'F.foo'.
+//   f3.foo();
+//     ^
+//
 // pkg/front_end/testcases/enhanced_enums/issue48181.dart:12:5: Error: Couldn't find constructor 'F'.
 //   f1,
 //     ^
@@ -9,10 +13,6 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/enhanced_enums/issue48181.dart:13:5: Error: Couldn't find constructor 'F'.
 //   f2(42),
 //     ^
-//
-// pkg/front_end/testcases/enhanced_enums/issue48181.dart:14:5: Error: Couldn't find constructor 'F.foo'.
-//   f3.foo();
-//     ^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -65,5 +65,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///issue48181.dart:
 - E. (from org-dartlang-testcase:///issue48181.dart:5:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

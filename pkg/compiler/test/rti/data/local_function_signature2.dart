@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 class Class1 {
   method1() {
@@ -94,16 +94,16 @@ method12() {
 test(o) => o is num Function(num);
 
 main() {
-  Expect.isFalse(test(new Class1().method1()));
-  Expect.isFalse(test(new Class1().method2()));
-  Expect.isFalse(test(new Class1().method3()));
-  Expect.isTrue(test(new Class2().method4<num>()));
-  Expect.isTrue(test(new Class3().method5<num>()));
-  Expect.isFalse(test(new Class4().method6<num>()));
-  Expect.isTrue(test(method7<num>()));
-  Expect.isTrue(test(method8<num>()));
-  Expect.isFalse(test(method9()));
-  Expect.isFalse(test(method10()));
-  Expect.isFalse(test(method11()));
-  Expect.isFalse(test(method12()));
+  makeLive(test(new Class1().method1()));
+  makeLive(test(new Class1().method2()));
+  makeLive(test(new Class1().method3()));
+  makeLive(test(new Class2().method4<num>()));
+  makeLive(test(new Class3().method5<num>()));
+  makeLive(test(new Class4().method6<num>()));
+  makeLive(test(method7<num>()));
+  makeLive(test(method8<num>()));
+  makeLive(test(method9()));
+  makeLive(test(method10()));
+  makeLive(test(method11()));
+  makeLive(test(method12()));
 }

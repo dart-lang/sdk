@@ -17,7 +17,8 @@ import 'dart:_js_helper'
         Primitives,
         PrivateSymbol,
         quoteStringForRegExp,
-        undefined;
+        undefined,
+        wrapZoneUnaryCallback;
 import 'dart:_runtime' as dart;
 import 'dart:_foreign_helper' show JS, JSExportName;
 import 'dart:_native_typed_data' show NativeUint8List;
@@ -165,19 +166,55 @@ class Expando<T extends Object> {
   }
 }
 
+// Patch for WeakReference implementation.
 @patch
 class WeakReference<T extends Object> {
   @patch
   factory WeakReference(T object) {
-    throw UnimplementedError("WeakReference");
+    return _WeakReferenceWrapper<T>(object);
   }
 }
 
+class _WeakReferenceWrapper<T extends Object> implements WeakReference<T> {
+  final Object _weakRef;
+
+  _WeakReferenceWrapper(T object)
+      : _weakRef = JS('!', 'new WeakRef(#)', object);
+
+  T? get target {
+    var target = JS<T?>('', '#.deref()', _weakRef);
+    // Coerce to null if JavaScript returns undefined.
+    if (JS<bool>('!', 'target === void 0')) return null;
+    return target;
+  }
+}
+
+// Patch for Finalizer implementation.
 @patch
 class Finalizer<T> {
   @patch
   factory Finalizer(void Function(T) object) {
-    throw UnimplementedError("Finalizer");
+    return _FinalizationRegistryWrapper<T>(object);
+  }
+}
+
+class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
+  final Object _registry;
+
+  _FinalizationRegistryWrapper(void Function(T) callback)
+      : _registry = JS('!', 'new FinalizationRegistry(#)',
+            wrapZoneUnaryCallback(callback));
+
+  void attach(Object value, T token, {Object? detach}) {
+    if (detach != null) {
+      JS('', '#.register(#, #, #)', _registry, value, token, detach);
+    } else {
+      JS('', '#.register(#, #)', _registry, value, token);
+    }
+  }
+
+  void detach(Object detachToken) {
+    JS('', '#.unregister(#)', _registry, detachToken);
   }
 }
 

@@ -57,8 +57,6 @@ class NonNullableFix {
 
   final ResourceProvider resourceProvider;
 
-  final LineInfo Function(String) _getLineInfo;
-
   /// The HTTP server that serves the preview tool.
   HttpPreviewServer? _server;
 
@@ -85,8 +83,8 @@ class NonNullableFix {
   /// Completes when the server has been shutdown.
   late Completer<void> serverIsShutdown;
 
-  NonNullableFix(this.listener, this.resourceProvider, this._getLineInfo,
-      this.bindAddress, this._logger, this.shouldBeMigratedFunction,
+  NonNullableFix(this.listener, this.resourceProvider, this.bindAddress,
+      this._logger, this.shouldBeMigratedFunction,
       {List<String> included = const [],
       this.preferredPort,
       this.summaryPath,
@@ -176,7 +174,7 @@ class NonNullableFix {
             ? null
             : MigrationSummary(summaryPath, resourceProvider, includedRoot));
     adapter = NullabilityMigrationAdapter(listener);
-    migration = NullabilityMigration(adapter, _getLineInfo,
+    migration = NullabilityMigration(adapter,
         permissive: true, instrumentation: instrumentationListener);
   }
 

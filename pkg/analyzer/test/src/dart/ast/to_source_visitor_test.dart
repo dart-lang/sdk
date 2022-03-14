@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -15,6 +13,8 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../../../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -211,11 +211,25 @@ class ToSourceVisitorTest {
             Keyword.ABSTRACT, "C", null, null, null, null));
   }
 
+  void test_visitClassDeclaration_abstractAugment() {
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        Keyword.ABSTRACT, "C", null, null, null, null,
+        isAugmentation: true);
+    _assertSource("abstract augment class C {}", declaration);
+  }
+
   void test_visitClassDeclaration_abstractMacro() {
     ClassDeclaration declaration = AstTestFactory.classDeclaration(
         Keyword.ABSTRACT, "C", null, null, null, null,
         isMacro: true);
     _assertSource("abstract macro class C {}", declaration);
+  }
+
+  void test_visitClassDeclaration_augment() {
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        null, "C", null, null, null, null,
+        isAugmentation: true);
+    _assertSource("augment class C {}", declaration);
   }
 
   void test_visitClassDeclaration_empty() {
@@ -406,6 +420,19 @@ class ToSourceVisitorTest {
             AstTestFactory.implementsClause([AstTestFactory.namedType4("I")])));
   }
 
+  void test_visitClassTypeAlias_abstractAugment() {
+    _assertSource(
+        "abstract augment class C = S with M1;",
+        AstTestFactory.classTypeAlias(
+            "C",
+            null,
+            Keyword.ABSTRACT,
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            null,
+            isAugmentation: true));
+  }
+
   void test_visitClassTypeAlias_abstractMacro() {
     _assertSource(
         "abstract macro class C = S with M1;",
@@ -417,6 +444,19 @@ class ToSourceVisitorTest {
             AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
             null,
             isMacro: true));
+  }
+
+  void test_visitClassTypeAlias_augment() {
+    _assertSource(
+        "augment class C = S with M1;",
+        AstTestFactory.classTypeAlias(
+            "C",
+            null,
+            null,
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            null,
+            isAugmentation: true));
   }
 
   void test_visitClassTypeAlias_generic() {
@@ -3477,13 +3517,7 @@ import 'foo.dart'
   FindNode _parseStringToFindNode(String content) {
     var parseResult = parseString(
       content: content,
-      featureSet: FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: [
-          Feature.enhanced_enums.enableString,
-          Feature.super_parameters.enableString,
-        ],
-      ),
+      featureSet: FeatureSets.latestWithExperiments,
     );
     return FindNode(parseResult.content, parseResult.unit);
   }

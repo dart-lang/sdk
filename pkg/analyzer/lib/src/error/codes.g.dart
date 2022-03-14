@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
@@ -1605,6 +1605,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER',
   );
 
+  static const CompileTimeErrorCode CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE =
+      CompileTimeErrorCode(
+    'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
+    "Concrete classes can't have 'Enum' as a superinterface.",
+    correctionMessage:
+        "Try specifying a different interface, or remove it from the list.",
+  );
+
   /**
    * Parameters:
    * 0: the name of the abstract method
@@ -1886,6 +1894,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the type variable
    */
+  static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_ENUM =
+      CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    "'{0}' can't be used to name both a type variable and the enum in which "
+        "the type variable is defined.",
+    correctionMessage: "Try renaming either the type variable or the enum.",
+    hasPublishedDocs: true,
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_ENUM',
+  );
+
+  /**
+   * Parameters:
+   * 0: the name of the type variable
+   */
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_EXTENSION =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
@@ -1935,6 +1957,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try renaming either the type variable or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
+  );
+
+  /**
+   * Parameters:
+   * 0: the name of the type variable
+   */
+  static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM =
+      CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    "'{0}' can't be used to name both a type variable and a member in this "
+        "enum.",
+    correctionMessage: "Try renaming either the type variable or the member.",
+    hasPublishedDocs: true,
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM',
   );
 
   /**
@@ -3040,10 +3076,35 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try calling a different constructor.",
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the label in a `continue`
+  // statement resolves to a label on a `switch` statement.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the label `l`, used to
+  // label a `switch` statement, is used in the `continue` statement:
+  //
+  // ```dart
+  // void f(int i) {
+  //   l: switch (i) {
+  //     case 0:
+  //       continue [!l!];
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Find a different way to achieve the control flow you need; for example, by
+  // introducing a loop that re-executes the `switch` statement.
   static const CompileTimeErrorCode CONTINUE_LABEL_ON_SWITCH =
       CompileTimeErrorCode(
     'CONTINUE_LABEL_ON_SWITCH',
-    "A continue label resolves to switch, must be loop or switch member",
+    "A `continue` label resolves to a `switch` statement, but the label must "
+        "be on a loop or a switch member.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -3337,14 +3398,50 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an expression with a value that
+  // is anything other than one of the allowed kinds of values is followed by
+  // type arguments. The allowed kinds of values are:
+  // - generic types,
+  // - generic constructors, and
+  // - generic functions, including top-level functions, static and instance
+  //   members, and local functions.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `i` is a top-level
+  // variable, which isn't one of the allowed cases:
+  //
+  // ```dart
+  // int i = 1;
+  //
+  // void f() {
+  //   print([!i!]<int>);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the referenced value is correct, then remove the type arguments:
+  //
+  // ```dart
+  // int i = 1;
+  //
+  // void f() {
+  //   print(i);
+  // }
+  // ```
   static const CompileTimeErrorCode DISALLOWED_TYPE_INSTANTIATION_EXPRESSION =
       CompileTimeErrorCode(
     'DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
     "Only a generic type, generic function, generic instance method, or "
-        "generic constructor can be type instantiated.",
+        "generic constructor can have type arguments.",
     correctionMessage:
-        "Try instantiating the type(s) of a generic type, generic function, "
-        "generic instance method, or generic constructor.",
+        "Try removing the type arguments, or instantiating the type(s) of a "
+        "generic type, generic function, generic instance method, or generic "
+        "constructor.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -3629,11 +3726,85 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an enum constant has the same
+  // name as the enum in which it's declared.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the enum constant `E`
+  // has the same name as the enclosing enum `E`:
+  //
+  // ```dart
+  // enum E {
+  //   [!E!]
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the name of the enum is correct, then rename the constant:
+  //
+  // ```dart
+  // enum E {
+  //   e
+  // }
+  // ```
+  //
+  // If the name of the constant is correct, then rename the enum:
+  //
+  // ```dart
+  // enum F {
+  //   E
+  // }
+  // ```
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
       CompileTimeErrorCode(
     'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
     "The name of the enum constant can't be the same as the enum's name.",
     correctionMessage: "Try renaming the constant.",
+    hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR',
+    "The invoked constructor isn't a const constructor.",
+    correctionMessage: "Try invoking a const generative constructor.",
+  );
+
+  static const CompileTimeErrorCode
+      ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED = CompileTimeErrorCode(
+    'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
+    "The result of instantiating the enum to bounds is not well-bounded.",
+    correctionMessage: "Try using different bounds for type parameters.",
+  );
+
+  static const CompileTimeErrorCode ENUM_MIXIN_WITH_INSTANCE_VARIABLE =
+      CompileTimeErrorCode(
+    'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
+    "Mixins applied to enums can't have instance variables.",
+    correctionMessage: "Try replacing the instance variables with getters.",
+  );
+
+  /**
+   * Parameters:
+   * 0: the name of the abstract method
+   * 1: the name of the enclosing enum
+   */
+  static const CompileTimeErrorCode ENUM_WITH_ABSTRACT_MEMBER =
+      CompileTimeErrorCode(
+    'ENUM_WITH_ABSTRACT_MEMBER',
+    "'{0}' must have a method body because '{1}' is an enum.",
+    correctionMessage: "Try adding a body to '{0}'.",
+  );
+
+  static const CompileTimeErrorCode ENUM_WITH_NAME_VALUES =
+      CompileTimeErrorCode(
+    'ENUM_WITH_NAME_VALUES',
+    "The name 'values' is not a valid name for an enum.",
+    correctionMessage: "Try using a different name.",
   );
 
   /**
@@ -4520,6 +4691,49 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a field or variable marked with
+  // the keyword `external` has an initializer, or when an external field is
+  // initialized in a constructor.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the external field `x`
+  // is assigned a value in an initializer:
+  //
+  // ```dart
+  // class C {
+  //   external int x;
+  //   C() : [!x!] = 0;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the external field `x`
+  // has an initializer:
+  //
+  // ```dart
+  // class C {
+  //   external final int [!x!] = 0;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the external top level
+  // variable `x` has an initializer:
+  //
+  // ```dart
+  // external final int [!x!] = 0;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the initializer:
+  //
+  // ```dart
+  // class C {
+  //   external final int x;
+  // }
+  // ```
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
       CompileTimeErrorCode(
     'EXTERNAL_WITH_INITIALIZER',
@@ -4527,6 +4741,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the field initializer or the 'external' keyword from the "
         "field declaration.",
+    hasPublishedDocs: true,
     uniqueName: 'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
   );
 
@@ -4536,6 +4751,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "External fields can't have initializers.",
     correctionMessage:
         "Try removing the initializer or the 'external' keyword.",
+    hasPublishedDocs: true,
     uniqueName: 'EXTERNAL_FIELD_INITIALIZER',
   );
 
@@ -4545,6 +4761,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "External variables can't have initializers.",
     correctionMessage:
         "Try removing the initializer or the 'external' keyword.",
+    hasPublishedDocs: true,
     uniqueName: 'EXTERNAL_VARIABLE_INITIALIZER',
   );
 
@@ -4902,15 +5119,47 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * 7.6.1 Generative Constructors: It is a compile-time error if an
-   * initializing formal is used by a function other than a non-redirecting
-   * generative constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an initializing formal
+  // parameter is used in the parameter list for anything other than a
+  // constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the initializing
+  // formal parameter `this.x` is being used in the method `m`:
+  //
+  // ```dart
+  // class A {
+  //   int x = 0;
+  //
+  //   m([[!this.x!] = 0]) {}
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the initializing formal parameter with a normal parameter and
+  // assign the field within the body of the method:
+  //
+  // ```dart
+  // class A {
+  //   int x = 0;
+  //
+  //   m([int x = 0]) {
+  //     this.x = x;
+  //   }
+  // }
+  // ```
   static const CompileTimeErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR =
       CompileTimeErrorCode(
     'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
     "Initializing formal parameters can only be used in constructors.",
     correctionMessage: "Try using a normal parameter.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -5691,6 +5940,63 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the name of member that cannot be declared
+   */
+  static const CompileTimeErrorCode ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION =
+      CompileTimeErrorCode(
+    'ILLEGAL_CONCRETE_ENUM_MEMBER',
+    "A concrete instance member named '{0}' can't be declared in a class that "
+        "implements 'Enum'.",
+    correctionMessage: "Try using a different name.",
+    uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION',
+  );
+
+  /**
+   * Parameters:
+   * 0: the name of member that cannot be inherited
+   * 1: the name of the class that declares the member
+   */
+  static const CompileTimeErrorCode ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE =
+      CompileTimeErrorCode(
+    'ILLEGAL_CONCRETE_ENUM_MEMBER',
+    "A concrete instance member named '{0}' can't be inherited from '{1}' in a "
+        "class that implements 'Enum'.",
+    correctionMessage: "Try using a different name.",
+    uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE',
+  );
+
+  static const CompileTimeErrorCode ILLEGAL_ENUM_VALUES_DECLARATION =
+      CompileTimeErrorCode(
+    'ILLEGAL_ENUM_VALUES',
+    "An instance member named 'values' can't be declared in a class that "
+        "implements 'Enum'.",
+    correctionMessage: "Try using a different name.",
+    uniqueName: 'ILLEGAL_ENUM_VALUES_DECLARATION',
+  );
+
+  /**
+   * Parameters:
+   * 0: the name of the class that declares 'values'
+   */
+  static const CompileTimeErrorCode ILLEGAL_ENUM_VALUES_INHERITANCE =
+      CompileTimeErrorCode(
+    'ILLEGAL_ENUM_VALUES',
+    "An instance member named 'values' can't be inherited from '{0}' in a "
+        "class that implements 'Enum'.",
+    correctionMessage: "Try using a different name.",
+    uniqueName: 'ILLEGAL_ENUM_VALUES_INHERITANCE',
+  );
+
+  static const CompileTimeErrorCode ILLEGAL_LANGUAGE_VERSION_OVERRIDE =
+      CompileTimeErrorCode(
+    'ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
+    "The language version must be {0}.",
+    correctionMessage:
+        "Try removing the language version override and migrating the code.",
+  );
+
+  /**
    * No parameters.
    */
   // #### Description
@@ -5901,6 +6207,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the superclass
+   */
+  static const CompileTimeErrorCode
+      IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS = CompileTimeErrorCode(
+    'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
+    "The implicitly invoked unnamed constructor from '{0}' has required "
+        "parameters.",
+    correctionMessage:
+        "Try adding an explicit super initializer with the required arguments.",
+  );
+
+  /**
+   * Parameters:
    * 0: the name of the instance member
    */
   // #### Description
@@ -5959,28 +6278,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  static const CompileTimeErrorCode
-      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT =
-      CompileTimeErrorCode(
-    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT',
-    "The named parameter '{0}' is required in the implicitly invoked unnamed "
-        "constructor of '{1}'.",
-    correctionMessage:
-        "Try declaring corresponding named super-parameter, or explicitly "
-        "invoking a different constructor.",
-  );
-
-  static const CompileTimeErrorCode
-      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS =
-      CompileTimeErrorCode(
-    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    "The implicitly invoked unnamed constructor of '{0}' expects {1} "
-        "positional arguments, but {2} found.",
-    correctionMessage:
-        "Try declaring positional super-parameters, or explicitly invoking a "
-        "different constructor.",
-  );
-
   /**
    * Parameters:
    * 0: the uri pointing to a library
@@ -6010,17 +6307,46 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * 14.1 Imports: It is a compile-time error if the specified URI of an
-   * immediate import does not refer to a library declaration.
-   *
    * Parameters:
    * 0: the uri pointing to a non-library declaration
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a [part file][] is imported
+  // into a library.
+  //
+  // #### Example
+  //
+  // Given a [part file][] named `part.dart` containing the following:
+  //
+  // ```dart
+  // %uri="lib/part.dart"
+  // part of lib;
+  //
+  // class C{}
+  // ```
+  //
+  // The following code produces this diagnostic because imported files can't
+  // have a part-of directive:
+  //
+  // ```dart
+  // library lib;
+  //
+  // import [!'part.dart'!];
+  //
+  // C c = C();
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Import the library that contains the [part file][] rather than the
+  // [part file][] itself.
   static const CompileTimeErrorCode IMPORT_OF_NON_LIBRARY =
       CompileTimeErrorCode(
     'IMPORT_OF_NON_LIBRARY',
     "The imported library '{0}' can't have a part-of directive.",
     correctionMessage: "Try importing the library that the part is a part of.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -6121,18 +6447,51 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * It is a compile-time error if a part file has a different language version
-   * override than its library.
-   *
-   * https://github.com/dart-lang/language/blob/master/accepted/
-   * future-releases/language-versioning/feature-specification.md
-   * #individual-library-language-version-override
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a [part file][] has a language
+  // version override comment that specifies a different language version than
+  // the one being used for the library to which the part belongs.
+  //
+  // #### Example
+  //
+  // Given a [part file][] named `part.dart` that contains the following:
+  //
+  // ```dart
+  // %uri="lib/part.dart"
+  // // @dart = 2.6
+  // part of 'test.dart';
+  // ```
+  //
+  // The following code produces this diagnostic because the parts of a library
+  // must have the same language version as the defining compilation unit:
+  //
+  // ```dart
+  // // @dart = 2.5
+  // part [!'part.dart'!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the language version override from the [part file][], so that it
+  // implicitly uses the same version as the defining compilation unit:
+  //
+  // ```dart
+  // part of 'test.dart';
+  // ```
+  //
+  // If necessary, either adjust the language version override in the defining
+  // compilation unit to be appropriate for the code in the part, or migrate
+  // the code in the [part file][] to be consistent with the new language
+  // version.
   static const CompileTimeErrorCode INCONSISTENT_LANGUAGE_VERSION_OVERRIDE =
       CompileTimeErrorCode(
     'INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
     "Parts must have exactly the same language version override as the "
         "library.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -6568,6 +6927,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // instantiated:
   //
   // ```dart
+  // // @dart = 2.16
   // enum E {a}
   //
   // var e = [!E!]();
@@ -6579,6 +6939,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // constants defined in the enum:
   //
   // ```dart
+  // // @dart = 2.16
   // enum E {a}
   //
   // var e = E.a;
@@ -7497,6 +7858,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_OVERRIDE',
     "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
     hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode
+      INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR = CompileTimeErrorCode(
+    'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
+    "Generative enum constructors can only be used as targets of redirection.",
+    correctionMessage: "Try using a factory constructor, or an enum constant.",
   );
 
   /**
@@ -9154,14 +9522,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * 7.6.1 Generative Constructors: A generative constructor may be redirecting,
-   * in which case its only action is to invoke another generative constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a constructor redirects to more
+  // than one other constructor in the same class (using `this`).
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the unnamed
+  // constructor in `C` is redirecting to both `this.a` and `this.b`:
+  //
+  // ```dart
+  // class C {
+  //   C() : this.a(), [!this.b()!];
+  //   C.a();
+  //   C.b();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove all but one of the redirections:
+  //
+  // ```dart
+  // class C {
+  //   C() : this.a();
+  //   C.a();
+  //   C.b();
+  // }
+  // ```
   static const CompileTimeErrorCode
       MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS = CompileTimeErrorCode(
     'MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
-    "Constructors can have at most one 'this' redirection.",
+    "Constructors can have only one 'this' redirection, at most.",
     correctionMessage: "Try removing all but one of the redirections.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -10141,7 +10538,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic beause `a` isn't a constant:
+  // The following code produces this diagnostic because `a` isn't a constant:
   //
   // ```dart
   // var a = 'a';
@@ -10285,6 +10682,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
+    "Generative enum constructors must be 'const'.",
+    correctionMessage: "Try adding the keyword 'const'.",
+  );
+
   /**
    * 13.2 Expression Statements: It is a compile-time error if a non-constant
    * map literal that has no explicit type arguments appears in a place where a
@@ -10295,6 +10699,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
     "A non-constant map or set literal without type arguments can't be used as "
         "an expression statement.",
+  );
+
+  /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode NON_FINAL_FIELD_IN_ENUM =
+      CompileTimeErrorCode(
+    'NON_FINAL_FIELD_IN_ENUM',
+    "Enum can only declare final fields.",
+    correctionMessage: "Try making the field final.",
   );
 
   /**
@@ -10352,15 +10766,75 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * An error code for when a class has no explicit constructor, and therefore
-   * a constructor is implicitly defined which uses a factory as a
-   * superinitializer. See [NON_GENERATIVE_CONSTRUCTOR].
-   *
    * Parameters:
    * 0: the name of the superclass
    * 1: the name of the current class
    * 2: the implicitly called factory constructor of the superclass
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class has an implicit
+  // generative constructor and the superclass has an explicit unnamed factory
+  // constructor. The implicit constructor in the subclass implicitly invokes
+  // the unnamed constructor in the superclass, but generative constructors can
+  // only invoke another generative constructor, not a factory constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the implicit
+  // constructor in `B` invokes the unnamed constructor in `A`, but the
+  // constructor in `A` is a factory constructor, when a generative constructor
+  // is required:
+  //
+  // ```dart
+  // class A {
+  //   factory A() => throw 0;
+  //   A.named();
+  // }
+  //
+  // class [!B!] extends A {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the unnamed constructor in the superclass can be a generative
+  // constructor, then change it to be a generative constructor:
+  //
+  // ```dart
+  // class A {
+  //   A();
+  //   A.named();
+  // }
+  //
+  // class B extends A { }
+  // ```
+  //
+  // If the unnamed constructor can't be a generative constructor and there are
+  // other generative constructors in the superclass, then explicitly invoke
+  // one of them:
+  //
+  // ```dart
+  // class A {
+  //   factory A() => throw 0;
+  //   A.named();
+  // }
+  //
+  // class B extends A {
+  //   B() : super.named();
+  // }
+  // ```
+  //
+  // If there are no generative constructors that can be used and none can be
+  // added, then implement the superclass rather than extending it:
+  //
+  // ```dart
+  // class A {
+  //   factory A() => throw 0;
+  //   A.named();
+  // }
+  //
+  // class B implements A {}
+  // ```
   static const CompileTimeErrorCode NON_GENERATIVE_IMPLICIT_CONSTRUCTOR =
       CompileTimeErrorCode(
     'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
@@ -10371,6 +10845,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try adding an explicit constructor that has a different "
         "superinitializer or changing the superclass constructor '{2}' to not "
         "be a factory constructor.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -11201,24 +11676,80 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * User friendly specialized error for [NON_GENERATIVE_CONSTRUCTOR]. This
-   * handles the case of `class E extends Exception` which will never work
-   * because [Exception] has no generative constructors.
-   *
    * Parameters:
    * 0: the name of the subclass
    * 1: the name of the superclass
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class that has at least one
+  // generative constructor (whether explicit or implicit) has a superclass
+  // that doesn't have any generative constructors. Every generative
+  // constructor, except the one defined in `Object`, invokes, either
+  // explicitly or implicitly, one of the generative constructors from its
+  // superclass.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the class `B` has an
+  // implicit generative constructor that can't invoke a generative constructor
+  // from `A` because `A` doesn't have any generative constructors:
+  //
+  // ```dart
+  // class A {
+  //   factory A.none() => throw '';
+  // }
+  //
+  // class B extends [!A!] {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the superclass should have a generative constructor, then add one:
+  //
+  // ```dart
+  // class A {
+  //   A();
+  //   factory A.none() => throw '';
+  // }
+  //
+  // class B extends A {}
+  // ```
+  //
+  // If the subclass shouldn't have a generative constructor, then remove it by
+  // adding a factory constructor:
+  //
+  // ```dart
+  // class A {
+  //   factory A.none() => throw '';
+  // }
+  //
+  // class B extends A {
+  //   factory B.none() => throw '';
+  // }
+  // ```
+  //
+  // If the subclass must have a generative constructor but the superclass
+  // can't have one, then implement the superclass instead:
+  //
+  // ```dart
+  // class A {
+  //   factory A.none() => throw '';
+  // }
+  //
+  // class B implements A {}
+  // ```
   static const CompileTimeErrorCode NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS =
       CompileTimeErrorCode(
     'NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
-    "The class '{0}' cannot extend '{1}' because '{1}' only has factory "
+    "The class '{0}' can't extend '{1}' because '{1}' only has factory "
         "constructors (no generative constructors), and '{0}' has at least one "
         "generative constructor.",
     correctionMessage:
         "Try implementing the class instead, adding a generative (not factory) "
-        "constructor to the superclass {0}, or a factory constructor to the "
+        "constructor to the superclass '{1}', or a factory constructor to the "
         "subclass.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -11520,8 +12051,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the library should be using a different file as a part, then change the
   // URI in the part directive to be the URI of the other file.
   //
-  // If the part file should be a part of this library, then update the URI (or
-  // library name) in the part-of directive to be the URI (or name) of the
+  // If the [part file][] should be a part of this library, then update the URI
+  // (or library name) in the part-of directive to be the URI (or name) of the
   // correct library.
   static const CompileTimeErrorCode PART_OF_DIFFERENT_LIBRARY =
       CompileTimeErrorCode(
@@ -11590,13 +12121,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a library that doesn't have a
-  // `library` directive (and hence has no name) contains a `part` directive and
-  // the `part of` directive in the part file uses a name to specify the library
-  // that it's a part of.
+  // `library` directive (and hence has no name) contains a `part` directive
+  // and the `part of` directive in the [part file][] uses a name to specify
+  // the library that it's a part of.
   //
   // #### Example
   //
-  // Given a part file named `part_file.dart` containing the following code:
+  // Given a [part file][] named `part_file.dart` containing the following
+  // code:
   //
   // ```dart
   // %uri="lib/part_file.dart"
@@ -11604,8 +12136,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   //
   // The following code produces this diagnostic because the library including
-  // the part file doesn't have a name even though the part file uses a name to
-  // specify which library it's a part of:
+  // the [part file][] doesn't have a name even though the [part file][] uses a
+  // name to specify which library it's a part of:
   //
   // ```dart
   // part [!'part_file.dart'!];
@@ -11613,8 +12145,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Change the `part of` directive in the part file to specify its library by
-  // URI:
+  // Change the `part of` directive in the [part file][] to specify its library
+  // by URI:
   //
   // ```dart
   // part of 'test.dart';
@@ -11742,22 +12274,61 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * From the `Static Types` section of the spec:
-   *
-   *     A type T is malformed if:
-   *     - T has the form id or the form prefix.id, and in the enclosing lexical
-   *       scope, the name id (respectively prefix.id) does not denote a type.
-   *
-   * In particular, this means that if an import prefix is shadowed by a local
-   * declaration, it is an error to try to use it as a prefix for a type name.
+   * Parameters:
+   * 0: the prefix being shadowed
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an import prefix is used in a
+  // context where it isn't visible because it was shadowed by a local
+  // declaration.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the prefix `a` is
+  // being used to access the class `Future`, but isn't visible because it's
+  // shadowed by the parameter `a`:
+  //
+  // ```dart
+  // import 'dart:async' as a;
+  //
+  // a.Future? f(int a) {
+  //   [!a!].Future? x;
+  //   return x;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Rename either the prefix:
+  //
+  // ```dart
+  // import 'dart:async' as p;
+  //
+  // p.Future? f(int a) {
+  //   p.Future? x;
+  //   return x;
+  // }
+  // ```
+  //
+  // Or rename the local variable:
+  //
+  // ```dart
+  // import 'dart:async' as a;
+  //
+  // a.Future? f(int p) {
+  //   a.Future? x;
+  //   return x;
+  // }
+  // ```
   static const CompileTimeErrorCode PREFIX_SHADOWED_BY_LOCAL_DECLARATION =
       CompileTimeErrorCode(
     'PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
-    "The prefix '{0}' can't be used here because it is shadowed by a local "
+    "The prefix '{0}' can't be used here because it's shadowed by a local "
         "declaration.",
     correctionMessage:
         "Try renaming either the prefix or the local declaration.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -11853,20 +12424,97 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a private setter is used in a
+  // library where it isn't visible.
+  //
+  // #### Example
+  //
+  // Given a file named `a.dart` that contains the following:
+  //
+  // ```dart
+  // %uri="lib/a.dart"
+  // class A {
+  //   static int _f = 0;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because it references the
+  // private setter `_f` even though the setter isn't visible:
+  //
+  // ```dart
+  // import 'a.dart';
+  //
+  // void f() {
+  //   A.[!_f!] = 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you're able to make the setter public, then do so:
+  //
+  // ```dart
+  // %uri="lib/a.dart"
+  // class A {
+  //   static int f = 0;
+  // }
+  // ```
+  //
+  // If you aren't able to make the setter public, then find a different way to
+  // implement the code.
   static const CompileTimeErrorCode PRIVATE_SETTER = CompileTimeErrorCode(
     'PRIVATE_SETTER',
-    "The setter '{0}' is private and can't be accessed outside of the library "
+    "The setter '{0}' is private and can't be accessed outside the library "
         "that declares it.",
     correctionMessage: "Try making it public.",
+    hasPublishedDocs: true,
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a final local variable that
+  // isn't initialized at the declaration site is read at a point where the
+  // compiler can't prove that the variable is always initialized before it's
+  // referenced.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the final local
+  // variable `x` is read (on line 3) when it's possible that it hasn't yet
+  // been initialized:
+  //
+  // ```dart
+  // int f() {
+  //   final int x;
+  //   return [!x!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Ensure that the variable has been initialized before it's read:
+  //
+  // ```dart
+  // int f(bool b) {
+  //   final int x;
+  //   if (b) {
+  //     x = 0;
+  //   } else {
+  //     x = 1;
+  //   }
+  //   return x;
+  // }
+  // ```
   static const CompileTimeErrorCode READ_POTENTIALLY_UNASSIGNED_FINAL =
       CompileTimeErrorCode(
     'READ_POTENTIALLY_UNASSIGNED_FINAL',
-    "The final variable '{0}' can't be read because it is potentially "
+    "The final variable '{0}' can't be read because it's potentially "
         "unassigned at this point.",
     correctionMessage:
         "Ensure that it is assigned on necessary execution paths.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -12222,15 +12870,51 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * A factory constructor can't redirect to a non-generative constructor of an
-   * abstract class.
+   * Parameters:
+   * 0: the name of the redirecting constructor
+   * 1: the name of the abstract class defining the constructor being redirected to
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a constructor redirects to a
+  // constructor in an abstract class.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the factory
+  // constructor in `A` redirects to a constructor in `B`, but `B` is an
+  // abstract class:
+  //
+  // ```dart
+  // class A {
+  //   factory A() = [!B!];
+  // }
+  //
+  // abstract class B implements A {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the code redirects to the correct constructor, then change the class so
+  // that it isn't abstract:
+  //
+  // ```dart
+  // class A {
+  //   factory A() = B;
+  // }
+  //
+  // class B implements A {}
+  // ```
+  //
+  // Otherwise, change the factory constructor so that it either redirects to a
+  // constructor in a concrete class, or has a concrete implementation.
   static const CompileTimeErrorCode REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR =
       CompileTimeErrorCode(
     'REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
     "The redirecting constructor '{0}' can't redirect to a constructor of the "
         "abstract class '{1}'.",
     correctionMessage: "Try redirecting to a constructor of a different class.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -12377,9 +13061,57 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with
-   * the const modifier but <i>k'</i> is not a constant constructor.
+   * Parameters:
+   * 0: the name of the constructor
+   * 1: the name of the class containing the constructor
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a constructor redirects to a
+  // constructor that doesn't exist.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the factory
+  // constructor in `A` redirects to a constructor in `B` that doesn't exist:
+  //
+  // ```dart
+  // class A {
+  //   factory A() = [!B.name!];
+  // }
+  //
+  // class B implements A {
+  //   B();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the constructor being redirected to is correct, then define the
+  // constructor:
+  //
+  // ```dart
+  // class A {
+  //   factory A() = B.name;
+  // }
+  //
+  // class B implements A {
+  //   B();
+  //   B.name();
+  // }
+  // ```
+  //
+  // If a different constructor should be invoked, then update the redirect:
+  //
+  // ```dart
+  // class A {
+  //   factory A() = B;
+  // }
+  //
+  // class B implements A {
+  //   B();
+  // }
+  // ```
   static const CompileTimeErrorCode REDIRECT_TO_MISSING_CONSTRUCTOR =
       CompileTimeErrorCode(
     'REDIRECT_TO_MISSING_CONSTRUCTOR',
@@ -12387,6 +13119,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try redirecting to a different constructor, or define the constructor "
         "named '{0}'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -13190,6 +13923,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode SUPER_IN_ENUM_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'SUPER_IN_ENUM_CONSTRUCTOR',
+    "The enum constructor can't have a 'super' initializer.",
+    correctionMessage: "Try removing the 'super' invocation.",
+  );
+
   /**
    * No parameters.
    */
@@ -13295,17 +14035,46 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * It is an error if any case of a switch statement except the last case (the
-   * default case if present) may complete normally. The previous syntactic
-   * restriction requiring the last statement of each case to be one of an
-   * enumerated list of statements (break, continue, return, throw, or rethrow)
-   * is removed.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the statements following a
+  // `case` label in a `switch` statement could fall through to the next `case`
+  // or `default` label.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the `case` label with
+  //  a value of zero (`0`) falls through to the `default` statements:
+  //
+  // ```dart
+  // void f(int a) {
+  //   switch (a) {
+  //     [!case!] 0:
+  //       print(0);
+  //     default:
+  //       return;
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the flow of control so that the `case` won't fall through. There
+  // are several ways that this can be done, including adding one of the
+  // following at the end of the current list of statements:
+  // - a `return` statement,
+  // - a `throw` expression,
+  // - a `break` statement,
+  // - a `continue`, or
+  // - an invocation of a function or method whose return type is `Never`.
   static const CompileTimeErrorCode SWITCH_CASE_COMPLETES_NORMALLY =
       CompileTimeErrorCode(
     'SWITCH_CASE_COMPLETES_NORMALLY',
-    "The 'case' should not complete normally.",
-    correctionMessage: "Try adding 'break', or 'return', etc.",
+    "The 'case' shouldn't complete normally.",
+    correctionMessage: "Try adding 'break', 'return', or 'throw'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -14169,8 +14938,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the enumeration constant that is not defined
-   * 1: the name of the enumeration used to access the constant
+   * 0: the name of the enum constant that is not defined
+   * 1: the name of the enum used to access the constant
    */
   // #### Description
   //
@@ -14216,6 +14985,30 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try correcting the name to the name of an existing constant, or "
         "defining a constant named '{0}'.",
     hasPublishedDocs: true,
+  );
+
+  /**
+   * Parameters:
+   * 0: the name of the constructor that is undefined
+   */
+  static const CompileTimeErrorCode UNDEFINED_ENUM_CONSTRUCTOR_NAMED =
+      CompileTimeErrorCode(
+    'UNDEFINED_ENUM_CONSTRUCTOR',
+    "The enum doesn't have a constructor named '{0}'.",
+    correctionMessage:
+        "Try correcting the name to the name of an existing constructor, or "
+        "defining constructor with the name '{0}'.",
+    uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
+  );
+
+  static const CompileTimeErrorCode UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED =
+      CompileTimeErrorCode(
+    'UNDEFINED_ENUM_CONSTRUCTOR',
+    "The enum doesn't have an unnamed constructor.",
+    correctionMessage:
+        "Try adding the name of an existing constructor, or defining an "
+        "unnamed constructor.",
+    uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED',
   );
 
   /**
@@ -15447,6 +16240,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode VALUES_DECLARATION_IN_ENUM =
+      CompileTimeErrorCode(
+    'VALUES_DECLARATION_IN_ENUM',
+    "A member named 'values' can't be declared in an enum.",
+    correctionMessage: "Try using a different name.",
+  );
+
   /**
    * Parameters:
    * 0: the type of the object being assigned.
@@ -15755,6 +16555,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The constructor '{0}.{1}' doesn't have type parameters.",
     correctionMessage: "Try moving type arguments to after the type name.",
     hasPublishedDocs: true,
+  );
+
+  /**
+   * Parameters:
+   * 0: the number of type parameters that were declared
+   * 1: the number of type arguments provided
+   */
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM =
+      CompileTimeErrorCode(
+    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
+    "The enum is declared with {0} type parameters, but {1} type arguments "
+        "were given.",
+    correctionMessage: "Try adjusting the number of type arguments.",
   );
 
   /**
@@ -16404,7 +17217,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a `switch` statement for an enum
-  // doesn't include an option for one of the values in the enumeration.
+  // doesn't include an option for one of the values in the enum.
   //
   // Note that `null` is always a possible value for an enum and therefore also
   // must be handled.

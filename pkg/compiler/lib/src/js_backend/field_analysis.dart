@@ -270,8 +270,8 @@ class JFieldAnalysis {
     sink.end(tag);
   }
 
-  factory JFieldAnalysis.from(KClosedWorldImpl closedWorld, JsToFrontendMap map,
-      CompilerOptions options) {
+  factory JFieldAnalysis.from(
+      KClosedWorld closedWorld, JsToFrontendMap map, CompilerOptions options) {
     Map<FieldEntity, FieldAnalysisData> fieldData = {};
 
     bool canBeElided(FieldEntity field) {

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -6,31 +6,21 @@ library;
 //   static get v {
 //              ^
 // pkg/front_end/testcases/general/instance_setter_conflict.dart:6:7: Context: This is the inherited member.
-//   int v;
+//   int v = 0;
 //       ^
 //
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field core::int* v = null;
-  synthetic constructor •() → self::A*
+  field core::int v = 0;
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C extends self::A {
-  static field core::int* n = null;
-  synthetic constructor •() → self::C*
+  static field core::int n = 0;
+  synthetic constructor •() → self::C
     : super self::A::•()
     ;
   static get v() → dynamic {

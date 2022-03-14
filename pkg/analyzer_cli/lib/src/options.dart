@@ -329,7 +329,7 @@ class CommandLineOptions {
       }
 
       // Infer if unspecified.
-      sdkPath ??= getSdkPath(args);
+      sdkPath ??= getSdkPath();
 
       var pathContext = resourceProvider.pathContext;
       options.dartSdkPath = file_paths.absoluteNormalized(pathContext, sdkPath);

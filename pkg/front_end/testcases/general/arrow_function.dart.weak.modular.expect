@@ -1,6 +1,6 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method main<T extends core::Object* = dynamic>() → dynamic
-  return () → core::Type* => self::main::T*;
+static method main<T extends core::Object? = dynamic>() → dynamic
+  return () → core::Type => self::main::T%;

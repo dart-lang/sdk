@@ -23,7 +23,7 @@ class PrefixedIdentifierResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void resolve(PrefixedIdentifierImpl node) {
+  void resolve(PrefixedIdentifierImpl node, {required DartType? contextType}) {
     node.prefix.accept(_resolver);
 
     var resolver = PropertyElementResolver(_resolver);
@@ -44,13 +44,19 @@ class PrefixedIdentifierResolver {
     }
 
     if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(identifier, NeverTypeImpl.instance);
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
+      _inferenceHelper.recordStaticType(identifier, NeverTypeImpl.instance,
+          contextType: contextType);
+      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance,
+          contextType: contextType);
       return;
     }
 
     DartType type = DynamicTypeImpl.instance;
-    if (element is ClassElement) {
+    if (result.readElementRequested == null &&
+        result.readElementRecovery != null) {
+      // Since the element came from error recovery logic, its type isn't
+      // trustworthy; leave it as `dynamic`.
+    } else if (element is ClassElement) {
       if (_isExpressionIdentifier(node)) {
         var type = _typeProvider.typeType;
         node.staticType = type;
@@ -90,10 +96,11 @@ class PrefixedIdentifierResolver {
       // sites.
       // TODO(srawlins): Switch all resolution to use the latter method, in a
       // breaking change release.
-      type = _inferenceHelper.inferTearOff(node, identifier, type);
+      type = _inferenceHelper.inferTearOff(node, identifier, type,
+          contextType: contextType);
     }
-    _inferenceHelper.recordStaticType(identifier, type);
-    _inferenceHelper.recordStaticType(node, type);
+    _inferenceHelper.recordStaticType(identifier, type, contextType: null);
+    _inferenceHelper.recordStaticType(node, type, contextType: contextType);
   }
 
   /// Return the type that should be recorded for a node that resolved to the given accessor.

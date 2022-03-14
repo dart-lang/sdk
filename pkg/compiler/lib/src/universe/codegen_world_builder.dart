@@ -5,8 +5,8 @@
 import 'dart:collection';
 
 import '../common.dart';
+import '../common/elements.dart';
 import '../common/names.dart' show Identifiers;
-import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -28,7 +28,7 @@ import 'world_builder.dart';
 /// World builder specific to codegen.
 ///
 /// This adds additional access to liveness of selectors and elements.
-abstract class CodegenWorldBuilder implements WorldBuilder {
+abstract class CodegenWorldBuilder {
   /// Register [constant] as needed for emission.
   void addCompileTimeConstantForEmission(ConstantValue constant);
 
@@ -99,7 +99,7 @@ abstract class CodegenWorld extends BuiltWorld {
   OneShotInterceptorData get oneShotInterceptorData;
 }
 
-class CodegenWorldBuilderImpl extends WorldBuilderBase
+class CodegenWorldBuilderImpl extends WorldBuilder
     implements CodegenWorldBuilder {
   final JClosedWorld _closedWorld;
   final OneShotInterceptorData _oneShotInterceptorData;
@@ -170,7 +170,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       .where((cls) => _processedClasses[cls].isInstantiated);
 
   // TODO(johnniwinther): Improve semantic precision.
-  @override
   Iterable<ClassEntity> get directlyInstantiatedClasses {
     return _directlyInstantiatedClasses;
   }

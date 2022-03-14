@@ -200,6 +200,40 @@ class B {
         unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']));
   }
 
+  test_definedClassMemberNames_enum() {
+    String path = convertPath('/aaa/lib/a.dart');
+    newFile(path, content: r'''
+enum E1 {
+  v1;
+  int field1, field2;
+  const E1();
+  const E1.namedConstructor();
+  void method() {}
+  get getter => 0;
+  set setter(_) {}
+}
+
+enum E2 {
+  v2;
+  get getter2 => 0;
+}
+''');
+    FileState file = fileSystemState.getFileForPath(path);
+    expect(
+      file.definedClassMemberNames,
+      unorderedEquals([
+        'v1',
+        'field1',
+        'field2',
+        'method',
+        'getter',
+        'setter',
+        'v2',
+        'getter2',
+      ]),
+    );
+  }
+
   test_definedTopLevelNames() {
     String path = convertPath('/aaa/lib/a.dart');
     newFile(path, content: r'''
@@ -439,7 +473,7 @@ part 'not-a2.dart';
     );
   }
 
-  test_getFilesSubtypingName() {
+  test_getFilesSubtypingName_class() {
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');
 
@@ -473,6 +507,75 @@ class D implements C {}
     expect(
       fileSystemState.getFilesSubtypingName('C'),
       unorderedEquals([bFile]),
+    );
+  }
+
+  test_getFilesSubtypingName_enum_implements() {
+    String a = convertPath('/a.dart');
+    String b = convertPath('/b.dart');
+
+    newFile(a, content: r'''
+class A {}
+enum E1 implements A {
+  v
+}
+''');
+    newFile(b, content: r'''
+class A {}
+enum E2 implements A {
+  v
+}
+''');
+
+    FileState aFile = fileSystemState.getFileForPath(a);
+    FileState bFile = fileSystemState.getFileForPath(b);
+
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile, bFile]),
+    );
+
+    // Change b.dart so that it does not subtype A.
+    newFile(b, content: r'''
+class C {}
+enum E2 implements C {
+  v
+}
+''');
+    bFile.refresh();
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile]),
+    );
+    expect(
+      fileSystemState.getFilesSubtypingName('C'),
+      unorderedEquals([bFile]),
+    );
+  }
+
+  test_getFilesSubtypingName_enum_with() {
+    String a = convertPath('/a.dart');
+    String b = convertPath('/b.dart');
+
+    newFile(a, content: r'''
+mixin M {}
+enum E1 with M {
+  v
+}
+''');
+    newFile(b, content: r'''
+mixin M {}
+enum E2 with M {
+  v
+}
+''');
+
+    FileState aFile = fileSystemState.getFileForPath(a);
+    FileState bFile = fileSystemState.getFileForPath(b);
+
+    expect(
+      fileSystemState.getFilesSubtypingName('M'),
+      unorderedEquals([aFile, bFile]),
     );
   }
 
@@ -783,7 +886,7 @@ part of 'a.dart';
       if (file is LibraryCycle) {
         return !file.libraries.any((file) => file.uri.isScheme('dart'));
       } else if (file is FileState) {
-        return file.uri.scheme != 'dart';
+        return !file.uri.isScheme('dart');
       } else if (file == null) {
         return true;
       } else {

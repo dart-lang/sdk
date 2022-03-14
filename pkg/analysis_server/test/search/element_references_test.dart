@@ -40,7 +40,7 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     }
   }
 
-  Future<void> test_constructor_named() async {
+  Future<void> test_class_constructor_named() async {
     addTestFile('''
 /// [new A.named] 1
 class A {
@@ -69,7 +69,7 @@ void f() {
     assertHasResult(SearchResultKind.REFERENCE, '.named; // 6', 6);
   }
 
-  Future<void> test_constructor_named_potential() async {
+  Future<void> test_class_constructor_named_potential() async {
     // Constructors in other classes shouldn't be considered potential matches.
     // Unresolved method calls should also not be considered potential matches,
     // because constructor call sites are statically bound to their targets.
@@ -92,7 +92,7 @@ f(x) {
     assertHasResult(SearchResultKind.INVOCATION, '.named(1)', 6);
   }
 
-  Future<void> test_constructor_unnamed() async {
+  Future<void> test_class_constructor_unnamed() async {
     addTestFile('''
 /// [new A] 1
 /// [A.new] 2
@@ -123,7 +123,7 @@ void f() {
     assertHasResult(SearchResultKind.REFERENCE, '.new; // 7', 4);
   }
 
-  Future<void> test_constructor_unnamed_potential() async {
+  Future<void> test_class_constructor_unnamed_potential() async {
     // Constructors in other classes shouldn't be considered potential matches,
     // even if they are also unnamed (since constructor call sites are
     // statically bound to their targets).
@@ -151,26 +151,7 @@ void f() {
     assertHasResult(SearchResultKind.INVOCATION, '(1)', 0);
   }
 
-  Future<void> test_extension() async {
-    addTestFile('''
-extension E on int {
-  static void foo() {}
-  void bar() {}
-}
-
-void f() {
-  E.foo();
-  E(0).bar();
-}
-''');
-    await findElementReferences('E on int', false);
-    expect(searchElement!.kind, ElementKind.EXTENSION);
-    expect(results, hasLength(2));
-    assertHasResult(SearchResultKind.REFERENCE, 'E.foo();');
-    assertHasResult(SearchResultKind.REFERENCE, 'E(0)');
-  }
-
-  Future<void> test_field_explicit() async {
+  Future<void> test_class_field_explicit() async {
     addTestFile('''
 class A {
   var fff; // declaration
@@ -207,7 +188,7 @@ void f(A a) {
     assertHasResult(SearchResultKind.READ, 'fff(); // in f()');
   }
 
-  Future<void> test_field_implicit() async {
+  Future<void> test_class_field_implicit() async {
     addTestFile('''
 class A {
   var  get fff => null;
@@ -241,7 +222,7 @@ void f(A a) {
     }
   }
 
-  Future<void> test_field_inFormalParameter() async {
+  Future<void> test_class_field_inFormalParameter() async {
     addTestFile('''
 class A {
   var fff; // declaration
@@ -260,7 +241,205 @@ class A {
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
   }
 
-  Future<void> test_field_ofExtension_explicit_static() async {
+  Future<void> test_class_method() async {
+    addTestFile('''
+class A {
+  mmm(p) {}
+  m() {
+    mmm(1);
+    print(mmm); // in m()
+  }
+}
+void f(A a) {
+  a.mmm(10);
+  print(a.mmm); // in f()
+}
+''');
+    await findElementReferences('mmm(p) {}', false);
+    expect(searchElement!.kind, ElementKind.METHOD);
+    expect(results, hasLength(4));
+    assertHasResult(SearchResultKind.INVOCATION, 'mmm(1);');
+    assertHasResult(SearchResultKind.REFERENCE, 'mmm); // in m()');
+    assertHasResult(SearchResultKind.INVOCATION, 'mmm(10);');
+    assertHasResult(SearchResultKind.REFERENCE, 'mmm); // in f()');
+  }
+
+  Future<void> test_class_method_propagatedType() async {
+    addTestFile('''
+class A {
+  mmm(p) {}
+}
+void f() {
+  var a = new A();
+  a.mmm(10);
+  print(a.mmm);
+}
+''');
+    await findElementReferences('mmm(p) {}', false);
+    expect(searchElement!.kind, ElementKind.METHOD);
+    expect(results, hasLength(2));
+    assertHasResult(SearchResultKind.INVOCATION, 'mmm(10);');
+    assertHasResult(SearchResultKind.REFERENCE, 'mmm);');
+  }
+
+  Future<void> test_enum_constructor_named() async {
+    addTestFile('''
+/// [new E.named] 1
+enum E {
+  v.named(); // 2
+  const E.named(); // 3
+  const E.other() : this.named(); // 4
+}
+''');
+    await findElementReferences('named(); // 3', false);
+    expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
+    expect(results, hasLength(3));
+    assertHasResult(SearchResultKind.REFERENCE, '.named] 1', 6);
+    assertHasResult(SearchResultKind.INVOCATION, '.named(); // 2', 6);
+    assertHasResult(SearchResultKind.INVOCATION, '.named(); // 4', 6);
+  }
+
+  Future<void> test_enum_constructor_unnamed() async {
+    addTestFile('''
+/// [new E] 1
+enum E {
+  v1, // 2
+  v2(), // 3
+  v3.new(); // 4
+  const E(); // 5
+  const E.other() : this(); // 6
+}
+''');
+    await findElementReferences('E(); // 5', false);
+    expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
+    expect(results, hasLength(5));
+    assertHasResult(SearchResultKind.REFERENCE, '] 1', 0);
+    assertHasResult(SearchResultKind.INVOCATION, ', // 2', 0);
+    assertHasResult(SearchResultKind.INVOCATION, '(), // 3', 0);
+    assertHasResult(SearchResultKind.INVOCATION, '.new(); // 4', 4);
+    assertHasResult(SearchResultKind.INVOCATION, '(); // 6', 0);
+  }
+
+  Future<void> test_enum_field_explicit() async {
+    addTestFile('''
+enum E {
+  v;
+  var fff; // 01
+  E(this.fff); // 02
+  E.named() : fff = 0; // 03
+  void foo() {
+    fff = 0; // 04 
+    fff += 0; // 05
+    fff; // 06
+    fff(); // 07
+  }
+}
+
+void f(E e) {
+  e.fff = 0; // 08
+  e.fff += 0; // 09
+  e.fff; // 10
+  e.fff(); // 11
+}
+''');
+    await findElementReferences('fff; // 01', false);
+    expect(searchElement!.kind, ElementKind.FIELD);
+    expect(results, hasLength(10));
+    assertHasResult(SearchResultKind.WRITE, 'fff); // 02');
+    assertHasResult(SearchResultKind.WRITE, 'fff = 0; // 03');
+    // foo()
+    assertHasResult(SearchResultKind.WRITE, 'fff = 0; // 04');
+    assertHasResult(SearchResultKind.WRITE, 'fff += 0; // 05');
+    assertHasResult(SearchResultKind.READ, 'fff; // 06');
+    assertHasResult(SearchResultKind.READ, 'fff(); // 07');
+    // f()
+    assertHasResult(SearchResultKind.WRITE, 'fff = 0; // 08');
+    assertHasResult(SearchResultKind.WRITE, 'fff += 0; // 09');
+    assertHasResult(SearchResultKind.READ, 'fff; // 10');
+    assertHasResult(SearchResultKind.READ, 'fff(); // 11');
+  }
+
+  Future<void> test_enum_field_implicit() async {
+    addTestFile('''
+enum E {
+  v;
+  int get fff => 0;
+  void set fff(_) {}
+  void foo() {
+    fff; // 1
+    fff = 0; // 2
+  }
+}
+
+void f(E e) {
+  e.fff; // 3
+  e.fff = 0; // 4
+}
+''');
+    {
+      await findElementReferences('fff =>', false);
+      expect(searchElement!.kind, ElementKind.FIELD);
+      expect(results, hasLength(4));
+      assertHasResult(SearchResultKind.READ, 'fff; // 1');
+      assertHasResult(SearchResultKind.WRITE, 'fff = 0; // 2');
+      assertHasResult(SearchResultKind.READ, 'fff; // 3');
+      assertHasResult(SearchResultKind.WRITE, 'fff = 0; // 4');
+    }
+    {
+      await findElementReferences('fff(_) {}', false);
+      expect(results, hasLength(4));
+      assertHasResult(SearchResultKind.READ, 'fff; // 1');
+      assertHasResult(SearchResultKind.WRITE, 'fff = 0; // 2');
+      assertHasResult(SearchResultKind.READ, 'fff; // 3');
+      assertHasResult(SearchResultKind.WRITE, 'fff = 0; // 4');
+    }
+  }
+
+  Future<void> test_enum_method() async {
+    addTestFile('''
+enum E {
+  v;
+  void foo() {}
+  void bar() {
+    foo(); // 1
+    this.foo(); // 2
+  }
+}
+
+void f(E e) {
+  e.foo(); // 3
+  e.foo; // 4
+}
+''');
+    await findElementReferences('foo() {}', false);
+    expect(searchElement!.kind, ElementKind.METHOD);
+    expect(results, hasLength(4));
+    assertHasResult(SearchResultKind.INVOCATION, 'foo(); // 1');
+    assertHasResult(SearchResultKind.INVOCATION, 'foo(); // 2');
+    assertHasResult(SearchResultKind.INVOCATION, 'foo(); // 3');
+    assertHasResult(SearchResultKind.REFERENCE, 'foo; // 4');
+  }
+
+  Future<void> test_extension() async {
+    addTestFile('''
+extension E on int {
+  static void foo() {}
+  void bar() {}
+}
+
+void f() {
+  E.foo();
+  E(0).bar();
+}
+''');
+    await findElementReferences('E on int', false);
+    expect(searchElement!.kind, ElementKind.EXTENSION);
+    expect(results, hasLength(2));
+    assertHasResult(SearchResultKind.REFERENCE, 'E.foo();');
+    assertHasResult(SearchResultKind.REFERENCE, 'E(0)');
+  }
+
+  Future<void> test_extension_field_explicit_static() async {
     addTestFile('''
 extension E on int {
   static var fff; // declaration
@@ -295,7 +474,7 @@ void f() {
     assertHasResult(SearchResultKind.READ, 'fff(); // in f()');
   }
 
-  Future<void> test_field_ofExtension_implicit_instance() async {
+  Future<void> test_extension_field_implicit_instance() async {
     addTestFile('''
 extension E on int {
   var get fff => null;
@@ -329,7 +508,7 @@ void f() {
     }
   }
 
-  Future<void> test_field_ofExtension_implicit_static() async {
+  Future<void> test_extension_field_implicit_static() async {
     addTestFile('''
 extension E on int {
   static var get fff => null;
@@ -361,6 +540,28 @@ void f() {
       assertHasResult(SearchResultKind.READ, 'fff); // in f()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
     }
+  }
+
+  Future<void> test_extension_method() async {
+    addTestFile('''
+extension E on int {
+  void foo() {}
+}
+
+void f() {
+  E(0).foo(); // 1
+  E(0).foo; // 2
+  0.foo(); // 3
+  0.foo; // 4
+}
+''');
+    await findElementReferences('foo() {}', false);
+    expect(searchElement!.kind, ElementKind.METHOD);
+    expect(results, hasLength(4));
+    assertHasResult(SearchResultKind.INVOCATION, 'foo(); // 1');
+    assertHasResult(SearchResultKind.REFERENCE, 'foo; // 2');
+    assertHasResult(SearchResultKind.INVOCATION, 'foo(); // 3');
+    assertHasResult(SearchResultKind.REFERENCE, 'foo; // 4');
   }
 
   Future<void> test_function() async {
@@ -509,69 +710,6 @@ void f() {
     assertHasResult(SearchResultKind.READ_WRITE, 'vvv += 3');
     assertHasResult(SearchResultKind.WRITE, 'vvv = 2');
     assertHasResult(SearchResultKind.READ, 'vvv();');
-  }
-
-  Future<void> test_method() async {
-    addTestFile('''
-class A {
-  mmm(p) {}
-  m() {
-    mmm(1);
-    print(mmm); // in m()
-  }
-}
-void f(A a) {
-  a.mmm(10);
-  print(a.mmm); // in f()
-}
-''');
-    await findElementReferences('mmm(p) {}', false);
-    expect(searchElement!.kind, ElementKind.METHOD);
-    expect(results, hasLength(4));
-    assertHasResult(SearchResultKind.INVOCATION, 'mmm(1);');
-    assertHasResult(SearchResultKind.REFERENCE, 'mmm); // in m()');
-    assertHasResult(SearchResultKind.INVOCATION, 'mmm(10);');
-    assertHasResult(SearchResultKind.REFERENCE, 'mmm); // in f()');
-  }
-
-  Future<void> test_method_ofExtension() async {
-    addTestFile('''
-extension E on int {
-  void foo() {}
-}
-
-void f() {
-  E(0).foo(); // 1
-  E(0).foo; // 2
-  0.foo(); // 3
-  0.foo; // 4
-}
-''');
-    await findElementReferences('foo() {}', false);
-    expect(searchElement!.kind, ElementKind.METHOD);
-    expect(results, hasLength(4));
-    assertHasResult(SearchResultKind.INVOCATION, 'foo(); // 1');
-    assertHasResult(SearchResultKind.REFERENCE, 'foo; // 2');
-    assertHasResult(SearchResultKind.INVOCATION, 'foo(); // 3');
-    assertHasResult(SearchResultKind.REFERENCE, 'foo; // 4');
-  }
-
-  Future<void> test_method_propagatedType() async {
-    addTestFile('''
-class A {
-  mmm(p) {}
-}
-void f() {
-  var a = new A();
-  a.mmm(10);
-  print(a.mmm);
-}
-''');
-    await findElementReferences('mmm(p) {}', false);
-    expect(searchElement!.kind, ElementKind.METHOD);
-    expect(results, hasLength(2));
-    assertHasResult(SearchResultKind.INVOCATION, 'mmm(10);');
-    assertHasResult(SearchResultKind.REFERENCE, 'mmm);');
   }
 
   Future<void> test_mixin() async {
@@ -832,6 +970,23 @@ void f() {
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, 'ppp.Future');
     assertHasResult(SearchResultKind.REFERENCE, 'ppp.Stream');
+  }
+
+  Future<void> test_topFunction_parameter_optionalNamed_anywhere() async {
+    addTestFile('''
+void foo(int a, int b, {int? test}) {
+  test;
+}
+
+void g() {
+  foo(0, test: 2, 1);
+}
+''');
+    await findElementReferences('test})', false);
+    expect(searchElement!.kind, ElementKind.PARAMETER);
+    expect(results, hasLength(2));
+    assertHasResult(SearchResultKind.READ, 'test;');
+    assertHasResult(SearchResultKind.REFERENCE, 'test: 2');
   }
 
   Future<void> test_topLevelVariable_explicit() async {

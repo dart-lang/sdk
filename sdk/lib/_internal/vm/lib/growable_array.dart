@@ -143,11 +143,8 @@ class _GrowableList<T> extends ListBase<T> {
     if (elements is _GrowableList) {
       return _GrowableList._ofGrowableList(unsafeCast(elements));
     }
-    if (elements is _List) {
-      return _GrowableList._ofList(unsafeCast(elements));
-    }
-    if (elements is _ImmutableList) {
-      return _GrowableList._ofImmutableList(unsafeCast(elements));
+    if (elements is _Array) {
+      return _GrowableList._ofArray(unsafeCast(elements));
     }
     if (elements is EfficientLengthIterable) {
       return _GrowableList._ofEfficientLengthIterable(unsafeCast(elements));
@@ -155,7 +152,7 @@ class _GrowableList<T> extends ListBase<T> {
     return _GrowableList._ofOther(elements);
   }
 
-  factory _GrowableList._ofList(_List<T> elements) {
+  factory _GrowableList._ofArray(_Array<T> elements) {
     final int length = elements.length;
     if (length > 0) {
       final data = _List(_adjustedCapacity(length));
@@ -170,20 +167,6 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   factory _GrowableList._ofGrowableList(_GrowableList<T> elements) {
-    final int length = elements.length;
-    if (length > 0) {
-      final data = _List(_adjustedCapacity(length));
-      for (int i = 0; i < length; i++) {
-        data[i] = elements[i];
-      }
-      final list = _GrowableList<T>._withData(data);
-      list._setLength(length);
-      return list;
-    }
-    return _GrowableList<T>.empty();
-  }
-
-  factory _GrowableList._ofImmutableList(_ImmutableList<T> elements) {
     final int length = elements.length;
     if (length > 0) {
       final data = _List(_adjustedCapacity(length));
@@ -222,7 +205,7 @@ class _GrowableList<T> extends ListBase<T> {
     return list;
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type",
       <dynamic>[_GrowableList, "result-type-uses-passed-type-arguments"])
   @pragma("vm:external-name", "GrowableList_allocate")

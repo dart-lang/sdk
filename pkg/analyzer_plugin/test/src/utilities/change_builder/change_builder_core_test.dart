@@ -384,6 +384,25 @@ class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
     });
   }
 
+  Future<void> test_addInsertion_updatesLinkedPositions() async {
+    var groupName = 'a';
+    var range = SourceRange(3, 6);
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addLinkedPosition(range, groupName);
+      // Insert 50 characters before the linked position.
+      builder.addInsertion(0, (builder) => builder.write('// ${'a' * 46}\n'));
+    });
+
+    var group = builder.getLinkedEditGroup(groupName);
+    var positions = group.positions;
+    expect(positions, hasLength(1));
+    var position = positions[0];
+    expect(position.file, path);
+    // Expect the linked position was moved along by the edit.
+    expect(position.offset, range.offset + 50);
+    expect(group.length, range.length);
+  }
+
   Future<void> test_addLinkedPosition() async {
     var groupName = 'a';
     await builder.addGenericFileEdit(path, (builder) {

@@ -188,7 +188,7 @@ class _Collector {
     }
 
     if (node is ConstructorReference) {
-      _typeArgumentList(node.constructorName.type2.typeArguments);
+      _typeArgumentList(node.constructorName.type.typeArguments);
       return;
     }
 

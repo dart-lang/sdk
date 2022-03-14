@@ -109,6 +109,113 @@ main() {
     assertHasOffset('vvv);');
   }
 
+  Future<void> test_enum() async {
+    addTestFile('''
+enum E {
+  v;
+}
+
+void f(E e) {
+  E.v;
+}
+''');
+    await prepareOccurrences();
+    assertHasRegion('E e');
+    expect(testOccurrences.element.kind, ElementKind.ENUM);
+    expect(testOccurrences.element.name, 'E');
+    assertHasOffset('E e');
+    assertHasOffset('E.v');
+  }
+
+  Future<void> test_enum_constant() async {
+    addTestFile('''
+enum E {
+  v; // 0
+}
+
+void f() {
+  E.v; // 1
+}
+''');
+    await prepareOccurrences();
+    assertHasRegion('v; // 0');
+    expect(testOccurrences.element.kind, ElementKind.ENUM_CONSTANT);
+    expect(testOccurrences.element.name, 'v');
+    assertHasOffset('v; // 1');
+  }
+
+  Future<void> test_enum_field() async {
+    addTestFile('''
+enum E {
+  v;
+  final int foo = 0;
+}
+
+void f(E e) {
+  e.foo;
+}
+''');
+    await prepareOccurrences();
+    assertHasRegion('foo = 0');
+    expect(testOccurrences.element.kind, ElementKind.FIELD);
+    expect(testOccurrences.element.name, 'foo');
+    assertHasOffset('foo;');
+  }
+
+  Future<void> test_enum_getter() async {
+    addTestFile('''
+enum E {
+  v;
+  int get foo => 0;
+}
+
+void f(E e) {
+  e.foo;
+}
+''');
+    await prepareOccurrences();
+    assertHasRegion('foo => 0');
+    expect(testOccurrences.element.kind, ElementKind.FIELD);
+    expect(testOccurrences.element.name, 'foo');
+    assertHasOffset('foo;');
+  }
+
+  Future<void> test_enum_method() async {
+    addTestFile('''
+enum E {
+  v;
+  void foo() {}
+}
+
+void f(E e) {
+  e.foo();
+}
+''');
+    await prepareOccurrences();
+    assertHasRegion('foo() {}');
+    expect(testOccurrences.element.kind, ElementKind.METHOD);
+    expect(testOccurrences.element.name, 'foo');
+    assertHasOffset('foo();');
+  }
+
+  Future<void> test_enum_setter() async {
+    addTestFile('''
+enum E {
+  v;
+  set foo(int _) {}
+}
+
+void f(E e) {
+  e.foo = 0;
+}
+''');
+    await prepareOccurrences();
+    assertHasRegion('foo(int _) {}');
+    expect(testOccurrences.element.kind, ElementKind.FIELD);
+    expect(testOccurrences.element.name, 'foo');
+    assertHasOffset('foo = 0;');
+  }
+
   Future<void> test_field() async {
     addTestFile('''
 class A {
@@ -191,6 +298,52 @@ main() {
     expect(testOccurrences.element.kind, ElementKind.METHOD);
     assertHasOffset('mmm(); // a');
     assertHasOffset('mmm(); // b');
+  }
+
+  Future<void> test_parameter_named() async {
+    addTestFile('''
+void f(int aaa, int bbb, {int? ccc, int? ddd}) {
+  ccc;
+  ddd;
+}
+
+void g() {
+  f(0, ccc: 2, 1, ddd: 3);
+}
+''');
+    await prepareOccurrences();
+
+    assertHasRegion('ccc: 2');
+    expect(testOccurrences.element.kind, ElementKind.PARAMETER);
+    assertHasOffset('ccc,');
+    assertHasOffset('ccc;');
+    assertHasOffset('ccc: 2');
+
+    assertHasRegion('ddd: 3');
+    expect(testOccurrences.element.kind, ElementKind.PARAMETER);
+    assertHasOffset('ddd})');
+    assertHasOffset('ddd;');
+    assertHasOffset('ddd: 3');
+  }
+
+  Future<void> test_superFormalParameter_requiredPositional() async {
+    addTestFile('''
+class A {
+  A(int x);
+}
+
+class B extends A {
+  int y;
+
+  B(super.x) : y = x * 2;
+}
+''');
+    await prepareOccurrences();
+    assertHasRegion('x) :');
+    expect(testOccurrences.element.kind, ElementKind.PARAMETER);
+    expect(testOccurrences.element.name, 'x');
+    assertHasOffset('x) :');
+    assertHasOffset('x * 2');
   }
 
   Future<void> test_topLevelVariable() async {

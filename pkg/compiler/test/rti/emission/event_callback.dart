@@ -5,6 +5,7 @@
 // @dart = 2.7
 
 import 'dart:html';
+import 'package:compiler/src/util/testing.dart';
 
 /*spec.class: global#Event:checkedInstance,checkedTypeArgument,checks=[$isEvent],instance,typeArgument*/
 /*prod.class: global#Event:checkedTypeArgument,checks=[$isEvent],instance,typeArgument*/
@@ -14,21 +15,14 @@ import 'dart:html';
 /*prod.class: global#KeyboardEvent:checks=[$isKeyboardEvent],instance,typeArgument*/
 
 void main() {
-  print('InputElement');
   var i = new InputElement();
-  print('> onKeyPress');
   i.onKeyPress.listen(onEvent);
-  print('> onClick');
   i.onClick.listen(onEvent);
-  print('TextAreaElement');
   var e = new TextAreaElement();
-  print('> onKeyPress');
   e.onKeyPress.listen(onEvent);
-  print('> onClick');
   e.onClick.listen(onEvent);
-  print('Done!');
 }
 
 void onEvent(Event e) {
-  print(e);
+  makeLive(e);
 }

@@ -30,6 +30,20 @@ import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
+import 'package:analyzer/src/dart/element/well_bounded.dart';
+
+/// Fresh type parameters created to unify two lists of type parameters.
+class RelatedTypeParameters {
+  static final _empty = RelatedTypeParameters._([], []);
+
+  final List<TypeParameterElement> typeParameters;
+  final List<TypeParameterType> typeParameterTypes;
+
+  RelatedTypeParameters._(
+    this.typeParameters,
+    this.typeParameterTypes,
+  );
+}
 
 /// The [TypeSystem] implementation.
 class TypeSystemImpl implements TypeSystem {
@@ -543,7 +557,7 @@ class TypeSystemImpl implements TypeSystem {
         typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = toLegacyType(type) as InterfaceType;
+      type = toLegacyTypeIfOptOut(type) as InterfaceType;
       return type;
     } else if (typeAliasElement != null) {
       var typeParameters = typeAliasElement.typeParameters;
@@ -552,7 +566,7 @@ class TypeSystemImpl implements TypeSystem {
         typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = toLegacyType(type);
+      type = toLegacyTypeIfOptOut(type);
       return type;
     } else {
       throw ArgumentError('Missing element');
@@ -800,6 +814,15 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return false;
+  }
+
+  /// Check if [left] is equal to [right].
+  ///
+  /// Implements:
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/subtyping.md#type-equality`
+  bool isEqualTo(DartType left, DartType right) {
+    return isSubtypeOf(left, right) && isSubtypeOf(right, left);
   }
 
   /// A function bounded type is either `Function` itself, or a type variable
@@ -1178,6 +1201,17 @@ class TypeSystemImpl implements TypeSystem {
     return false;
   }
 
+  /// See `15.2 Super-bounded types` in the language specification.
+  TypeBoundedResult isWellBounded(
+    DartType type, {
+    required bool allowSuperBounded,
+  }) {
+    return TypeBoundedHelper(this).isWellBounded(
+      type,
+      allowSuperBounded: allowSuperBounded,
+    );
+  }
+
   /// Returns the least closure of [type] with respect to [typeParameters].
   ///
   /// https://github.com/dart-lang/language
@@ -1283,8 +1317,8 @@ class TypeSystemImpl implements TypeSystem {
         // TODO(scheglov) waiting for the spec
         // https://github.com/dart-lang/sdk/issues/42605
       } else {
-        srcType = toLegacyType(srcType);
-        destType = toLegacyType(destType);
+        srcType = toLegacyTypeIfOptOut(srcType);
+        destType = toLegacyTypeIfOptOut(destType);
       }
       if (srcType != destType) {
         // Failed to find an appropriate substitution
@@ -1411,6 +1445,72 @@ class TypeSystemImpl implements TypeSystem {
     }
   }
 
+  /// Given two lists of type parameters, check that that they have the same
+  /// number of elements, and their bounds are equal.
+  ///
+  /// The return value will be a new list of fresh type parameters, that can
+  /// be used to instantiate both function types, allowing further comparison.
+  RelatedTypeParameters? relateTypeParameters(
+    List<TypeParameterElement> typeParameters1,
+    List<TypeParameterElement> typeParameters2,
+  ) {
+    if (typeParameters1.length != typeParameters2.length) {
+      return null;
+    }
+    if (typeParameters1.isEmpty) {
+      return RelatedTypeParameters._empty;
+    }
+
+    var freshTypeParameters = <TypeParameterElementImpl>[];
+    var freshTypeParameterTypes = <TypeParameterType>[];
+    for (var i = 0; i < typeParameters1.length; i++) {
+      var freshTypeParameter = TypeParameterElementImpl(
+        typeParameters1[i].name,
+        -1,
+      );
+      freshTypeParameters.add(freshTypeParameter);
+      freshTypeParameterTypes.add(
+        TypeParameterTypeImpl(
+          element: freshTypeParameter,
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+      );
+    }
+
+    var substitution1 = Substitution.fromPairs(
+      typeParameters1,
+      freshTypeParameterTypes,
+    );
+    var substitution2 = Substitution.fromPairs(
+      typeParameters2,
+      freshTypeParameterTypes,
+    );
+
+    for (var i = 0; i < typeParameters1.length; i++) {
+      var bound1 = typeParameters1[i].bound;
+      var bound2 = typeParameters2[i].bound;
+      if (bound1 == null && bound2 == null) {
+        continue;
+      }
+      bound1 ??= DynamicTypeImpl.instance;
+      bound2 ??= DynamicTypeImpl.instance;
+      bound1 = substitution1.substituteType(bound1);
+      bound2 = substitution2.substituteType(bound2);
+      if (!isEqualTo(bound1, bound2)) {
+        return null;
+      }
+
+      if (!bound1.isDynamic) {
+        freshTypeParameters[i].bound = bound1;
+      }
+    }
+
+    return RelatedTypeParameters._(
+      freshTypeParameters,
+      freshTypeParameterTypes,
+    );
+  }
+
   /// Replaces all covariant occurrences of `dynamic`, `void`, and `Object` or
   /// `Object?` with `Null` or `Never` and all contravariant occurrences of
   /// `Null` or `Never` with `Object` or `Object?`.
@@ -1468,17 +1568,10 @@ class TypeSystemImpl implements TypeSystem {
     return RuntimeTypeEqualityHelper(this).equal(T1, T2);
   }
 
-  DartType toLegacyType(DartType type) {
-    if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
-  }
-
   /// If a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
   DartType toLegacyTypeIfOptOut(DartType type) {
-    if (isNonNullableByDefault) {
-      return type;
-    }
+    if (isNonNullableByDefault) return type;
     return NullabilityEliminator.perform(typeProvider, type);
   }
 

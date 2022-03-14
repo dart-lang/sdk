@@ -15,7 +15,59 @@ extension KeywordTokenExtension on CheckTarget<KeywordToken> {
   }
 }
 
-extension TokenExtension on CheckTarget<Token?> {
+extension TokenExtension on CheckTarget<Token> {
+  void get isCloseParenthesis {
+    type.isEqualTo(TokenType.CLOSE_PAREN);
+  }
+
+  void get isOpenParenthesis {
+    type.isEqualTo(TokenType.OPEN_PAREN);
+  }
+
+  void get isSemicolon {
+    type.isEqualTo(TokenType.SEMICOLON);
+  }
+
+  void get isSynthetic {
+    if (value.isSynthetic) return;
+    fail('Not synthetic');
+  }
+
+  CheckTarget<Token?> get next {
+    return nest(
+      value.next,
+      (selected) => 'has next ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<Token?> get previous {
+    return nest(
+      value.previous,
+      (selected) => 'has previous ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<TokenType> get type {
+    return nest(
+      value.type,
+      (selected) => 'has type ${valueStr(selected)}',
+    );
+  }
+
+  void isLinkedToNext(Token next) {
+    this.next.isEqualTo(next);
+    nest(next, (value) => 'next ${valueStr(value)}').previous.isEqualTo(value);
+  }
+
+  void isLinkedToPrevious(Token previous) {
+    nest(previous, (value) => 'given previous ${valueStr(value)}')
+        .next
+        .isEqualTo(value);
+    this.previous.isEqualTo(previous);
+  }
+}
+
+extension TokenQuestionExtension on CheckTarget<Token?> {
   CheckTarget<KeywordToken> get isKeyword {
     return isA<KeywordToken>();
   }

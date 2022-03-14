@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 /*spec.class: Class1:needsArgs*/
 class Class1<T> {
   Class1();
@@ -15,6 +17,6 @@ class Class2<T> {
 
 main() {
   Class1<int> cls1 = new Class1<int>();
-  print(cls1?.runtimeType?.toString());
+  makeLive(cls1?.runtimeType?.toString());
   new Class2<int>();
 }

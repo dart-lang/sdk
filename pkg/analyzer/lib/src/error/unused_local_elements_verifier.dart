@@ -101,6 +101,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    usedElements.addElement(node.constructorElement?.declaration);
+
+    var argumentList = node.arguments?.argumentList;
+    if (argumentList != null) {
+      _addParametersForArguments(argumentList);
+    }
+
+    super.visitEnumConstantDeclaration(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     var enclosingExecOld = _enclosingExec;
     try {
@@ -134,10 +146,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    for (var argument in node.argumentList.arguments) {
-      var parameter = argument.staticParameterElement;
-      usedElements.addElement(parameter);
-    }
+    _addParametersForArguments(node.argumentList);
     super.visitInstanceCreationExpression(node);
   }
 
@@ -168,10 +177,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var function = node.methodName.staticElement;
     if (function is FunctionElement || function is MethodElement) {
-      for (var argument in node.argumentList.arguments) {
-        var parameter = argument.staticParameterElement;
-        usedElements.addElement(parameter);
-      }
+      _addParametersForArguments(node.argumentList);
     }
     super.visitMethodInvocation(node);
   }
@@ -251,8 +257,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
           element.name == 'values') {
         // If the 'values' static accessor of the enum is accessed, then all of
         // the enum values have been read.
-        for (var value in enclosingElement.fields) {
-          usedElements.readMembers.add(value.getter!);
+        for (var field in enclosingElement.fields) {
+          if (field.isEnumConstant) {
+            usedElements.readMembers.add(field.getter!);
+          }
         }
       } else if ((enclosingElement is ClassElement ||
               enclosingElement is ExtensionElement) &&
@@ -286,6 +294,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       usedElements.addReadMember(element.correspondingGetter);
     } else {
       usedElements.addReadMember(element);
+    }
+  }
+
+  void _addParametersForArguments(ArgumentList argumentList) {
+    for (var argument in argumentList.arguments) {
+      var parameter = argument.staticParameterElement;
+      usedElements.addElement(parameter);
     }
   }
 
@@ -492,14 +507,24 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     var enclosingElement = element.enclosingElement;
-    if (enclosingElement is ClassElement &&
-        enclosingElement.isPrivate &&
-        (element.isStatic || element is ConstructorElement)) {
-      return false;
-    } else if (enclosingElement is ExtensionElement &&
-        enclosingElement.isPrivate) {
-      return false;
+
+    if (enclosingElement is ClassElement) {
+      if (enclosingElement.isEnum) {
+        if (element is ConstructorElement && element.isGenerative) {
+          return false;
+        }
+      }
+      if (enclosingElement.isPrivate) {
+        if (element.isStatic || element is ConstructorElement) {
+          return false;
+        }
+      }
     }
+
+    if (enclosingElement is ExtensionElement) {
+      return enclosingElement.isPublic;
+    }
+
     return true;
   }
 

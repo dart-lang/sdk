@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analysis_server/src/utilities/index_range.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -65,6 +66,30 @@ extension RangeFactoryExtensions on RangeFactory {
       }
       return endEnd(previousTrailingComment, thisTrailingComment);
     }
+  }
+
+  /// Return a list of the ranges that cover all of the elements in the [list]
+  /// whose index is in the list of [indexes].
+  List<SourceRange> nodesInList<T extends AstNode>(
+      NodeList<T> list, List<int> indexes) {
+    var ranges = <SourceRange>[];
+    var indexRanges = IndexRange.contiguousSubRanges(indexes);
+    if (indexRanges.length == 1) {
+      var indexRange = indexRanges[0];
+      if (indexRange.lower == 0 && indexRange.upper == list.length - 1) {
+        ranges.add(startEnd(list[indexRange.lower], list[indexRange.upper]));
+        return ranges;
+      }
+    }
+    for (var indexRange in indexRanges) {
+      if (indexRange.lower == 0) {
+        ranges.add(
+            startStart(list[indexRange.lower], list[indexRange.upper + 1]));
+      } else {
+        ranges.add(endEnd(list[indexRange.lower - 1], list[indexRange.upper]));
+      }
+    }
+    return ranges;
   }
 
   /// Return a source range that covers the given [node] with any leading and

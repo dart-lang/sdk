@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
-import '../../common_elements.dart' show ElementEnvironment;
+import '../../common/elements.dart' show ElementEnvironment;
 import '../../deferred_load/output_unit.dart'
     show ImportDescription, OutputUnit, OutputUnitData, deferredPartFileName;
 import '../../elements/entities.dart';

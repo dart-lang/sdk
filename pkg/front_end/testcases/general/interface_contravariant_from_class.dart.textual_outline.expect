@@ -1,10 +1,9 @@
-// @dart = 2.9
 library test;
 
 typedef void F<T>(T t);
 
 class B<T> {
-  T f(int x) {}
+  T f(int x) => throw '';
 }
 
 abstract class I<T> {

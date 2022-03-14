@@ -1,0 +1,9 @@
+name: wasm_builder
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+description: Generate binary Wasm modules
+
+environment:
+  sdk: '>=2.12.0'
+
+dependencies:

@@ -47,8 +47,24 @@ class DevToolsServer {
   late ClientManager clientManager;
   final bool _isChromeOS = File('/dev/.cros_milestone').existsSync();
 
-  static ArgParser buildArgParser({bool verbose = false}) {
+  /// Builds an arg parser for the DevTools server.
+  ///
+  /// [includeHelpOption] should be set to false if this arg parser will be used
+  /// in a Command subclass.
+  static ArgParser buildArgParser({
+    bool verbose = false,
+    bool includeHelpOption = true,
+  }) {
     final argParser = ArgParser();
+
+    if (includeHelpOption) {
+      argParser.addFlag(
+        argHelp,
+        negatable: false,
+        abbr: 'h',
+        help: 'Prints help output.',
+      );
+    }
     argParser
       ..addFlag(
         argVersion,
@@ -185,7 +201,7 @@ class DevToolsServer {
     bool debugMode = false,
     bool launchBrowser = false,
     bool enableNotifications = false,
-    bool allowEmbedding = false,
+    bool allowEmbedding = true,
     bool headlessMode = false,
     bool verboseMode = false,
     String? hostname,
@@ -252,6 +268,9 @@ class DevToolsServer {
     final _server = server!;
     if (allowEmbedding) {
       _server.defaultResponseHeaders.remove('x-frame-options', 'SAMEORIGIN');
+      // The origin-agent-cluster header is required to support the embedding of
+      // Dart DevTools in Chrome DevTools.
+      _server.defaultResponseHeaders.add('origin-agent-cluster', '?1');
     }
 
     // Ensure browsers don't cache older versions of the app.

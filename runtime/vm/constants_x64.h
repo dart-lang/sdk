@@ -99,6 +99,7 @@ const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
 extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 
 enum RexBits {
@@ -281,6 +282,7 @@ struct RangeErrorABI {
 struct AllocateObjectABI {
   static const Register kResultReg = RAX;
   static const Register kTypeArgumentsReg = RDX;
+  static const Register kTagsReg = R8;
 };
 
 // ABI for AllocateClosureStub.

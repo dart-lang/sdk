@@ -676,6 +676,13 @@ void FlowGraphCompiler::VisitBlocks() {
       Instruction* instr = it.Current();
       set_current_instruction(instr);
       StatsBegin(instr);
+      // Unoptimized code always stores boxed values on the expression stack.
+      // However, unboxed representation is allowed for instruction inputs and
+      // outputs of certain types (e.g. for doubles).
+      // Unboxed inputs/outputs are handled in the instruction prologue
+      // and epilogue, but flagged as a mismatch on the IL level.
+      RELEASE_ASSERT(!is_optimizing() ||
+                     !instr->HasUnmatchedInputRepresentations());
 
       if (FLAG_code_comments || FLAG_disassemble ||
           FLAG_disassemble_optimized) {
@@ -3476,8 +3483,9 @@ void FlowGraphCompiler::EmitNativeMove(
     return;
   }
 
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
   // Split moves from stack to stack, none of the architectures provides
-  // memory to memory move instructions.
+  // memory to memory move instructions. But RISC-V needs to avoid TMP.
   if (source.IsStack() && destination.IsStack()) {
     Register scratch = TMP;
     if (TMP == kNoRegister) {
@@ -3493,6 +3501,7 @@ void FlowGraphCompiler::EmitNativeMove(
     }
     return;
   }
+#endif
 
   const bool sign_or_zero_extend = dst_container_size > src_container_size;
 

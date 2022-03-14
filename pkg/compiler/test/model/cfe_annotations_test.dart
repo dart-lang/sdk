@@ -12,7 +12,6 @@ import 'package:compiler/src/ir/annotations.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -198,7 +197,7 @@ main(List<String> args) {
       Expect.isTrue(result.isSuccess);
       Compiler compiler = result.compiler;
       KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
-      KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+      KernelToElementMap elementMap = frontendStrategy.elementMap;
       ir.Component component = elementMap.env.mainComponent;
       IrAnnotationData annotationData =
           frontendStrategy.irAnnotationDataForTesting;
@@ -351,7 +350,7 @@ main(List<String> args) {
         }
 
         for (ir.Library library in component.libraries) {
-          if (library.importUri.scheme == 'memory') {
+          if (library.importUri.isScheme('memory')) {
             String libraryId = library.importUri.path;
             LibraryEntity libraryEntity = elementMap.getLibrary(library);
 
@@ -456,7 +455,7 @@ main(List<String> args) {
         // in the IR component, and not just the ones queried specifically for
         // JS-interop and pragma-like annotations.
         elementMap.envIsClosed = false;
-        testAll(new NativeDataImpl.fromIr(elementMap, annotationData));
+        testAll(NativeData.fromIr(elementMap, annotationData));
       }
     }
 

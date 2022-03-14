@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class FinalInitializedInParameterAndInitializerTest
     extends PubPackageResolutionTest {
-  test_initializingFormal_initializer() async {
+  test_class_fieldFormalParameter_initializer() async {
     await assertErrorsInCode(r'''
 class A {
   int x;
@@ -25,6 +25,20 @@ class A {
 ''', [
       error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
           33, 1),
+    ]);
+  }
+
+  test_enum_fieldFormalParameter_initializer() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v(0);
+  final int x;
+  const E(this.x) : x = 1;
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 4),
+      error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+          52, 1),
     ]);
   }
 }

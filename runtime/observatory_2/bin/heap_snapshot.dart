@@ -401,9 +401,9 @@ main(List<String> args) async {
   }
 
   var uri = Uri.parse(args[0]);
-  if (uri.scheme == 'http') {
+  if (uri.isScheme('http')) {
     uri = uri.replace(scheme: 'ws');
-  } else if (uri.scheme == 'https') {
+  } else if (uri.isScheme('https')) {
     uri = uri.replace(scheme: 'wss');
   }
   if (!uri.path.endsWith('/ws')) {

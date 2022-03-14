@@ -17,7 +17,7 @@ class ConstructorFieldsVerifier {
   bool _isInNativeClass = false;
 
   /// When a new class or mixin is entered, [_initFieldsMap] initializes this
-  /// map, and [leaveClassOrMixin] resets it.
+  /// map, and [leaveClass] resets it.
   ///
   /// [_InitState.notInit] or [_InitState.initInDeclaration] is set for each
   /// field. Later [verify] is called to verify each constructor of the class.
@@ -35,9 +35,17 @@ class ConstructorFieldsVerifier {
   })  : _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
-  void enterClass(ClassDeclaration node) {
+  void enterClass(ClassDeclaration node, ClassElementImpl element) {
     _isInNativeClass = node.nativeClause != null;
-    _initFieldsMap(node.declaredElement!);
+    _initFieldsMap(element.fields);
+  }
+
+  void enterEnum(EnumDeclaration node, EnumElementImpl element) {
+    _isInNativeClass = false;
+    _initFieldsMap(
+      element.fields,
+      enumConstants: element.constants,
+    );
   }
 
   void leaveClass() {
@@ -55,7 +63,7 @@ class ConstructorFieldsVerifier {
       return;
     }
 
-    if (node.parent is! ClassDeclaration) {
+    if (!(node.parent is ClassDeclaration || node.parent is EnumDeclaration)) {
       return;
     }
 
@@ -93,13 +101,27 @@ class ConstructorFieldsVerifier {
     _reportNotInitializedNonNullable(node, notInitNonNullableFields);
   }
 
-  void _initFieldsMap(ClassElement element) {
+  void _initFieldsMap(
+    List<FieldElement> fields, {
+    List<FieldElement>? enumConstants,
+  }) {
     _initialFieldMap = <FieldElement, _InitState>{};
-    for (var field in element.fields) {
-      if (!field.isSynthetic) {
-        _initialFieldMap![field] = field.hasInitializer
-            ? _InitState.initInDeclaration
-            : _InitState.notInit;
+
+    for (var field in fields) {
+      if (field.isSynthetic) {
+        continue;
+      }
+      if (enumConstants != null && field.name == 'index') {
+        continue;
+      }
+      _initialFieldMap![field] = field.hasInitializer
+          ? _InitState.initInDeclaration
+          : _InitState.notInit;
+    }
+
+    if (enumConstants != null) {
+      for (var field in enumConstants) {
+        _initialFieldMap![field] = _InitState.initInDeclaration;
       }
     }
   }

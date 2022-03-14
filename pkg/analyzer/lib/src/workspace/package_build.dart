@@ -73,7 +73,7 @@ class PackageBuildPackageUriResolver extends UriResolver {
 
   @override
   Source? resolveAbsolute(Uri uri) {
-    if (uri.scheme != 'package') {
+    if (!uri.isScheme('package')) {
       return null;
     }
 

@@ -139,8 +139,6 @@ namespace dart {
   V(String_toUpperCase, 1)                                                     \
   V(String_concatRange, 3)                                                     \
   V(Math_doublePow, 2)                                                         \
-  V(Random_nextState, 1)                                                       \
-  V(Random_setupSeed, 1)                                                       \
   V(Random_initialSeed, 0)                                                     \
   V(SecureRandom_getBytes, 1)                                                  \
   V(DateTime_currentTimeMicros, 0)                                             \
@@ -152,8 +150,6 @@ namespace dart {
   V(Error_throwWithStackTrace, 2)                                              \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
-  V(FallThroughError_throwNew, 1)                                              \
-  V(AbstractClassInstantiationError_throwNew, 2)                               \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
   V(Timeline_getNextAsyncId, 0)                                                \
@@ -308,6 +304,8 @@ namespace dart {
   V(Isolate_getCurrentRootUriStr, 0)                                           \
   V(Isolate_getDebugName, 1)                                                   \
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
+  V(Isolate_registerKernelBlob, 1)                                             \
+  V(Isolate_unregisterKernelBlob, 1)                                           \
   V(Isolate_sendOOB, 2)                                                        \
   V(Isolate_spawnFunction, 10)                                                 \
   V(Isolate_spawnUri, 12)                                                      \

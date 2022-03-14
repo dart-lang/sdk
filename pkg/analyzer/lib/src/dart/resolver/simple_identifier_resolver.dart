@@ -28,7 +28,7 @@ class SimpleIdentifierResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void resolve(SimpleIdentifierImpl node) {
+  void resolve(SimpleIdentifierImpl node, {required DartType? contextType}) {
     if (node.inDeclarationContext()) {
       return;
     }
@@ -38,7 +38,7 @@ class SimpleIdentifierResolver {
     _resolver.checkReadOfNotAssignedLocalVariable(node, node.staticElement);
 
     _resolve1(node);
-    _resolve2(node);
+    _resolve2(node, contextType: contextType);
   }
 
   /// Return the type that should be recorded for a node that resolved to the given accessor.
@@ -189,7 +189,7 @@ class SimpleIdentifierResolver {
     node.staticElement = element;
   }
 
-  void _resolve2(SimpleIdentifierImpl node) {
+  void _resolve2(SimpleIdentifierImpl node, {required DartType? contextType}) {
     var element = node.staticElement;
 
     if (element is ExtensionElement) {
@@ -242,10 +242,11 @@ class SimpleIdentifierResolver {
       // sites.
       // TODO(srawlins): Switch all resolution to use the latter method, in a
       // breaking change release.
-      staticType =
-          _resolver.inferenceHelper.inferTearOff(node, node, staticType);
+      staticType = _resolver.inferenceHelper
+          .inferTearOff(node, node, staticType, contextType: contextType);
     }
-    _inferenceHelper.recordStaticType(node, staticType);
+    _inferenceHelper.recordStaticType(node, staticType,
+        contextType: contextType);
   }
 
   /// TODO(scheglov) this is duplicate

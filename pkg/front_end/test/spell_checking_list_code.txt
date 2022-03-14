@@ -28,6 +28,7 @@ advantage
 affecting
 afterwards
 agree
+agreeing
 ahe
 ai
 aiki
@@ -90,6 +91,7 @@ backlog
 backping
 backstop
 badly
+bail
 bang
 bar
 basically
@@ -105,6 +107,9 @@ bellow
 belonging
 beloning
 benchmark
+benchmarked
+benchmarker
+benchmarking
 benchmarks
 bf
 bi
@@ -118,6 +123,7 @@ bj
 bk
 blindly
 blob
+blobs
 blocking
 bmp
 bn
@@ -173,6 +179,7 @@ channel
 char
 charcode
 chars
+checkout
 checkpoint
 chloestefantsova
 chunks
@@ -207,10 +214,13 @@ com
 combinations
 combinator
 combiner
+communicate
+communicates
 communication
 compared
 compares
 compilations
+complement
 completers
 completes
 complicating
@@ -262,6 +272,7 @@ crypto
 csslib
 cstefantsova
 ctx
+customizable
 customized
 cut
 cwd
@@ -374,6 +385,7 @@ ef
 effects
 efficient
 efficiently
+eight
 eighth
 elem
 eliminating
@@ -491,6 +503,7 @@ futured
 futureor
 g
 gardening
+gb
 gen
 generation
 getable
@@ -514,6 +527,7 @@ gotos
 gradually
 granted
 graphs
+grouper
 growability
 gt
 guarantee
@@ -559,6 +573,7 @@ identifying
 ideographic
 idn
 ids
+idx
 iff
 il
 imitate
@@ -651,6 +666,7 @@ juxtapositions
 jvm
 k
 kallentu
+kb
 kernel's
 kill
 klass
@@ -666,10 +682,12 @@ lags
 lang
 largest
 lattice
+launch
 launched
 launcher
 layer
 layered
+layering
 layers
 layout
 lc
@@ -694,6 +712,7 @@ linearized
 linebreak
 linter
 linux
+listening
 lives
 ll
 llub
@@ -701,6 +720,7 @@ lm
 locationd
 logged
 logically
+lookahead
 lots
 lp
 lparen
@@ -728,6 +748,7 @@ markdown
 masking
 masks
 master
+materialize
 mature
 mb
 mc
@@ -764,6 +785,7 @@ na
 nameless
 namer
 natively
+nativewrappers
 nbsp
 nc
 ncs
@@ -781,6 +803,7 @@ nk
 nnbd
 node's
 nominality
+nonexistent
 nonimplementation
 norm
 normalization
@@ -826,6 +849,7 @@ orphancy
 orphans
 ors
 os
+ourselves
 outlined
 outputs
 outputting
@@ -834,6 +858,7 @@ overloader
 overlooked
 overshadowed
 oversight
+overview
 overwrite
 overwriting
 ownership
@@ -892,6 +917,7 @@ precompilation
 precompilations
 precompile
 precompiled
+precompiling
 preexisted
 preexisting
 prefixing
@@ -909,6 +935,7 @@ printf
 println
 prioritization
 proc
+processes
 processor
 producers
 product
@@ -932,6 +959,7 @@ q'i
 qi
 qm
 quad
+qualify
 quantified
 queries
 quick
@@ -1035,6 +1063,7 @@ replicated
 repo
 repositories
 repurposed
+requesting
 requests
 requirement
 res
@@ -1071,6 +1100,7 @@ rpc
 rs
 runnable
 s
+safer
 sandboxed
 sanitizing
 saw
@@ -1160,6 +1190,7 @@ specifications
 specifics
 speeding
 spend
+spent
 spuriously
 sq
 sra
@@ -1175,6 +1206,7 @@ stand
 starter
 stated
 statics
+stats
 stderr
 stdin
 stdio
@@ -1199,6 +1231,9 @@ stub
 stubs
 stx
 sub
+subdivide
+subdivided
+subdivides
 subexpression
 subexpression's
 subexpressions
@@ -1274,6 +1309,7 @@ ties
 tiki
 tilde
 till
+timings
 tiny
 tj
 tm
@@ -1293,6 +1329,7 @@ tput
 traced
 tracker
 traditional
+transferable
 transformers
 transforming
 translation
@@ -1306,6 +1343,7 @@ trivially
 ts
 tty
 tuple
+twos
 typeref
 u
 ufeff
@@ -1355,7 +1393,9 @@ unordered
 unpaired
 unparsed
 unpleasant
+unqualified
 unreachable
+unregister
 unseen
 unset
 unshadowed
@@ -1449,6 +1489,10 @@ xdbff
 xdc
 xdfff
 xef
+xff
+xffff
+xffffffff
+xffffffffffffffff
 xi
 xj
 xk

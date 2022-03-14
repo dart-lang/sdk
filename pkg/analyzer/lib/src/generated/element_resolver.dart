@@ -153,7 +153,7 @@ class ElementResolver {
   }
 
   void visitConstructorName(covariant ConstructorNameImpl node) {
-    var type = node.type2.type;
+    var type = node.type.type;
     if (type == null) {
       return;
     }
@@ -271,10 +271,12 @@ class ElementResolver {
   }
 
   void visitMethodInvocation(MethodInvocation node,
-      {List<WhyNotPromotedGetter>? whyNotPromotedList}) {
+      {List<WhyNotPromotedGetter>? whyNotPromotedList,
+      required DartType? contextType}) {
     whyNotPromotedList ??= [];
     _methodInvocationResolver.resolve(
-        node as MethodInvocationImpl, whyNotPromotedList);
+        node as MethodInvocationImpl, whyNotPromotedList,
+        contextType: contextType);
   }
 
   void visitMixinDeclaration(MixinDeclaration node) {
@@ -368,7 +370,7 @@ class ElementResolver {
     // TODO(brianwilkerson) Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
-    var superclassName = declaration?.extendsClause?.superclass2.name;
+    var superclassName = declaration?.extendsClause?.superclass.name;
     if (superclassName != null &&
         _resolver.definingLibrary
             .shouldIgnoreUndefinedIdentifier(superclassName)) {

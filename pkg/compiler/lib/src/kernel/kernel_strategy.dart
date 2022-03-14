@@ -7,18 +7,16 @@ library dart2js.kernel.frontend_strategy;
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../common/backend_api.dart';
+import '../common/elements.dart';
 import '../common/names.dart' show Uris;
 import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
-import '../common_elements.dart';
 import '../compiler.dart';
 import '../deferred_load/deferred_load.dart' show DeferredLoadTask;
 import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../environment.dart' as env;
-import '../frontend_strategy.dart';
 import '../ir/annotations.dart';
 import '../ir/closure.dart' show ClosureScopeModel;
 import '../ir/impact.dart';
@@ -36,6 +34,7 @@ import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/resolution_listener.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../kernel/dart2js_target.dart';
+import '../kernel/no_such_method_resolver.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
@@ -45,18 +44,18 @@ import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../util/enumset.dart';
 import 'element_map.dart';
-import 'element_map_impl.dart';
 import 'loader.dart';
+import 'native_basic_data.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
-class KernelFrontendStrategy extends FrontendStrategy {
-  final NativeBasicDataBuilderImpl nativeBasicDataBuilder =
-      NativeBasicDataBuilderImpl();
+class KernelFrontendStrategy {
+  final NativeBasicDataBuilder nativeBasicDataBuilder =
+      NativeBasicDataBuilder();
   NativeBasicData _nativeBasicData;
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
-  KernelToElementMapImpl _elementMap;
+  KernelToElementMap _elementMap;
   RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 
   KernelAnnotationProcessor _annotationProcessor;
@@ -66,7 +65,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
   ModularStrategy _modularStrategy;
   IrAnnotationData _irAnnotationData;
 
-  NativeDataBuilderImpl _nativeDataBuilder;
+  NativeDataBuilder _nativeDataBuilder;
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
 
   BackendUsageBuilder _backendUsageBuilder;
@@ -79,17 +78,17 @@ class KernelFrontendStrategy extends FrontendStrategy {
 
   KFieldAnalysis _fieldAnalysis;
 
-  @override
+  /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
   KernelFrontendStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
     assert(_compilerTask != null);
-    _elementMap = KernelToElementMapImpl(reporter, environment, this, _options);
+    _elementMap = KernelToElementMap(reporter, environment, this, _options);
     _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
     _backendUsageBuilder = BackendUsageBuilderImpl(this);
-    noSuchMethodRegistry = NoSuchMethodRegistryImpl(
-        commonElements, KernelNoSuchMethodResolver(_elementMap));
+    noSuchMethodRegistry =
+        NoSuchMethodRegistry(commonElements, NoSuchMethodResolver(_elementMap));
   }
 
   NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
@@ -97,7 +96,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
 
   KFieldAnalysis get fieldAnalysisForTesting => _fieldAnalysis;
 
-  @override
+  /// Called before processing of the resolution queue is started.
   void onResolutionStart() {
     // TODO(johnniwinther): Avoid the compiler.elementEnvironment.getThisType
     // calls. Currently needed to ensure resolution of the classes for various
@@ -132,7 +131,6 @@ class KernelFrontendStrategy extends FrontendStrategy {
     });
   }
 
-  @override
   ResolutionEnqueuer createResolutionEnqueuer(
       CompilerTask task, Compiler compiler) {
     RuntimeTypesNeedBuilder rtiNeedBuilder = _createRuntimeTypesNeedBuilder();
@@ -142,24 +140,23 @@ class KernelFrontendStrategy extends FrontendStrategy {
         elementEnvironment,
         commonElements,
         _elementMap.types,
-        BaseNativeClassFinder(elementEnvironment, nativeBasicData));
-    _nativeDataBuilder = NativeDataBuilderImpl(nativeBasicData);
+        NativeClassFinder(elementEnvironment, nativeBasicData));
+    _nativeDataBuilder = NativeDataBuilder(nativeBasicData);
     _customElementsResolutionAnalysis = CustomElementsResolutionAnalysis(
         elementEnvironment,
         commonElements,
         nativeBasicData,
         _backendUsageBuilder);
     _fieldAnalysis = KFieldAnalysis(this);
-    ClassQueries classQueries = KernelClassQueries(elementMap);
     ClassHierarchyBuilder classHierarchyBuilder =
-        ClassHierarchyBuilder(commonElements, classQueries);
+        ClassHierarchyBuilder(commonElements, elementMap);
     AnnotationsDataBuilder annotationsDataBuilder = AnnotationsDataBuilder();
     // TODO(johnniwinther): This is a hack. The annotation data is built while
     // using it. With CFE constants the annotations data can be built fully
     // before creating the resolution enqueuer.
     AnnotationsData annotationsData = AnnotationsDataImpl(
         compiler.options, annotationsDataBuilder.pragmaAnnotations);
-    ImpactTransformer impactTransformer = JavaScriptImpactTransformer(
+    final impactTransformer = JavaScriptImpactTransformer(
         elementEnvironment,
         commonElements,
         impacts,
@@ -188,7 +185,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
             _nativeResolutionEnqueuer,
             _fieldAnalysis,
             compiler.deferredLoadTask),
-        ResolutionWorldBuilderImpl(
+        ResolutionWorldBuilder(
             _options,
             elementMap,
             elementEnvironment,
@@ -204,8 +201,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
             noSuchMethodRegistry,
             annotationsDataBuilder,
             const StrongModeWorldStrategy(),
-            classHierarchyBuilder,
-            classQueries),
+            classHierarchyBuilder),
         KernelWorkItemBuilder(
             _compilerTask,
             elementMap,
@@ -221,10 +217,6 @@ class KernelFrontendStrategy extends FrontendStrategy {
         annotationsData);
   }
 
-  @override
-  void onResolutionEnd() {}
-
-  @override
   NativeBasicData get nativeBasicData {
     if (_nativeBasicData == null) {
       _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
@@ -236,7 +228,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
     return _nativeBasicData;
   }
 
-  @override
+  /// Registers a set of loaded libraries with this strategy.
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
     _irAnnotationData = processAnnotations(
@@ -255,7 +247,6 @@ class KernelFrontendStrategy extends FrontendStrategy {
     }
   }
 
-  @override
   void registerModuleData(List<ModuleData> data) {
     if (data == null) {
       _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
@@ -269,19 +260,23 @@ class KernelFrontendStrategy extends FrontendStrategy {
 
   ModularStrategy get modularStrategyForTesting => _modularStrategy;
 
-  @override
-  ElementEnvironment get elementEnvironment => _elementMap.elementEnvironment;
+  /// Returns the [ElementEnvironment] for the element model used in this
+  /// strategy.
+  KernelElementEnvironment get elementEnvironment =>
+      _elementMap.elementEnvironment;
 
-  @override
-  CommonElements get commonElements => _elementMap.commonElements;
+  /// Returns the [CommonElements] for the element model used in this
+  /// strategy.
+  KCommonElements get commonElements => _elementMap.commonElements;
 
   KernelToElementMap get elementMap => _elementMap;
 
-  @override
+  /// Creates a [DeferredLoadTask] for the element model used in this strategy.
   DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
       DeferredLoadTask(compiler, _elementMap);
 
-  @override
+  /// Computes the main function from [mainLibrary] adding additional world
+  /// impact to [impactBuilder].
   FunctionEntity computeMain(WorldImpactBuilder impactBuilder) {
     return elementEnvironment.mainFunction;
   }
@@ -295,7 +290,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
   RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
       _runtimeTypesNeedBuilder;
 
-  @override
+  /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
     return _elementMap.getSourceSpan(spannable, currentElement);
   }
@@ -303,9 +298,9 @@ class KernelFrontendStrategy extends FrontendStrategy {
 
 class KernelWorkItemBuilder implements WorkItemBuilder {
   final CompilerTask _compilerTask;
-  final KernelToElementMapImpl _elementMap;
-  final ImpactTransformer _impactTransformer;
-  final NativeMemberResolver _nativeMemberResolver;
+  final KernelToElementMap _elementMap;
+  final JavaScriptImpactTransformer _impactTransformer;
+  final KernelNativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
   final Map<MemberEntity, ClosureScopeModel> _closureModels;
   final Map<Entity, WorldImpact> _impactCache;
@@ -347,9 +342,9 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
 
 class KernelWorkItem implements WorkItem {
   final CompilerTask _compilerTask;
-  final KernelToElementMapImpl _elementMap;
-  final ImpactTransformer _impactTransformer;
-  final NativeMemberResolver _nativeMemberResolver;
+  final KernelToElementMap _elementMap;
+  final JavaScriptImpactTransformer _impactTransformer;
+  final KernelNativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
   @override
   final MemberEntity element;
@@ -427,7 +422,7 @@ bool useImpactDataForTesting = false;
 
 class KernelModularStrategy extends ModularStrategy {
   final CompilerTask _compilerTask;
-  final KernelToElementMapImpl _elementMap;
+  final KernelToElementMap _elementMap;
 
   KernelModularStrategy(this._compilerTask, this._elementMap);
 
@@ -459,7 +454,7 @@ class KernelModularStrategy extends ModularStrategy {
 
 class DeserializedModularStrategy extends ModularStrategy {
   final CompilerTask _compilerTask;
-  final KernelToElementMapImpl _elementMap;
+  final KernelToElementMap _elementMap;
   final Map<ir.Member, ImpactBuilderData> _cache = {};
 
   DeserializedModularStrategy(

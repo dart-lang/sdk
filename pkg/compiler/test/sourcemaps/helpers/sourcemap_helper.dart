@@ -8,9 +8,9 @@ library sourcemap.helper;
 
 import 'dart:async';
 import 'dart:io';
-import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/apiimpl.dart' as api;
+import 'package:compiler/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/compiler.dart' as api;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/code_output.dart';
 import 'package:compiler/src/io/source_file.dart';
@@ -357,7 +357,7 @@ class SourceMapProcessor {
       throw "Compilation failed.";
     }
 
-    api.CompilerImpl compiler = result.compiler;
+    var compiler = result.compiler;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     RecordingSourceInformationStrategy strategy =
         backendStrategy.sourceInformationStrategy;
@@ -414,7 +414,7 @@ class SourceMapProcessor {
 }
 
 class SourceMaps {
-  final api.CompilerImpl compiler;
+  final api.Compiler compiler;
   final SourceFileManager sourceFileManager;
   // TODO(johnniwinther): Supported multiple output units.
   final SourceMapInfo mainSourceMapInfo;

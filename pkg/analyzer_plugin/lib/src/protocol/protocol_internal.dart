@@ -14,25 +14,42 @@ final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     HashMap<String, RefactoringKind>();
 
 /// Adds the given [sourceEdits] to the list in [sourceFileEdit].
+///
+/// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+/// other edits will be inserted such that they appear before them in the
+/// resulting document.
 void addAllEditsForSource(
-    SourceFileEdit sourceFileEdit, Iterable<SourceEdit> edits) {
-  edits.forEach(sourceFileEdit.add);
+    SourceFileEdit sourceFileEdit, Iterable<SourceEdit> edits,
+    {bool insertBeforeExisting = false}) {
+  edits.forEach((edit) =>
+      sourceFileEdit.add(edit, insertBeforeExisting: insertBeforeExisting));
 }
 
 /// Adds the given [sourceEdit] to the list in [sourceFileEdit] while preserving
-/// two invariants:
+/// the invariants:
 /// - the list is sorted such that edits with a larger offset appear earlier in
 ///   the list, and
-/// - no two edits in the list overlap each other.
+/// - no two edits in the list overlap each other, and
+/// - inserts can only be made at the same offset as an earlier edit when
+///   [insertBeforeExisting] is `true` and will result in the inserted text
+///   appearing before the other edits in the resulting document.
 ///
 /// If the invariants can't be preserved, then a [ConflictingEditException] is
 /// thrown.
-void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
+void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit,
+    {bool insertBeforeExisting = false}) {
   var edits = sourceFileEdit.edits;
   var length = edits.length;
   var index = 0;
   while (index < length && edits[index].offset > sourceEdit.offset) {
     index++;
+  }
+  // If it's an insert and it should be inserted before existing edits, also
+  // skip over any with the same offset.
+  if (insertBeforeExisting && sourceEdit.length == 0) {
+    while (index < length && edits[index].offset >= sourceEdit.offset) {
+      index++;
+    }
   }
   if (index > 0) {
     var previousEdit = edits[index - 1];
@@ -63,14 +80,19 @@ void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
 }
 
 /// Adds [edit] to the [FileEdit] for the given [file].
+///
+/// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+/// other edits will be inserted such that they appear before them in the
+/// resulting document.
 void addEditToSourceChange(
-    SourceChange change, String file, int fileStamp, SourceEdit edit) {
+    SourceChange change, String file, int fileStamp, SourceEdit edit,
+    {bool insertBeforeExisting = false}) {
   var fileEdit = change.getFileEdit(file);
   if (fileEdit == null) {
     fileEdit = SourceFileEdit(file, fileStamp);
     change.addFileEdit(fileEdit);
   }
-  fileEdit.add(edit);
+  fileEdit.add(edit, insertBeforeExisting: insertBeforeExisting);
 }
 
 /// Get the result of applying the edit to the given [code]. Access via

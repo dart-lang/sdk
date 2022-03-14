@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -28,6 +29,7 @@ import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
 import 'name_scheme.dart';
+import 'source_class_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart' show SourceLoader;
@@ -45,6 +47,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   final Procedure? _factoryTearOff;
 
   SourceFactoryBuilder? actualOrigin;
+
+  List<SourceFactoryBuilder>? _patches;
 
   SourceFactoryBuilder(
       List<MetadataBuilder>? metadata,
@@ -80,8 +84,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     this.asyncModifier = asyncModifier;
   }
 
-  SourceFactoryBuilder? get patchForTesting =>
-      dataForTesting?.patchForTesting as SourceFactoryBuilder?;
+  List<SourceFactoryBuilder>? get patchesForTesting => _patches;
 
   @override
   AsyncMarker get asyncModifier => actualAsyncModifier;
@@ -215,7 +218,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     if (patch is SourceFactoryBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
-        dataForTesting?.patchForTesting = patch;
+        (_patches ??= []).add(patch);
       }
     } else {
       reportPatchMismatch(patch);
@@ -245,6 +248,22 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     if (!isPatch) return 0;
     _finishPatch();
     return 1;
+  }
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+    library.checkTypesInFunctionBuilder(this, typeEnvironment);
+    List<SourceFactoryBuilder>? patches = _patches;
+    if (patches != null) {
+      for (SourceFactoryBuilder patch in patches) {
+        patch.checkTypes(library, typeEnvironment);
+      }
+    }
   }
 }
 
@@ -382,10 +401,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     List<DartType>? typeArguments = redirectingFactoryBody.typeArguments;
     Member? target = redirectingFactoryBody.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
-      TypeInferrerImpl inferrer = library.loader.typeInferenceEngine
-              .createLocalTypeInferrer(
-                  fileUri, classBuilder!.thisType, library, null)
-          as TypeInferrerImpl;
+      TypeInferrer inferrer = library.loader.typeInferenceEngine
+          .createLocalTypeInferrer(
+              fileUri, classBuilder!.thisType, library, null);
       inferrer.helper = library.loader.createBodyBuilderForOutlineExpression(
           library, classBuilder, this, classBuilder!.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
@@ -445,7 +463,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           _factoryTearOff!,
           target!,
           typeArguments ?? [],
-          _tearOffTypeParameters!));
+          _tearOffTypeParameters!,
+          library));
     }
     if (isConst && isPatch) {
       _finishPatch();
@@ -465,5 +484,15 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   List<DartType>? getTypeArguments() {
     return getRedirectingFactoryBody(_procedure)!.typeArguments;
+  }
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+    library.checkTypesInRedirectingFactoryBuilder(this, typeEnvironment);
   }
 }

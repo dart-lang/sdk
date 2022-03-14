@@ -42,7 +42,8 @@ class AssignmentExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(AssignmentExpressionImpl node) {
+  void resolve(AssignmentExpressionImpl node,
+      {required DartType? contextType}) {
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
     var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
@@ -69,13 +70,14 @@ class AssignmentExpressionResolver {
     // TODO(scheglov) Use VariableElement and do in resolveForWrite() ?
     _assignmentShared.checkFinalAlreadyAssigned(left);
 
+    DartType? rhsContext;
     {
       var leftType = node.writeType;
       if (writeElement is VariableElement) {
         leftType = _resolver.localVariableTypeProvider
             .getType(left as SimpleIdentifier, isRead: false);
       }
-      _setRhsContext(node, leftType!, operator, right);
+      rhsContext = _computeRhsContext(node, leftType!, operator, right);
     }
 
     var flow = _resolver.flowAnalysis.flow;
@@ -83,11 +85,12 @@ class AssignmentExpressionResolver {
       flow.ifNullExpression_rightBegin(left, node.readType!);
     }
 
-    right.accept(_resolver);
+    _resolver.analyzeExpression(right, rhsContext);
     right = node.rightHandSide;
     var whyNotPromoted = flow?.whyNotPromoted(right);
 
-    _resolveTypes(node, whyNotPromoted: whyNotPromoted);
+    _resolveTypes(node,
+        whyNotPromoted: whyNotPromoted, contextType: contextType);
 
     if (flow != null) {
       if (writeElement is PromotableElement) {
@@ -147,6 +150,28 @@ class AssignmentExpressionResolver {
     return true;
   }
 
+  DartType? _computeRhsContext(AssignmentExpressionImpl node, DartType leftType,
+      TokenType operator, Expression right) {
+    switch (operator) {
+      case TokenType.EQ:
+      case TokenType.QUESTION_QUESTION_EQ:
+        return leftType;
+      case TokenType.AMPERSAND_AMPERSAND_EQ:
+      case TokenType.BAR_BAR_EQ:
+        return _typeProvider.boolType;
+      default:
+        var method = node.staticElement;
+        if (method != null) {
+          var parameters = method.parameters;
+          if (parameters.isNotEmpty) {
+            return _typeSystem.refineNumericInvocationContext(
+                leftType, method, leftType, parameters[0].type);
+          }
+        }
+        return null;
+    }
+  }
+
   void _resolveOperator(AssignmentExpressionImpl node) {
     var left = node.leftHandSide;
     var operator = node.operator;
@@ -200,29 +225,19 @@ class AssignmentExpressionResolver {
   }
 
   void _resolveTypes(AssignmentExpressionImpl node,
-      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
+      required DartType? contextType}) {
     DartType assignedType;
-    DartType nodeType;
 
     var rightHandSide = node.rightHandSide;
     var operator = node.operator.type;
     if (operator == TokenType.EQ) {
       assignedType = rightHandSide.typeOrThrow;
-      nodeType = assignedType;
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
-      var leftType = node.readType!;
-
-      // The LHS value will be used only if it is non-null.
-      if (_isNonNullableByDefault) {
-        leftType = _typeSystem.promoteToNonNull(leftType);
-      }
-
       assignedType = rightHandSide.typeOrThrow;
-      nodeType = _typeSystem.getLeastUpperBound(leftType, assignedType);
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
       assignedType = _typeProvider.boolType;
-      nodeType = assignedType;
     } else {
       var operatorElement = node.staticElement;
       if (operatorElement != null) {
@@ -238,14 +253,22 @@ class AssignmentExpressionResolver {
       } else {
         assignedType = DynamicTypeImpl.instance;
       }
-      nodeType = assignedType;
     }
 
-    _inferenceHelper.recordStaticType(node, nodeType);
-    var callReference = _resolver.insertImplicitCallReference(rightHandSide);
-    if (callReference != rightHandSide) {
-      assignedType = callReference.typeOrThrow;
+    DartType nodeType;
+    if (operator == TokenType.QUESTION_QUESTION_EQ) {
+      var leftType = node.readType!;
+
+      // The LHS value will be used only if it is non-null.
+      if (_isNonNullableByDefault) {
+        leftType = _typeSystem.promoteToNonNull(leftType);
+      }
+
+      nodeType = _typeSystem.getLeastUpperBound(leftType, assignedType);
+    } else {
+      nodeType = assignedType;
     }
+    _inferenceHelper.recordStaticType(node, nodeType, contextType: contextType);
 
     // TODO(scheglov) Remove from ErrorVerifier?
     _checkForInvalidAssignment(
@@ -258,32 +281,6 @@ class AssignmentExpressionResolver {
         operator != TokenType.QUESTION_QUESTION_EQ) {
       _resolver.checkForArgumentTypeNotAssignableForArgument(node.rightHandSide,
           whyNotPromoted: whyNotPromoted);
-    }
-  }
-
-  void _setRhsContext(AssignmentExpressionImpl node, DartType leftType,
-      TokenType operator, Expression right) {
-    switch (operator) {
-      case TokenType.EQ:
-      case TokenType.QUESTION_QUESTION_EQ:
-        InferenceContext.setType(right, leftType);
-        break;
-      case TokenType.AMPERSAND_AMPERSAND_EQ:
-      case TokenType.BAR_BAR_EQ:
-        InferenceContext.setType(right, _typeProvider.boolType);
-        break;
-      default:
-        var method = node.staticElement;
-        if (method != null) {
-          var parameters = method.parameters;
-          if (parameters.isNotEmpty) {
-            InferenceContext.setType(
-                right,
-                _typeSystem.refineNumericInvocationContext(
-                    leftType, method, leftType, parameters[0].type));
-          }
-        }
-        break;
     }
   }
 }

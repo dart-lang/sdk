@@ -8,8 +8,8 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
+import '../common/elements.dart';
 import '../common/names.dart';
-import '../common_elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart';
@@ -368,8 +368,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         return options.enableVariance;
       case 'LEGACY':
         return options.useLegacySubtyping;
-      case 'LEGACY_JAVASCRIPT':
-        return options.features.legacyJavaScript.isEnabled;
       case 'PRINT_LEGACY_STARS':
         return options.printLegacyStars;
       default:
@@ -2391,15 +2389,34 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   void visitAsExpression(ir.AsExpression node) {
-    ir.Expression operand = node.operand;
+    // Recognize these special cases, where expression e has static type `T?`:
+    //
+    //     e as T
+    //     (e as dynamic) as T
+    //
+    // These patterns can only fail if `e` results in a `null` value.  The
+    // second pattern occurs when `e as dynamic` is used get an implicit
+    // downcast in order to make use of the different policies for explicit and
+    // implicit downcasts.
+    //
+    // The pattern match is syntactic which ensures the type bindings are
+    // consistent, i.e. from the same instance of a type variable scope.
+    ir.Expression operand = _skipCastsToDynamic(node.operand);
     operand.accept(this);
+
+    bool isNullRemovalPattern = false;
 
     StaticType operandType = _getStaticType(operand);
     DartType type = _elementMap.getDartType(node.type);
-    if (!node.isCovarianceCheck &&
-        _elementMap.types.isSubtype(operandType.type, type)) {
-      // Skip unneeded casts.
-      return;
+    if (!node.isCovarianceCheck) {
+      if (_elementMap.types.isSubtype(operandType.type, type)) {
+        // Skip unneeded casts.
+        return;
+      }
+      if (_elementMap.types
+          .isSubtype(operandType.type, _elementMap.types.nullableType(type))) {
+        isNullRemovalPattern = true;
+      }
     }
 
     SourceInformation sourceInformation =
@@ -2420,7 +2437,12 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           .getExplicitCastCheckPolicy(_currentFrame.member);
     }
 
-    if (policy.isEmitted) {
+    if (!policy.isEmitted) {
+      stack.add(expressionInstruction);
+      return;
+    }
+
+    void generateCheck() {
       HInstruction converted = _typeBuilder.buildAsCheck(
           expressionInstruction, localsHandler.substInContext(type),
           isTypeError: node.isTypeError, sourceInformation: sourceInformation);
@@ -2428,9 +2450,34 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         add(converted);
       }
       stack.add(converted);
-    } else {
-      stack.add(expressionInstruction);
     }
+
+    if (isNullRemovalPattern) {
+      // Generate a conditional to test only `null` values:
+      //
+      //     temp = e;
+      //     temp == null ? temp as T : temp
+      SsaBranchBuilder(this).handleConditional(
+          () {
+            push(HIdentity(
+                expressionInstruction,
+                graph.addConstantNull(closedWorld),
+                _abstractValueDomain.boolType));
+          },
+          generateCheck,
+          () {
+            stack.add(expressionInstruction);
+          });
+    } else {
+      generateCheck();
+    }
+  }
+
+  static ir.Expression _skipCastsToDynamic(ir.Expression node) {
+    if (node is ir.AsExpression && node.type is ir.DynamicType) {
+      return _skipCastsToDynamic(node.operand);
+    }
+    return node;
   }
 
   @override
@@ -3650,10 +3697,18 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Fills [typeArguments] with the type arguments needed for [selector] and
   /// returns the selector corresponding to the passed type arguments.
+  ///
+  /// If [isImplicitCall] is `true`, the target of the invocation can be either
+  /// the target of the [selector] or of the corresponding `.call` selector. In
+  /// this case we need to check both selectors to see if we need to pass type
+  /// arguments. This occurs for field/getter invocations.
   Selector _fillDynamicTypeArguments(
-      Selector selector, ir.Arguments arguments, List<DartType> typeArguments) {
+      Selector selector, ir.Arguments arguments, List<DartType> typeArguments,
+      {bool isImplicitCall = false}) {
     if (selector.typeArgumentCount > 0) {
-      if (_rtiNeed.selectorNeedsTypeArguments(selector)) {
+      if (_rtiNeed.selectorNeedsTypeArguments(selector) ||
+          (isImplicitCall &&
+              _rtiNeed.selectorNeedsTypeArguments(selector.toCallSelector()))) {
         typeArguments.addAll(arguments.types.map(_elementMap.getDartType));
       } else {
         return selector.toNonGeneric();
@@ -5169,12 +5224,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   void _handleMethodInvocation(
-      ir.Expression node, ir.Expression receiver, ir.Arguments arguments) {
+      ir.Expression node, ir.Expression receiver, ir.Arguments arguments,
+      {bool isImplicitCall = false}) {
     receiver.accept(this);
     HInstruction receiverInstruction = pop();
     Selector selector = _elementMap.getSelector(node);
     List<DartType> typeArguments = [];
-    selector = _fillDynamicTypeArguments(selector, arguments, typeArguments);
+    selector = _fillDynamicTypeArguments(selector, arguments, typeArguments,
+        isImplicitCall: isImplicitCall);
     _pushDynamicInvocation(
         node,
         _getStaticType(receiver),
@@ -5195,7 +5252,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   void visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) {
-    _handleMethodInvocation(node, node.receiver, node.arguments);
+    _handleMethodInvocation(node, node.receiver, node.arguments,
+        isImplicitCall: true);
   }
 
   @override
@@ -6298,7 +6356,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     if (element == _commonElements.traceHelper) return;
     // TODO(sigmund): create a better uuid for elements.
     HConstant idConstant = graph.addConstantInt(element.hashCode, closedWorld);
-    n(e) => e == null ? '' : e.name;
+    String n(Entity e) => e == null ? '' : e.name;
     String name = "${n(element.library)}:${n(element.enclosingClass)}."
         "${n(element)}";
     HConstant nameConstant = graph.addConstantString(name, closedWorld);
@@ -6388,7 +6446,7 @@ class TryCatchFinallyBuilder {
     kernelBuilder.open(startTryBlock);
   }
 
-  void _addExitTrySuccessor(successor) {
+  void _addExitTrySuccessor(HBasicBlock successor) {
     if (successor == null) return;
     // Iterate over all blocks created inside this try/catch, and
     // attach successor information to blocks that end with
@@ -6402,7 +6460,7 @@ class TryCatchFinallyBuilder {
     }
   }
 
-  void _addOptionalSuccessor(block1, block2) {
+  void _addOptionalSuccessor(HBasicBlock block1, HBasicBlock block2) {
     if (block2 != null) block1.addSuccessor(block2);
   }
 

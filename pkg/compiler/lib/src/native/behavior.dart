@@ -3,18 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
+import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
+import '../js_model/js_world_builder.dart' show JsToFrontendMap;
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import 'js.dart';
 
-typedef TypeLookup = dynamic /*DartType|SpecialType*/
+typedef TypeLookup = Object /*DartType|SpecialType*/
     Function(String typeString, {bool required});
 
 /// This class is a temporary work-around until we get a more powerful DartType.
@@ -163,11 +164,11 @@ class NativeBehavior {
 
   /// [DartType]s or [SpecialType]s returned or yielded by the native
   /// element.
-  final List typesReturned = [];
+  final List<Object> typesReturned = [];
 
   /// [DartType]s or [SpecialType]s instantiated by the native
   /// element.
-  final List typesInstantiated = [];
+  final List<Object> typesInstantiated = [];
 
   String codeTemplateText;
   // If this behavior is for a JS expression, [codeTemplate] contains the
@@ -197,8 +198,8 @@ class NativeBehavior {
   factory NativeBehavior.readFromDataSource(DataSource source) {
     source.begin(tag);
 
-    List readTypes() {
-      List types = [];
+    List<Object> readTypes() {
+      List<Object> types = [];
       types.addAll(source.readDartTypes());
       int specialCount = source.readInt();
       for (int i = 0; i < specialCount; i++) {
@@ -208,8 +209,8 @@ class NativeBehavior {
       return types;
     }
 
-    List typesReturned = readTypes();
-    List typesInstantiated = readTypes();
+    List<Object> typesReturned = readTypes();
+    List<Object> typesInstantiated = readTypes();
     String codeTemplateText = source.readStringOrNull();
     SideEffects sideEffects = SideEffects.readFromDataSource(source);
     int throwBehavior = source.readInt();
@@ -235,7 +236,7 @@ class NativeBehavior {
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
 
-    void writeTypes(List types) {
+    void writeTypes(List<Object> types) {
       List<DartType> dartTypes = [];
       List<SpecialType> specialTypes = [];
       for (var type in types) {
@@ -372,8 +373,8 @@ class NativeBehavior {
       void setIsAllocation(bool isAllocation),
       void setUseGvn(bool useGvn),
       TypeLookup lookupType,
-      List typesReturned,
-      List typesInstantiated,
+      List<Object> typesReturned,
+      List<Object> typesInstantiated,
       objectType,
       nullType}) {
     bool seenError = false;
@@ -729,24 +730,55 @@ class NativeBehavior {
     }
     return dartTypes.dynamicType();
   }
+
+  Object _convertNativeBehaviorType(JsToFrontendMap map, Object type) {
+    if (type is DartType) {
+      // TODO(johnniwinther): Avoid free variables in types. If the type
+      // pulled from a generic function type it might contain a function
+      // type variable that should probably have been replaced by its bound.
+      return map.toBackendType(type, allowFreeVariables: true);
+    }
+    assert(type is SpecialType);
+    return type;
+  }
+
+  NativeBehavior convert(JsToFrontendMap map) {
+    final newBehavior = NativeBehavior();
+    for (Object type in typesReturned) {
+      newBehavior.typesReturned.add(_convertNativeBehaviorType(map, type));
+    }
+    for (Object type in typesInstantiated) {
+      newBehavior.typesInstantiated.add(_convertNativeBehaviorType(map, type));
+    }
+    newBehavior.codeTemplateText = codeTemplateText;
+    newBehavior.codeTemplate = codeTemplate;
+    newBehavior.throwBehavior = throwBehavior;
+    newBehavior.isAllocation = isAllocation;
+    newBehavior.useGvn = useGvn;
+    newBehavior.sideEffects.add(sideEffects);
+    return newBehavior;
+  }
 }
 
-abstract class BehaviorBuilder {
-  CommonElements get commonElements;
-  DiagnosticReporter get reporter;
-  NativeBasicData get nativeBasicData;
-  ElementEnvironment get elementEnvironment;
-  CompilerOptions get options;
+class BehaviorBuilder {
+  final ElementEnvironment elementEnvironment;
+  final CommonElements commonElements;
+  final DiagnosticReporter reporter;
+  final NativeBasicData nativeBasicData;
+  final CompilerOptions options;
   DartTypes get dartTypes => commonElements.dartTypes;
 
   NativeBehavior _behavior;
+
+  BehaviorBuilder(this.elementEnvironment, this.commonElements,
+      this.nativeBasicData, this.reporter, this.options);
 
   void _overrideWithAnnotations(Iterable<String> createsAnnotations,
       Iterable<String> returnsAnnotations, TypeLookup lookupType) {
     if (createsAnnotations.isEmpty && returnsAnnotations.isEmpty) return;
 
-    List creates = _collect(createsAnnotations, lookupType);
-    List returns = _collect(returnsAnnotations, lookupType);
+    List<Object> creates = _collect(createsAnnotations, lookupType);
+    List<Object> returns = _collect(returnsAnnotations, lookupType);
 
     if (creates != null) {
       _behavior.typesInstantiated

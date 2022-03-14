@@ -21,7 +21,7 @@ class EA extends self::_EA&_Enum&A /*isEnum*/  {
   const constructor •(core::int index, core::String name) → self::EA
     ;
   method toString() → core::String
-    ;
+    return "EA.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class B extends core::Object implements core::Enum {
   synthetic constructor •() → self::B
@@ -42,7 +42,7 @@ class EB extends self::_EB&_Enum&B /*isEnum*/  {
   const constructor •(core::int index, core::String name) → self::EB
     ;
   method toString() → core::String
-    ;
+    return "EB.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M extends core::Enum /*isMixinDeclaration*/  {
   get foo() → core::int
@@ -61,7 +61,7 @@ class EM extends self::_EM&_Enum&M /*isEnum*/  {
   const constructor •(core::int index, core::String name) → self::EM
     ;
   method toString() → core::String
-    ;
+    return "EM.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class N extends core::Object implements core::Enum /*isMixinDeclaration*/  {
   get foo() → core::int
@@ -80,7 +80,7 @@ class EN extends self::_EN&_Enum&N /*isEnum*/  {
   const constructor •(core::int index, core::String name) → self::EN
     ;
   method toString() → core::String
-    ;
+    return "EN.${this.{core::_Enum::_name}{core::String}}";
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic
   ;
@@ -97,4 +97,4 @@ Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:21:6 ->
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:21:18 -> InstanceConstant(const EM{})
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:27:6 -> ListConstant(const <EN*>[const EN{}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:27:18 -> InstanceConstant(const EN{})
-Extra constant evaluation: evaluated: 20, effectively constant: 8
+Extra constant evaluation: evaluated: 32, effectively constant: 8

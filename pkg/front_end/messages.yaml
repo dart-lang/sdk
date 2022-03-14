@@ -482,6 +482,24 @@ MultipleImplements:
   analyzerCode: MULTIPLE_IMPLEMENTS_CLAUSES
   script: "class A implements B implements C, D {}"
 
+MultipleClauses:
+  problemMessage: "Each '#string' definition can have at most one '#string2' clause."
+  correctionMessage: "Try combining all of the '#string2' clauses into a single clause."
+  experiments: enhanced-enums
+  analyzerCode: ParserErrorCode.MULTIPLE_CLAUSES
+  index: 121
+  script:
+    - "class B {} enum A implements B implements C, D { v; }"
+    - "class B {} enum A with B with C, D { v; }"
+
+OutOfOrderClauses:
+  problemMessage: "The '#string' clause must come before the '#string2' clause."
+  correctionMessage: "Try moving the '#string' clause before the '#string2' clause."
+  experiments: enhanced-enums
+  analyzerCode: ParserErrorCode.OUT_OF_ORDER_CLAUSES
+  index: 122
+  script: "class B {} class D {} enum A implements B with D { v; }"
+
 MultipleOnClauses:
   index: 26
   problemMessage: "Each mixin definition can have at most one on clause."
@@ -1135,10 +1153,6 @@ AnonymousContinueTargetOutsideFunction:
       }
     }
 
-ContinueLabelNotTarget:
-  problemMessage: "Target of continue must be a label."
-  analyzerCode: LABEL_UNDEFINED
-
 ContinueWithoutLabelInCase:
   index: 64
   problemMessage: "A continue statement in a switch statement must have a label as a target."
@@ -1320,6 +1334,12 @@ UnexpectedToken:
   analyzerCode: UNEXPECTED_TOKEN
   script:
     - "import 'b.dart' d as b;"
+
+UnexpectedTokens:
+  problemMessage: "Unexpected tokens."
+  analyzerCode: ParserErrorCode.UNEXPECTED_TOKENS
+  index: 123
+  script: "enum E w Foo { v; }"
 
 LiteralWithClassAndNew:
   problemMessage: "A #string literal can't be prefixed by 'new #lexeme'."
@@ -1706,6 +1726,7 @@ FieldInitializerOutsideConstructor:
   problemMessage: "Field formal parameters can only be used in a constructor."
   correctionMessage: "Try removing 'this.'."
   analyzerCode: ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+  hasPublishedDocs: true
   script:
     - "class C { void m(this.x); }"
 
@@ -5461,3 +5482,40 @@ EnumSupertypeOfNonAbstractClass:
 
 EnumEntryWithTypeArgumentsWithoutArguments:
   problemMessage: "Missing arguments in enum constructor invocation."
+
+EnumNonConstConstructor:
+  problemMessage: "Generative enum constructors must be marked as 'const'."
+
+EnumConstructorSuperInitializer:
+  problemMessage: "Enum constructors can't contain super-initializers."
+
+EnumConstructorTearoff:
+  problemMessage: "Enum constructors can't be torn off."
+
+EnumFactoryRedirectsToConstructor:
+  problemMessage: "Enum factory constructors can't redirect to generative constructors."
+
+EnumContainsValuesDeclaration:
+  problemMessage: "Enums can't contain declarations of members with the name 'values'."
+
+EnumImplementerContainsValuesDeclaration:
+  problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'."
+
+MacroClassNotDeclaredMacro:
+  problemMessage: "Non-abstract class '#name' implements 'Macro' but isn't declared as a macro class."
+  correctionMessage: "Try adding the 'macro' class modifier."
+
+UnmatchedAugmentationClassMember:
+  problemMessage: "Augmentation member '#name' doesn't match a member in the augmented class."
+  correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
+
+NonAugmentationClassMemberConflict:
+  problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented class."
+  correctionMessage: "Try changing the name to an existing member or adding an 'augment' modifier."
+
+NonAugmentationClassMemberConflictCause:
+  problemMessage: "This is the existing member."
+  severity: CONTEXT
+
+OptionalSuperParameterWithoutInitializer:
+  problemMessage: "Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor."

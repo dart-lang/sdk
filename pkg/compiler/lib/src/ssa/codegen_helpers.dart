@@ -1024,6 +1024,9 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
 
     if (!identical(end.predecessors[1], elseBlock)) return;
     HPhi phi = end.phis.first;
+    // This useless phi should have been removed.  Do not generate-at-use if
+    // there is no use. See #48383.
+    if (phi.usedBy.isEmpty) return;
     HInstruction thenInput = phi.inputs[0];
     HInstruction elseInput = phi.inputs[1];
     if (thenInput.isJsStatement() || elseInput.isJsStatement()) return;

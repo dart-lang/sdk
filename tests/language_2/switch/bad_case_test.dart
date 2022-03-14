@@ -34,8 +34,12 @@ archimedesSays(n) {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
     case 3.14:
+    //   ^
+    // [cfe] Case expression '3.14' does not have a primitive operator '=='.
       return "Pi";
     case 2.71828:
+    //   ^
+    // [cfe] Case expression '2.71828' does not have a primitive operator '=='.
       return "Huh?";
   }
   return null;

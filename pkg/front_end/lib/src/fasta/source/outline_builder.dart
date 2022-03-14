@@ -43,6 +43,7 @@ import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart';
 import '../modifier.dart'
     show
+        Augment,
         Const,
         Covariant,
         External,
@@ -51,6 +52,7 @@ import '../modifier.dart'
         Static,
         Var,
         abstractMask,
+        augmentMask,
         constMask,
         covariantMask,
         externalMask,
@@ -527,7 +529,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     debugEvent("EndImport");
     List<CombinatorBuilder>? combinators = pop() as List<CombinatorBuilder>?;
     bool isDeferred = pop() as bool;
@@ -540,17 +542,33 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(importKeyword.charOffset);
     if (prefix is ParserRecovery) return;
+
+    if (!libraryBuilder.enableMacrosInLibrary) {
+      if (augmentToken != null) {
+        // TODO(johnniwinther): We should emit a different message when the
+        // experiment is not released yet. The current message indicates that
+        // changing the sdk version can solve the problem.
+        addProblem(
+            templateExperimentNotEnabled.withArguments(
+                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
+            augmentToken.next!.charOffset,
+            augmentToken.next!.length);
+        augmentToken = null;
+      }
+    }
+    bool isAugmentationImport = augmentToken != null;
     libraryBuilder.addImport(
-        metadata,
-        uri,
-        configurations,
-        prefix as String?,
-        combinators,
-        isDeferred,
-        importKeyword.charOffset,
-        prefixOffset,
-        uriOffset,
-        importIndex++);
+        metadata: metadata,
+        isAugmentationImport: isAugmentationImport,
+        uri: uri,
+        configurations: configurations,
+        prefix: prefix as String?,
+        combinators: combinators,
+        deferred: isDeferred,
+        charOffset: importKeyword.charOffset,
+        prefixCharOffset: prefixOffset,
+        uriOffset: uriOffset,
+        importIndex: importIndex++);
   }
 
   @override
@@ -795,8 +813,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginClassDeclaration(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginClassDeclaration(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     debugEvent("beginClassDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -809,28 +827,33 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.setCurrentClassName(name.lexeme);
     inAbstractClass = abstractToken != null;
     push(abstractToken != null ? abstractMask : 0);
-    if (macroToken != null && !libraryBuilder.enableMacrosInLibrary) {
-      // TODO(johnniwinther): We should emit a different message when the
-      // experiment is not released yet. The current message indicates that
-      // changing the sdk version can solve the problem.
-      addProblem(
-          templateExperimentNotEnabled.withArguments(
-              'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-          macroToken.next!.charOffset,
-          macroToken.next!.length);
-      macroToken = null;
+    if (!libraryBuilder.enableMacrosInLibrary) {
+      if (macroToken != null) {
+        // TODO(johnniwinther): We should emit a different message when the
+        // experiment is not released yet. The current message indicates that
+        // changing the sdk version can solve the problem.
+        addProblem(
+            templateExperimentNotEnabled.withArguments(
+                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
+            macroToken.next!.charOffset,
+            macroToken.next!.length);
+        macroToken = null;
+      }
     }
     push(macroToken ?? NullValue.Token);
+    push(augmentToken ?? NullValue.Token);
   }
 
   @override
-  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(
+      Token? augmentToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
     pushDeclarationContext(DeclarationContext.Mixin);
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
+    push(augmentToken ?? NullValue.Token);
     push(typeVariables ?? NullValue.TypeVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
         .markAsMixinDeclaration(name.lexeme, name.charOffset, typeVariables);
@@ -892,8 +915,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginNamedMixinApplication(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     debugEvent("beginNamedMixinApplication");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -904,15 +927,18 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
         name.lexeme, name.charOffset, typeVariables);
     push(abstractToken != null ? abstractMask : 0);
-    if (macroToken != null && !libraryBuilder.enableMacrosInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments(
-              'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-          macroToken.next!.charOffset,
-          macroToken.next!.length);
-      macroToken = null;
+    if (!libraryBuilder.enableMacrosInLibrary) {
+      if (macroToken != null) {
+        addProblem(
+            templateExperimentNotEnabled.withArguments(
+                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
+            macroToken.next!.charOffset,
+            macroToken.next!.length);
+        macroToken = null;
+      }
     }
     push(macroToken ?? NullValue.Token);
+    push(augmentToken ?? NullValue.Token);
   }
 
   @override
@@ -1052,6 +1078,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.TypeBuilderOrNull,
         ValueKinds.ParserRecovery,
       ]),
+      /* augment token */ ValueKinds.TokenOrNull,
       /* macro token */ ValueKinds.TokenOrNull,
       /* modifiers */ ValueKinds.Integer,
       /* type variables */ ValueKinds.TypeVariableListOrNull,
@@ -1064,6 +1091,7 @@ class OutlineBuilder extends StackListenerImpl {
         pop(NullValue.TypeBuilderList) as List<TypeBuilder>?;
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
+    Token? augmentToken = pop(NullValue.Token) as Token?;
     Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
@@ -1142,7 +1170,8 @@ class OutlineBuilder extends StackListenerImpl {
           nameOffset,
           endToken.charOffset,
           supertypeOffset,
-          isMacro: macroToken != null);
+          isMacro: macroToken != null,
+          isAugmentation: augmentToken != null);
     }
     libraryBuilder.setCurrentClassName(null);
     popDeclarationContext(DeclarationContext.Class);
@@ -1155,12 +1184,26 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endMixinDeclaration(Token mixinToken, Token endToken) {
     debugEvent("endMixinDeclaration");
+    assert(checkState(mixinToken, [
+      /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+      /* supertypeConstraints */ unionOfKinds([
+        ValueKinds.TypeBuilderListOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+      /* type variables */ ValueKinds.TypeVariableListOrNull,
+      /* augment token */ ValueKinds.TokenOrNull,
+      /* name offset */ ValueKinds.Integer,
+      /* name */ ValueKinds.NameOrParserRecovery,
+      /* metadata */ ValueKinds.MetadataListOrNull,
+    ]));
+
     List<TypeBuilder>? interfaces =
         pop(NullValue.TypeBuilderList) as List<TypeBuilder>?;
     List<TypeBuilder>? supertypeConstraints =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
     List<TypeVariableBuilder>? typeVariables =
         pop(NullValue.TypeVariables) as List<TypeVariableBuilder>?;
+    Token? augmentToken = pop(NullValue.Token) as Token?;
     int nameOffset = popCharOffset();
     Object? name = pop();
     List<MetadataBuilder>? metadata =
@@ -1227,7 +1270,8 @@ class OutlineBuilder extends StackListenerImpl {
           startOffset,
           nameOffset,
           endToken.charOffset,
-          -1);
+          -1,
+          isAugmentation: augmentToken != null);
     }
     libraryBuilder.setCurrentClassName(null);
     popDeclarationContext(DeclarationContext.Mixin);
@@ -1367,12 +1411,20 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
+  void beginTopLevelMethod(
+      Token lastConsumed, Token? augmentToken, Token? externalToken) {
     pushDeclarationContext(DeclarationContext.TopLevelMethod);
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.topLevelMethod, "#method",
         hasMembers: false);
-    push(externalToken != null ? externalMask : 0);
+    int modifiers = 0;
+    if (augmentToken != null) {
+      modifiers |= augmentMask;
+    }
+    if (externalToken != null) {
+      modifiers |= externalMask;
+    }
+    push(modifiers);
   }
 
   @override
@@ -1478,6 +1530,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1535,6 +1588,10 @@ class OutlineBuilder extends StackListenerImpl {
     pushDeclarationContext(declarationContext);
 
     List<Modifier>? modifiers;
+    if (augmentToken != null) {
+      modifiers ??= <Modifier>[];
+      modifiers.add(Augment);
+    }
     if (externalToken != null) {
       modifiers ??= <Modifier>[];
       modifiers.add(External);
@@ -1916,6 +1973,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.ParserRecovery,
         ValueKinds.TypeBuilder,
       ]),
+      /* augment token */ ValueKinds.TokenOrNull,
       /* macro token */ ValueKinds.TokenOrNull,
       /* modifiers */ ValueKinds.Integer,
       /* type variables */ ValueKinds.TypeVariableListOrNull,
@@ -1927,6 +1985,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeBuilder>? interfaces =
         popIfNotNull(implementsKeyword) as List<TypeBuilder>?;
     Object? mixinApplication = pop();
+    Token? augmentToken = pop(NullValue.Token) as Token?;
     Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
@@ -1996,7 +2055,8 @@ class OutlineBuilder extends StackListenerImpl {
           startCharOffset,
           charOffset,
           charEndOffset,
-          isMacro: macroToken != null);
+          isMacro: macroToken != null,
+          isAugmentation: augmentToken != null);
     }
     popDeclarationContext(DeclarationContext.NamedMixinApplication);
   }
@@ -2327,7 +2387,7 @@ class OutlineBuilder extends StackListenerImpl {
         ..argumentsBeginToken = argumentsBeginToken);
     } else {
       assert(enumConstantInfo is ParserRecovery);
-      push(enumConstantInfo);
+      push(NullValue.EnumConstantInfo);
     }
   }
 
@@ -2369,6 +2429,26 @@ class OutlineBuilder extends StackListenerImpl {
     int elementsCount = pop() as int;
     List<EnumConstantInfo?>? enumConstantInfos =
         const FixedNullableList<EnumConstantInfo>().pop(stack, elementsCount);
+
+    if (enumConstantInfos != null) {
+      List<EnumConstantInfo?>? parsedEnumConstantInfos;
+      for (int index = 0; index < enumConstantInfos.length; index++) {
+        EnumConstantInfo? info = enumConstantInfos[index];
+        if (info == null) {
+          parsedEnumConstantInfos = enumConstantInfos.take(index).toList();
+        } else if (parsedEnumConstantInfos != null) {
+          parsedEnumConstantInfos.add(info);
+        }
+      }
+      if (parsedEnumConstantInfos != null) {
+        if (parsedEnumConstantInfos.isEmpty) {
+          enumConstantInfos = null;
+        } else {
+          enumConstantInfos = parsedEnumConstantInfos;
+        }
+      }
+    }
+
     int endCharOffset = popCharOffset();
     int startCharOffset = popCharOffset();
     List<TypeBuilder>? interfaces = pop() as List<TypeBuilder>?;
@@ -2607,6 +2687,7 @@ class OutlineBuilder extends StackListenerImpl {
   void beginFields(
       DeclarationKind declarationKind,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2696,6 +2777,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2736,6 +2818,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<FieldInfo>? fieldInfos = popFieldInfos(count);
     TypeBuilder? type = pop() as TypeBuilder?;
     int modifiers = (abstractToken != null ? abstractMask : 0) |
+        (augmentToken != null ? augmentMask : 0) |
         (externalToken != null ? externalMask : 0) |
         (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
@@ -3091,6 +3174,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endEnumFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -3106,8 +3190,17 @@ class OutlineBuilder extends StackListenerImpl {
           beginToken.charOffset,
           -1);
     }
-    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    endClassFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override

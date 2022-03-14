@@ -2,9 +2,16 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/super_parameters/default_values.dart:51:17: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
-// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// pkg/front_end/testcases/super_parameters/default_values.dart:51:17: Error: Type 'int' of the optional super-initializer parameter 'x' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
 //   C5([int super.x]); // Error.
+//                 ^
+//
+// pkg/front_end/testcases/super_parameters/default_values.dart:114:17: Error: Type 'int' of the optional super-initializer parameter 'x' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
+//   Bp([int super.x]); // Error.
+//                 ^
+//
+// pkg/front_end/testcases/super_parameters/default_values.dart:123:17: Error: Type 'int' of the optional super-initializer parameter 'x' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
+//   Bn({int super.x}); // Error.
 //                 ^
 //
 import self as self;
@@ -133,6 +140,32 @@ class S9 extends core::Object {
   field core::int s;
   constructor •([core::int x = #C1]) → self::S9
     : self::S9::s = x.{core::num::-}(1){(core::num) → core::int}, super core::Object::•()
+    ;
+}
+class Ap extends core::Object {
+  constructor •([core::num x = #C3]) → self::Ap
+    : super core::Object::•()
+    ;
+}
+class Bp extends self::Ap {
+  constructor •([core::int x = #C4]) → self::Bp
+    : super self::Ap::•(x)
+    ;
+  constructor req(core::int x) → self::Bp
+    : super self::Ap::•(x)
+    ;
+}
+class An extends core::Object {
+  constructor •({core::num x = #C3}) → self::An
+    : super core::Object::•()
+    ;
+}
+class Bn extends self::An {
+  constructor •({core::int x = #C4}) → self::Bn
+    : super self::An::•(x: x)
+    ;
+  constructor req({required core::int x = #C4}) → self::Bn
+    : super self::An::•(x: x)
     ;
 }
 static method main() → dynamic {}

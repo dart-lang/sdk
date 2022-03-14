@@ -294,6 +294,7 @@ const int kNumberOfFpuRegisters = kNumberOfQRegisters;
 const FpuRegister kNoFpuRegister = kNoQRegister;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
 extern const char* const fpu_reg_names[kNumberOfFpuRegisters];
 extern const char* const fpu_s_reg_names[kNumberOfSRegisters];
 extern const char* const fpu_d_reg_names[kNumberOfDRegisters];
@@ -470,6 +471,7 @@ struct RangeErrorABI {
 struct AllocateObjectABI {
   static const Register kResultReg = R0;
   static const Register kTypeArgumentsReg = R3;
+  static const Register kTagsReg = R2;
 };
 
 // ABI for AllocateClosureStub.

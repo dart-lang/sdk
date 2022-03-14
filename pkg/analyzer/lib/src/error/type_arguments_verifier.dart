@@ -33,7 +33,7 @@ class TypeArgumentsVerifier {
       _libraryElement.typeSystem as TypeSystemImpl;
 
   void checkConstructorReference(ConstructorReference node) {
-    var classElement = node.constructorName.type2.name.staticElement;
+    var classElement = node.constructorName.type.name.staticElement;
     List<TypeParameterElement> typeParameters;
     if (classElement is TypeAliasElement) {
       typeParameters = classElement.typeParameters;
@@ -46,7 +46,7 @@ class TypeArgumentsVerifier {
     if (typeParameters.isEmpty) {
       return;
     }
-    var typeArgumentList = node.constructorName.type2.typeArguments;
+    var typeArgumentList = node.constructorName.type.typeArguments;
     if (typeArgumentList == null) {
       return;
     }
@@ -85,6 +85,55 @@ class TypeArgumentsVerifier {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           errorNode,
+          [typeArgument, typeParameter.name, bound],
+        );
+      }
+    }
+  }
+
+  void checkEnumConstantDeclaration(EnumConstantDeclaration node) {
+    var constructorElement = node.constructorElement;
+    if (constructorElement == null) {
+      return;
+    }
+
+    var enumElement = constructorElement.enclosingElement;
+    var typeParameters = enumElement.typeParameters;
+
+    var typeArgumentList = node.arguments?.typeArguments;
+    var typeArgumentNodes = typeArgumentList?.arguments;
+    if (typeArgumentList != null &&
+        typeArgumentNodes != null &&
+        typeArgumentNodes.length != typeParameters.length) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM,
+        typeArgumentList,
+        [typeParameters.length, typeArgumentNodes.length],
+      );
+    }
+
+    if (typeParameters.isEmpty) {
+      return;
+    }
+
+    // Check that type arguments are regular-bounded.
+    var typeArguments = constructorElement.returnType.typeArguments;
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    for (var i = 0; i < typeArguments.length; i++) {
+      var typeParameter = typeParameters[i];
+      var typeArgument = typeArguments[i];
+
+      var bound = typeParameter.bound;
+      if (bound == null) {
+        continue;
+      }
+
+      bound = substitution.substituteType(bound);
+
+      if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          typeArgumentNodes?[i] ?? node.name,
           [typeArgument, typeParameter.name, bound],
         );
       }

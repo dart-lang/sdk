@@ -42,5 +42,5 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///native_is_illegal.dart:
-- ExternalName. (from org-dartlang-sdk:///sdk/lib/internal/internal.dart:92:9)
+- ExternalName. (from org-dartlang-sdk:///sdk/lib/internal/internal.dart:109:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

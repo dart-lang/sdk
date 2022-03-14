@@ -1715,38 +1715,7 @@ class _Uri implements Uri {
     String thisScheme = this.scheme;
     if (scheme == null) return thisScheme.isEmpty;
     if (scheme.length != thisScheme.length) return false;
-    return _compareScheme(scheme, thisScheme);
-  }
-
-  /// Compares scheme characters in [scheme] and at the start of [uri].
-  ///
-  /// Returns `true` if [scheme] represents the same scheme as the start of
-  /// [uri]. That means having the same characters, but possibly different case
-  /// for letters.
-  ///
-  /// This function doesn't check that the characters are valid URI scheme
-  /// characters. The [uri] is assumed to be valid, so if [scheme] matches
-  /// it, it has to be valid too.
-  ///
-  /// The length should be tested before calling this function,
-  /// so the scheme part of [uri] is known to have the same length as [scheme].
-  static bool _compareScheme(String scheme, String uri) {
-    for (int i = 0; i < scheme.length; i++) {
-      int schemeChar = scheme.codeUnitAt(i);
-      int uriChar = uri.codeUnitAt(i);
-      int delta = schemeChar ^ uriChar;
-      if (delta != 0) {
-        if (delta == 0x20) {
-          // Might be a case difference.
-          int lowerChar = uriChar | delta;
-          if (0x61 /*a*/ <= lowerChar && lowerChar <= 0x7a /*z*/) {
-            continue;
-          }
-        }
-        return false;
-      }
-    }
-    return true;
+    return _caseInsensitiveStartsWith(scheme, thisScheme, 0);
   }
 
   /// Report a parse failure.
@@ -2184,7 +2153,9 @@ class _Uri implements Uri {
           }
         }
         String slice = host.substring(sectionStart, index);
-        (buffer ??= StringBuffer())..write(slice)..write(_escapeChar(char));
+        (buffer ??= StringBuffer())
+          ..write(slice)
+          ..write(_escapeChar(char));
         index += sourceLength;
         sectionStart = index;
       }
@@ -2261,7 +2232,9 @@ class _Uri implements Uri {
         }
         String slice = host.substring(sectionStart, index);
         if (!isNormalized) slice = slice.toLowerCase();
-        (buffer ??= StringBuffer())..write(slice)..write(_escapeChar(char));
+        (buffer ??= StringBuffer())
+          ..write(slice)
+          ..write(_escapeChar(char));
         index += sourceLength;
         sectionStart = index;
       }
@@ -2928,7 +2901,10 @@ class _Uri implements Uri {
 
   String _initializeText() {
     StringBuffer sb = StringBuffer();
-    if (scheme.isNotEmpty) sb..write(scheme)..write(":");
+    if (scheme.isNotEmpty)
+      sb
+        ..write(scheme)
+        ..write(":");
     if (hasAuthority || (scheme == "file")) {
       // File URIS always have the authority, even if it is empty.
       // The empty URI means "localhost".
@@ -2936,8 +2912,14 @@ class _Uri implements Uri {
       _writeAuthority(sb);
     }
     sb.write(path);
-    if (_query != null) sb..write("?")..write(_query);
-    if (_fragment != null) sb..write("#")..write(_fragment);
+    if (_query != null)
+      sb
+        ..write("?")
+        ..write(_query);
+    if (_fragment != null)
+      sb
+        ..write("#")
+        ..write(_fragment);
     return sb.toString();
   }
 
@@ -3439,7 +3421,7 @@ class UriData {
   /// and the path (concatenated with the query, if there is one) must be valid
   /// as data URI content with the same rules as [parse].
   factory UriData.fromUri(Uri uri) {
-    if (uri.scheme != "data") {
+    if (!uri.isScheme("data")) {
       throw ArgumentError.value(uri, "uri", "Scheme must be 'data'");
     }
     if (uri.hasAuthority) {
@@ -3468,7 +3450,7 @@ class UriData {
       Map<String, String>? parameters,
       StringBuffer buffer,
       List<int>? indices) {
-    if (mimeType == null || mimeType == "text/plain") {
+    if (mimeType == null || _caseInsensitiveEquals("text/plain", mimeType)) {
       mimeType = "";
     }
 
@@ -3486,8 +3468,9 @@ class UriData {
           _tokenCharTable, mimeType.substring(slashIndex + 1), utf8, false));
     }
     if (charsetName != null) {
-      // TODO(39209): Use ?.. when sequences are properly supported.
-      if (indices != null) indices..add(buffer.length)..add(buffer.length + 8);
+      indices
+        ?..add(buffer.length)
+        ..add(buffer.length + 8);
       buffer.write(";charset=");
       buffer.write(_Uri._uriEncode(_tokenCharTable, charsetName, utf8, false));
     }
@@ -3621,6 +3604,27 @@ class UriData {
     return _Uri._uriDecode(_text, start, end, utf8, false);
   }
 
+  /// Whether the [UriData.mimeType] is equal to [mimeType].
+  ///
+  /// Compares the `data:` URI's MIME type to [mimeType] with a case-
+  /// insensitive comparison which ignores the case of ASCII letters.
+  ///
+  /// An empty [mimeType] is considered equivalent to `text/plain`,
+  /// both in the [mimeType] argument and in the `data:` URI itself.
+  @Since("2.17")
+  bool isMimeType(String mimeType) {
+    int start = _separatorIndices[0] + 1;
+    int end = _separatorIndices[1];
+    if (start == end) {
+      return mimeType.isEmpty ||
+          identical(mimeType, "text/plain") ||
+          _caseInsensitiveEquals(mimeType, "text/plain");
+    }
+    if (mimeType.isEmpty) mimeType = "text/plain";
+    return (mimeType.length == end - start) &&
+        _caseInsensitiveStartsWith(mimeType, _text, start);
+  }
+
   /// The charset parameter of the media type.
   ///
   /// If the parameters of the media type contains a `charset` parameter
@@ -3631,21 +3635,87 @@ class UriData {
   /// If the MIME type representation in the URI text contains URI escapes,
   /// they are unescaped in the returned string.
   String get charset {
-    int parameterStart = 1;
-    int parameterEnd = _separatorIndices.length - 1; // The ',' before data.
-    if (isBase64) {
-      // There is a ";base64" separator, so subtract one for that as well.
-      parameterEnd -= 1;
-    }
-    for (int i = parameterStart; i < parameterEnd; i += 2) {
-      var keyStart = _separatorIndices[i] + 1;
-      var keyEnd = _separatorIndices[i + 1];
-      if (keyEnd == keyStart + 7 && _text.startsWith("charset", keyStart)) {
-        return _Uri._uriDecode(
-            _text, keyEnd + 1, _separatorIndices[i + 2], utf8, false);
-      }
+    var charsetIndex = _findCharsetIndex();
+    if (charsetIndex >= 0) {
+      var valueStart = _separatorIndices[charsetIndex + 1] + 1;
+      var valueEnd = _separatorIndices[charsetIndex + 2];
+      return _Uri._uriDecode(_text, valueStart, valueEnd, utf8, false);
     }
     return "US-ASCII";
+  }
+
+  /// Finds the index of the separator before the "charset" parameter.
+  ///
+  /// Returns the index in [_separatorIndices] of the separator before
+  /// the name of the "charset" parameter, or -1 if there is no "charset"
+  /// parameter.
+  int _findCharsetIndex() {
+    var separatorIndices = _separatorIndices;
+    // Loop over all MIME-type parameters.
+    // Check that the parameter can have two parts (key/value)
+    // to ignore a trailing base-64 marker.
+    for (int i = 3; i <= separatorIndices.length; i += 2) {
+      var keyStart = separatorIndices[i - 2] + 1;
+      var keyEnd = separatorIndices[i - 1];
+      if (keyEnd == keyStart + "charset".length &&
+          _caseInsensitiveStartsWith("charset", _text, keyStart)) {
+        return i - 2;
+      }
+    }
+    return -1;
+  }
+
+  /// Checks whether the charset parameter of the mime type is [charset].
+  ///
+  /// If this URI has no "charset" parameter, it is assumed to have a default
+  /// of `charset=US-ASCII`.
+  /// If [charset] is empty, it's treated like `"US-ASCII"`.
+  ///
+  /// Returns true if [charset] and the "charset" parameter value are
+  /// equal strings, ignoring the case of ASCII letters, or both
+  /// correspond to the same [Encoding], as given by [Encoding.getByName].
+  @Since("2.17")
+  bool isCharset(String charset) {
+    var charsetIndex = _findCharsetIndex();
+    if (charsetIndex < 0) {
+      return charset.isEmpty ||
+          _caseInsensitiveEquals(charset, "US-ASCII") ||
+          identical(Encoding.getByName(charset), ascii);
+    }
+    if (charset.isEmpty) charset = "US-ASCII";
+    var valueStart = _separatorIndices[charsetIndex + 1] + 1;
+    var valueEnd = _separatorIndices[charsetIndex + 2];
+    var length = valueEnd - valueStart;
+    if (charset.length == length &&
+        _caseInsensitiveStartsWith(charset, _text, valueStart)) {
+      return true;
+    }
+    var checkedEncoding = Encoding.getByName(charset);
+    return checkedEncoding != null &&
+        identical(
+            checkedEncoding,
+            Encoding.getByName(
+                _Uri._uriDecode(_text, valueStart, valueEnd, utf8, false)));
+  }
+
+  /// Whether the charset parameter represents [encoding].
+  ///
+  /// If the "charset" parameter is not present in the URI,
+  /// it defaults to "US-ASCII", which is the [ascii] encoding.
+  /// If present, it's converted to an [Encoding] using [Encoding.getByName],
+  /// and compared to [encoding].
+  @Since("2.17")
+  bool isEncoding(Encoding encoding) {
+    var charsetIndex = _findCharsetIndex();
+    if (charsetIndex < 0) {
+      return identical(encoding, ascii);
+    }
+    var valueStart = _separatorIndices[charsetIndex + 1] + 1;
+    var valueEnd = _separatorIndices[charsetIndex + 2];
+    return identical(
+        encoding,
+        Encoding.getByName(
+            _Uri._uriDecode(_text, valueStart, valueEnd, utf8, false)));
   }
 
   /// Whether the data is Base64 encoded or not.
@@ -4342,7 +4412,7 @@ class _SimpleUri implements Uri {
   bool isScheme(String scheme) {
     if (scheme == null || scheme.isEmpty) return _schemeEnd < 0;
     if (scheme.length != _schemeEnd) return false;
-    return _Uri._compareScheme(scheme, _uri);
+    return _caseInsensitiveStartsWith(scheme, _uri, 0);
   }
 
   String get scheme {
@@ -4841,3 +4911,58 @@ int _skipPackageNameChars(String source, int start, int end) {
   }
   return -1;
 }
+
+/// Whether [string] at [start] starts with  [prefix], ignoring case.
+///
+/// Returns whether [string] at offset [start]
+/// starts with the characters of [prefix],
+/// but ignores differences in the cases of ASCII letters,
+/// so `a` and `A` are considered equal.
+///
+/// The [string] must be at least as long as [prefix].
+///
+/// When used to checks the schemes of URIs,
+/// this function doesn't check that the characters are valid URI scheme
+/// characters. The [string] is assumed to be a valid URI,
+/// so if [prefix] matches it, it has to be valid too.
+bool _caseInsensitiveStartsWith(String prefix, String string, int start) =>
+    _caseInsensitiveCompareStart(prefix, string, start) >= 0;
+
+/// Compares [string] at [start] with [prefix], ignoring case.
+///
+/// Returns 0 if [string] starts with [prefix] at offset [start].
+/// Returns 0x20 if [string] starts with [prefix] at offset [start],
+/// but some ASCII letters have different case.
+/// Returns a negative value if [string] does not start with [prefix],
+/// at offset [start] even ignoring case differences.
+///
+/// The [string] must be at least as long as `start + prefix.length`.
+int _caseInsensitiveCompareStart(String prefix, String string, int start) {
+  int result = 0;
+  for (int i = 0; i < prefix.length; i++) {
+    int prefixChar = prefix.codeUnitAt(i);
+    int stringChar = string.codeUnitAt(start + i);
+    int delta = prefixChar ^ stringChar;
+    if (delta != 0) {
+      if (delta == 0x20) {
+        // Might be a case difference.
+        int lowerChar = stringChar | delta;
+        if (0x61 /*a*/ <= lowerChar && lowerChar <= 0x7a /*z*/) {
+          result = 0x20;
+          continue;
+        }
+      }
+      return -1;
+    }
+  }
+  return result;
+}
+
+/// Checks whether two strings are equal ignoring case differences.
+///
+/// Returns whether if [string1] and [string2] has the same length
+/// and same characters, but ignores the cases of ASCII letters,
+/// so `a` and `A` are considered equal.
+bool _caseInsensitiveEquals(String string1, String string2) =>
+    string1.length == string2.length &&
+    _caseInsensitiveStartsWith(string1, string2, 0);

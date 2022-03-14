@@ -26,40 +26,6 @@ namespace compiler {
 
 #define __ assembler->
 
-// Allocate a GrowableObjectArray:: using the backing array specified.
-// On stack: type argument (+1), data (+0).
-void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  // The newly allocated object is returned in R0.
-  const intptr_t kTypeArgumentsOffset = 1 * target::kWordSize;
-  const intptr_t kArrayOffset = 0 * target::kWordSize;
-
-  // Try allocating in new space.
-  const Class& cls = GrowableObjectArrayClass();
-  __ TryAllocate(cls, normal_ir_body, Assembler::kFarJump, A0, A1);
-
-  // Store backing array object in growable array object.
-  __ lx(A1, Address(SP, kArrayOffset));  // Data argument.
-  // R0 is new, no barrier needed.
-  __ StoreCompressedIntoObjectNoBarrier(
-      A0, FieldAddress(A0, target::GrowableObjectArray::data_offset()), A1);
-
-  // R0: new growable array object start as a tagged pointer.
-  // Store the type argument field in the growable array object.
-  __ lx(A1, Address(SP, kTypeArgumentsOffset));  // Type argument.
-  __ StoreCompressedIntoObjectNoBarrier(
-      A0,
-      FieldAddress(A0, target::GrowableObjectArray::type_arguments_offset()),
-      A1);
-
-  // Set the length field in the growable array object to 0.
-  __ StoreCompressedIntoObjectNoBarrier(
-      A0, FieldAddress(A0, target::GrowableObjectArray::length_offset()), ZR);
-  __ ret();  // Returns the newly allocated object in A0.
-
-  __ Bind(normal_ir_body);
-}
-
 // Loads args from stack into A0 and A1
 // Tests if they are smis, jumps to label not_smi if not.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
@@ -440,15 +406,6 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-//    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
-//    _state[kSTATE_LO] = state & _MASK_32;
-//    _state[kSTATE_HI] = state >> 32;
-void AsmIntrinsifier::Random_nextState(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  // TODO(riscv)
-  __ Bind(normal_ir_body);
-}
-
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {
   Label true_label;
@@ -679,8 +636,34 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
                                                    bool sticky) {
   if (FLAG_interpret_irregexp) return;
 
-  // TODO(riscv)
-  __ Bind(normal_ir_body);
+  static const intptr_t kRegExpParamOffset = 2 * target::kWordSize;
+  static const intptr_t kStringParamOffset = 1 * target::kWordSize;
+  // start_index smi is located at offset 0.
+
+  // Incoming registers:
+  // T0: Function. (Will be reloaded with the specialized matcher function.)
+  // S4: Arguments descriptor. (Will be preserved.)
+  // S5: Unknown. (Must be GC safe on tail call.)
+
+  // Load the specialized function pointer into R0. Leverage the fact the
+  // string CIDs as well as stored function pointers are in sequence.
+  __ lx(T2, Address(SP, kRegExpParamOffset));
+  __ lx(T1, Address(SP, kStringParamOffset));
+  __ LoadClassId(T1, T1);
+  __ AddImmediate(T1, -kOneByteStringCid);
+  __ slli(T1, T1, target::kWordSizeLog2);
+  __ add(T1, T1, T2);
+  __ lx(T0, FieldAddress(T1, target::RegExp::function_offset(kOneByteStringCid,
+                                                             sticky)));
+
+  // Registers are now set up for the lazy compile stub. It expects the function
+  // in R0, the argument descriptor in R4, and IC-Data in R5.
+  __ li(S5, 0);
+
+  // Tail-call the function.
+  __ lx(CODE_REG, FieldAddress(T0, target::Function::code_offset()));
+  __ lx(T1, FieldAddress(T0, target::Function::entry_point_offset()));
+  __ jr(T1);
 }
 
 void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,

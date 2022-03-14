@@ -13,15 +13,24 @@ class ReplaceReturnTypeFuture extends CorrectionProducer {
   String _typeArgument = '';
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   List<Object>? get fixArguments => [_typeArgument];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     // prepare the existing type
-    var typeAnnotation = node.thisOrAncestorOfType<TypeAnnotation>();
+    var typeAnnotation = _getTypeAnnotation(node);
     if (typeAnnotation == null) {
       return;
     }
@@ -34,4 +43,13 @@ class ReplaceReturnTypeFuture extends CorrectionProducer {
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
   static ReplaceReturnTypeFuture newInstance() => ReplaceReturnTypeFuture();
+
+  static TypeAnnotation? _getTypeAnnotation(AstNode node) {
+    var function = node.thisOrAncestorOfType<FunctionDeclaration>();
+    if (function != null) {
+      return function.returnType;
+    }
+    var method = node.thisOrAncestorOfType<MethodDeclaration>();
+    return method?.returnType;
+  }
 }

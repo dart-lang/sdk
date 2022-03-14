@@ -373,20 +373,19 @@ static int Main(int argc, const char** argv) {
   TesterState::argv = dart_argv;
   TesterState::argc = dart_argc;
 
-  error = Dart::Init(
-      dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
-      /*create_group=*/CreateIsolateAndSetup,
-      /*initialize_isolate=*/nullptr,
-      /*shutdown_isolate=*/nullptr,
-      /*cleanup_isolate=*/nullptr,
-      /*cleanup_group=*/CleanupIsolateGroup,
-      /*thread_start=*/nullptr,
-      /*thread_exit=*/nullptr, dart::bin::DartUtils::OpenFile,
-      dart::bin::DartUtils::ReadFile, dart::bin::DartUtils::WriteFile,
-      dart::bin::DartUtils::CloseFile, /*entropy_source=*/nullptr,
-      /*get_service_assets=*/nullptr, start_kernel_isolate,
-      /*code_observer=*/nullptr, /*post_task=*/nullptr,
-      /*post_task_data*/ nullptr);
+  Dart_InitializeParams init_params;
+  memset(&init_params, 0, sizeof(init_params));
+  init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  init_params.vm_snapshot_data = dart::bin::vm_snapshot_data;
+  init_params.vm_snapshot_instructions = dart::bin::vm_snapshot_instructions;
+  init_params.create_group = CreateIsolateAndSetup;
+  init_params.cleanup_group = CleanupIsolateGroup;
+  init_params.file_open = dart::bin::DartUtils::OpenFile;
+  init_params.file_read = dart::bin::DartUtils::ReadFile;
+  init_params.file_write = dart::bin::DartUtils::WriteFile;
+  init_params.file_close = dart::bin::DartUtils::CloseFile;
+  init_params.start_kernel_isolate = start_kernel_isolate;
+  error = Dart::Init(&init_params);
   if (error != nullptr) {
     Syslog::PrintErr("Failed to initialize VM: %s\n", error);
     free(error);

@@ -23,11 +23,37 @@ class as {}
     ]);
   }
 
+  test_enum() async {
+    await assertErrorsInCode('''
+enum as {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 2),
+    ]);
+  }
+
   test_mixin() async {
     await assertErrorsInCode('''
 mixin as {}
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 2),
     ]);
+  }
+
+  test_mixin_OK_on() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+mixin on on A {}
+
+mixin M on on {}
+
+mixin M2 implements on {}
+
+class B = A with on;
+class C = B with M;
+class D = Object with M2;
+''');
   }
 }

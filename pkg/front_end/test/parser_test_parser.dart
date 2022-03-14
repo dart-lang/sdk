@@ -162,33 +162,6 @@ class TestParser extends Parser {
   }
 
   @override
-  Token? parseClassDeclarationModifiers(Token start, Token keyword) {
-    doPrint('parseClassDeclarationModifiers(' '$start, ' '$keyword)');
-    indent++;
-    var result = super.parseClassDeclarationModifiers(start, keyword);
-    indent--;
-    return result;
-  }
-
-  @override
-  void parseTopLevelKeywordModifiers(Token start, Token keyword) {
-    doPrint('parseTopLevelKeywordModifiers(' '$start, ' '$keyword)');
-    indent++;
-    var result = super.parseTopLevelKeywordModifiers(start, keyword);
-    indent--;
-    return result;
-  }
-
-  @override
-  void reportTopLevelModifierError(Token modifier, Token afterModifiers) {
-    doPrint('reportTopLevelModifierError(' '$modifier, ' '$afterModifiers)');
-    indent++;
-    var result = super.reportTopLevelModifierError(modifier, afterModifiers);
-    indent--;
-    return result;
-  }
-
-  @override
   Token parseTopLevelKeywordDeclaration(Token start, Token keyword,
       Token? macroToken, DirectiveContext? directiveState) {
     doPrint('parseTopLevelKeywordDeclaration('
@@ -574,6 +547,34 @@ class TestParser extends Parser {
   }
 
   @override
+  Token? recoveryEnumWith(Token token, codes.Message message) {
+    doPrint('recoveryEnumWith(' '$token, ' '$message)');
+    indent++;
+    var result = super.recoveryEnumWith(token, message);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token? recoveryEnumImplements(Token token, codes.Message message) {
+    doPrint('recoveryEnumImplements(' '$token, ' '$message)');
+    indent++;
+    var result = super.recoveryEnumImplements(token, message);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token? recoverySmallLookAheadSkipTokens(
+      final Token token, Iterable<String> lookFor) {
+    doPrint('recoverySmallLookAheadSkipTokens(' '$token, ' '$lookFor)');
+    indent++;
+    var result = super.recoverySmallLookAheadSkipTokens(token, lookFor);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseEnumElement(Token token) {
     doPrint('parseEnumElement(' '$token)');
     indent++;
@@ -583,15 +584,16 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseClassOrNamedMixinApplication(
-      Token? abstractToken, Token? macroToken, Token classKeyword) {
+  Token parseClassOrNamedMixinApplication(Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token classKeyword) {
     doPrint('parseClassOrNamedMixinApplication('
         '$abstractToken, '
         '$macroToken, '
+        '$augmentToken, '
         '$classKeyword)');
     indent++;
     var result = super.parseClassOrNamedMixinApplication(
-        abstractToken, macroToken, classKeyword);
+        abstractToken, macroToken, augmentToken, classKeyword);
     indent--;
     return result;
   }
@@ -666,10 +668,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseMixin(Token mixinKeyword) {
-    doPrint('parseMixin(' '$mixinKeyword)');
+  Token parseMixin(Token? augmentToken, Token mixinKeyword) {
+    doPrint('parseMixin(' '$augmentToken, ' '$mixinKeyword)');
     indent++;
-    var result = super.parseMixin(mixinKeyword);
+    var result = super.parseMixin(augmentToken, mixinKeyword);
     indent--;
     return result;
   }
@@ -820,6 +822,7 @@ class TestParser extends Parser {
   Token parseFields(
       Token beforeStart,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -834,6 +837,7 @@ class TestParser extends Parser {
     doPrint('parseFields('
         '$beforeStart, '
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -849,6 +853,7 @@ class TestParser extends Parser {
     var result = super.parseFields(
         beforeStart,
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -867,6 +872,7 @@ class TestParser extends Parser {
   @override
   Token parseTopLevelMethod(
       Token beforeStart,
+      Token? augmentToken,
       Token? externalToken,
       Token beforeType,
       TypeInfo typeInfo,
@@ -875,6 +881,7 @@ class TestParser extends Parser {
       bool nameIsRecovered) {
     doPrint('parseTopLevelMethod('
         '$beforeStart, '
+        '$augmentToken, '
         '$externalToken, '
         '$beforeType, '
         '$typeInfo, '
@@ -882,8 +889,8 @@ class TestParser extends Parser {
         '$name, '
         '$nameIsRecovered)');
     indent++;
-    var result = super.parseTopLevelMethod(beforeStart, externalToken,
-        beforeType, typeInfo, getOrSet, name, nameIsRecovered);
+    var result = super.parseTopLevelMethod(beforeStart, augmentToken,
+        externalToken, beforeType, typeInfo, getOrSet, name, nameIsRecovered);
     indent--;
     return result;
   }
@@ -903,6 +910,7 @@ class TestParser extends Parser {
       Token name,
       Token? lateToken,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? varFinalOrConst,
       DeclarationKind kind,
@@ -912,6 +920,7 @@ class TestParser extends Parser {
         '$name, '
         '$lateToken, '
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$varFinalOrConst, '
         '$kind, '
@@ -922,6 +931,7 @@ class TestParser extends Parser {
         name,
         lateToken,
         abstractToken,
+        augmentToken,
         externalToken,
         varFinalOrConst,
         kind,
@@ -1172,6 +1182,7 @@ class TestParser extends Parser {
   Token parseMethod(
       Token beforeStart,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1187,6 +1198,7 @@ class TestParser extends Parser {
     doPrint('parseMethod('
         '$beforeStart, '
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -1203,6 +1215,7 @@ class TestParser extends Parser {
     var result = super.parseMethod(
         beforeStart,
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -2231,6 +2244,7 @@ class TestParser extends Parser {
   Token parseInvalidOperatorDeclaration(
       Token beforeStart,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2242,6 +2256,7 @@ class TestParser extends Parser {
     doPrint('parseInvalidOperatorDeclaration('
         '$beforeStart, '
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -2254,6 +2269,7 @@ class TestParser extends Parser {
     var result = super.parseInvalidOperatorDeclaration(
         beforeStart,
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -2271,6 +2287,7 @@ class TestParser extends Parser {
       Token token,
       Token beforeStart,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2285,6 +2302,7 @@ class TestParser extends Parser {
         '$token, '
         '$beforeStart, '
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -2300,6 +2318,7 @@ class TestParser extends Parser {
         token,
         beforeStart,
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,

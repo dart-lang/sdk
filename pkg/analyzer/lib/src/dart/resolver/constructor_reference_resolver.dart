@@ -18,9 +18,10 @@ class ConstructorReferenceResolver {
 
   ConstructorReferenceResolver(this._resolver);
 
-  void resolve(ConstructorReferenceImpl node) {
+  void resolve(ConstructorReferenceImpl node,
+      {required DartType? contextType}) {
     if (!_resolver.isConstructorTearoffsEnabled &&
-        node.constructorName.type2.typeArguments == null) {
+        node.constructorName.type.typeArguments == null) {
       // Only report this if [node] has no explicit type arguments; otherwise
       // the parser has already reported an error.
       _resolver.errorReporter.reportErrorForNode(
@@ -49,7 +50,7 @@ class ConstructorReferenceResolver {
       //
       // Only report errors when the constructor tearoff feature is enabled,
       // to avoid reporting redundant errors.
-      var enclosingElement = node.constructorName.type2.name.staticElement;
+      var enclosingElement = node.constructorName.type.name.staticElement;
       if (enclosingElement is TypeAliasElement) {
         enclosingElement = enclosingElement.aliasedType.element;
       }
@@ -79,10 +80,11 @@ class ConstructorReferenceResolver {
         }
       }
     }
-    _inferArgumentTypes(node);
+    _inferArgumentTypes(node, contextType: contextType);
   }
 
-  void _inferArgumentTypes(ConstructorReferenceImpl node) {
+  void _inferArgumentTypes(ConstructorReferenceImpl node,
+      {required DartType? contextType}) {
     var constructorName = node.constructorName;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       constructorName: constructorName,
@@ -95,7 +97,9 @@ class ConstructorReferenceResolver {
     //
     // Otherwise we'll have a ConstructorElement, and we can skip inference
     // because there's nothing to infer in a non-generic type.
-    if (elementToInfer != null) {
+    if (elementToInfer != null &&
+        elementToInfer.typeParameters.isNotEmpty &&
+        constructorName.type.typeArguments == null) {
       // TODO(leafp): Currently, we may re-infer types here, since we
       // sometimes resolve multiple times.  We should really check that we
       // have not already inferred something.  However, the obvious ways to
@@ -110,7 +114,8 @@ class ConstructorReferenceResolver {
       var constructorType = elementToInfer.asType;
 
       var inferred = _resolver.inferenceHelper.inferTearOff(
-          node, constructorName.name!, constructorType) as FunctionType?;
+          node, constructorName.name!, constructorType,
+          contextType: contextType) as FunctionType?;
 
       if (inferred != null) {
         var inferredReturnType = inferred.returnType as InterfaceType;
@@ -124,7 +129,7 @@ class ConstructorReferenceResolver {
         constructorName.name?.staticElement = constructorElement.declaration;
         node.staticType = inferred;
         // The NamedType child of `constructorName` doesn't have a static type.
-        constructorName.type2.type = null;
+        constructorName.type.type = null;
       }
     } else {
       var constructorElement = constructorName.staticElement;
@@ -134,7 +139,7 @@ class ConstructorReferenceResolver {
         node.staticType = constructorElement.type;
       }
       // The NamedType child of `constructorName` doesn't have a static type.
-      constructorName.type2.type = null;
+      constructorName.type.type = null;
     }
   }
 }

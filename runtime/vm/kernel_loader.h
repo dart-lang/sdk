@@ -226,13 +226,14 @@ class KernelLoader : public ValueObject {
 
   bool IsClassName(NameIndex name, const String& library, const String& klass);
 
-  void AnnotateNativeProcedures();
+  void AnnotateProcedures();
   void EvaluateDelayedPragmas();
 
   void ReadVMAnnotations(const Library& library,
                          intptr_t annotation_count,
                          String* native_name,
-                         bool* is_potential_native,
+                         bool* has_annotations_of_interest,
+                         bool* is_invisible_function,
                          bool* has_pragma_annotation);
 
   KernelLoader(const Script& script,
@@ -360,13 +361,13 @@ class KernelLoader : public ValueObject {
     ASSERT(pragma_class_.is_declaration_loaded());
   }
 
-  void EnsurePotentialNatives() {
-    potential_natives_ = kernel_program_info_.potential_natives();
-    if (potential_natives_.IsNull()) {
+  void EnsureAnnotationList() {
+    annotation_list_ = kernel_program_info_.potential_natives();
+    if (annotation_list_.IsNull()) {
       // To avoid too many grows in this array, we'll set it's initial size to
       // something close to the actual number of potential native functions.
-      potential_natives_ = GrowableObjectArray::New(100, Heap::kNew);
-      kernel_program_info_.set_potential_natives(potential_natives_);
+      annotation_list_ = GrowableObjectArray::New(100, Heap::kNew);
+      kernel_program_info_.set_potential_natives(annotation_list_);
     }
   }
 
@@ -403,7 +404,7 @@ class KernelLoader : public ValueObject {
 
   Class& external_name_class_;
   Field& external_name_field_;
-  GrowableObjectArray& potential_natives_;
+  GrowableObjectArray& annotation_list_;
   GrowableObjectArray& potential_pragma_functions_;
   Object& static_field_value_;
 

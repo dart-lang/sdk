@@ -19,7 +19,7 @@ class FinalInitializedByMultipleInitializersTest
   static const _errorCode =
       CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS;
 
-  test_more_than_two_initializers() async {
+  test_class_more_than_two_initializers() async {
     await assertErrorsInCode(r'''
 class A {
   int x;
@@ -31,7 +31,7 @@ class A {
     ]);
   }
 
-  test_multiple_names() async {
+  test_class_multiple_names() async {
     await assertErrorsInCode(r'''
 class A {
   int x;
@@ -44,7 +44,7 @@ class A {
     ]);
   }
 
-  test_one_initializer() async {
+  test_class_one_initializer() async {
     await assertNoErrorsInCode(r'''
 class A {
   int x;
@@ -54,7 +54,7 @@ class A {
 ''');
   }
 
-  test_two_initializers() async {
+  test_class_two_initializers() async {
     await assertErrorsInCode(r'''
 class A {
   int x;
@@ -62,6 +62,31 @@ class A {
 }
 ''', [
       error(_errorCode, 34, 1),
+    ]);
+  }
+
+  test_enum_one_initializer() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  final int x;
+  final int y;
+  const E() : x = 0, y = 0;
+}
+''');
+  }
+
+  test_enum_two_initializers() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int x;
+  const E() : x = 0, x = 1;
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 1),
+      error(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, 50,
+          1),
     ]);
   }
 }

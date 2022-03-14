@@ -1,0 +1,8 @@
+mixin Base {
+  Object? methodWithDefaultImpl() {}
+}
+mixin TestFailure<A> on Base {
+  @override
+  methodWithDefaultImpl({A? nameParam});
+}
+void main() {}

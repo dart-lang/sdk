@@ -398,10 +398,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
     _errors.add(error);
   }
 
-  /// Set the line information associated with the given [source] to the given
-  /// list of [lineStarts].
-  void setLineInfo(Source source, List<int> lineStarts) {
-    _lineInfoMap[source] = LineInfo(lineStarts);
+  /// Set the line information associated with the given [source] to [lineInfo].
+  void setLineInfo(Source source, LineInfo lineInfo) {
+    _lineInfoMap[source] = lineInfo;
   }
 }
 
@@ -530,9 +529,9 @@ class TestSourceWithUri extends TestSource {
   @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind {
-    if (uri.scheme == 'dart') {
+    if (uri.isScheme('dart')) {
       return UriKind.DART_URI;
-    } else if (uri.scheme == 'package') {
+    } else if (uri.isScheme('package')) {
       return UriKind.PACKAGE_URI;
     }
     return UriKind.FILE_URI;

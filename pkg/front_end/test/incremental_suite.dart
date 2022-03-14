@@ -789,7 +789,7 @@ class NewWorldTest {
           // null is always there, so allow it implicitly.
           // Dart scheme uris too.
           // ignore: unnecessary_null_comparison
-          if (uri == null || uri.scheme == "org-dartlang-sdk") continue;
+          if (uri == null || uri.isScheme("org-dartlang-sdk")) continue;
           if (!allowed.contains(uri)) {
             return new Result<TestData>(
                 data,
@@ -1226,7 +1226,7 @@ Result<TestData>? checkClassHierarchy(IncrementalCompilerResult compilerResult,
   Component component = compilerResult.component;
   StringBuffer sb = new StringBuffer();
   for (Library library in component.libraries) {
-    if (library.importUri.scheme == "dart") continue;
+    if (library.importUri.isScheme("dart")) continue;
     sb.writeln("Library ${library.importUri}");
     for (Class c in library.classes) {
       sb.writeln("  - Class ${c.name}");
@@ -1533,7 +1533,7 @@ void computeAllReachableLibrariesFor(Library lib, Set<Library> allLibraries) {
   while (workList.isNotEmpty) {
     Library library = workList.removeLast();
     for (LibraryDependency dependency in library.dependencies) {
-      if (dependency.targetLibrary.importUri.scheme == "dart") continue;
+      if (dependency.targetLibrary.importUri.isScheme("dart")) continue;
       if (libraries.add(dependency.targetLibrary)) {
         workList.add(dependency.targetLibrary);
         allLibraries.add(dependency.targetLibrary);
@@ -1607,7 +1607,7 @@ Result<TestData>? checkNeededDillLibraries(
   if (world["neededDillLibraries"] != null) {
     List<Uri> actualContent = <Uri>[];
     for (Library lib in neededDillLibraries!) {
-      if (lib.importUri.scheme == "dart") continue;
+      if (lib.importUri.isScheme("dart")) continue;
       actualContent.add(lib.importUri);
     }
 
@@ -1652,7 +1652,7 @@ String componentToStringSdkFiltered(Component component) {
   Component c = new Component();
   List<Uri> dartUris = <Uri>[];
   for (Library lib in component.libraries) {
-    if (lib.importUri.scheme == "dart") {
+    if (lib.importUri.isScheme("dart")) {
       dartUris.add(lib.importUri);
     } else {
       c.libraries.add(lib);
@@ -1686,7 +1686,7 @@ int countNonSyntheticLibraries(Component c) {
 int countNonSyntheticPlatformLibraries(Component c) {
   int result = 0;
   for (Library lib in c.libraries) {
-    if (!lib.isSynthetic && lib.importUri.scheme == "dart") result++;
+    if (!lib.isSynthetic && lib.importUri.isScheme("dart")) result++;
   }
   return result;
 }

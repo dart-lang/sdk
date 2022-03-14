@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: A:checkedInstance*/
 class A {}
@@ -22,6 +22,6 @@ class D extends C {}
 test(o) => o is A;
 
 main() {
-  Expect.isTrue(test(new D()));
-  Expect.isFalse(test(null));
+  makeLive(test(new D()));
+  makeLive(test(null));
 }

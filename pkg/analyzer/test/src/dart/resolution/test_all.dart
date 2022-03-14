@@ -49,6 +49,7 @@ import 'method_declaration_test.dart' as method_declaration;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
 import 'namespace_test.dart' as namespace;
+import 'node_text_expectations.dart';
 import 'non_nullable_bazel_workspace_test.dart' as non_nullable_bazel_workspace;
 import 'non_nullable_test.dart' as non_nullable;
 import 'optional_const_test.dart' as optional_const;
@@ -128,5 +129,6 @@ main() {
     type_literal.main();
     type_name.main();
     yield_statement.main();
+    defineReflectiveTests(UpdateNodeTextExpectations);
   }, name: 'resolution');
 }

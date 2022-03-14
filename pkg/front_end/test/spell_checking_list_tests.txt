@@ -41,6 +41,7 @@ asserter
 assure
 asterisk
 atomic
+augmented
 auth
 authority
 autobianchi
@@ -64,6 +65,8 @@ bazbaz
 bbb
 bc
 bench
+benchmarker
+benchmarkers
 besides
 beta
 bigger
@@ -78,6 +81,7 @@ bots
 boundarykey
 bowtie
 boz
+bp
 bq
 brand
 brave
@@ -188,6 +192,7 @@ descending
 descriptors
 deviation
 dfast
+dfuzz
 di
 diagnosticable
 dictionaries
@@ -195,7 +200,6 @@ dictionary
 differentiate
 dijkstra
 dijkstras
-dillfile
 dinteractive
 dirname
 disagree
@@ -269,6 +273,7 @@ filler
 filters
 fisk
 five
+fl
 floor
 fluctuate
 foo'bar'baz
@@ -331,6 +336,7 @@ ikg
 illustrate
 image
 images
+implemen
 implementor
 implementors
 imprecision
@@ -398,6 +404,7 @@ micro
 minimize
 minimizer
 minimizing
+minitest
 minst
 mintty
 minutes
@@ -529,6 +536,7 @@ repaint
 repro
 reproduce
 reproduction
+req
 resuming
 retaining
 retainingpath

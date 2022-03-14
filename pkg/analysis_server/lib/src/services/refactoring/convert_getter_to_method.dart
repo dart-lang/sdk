@@ -52,7 +52,9 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     }
     // method
     var field = element.variable;
-    if (field is FieldElement && field.enclosingElement is ClassElement) {
+    if (field is FieldElement &&
+        (field.enclosingElement is ClassElement ||
+            field.enclosingElement is ExtensionElement)) {
       var elements = await getHierarchyMembers(searchEngine, field);
       await Future.forEach(elements, (ClassMemberElement member) async {
         if (member is FieldElement) {

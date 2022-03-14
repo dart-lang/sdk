@@ -9,6 +9,7 @@ class LintNames {
   static const String always_require_non_null_named_parameters =
       'always_require_non_null_named_parameters';
   static const String always_specify_types = 'always_specify_types';
+  static const String always_use_package_imports = 'always_use_package_imports';
   static const String annotate_overrides = 'annotate_overrides';
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';
@@ -42,6 +43,7 @@ class LintNames {
       'avoid_unused_constructor_parameters';
   static const String avoid_unnecessary_containers =
       'avoid_unnecessary_containers';
+  static const String avoid_void_async = 'avoid_void_async';
   static const String await_only_futures = 'await_only_futures';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
@@ -57,8 +59,14 @@ class LintNames {
   static const String leading_newlines_in_multiline_strings =
       'leading_newlines_in_multiline_strings';
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
+  static const String no_leading_underscores_for_library_prefixes =
+      'no_leading_underscores_for_library_prefixes';
+  static const String no_leading_underscores_for_local_identifiers =
+      'no_leading_underscores_for_local_identifiers';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
+  static const String null_check_on_nullable_type_parameter =
+      'null_check_on_nullable_type_parameter';
   static const String null_closures = 'null_closures';
   static const String omit_local_variable_types = 'omit_local_variable_types';
   static const String prefer_adjacent_string_concatenation =
@@ -112,6 +120,8 @@ class LintNames {
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
   static const String sort_child_properties_last = 'sort_child_properties_last';
   static const String sort_constructors_first = 'sort_constructors_first';
+  static const String sort_unnamed_constructors_first =
+      'sort_unnamed_constructors_first';
   static const String type_annotate_public_apis = 'type_annotate_public_apis';
   static const String type_init_formals = 'type_init_formals';
   static const String unawaited_futures = 'unawaited_futures';
@@ -124,6 +134,7 @@ class LintNames {
   static const String unnecessary_getters_setters =
       'unnecessary_getters_setters';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
+  static const String unnecessary_late = 'unnecessary_late';
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_null_in_if_null_operators =
       'unnecessary_null_in_if_null_operators';
@@ -142,5 +153,6 @@ class LintNames {
       'use_function_type_syntax_for_parameters';
   static const String use_key_in_widget_constructors =
       'use_key_in_widget_constructors';
+  static const String use_raw_strings = 'use_raw_strings';
   static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
 }

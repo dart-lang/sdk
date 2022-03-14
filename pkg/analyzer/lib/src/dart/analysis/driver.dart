@@ -82,7 +82,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 201;
+  static const int DATA_VERSION = 209;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -267,37 +267,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _scheduler.add(this);
     _search = Search(this);
   }
-
-  /// Create a new instance of [AnalysisDriver].
-  ///
-  /// The given [SourceFactory] is cloned to ensure that it does not contain a
-  /// reference to a [AnalysisContext] in which it could have been used.
-  @Deprecated('Use the unnamed constructor instead')
-  AnalysisDriver.tmp1({
-    required AnalysisDriverScheduler scheduler,
-    required PerformanceLog logger,
-    required ResourceProvider resourceProvider,
-    required ByteStore byteStore,
-    required SourceFactory sourceFactory,
-    required AnalysisOptionsImpl analysisOptions,
-    required Packages packages,
-    FileContentCache? fileContentCache,
-    bool enableIndex = false,
-    SummaryDataStore? externalSummaries,
-    bool retainDataForTesting = false,
-  }) : this(
-          scheduler: scheduler,
-          logger: logger,
-          resourceProvider: resourceProvider,
-          byteStore: byteStore,
-          sourceFactory: sourceFactory,
-          analysisOptions: analysisOptions,
-          packages: packages,
-          fileContentCache: fileContentCache,
-          enableIndex: enableIndex,
-          externalSummaries: externalSummaries,
-          retainDataForTesting: retainDataForTesting,
-        );
 
   /// Return the set of files explicitly added to analysis using [addFile].
   Set<String> get addedFiles => _fileTracker.addedFiles;
@@ -2152,7 +2121,11 @@ class AnalysisDriverTestView {
 
   FileTracker get fileTracker => driver._fileTracker;
 
-  LibraryContext? get libraryContext => driver._libraryContext;
+  Set<String> get loadedLibraryUriSet {
+    var elementFactory = driver.libraryContext.elementFactory;
+    var libraryReferences = elementFactory.rootReference.children;
+    return libraryReferences.map((e) => e.name).toSet();
+  }
 
   Map<String, ResolvedUnitResult> get priorityResults {
     return driver._priorityResults;

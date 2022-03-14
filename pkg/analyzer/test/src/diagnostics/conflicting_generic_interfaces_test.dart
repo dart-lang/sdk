@@ -176,6 +176,32 @@ class C = A with M;
     ]);
   }
 
+  test_enum_implements() async {
+    await assertErrorsInCode('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+enum E implements A, B {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 80, 1),
+    ]);
+  }
+
+  test_enum_with() async {
+    await assertErrorsInCode('''
+class I<T> {}
+mixin M1 implements I<int> {}
+mixin M2 implements I<String> {}
+enum E with M1, M2 {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 82, 1),
+    ]);
+  }
+
   test_mixin_on_implements() async {
     await assertErrorsInCode('''
 class I<T> {}

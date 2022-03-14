@@ -31,6 +31,12 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
       if (member is ClassDeclaration) {
         member.members.forEach(appendClassMemberName);
       }
+      if (member is EnumDeclaration) {
+        for (var constant in member.constants) {
+          appendName(names.classMemberNames, constant.name);
+        }
+        member.members.forEach(appendClassMemberName);
+      }
       if (member is MixinDeclaration) {
         member.members.forEach(appendClassMemberName);
       }

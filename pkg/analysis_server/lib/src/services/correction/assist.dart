@@ -56,6 +56,11 @@ class DartAssistKind {
     30,
     'Assign value to new local variable',
   );
+  static const CONVERT_CLASS_TO_ENUM = AssistKind(
+    'dart.assist.convert.classToEnum',
+    30,
+    'Convert class to an enum',
+  );
   static const CONVERT_CLASS_TO_MIXIN = AssistKind(
     'dart.assist.convert.classToMixin',
     30,
@@ -195,6 +200,11 @@ class DartAssistKind {
     'dart.assist.convert.toSpread',
     30,
     'Convert to a spread',
+  );
+  static const CONVERT_TO_SUPER_INITIALIZING_PARAMETER = AssistKind(
+    'dart.assist.convert.toSuperInitializingParameter',
+    30,
+    'Convert to a super initializing parameter',
   );
   static const ENCAPSULATE_FIELD = AssistKind(
     'dart.assist.encapsulateField',

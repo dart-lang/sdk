@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
@@ -83,17 +83,76 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * Users should not assign values marked `@doNotStore`.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the value of a function
+  // (including methods and getters) that is explicitly or implicitly marked by
+  // the `[doNotStore][meta-doNotStore]` annotation is stored in either a field
+  // or top-level variable.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the value of the
+  // function `f` is being stored in the top-level variable `x`:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // @doNotStore
+  // int f() => 1;
+  //
+  // var x = [!f()!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace references to the field or variable with invocations of the
+  // function producing the value.
   static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
     'ASSIGNMENT_OF_DO_NOT_STORE',
     "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
         "top-level variable.",
     correctionMessage: "Try removing the assignment.",
+    hasPublishedDocs: true,
   );
 
   /**
    * Parameters:
    * 0: the name of the declared return type
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a method or function can
+  // implicitly return `null` by falling off the end. While this is valid Dart
+  // code, it's better for the return of `null` to be explicit.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the function `f`
+  // implicitly returns `null`:
+  //
+  // ```dart
+  // String? [!f!]() {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the return of `null` is intentional, then make it explicit:
+  //
+  // ```dart
+  // String? f() {
+  //   return null;
+  // }
+  // ```
+  //
+  // If the function should return a non-null value along that path, then add
+  // the missing return statement:
+  //
+  // ```dart
+  // String? f() {
+  //   return '';
+  // }
+  // ```
   static const HintCode BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE = HintCode(
     'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
     "This function has a nullable return type of '{0}', but ends without "
@@ -461,10 +520,59 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a comment reference (the name
+  // of a declaration enclosed in square brackets in a documentation comment)
+  // uses the keyword `new` to refer to a constructor. This form is deprecated.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the unnamed
+  // constructor is being referenced using `new C`:
+  //
+  // ```dart
+  // /// See [[!new!] C].
+  // class C {
+  //   C();
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the constructor named
+  // `c` is being referenced using `new C.c`:
+  //
+  // ```dart
+  // /// See [[!new!] C.c].
+  // class C {
+  //   C.c();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you're referencing a named constructor, then remove the keyword `new`:
+  //
+  // ```dart
+  // /// See [C.c].
+  // class C {
+  //   C.c();
+  // }
+  // ```
+  //
+  // If you're referencing the unnamed constructor, then remove the keyword
+  // `new` and append `.new` after the class name:
+  //
+  // ```dart
+  // /// See [C.new].
+  // class C {
+  //   C.c();
+  // }
+  // ```
   static const HintCode DEPRECATED_NEW_IN_COMMENT_REFERENCE = HintCode(
     'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
     "Using the 'new' keyword in a comment reference is deprecated.",
     correctionMessage: "Try referring to a constructor by its name.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -866,7 +974,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   //
   // If type arguments shouldn't be required for the class, then mark the class
-  // with the `@optionalTypeArgs` annotation (from `package:meta`):
+  // with the `[optionalTypeArgs][meta-optionalTypeArgs]` annotation (from
+  // `package:meta`):
   static const HintCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION = HintCode(
     'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
     "The imported library defines a top-level function named 'loadLibrary' "
@@ -878,13 +987,49 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
+   * No parameters.
+   *
    * https://github.com/dart-lang/sdk/issues/44063
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a library that is null safe
+  // imports a library that isn't null safe.
+  //
+  // #### Example
+  //
+  // Given a file named `a.dart` that contains the following:
+  //
+  // ```dart
+  // %uri="lib/a.dart"
+  // // @dart = 2.9
+  //
+  // class A {}
+  // ```
+  //
+  // The following code produces this diagnostic because a library that null
+  // safe is importing a library that isn't null safe:
+  //
+  // ```dart
+  // import [!'a.dart'!];
+  //
+  // A? f() => null;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you can migrate the imported library to be null safe, then migrate it
+  // and update or remove the migrated library's language version.
+  //
+  // If you can't migrate the imported library, then the importing library
+  // needs to have a language version that is before 2.12, when null safety was
+  // enabled by default.
   static const HintCode IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE = HintCode(
     'IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE',
-    "The library '{0}' is legacy, and should not be imported into a null safe "
+    "The library '{0}' is legacy, and shouldn't be imported into a null safe "
         "library.",
     correctionMessage: "Try migrating the imported library.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -967,37 +1112,126 @@ class HintCode extends AnalyzerErrorCode {
    * 0: the name of the annotation
    * 1: the list of valid targets
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an annotation is applied to a
+  // kind of declaration that it doesn't support.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the `optionalTypeArgs`
+  // annotation isn't defined to be valid for top-level variables:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // @[!optionalTypeArgs!]
+  // int x = 0;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the annotation from the declaration.
   static const HintCode INVALID_ANNOTATION_TARGET = HintCode(
     'INVALID_ANNOTATION_TARGET',
-    "The annotation '{0}' can only be used on {1}",
+    "The annotation '{0}' can only be used on {1}.",
+    hasPublishedDocs: true,
   );
 
   /**
-   * This hint is generated anywhere where an element annotated with `@internal`
-   * is exported as a part of a package's public API.
-   *
    * Parameters:
    * 0: the name of the element
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a [public library][] exports a
+  // declaration that is marked with the `[internal][meta-internal]`
+  // annotation.
+  //
+  // #### Example
+  //
+  // Given a file named `a.dart` in the `src` directory that contains:
+  //
+  // ```dart
+  // %uri="lib/src/a.dart"
+  // import 'package:meta/meta.dart';
+  //
+  // @internal class One {}
+  // ```
+  //
+  // The following code, when found in a [public library][] produces this
+  // diagnostic because the `export` directive is exporting a name that is only
+  // intended to be used internally:
+  //
+  // ```dart
+  // [!export 'src/a.dart';!]
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the export is needed, then add a `hide` clause to hide the internal
+  // names:
+  //
+  // ```dart
+  // export 'src/a.dart' hide One;
+  // ```
+  //
+  // If the export isn't needed, then remove it.
   static const HintCode INVALID_EXPORT_OF_INTERNAL_ELEMENT = HintCode(
     'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
     "The member '{0}' can't be exported as a part of a package's public API.",
     correctionMessage: "Try using a hide clause to hide '{0}'.",
+    hasPublishedDocs: true,
   );
 
   /**
-   * This hint is generated anywhere where an element annotated with `@internal`
-   * is exported indirectly as a part of a package's public API.
-   *
    * Parameters:
    * 0: the name of the element
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a [public library][] exports a
+  // top-level function  with a return type or at least one parameter type that
+  // is marked with the `[internal][meta-internal]` annotation.
+  //
+  // #### Example
+  //
+  // Given a file named `a.dart` in the `src` directory that contains the
+  // following:
+  //
+  // ```dart
+  // %uri="lib/src/a.dart"
+  // import 'package:meta/meta.dart';
+  //
+  // @internal
+  // typedef IntFunction = int Function();
+  //
+  // int f(IntFunction g) => g();
+  // ```
+  //
+  // The following code produces this diagnostic because the function `f` has a
+  // parameter of type `IntFunction`, and `IntFunction` is only intended to be
+  // used internally:
+  //
+  // ```dart
+  // [!export 'src/a.dart' show f;!]
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the function must be public, then make all the types in the function's
+  // signature public types.
+  //
+  // If the function doesn't need to be exported, then stop exporting it,
+  // either by removing it from the `show` clause, adding it to the `hide`
+  // clause, or by removing the export.
   static const HintCode INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY =
       HintCode(
     'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
     "The member '{0}' can't be exported as a part of a package's public API, "
         "but is indirectly exported as part of the signature of '{1}'.",
     correctionMessage: "Try using a hide clause to hide '{0}'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1010,25 +1244,97 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
-   * This hint is generated anywhere a @factory annotation is associated with
-   * a method that does not declare a return type.
+   * Parameters:
+   * 0: The name of the method
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a method that is annotated with
+  // the `[factory][meta-factory]` annotation has a return type of `void`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the method `createC`
+  // is annotated with the `[factory][meta-factory]` annotation but doesn't
+  // return any value:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // class Factory {
+  //   @factory
+  //   void [!createC!]() {}
+  // }
+  //
+  // class C {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the return type to something other than `void`:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // class Factory {
+  //   @factory
+  //   C createC() => C();
+  // }
+  //
+  // class C {}
+  // ```
   static const HintCode INVALID_FACTORY_METHOD_DECL = HintCode(
     'INVALID_FACTORY_METHOD_DECL',
     "Factory method '{0}' must have a return type.",
+    hasPublishedDocs: true,
   );
 
   /**
-   * This hint is generated anywhere a @factory annotation is associated with
-   * a non-abstract method that can return anything other than a newly allocated
-   * object.
-   *
    * Parameters:
    * 0: the name of the method
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a method that is annotated with
+  // the `[factory][meta-factory]` annotation doesn't return a newly allocated
+  // object.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the method `createC`
+  // returns the value of a field rather than a newly created instance of `C`:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // class Factory {
+  //   C c = C();
+  //
+  //   @factory
+  //   C [!createC!]() => c;
+  // }
+  //
+  // class C {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the method to return a newly created instance of the return type:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // class Factory {
+  //   @factory
+  //   C createC() => C();
+  // }
+  //
+  // class C {}
+  // ```
   static const HintCode INVALID_FACTORY_METHOD_IMPL = HintCode(
     'INVALID_FACTORY_METHOD_IMPL',
     "Factory method '{0}' doesn't return a newly allocated object.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1041,108 +1347,153 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
-   * This hint is generated anywhere a @internal annotation is associated with
-   * an element found in a package's public API.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a declaration is annotated with
+  // the `[internal][meta-internal]` annotation and that declaration is either
+  // in a [public library][] or has a private name.
+  //
+  // #### Example
+  //
+  // The following code, when in a [public library][], produces this diagnostic
+  // because the `[internal][meta-internal]` annotation can't be applied to
+  // declarations in a [public library][]:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // [!@internal!]
+  // class C {}
+  // ```
+  //
+  // The following code, whether in a public or internal library, produces this
+  // diagnostic because the `[internal][meta-internal]` annotation can't be
+  // applied to declarations with private names:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // [!@internal!]
+  // class _C {}
+  //
+  // void f(_C c) {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the declaration has a private name, then remove the annotation:
+  //
+  // ```dart
+  // class _C {}
+  //
+  // void f(_C c) {}
+  // ```
+  //
+  // If the declaration has a public name and is intended to be internal to the
+  // package, then move the annotated declaration into an internal library (in
+  // other words, a library inside the `src` directory).
+  //
+  // Otherwise, remove the use of the annotation:
+  //
+  // ```dart
+  // class C {}
+  // ```
   static const HintCode INVALID_INTERNAL_ANNOTATION = HintCode(
     'INVALID_INTERNAL_ANNOTATION',
     "Only public elements in a package's private API can be annotated as being "
         "internal.",
+    hasPublishedDocs: true,
   );
 
   /**
-   * Invalid Dart language version comments don't follow the specification [1].
-   * If a comment begins with "@dart" or "dart" (letters in any case),
-   * followed by optional whitespace, followed by optional non-alphanumeric,
-   * non-whitespace characters, followed by optional whitespace, followed by
-   * an optional alphabetical character, followed by a digit, then the
-   * comment is considered to be an attempt at a language version override
-   * comment. If this attempted language version override comment is not a
-   * valid language version override comment, it is reported.
-   *
-   * [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a comment that appears to be an
+  // attempt to specify a language version override doesn't conform to the
+  // requirements for such a comment. For more information, see
+  // [Per-library language version selection](https://dart.dev/guides/language/evolution#per-library-language-version-selection).
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the word `dart` must
+  // be lowercase in such a comment and because there's no equal sign between
+  // the word `dart` and the version number:
+  //
+  // ```dart
+  // [!// @Dart 2.9!]
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the comment is intended to be a language version override, then change
+  // the comment to follow the correct format:
+  //
+  // ```dart
+  // // @dart = 2.9
+  // ```
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The Dart language version override number must begin with '@dart'",
+    "The Dart language version override number must begin with '@dart'.",
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
   );
 
   /**
-   * Invalid Dart language version comments don't follow the specification [1].
-   * If a comment begins with "@dart" or "dart" (letters in any case),
-   * followed by optional whitespace, followed by optional non-alphanumeric,
-   * non-whitespace characters, followed by optional whitespace, followed by
-   * an optional alphabetical character, followed by a digit, then the
-   * comment is considered to be an attempt at a language version override
-   * comment. If this attempted language version override comment is not a
-   * valid language version override comment, it is reported.
-   *
-   * [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+   * No parameters.
    */
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
     "The Dart language version override comment must be specified with an '=' "
-        "character",
+        "character.",
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
   );
 
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
     "The language version override can't specify a version greater than the "
-        "latest known language version: {0}.{1}",
+        "latest known language version: {0}.{1}.",
     correctionMessage: "Try removing the language version override.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
   );
 
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The language version override must be before any declaration or "
+    "The language version override must be specified before any declaration or "
         "directive.",
     correctionMessage:
         "Try moving the language version override to the top of the file.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
   );
 
   /**
-   * Invalid Dart language version comments don't follow the specification [1].
-   * If a comment begins with "@dart" or "dart" (letters in any case),
-   * followed by optional whitespace, followed by optional non-alphanumeric,
-   * non-whitespace characters, followed by optional whitespace, followed by
-   * an optional alphabetical character, followed by a digit, then the
-   * comment is considered to be an attempt at a language version override
-   * comment. If this attempted language version override comment is not a
-   * valid language version override comment, it is reported.
-   *
-   * [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+   * No parameters.
    */
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
     "The Dart language version override comment must be specified with the "
-        "word 'dart' in all lower case",
+        "word 'dart' in all lower case.",
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
   );
 
   /**
-   * Invalid Dart language version comments don't follow the specification [1].
-   * If a comment begins with "@dart" or "dart" (letters in any case),
-   * followed by optional whitespace, followed by optional non-alphanumeric,
-   * non-whitespace characters, followed by optional whitespace, followed by
-   * an optional alphabetical character, followed by a digit, then the
-   * comment is considered to be an attempt at a language version override
-   * comment. If this attempted language version override comment is not a
-   * valid language version override comment, it is reported.
-   *
-   * [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+   * No parameters.
    */
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
@@ -1151,64 +1502,41 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
   );
 
   /**
-   * Invalid Dart language version comments don't follow the specification [1].
-   * If a comment begins with "@dart" or "dart" (letters in any case),
-   * followed by optional whitespace, followed by optional non-alphanumeric,
-   * non-whitespace characters, followed by optional whitespace, followed by
-   * an optional alphabetical character, followed by a digit, then the
-   * comment is considered to be an attempt at a language version override
-   * comment. If this attempted language version override comment is not a
-   * valid language version override comment, it is reported.
-   *
-   * [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+   * No parameters.
    */
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The Dart language version override number can't be prefixed with a letter",
+    "The Dart language version override number can't be prefixed with a "
+        "letter.",
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
   );
 
   /**
-   * Invalid Dart language version comments don't follow the specification [1].
-   * If a comment begins with "@dart" or "dart" (letters in any case),
-   * followed by optional whitespace, followed by optional non-alphanumeric,
-   * non-whitespace characters, followed by optional whitespace, followed by
-   * an optional alphabetical character, followed by a digit, then the
-   * comment is considered to be an attempt at a language version override
-   * comment. If this attempted language version override comment is not a
-   * valid language version override comment, it is reported.
-   *
-   * [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+   * No parameters.
    */
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS =
       HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
     "The Dart language version override comment can't be followed by any "
-        "non-whitespace characters",
+        "non-whitespace characters.",
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
   );
 
   /**
-   * Invalid Dart language version comments don't follow the specification [1].
-   * If a comment begins with "@dart" or "dart" (letters in any case),
-   * followed by optional whitespace, followed by optional non-alphanumeric,
-   * non-whitespace characters, followed by optional whitespace, followed by
-   * an optional alphabetical character, followed by a digit, then the
-   * comment is considered to be an attempt at a language version override
-   * comment. If this attempted language version override comment is not a
-   * valid language version override comment, it is reported.
-   *
-   * [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+   * No parameters.
    */
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES =
       HintCode(
@@ -1218,6 +1546,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
         "@dart = 2.0'.",
+    hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
   );
 
@@ -1226,8 +1555,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when the `@literal` annotation is
-  // applied to anything other than a const constructor.
+  // The analyzer produces this diagnostic when the `[literal][[meta-literal]]`
+  // annotation is applied to anything other than a const constructor.
   //
   // #### Examples
   //
@@ -1364,15 +1693,44 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
-   * This hint is generated anywhere where a member annotated with `@internal`
-   * is used outside of the package in which it is declared.
-   *
    * Parameters:
    * 0: the name of the member
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a reference to a declaration
+  // that is annotated with the `[internal][meta-internal]` annotation is found
+  // outside the package containing the declaration.
+  //
+  // #### Example
+  //
+  // Given a package `p` that defines a library containing a declaration marked
+  // with the `[internal][meta-internal]` annotation:
+  //
+  // ```dart
+  // %uri="package:p/src/p.dart"
+  // import 'package:meta/meta.dart';
+  //
+  // @internal
+  // class C {}
+  // ```
+  //
+  // The following code produces this diagnostic because it's referencing the
+  // class `C`, which isn't intended to be used outside the package `p`:
+  //
+  // ```dart
+  // import 'package:p/src/p.dart';
+  //
+  // void f([!C!] c) {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the reference to the internal declaration.
   static const HintCode INVALID_USE_OF_INTERNAL_MEMBER = HintCode(
     'INVALID_USE_OF_INTERNAL_MEMBER',
     "The member '{0}' can only be used within its package.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -1396,8 +1754,9 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an instance member that is
-  // annotated with `visibleForOverriding` is referenced outside the library in
-  // which it's declared for any reason other than to override it.
+  // annotated with `[visibleForOverriding][meta-visibleForOverriding]` is
+  // referenced outside the library in which it's declared for any reason other
+  // than to override it.
   //
   // #### Example
   //
@@ -1472,8 +1831,9 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when either the `@visibleForTemplate`
-  // or `@visibleForTesting` annotation is applied to a non-public declaration.
+  // The analyzer produces this diagnostic when either the `visibleForTemplate`
+  // or `[visibleForTesting][meta-visibleForTesting]` annotation is applied to
+  // a non-public declaration.
   //
   // #### Example
   //
@@ -1522,9 +1882,10 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when anything other than a public
-  // instance member of a class is annotated with `visibleForOverriding`.
-  // Because only public instance members can be overridden outside the defining
-  // library, there's no value to annotating any other declarations.
+  // instance member of a class is annotated with
+  // `[visibleForOverriding][meta-visibleForOverriding]`. Because only public
+  // instance members can be overridden outside the defining library, there's
+  // no value to annotating any other declarations.
   //
   // #### Example
   //
@@ -1663,9 +2024,9 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when the superclass constraint of a
-  // mixin is a class from a different package that was marked as `@sealed`.
-  // Classes that are sealed can't be extended, implemented, mixed in, or used
-  // as a superclass constraint.
+  // mixin is a class from a different package that was marked as
+  // `[sealed][meta-sealed]`. Classes that are sealed can't be extended,
+  // implemented, mixed in, or used as a superclass constraint.
   //
   // #### Example
   //
@@ -1712,8 +2073,8 @@ class HintCode extends AnalyzerErrorCode {
   //
   // The analyzer produces this diagnostic when an immutable class defines one
   // or more instance fields that aren't final. A class is immutable if it's
-  // marked as being immutable using the annotation `@immutable` or if it's a
-  // subclass of an immutable class.
+  // marked as being immutable using the annotation
+  // `[immutable][meta-immutable]` or if it's a subclass of an immutable class.
   //
   // #### Example
   //
@@ -1773,8 +2134,8 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a method that overrides a method
-  // that is annotated as `@mustCallSuper` doesn't invoke the overridden method
-  // as required.
+  // that is annotated as `[mustCallSuper][meta-mustCallSuper]` doesn't invoke
+  // the overridden method as required.
   //
   // #### Example
   //
@@ -1831,10 +2192,10 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a constructor that has the
-  // `@literal` annotation is invoked without using the `const` keyword, but all
-  // of the arguments to the constructor are constants. The annotation indicates
-  // that the constructor should be used to create a constant value whenever
-  // possible.
+  // `[literal][meta-literal]` annotation is invoked without using the `const`
+  // keyword, but all of the arguments to the constructor are constants. The
+  // annotation indicates that the constructor should be used to create a
+  // constant value whenever possible.
   //
   // #### Example
   //
@@ -2009,13 +2370,47 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
-   * This hint indicates that a null literal is null-checked with `!`, but null
-   * is never not null.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the null check operator (`!`)
+  // is used on an expression whose value can only be `null`. In such a case
+  // the operator always throws an exception, which likely isn't the intended
+  // behavior.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the function `g` will
+  // always return `null`, which means that the null check in `f` will always
+  // throw:
+  //
+  // ```dart
+  // void f() {
+  //   [!g()!!];
+  // }
+  //
+  // Null g() => null;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you intend to always throw an exception, then replace the null check
+  // with an explicit `throw` expression to make the intent more clear:
+  //
+  // ```dart
+  // void f() {
+  //   g();
+  //   throw TypeError();
+  // }
+  //
+  // Null g() => null;
+  // ```
   static const HintCode NULL_CHECK_ALWAYS_FAILS = HintCode(
     'NULL_CHECK_ALWAYS_FAILS',
     "This null-check will always throw an exception because the expression "
         "will always evaluate to 'null'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -2145,14 +2540,62 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
-   * Users should not return values marked `@doNotStore` from functions,
-   * methods or getters not marked `@doNotStore`.
+   * Parameters:
+   * 0: the name of the annotated function being invoked
+   * 1: the name of the function containing the return
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a value that is annotated with
+  // the `[doNotStore][meta-doNotStore]` annotation is returned from a method,
+  // getter, or function that doesn't have the same annotation.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the result of invoking
+  // `f` shouldn't be stored, but the function `g` isn't annotated to preserve
+  // that semantic:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // @doNotStore
+  // int f() => 0;
+  //
+  // int g() => [!f()!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the value that shouldn't be stored is the correct value to return, then
+  // mark the function with the `[doNotStore][meta-doNotStore]` annotation:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // @doNotStore
+  // int f() => 0;
+  //
+  // @doNotStore
+  // int g() => f();
+  // ```
+  //
+  // Otherwise, return a different value from the function:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // @doNotStore
+  // int f() => 0;
+  //
+  // int g() => 0;
+  // ```
   static const HintCode RETURN_OF_DO_NOT_STORE = HintCode(
     'RETURN_OF_DO_NOT_STORE',
     "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
         "'{1}' is also annotated.",
     correctionMessage: "Annotate '{1}' with 'doNotStore'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -2955,10 +3398,10 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a sealed class (one that either
-  // has the `@sealed` annotation or inherits or mixes in a sealed class) is
-  // referenced in either the `extends`, `implements`, or `with` clause of a
-  // class or mixin declaration if the declaration isn't in the same package as
-  // the sealed class.
+  // has the `[sealed][meta-sealed]` annotation or inherits or mixes in a
+  // sealed class) is referenced in either the `extends`, `implements`, or
+  // `with` clause of a class or mixin declaration if the declaration isn't in
+  // the same package as the sealed class.
   //
   // #### Example
   //
@@ -3213,8 +3656,8 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an annotation of the form
-  // `@UnusedResult.unless(parameterDefined: parameterName)` specifies a
-  // parameter name that isn't defined by the annotated function.
+  // `[UseResult][meta-UseResult].unless(parameterDefined: parameterName)`
+  // specifies a parameter name that isn't defined by the annotated function.
   //
   // #### Example
   //
@@ -3941,16 +4384,16 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a function annotated with
-  // `useResult` is invoked, and the value returned by that function isn't used.
-  // The value is considered to be used if a member of the value is invoked, if
-  // the value is passed to another function, or if the value is assigned to a
-  // variable or field.
+  // `[useResult][meta-useResult]` is invoked, and the value returned by that
+  // function isn't used. The value is considered to be used if a member of the
+  // value is invoked, if the value is passed to another function, or if the
+  // value is assigned to a variable or field.
   //
   // #### Example
   //
   // The following code produces this diagnostic because the invocation of
   // `c.a()` isn't used, even though the method `a` is annotated with
-  // `useResult`:
+  // `[useResult][meta-useResult]`:
   //
   // ```dart
   // import 'package:meta/meta.dart';

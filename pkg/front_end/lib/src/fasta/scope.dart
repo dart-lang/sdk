@@ -6,8 +6,10 @@ library fasta.scope;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/type_environment.dart';
 
 import 'builder/builder.dart';
+import 'builder/class_builder.dart';
 import 'builder/extension_builder.dart';
 import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
@@ -25,6 +27,7 @@ import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/hierarchy/class_member.dart' show ClassMember;
 import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
+import 'source/source_class_builder.dart';
 import 'source/source_library_builder.dart';
 import 'source/source_member_builder.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
@@ -466,7 +469,7 @@ class Scope extends MutableScope {
     return forwardDeclaredLabels;
   }
 
-  Builder? lookupLabel(String name) {
+  JumpTarget? lookupLabel(String name) {
     return labels?[name] ?? _parent?.lookupLabel(name);
   }
 
@@ -612,6 +615,14 @@ class ConstructorScope {
     }
   }
 
+  MemberBuilder? lookupLocalMember(String name) {
+    return local[name];
+  }
+
+  void addLocalMember(String name, MemberBuilder builder) {
+    local[name] = builder;
+  }
+
   @override
   String toString() => "ConstructorScope($className, ${local.keys})";
 }
@@ -646,38 +657,6 @@ abstract class LazyScope extends Scope {
     ensureScope();
     return super._extensions;
   }
-}
-
-class ScopeBuilder {
-  final Scope scope;
-
-  ScopeBuilder(this.scope);
-
-  void addMember(String name, Builder builder) {
-    scope._local[name] = builder;
-  }
-
-  void addSetter(String name, MemberBuilder builder) {
-    scope._setters[name] = builder;
-  }
-
-  void addExtension(ExtensionBuilder builder) {
-    scope.addExtension(builder);
-  }
-
-  Builder? operator [](String name) => scope._local[name];
-}
-
-class ConstructorScopeBuilder {
-  final ConstructorScope scope;
-
-  ConstructorScopeBuilder(this.scope);
-
-  void addMember(String name, MemberBuilder builder) {
-    scope.local[name] = builder;
-  }
-
-  MemberBuilder? operator [](String name) => scope.local[name];
 }
 
 abstract class ProblemBuilder extends BuilderImpl {
@@ -807,13 +786,27 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   bool get isConflictingSetter => false;
 
   @override
+  bool get isConflictingAugmentationMember => false;
+
+  @override
+  void set isConflictingAugmentationMember(bool value) {
+    throw new UnsupportedError(
+        'AmbiguousMemberBuilder.isConflictingAugmentationMember=');
+  }
+
+  @override
   void set parent(Builder? value) {
     throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
   }
 
   @override
+  ClassBuilder get classBuilder {
+    throw new UnsupportedError('AmbiguousMemberBuilder.classBuilder');
+  }
+
+  @override
   LibraryBuilder get library {
-    throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
+    throw new UnsupportedError('AmbiguousMemberBuilder.library');
   }
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
@@ -841,6 +834,23 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   List<ClassMember> get localSetters => const <ClassMember>[];
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    assert(false, "Unexpected call to $runtimeType.checkVariance.");
+  }
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+    assert(false, "Unexpected call to $runtimeType.checkVariance.");
+  }
+
+  @override
+  bool get isAugmentation {
+    throw new UnsupportedError('AmbiguousMemberBuilder.isAugmentation');
+  }
 }
 
 class AmbiguousMemberBuilder extends AmbiguousBuilder

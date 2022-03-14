@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -21,16 +22,17 @@ import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_member_builder.dart';
+import '../identifiers.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/constructor_tearoff_lowering.dart';
-import '../kernel/expression_generator_helper.dart'
-    show ExpressionGeneratorHelper;
+import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart' show SynthesizedFunctionNode;
 import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
 import '../messages.dart'
     show
+        LocatedMessage,
         Message,
         messageMoreThanOneSuperInitializer,
         messageRedirectingConstructorWithAnotherInitializer,
@@ -73,6 +75,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   Constructor get actualConstructor => _constructor;
 
+  List<DeclaredSourceConstructorBuilder>? _patches;
+
   bool _hasFormalsInferred = false;
 
   final bool _hasSuperInitializingFormals;
@@ -82,6 +86,12 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   @override
   List<FormalParameterBuilder>? formals;
+
+  @override
+  String get fullNameForErrors {
+    return "${flattenName(classBuilder.name, charOffset, fileUri)}"
+        "${name.isEmpty ? '' : '.$name'}";
+  }
 
   DeclaredSourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
@@ -144,8 +154,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   @override
   DeclaredSourceConstructorBuilder get origin => actualOrigin ?? this;
 
-  ConstructorBuilder? get patchForTesting =>
-      dataForTesting?.patchForTesting as ConstructorBuilder?;
+  List<SourceConstructorBuilder>? get patchForTesting => _patches;
 
   @override
   bool get isDeclarationInstanceMember => false;
@@ -204,6 +213,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable!.type = const UnknownType();
           needsInference = true;
+        } else if (!formal.hasDeclaredInitializer &&
+            formal.isSuperInitializingFormal) {
+          needsInference = true;
         }
       }
       if (needsInference) {
@@ -219,7 +231,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   /// Infers the types of any untyped initializing formals.
-  void inferFormalTypes(ClassHierarchy classHierarchy) {
+  void inferFormalTypes(TypeEnvironment typeEnvironment) {
     if (_hasFormalsInferred) return;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
@@ -231,22 +243,24 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       }
 
       if (_hasSuperInitializingFormals) {
+        List<Initializer>? initializers;
         if (beginInitializers != null) {
           BodyBuilder bodyBuilder = library.loader
               .createBodyBuilderForOutlineExpression(
                   library, classBuilder, this, classBuilder.scope, fileUri);
           bodyBuilder.constantContext = ConstantContext.required;
-          bodyBuilder.parseInitializers(beginInitializers!,
+          initializers = bodyBuilder.parseInitializers(beginInitializers!,
               doFinishConstructor: false);
         }
         finalizeSuperInitializingFormals(
-            classHierarchy, _superParameterDefaultValueCloners);
+            typeEnvironment, _superParameterDefaultValueCloners, initializers);
       }
     }
     _hasFormalsInferred = true;
   }
 
-  ConstructorBuilder? _computeSuperTargetBuilder() {
+  ConstructorBuilder? _computeSuperTargetBuilder(
+      List<Initializer>? initializers) {
     Constructor superTarget;
     ClassBuilder superclassBuilder;
 
@@ -272,11 +286,12 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       return null;
     }
 
-    if (constructor.initializers.isNotEmpty &&
-        constructor.initializers.last is SuperInitializer) {
-      superTarget = (constructor.initializers.last as SuperInitializer).target;
+    if (initializers != null &&
+        initializers.isNotEmpty &&
+        initializers.last is SuperInitializer) {
+      superTarget = (initializers.last as SuperInitializer).target;
     } else {
-      MemberBuilder? memberBuilder = superclassBuilder.constructors
+      MemberBuilder? memberBuilder = superclassBuilder.constructorScope
           .lookup("", charOffset, library.fileUri);
       if (memberBuilder is ConstructorBuilder) {
         superTarget = memberBuilder.constructor;
@@ -292,8 +307,10 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     return constructorBuilder is ConstructorBuilder ? constructorBuilder : null;
   }
 
-  void finalizeSuperInitializingFormals(ClassHierarchy classHierarchy,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+  void finalizeSuperInitializingFormals(
+      TypeEnvironment typeEnvironment,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes,
+      List<Initializer>? initializers) {
     if (formals == null) return;
     if (!_hasSuperInitializingFormals) return;
 
@@ -305,7 +322,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       }
     }
 
-    ConstructorBuilder? superTargetBuilder = _computeSuperTargetBuilder();
+    ConstructorBuilder? superTargetBuilder =
+        _computeSuperTargetBuilder(initializers);
     Constructor superTarget;
     List<FormalParameterBuilder>? superFormals;
     if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
@@ -333,20 +351,20 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     }
 
     if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
-      superTargetBuilder.inferFormalTypes(classHierarchy);
+      superTargetBuilder.inferFormalTypes(typeEnvironment);
     } else if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
       MemberBuilder? superTargetOriginBuilder = superTargetBuilder.actualOrigin;
       if (superTargetOriginBuilder is DeclaredSourceConstructorBuilder) {
-        superTargetOriginBuilder.inferFormalTypes(classHierarchy);
+        superTargetOriginBuilder.inferFormalTypes(typeEnvironment);
       }
     }
 
     int superInitializingFormalIndex = -1;
-    List<int>? positionalSuperParameters;
+    List<int?>? positionalSuperParameters;
     List<String>? namedSuperParameters;
 
-    Supertype? supertype = classHierarchy.getClassAsInstanceOf(
-        classBuilder.cls, superTarget.enclosingClass);
+    Supertype? supertype = typeEnvironment.hierarchy
+        .getClassAsInstanceOf(classBuilder.cls, superTarget.enclosingClass);
     assert(supertype != null);
     Map<TypeParameter, DartType> substitution =
         new Map<TypeParameter, DartType>.fromIterables(
@@ -366,8 +384,10 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
                 superFormals[superInitializingFormalIndex];
             formal.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer ||
                 correspondingSuperFormal.hasDeclaredInitializer;
-            if (!hasImmediatelyDeclaredInitializer) {
-              (positionalSuperParameters ??= <int>[]).add(formalIndex);
+            if (!hasImmediatelyDeclaredInitializer && !formal.isRequired) {
+              (positionalSuperParameters ??= <int?>[]).add(formalIndex);
+            } else {
+              (positionalSuperParameters ??= <int?>[]).add(null);
             }
           } else {
             // TODO(cstefantsova): Report an error.
@@ -383,7 +403,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           if (correspondingSuperFormal != null) {
             formal.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer ||
                 correspondingSuperFormal.hasDeclaredInitializer;
-            if (!hasImmediatelyDeclaredInitializer) {
+            if (!hasImmediatelyDeclaredInitializer && !formal.isNamedRequired) {
               (namedSuperParameters ??= <String>[]).add(formal.name);
             }
           } else {
@@ -397,8 +417,6 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             type = substitute(type, substitution);
           }
           formal.variable!.type = type ?? const DynamicType();
-        } else {
-          formal.variable!.type = const DynamicType();
         }
       }
     }
@@ -408,7 +426,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           substitution, superTarget.function, constructor.function,
           positionalSuperParameters: positionalSuperParameters ?? const <int>[],
           namedSuperParameters: namedSuperParameters ?? const <String>[],
-          isOutlineNode: true));
+          isOutlineNode: true,
+          libraryBuilder: library));
     }
   }
 
@@ -461,7 +480,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   void addSuperParameterDefaultValueCloners(
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
-    ConstructorBuilder? superTargetBuilder = _computeSuperTargetBuilder();
+    ConstructorBuilder? superTargetBuilder =
+        _computeSuperTargetBuilder(constructor.initializers);
     if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
       superTargetBuilder
           .addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
@@ -469,6 +489,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       superTargetBuilder
           .addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
     }
+
     synthesizedFunctionNodes.addAll(_superParameterDefaultValueCloners);
     _superParameterDefaultValueCloners.clear();
   }
@@ -523,8 +544,27 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             helper);
       } else {
         inferenceResult?.applyResult(initializers, _constructor);
-        initializers.add(initializer..parent = _constructor);
         superInitializer = initializer;
+
+        LocatedMessage? message = helper.checkArgumentsForFunction(
+            initializer.target.function,
+            initializer.arguments,
+            initializer.arguments.fileOffset, <TypeParameter>[]);
+        if (message != null) {
+          initializers.add(helper.buildInvalidInitializer(
+              helper.buildUnresolvedError(
+                  helper.forest.createNullLiteral(initializer.fileOffset),
+                  helper.constructorNameForDiagnostics(
+                      initializer.target.name.text),
+                  initializer.arguments,
+                  initializer.fileOffset,
+                  isSuper: true,
+                  message: message,
+                  kind: UnresolvedKind.Constructor))
+            ..parent = _constructor);
+        } else {
+          initializers.add(initializer..parent = _constructor);
+        }
       }
     } else if (initializer is RedirectingInitializer) {
       if (superInitializer != null) {
@@ -559,8 +599,28 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         redirectingInitializer = initializer;
       } else {
         inferenceResult?.applyResult(initializers, _constructor);
-        initializers.add(initializer..parent = _constructor);
         redirectingInitializer = initializer;
+
+        LocatedMessage? message = helper.checkArgumentsForFunction(
+            initializer.target.function,
+            initializer.arguments,
+            initializer.arguments.fileOffset, const <TypeParameter>[]);
+        if (message != null) {
+          initializers.add(helper.buildInvalidInitializer(
+              helper.buildUnresolvedError(
+                  helper.forest.createNullLiteral(initializer.fileOffset),
+                  helper.constructorNameForDiagnostics(
+                      initializer.target.name.text,
+                      isSuper: false),
+                  initializer.arguments,
+                  initializer.fileOffset,
+                  isSuper: false,
+                  message: message,
+                  kind: UnresolvedKind.Constructor))
+            ..parent = _constructor);
+        } else {
+          initializers.add(initializer..parent = _constructor);
+        }
       }
     } else if (redirectingInitializer != null) {
       int length = noLength;
@@ -618,6 +678,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     return 1;
   }
 
+  List<DeclaredSourceConstructorBuilder>? get patchesForTesting => _patches;
+
   @override
   void becomeNative(SourceLoader loader) {
     _constructor.isExternal = true;
@@ -629,7 +691,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     if (patch is DeclaredSourceConstructorBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
-        dataForTesting?.patchForTesting = patch;
+        (_patches ??= []).add(patch);
       }
     } else {
       reportPatchMismatch(patch);
@@ -684,6 +746,22 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       formals = new List<FormalParameterBuilder>.of(formals!, growable: true);
     } else {
       formals = <FormalParameterBuilder>[];
+    }
+  }
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+    library.checkTypesInConstructorBuilder(this, typeEnvironment);
+    List<DeclaredSourceConstructorBuilder>? patches = _patches;
+    if (patches != null) {
+      for (DeclaredSourceConstructorBuilder patch in patches) {
+        patch.checkTypes(library, typeEnvironment);
+      }
     }
   }
 }
@@ -760,4 +838,12 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       _synthesizedFunctionNode = null;
     }
   }
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
 }

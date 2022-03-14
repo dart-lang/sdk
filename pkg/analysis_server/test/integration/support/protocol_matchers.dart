@@ -230,6 +230,16 @@ final Matcher isChangeContentOverlay = LazyMatcher(() => MatchesJsonObject(
 final Matcher isClosingLabel = LazyMatcher(() => MatchesJsonObject(
     'ClosingLabel', {'offset': isInt, 'length': isInt, 'label': isString}));
 
+/// CompletionCaseMatchingMode
+///
+/// enum {
+///   FIRST_CHAR
+///   ALL_CHARS
+///   NONE
+/// }
+final Matcher isCompletionCaseMatchingMode = MatchesEnum(
+    'CompletionCaseMatchingMode', ['FIRST_CHAR', 'ALL_CHARS', 'NONE']);
+
 /// CompletionId
 ///
 /// String
@@ -305,6 +315,7 @@ final Matcher isCompletionSuggestion =
           'hasNamedParameters': isBool,
           'parameterName': isString,
           'parameterType': isString,
+          'libraryUri': isString,
           'isNotImported': isBool
         }));
 
@@ -384,8 +395,7 @@ final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
       'parameters': isString,
       'returnType': isString,
       'typeParameters': isString,
-      'aliasedType': isString,
-      'libraryUri': isString
+      'aliasedType': isString
     }));
 
 /// ElementDeclaration
@@ -2148,17 +2158,19 @@ final Matcher isCompletionGetSuggestionDetailsResult = LazyMatcher(() =>
 ///   "file": FilePath
 ///   "offset": int
 ///   "maxResults": int
+///   "completionCaseMatchingMode": optional CompletionCaseMatchingMode
 /// }
-final Matcher isCompletionGetSuggestions2Params = LazyMatcher(() =>
-    MatchesJsonObject('completion.getSuggestions2 params', {
-      'file': isFilePath,
-      'offset': isInt,
-      'maxResults': isInt
-    }, optionalFields: {
-      'completionMode': isCompletionMode,
-      'invocationCount': isInt,
-      'timeout': isInt
-    }));
+final Matcher isCompletionGetSuggestions2Params =
+    LazyMatcher(() => MatchesJsonObject('completion.getSuggestions2 params', {
+          'file': isFilePath,
+          'offset': isInt,
+          'maxResults': isInt
+        }, optionalFields: {
+          'completionCaseMatchingMode': isCompletionCaseMatchingMode,
+          'completionMode': isCompletionMode,
+          'invocationCount': isInt,
+          'timeout': isInt
+        }));
 
 /// completion.getSuggestions2 result
 ///

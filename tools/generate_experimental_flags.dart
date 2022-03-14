@@ -8,12 +8,11 @@ import 'dart:io' show File, Platform;
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
 void main() {
-  YamlMap yaml =
-      loadYaml(new File.fromUri(computeYamlFile()).readAsStringSync());
+  YamlMap yaml = loadYaml(File.fromUri(computeYamlFile()).readAsStringSync());
   final currentVersion = getAsVersionNumber(yaml['current-version']);
-  final enumNames = new StringBuffer();
-  final featureValues = new StringBuffer();
-  final featureNames = new StringBuffer();
+  final enumNames = StringBuffer();
+  final featureValues = StringBuffer();
+  final featureNames = StringBuffer();
 
   YamlMap features = yaml['features'];
   for (var entry in features.entries) {
@@ -112,7 +111,9 @@ Uri computeHFile() {
 List<num> getAsVersionNumber(dynamic value) {
   if (value == null) return null;
   final version = List.of("$value".split(".").map(int.parse));
-  while (version.length < 3) version.add(0);
+  while (version.length < 3) {
+    version.add(0);
+  }
   return version;
 }
 

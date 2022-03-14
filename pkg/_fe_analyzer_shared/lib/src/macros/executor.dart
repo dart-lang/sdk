@@ -4,16 +4,7 @@
 
 import 'api.dart';
 import 'bootstrap.dart'; // For doc comments only.
-import 'executor_shared/serialization.dart';
-
-/// Exposes a platform specific [MacroExecutor], through a top level
-/// `Future<MacroExecutor> start()` function.
-///
-/// TODO: conditionally load isolate_mirrors_executor.dart once conditional
-/// imports of mirrors are supported in AOT (issue #48057).
-import 'fake_executor/fake_executor.dart'
-    if (dart.library.isolate) 'isolated_executor/isolated_executor.dart'
-    as executor_impl show start;
+import 'executor/serialization.dart';
 
 /// The interface used by Dart language implementations, in order to load
 /// and execute macros, as well as produce library augmentations from those
@@ -23,14 +14,6 @@ import 'fake_executor/fake_executor.dart'
 /// during macro discovery and expansion, and unifies how augmentation libraries
 /// are produced.
 abstract class MacroExecutor {
-  /// Returns a platform specific [MacroExecutor]. On unsupported platforms this
-  /// will be a fake executor object, which will throw an [UnsupportedError] if
-  /// used.
-  ///
-  /// Note that some implementations will also require calls to [loadMacro]
-  /// to pass a `precompiledKernelUri`.
-  static Future<MacroExecutor> start() => executor_impl.start();
-
   /// Invoked when an implementation discovers a new macro definition in a
   /// [library] with [name], and prepares this executor to run the macro.
   ///
@@ -61,8 +44,8 @@ abstract class MacroExecutor {
   /// Runs the type phase for [macro] on a given [declaration].
   ///
   /// Throws an exception if there is an error executing the macro.
-  Future<MacroExecutionResult> executeTypesPhase(
-      MacroInstanceIdentifier macro, covariant Declaration declaration);
+  Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
+      covariant Declaration declaration, IdentifierResolver identifierResolver);
 
   /// Runs the declarations phase for [macro] on a given [declaration].
   ///
@@ -70,6 +53,7 @@ abstract class MacroExecutor {
   Future<MacroExecutionResult> executeDeclarationsPhase(
       MacroInstanceIdentifier macro,
       covariant Declaration declaration,
+      IdentifierResolver identifierResolver,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector);
 
@@ -79,14 +63,18 @@ abstract class MacroExecutor {
   Future<MacroExecutionResult> executeDefinitionsPhase(
       MacroInstanceIdentifier macro,
       covariant Declaration declaration,
+      IdentifierResolver identifierResolver,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector,
       TypeDeclarationResolver typeDeclarationResolver);
 
   /// Combines multiple [MacroExecutionResult]s into a single library
   /// augmentation file, and returns a [String] representing that file.
-  Future<String> buildAugmentationLibrary(
-      Iterable<MacroExecutionResult> macroResults);
+  ///
+  /// The [resolveIdentifier] argument should return the import uri to be used
+  /// for that identifier.
+  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
+      ResolvedIdentifier Function(Identifier) resolveIdentifier);
 
   /// Tell the executor to shut down and clean up any resources it may have
   /// allocated.
@@ -129,7 +117,7 @@ class Arguments implements Serializable {
   static Object? _deserializeArg(Deserializer deserializer,
       {bool alreadyMoved = false}) {
     if (!alreadyMoved) deserializer.moveNext();
-    _ArgumentKind kind = _ArgumentKind.values[deserializer.expectNum()];
+    _ArgumentKind kind = _ArgumentKind.values[deserializer.expectInt()];
     switch (kind) {
       case _ArgumentKind.nil:
         return null;
@@ -139,9 +127,12 @@ class Arguments implements Serializable {
       case _ArgumentKind.bool:
         deserializer.moveNext();
         return deserializer.expectBool();
-      case _ArgumentKind.num:
+      case _ArgumentKind.int:
         deserializer.moveNext();
-        return deserializer.expectNum();
+        return deserializer.expectInt();
+      case _ArgumentKind.double:
+        deserializer.moveNext();
+        return deserializer.expectDouble();
       case _ArgumentKind.list:
         deserializer.moveNext();
         deserializer.expectList();
@@ -181,22 +172,26 @@ class Arguments implements Serializable {
 
   static void _serializeArg(Object? arg, Serializer serializer) {
     if (arg == null) {
-      serializer.addNum(_ArgumentKind.nil.index);
+      serializer.addInt(_ArgumentKind.nil.index);
     } else if (arg is String) {
       serializer
-        ..addNum(_ArgumentKind.string.index)
+        ..addInt(_ArgumentKind.string.index)
         ..addString(arg);
-    } else if (arg is num) {
+    } else if (arg is int) {
       serializer
-        ..addNum(_ArgumentKind.num.index)
-        ..addNum(arg);
+        ..addInt(_ArgumentKind.int.index)
+        ..addInt(arg);
+    } else if (arg is double) {
+      serializer
+        ..addInt(_ArgumentKind.double.index)
+        ..addDouble(arg);
     } else if (arg is bool) {
       serializer
-        ..addNum(_ArgumentKind.bool.index)
+        ..addInt(_ArgumentKind.bool.index)
         ..addBool(arg);
     } else if (arg is List) {
       serializer
-        ..addNum(_ArgumentKind.list.index)
+        ..addInt(_ArgumentKind.list.index)
         ..startList();
       for (Object? item in arg) {
         _serializeArg(item, serializer);
@@ -204,7 +199,7 @@ class Arguments implements Serializable {
       serializer.endList();
     } else if (arg is Map) {
       serializer
-        ..addNum(_ArgumentKind.map.index)
+        ..addInt(_ArgumentKind.map.index)
         ..startList();
       for (MapEntry<Object?, Object?> entry in arg.entries) {
         _serializeArg(entry.key, serializer);
@@ -215,6 +210,45 @@ class Arguments implements Serializable {
       throw new UnsupportedError('Unsupported argument type $arg');
     }
   }
+}
+
+/// A resolved [Identifier], this is used when creating augmentation libraries
+/// to qualify identifiers where needed.
+class ResolvedIdentifier extends Identifier {
+  /// The import URI for the library that defines the member that is referenced
+  /// by this identifier.
+  ///
+  /// If this identifier is an instance member or a built-in type, like
+  /// `void`, [uri] is `null`.
+  final Uri? uri;
+
+  /// Type of identifier this is (instance, static, top level).
+  final IdentifierKind kind;
+
+  /// The unqualified name of this identifier.
+  @override
+  final String name;
+
+  /// If this is a static member, then the name of the fully qualified scope
+  /// surrounding this member. Should not contain a trailing `.`.
+  ///
+  /// Typically this would just be the name of a type.
+  final String? staticScope;
+
+  ResolvedIdentifier({
+    required this.kind,
+    required this.name,
+    required this.staticScope,
+    required this.uri,
+  });
+}
+
+/// The types of identifiers.
+enum IdentifierKind {
+  instanceMember,
+  local, // Parameters, local variables, etc.
+  staticInstanceMember,
+  topLevelMember,
 }
 
 /// An opaque identifier for a macro class, retrieved by
@@ -243,12 +277,16 @@ abstract class MacroInstanceIdentifier implements Serializable {
 /// All modifications are expressed in terms of library augmentation
 /// declarations.
 abstract class MacroExecutionResult implements Serializable {
-  /// Any library imports that should be added to support the code used in
-  /// the augmentations.
-  Iterable<DeclarationCode> get imports;
+  /// Any augmentations that should be applied to a class as a result of
+  /// executing a macro, indexed by the name of the class.
+  Map<String, Iterable<DeclarationCode>> get classAugmentations;
 
-  /// Any augmentations that should be applied as a result of executing a macro.
-  Iterable<DeclarationCode> get augmentations;
+  /// Any augmentations that should be applied to the library as a result of
+  /// executing a macro.
+  Iterable<DeclarationCode> get libraryAugmentations;
+
+  /// The names of any new types declared in [augmentations].
+  Iterable<String> get newTypeNames;
 }
 
 /// Each of the possible types of declarations a macro can be applied to
@@ -274,4 +312,4 @@ enum Phase {
 }
 
 /// Used for serializing and deserializing arguments.
-enum _ArgumentKind { string, bool, num, list, map, nil }
+enum _ArgumentKind { string, bool, double, int, list, map, nil }

@@ -69,6 +69,10 @@ abstract class DartType {
   /// dart:core library.
   bool get isDartCoreDouble;
 
+  /// Return `true` if this type represents the type 'Enum' defined in the
+  /// dart:core library.
+  bool get isDartCoreEnum;
+
   /// Return `true` if this type represents the type 'Function' defined in the
   /// dart:core library.
   bool get isDartCoreFunction;

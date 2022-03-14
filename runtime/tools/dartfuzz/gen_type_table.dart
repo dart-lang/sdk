@@ -1364,7 +1364,7 @@ void visitCompilationUnit(
   // classes. Note that `types` only returns classes. You can use
   // `mixins` to visit mixins, `enums` to visit enum, `functionTypeAliases`
   // to visit typedefs, etc.
-  for (var classElement in unit.types) {
+  for (var classElement in unit.classes) {
     if (classElement.isPublic) {
       // Hack: Filter out some difficult types, abstract types and types that
       // have methods with abstract type parameters.

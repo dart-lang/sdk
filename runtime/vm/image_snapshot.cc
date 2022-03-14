@@ -1294,97 +1294,31 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // CFA = Canonical frame address
   assembly_stream_->WriteString(".cfi_startproc\n");
 
-#if defined(TARGET_ARCH_X64)
-  assembly_stream_->WriteString(".cfi_def_cfa rbp, 0\n");  // CFA is fp+0
-  assembly_stream_->WriteString(
-      ".cfi_offset rbp, 0\n");  // saved fp is *(CFA+0)
-  assembly_stream_->WriteString(
-      ".cfi_offset rip, 8\n");  // saved pc is *(CFA+8)
-  // saved sp is CFA+16
-  // Would prefer to use ".cfi_value_offset sp, 16", but this requires gcc
-  // newer than late 2016. Can't emit .cfi_value_offset using .cfi_scape
-  // because DW_CFA_val_offset uses scaled operand and we don't know what
-  // data alignment factor will be choosen by the assembler when emitting CIE.
-  // DW_CFA_expression          0x10
-  // uleb128 register (rsp)        7   (DWARF register number)
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend               16
-  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
+  // Below .cfi_def_cfa defines CFA as caller's SP, while .cfi_offset R, offs
+  // tells unwinder that caller's value of register R is stored at address
+  // CFA+offs.
 
+#if defined(TARGET_ARCH_X64)
+  assembly_stream_->WriteString(".cfi_def_cfa rbp, 16\n");
+  assembly_stream_->WriteString(".cfi_offset rbp, -16\n");
+  assembly_stream_->WriteString(".cfi_offset rip, -8\n");
 #elif defined(TARGET_ARCH_ARM64)
   COMPILE_ASSERT(R29 == FP);
   COMPILE_ASSERT(R30 == LINK_REGISTER);
-  assembly_stream_->WriteString(".cfi_def_cfa x29, 0\n");  // CFA is fp+0
-  assembly_stream_->WriteString(
-      ".cfi_offset x29, 0\n");  // saved fp is *(CFA+0)
-  assembly_stream_->WriteString(
-      ".cfi_offset x30, 8\n");  // saved pc is *(CFA+8)
-  // saved sp is CFA+16
-  // Would prefer to use ".cfi_value_offset sp, 16", but this requires gcc
-  // newer than late 2016. Can't emit .cfi_value_offset using .cfi_scape
-  // because DW_CFA_val_offset uses scaled operand and we don't know what
-  // data alignment factor will be choosen by the assembler when emitting CIE.
-#if defined(DART_TARGET_OS_ANDROID)
-  // On Android libunwindstack has a bug (b/191113792): it does not push
-  // CFA value to the expression stack before evaluating expression given
-  // to DW_CFA_expression. We have to workaround this bug by manually pushing
-  // CFA (R11) to the stack using DW_OP_breg29 0.
-  // DW_CFA_expression          0x10
-  // uleb128 register (x31)       31
-  // uleb128 size of operation     4
-  // DW_OP_breg11               0x8d (0x70 + 29)
-  // sleb128 offset                0
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend               16
-  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 4, 0x8d, 0, 0x23, 16\n");
-#else
-  // DW_CFA_expression          0x10
-  // uleb128 register (x31)       31
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend               16
-  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
-#endif
-
+  assembly_stream_->WriteString(".cfi_def_cfa x29, 16\n");
+  assembly_stream_->WriteString(".cfi_offset x29, -16\n");
+  assembly_stream_->WriteString(".cfi_offset x30, -8\n");
 #elif defined(TARGET_ARCH_ARM)
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R7);
-  assembly_stream_->WriteString(".cfi_def_cfa r7, 0\n");  // CFA is fp+0
-  assembly_stream_->WriteString(".cfi_offset r7, 0\n");  // saved fp is *(CFA+0)
+  assembly_stream_->WriteString(".cfi_def_cfa r7, 8\n");
+  assembly_stream_->WriteString(".cfi_offset r7, -8\n");
 #else
   COMPILE_ASSERT(FP == R11);
-  assembly_stream_->WriteString(".cfi_def_cfa r11, 0\n");  // CFA is fp+0
-  assembly_stream_->WriteString(
-      ".cfi_offset r11, 0\n");  // saved fp is *(CFA+0)
+  assembly_stream_->WriteString(".cfi_def_cfa r11, 8\n");
+  assembly_stream_->WriteString(".cfi_offset r11, -8\n");
 #endif
-  assembly_stream_->WriteString(".cfi_offset lr, 4\n");  // saved pc is *(CFA+4)
-  // saved sp is CFA+8
-  // Would prefer to use ".cfi_value_offset sp, 16", but this requires gcc
-  // newer than late 2016. Can't emit .cfi_value_offset using .cfi_scape
-  // because DW_CFA_val_offset uses scaled operand and we don't know what
-  // data alignment factor will be choosen by the assembler when emitting CIE.
-#if defined(DART_TARGET_OS_ANDROID)
-  // On Android libunwindstack has a bug (b/191113792): it does not push
-  // CFA value to the expression stack before evaluating expression given
-  // to DW_CFA_expression. We have to workaround this bug by manually pushing
-  // CFA (R11) to the stack using DW_OP_breg11 0.
-  // DW_CFA_expression          0x10
-  // uleb128 register (sp)        13
-  // uleb128 size of operation     4
-  // DW_OP_breg11               0x7b (0x70 + 11)
-  // sleb128 offset                0
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend                8
-  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 4, 0x7b, 0, 0x23, 16\n");
-#else
-  // DW_CFA_expression          0x10
-  // uleb128 register (sp)        13
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend                8
-  assembly_stream_->WriteString(".cfi_escape 0x10, 13, 2, 0x23, 8\n");
-#endif
+  assembly_stream_->WriteString(".cfi_offset lr, -4\n");
 
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
 #if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)

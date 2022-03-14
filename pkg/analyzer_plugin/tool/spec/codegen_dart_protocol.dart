@@ -713,10 +713,20 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         writeln('}');
         return true;
       case 'SourceChange':
-        docComment(
-            [dom.Text('Adds [edit] to the [FileEdit] for the given [file].')]);
-        writeln('void addEdit(String file, int fileStamp, SourceEdit edit) =>');
-        writeln('    addEditToSourceChange(this, file, fileStamp, edit);');
+        docComment([
+          dom.Element.tag('p')
+            ..append(dom.Text(
+                'Adds [edit] to the [FileEdit] for the given [file].')),
+          dom.Element.tag('p')
+            ..append(dom.Text(
+                'If [insertBeforeExisting] is `true`, inserts made at the '
+                'same offset as other edits will be inserted such that they '
+                'appear before them in the resulting document.')),
+        ]);
+        writeln('void addEdit(String file, int fileStamp, SourceEdit edit, '
+            '{bool insertBeforeExisting = false}) =>');
+        writeln('    addEditToSourceChange(this, file, fileStamp, edit, '
+            'insertBeforeExisting: insertBeforeExisting);');
         writeln();
         docComment([dom.Text('Adds the given [FileEdit].')]);
         writeln('void addFileEdit(SourceFileEdit edit) {');
@@ -745,12 +755,32 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         writeln('String apply(String code) => applyEdit(code, this);');
         return true;
       case 'SourceFileEdit':
-        docComment([dom.Text('Adds the given [Edit] to the list.')]);
-        writeln('void add(SourceEdit edit) => addEditForSource(this, edit);');
+        docComment([
+          dom.Element.tag('p')
+            ..append(dom.Text('Adds the given [Edit] to the list.')),
+          dom.Element.tag('p')
+            ..append(dom.Text(
+                'If [insertBeforeExisting] is `true`, inserts made at the '
+                'same offset as other edits will be inserted such that they '
+                'appear before them in the resulting document.')),
+        ]);
+        writeln('void add(SourceEdit edit, '
+            '{bool insertBeforeExisting = false}) =>');
+        writeln('    addEditForSource(this, edit, '
+            'insertBeforeExisting: insertBeforeExisting);');
         writeln();
-        docComment([dom.Text('Adds the given [Edit]s.')]);
-        writeln('void addAll(Iterable<SourceEdit> edits) =>');
-        writeln('    addAllEditsForSource(this, edits);');
+        docComment([
+          dom.Element.tag('p')..append(dom.Text('Adds the given [Edit]s.')),
+          dom.Element.tag('p')
+            ..append(dom.Text(
+                'If [insertBeforeExisting] is `true`, inserts made at the '
+                'same offset as other edits will be inserted such that they '
+                'appear before them in the resulting document.')),
+        ]);
+        writeln('void addAll(Iterable<SourceEdit> edits, '
+            '{bool insertBeforeExisting = false}) =>');
+        writeln('    addAllEditsForSource(this, edits, '
+            'insertBeforeExisting: insertBeforeExisting);');
         return true;
       default:
         return false;

@@ -47,10 +47,11 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
         case ExtensionMemberKind.Method:
           if (descriptor.isStatic) {
             Procedure procedure = descriptor.member.asProcedure;
-            scopeBuilder.addMember(
+            scope.addLocalMember(
                 name.text,
                 new DillExtensionStaticMethodBuilder(
-                    procedure, descriptor, this));
+                    procedure, descriptor, this),
+                setter: false);
           } else {
             _methods[name] = descriptor;
           }
@@ -60,23 +61,27 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
           break;
         case ExtensionMemberKind.Getter:
           Procedure procedure = descriptor.member.asProcedure;
-          scopeBuilder.addMember(name.text,
-              new DillExtensionGetterBuilder(procedure, descriptor, this));
+          scope.addLocalMember(name.text,
+              new DillExtensionGetterBuilder(procedure, descriptor, this),
+              setter: false);
           break;
         case ExtensionMemberKind.Field:
           Field field = descriptor.member.asField;
-          scopeBuilder.addMember(name.text,
-              new DillExtensionFieldBuilder(field, descriptor, this));
+          scope.addLocalMember(
+              name.text, new DillExtensionFieldBuilder(field, descriptor, this),
+              setter: false);
           break;
         case ExtensionMemberKind.Setter:
           Procedure procedure = descriptor.member.asProcedure;
-          scopeBuilder.addSetter(name.text,
-              new DillExtensionSetterBuilder(procedure, descriptor, this));
+          scope.addLocalMember(name.text,
+              new DillExtensionSetterBuilder(procedure, descriptor, this),
+              setter: true);
           break;
         case ExtensionMemberKind.Operator:
           Procedure procedure = descriptor.member.asProcedure;
-          scopeBuilder.addMember(name.text,
-              new DillExtensionOperatorBuilder(procedure, descriptor, this));
+          scope.addLocalMember(name.text,
+              new DillExtensionOperatorBuilder(procedure, descriptor, this),
+              setter: false);
           break;
       }
     }
@@ -84,10 +89,11 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
       Procedure procedure = descriptor.member.asProcedure;
       assert(_tearOffs.containsKey(name),
           "No tear found for ${descriptor} in ${_tearOffs}");
-      scopeBuilder.addMember(
+      scope.addLocalMember(
           name.text,
           new DillExtensionInstanceMethodBuilder(
-              procedure, descriptor, this, _tearOffs[name]!));
+              procedure, descriptor, this, _tearOffs[name]!),
+          setter: false);
     });
   }
 

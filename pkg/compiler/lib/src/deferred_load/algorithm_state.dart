@@ -11,7 +11,7 @@ import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
 import '../kernel/element_map.dart';
-import '../world.dart' show KClosedWorld;
+import '../kernel/kernel_world.dart';
 
 /// Manages the state of the [EntityData] model. Every class, member, constant,
 /// etc, is wrapped in the deferred loading algorithm by an [EntityData] which

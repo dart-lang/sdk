@@ -20,7 +20,7 @@ import '../utils.dart';
 import '../vm_interop_handler.dart';
 
 class RunCommand extends DartdevCommand {
-  static const bool isProductMode = bool.fromEnvironment("dart.vm.product");
+  static const bool isProductMode = bool.fromEnvironment('dart.vm.product');
   static const String cmdName = 'run';
 
   // kErrorExitCode, as defined in runtime/bin/error_exit.h

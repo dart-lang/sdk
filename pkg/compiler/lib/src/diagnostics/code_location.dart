@@ -18,7 +18,7 @@ abstract class CodeLocation {
   String relativize(Uri baseUri);
 
   factory CodeLocation(Uri uri) {
-    if (uri.scheme == 'package') {
+    if (uri.isScheme('package')) {
       int slashPos = uri.path.indexOf('/');
       if (slashPos != -1) {
         String packageName = uri.path.substring(0, slashPos);
@@ -42,7 +42,7 @@ class SchemeLocation implements CodeLocation {
 
   @override
   bool inSameLocation(Uri uri) {
-    return this.uri.scheme == uri.scheme;
+    return this.uri.isScheme(uri.scheme);
   }
 
   @override
@@ -62,7 +62,7 @@ class PackageLocation implements CodeLocation {
 
   @override
   bool inSameLocation(Uri uri) {
-    return uri.scheme == 'package' && uri.path.startsWith('$packageName/');
+    return uri.isScheme('package') && uri.path.startsWith('$packageName/');
   }
 
   @override

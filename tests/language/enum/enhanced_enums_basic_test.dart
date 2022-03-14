@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=enhanced-enums
-
 // Test new enhanced enum syntax.
 
 import 'package:expect/expect.dart';
@@ -19,10 +17,10 @@ void main() {
   Expect.identical(EnumPlainTrailingComma.v2, EnumPlainTrailingComma.values[1]);
   Expect.identical(EnumPlainTrailingComma.v3, EnumPlainTrailingComma.values[2]);
 
-  Expect.equals(3, EnumPlainNoSemicolon.values.length);
-  Expect.identical(EnumPlainNoSemicolon.v1, EnumPlainNoSemicolon.values[0]);
-  Expect.identical(EnumPlainNoSemicolon.v2, EnumPlainNoSemicolon.values[1]);
-  Expect.identical(EnumPlainNoSemicolon.v3, EnumPlainNoSemicolon.values[2]);
+  Expect.equals(3, EnumNoSemicolon.values.length);
+  Expect.identical(EnumNoSemicolon.v1, EnumNoSemicolon.values[0]);
+  Expect.identical(EnumNoSemicolon.v2, EnumNoSemicolon.values[1]);
+  Expect.identical(EnumNoSemicolon.v3, EnumNoSemicolon.values[2]);
   Expect.type<EnumNoSemicolon<num>>(EnumNoSemicolon.v1);
 
   Expect.equals(3, EnumPlainSemicolon.values.length);
@@ -69,13 +67,13 @@ void main() {
   Expect.identical(EnumAll.v1, EnumAll.sLateFinal);
   Expect.throws(() => EnumAll.sLateFinal = EnumAll.v1);
 
-  Expect.identical(EnumAll.v3, EnumAll.sFinalInit);
+  Expect.identical(EnumAll.v3, EnumAll.sFinal);
 
-  Expect.throws(() => EnumAll.sLate);
-  EnumAll.sLate = EnumAll.v1;
-  Expect.identical(EnumAll.v1, EnumAll.sLate);
-  EnumAll.sLate = EnumAll.v3;
-  Expect.identical(EnumAll.v3, EnumAll.sLate);
+  Expect.throws(() => EnumAll.sLateVar);
+  EnumAll.sLateVar = EnumAll.v1;
+  Expect.identical(EnumAll.v1, EnumAll.sLateVar);
+  EnumAll.sLateVar = EnumAll.v3;
+  Expect.identical(EnumAll.v3, EnumAll.sLateVar);
   Expect.identical(EnumAll.v3, EnumAll.sLateVarInit);
   Expect.isNull(EnumAll.sVar);
   Expect.identical(EnumAll.v3, EnumAll.sVarInit);
@@ -84,30 +82,30 @@ void main() {
   EnumAll.staticGetSet = EnumAll.v5;
   Expect.equals(42, EnumAll.staticMethod());
 
-  Expect.identical(EnumAll.v2, EnumAll<num, num>.factory(2));
-  Expect.identical(EnumAll.v2, EnumAll<num, num>.refactory(2));
+  Expect.identical(EnumAll.v3, EnumAll<num, num>.factory(2));
+  Expect.identical(EnumAll.v3, EnumAll<num, num>.refactory(2));
 
   // Access static members through typedef.
   Expect.identical(EnumAll.v3, TypeDefAll.sConst);
   Expect.identical(EnumAll.v3, TypeDefAll.sFinal);
-  Expect.identical(EnumAll.v1, TypedefAll.sLateFinal);
-  Expect.identical(EnumAll.v3, TypedefAll.sFinalInit);
+  Expect.identical(EnumAll.v1, TypeDefAll.sLateFinal);
+  Expect.identical(EnumAll.v3, TypeDefAll.sLateFinalInit);
 
   Expect.identical(EnumAll.v3, TypeDefAll.staticGetSet);
   TypeDefAll.staticGetSet = EnumAll.v5;
   Expect.equals(42, TypeDefAll.staticMethod());
 
-  Expect.identical(EnumAll.v2, TypeDefAll.factory(2));
-  Expect.identical(EnumAll.v2, TypeDefAll.refactory(2));
+  Expect.identical(EnumAll.v3, TypeDefAll.factory(2));
+  Expect.identical(EnumAll.v3, TypeDefAll.refactory(2));
 
   // Access instance members.
   Expect.equals(0, EnumAll.v1.instanceGetSet);
   EnumAll.v1.instanceGetSet = 0.5;
   Expect.equals(0, EnumAll.v1.instanceMethod());
-  Expect.identical(EnumAll.v1, EnumAll.v3 ^ EnumAll.v2);
+  Expect.identical(EnumAll.v4, EnumAll.v3 ^ EnumAll.v2);
 
-  Expect.equals("EnumAll.v1:EnumMixin<num>:ObjectMixin:this",
-      EnumAll.v1.thisAndSuper());
+  Expect.equals(
+      "EnumAll.v1:EnumMixin<num>:ObjectMixin:this", EnumAll.v1.thisAndSuper());
 
   // Which can reference type parameters.
   Expect.isTrue(EnumAll.v2.test(2)); // does `is T` with `T` being `int`.
@@ -127,26 +125,23 @@ void main() {
   // But you can call extension members if there is no conflict.
   Expect.equals("extension", EnumAll.v1.extension);
 
-  // The `index` and `toString` implementations are inherited from
-  // the `Enum` implementing superclass.
-  Expect.equals(3.5, StringIndexEnum.v1.index);
-  Expect.equals(3.5, StringIndexEnum.v2.index);
-  Expect.equals(0, StringIndexEnum.v1.realIndex);
-  Expect.equals(1, StringIndexEnum.v2.realIndex);
-  Expect.equals("FakeString", StringIndexEnum.v1.toString());
-  Expect.equals("FakeString", StringIndexEnum.v2.toString());
-  Expect.equals("StringIndexEnum.v1", StringIndexEnum.v1.realToString());
-  Expect.equals("StringIndexEnum.v2", StringIndexEnum.v2.realToString());
+  // The `index` implementation is inherited from the `Enum` implementing
+  // superclass, and the `toString` implementation is overridden, but
+  // available via `realToString`.
+  Expect.equals(0, OverrideEnum.v1.index);
+  Expect.equals(1, OverrideEnum.v2.index);
+  Expect.equals(0, OverrideEnum.v1.superIndex);
+  Expect.equals(1, OverrideEnum.v2.superIndex);
+  Expect.equals("FakeString", OverrideEnum.v1.toString());
+  Expect.equals("FakeString", OverrideEnum.v2.toString());
+  Expect.equals("OverrideEnum.v1", OverrideEnum.v1.realToString());
+  Expect.equals("OverrideEnum.v2", OverrideEnum.v2.realToString());
 
   // Enum elements are always distinct, even if their state doesn't differ.
-  Expect.distinct(Canonical.v1, Canonical.v2, "Canonical - type only");
-  Expect.distinct(Canonical.v2, Canonical.v3, "Canonical - no difference");
+  Expect.notIdentical(Canonical.v1, Canonical.v2, "Canonical - type only");
+  Expect.notIdentical(Canonical.v2, Canonical.v3, "Canonical - no difference");
 
-  // A `values` static constant is added only if *not* causing a conflict.
-  Expect.equals("StaticDeclaration", DeclaresValuesStatic.values);
-  Expect.equals("Declaration", DeclaresValues.v1.values);
-  Expect.equals("Mixin", InheritsValues.v1.values);
-  Expect.equals("NSM", ImplementsValues.v1.values);
+  Expect.identical(SelfRefEnum.e1, SelfRefEnum.e2.previous, "SelfRef.prev");
 }
 
 // Original syntax still works, without semicolon after values.
@@ -162,13 +157,18 @@ enum EnumPlainTrailingComma {
 // Also if using type parameters, mixins or interfaces.
 // It only matters whether there is something after the values.
 enum EnumNoSemicolon<T extends num> with ObjectMixin implements Interface {
-  v1, v2, v3
+  v1,
+  v2,
+  v3
 }
-
 
 // Allows semicolon after values, even when not needed.
 // Without trailing comma.
-enum EnumPlainSemicolon { v1, v2, v3; }
+enum EnumPlainSemicolon {
+  v1,
+  v2,
+  v3;
+}
 
 // With trailing comma.
 enum EnumPlainTrailingCommaSemicolon {
@@ -207,6 +207,7 @@ enum EnumAll<S extends num, T extends num>
   static late var sLateVarInit = v3;
   static EnumAll? sVar;
   static EnumAll sVarInit = v3;
+
   /// Static getters, setters and methods
   static EnumAll<int, int> get staticGetSet => v3;
   static set staticGetSet(EnumAll<int, int> _) {}
@@ -215,10 +216,13 @@ enum EnumAll<S extends num, T extends num>
   // Constructors.
   // Generative, non-redirecting, unnamed.
   const EnumAll({T? y})
-      : constructor = "unnamed", this.x = 0 as S, y = y ?? (0 as T);
+      : constructor = "unnamed",
+        this.x = 0 as S,
+        y = y ?? (0 as T);
   // Generative, non-redirecting, named.
   const EnumAll.named(this.x, {T? y, String? constructor})
-      : constructor = constructor ?? "named", y = y ?? (0 as T);
+      : constructor = constructor ?? "named",
+        y = y ?? (0 as T);
   // Generative, redirecting.
   const EnumAll.renamed(S x, {T? y})
       : this.named(x, y: y, constructor: "renamed");
@@ -251,15 +255,14 @@ enum EnumAll<S extends num, T extends num>
     return values[newIndex]; // Can refer to `values`.
   }
 
-  // Can have non-primitive equality and hashCode.
-  int get hashCode => index;
-  bool operator==(covariant EnumAll other) => index == other.index;
-
   // Can access `this` and `super` in an instance method.
   String thisAndSuper() => "${super.toString()}:${this.toString()}";
 
   // Can be callable.
   T call<T>(T value) => value;
+
+  // Can have an `index` setter.
+  set index(int value) {}
 
   // Instance members shadow extensions.
   String get notExtension => "not extension";
@@ -268,7 +271,11 @@ enum EnumAll<S extends num, T extends num>
 }
 
 extension EnumAllExtension on EnumAll {
-  String get notExtension => Expect.fail("Unreachable");
+  String get notExtension {
+    Expect.fail("Unreachable");
+    return "not";
+  }
+
   String get extension => "extension";
 }
 
@@ -280,7 +287,13 @@ enum EnumNoUnnamedConstructor {
   v2.named(2);
 
   final int x;
-  EnumNoUnnamedConstructor.named(this.x);
+  const EnumNoUnnamedConstructor.named(this.x);
+}
+
+enum NewNamedConstructor {
+  v1;
+
+  const NewNamedConstructor.new();
 }
 
 // Can have an unnamed factory constructor.
@@ -290,7 +303,7 @@ enum EnumFactoryUnnamedConstructor {
 
   final int x;
   factory EnumFactoryUnnamedConstructor() => v1;
-  EnumFactoryUnnamedConstructor.named(this.x);
+  const EnumFactoryUnnamedConstructor.named(this.x);
 }
 
 // Elements which do not differ in public state are still different.
@@ -299,36 +312,29 @@ enum Canonical<T> {
   v1<int>(1),
   v2<num>(1),
   v3<num>(1);
+
   final T value;
-  Canonical(this.value);
+  const Canonical(this.value);
 }
 
 // Both `toString` and `index` are inherited from superclass.
-enum StringIndexEnum {
-  v1, v2;
-  num get index => 3.5;
-  int get realIndex => super.index;
+enum OverrideEnum {
+  v1,
+  v2;
+
+  // Cannot override index
+  int get superIndex => super.index;
   String toString() => "FakeString";
   String realToString() => super.toString();
 }
 
-enum DeclaresValuesStatic {
-  v1;
-  static String get values => "StaticDeclaration";
-}
+// An enum value expression *can* reference another enum value.
+enum SelfRefEnum {
+  e1(null),
+  e2(e1);
 
-enum DeclaresValues {
-  v1;
-  String get values => "Declaration";
-}
-
-enum InheritsValues with ValuesMixin {
-  v1;
-}
-
-enum ImplementsValues implements ValuesInterface {
-  v1;
-  dynamic noSuchMethod(i) => "NSM";
+  final SelfRefEnum? previous;
+  const SelfRefEnum(this.previous);
 }
 
 // --------------------------------------------------------------------
@@ -352,19 +358,9 @@ mixin GenericEnumMixin<T> on Enum {
   String toString() => "${super.toString()}:EnumMixin<$T>";
 }
 
-abstract class Interface {
-
-}
+abstract class Interface {}
 
 abstract class GenericInterface<T> {
   // Implemented by mixins.
   bool test(Object o);
-}
-
-abstract class ValuesInterface {
-  String get values;
-}
-
-mixin ValuesMixin {
-  String get values => "Mixin";
 }

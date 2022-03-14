@@ -123,10 +123,13 @@ class SummaryDataStore {
 
   /// Create a [SummaryDataStore] and populate it with the summaries in
   /// [summaryPaths].
+  @Deprecated('Use tmp() and addBundle() instead')
   SummaryDataStore(Iterable<String> summaryPaths,
       {ResourceProvider? resourceProvider}) {
     summaryPaths.forEach((String path) => _fillMaps(path, resourceProvider));
   }
+
+  SummaryDataStore.tmp();
 
   /// Add the given [bundle] loaded from the file with the given [path].
   void addBundle(String? path, PackageBundleReader bundle) {

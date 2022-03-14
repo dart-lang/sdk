@@ -368,14 +368,6 @@ abstract class B extends A {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess(
-        findNode.propertyAccess('super.foo'),
-        findElement.setter('foo', of: 'A'),
-        'int',
-      );
-    }
   }
 
   test_propertyAccess_setter_mixin_implements() async {
@@ -432,14 +424,6 @@ class B extends Object with A {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess(
-        findNode.propertyAccess('super.foo'),
-        findElement.setter('foo', of: 'A'),
-        'int',
-      );
-    }
   }
 
   test_propertyAccess_setter_superHasNoSuchMethod() async {
@@ -466,14 +450,6 @@ class B extends A {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess(
-        findNode.propertyAccess('super.foo'),
-        findElement.setter('foo', of: 'A'),
-        'int',
-      );
-    }
   }
 
   test_propertyAccess_setter_superSuperHasConcrete() async {
@@ -504,13 +480,5 @@ class C extends B {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess(
-        findNode.propertyAccess('super.foo'),
-        findElement.setter('foo', of: 'A'),
-        'int',
-      );
-    }
   }
 }

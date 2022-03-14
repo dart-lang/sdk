@@ -172,15 +172,13 @@ void defineAnalysisError() {
 }
 
 void defineAnalyze() {
-  TestProject? p;
+  late TestProject p;
 
-  setUp(() => p = null);
-
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   test('--help', () async {
     p = project();
-    var result = await p!.run(['analyze', '--help']);
+    var result = await p.run(['analyze', '--help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -190,7 +188,7 @@ void defineAnalyze() {
 
   test('--help --verbose', () async {
     p = project();
-    var result = await p!.run(['analyze', '--help', '--verbose']);
+    var result = await p.run(['analyze', '--help', '--verbose']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -206,8 +204,7 @@ void defineAnalyze() {
     test('folder and file', () async {
       p = project(mainSrc: "int get foo => 'str';\n");
       secondProject = project(mainSrc: "int get foo => 'str';\n");
-      var result =
-          await p!.run(['analyze', p!.dirPath, secondProject.mainPath]);
+      var result = await p.run(['analyze', p.dirPath, secondProject.mainPath]);
 
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
@@ -220,7 +217,7 @@ void defineAnalyze() {
     test('two folders', () async {
       p = project(mainSrc: "int get foo => 'str';\n");
       secondProject = project(mainSrc: "int get foo => 'str';\n");
-      var result = await p!.run(['analyze', p!.dirPath, secondProject.dirPath]);
+      var result = await p.run(['analyze', p.dirPath, secondProject.dirPath]);
 
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
@@ -233,7 +230,7 @@ void defineAnalyze() {
 
   test('no such directory', () async {
     p = project();
-    var result = await p!.run(['analyze', '/no/such/dir1/']);
+    var result = await p.run(['analyze', '/no/such/dir1/']);
 
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
@@ -245,7 +242,7 @@ void defineAnalyze() {
   test('current working directory', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = await p!.run(['analyze'], workingDir: p!.dirPath);
+    var result = await p.run(['analyze'], workingDir: p.dirPath);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -255,7 +252,7 @@ void defineAnalyze() {
   group('single directory', () {
     test('no errors', () async {
       p = project(mainSrc: 'int get foo => 1;\n');
-      var result = await p!.run(['analyze', p!.dirPath]);
+      var result = await p.run(['analyze', p.dirPath]);
 
       expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
@@ -264,7 +261,7 @@ void defineAnalyze() {
 
     test('one error', () async {
       p = project(mainSrc: "int get foo => 'str';\n");
-      var result = await p!.run(['analyze', p!.dirPath]);
+      var result = await p.run(['analyze', p.dirPath]);
 
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
@@ -276,7 +273,7 @@ void defineAnalyze() {
 
     test('two errors', () async {
       p = project(mainSrc: "int get foo => 'str';\nint get bar => 'str';\n");
-      var result = await p!.run(['analyze', p!.dirPath]);
+      var result = await p.run(['analyze', p.dirPath]);
 
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
@@ -287,7 +284,7 @@ void defineAnalyze() {
   group('single file', () {
     test('no errors', () async {
       p = project(mainSrc: 'int get foo => 1;\n');
-      var result = await p!.run(['analyze', p!.mainPath]);
+      var result = await p.run(['analyze', p.mainPath]);
 
       expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
@@ -296,7 +293,7 @@ void defineAnalyze() {
 
     test('one error', () async {
       p = project(mainSrc: "int get foo => 'str';\n");
-      var result = await p!.run(['analyze', p!.mainPath]);
+      var result = await p.run(['analyze', p.mainPath]);
 
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
@@ -311,7 +308,7 @@ void defineAnalyze() {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = await p!.run(['analyze', '--fatal-warnings', p!.dirPath]);
+    var result = await p.run(['analyze', '--fatal-warnings', p.dirPath]);
 
     expect(result.exitCode, equals(2));
     expect(result.stderr, isEmpty);
@@ -322,7 +319,7 @@ void defineAnalyze() {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = await p!.run(['analyze', p!.dirPath]);
+    var result = await p.run(['analyze', p.dirPath]);
 
     expect(result.exitCode, equals(2));
     expect(result.stderr, isEmpty);
@@ -333,7 +330,7 @@ void defineAnalyze() {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = await p!.run(['analyze', '--no-fatal-warnings', p!.dirPath]);
+    var result = await p.run(['analyze', '--no-fatal-warnings', p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -342,7 +339,7 @@ void defineAnalyze() {
 
   test('info implicit no --fatal-infos', () async {
     p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
-    var result = await p!.run(['analyze', p!.dirPath]);
+    var result = await p.run(['analyze', p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -351,7 +348,7 @@ void defineAnalyze() {
 
   test('info --fatal-infos', () async {
     p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
-    var result = await p!.run(['analyze', '--fatal-infos', p!.dirPath]);
+    var result = await p.run(['analyze', '--fatal-infos', p.dirPath]);
 
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
@@ -365,7 +362,7 @@ int f() {
   var one = 1;
   return result;
 }''');
-    var result = await p!.run(['analyze', '--verbose', p!.dirPath]);
+    var result = await p.run(['analyze', '--verbose', p.dirPath]);
 
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
@@ -387,7 +384,7 @@ import 'package:foo/foo.dart';
 void f() {
   my_foo;
 }''');
-      p!.file('my_packages.json', '''
+      p.file('my_packages.json', '''
 {
   "configVersion": 2,
   "packages": [
@@ -400,10 +397,10 @@ void f() {
   ]
 }
 ''');
-      var result = await p!.run([
+      var result = await p.run([
         'analyze',
-        '--packages=${p!.findFile('my_packages.json')!.path}',
-        p!.dirPath,
+        '--packages=${p.findFile('my_packages.json')!.path}',
+        p.dirPath,
       ]);
 
       expect(result.exitCode, 0);
@@ -413,10 +410,10 @@ void f() {
 
     test('not existing', () async {
       p = project();
-      var result = await p!.run([
+      var result = await p.run([
         'analyze',
         '--packages=no.such.file',
-        p!.dirPath,
+        p.dirPath,
       ]);
 
       expect(result.exitCode, 64);
@@ -429,10 +426,10 @@ void f() {
     var cache = project(name: 'cache');
 
     p = project(mainSrc: 'var v = 0;');
-    var result = await p!.run([
+    var result = await p.run([
       'analyze',
       '--cache=${cache.dirPath}',
-      p!.mainPath,
+      p.mainPath,
     ]);
 
     expect(result.exitCode, 0);

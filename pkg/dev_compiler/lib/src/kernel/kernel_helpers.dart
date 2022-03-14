@@ -92,7 +92,7 @@ bool isBuiltinAnnotation(
   var c = getAnnotationClass(value);
   if (c != null && c.name == className) {
     var uri = c.enclosingLibrary.importUri;
-    return uri.scheme == 'dart' && uri.path == libraryName;
+    return uri.isScheme('dart') && uri.path == libraryName;
   }
   return false;
 }
@@ -223,7 +223,7 @@ bool isCovariantField(Field f) {
 ///
 /// `dart:html` has many of these.
 bool isUnsupportedFactoryConstructor(Procedure node) {
-  if (node.name.isPrivate && node.enclosingLibrary.importUri.scheme == 'dart') {
+  if (node.name.isPrivate && node.enclosingLibrary.importUri.isScheme('dart')) {
     var body = node.function.body;
     if (body is Block) {
       var statements = body.statements;
@@ -365,4 +365,4 @@ bool _isNativeMarkerAnnotation(Expression annotation) {
 }
 
 bool _isDartInternal(Uri uri) =>
-    uri.scheme == 'dart' && uri.path == '_internal';
+    uri.isScheme('dart') && uri.path == '_internal';

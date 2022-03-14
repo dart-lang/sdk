@@ -1272,6 +1272,11 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   ASSERT(memory_order == kRelaxedNonAtomic);
   str(value, dest);
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
@@ -1294,6 +1299,11 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
   ASSERT(memory_order == kRelaxedNonAtomic);
   str(value, dest, kObjectBytes);
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 

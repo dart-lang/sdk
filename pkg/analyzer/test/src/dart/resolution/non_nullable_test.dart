@@ -437,7 +437,7 @@ main() {
 class NullableTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   @override
-  bool get typeToStringWithNullability => true;
+  bool get isNullSafetyEnabled => true;
 
   test_class_hierarchy() async {
     await assertNoErrorsInCode('''

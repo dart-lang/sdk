@@ -585,6 +585,156 @@ import 'c.dart'; // c
 ''');
   }
 
+  Future<void> test_enum_accessor() async {
+    await _parseTestUnit(r'''
+enum E {
+  v;
+  set c(x) {}
+  set a(x) {}
+  get a => null;
+  get b => null;
+  set b(x) {}
+  get c => null;
+}
+''');
+    // validate change
+    _assertSort(r'''
+enum E {
+  v;
+  get a => null;
+  set a(x) {}
+  get b => null;
+  set b(x) {}
+  get c => null;
+  set c(x) {}
+}
+''');
+  }
+
+  Future<void> test_enum_accessor_static() async {
+    await _parseTestUnit(r'''
+enum E {
+  v;
+  get a => null;
+  set a(x) {}
+  static get b => null;
+  static set b(x) {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+enum E {
+  v;
+  static get b => null;
+  static set b(x) {}
+  get a => null;
+  set a(x) {}
+}
+''');
+  }
+
+  Future<void> test_enum_field_static() async {
+    await _parseTestUnit(r'''
+enum E {
+  v;
+  int b;
+  int a;
+  static int d;
+  static int c;
+}
+''');
+    // validate change
+    _assertSort(r'''
+enum E {
+  v;
+  static int d;
+  static int c;
+  int b;
+  int a;
+}
+''');
+  }
+
+  Future<void> test_enum_method() async {
+    await _parseTestUnit(r'''
+enum E {
+  v;
+  c() {}
+  a() {}
+  b() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+enum E {
+  v;
+  a() {}
+  b() {}
+  c() {}
+}
+''');
+  }
+
+  Future<void> test_enum_method_emptyLine() async {
+    await _parseTestUnit(r'''
+enum E {
+  v;
+
+  b() {}
+
+  a() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+enum E {
+  v;
+
+  a() {}
+
+  b() {}
+}
+''');
+  }
+
+  Future<void> test_enum_method_ignoreCase() async {
+    await _parseTestUnit(r'''
+enum E {
+  v;
+  m_C() {}
+  m_a() {}
+  m_B() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+enum E {
+  v;
+  m_a() {}
+  m_B() {}
+  m_C() {}
+}
+''');
+  }
+
+  Future<void> test_enum_method_static() async {
+    await _parseTestUnit(r'''
+enum E {
+  v;
+  static a() {}
+  b() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+enum E {
+  v;
+  b() {}
+  static a() {}
+}
+''');
+  }
+
   Future<void> test_extension_accessor() async {
     await _parseTestUnit(r'''
 extension E on int {

@@ -12,8 +12,9 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as ir
 import '../diagnostics/diagnostic_listener.dart';
 import '../diagnostics/messages.dart';
 import '../diagnostics/source_span.dart';
-import '../kernel/element_map_impl.dart';
+import '../kernel/element_map.dart';
 import '../environment.dart';
+import '../ir/impact_data.dart';
 import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
 import '../options.dart';
@@ -97,7 +98,7 @@ ModuleData computeModuleData(
     CompilerOptions options,
     DiagnosticReporter reporter,
     Environment environment,
-    KernelToElementMapImpl elementMap) {
+    KernelToElementMap elementMap) {
   var classHierarchy = elementMap.classHierarchy;
   var typeEnvironment = elementMap.typeEnvironment;
   var constantEvaluator = elementMap.constantEvaluator;

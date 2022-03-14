@@ -105,6 +105,7 @@ ObjectStore::ObjectStore()
                               EMIT_FIELD_INIT,
                               EMIT_FIELD_INIT,
                               EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
                               EMIT_FIELD_INIT)
 #undef EMIT_FIELD_INIT
       // Just to prevent a trailing comma.
@@ -140,7 +141,8 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 #define EMIT_FIELD_NAME(type, name) #name "_",
         OBJECT_STORE_FIELD_LIST(
             EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
-            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME)
+            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+            EMIT_FIELD_NAME)
 #undef EMIT_FIELD_NAME
     };
     ObjectPtr* current = from();
@@ -210,6 +212,15 @@ FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   return result.ptr();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static void DisableDebuggingAndInlining(const Function& function) {
+  if (FLAG_async_debugger) {
+    function.set_is_debuggable(false);
+    function.set_is_inlinable(false);
+  }
+}
+#endif  // DART_PRECOMPILED_RUNTIME
+
 void ObjectStore::InitKnownObjects() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -251,11 +262,16 @@ void ObjectStore::InitKnownObjects() {
                                      function_name, 0, 3, Object::null_array());
   ASSERT(!function.IsNull());
   set_complete_on_async_return(function);
-  if (FLAG_async_debugger) {
-    // Disable debugging and inlining the _CompleteOnAsyncReturn function.
-    function.set_is_debuggable(false);
-    function.set_is_inlinable(false);
-  }
+  DisableDebuggingAndInlining(function);
+
+  function_name =
+      async_lib.PrivateName(Symbols::_CompleteWithNoFutureOnAsyncReturn());
+  ASSERT(!function_name.IsNull());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 3, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_complete_with_no_future_on_async_return(function);
+  DisableDebuggingAndInlining(function);
 
   function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncError());
   ASSERT(!function_name.IsNull());
@@ -263,11 +279,7 @@ void ObjectStore::InitKnownObjects() {
                                      function_name, 0, 4, Object::null_array());
   ASSERT(!function.IsNull());
   set_complete_on_async_error(function);
-  if (FLAG_async_debugger) {
-    // Disable debugging and inlining the _CompleteOnAsyncError function.
-    function.set_is_debuggable(false);
-    function.set_is_inlinable(false);
-  }
+  DisableDebuggingAndInlining(function);
 
   cls =
       async_lib.LookupClassAllowPrivate(Symbols::_AsyncStarStreamController());
@@ -283,8 +295,7 @@ void ObjectStore::InitKnownObjects() {
       if (function.IsNull()) {
         break;
       }
-      function.set_is_debuggable(false);
-      function.set_is_inlinable(false);
+      DisableDebuggingAndInlining(function);
     }
   }
 
@@ -450,6 +461,13 @@ void ObjectStore::LazyInitAsyncMembers() {
     type ^= cls.RareType();
     non_nullable_future_rare_type_.store(type.ptr());
   }
+}
+
+void ObjectStore::LazyInitFfiMembers() {
+  auto* const thread = Thread::Current();
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
+  // TODO(http://dartbug.com/47777): Implement finalizers.
 }
 
 void ObjectStore::LazyInitIsolateMembers() {

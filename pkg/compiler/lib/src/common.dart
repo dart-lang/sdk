@@ -17,6 +17,5 @@ export 'diagnostics/spannable.dart'
         NO_LOCATION_SPANNABLE,
         Spannable,
         SpannableAssertionFailure;
-export 'helpers/helpers.dart';
 
 bool retainDataForTesting = false;

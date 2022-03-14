@@ -235,7 +235,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           ErrorCode errorCode = withClause == null
               ? CompileTimeErrorCode.EXTENDS_NON_CLASS
               : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
-          _resolveType(extendsClause.superclass2, errorCode, asClass: true);
+          _resolveType(extendsClause.superclass, errorCode, asClass: true);
         }
 
         _resolveWithClause(withClause);
@@ -265,7 +265,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         node.typeParameters?.accept(this);
 
         _resolveType(
-          node.superclass2,
+          node.superclass,
           CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS,
           asClass: true,
         );
@@ -409,6 +409,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     EnumElementImpl element = _elementWalker!.getEnum();
     node.name.staticElement = element;
+    _namedTypeResolver.enclosingClass = element;
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
@@ -418,12 +419,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
 
+        _resolveWithClause(node.withClause);
+        _resolveImplementsClause(node.implementsClause);
+
         _defineElements(element.accessors);
         _defineElements(element.methods);
         node.constants.accept(this);
         node.members.accept(this);
       });
     });
+
+    _namedTypeResolver.enclosingClass = null;
   }
 
   @override
@@ -774,7 +780,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var newNode = _astRewriter.instanceCreationExpression(_nameScope, node);
     if (newNode != node) {
-      if (node.constructorName.type2.typeArguments != null &&
+      if (node.constructorName.type.typeArguments != null &&
           newNode is MethodInvocation &&
           newNode.target is FunctionReference &&
           !_libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
@@ -1287,7 +1293,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (clause == null) return;
 
     _resolveTypes(
-      clause.interfaces2,
+      clause.interfaces,
       CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
     );
   }
@@ -1296,7 +1302,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (clause == null) return;
 
     _resolveTypes(
-      clause.superclassConstraints2,
+      clause.superclassConstraints,
       CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
     );
   }
@@ -1305,7 +1311,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var redirectedConstructor = node.redirectedConstructor;
     if (redirectedConstructor == null) return;
 
-    var namedType = redirectedConstructor.type2;
+    var namedType = redirectedConstructor.type;
     _namedTypeResolver.redirectedConstructor_namedType = namedType;
 
     redirectedConstructor.accept(this);
@@ -1366,7 +1372,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _resolveWithClause(WithClause? clause) {
     if (clause == null) return;
 
-    for (var namedType in clause.mixinTypes2) {
+    for (var namedType in clause.mixinTypes) {
       _namedTypeResolver.withClause_namedType = namedType;
       _resolveType(
         namedType as NamedTypeImpl,

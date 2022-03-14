@@ -49,7 +49,7 @@ class CreateMixin extends CorrectionProducer {
     } else {
       return;
     }
-    if (!mightBeTypeIdentifier(nameNode)) {
+    if (nameOfType(nameNode) == null) {
       return;
     }
     // prepare environment

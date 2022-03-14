@@ -31,42 +31,6 @@ namespace compiler {
 
 #define __ assembler->
 
-// Allocate a GrowableObjectArray:: using the backing array specified.
-// On stack: type argument (+2), data (+1), return-address (+0).
-void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  // This snippet of inlined code uses the following registers:
-  // EAX, EBX
-  // and the newly allocated object is returned in EAX.
-  const intptr_t kTypeArgumentsOffset = 2 * target::kWordSize;
-
-  const intptr_t kArrayOffset = 1 * target::kWordSize;
-
-  // Try allocating in new space.
-  const Class& cls = GrowableObjectArrayClass();
-  __ TryAllocate(cls, normal_ir_body, Assembler::kNearJump, EAX, EBX);
-
-  // Store backing array object in growable array object.
-  __ movl(EBX, Address(ESP, kArrayOffset));  // data argument.
-  // EAX is new, no barrier needed.
-  __ StoreIntoObjectNoBarrier(
-      EAX, FieldAddress(EAX, target::GrowableObjectArray::data_offset()), EBX);
-
-  // EAX: new growable array object start as a tagged pointer.
-  // Store the type argument field in the growable array object.
-  __ movl(EBX, Address(ESP, kTypeArgumentsOffset));  // type argument.
-  __ StoreIntoObjectNoBarrier(
-      EAX,
-      FieldAddress(EAX, target::GrowableObjectArray::type_arguments_offset()),
-      EBX);
-
-  __ ZeroInitSmiField(
-      FieldAddress(EAX, target::GrowableObjectArray::length_offset()));
-  __ ret();  // returns the newly allocated object in EAX.
-
-  __ Bind(normal_ir_body);
-}
-
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in EAX.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
@@ -317,13 +281,13 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   __ movl(ESI, ECX);
   __ sarl(ESI, Immediate(5));  // ESI = n ~/ _DIGIT_BITS.
   __ leal(EBX,
-          FieldAddress(EBX, ESI, TIMES_4, target::TypedData::data_offset()));
+          FieldAddress(EBX, ESI, TIMES_4, target::TypedData::payload_offset()));
   __ movl(ESI, Address(ESP, 4 * target::kWordSize));  // x_used > 0, Smi.
   __ SmiUntag(ESI);
   __ decl(ESI);
   __ xorl(EAX, EAX);  // EAX = 0.
   __ movl(EDX,
-          FieldAddress(EDI, ESI, TIMES_4, target::TypedData::data_offset()));
+          FieldAddress(EDI, ESI, TIMES_4, target::TypedData::payload_offset()));
   __ shldl(EAX, EDX, ECX);
   __ movl(Address(EBX, ESI, TIMES_4, kBytesPerBigIntDigit), EAX);
   Label last;
@@ -334,7 +298,7 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   __ movl(EAX, EDX);
   __ movl(EDX, FieldAddress(
                    EDI, ESI, TIMES_4,
-                   target::TypedData::data_offset() - kBytesPerBigIntDigit));
+                   target::TypedData::payload_offset() - kBytesPerBigIntDigit));
   __ shldl(EAX, EDX, ECX);
   __ movl(Address(EBX, ESI, TIMES_4, 0), EAX);
   __ decl(ESI);
@@ -368,11 +332,11 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ decl(ESI);
   // EDI = &x_digits[x_used - 1].
   __ leal(EDI,
-          FieldAddress(EDI, ESI, TIMES_4, target::TypedData::data_offset()));
+          FieldAddress(EDI, ESI, TIMES_4, target::TypedData::payload_offset()));
   __ subl(ESI, EDX);
   // EBX = &r_digits[x_used - 1 - (n ~/ 32)].
   __ leal(EBX,
-          FieldAddress(EBX, ESI, TIMES_4, target::TypedData::data_offset()));
+          FieldAddress(EBX, ESI, TIMES_4, target::TypedData::payload_offset()));
   __ negl(ESI);
   __ movl(EDX, Address(EDI, ESI, TIMES_4, 0));
   Label last;
@@ -424,10 +388,10 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   __ Bind(&add_loop);
   // Loop a_used times, ECX = a_used, ECX > 0.
   __ movl(EAX,
-          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::data_offset()));
+          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::payload_offset()));
   __ adcl(EAX,
-          FieldAddress(ESI, EDX, TIMES_4, target::TypedData::data_offset()));
-  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::data_offset()),
+          FieldAddress(ESI, EDX, TIMES_4, target::TypedData::payload_offset()));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::payload_offset()),
           EAX);
   __ incl(EDX);  // Does not affect carry flag.
   __ decl(ECX);  // Does not affect carry flag.
@@ -442,9 +406,9 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   __ Bind(&carry_loop);
   // Loop used - a_used times, ECX = used - a_used, ECX > 0.
   __ movl(EAX,
-          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::data_offset()));
+          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::payload_offset()));
   __ adcl(EAX, Immediate(0));
-  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::data_offset()),
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::payload_offset()),
           EAX);
   __ incl(EDX);  // Does not affect carry flag.
   __ decl(ECX);  // Does not affect carry flag.
@@ -453,7 +417,7 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   __ Bind(&last_carry);
   __ movl(EAX, Immediate(0));
   __ adcl(EAX, Immediate(0));
-  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::data_offset()),
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::payload_offset()),
           EAX);
 
   // Restore THR and return.
@@ -490,10 +454,10 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   __ Bind(&sub_loop);
   // Loop a_used times, ECX = a_used, ECX > 0.
   __ movl(EAX,
-          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::data_offset()));
+          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::payload_offset()));
   __ sbbl(EAX,
-          FieldAddress(ESI, EDX, TIMES_4, target::TypedData::data_offset()));
-  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::data_offset()),
+          FieldAddress(ESI, EDX, TIMES_4, target::TypedData::payload_offset()));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::payload_offset()),
           EAX);
   __ incl(EDX);  // Does not affect carry flag.
   __ decl(ECX);  // Does not affect carry flag.
@@ -508,9 +472,9 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   __ Bind(&carry_loop);
   // Loop used - a_used times, ECX = used - a_used, ECX > 0.
   __ movl(EAX,
-          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::data_offset()));
+          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::payload_offset()));
   __ sbbl(EAX, Immediate(0));
-  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::data_offset()),
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::payload_offset()),
           EAX);
   __ incl(EDX);  // Does not affect carry flag.
   __ decl(ECX);  // Does not affect carry flag.
@@ -557,7 +521,7 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   __ movl(ECX, Address(ESP, 7 * target::kWordSize));  // x_digits
   __ movl(EAX, Address(ESP, 6 * target::kWordSize));  // xi is Smi
   __ movl(EBX,
-          FieldAddress(ECX, EAX, TIMES_2, target::TypedData::data_offset()));
+          FieldAddress(ECX, EAX, TIMES_2, target::TypedData::payload_offset()));
   __ testl(EBX, EBX);
   __ j(ZERO, &no_op, Assembler::kNearJump);
 
@@ -574,13 +538,13 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   __ movl(EDI, Address(ESP, 6 * target::kWordSize));  // m_digits
   __ movl(EAX, Address(ESP, 5 * target::kWordSize));  // i is Smi
   __ leal(EDI,
-          FieldAddress(EDI, EAX, TIMES_2, target::TypedData::data_offset()));
+          FieldAddress(EDI, EAX, TIMES_2, target::TypedData::payload_offset()));
 
   // ESI = ajp = &a_digits[j >> 1]
   __ movl(ESI, Address(ESP, 4 * target::kWordSize));  // a_digits
   __ movl(EAX, Address(ESP, 3 * target::kWordSize));  // j is Smi
   __ leal(ESI,
-          FieldAddress(ESI, EAX, TIMES_2, target::TypedData::data_offset()));
+          FieldAddress(ESI, EAX, TIMES_2, target::TypedData::payload_offset()));
 
   // Save n
   __ pushl(EDX);
@@ -678,7 +642,7 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   __ movl(EDI, Address(ESP, 4 * target::kWordSize));  // x_digits
   __ movl(EAX, Address(ESP, 3 * target::kWordSize));  // i is Smi
   __ leal(EDI,
-          FieldAddress(EDI, EAX, TIMES_2, target::TypedData::data_offset()));
+          FieldAddress(EDI, EAX, TIMES_2, target::TypedData::payload_offset()));
 
   // EBX = x = *xip++, return if x == 0
   Label x_zero;
@@ -694,7 +658,7 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   // ESI = ajp = &a_digits[i]
   __ movl(ESI, Address(ESP, 3 * target::kWordSize));  // a_digits
   __ leal(ESI,
-          FieldAddress(ESI, EAX, TIMES_4, target::TypedData::data_offset()));
+          FieldAddress(ESI, EAX, TIMES_4, target::TypedData::payload_offset()));
 
   // EDX:EAX = t = x*x + *ajp
   __ movl(EAX, EBX);
@@ -803,14 +767,14 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   __ movl(EDI, Address(ESP, 3 * target::kWordSize));  // args
 
   // ECX = yt = args[1]
-  __ movl(ECX, FieldAddress(EDI, target::TypedData::data_offset() +
+  __ movl(ECX, FieldAddress(EDI, target::TypedData::payload_offset() +
                                      kBytesPerBigIntDigit));
 
   // EBX = dp = &digits[i >> 1]
   __ movl(EBX, Address(ESP, 2 * target::kWordSize));  // digits
   __ movl(EAX, Address(ESP, 1 * target::kWordSize));  // i is Smi
   __ leal(EBX,
-          FieldAddress(EBX, EAX, TIMES_2, target::TypedData::data_offset()));
+          FieldAddress(EBX, EAX, TIMES_2, target::TypedData::payload_offset()));
 
   // EDX = dh = dp[0]
   __ movl(EDX, Address(EBX, 0));
@@ -831,8 +795,8 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
 
   __ Bind(&return_qd);
   // args[2] = qd
-  __ movl(FieldAddress(
-              EDI, target::TypedData::data_offset() + 2 * kBytesPerBigIntDigit),
+  __ movl(FieldAddress(EDI, target::TypedData::payload_offset() +
+                                2 * kBytesPerBigIntDigit),
           EAX);
 
   __ movl(EAX, Immediate(target::ToRawSmi(1)));  // One digit processed.
@@ -854,21 +818,21 @@ void AsmIntrinsifier::Montgomery_mulMod(Assembler* assembler,
   __ movl(EDI, Address(ESP, 3 * target::kWordSize));  // args
 
   // ECX = rho = args[2]
-  __ movl(ECX, FieldAddress(EDI, target::TypedData::data_offset() +
+  __ movl(ECX, FieldAddress(EDI, target::TypedData::payload_offset() +
                                      2 * kBytesPerBigIntDigit));
 
   // EAX = digits[i >> 1]
   __ movl(EBX, Address(ESP, 2 * target::kWordSize));  // digits
   __ movl(EAX, Address(ESP, 1 * target::kWordSize));  // i is Smi
   __ movl(EAX,
-          FieldAddress(EBX, EAX, TIMES_2, target::TypedData::data_offset()));
+          FieldAddress(EBX, EAX, TIMES_2, target::TypedData::payload_offset()));
 
   // EDX:EAX = t = rho*d
   __ mull(ECX);
 
   // args[4] = t mod DIGIT_BASE = low32(t)
-  __ movl(FieldAddress(
-              EDI, target::TypedData::data_offset() + 4 * kBytesPerBigIntDigit),
+  __ movl(FieldAddress(EDI, target::TypedData::payload_offset() +
+                                4 * kBytesPerBigIntDigit),
           EAX);
 
   __ movl(EAX, Immediate(target::ToRawSmi(1)));  // One digit processed.
@@ -1145,41 +1109,6 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
 
   // Fall into the native C++ implementation.
   __ Bind(normal_ir_body);
-}
-
-//    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
-//    _state[kSTATE_LO] = state & _MASK_32;
-//    _state[kSTATE_HI] = state >> 32;
-void AsmIntrinsifier::Random_nextState(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  const Field& state_field = LookupMathRandomStateFieldOffset();
-  const int64_t a_int_value = AsmIntrinsifier::kRandomAValue;
-
-  // 'a_int_value' is a mask.
-  ASSERT(Utils::IsUint(32, a_int_value));
-  int32_t a_int32_value = static_cast<int32_t>(a_int_value);
-
-  // Receiver.
-  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
-  // Field '_state'.
-  __ movl(EBX, FieldAddress(EAX, LookupFieldOffsetInBytes(state_field)));
-  // Addresses of _state[0] and _state[1].
-  const intptr_t scale =
-      target::Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
-  const intptr_t offset =
-      target::Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
-  Address addr_0 = FieldAddress(EBX, 0 * scale + offset);
-  Address addr_1 = FieldAddress(EBX, 1 * scale + offset);
-  __ movl(EAX, Immediate(a_int32_value));
-  // 64-bit multiply EAX * value -> EDX:EAX.
-  __ mull(addr_0);
-  __ addl(EAX, addr_1);
-  __ adcl(EDX, Immediate(0));
-  __ movl(addr_1, EDX);
-  __ movl(addr_0, EAX);
-  ASSERT(target::ToRawSmi(0) == 0);
-  __ xorl(EAX, EAX);
-  __ ret();
 }
 
 // Identity comparison.

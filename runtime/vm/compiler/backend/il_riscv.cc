@@ -132,8 +132,7 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kUnboxedDouble: {
       const auto out = locs()->out(0).fpu_reg();
-      const intptr_t kDoubleSizeLog2 = 3;
-      __ slli(TMP, index, kDoubleSizeLog2 - kSmiTagSize);
+      __ slli(TMP, index, kWordSizeLog2 - kSmiTagSize);
       __ add(TMP, TMP, base_reg());
       __ LoadDFromOffset(out, TMP, offset());
       break;
@@ -274,8 +273,8 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               Register start_reg) {
   if (IsTypedDataBaseClassId(array_cid)) {
     __ lx(array_reg,
-          compiler::FieldAddress(
-              array_reg, compiler::target::TypedDataBase::data_field_offset()));
+          compiler::FieldAddress(array_reg,
+                                 compiler::target::PointerBase::data_offset()));
   } else {
     switch (array_cid) {
       case kOneByteStringCid:
@@ -1771,7 +1770,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Address of input bytes.
   __ LoadFieldFromOffset(bytes_reg, bytes_reg,
-                         compiler::target::TypedDataBase::data_field_offset());
+                         compiler::target::PointerBase::data_offset());
 
   // Table.
   __ AddImmediate(
@@ -4340,9 +4339,6 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-#if XLEN == 32
   // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
   // FLAG_use_bare_instructions mode and only after VM isolate stubs where
   // replaced with isolate-specific stubs.
@@ -4356,51 +4352,30 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
           ->InVMIsolateHeap();
   const bool shared_slow_path_call =
       SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi()
           ? LocationSummary::kNoCall
           : ((shared_slow_path_call ? LocationSummary::kCallOnSharedSlowPath
                                     : LocationSummary::kCallOnSlowPath)));
+#if XLEN == 32
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  if (ValueFitsSmi()) {
-    summary->set_out(0, Location::RequiresRegister());
-  } else if (shared_slow_path_call) {
-    summary->set_out(0,
-                     Location::RegisterLocation(AllocateMintABI::kResultReg));
-  } else {
-    summary->set_out(0, Location::RequiresRegister());
-  }
 #else
-  // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
-  // FLAG_use_bare_instructions mode and only after VM isolate stubs where
-  // replaced with isolate-specific stubs.
-  auto object_store = IsolateGroup::Current()->object_store();
-  const bool stubs_in_vm_isolate =
-      object_store->allocate_mint_with_fpu_regs_stub()
-          ->untag()
-          ->InVMIsolateHeap() ||
-      object_store->allocate_mint_without_fpu_regs_stub()
-          ->untag()
-          ->InVMIsolateHeap();
-  const bool shared_slow_path_call =
-      SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps,
-      ValueFitsSmi() ? LocationSummary::kNoCall
-      : shared_slow_path_call ? LocationSummary::kCallOnSharedSlowPath
-                              : LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
+#endif
   if (ValueFitsSmi()) {
     summary->set_out(0, Location::RequiresRegister());
   } else if (shared_slow_path_call) {
     summary->set_out(0,
                      Location::RegisterLocation(AllocateMintABI::kResultReg));
+    summary->set_temp(0, Location::RegisterLocation(AllocateMintABI::kTempReg));
   } else {
     summary->set_out(0, Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
   }
-#endif
   return summary;
 }
 
@@ -4934,17 +4909,10 @@ void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     UNIMPLEMENTED();
   }
-  // PP is a C volatile register.
-  // SP will be aligned to the C stack alignment.
-  __ mv(CALLEE_SAVED_TEMP, PP);
-  __ mv(CALLEE_SAVED_TEMP2, SP);
 
   // Call the function.
   ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
-
-  __ mv(PP, CALLEE_SAVED_TEMP);
-  __ mv(SP, CALLEE_SAVED_TEMP2);
 }
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
@@ -5266,16 +5234,8 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     UNIMPLEMENTED();
   }
 
-  // PP is a C volatile register.
-  // SP will be aligned to the C stack alignment.
-  __ mv(CALLEE_SAVED_TEMP, PP);
-  __ mv(CALLEE_SAVED_TEMP2, SP);
-
   ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(TargetFunction(), InputCount());
-
-  __ mv(PP, CALLEE_SAVED_TEMP);
-  __ mv(SP, CALLEE_SAVED_TEMP2);
 
   // TODO(riscv): Special case pow?
 }
@@ -7163,7 +7123,53 @@ LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 }
 
 void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  switch (from()) {
+    case kUnboxedFloat: {
+      ASSERT(to() == kUnboxedInt64);
+      const FpuRegister src = locs()->in(0).fpu_reg();
+      const Register dst = locs()->out(0).reg();
+      __ fmvxw(dst, src);
+      break;
+    }
+#if XLEN >= 64
+    case kUnboxedDouble: {
+      ASSERT(to() == kUnboxedInt64);
+      const FpuRegister src = locs()->in(0).fpu_reg();
+      const Register dst = locs()->out(0).reg();
+      __ fmvxd(dst, src);
+      break;
+    }
+#endif
+    case kUnboxedInt64: {
+      const Register src = locs()->in(0).reg();
+      switch (to()) {
+#if XLEN >= 64
+        case kUnboxedDouble: {
+          const FpuRegister dst = locs()->out(0).fpu_reg();
+          __ fmvdx(dst, src);
+          break;
+        }
+#endif
+        case kUnboxedFloat: {
+          const FpuRegister dst = locs()->out(0).fpu_reg();
+          __ fmvwx(dst, src);
+          break;
+        }
+        default:
+          UNREACHABLE();
+      }
+      break;
+    }
+    case kUnboxedInt32: {
+      ASSERT(to() == kUnboxedFloat);
+      const Register src = locs()->in(0).reg();
+      const FpuRegister dst = locs()->out(0).fpu_reg();
+      __ fmvwx(dst, src);
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
 }
 
 LocationSummary* StopInstr::MakeLocationSummary(Zone* zone, bool opt) const {

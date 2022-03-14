@@ -33,12 +33,7 @@ class _SecureSocket extends _Socket implements SecureSocket {
   void renegotiate(
       {bool useSessionCache: true,
       bool requestClientCertificate: false,
-      bool requireClientCertificate: false}) {
-    _raw!.renegotiate(
-        useSessionCache: useSessionCache,
-        requestClientCertificate: requestClientCertificate,
-        requireClientCertificate: requireClientCertificate);
-  }
+      bool requireClientCertificate: false}) {}
 
   X509Certificate? get peerCertificate {
     if (_raw == null) {
@@ -165,10 +160,6 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   @pragma("vm:external-name", "SecureSocket_GetSelectedProtocol")
   external String? selectedProtocol();
 
-  @pragma("vm:external-name", "SecureSocket_Renegotiate")
-  external void renegotiate(bool useSessionCache, bool requestClientCertificate,
-      bool requireClientCertificate);
-
   @pragma("vm:external-name", "SecureSocket_Init")
   external void init();
 
@@ -188,6 +179,9 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   @pragma("vm:external-name", "SecureSocket_RegisterHandshakeCompleteCallback")
   external void registerHandshakeCompleteCallback(
       Function handshakeCompleteHandler);
+
+  @pragma("vm:external-name", "SecureSocket_RegisterKeyLogPort")
+  external void registerKeyLogPort(SendPort port);
 
   // This is a security issue, as it exposes a raw pointer to Dart code.
   @pragma("vm:external-name", "SecureSocket_FilterPointer")

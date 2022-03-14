@@ -4,8 +4,8 @@
 
 library dart2js.js_helpers.impact;
 
+import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/names.dart';
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/types.dart' show InterfaceType;
 import '../elements/entities.dart';
 import '../universe/selector.dart';
@@ -716,8 +716,6 @@ class BackendImpacts {
   /// prefix.
   BackendImpact get loadLibrary {
     return _loadLibrary ??= BackendImpact(globalUses: [
-      // TODO(redemption): delete wrapper when we sunset the old frontend.
-      _commonElements.loadLibraryWrapper,
       _commonElements.loadDeferredLibrary,
     ]);
   }

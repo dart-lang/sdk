@@ -3,8 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_utilities/check/check.dart';
 import 'package:meta/meta.dart';
+
+typedef CompletionSuggestionChecker = void Function(
+  CompletionSuggestionTarget suggestion,
+);
+
+typedef CompletionSuggestionTarget
+    = CheckTarget<CompletionSuggestionForTesting>;
 
 class CompletionResponseForTesting {
   final int requestOffset;
@@ -179,6 +187,16 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isConstructor;
   }
 
+  void get isEnum {
+    kind.isIdentifier;
+    element.isNotNull.kind.isEnum;
+  }
+
+  void get isEnumConstant {
+    kind.isIdentifier;
+    element.isNotNull.kind.isEnumConstant;
+  }
+
   void get isField {
     kind.isIdentifier;
     element.isNotNull.kind.isField;
@@ -194,9 +212,28 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isGetter;
   }
 
+  void get isImportPrefix {
+    kind.isIdentifier;
+    element.isNotNull.kind.isPrefix;
+  }
+
+  void get isKeywordAny {
+    kind.isKeyword;
+  }
+
   void get isMethodInvocation {
     kind.isInvocation;
     element.isNotNull.kind.isMethod;
+  }
+
+  void get isMixin {
+    kind.isIdentifier;
+    element.isNotNull.kind.isMixin;
+  }
+
+  void get isNamedArgument {
+    kind.isNamedArgument;
+    element.isNull;
   }
 
   @useResult
@@ -231,10 +268,18 @@ extension CompletionSuggestionExtension
   }
 
   @useResult
+  CheckTarget<String?> get libraryUri {
+    return nest(
+      value.suggestion.libraryUri,
+      (selected) => 'has libraryUri ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
   CheckTarget<String?> get libraryUriToImport {
     return nest(
       value.suggestion.isNotImported == true
-          ? value.suggestion.element?.libraryUri
+          ? value.suggestion.libraryUri
           : null,
       (selected) => 'has libraryUriToImport ${valueStr(selected)}',
     );
@@ -307,6 +352,11 @@ extension CompletionSuggestionExtension
     selectionOffset.isEqualTo(offset);
     selectionLength.isEqualTo(length);
   }
+
+  void isKeyword(Keyword keyword) {
+    kind.isKeyword;
+    completion.isEqualTo(keyword.lexeme);
+  }
 }
 
 extension CompletionSuggestionKindExtension
@@ -317,6 +367,14 @@ extension CompletionSuggestionKindExtension
 
   void get isInvocation {
     isEqualTo(CompletionSuggestionKind.INVOCATION);
+  }
+
+  void get isKeyword {
+    isEqualTo(CompletionSuggestionKind.KEYWORD);
+  }
+
+  void get isNamedArgument {
+    isEqualTo(CompletionSuggestionKind.NAMED_ARGUMENT);
   }
 }
 
@@ -352,6 +410,18 @@ extension CompletionSuggestionsExtension
       (selected) => 'withElementClass ${valueStr(selected)}',
     );
   }
+
+  @useResult
+  CheckTarget<Iterable<CompletionSuggestionForTesting>> get withKindKeyword {
+    var result = value
+        .where((suggestion) =>
+            suggestion.suggestion.kind == CompletionSuggestionKind.KEYWORD)
+        .toList();
+    return nest(
+      result,
+      (selected) => 'withKindKeyword ${valueStr(selected)}',
+    );
+  }
 }
 
 extension ElementExtension on CheckTarget<Element> {
@@ -381,6 +451,14 @@ extension ElementKindExtension on CheckTarget<ElementKind> {
     isEqualTo(ElementKind.CONSTRUCTOR);
   }
 
+  void get isEnum {
+    isEqualTo(ElementKind.ENUM);
+  }
+
+  void get isEnumConstant {
+    isEqualTo(ElementKind.ENUM_CONSTANT);
+  }
+
   void get isField {
     isEqualTo(ElementKind.FIELD);
   }
@@ -397,8 +475,16 @@ extension ElementKindExtension on CheckTarget<ElementKind> {
     isEqualTo(ElementKind.METHOD);
   }
 
+  void get isMixin {
+    isEqualTo(ElementKind.MIXIN);
+  }
+
   void get isParameter {
     isEqualTo(ElementKind.PARAMETER);
+  }
+
+  void get isPrefix {
+    isEqualTo(ElementKind.PREFIX);
   }
 
   void get isSetter {
@@ -407,5 +493,12 @@ extension ElementKindExtension on CheckTarget<ElementKind> {
 
   void get isTopLevelVariable {
     isEqualTo(ElementKind.TOP_LEVEL_VARIABLE);
+  }
+}
+
+extension KeywordsExtension on Iterable<Keyword> {
+  List<CompletionSuggestionChecker> get asKeywordChecks {
+    return map((e) => (CompletionSuggestionTarget suggestion) =>
+        suggestion.isKeyword(e)).toList();
   }
 }

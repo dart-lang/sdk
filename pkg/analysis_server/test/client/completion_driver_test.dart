@@ -4,12 +4,11 @@
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../domain_completion_test.dart';
 import '../services/completion/dart/completion_check.dart';
 import '../services/completion/dart/completion_contributor_util.dart';
 import 'impl/completion_driver.dart';
@@ -23,30 +22,33 @@ void main() {
   });
 }
 
-abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
+abstract class AbstractCompletionDriverTest
+    extends PubPackageAnalysisServerTest {
   late CompletionDriver driver;
-  Map<String, String> packageRoots = {};
   late List<CompletionSuggestion> suggestions;
 
-  String get projectName => 'project';
-
-  String get projectPath => '/$projectName';
+  bool get isProtocolVersion2 {
+    return protocol == TestingCompletionProtocol.version2;
+  }
 
   TestingCompletionProtocol get protocol;
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
-  bool get supportsAvailableSuggestions;
-
-  String get testFilePath => '$projectPath/bin/test.dart';
+  bool get _isProtocolVersion1 {
+    return protocol == TestingCompletionProtocol.version1;
+  }
 
   Future<void> addProjectFile(String relativePath, String content) async {
-    newFile('$projectPath/$relativePath', content: content);
+    newFile('$testPackageRootPath/$relativePath', content: content);
     // todo (pq): handle more than lib
     expect(relativePath, startsWith('lib/'));
     var packageRelativePath = relativePath.substring(4);
-    var uriStr = 'package:$projectName/$packageRelativePath';
-    await driver.waitForSetWithUri(uriStr);
+    var uriStr = 'package:test/$packageRelativePath';
+
+    if (_isProtocolVersion1) {
+      await driver.waitForSetWithUri(uriStr);
+    }
   }
 
   Future<List<CompletionSuggestion>> addTestFile(String content,
@@ -108,7 +110,7 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   }
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
-    if (supportsAvailableSuggestions) {
+    if (_isProtocolVersion1) {
       await driver.waitForSetWithUri('dart:core');
       await driver.waitForSetWithUri('dart:async');
     }
@@ -148,23 +150,20 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     }
   }
 
-  @mustCallSuper
+  @override
   Future<void> setUp() async {
-    driver = CompletionDriver(
-      supportsAvailableSuggestions: supportsAvailableSuggestions,
-      projectPath: projectPath,
-      testFilePath: testFilePath,
-      resourceProvider: resourceProvider,
-      serverOptions: serverOptions,
-    );
-    await driver.createProject(packageRoots: packageRoots);
+    super.setUp();
 
-    newPubspecYamlFile(projectPath, '''
-name: project
+    writeTestPackagePubspecYamlFile(r'''
+name: test
 ''');
-    newDotPackagesFile(projectPath, content: '''
-project:${toUri('$projectPath/lib')}
-''');
+
+    driver = CompletionDriver(
+      supportsAvailableSuggestions: _isProtocolVersion1,
+      server: this,
+    );
+    await driver.createProject();
+
     // todo (pq): add logic (possibly to driver) that waits for SDK suggestions
   }
 
@@ -240,9 +239,6 @@ class BasicCompletionTest2 extends AbstractCompletionDriverTest
 }
 
 mixin BasicCompletionTestCases on AbstractCompletionDriverTest {
-  @override
-  bool get supportsAvailableSuggestions => false;
-
   /// Duplicates (and potentially replaces DeprecatedMemberRelevanceTest).
   Future<void> test_deprecated_member_relevance() async {
     await addTestFile('''
@@ -307,12 +303,6 @@ class CompletionWithSuggestionsTest2 extends AbstractCompletionDriverTest
 }
 
 mixin CompletionWithSuggestionsTestCases on AbstractCompletionDriverTest {
-  @override
-  bool get supportsAvailableSuggestions => true;
-
-  @override
-  String get testFilePath => '$projectPath/lib/test.dart';
-
   Future<void> test_project_filterImports_defaultConstructor() async {
     await addProjectFile('lib/a.dart', r'''
 class A {}

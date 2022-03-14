@@ -23,7 +23,8 @@ class FormattingHandler
   ErrorOr<List<TextEdit>?> formatFile(String path) {
     final file = server.resourceProvider.getFile(path);
     if (!file.exists) {
-      return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
+      return error(
+          ServerErrorCodes.InvalidFilePath, 'File does not exist', path);
     }
 
     final result = server.getParsedUnit(path);

@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class A1 {
   void extendedClassMember() {}
   void extendedInterfaceMember();

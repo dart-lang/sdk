@@ -16,6 +16,9 @@ adjusting
 api
 argument(s)
 assigning
+augment
+augmentation
+augmented
 b
 c
 compilercontext.runincontext
@@ -45,6 +48,7 @@ js_util
 libraries.json
 list.filled
 loadlibrary
+macro
 migrate
 name.#name
 name.stack

@@ -8,7 +8,7 @@
 // Files when using deferred loading.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:expect/expect.dart';

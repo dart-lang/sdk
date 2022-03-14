@@ -21,7 +21,9 @@ import 'package:analysis_server/src/services/completion/yaml/analysis_options_ge
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
+import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
@@ -178,6 +180,31 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   String _createImportedSymbolKey(String name, Uri declaringUri) =>
       '$name/$declaringUri';
 
+  Future<List<CompletionItem>> _getDartSnippetItems({
+    required LspClientCapabilities clientCapabilities,
+    required ResolvedUnitResult unit,
+    required int offset,
+    required LineInfo lineInfo,
+  }) async {
+    final request = DartSnippetRequest(
+      unit: unit,
+      offset: offset,
+    );
+    final snippetManager = DartSnippetManager();
+    final snippets = await snippetManager.computeSnippets(request);
+
+    return snippets
+        .map((snippet) => snippetToCompletionItem(
+              server,
+              clientCapabilities,
+              unit.path,
+              lineInfo,
+              toPosition(lineInfo.getLocation(offset)),
+              snippet,
+            ))
+        .toList();
+  }
+
   Future<ErrorOr<CompletionList>> _getPluginResults(
     LspClientCapabilities capabilities,
     LineInfo lineInfo,
@@ -256,10 +283,14 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
             includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
           );
 
-          final serverSuggestions = await contributor.computeSuggestions(
+          final serverSuggestions2 = await contributor.computeSuggestions(
             completionRequest,
             performance,
           );
+
+          final serverSuggestions = serverSuggestions2.map((serverSuggestion) {
+            return serverSuggestion.build();
+          }).toList();
 
           final insertLength = _computeInsertLength(
             offset,
@@ -416,20 +447,41 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
             });
           }
 
+          // Add in any snippets.
+          final snippetsEnabled =
+              server.clientConfiguration.forResource(unit.path).enableSnippets;
+          // We can only produce edits with edit builders for files inside
+          // the root, so skip snippets entirely if not.
+          final isEditableFile =
+              unit.session.analysisContext.contextRoot.isAnalyzed(unit.path);
+          if (capabilities.completionSnippets &&
+              snippetsEnabled &&
+              isEditableFile) {
+            results.addAll(await _getDartSnippetItems(
+              clientCapabilities: capabilities,
+              unit: unit,
+              offset: offset,
+              lineInfo: unit.lineInfo,
+            ));
+          }
+
           // Perform fuzzy matching based on the identifier in front of the caret to
           // reduce the size of the payload.
           final fuzzyPattern = completionRequest.targetPrefix;
           final fuzzyMatcher =
               FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
 
-          final matchingResults =
-              results.where((e) => fuzzyMatcher.score(e.label) > 0).toList();
+          final matchingResults = results
+              .where((e) => fuzzyMatcher.score(e.filterText ?? e.label) > 0)
+              .toList();
 
           completionPerformance.suggestionCount = results.length;
 
           return success(
               CompletionList(isIncomplete: false, items: matchingResults));
         } on AbortCompletion {
+          return success(CompletionList(isIncomplete: false, items: []));
+        } on InconsistentAnalysisException {
           return success(CompletionList(isIncomplete: false, items: []));
         }
       },

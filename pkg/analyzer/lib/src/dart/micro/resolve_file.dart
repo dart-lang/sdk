@@ -204,7 +204,7 @@ class FileResolver {
             references.add(CiderSearchMatch(
                 path,
                 offsets
-                    .map((offset) => lineInfo?.getLocation(offset))
+                    .map((offset) => lineInfo.getLocation(offset))
                     .toList()));
           }
         });

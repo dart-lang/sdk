@@ -182,7 +182,6 @@ class Value : public ZoneAllocated {
 
  private:
   friend class FlowGraphPrinter;
-  friend class FlowGraphDeserializer;  // For setting reaching_type_ directly.
 
   Definition* definition_;
   Value* previous_use_;
@@ -1347,13 +1346,14 @@ template <intptr_t N,
 class TemplateInstruction
     : public CSETrait<Instruction, PureInstruction>::Base {
  public:
+  using BaseClass = typename CSETrait<Instruction, PureInstruction>::Base;
+
   explicit TemplateInstruction(intptr_t deopt_id = DeoptId::kNone)
-      : CSETrait<Instruction, PureInstruction>::Base(deopt_id), inputs_() {}
+      : BaseClass(deopt_id), inputs_() {}
 
   TemplateInstruction(const InstructionSource& source,
                       intptr_t deopt_id = DeoptId::kNone)
-      : CSETrait<Instruction, PureInstruction>::Base(source, deopt_id),
-        inputs_() {}
+      : BaseClass(source, deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
@@ -1616,14 +1616,8 @@ class BlockEntryInstr : public Instruction {
       : Instruction(deopt_id),
         block_id_(block_id),
         try_index_(try_index),
-        preorder_number_(-1),
-        postorder_number_(-1),
         stack_depth_(stack_depth),
-        dominator_(nullptr),
-        dominated_blocks_(1),
-        last_instruction_(NULL),
-        parallel_move_(nullptr),
-        loop_info_(nullptr) {}
+        dominated_blocks_(1) {}
 
   // Perform a depth first search to find OSR entry and
   // link it to the given graph entry.
@@ -1632,8 +1626,6 @@ class BlockEntryInstr : public Instruction {
                              BitVector* block_marks);
 
  private:
-  friend class FlowGraphDeserializer;  // Access to AddPredecessor().
-
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual void ClearPredecessors() = 0;
@@ -1643,25 +1635,26 @@ class BlockEntryInstr : public Instruction {
 
   intptr_t block_id_;
   intptr_t try_index_;
-  intptr_t preorder_number_;
-  intptr_t postorder_number_;
+  intptr_t preorder_number_ = -1;
+  intptr_t postorder_number_ = -1;
   // Expected stack depth on entry (for stack-based IR only).
   intptr_t stack_depth_;
   // Starting and ending lifetime positions for this block.  Used by
   // the linear scan register allocator.
-  intptr_t start_pos_;
-  intptr_t end_pos_;
-  BlockEntryInstr* dominator_;  // Immediate dominator, NULL for graph entry.
+  intptr_t start_pos_ = -1;
+  intptr_t end_pos_ = -1;
+  // Immediate dominator, nullptr for graph entry.
+  BlockEntryInstr* dominator_ = nullptr;
   // TODO(fschneider): Optimize the case of one child to save space.
   GrowableArray<BlockEntryInstr*> dominated_blocks_;
-  Instruction* last_instruction_;
+  Instruction* last_instruction_ = nullptr;
 
   // Parallel move that will be used by linear scan register allocator to
   // connect live ranges at the start of the block.
-  ParallelMoveInstr* parallel_move_;
+  ParallelMoveInstr* parallel_move_ = nullptr;
 
   // Closest enveloping loop in loop hierarchy (nullptr at nesting depth 0).
-  LoopInfo* loop_info_;
+  LoopInfo* loop_info_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };
@@ -1851,8 +1844,6 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
   PRINT_TO_SUPPORT
 
  private:
-  friend class FlowGraphDeserializer;  // For the constructor with deopt_id arg.
-
   GraphEntryInstr(const ParsedFunction& parsed_function,
                   intptr_t osr_id,
                   intptr_t deopt_id);
@@ -2523,12 +2514,13 @@ template <intptr_t N,
           template <typename Impure, typename Pure> class CSETrait = NoCSE>
 class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
  public:
+  using BaseClass = typename CSETrait<Definition, PureDefinition>::Base;
+
   explicit TemplateDefinition(intptr_t deopt_id = DeoptId::kNone)
-      : CSETrait<Definition, PureDefinition>::Base(deopt_id), inputs_() {}
+      : BaseClass(deopt_id), inputs_() {}
   TemplateDefinition(const InstructionSource& source,
                      intptr_t deopt_id = DeoptId::kNone)
-      : CSETrait<Definition, PureDefinition>::Base(source, deopt_id),
-        inputs_() {}
+      : BaseClass(source, deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
@@ -2551,7 +2543,6 @@ class PhiInstr : public Definition {
       : block_(block),
         inputs_(num_inputs),
         representation_(kTagged),
-        reaching_defs_(NULL),
         is_alive_(false),
         is_receiver_(kUnknownReceiver) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
@@ -2642,7 +2633,7 @@ class PhiInstr : public Definition {
   JoinEntryInstr* block_;
   GrowableArray<Value*> inputs_;
   Representation representation_;
-  BitVector* reaching_defs_;
+  BitVector* reaching_defs_ = nullptr;
   bool is_alive_;
   int8_t is_receiver_;
 
@@ -2958,10 +2949,9 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 //
 // This lowlevel instruction is non-inlinable since it makes assumptons about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
-class TailCallInstr : public Instruction {
+class TailCallInstr : public TemplateInstruction<1, Throws, Pure> {
  public:
-  TailCallInstr(const Code& code, Value* arg_desc)
-      : code_(code), arg_desc_(NULL) {
+  TailCallInstr(const Code& code, Value* arg_desc) : code_(code) {
     SetInputAt(0, arg_desc);
   }
 
@@ -2969,19 +2959,8 @@ class TailCallInstr : public Instruction {
 
   const Code& code() const { return code_; }
 
-  virtual intptr_t InputCount() const { return 1; }
-  virtual Value* InputAt(intptr_t i) const {
-    ASSERT(i == 0);
-    return arg_desc_;
-  }
-  virtual void RawSetInputAt(intptr_t i, Value* value) {
-    ASSERT(i == 0);
-    arg_desc_ = value;
-  }
-
   // Two tailcalls can be canonicalized into one instruction if both have the
   // same destination.
-  virtual bool AllowsCSE() const { return true; }
   virtual bool AttributesEqual(const Instruction& other) const {
     return &other.AsTailCall()->code() == &code();
   }
@@ -2989,14 +2968,14 @@ class TailCallInstr : public Instruction {
   // Since no code after this instruction will be executed, there will be no
   // side-effects for the following code.
   virtual bool HasUnknownSideEffects() const { return false; }
-  virtual bool MayThrow() const { return true; }
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
   const Code& code_;
-  Value* arg_desc_;
+
+  DISALLOW_COPY_AND_ASSIGN(TailCallInstr);
 };
 
 class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
@@ -5370,8 +5349,6 @@ class AllocateHandleInstr : public TemplateDefinition<1, NoThrow> {
 
   DECLARE_INSTRUCTION(AllocateHandle)
 
-  virtual intptr_t InputCount() const { return 1; }
-  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
   virtual Representation representation() const { return kUnboxedIntPtr; }
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -5393,8 +5370,6 @@ class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   DECLARE_INSTRUCTION(RawStoreField)
 
-  virtual intptr_t InputCount() const { return 2; }
-  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -9742,7 +9717,6 @@ class Environment : public ZoneAllocated {
  private:
   friend class ShallowIterator;
   friend class compiler::BlockBuilder;  // For Environment constructor.
-  friend class FlowGraphDeserializer;   // For constructor and deopt_id_.
 
   class LazyDeoptPruningBits : public BitField<uintptr_t, uintptr_t, 0, 8> {};
   class LazyDeoptToBeforeDeoptId

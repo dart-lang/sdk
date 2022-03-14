@@ -27,8 +27,8 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:cli_util/cli_util.dart';
 
 /// An implementation of a context builder.
 class ContextBuilderImpl implements ContextBuilder {
@@ -72,7 +72,12 @@ class ContextBuilderImpl implements ContextBuilder {
 
     SummaryDataStore? summaryData;
     if (librarySummaryPaths != null) {
-      summaryData = SummaryDataStore(librarySummaryPaths);
+      summaryData = SummaryDataStore.tmp();
+      for (var summaryPath in librarySummaryPaths) {
+        var bytes = resourceProvider.getFile(summaryPath).readAsBytesSync();
+        var bundle = PackageBundleReader(bytes);
+        summaryData.addBundle(summaryPath, bundle);
+      }
     }
 
     var workspace = contextRoot.workspace;

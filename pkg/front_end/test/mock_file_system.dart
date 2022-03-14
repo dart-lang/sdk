@@ -11,7 +11,8 @@ class MockFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (scheme != null && uri.scheme != scheme) throw "unsupported";
+    final scheme = this.scheme;
+    if (scheme != null && !uri.isScheme(scheme)) throw "unsupported";
     return new MockFileSystemEntity(uri, this);
   }
 }

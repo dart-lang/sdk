@@ -93,6 +93,7 @@ typedef uint16_t ClassIdTagType;
   V(StackTrace)                                                                \
   V(RegExp)                                                                    \
   V(WeakProperty)                                                              \
+  V(WeakReference)                                                             \
   V(MirrorReference)                                                           \
   V(FutureOr)                                                                  \
   V(UserTag)                                                                   \

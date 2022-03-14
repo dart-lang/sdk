@@ -338,9 +338,9 @@ class NullableInference extends ExpressionVisitor<bool> {
 
   bool _isInternalSdkAnnotation(Library library) {
     var uri = library.importUri;
-    return uri.scheme == 'dart' && uri.pathSegments[0] == '_js_helper' ||
+    return uri.isScheme('dart') && uri.pathSegments[0] == '_js_helper' ||
         allowPackageMetaAnnotations &&
-            uri.scheme == 'package' &&
+            uri.isScheme('package') &&
             uri.pathSegments[0] == 'meta';
   }
 }

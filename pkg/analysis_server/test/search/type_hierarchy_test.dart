@@ -64,8 +64,7 @@ class B extends A {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 1,
         'interfaces': [],
@@ -77,8 +76,7 @@ class B extends A {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 0,
         'interfaces': [],
@@ -118,8 +116,7 @@ class CCC extends BBB implements AAA {}
           'kind': 'CLASS',
           'name': 'AAA',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 1,
         'interfaces': [],
@@ -131,8 +128,7 @@ class CCC extends BBB implements AAA {}
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'interfaces': [],
         'mixins': [],
@@ -143,8 +139,7 @@ class CCC extends BBB implements AAA {}
           'kind': 'CLASS',
           'name': 'BBB',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 0,
         'interfaces': [],
@@ -156,8 +151,7 @@ class CCC extends BBB implements AAA {}
           'kind': 'CLASS',
           'name': 'CCC',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 0,
         'interfaces': [],
@@ -210,8 +204,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 1,
         'interfaces': [],
@@ -223,8 +216,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'interfaces': [],
         'mixins': [],
@@ -235,8 +227,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 0,
         'interfaces': [],
@@ -248,8 +239,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 2,
         'interfaces': [],
@@ -275,8 +265,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 1,
         'interfaces': [],
@@ -288,8 +277,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 2,
         'interfaces': [],
@@ -301,8 +289,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'interfaces': [],
         'mixins': [],
@@ -313,8 +300,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 0,
         'interfaces': [],
@@ -340,8 +326,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 1,
         'interfaces': [],
@@ -353,8 +338,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 2,
         'interfaces': [],
@@ -366,8 +350,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 3,
         'interfaces': [],
@@ -379,8 +362,7 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'interfaces': [],
         'mixins': [],
@@ -389,255 +371,7 @@ class C extends B {
     ]);
   }
 
-  Future<void> test_class_implementsTypes() async {
-    addTestFile('''
-class MA {}
-class MB {}
-class B extends A {
-}
-class T implements MA, MB {
-}
-''');
-    var items = await _getTypeHierarchy('T implements');
-    expect(_toJson(items), [
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'T',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 1,
-        'interfaces': [2, 3],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'Object',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'MA',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 1,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'MB',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 1,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      }
-    ]);
-  }
-
-  Future<void> test_class_order() async {
-    addTestFile('''
-class A {}
-class D extends A {}
-class C extends A {}
-class B extends A {}
-class G extends B {}
-class F extends B {}
-class E extends A {}
-''');
-    var items = await _getTypeHierarchy('A {}');
-    expect(_toJson(items), [
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'A',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 1,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': [2, 3, 4, 5]
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'Object',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'B',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 0,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': [6, 7]
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'C',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 0,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'D',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 0,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'E',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 0,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'F',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 4,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'G',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 4,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      }
-    ]);
-  }
-
-  Future<void> test_class_withTypes() async {
-    addTestFile('''
-class MA {}
-class MB {}
-class B extends A {
-}
-class T extends Object with MA, MB {
-}
-''');
-    var items = await _getTypeHierarchy('T extends Object');
-    expect(_toJson(items), [
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'T',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 1,
-        'interfaces': [],
-        'mixins': [2, 3],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'Object',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'MA',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 1,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'MB',
-          'location': anything,
-          'flags': 0,
-          'libraryUri': anything
-        },
-        'superclass': 1,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': []
-      }
-    ]);
-  }
-
-  Future<void> test_fromField_toMixinGetter() async {
+  Future<void> test_class_fromField_toMixinGetter() async {
     addTestFile('''
 abstract class A {
   var test = 1;
@@ -656,7 +390,7 @@ class B extends A with Mixin {}
     expect(memberB.location!.offset, findOffset('test => 2;'));
   }
 
-  Future<void> test_fromField_toMixinSetter() async {
+  Future<void> test_class_fromField_toMixinSetter() async {
     addTestFile('''
 abstract class A {
   var test = 1;
@@ -675,7 +409,68 @@ class B extends A with Mixin {}
     expect(memberB.location!.offset, findOffset('test(m) {}'));
   }
 
-  Future<void> test_member_fromField_toField() async {
+  Future<void> test_class_implementsTypes() async {
+    addTestFile('''
+class MA {}
+class MB {}
+class B extends A {
+}
+class T implements MA, MB {
+}
+''');
+    var items = await _getTypeHierarchy('T implements');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'T',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [2, 3],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'MA',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'MB',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
+  }
+
+  Future<void> test_class_member_fromField_toField() async {
     addTestFile('''
 class A {
   var test = 1;
@@ -698,7 +493,7 @@ class B extends A {
     checkItems(await _getTypeHierarchy('test = 2;'));
   }
 
-  Future<void> test_member_fromField_toGetter() async {
+  Future<void> test_class_member_fromField_toGetter() async {
     addTestFile('''
 class A {
   get test => 1;
@@ -721,7 +516,7 @@ class B extends A {
     checkItems(await _getTypeHierarchy('test = 2;'));
   }
 
-  Future<void> test_member_fromField_toSetter() async {
+  Future<void> test_class_member_fromField_toSetter() async {
     addTestFile('''
 class A {
   set test(a) {}
@@ -744,7 +539,7 @@ class B extends A {
     checkItems(await _getTypeHierarchy('test = 2;'));
   }
 
-  Future<void> test_member_fromFinalField_toGetter() async {
+  Future<void> test_class_member_fromFinalField_toGetter() async {
     addTestFile('''
 class A {
   get test => 1;
@@ -767,7 +562,7 @@ class B extends A {
     checkItems(await _getTypeHierarchy('test = 2;'));
   }
 
-  Future<void> test_member_fromFinalField_toSetter() async {
+  Future<void> test_class_member_fromFinalField_toSetter() async {
     addTestFile('''
 class A {
   set test(x) {}
@@ -783,7 +578,7 @@ class B extends A {
     expect(itemB.memberElement!.location!.offset, findOffset('test = 2;'));
   }
 
-  Future<void> test_member_getter() async {
+  Future<void> test_class_member_getter() async {
     addTestFile('''
 class A {
   get test => null; // in A
@@ -815,7 +610,7 @@ class D extends C {
         findOffset('test => null; // in D'));
   }
 
-  Future<void> test_member_method() async {
+  Future<void> test_class_member_method() async {
     addTestFile('''
 class A {
   test() {} // in A
@@ -847,7 +642,7 @@ class D extends C {
         itemD.memberElement!.location!.offset, findOffset('test() {} // in D'));
   }
 
-  Future<void> test_member_method_private_differentLib() async {
+  Future<void> test_class_member_method_private_differentLib() async {
     newFile(join(testFolder, 'lib.dart'), content: r'''
 import 'test.dart';
 class A {
@@ -881,7 +676,7 @@ class D extends C {
     expect(itemD.memberElement, isNotNull);
   }
 
-  Future<void> test_member_method_private_sameLib() async {
+  Future<void> test_class_member_method_private_sameLib() async {
     addTestFile('''
 class A {
   _m() {} // in A
@@ -908,7 +703,7 @@ class C extends B {
         itemC.memberElement!.location!.offset, findOffset('_m() {} // in C'));
   }
 
-  Future<void> test_member_ofMixin2_method() async {
+  Future<void> test_class_member_ofMixin2_method() async {
     addTestFile('''
 class M1 {
   void test() {} // in M1
@@ -956,7 +751,7 @@ class D4 extends Object with M2, M1 {
     }
   }
 
-  Future<void> test_member_ofMixin_getter() async {
+  Future<void> test_class_member_ofMixin_getter() async {
     addTestFile('''
 abstract class Base {
   get test; // in Base
@@ -982,7 +777,7 @@ class Derived2 extends Base {
         member2.location!.offset, findOffset('test => null; // in Derived2'));
   }
 
-  Future<void> test_member_ofMixin_method() async {
+  Future<void> test_class_member_ofMixin_method() async {
     addTestFile('''
 abstract class Base {
   void test(); // in Base
@@ -1007,7 +802,7 @@ class Derived2 extends Base {
     expect(member2.location!.offset, findOffset('test() {} // in Derived2'));
   }
 
-  Future<void> test_member_ofMixin_setter() async {
+  Future<void> test_class_member_ofMixin_setter() async {
     addTestFile('''
 abstract class Base {
   set test(x); // in Base
@@ -1032,7 +827,7 @@ class Derived2 extends Base {
     expect(member2.location!.offset, findOffset('test(x) {} // in Derived2'));
   }
 
-  Future<void> test_member_ofSuperclassConstraint_getter() async {
+  Future<void> test_class_member_ofSuperclassConstraint_getter() async {
     addTestFile('''
 class A {
   get test => 0; // in A
@@ -1051,7 +846,7 @@ mixin M on A {
     _assertMember(inM, 'test => 0; // in M');
   }
 
-  Future<void> test_member_ofSuperclassConstraint_method() async {
+  Future<void> test_class_member_ofSuperclassConstraint_method() async {
     addTestFile('''
 class A {
   void test() {} // in A
@@ -1070,7 +865,7 @@ mixin M on A {
     _assertMember(inM, 'test() {} // in M');
   }
 
-  Future<void> test_member_ofSuperclassConstraint_setter() async {
+  Future<void> test_class_member_ofSuperclassConstraint_setter() async {
     addTestFile('''
 class A {
   set test(x) {} // in A
@@ -1089,7 +884,7 @@ mixin M on A {
     _assertMember(inM, 'test(x) {} // in M');
   }
 
-  Future<void> test_member_operator() async {
+  Future<void> test_class_member_operator() async {
     addTestFile('''
 class A {
   operator ==(x) => null; // in A
@@ -1121,7 +916,7 @@ class D extends C {
         findOffset('==(x) => null; // in D'));
   }
 
-  Future<void> test_member_setter() async {
+  Future<void> test_class_member_setter() async {
     addTestFile('''
 class A {
   set test(x) {} // in A
@@ -1153,7 +948,117 @@ class D extends C {
         findOffset('test(x) {} // in D'));
   }
 
-  Future<void> test_superOnly() async {
+  Future<void> test_class_order() async {
+    addTestFile('''
+class A {}
+class D extends A {}
+class C extends A {}
+class B extends A {}
+class G extends B {}
+class F extends B {}
+class E extends A {}
+''');
+    var items = await _getTypeHierarchy('A {}');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'A',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [2, 3, 4, 5]
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'B',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [6, 7]
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'C',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'D',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'E',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'F',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 4,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'G',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 4,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
+  }
+
+  Future<void> test_class_superOnly() async {
     addTestFile('''
 class A {}
 class B {}
@@ -1167,8 +1072,7 @@ class D extends C {}
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 1,
         'interfaces': [3],
@@ -1180,8 +1084,7 @@ class D extends C {}
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 2,
         'interfaces': [],
@@ -1193,8 +1096,7 @@ class D extends C {}
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'interfaces': [],
         'mixins': [],
@@ -1205,8 +1107,7 @@ class D extends C {}
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0,
-          'libraryUri': anything
+          'flags': 0
         },
         'superclass': 2,
         'interfaces': [],
@@ -1216,7 +1117,7 @@ class D extends C {}
     ]);
   }
 
-  Future<void> test_superOnly_fileDoesNotExist() async {
+  Future<void> test_class_superOnly_fileDoesNotExist() async {
     var request = SearchGetTypeHierarchyParams(
             convertPath('/does/not/exist.dart'), 0,
             superOnly: true)
@@ -1225,6 +1126,337 @@ class D extends C {}
     var items =
         SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
     expect(items, isNull);
+  }
+
+  Future<void> test_class_withTypes() async {
+    addTestFile('''
+class MA {}
+class MB {}
+class B extends A {
+}
+class T extends Object with MA, MB {
+}
+''');
+    var items = await _getTypeHierarchy('T extends Object');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'T',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [2, 3],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'MA',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'MB',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
+  }
+
+  Future<void> test_enum_displayName() async {
+    addTestFile('''
+mixin M<T> {}
+
+enum E with M<int> {
+  v;
+}
+''');
+    var items = await _getTypeHierarchy('E with');
+
+    var itemB = items[0];
+    expect(itemB.classElement.name, 'E');
+
+    var itemA = items[itemB.superclass!];
+    expect(itemA.classElement.name, 'Enum');
+    expect(itemA.displayName, isNull);
+
+    expect(itemB.mixins, hasLength(1));
+    var itemM = items[itemB.mixins[0]];
+    expect(itemM.classElement.name, 'M');
+    expect(itemM.displayName, 'M<int>');
+  }
+
+  Future<void> test_enum_implements() async {
+    addTestFile('''
+class A {}
+class B {}
+enum E implements A, B {
+  v;
+}
+''');
+    var items = await _getTypeHierarchy('E implements');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'ENUM',
+          'name': 'E',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [3, 4],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Enum',
+          'location': anything,
+          'flags': 1
+        },
+        'superclass': 2,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'A',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 2,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'B',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 2,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
+  }
+
+  Future<void> test_enum_member_getter() async {
+    addTestFile('''
+class A {
+  int get test => 0; // in A
+}
+class B extends A {
+  int get test => 0; // in B
+}
+class C extends B {
+}
+enum E implements C {
+  v;
+  int get test => 0; // in D
+}
+''');
+    var items = await _getTypeHierarchy('test => 0; // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    var itemE = items[itemC.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(itemE.classElement.name, 'E');
+    expect(
+      itemA.memberElement!.location!.offset,
+      findOffset('test => 0; // in A'),
+    );
+    expect(
+      itemB.memberElement!.location!.offset,
+      findOffset('test => 0; // in B'),
+    );
+    expect(itemC.memberElement, isNull);
+    expect(
+      itemE.memberElement!.location!.offset,
+      findOffset('test => 0; // in D'),
+    );
+  }
+
+  Future<void> test_enum_member_method() async {
+    addTestFile('''
+class A {
+  void test() {} // in A
+}
+class B extends A {
+  void test() {} // in B
+}
+class C extends B {
+}
+enum E implements C {
+  v;
+  void test() {} // in E
+}
+''');
+    var items = await _getTypeHierarchy('test() {} // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    var itemE = items[itemC.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(itemE.classElement.name, 'E');
+    expect(
+      itemA.memberElement!.location!.offset,
+      findOffset('test() {} // in A'),
+    );
+    expect(
+      itemB.memberElement!.location!.offset,
+      findOffset('test() {} // in B'),
+    );
+    expect(itemC.memberElement, isNull);
+    expect(
+      itemE.memberElement!.location!.offset,
+      findOffset('test() {} // in E'),
+    );
+  }
+
+  Future<void> test_enum_member_setter() async {
+    addTestFile('''
+class A {
+  set test(int x) {} // in A
+}
+class B extends A {
+  set test(int x) {} // in B
+}
+class C extends B {
+}
+enum E implements C {
+  v;
+  set test(int x) {} // in E
+}
+''');
+    var items = await _getTypeHierarchy('test(int x) {} // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    var itemE = items[itemC.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(itemE.classElement.name, 'E');
+    expect(
+      itemA.memberElement!.location!.offset,
+      findOffset('test(int x) {} // in A'),
+    );
+    expect(
+      itemB.memberElement!.location!.offset,
+      findOffset('test(int x) {} // in B'),
+    );
+    expect(itemC.memberElement, isNull);
+    expect(
+      itemE.memberElement!.location!.offset,
+      findOffset('test(int x) {} // in E'),
+    );
+  }
+
+  Future<void> test_enum_with() async {
+    addTestFile('''
+mixin M {}
+enum E with M {
+  v;
+}
+''');
+    var items = await _getTypeHierarchy('E with');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'ENUM',
+          'name': 'E',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [3],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Enum',
+          'location': anything,
+          'flags': 1
+        },
+        'superclass': 2,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'MIXIN',
+          'name': 'M',
+          'location': anything,
+          'flags': 1
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
   }
 
   void _assertMember(TypeHierarchyItem item, String search) {

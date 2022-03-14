@@ -14,7 +14,6 @@ import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/api_unstable/dart2js.dart' as api;
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 import 'package:front_end/src/testing/compiler_common.dart';
@@ -64,7 +63,6 @@ void checkIsRedirectingFactory(ir.Component component, String uriPath,
       .firstWhere((m) => m.name.text == constructorName) as ir.Procedure;
   Expect.isTrue(
       member.kind == ir.ProcedureKind.Factory, "$member is not a factory");
-  Expect.isTrue(api.isRedirectingFactory(member));
   Expect.isTrue(member.isRedirectingFactory);
 }
 

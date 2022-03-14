@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../util/ast_check.dart';
-import '../../util/token_check.dart';
 import 'parser_diagnostics.dart';
 
 main() {
@@ -27,10 +24,14 @@ class A {
     parseResult.assertErrors([
       error(ParserErrorCode.EXTRANEOUS_MODIFIER, 14, 5),
     ]);
-    check(parseResult.findNode.simpleFormalParameter('a);'))
-      ..keyword.isKeywordConst
-      ..type.isNull
-      ..identifier.isNotNull;
+
+    var node = parseResult.findNode.simpleFormalParameter('a);');
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  keyword: const
+  identifier: SimpleIdentifier
+    token: a
+''');
   }
 
   test_simpleFormalParameter_var() async {
@@ -40,10 +41,14 @@ class A {
 }
 ''');
     parseResult.assertNoErrors();
-    check(parseResult.findNode.simpleFormalParameter('a);'))
-      ..keyword.isKeywordVar
-      ..type.isNull
-      ..identifier.isNotNull;
+
+    var node = parseResult.findNode.simpleFormalParameter('a);');
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  keyword: var
+  identifier: SimpleIdentifier
+    token: a
+''');
   }
 
   test_superFormalParameter_var() async {
@@ -55,12 +60,15 @@ class A {
     parseResult.assertErrors([
       error(ParserErrorCode.EXTRANEOUS_MODIFIER, 14, 3),
     ]);
-    check(parseResult.findNode.superFormalParameter('super.a'))
-      ..keyword.isKeywordVar
-      ..superKeyword.isKeywordSuper
-      ..type.isNull
-      ..identifier.isNotNull
-      ..typeParameters.isNull
-      ..parameters.isNull;
+
+    var node = parseResult.findNode.superFormalParameter('super.a');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  keyword: var
+  superKeyword: super
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+''');
   }
 }

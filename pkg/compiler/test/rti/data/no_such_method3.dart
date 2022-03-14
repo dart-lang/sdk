@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 class C {
   /*member: C.noSuchMethod:*/
   noSuchMethod(i) => null;
@@ -11,7 +13,7 @@ class C {
 
 @pragma('dart2js:noInline')
 test(dynamic x) {
-  print(x.foo<int, String>());
+  makeLive(x.foo<int, String>());
 }
 
 main() {

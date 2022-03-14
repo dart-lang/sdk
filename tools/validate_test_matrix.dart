@@ -8,11 +8,12 @@
 
 import 'dart:convert' show jsonDecode;
 import 'dart:io' show File, Platform;
+
 import 'package:smith/smith.dart' show TestMatrix;
 
 main() {
   var path = Platform.script.resolve("bots/test_matrix.json").toFilePath();
-  var json;
+  Map<String, dynamic> json;
   try {
     json = jsonDecode(File(path).readAsStringSync());
   } catch (e) {

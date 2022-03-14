@@ -89,7 +89,7 @@ class _ImportTableBuilder extends RecursiveVisitor {
     // whether the scheme is 'file:', but instead we check that is not 'dart:'
     // or 'package:'.
     bool isFileOrCustomScheme(Uri uri) =>
-        uri.scheme != '' && uri.scheme != 'package' && uri.scheme != 'dart';
+        uri.hasScheme && !uri.isScheme('package') && !uri.isScheme('dart');
     bool isTargetSchemeFileOrCustom = isFileOrCustomScheme(targetUri);
     bool isReferenceSchemeFileOrCustom = isFileOrCustomScheme(referenceUri);
     if (isTargetSchemeFileOrCustom && isReferenceSchemeFileOrCustom) {

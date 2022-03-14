@@ -138,14 +138,14 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_AtLeastOnce) {
   EXPECT(store->ShouldEmitStoreBarrier() == true);
 }
 
-ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
+static void TestWBEForArrays(int length) {
   DEBUG_ONLY(
       SetFlagScope<bool> sfs(&FLAG_trace_write_barrier_elimination, true));
   const char* nullable_tag = TestCase::NullableTag();
 
-  // Test that array allocations are not considered usable after a
-  // may-trigger-GC instruction (in this case CheckStackOverflow), unlike
-  // normal allocations, which are only interruped by a Dart call.
+  // Test that array allocations are considered usable after a
+  // may-trigger-GC instruction (in this case CheckStackOverflow) iff they
+  // are small.
   // clang-format off
   auto kScript =
       Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
@@ -159,7 +159,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
       foo(int x) {
         C c = C();
         C n = C();
-        List<C%s> array = List<C%s>.filled(1, null);
+        List<C%s> array = List<C%s>.filled(%d, null);
+        array[0] = c;
         while (x --> 0) {
           c.next = n;
           n = c;
@@ -170,10 +171,15 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
       }
 
       main() { foo(10); }
-      )", TestCase::LateTag(), nullable_tag, nullable_tag), std::free);
+      )", TestCase::LateTag(), nullable_tag, nullable_tag, length), std::free);
   // clang-format on
 
-  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  // Generate a length dependent test library uri.
+  char lib_uri[256];
+  snprintf(lib_uri, sizeof(lib_uri), "%s%d", RESOLVED_USER_TEST_URI, length);
+
+  const auto& root_library = Library::Handle(
+      LoadTestScript(kScript.get(), /*resolver=*/nullptr, lib_uri));
 
   Invoke(root_library, "main");
 
@@ -185,10 +191,13 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
   EXPECT(entry != nullptr);
 
   StoreInstanceFieldInstr* store_into_c = nullptr;
-  StoreIndexedInstr* store_into_array = nullptr;
+  StoreIndexedInstr* store_into_array_before_loop = nullptr;
+  StoreIndexedInstr* store_into_array_after_loop = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveStoreIndexed, &store_into_array_before_loop},
       kMoveGlob,
       kMatchAndMoveGoto,
       kMoveGlob,
@@ -200,11 +209,19 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
       kMoveGlob,
       kMatchAndMoveBranchFalse,
       kMoveGlob,
-      {kMatchAndMoveStoreIndexed, &store_into_array},
+      {kMatchAndMoveStoreIndexed, &store_into_array_after_loop},
   }));
 
   EXPECT(store_into_c->ShouldEmitStoreBarrier() == false);
-  EXPECT(store_into_array->ShouldEmitStoreBarrier() == true);
+  EXPECT(store_into_array_before_loop->ShouldEmitStoreBarrier() == false);
+  EXPECT(store_into_array_after_loop->ShouldEmitStoreBarrier() ==
+         (length > Array::kMaxLengthForWriteBarrierElimination));
+}
+
+ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
+  TestWBEForArrays(1);
+  TestWBEForArrays(Array::kMaxLengthForWriteBarrierElimination);
+  TestWBEForArrays(Array::kMaxLengthForWriteBarrierElimination + 1);
 }
 
 ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Regress43786) {

@@ -33,7 +33,7 @@ vmspecific_handle_test: SkipByDesign # Symbols are not exposed on purpose and ar
 [ $system != android && $system != linux && $system != macos && $system != windows ]
 *: Skip # FFI not yet supported on other OSes.
 
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
 *: Skip # FFI not yet supported on the arm simulator.
 
 [ $builder_tag == asan || $builder_tag == msan || $builder_tag == tsan ]

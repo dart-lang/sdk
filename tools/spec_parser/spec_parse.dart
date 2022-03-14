@@ -5,9 +5,9 @@
 
 import 'dart:io';
 
-const String ClassPath = '.:/usr/share/java/antlr3-runtime.jar';
-const String MainClass = 'SpecParser';
-const String JavaExecutable = 'java';
+const String classPath = '.:/usr/share/java/antlr3-runtime.jar';
+const String mainClass = 'SpecParser';
+const String javaExecutable = 'java';
 
 main([arguments]) {
   for (String arg in arguments) {
@@ -18,7 +18,7 @@ main([arguments]) {
       print(result.stdout);
     }
 
-    List<String> javaArguments = <String>['-cp', ClassPath, MainClass, arg];
-    Process.run(JavaExecutable, javaArguments).then(handleResult);
+    List<String> javaArguments = <String>['-cp', classPath, mainClass, arg];
+    Process.run(javaExecutable, javaArguments).then(handleResult);
   }
 }

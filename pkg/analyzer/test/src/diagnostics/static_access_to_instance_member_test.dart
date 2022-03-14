@@ -101,6 +101,17 @@ main() {
     ]);
   }
 
+  test_propertyAccess_field_toplevel_generic() async {
+    await assertErrorsInCode('''
+class C<T> {
+  List<T> t = [];
+}
+var x = C.t;
+''', [
+      error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 43, 1),
+    ]);
+  }
+
   test_propertyAccess_getter() async {
     await assertErrorsInCode('''
 class A {

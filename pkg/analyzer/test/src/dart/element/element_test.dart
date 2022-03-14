@@ -692,8 +692,8 @@ enum B {B1, B2, B3}
     FieldElement b2Element = B.getField('B2')!;
     expect(b2Element.isEnumConstant, isTrue);
 
-    FieldElement indexElement = B.getField('index')!;
-    expect(indexElement.isEnumConstant, isFalse);
+    FieldElement valuesElement = B.getField('values')!;
+    expect(valuesElement.isEnumConstant, isFalse);
   }
 }
 

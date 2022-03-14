@@ -1902,15 +1902,6 @@ Message _withArgumentsConstructorWithWrongNameContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeContinueLabelNotTarget = messageContinueLabelNotTarget;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageContinueLabelNotTarget = const MessageCode(
-    "ContinueLabelNotTarget",
-    analyzerCodes: <String>["LABEL_UNDEFINED"],
-    problemMessage: r"""Target of continue must be a label.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2770,6 +2761,33 @@ Message _withArgumentsEnumConstantSameNameAsEnclosing(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumConstructorSuperInitializer =
+    messageEnumConstructorSuperInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumConstructorSuperInitializer = const MessageCode(
+    "EnumConstructorSuperInitializer",
+    problemMessage: r"""Enum constructors can't contain super-initializers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumConstructorTearoff = messageEnumConstructorTearoff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumConstructorTearoff = const MessageCode(
+    "EnumConstructorTearoff",
+    problemMessage: r"""Enum constructors can't be torn off.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumContainsValuesDeclaration =
+    messageEnumContainsValuesDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumContainsValuesDeclaration = const MessageCode(
+    "EnumContainsValuesDeclaration",
+    problemMessage:
+        r"""Enums can't contain declarations of members with the name 'values'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumDeclarationEmpty = messageEnumDeclarationEmpty;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2799,6 +2817,41 @@ const MessageCode messageEnumEntryWithTypeArgumentsWithoutArguments =
             r"""Missing arguments in enum constructor invocation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumFactoryRedirectsToConstructor =
+    messageEnumFactoryRedirectsToConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumFactoryRedirectsToConstructor = const MessageCode(
+    "EnumFactoryRedirectsToConstructor",
+    problemMessage:
+        r"""Enum factory constructors can't redirect to generative constructors.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateEnumImplementerContainsValuesDeclaration =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
+        withArguments: _withArgumentsEnumImplementerContainsValuesDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeEnumImplementerContainsValuesDeclaration =
+    const Code<Message Function(String name)>(
+  "EnumImplementerContainsValuesDeclaration",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumImplementerContainsValuesDeclaration(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeEnumImplementerContainsValuesDeclaration,
+      problemMessage:
+          """'${name}' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumInClass = messageEnumInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2815,6 +2868,15 @@ const MessageCode messageEnumInstantiation = const MessageCode(
     "EnumInstantiation",
     analyzerCodes: <String>["INSTANTIATE_ENUM"],
     problemMessage: r"""Enums can't be instantiated.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumNonConstConstructor = messageEnumNonConstConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumNonConstConstructor = const MessageCode(
+    "EnumNonConstConstructor",
+    problemMessage:
+        r"""Generative enum constructors must be marked as 'const'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
@@ -6940,6 +7002,34 @@ const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
     problemMessage: r"""'loadLibrary' takes no arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateMacroClassNotDeclaredMacro = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Non-abstract class '#name' implements 'Macro' but isn't declared as a macro class.""",
+    correctionMessageTemplate: r"""Try adding the 'macro' class modifier.""",
+    withArguments: _withArgumentsMacroClassNotDeclaredMacro);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMacroClassNotDeclaredMacro =
+    const Code<Message Function(String name)>(
+  "MacroClassNotDeclaredMacro",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMacroClassNotDeclaredMacro(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMacroClassNotDeclaredMacro,
+      problemMessage:
+          """Non-abstract class '${name}' implements 'Macro' but isn't declared as a macro class.""",
+      correctionMessage: """Try adding the 'macro' class modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMainNotFunctionDeclaration =
     messageMainNotFunctionDeclaration;
 
@@ -7378,6 +7468,37 @@ const MessageCode messageMoreThanOneSuperInitializer = const MessageCode(
     problemMessage: r"""Can't have more than one 'super' initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateMultipleClauses = const Template<
+        Message Function(String string, String string2)>(
+    problemMessageTemplate:
+        r"""Each '#string' definition can have at most one '#string2' clause.""",
+    correctionMessageTemplate:
+        r"""Try combining all of the '#string2' clauses into a single clause.""",
+    withArguments: _withArgumentsMultipleClauses);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeMultipleClauses =
+    const Code<Message Function(String string, String string2)>(
+        "MultipleClauses",
+        index: 121);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMultipleClauses(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeMultipleClauses,
+      problemMessage:
+          """Each '${string}' definition can have at most one '${string2}' clause.""",
+      correctionMessage: """Try combining all of the '${string2}' clauses into a single clause.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleExtends = messageMultipleExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7683,6 +7804,46 @@ Message _withArgumentsNonAsciiWhitespace(int codePoint) {
           """The non-ASCII space character ${unicode} can only be used in strings and comments.""",
       arguments: {'unicode': codePoint});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonAugmentationClassMemberConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Member '#name' conflicts with an existing member of the same name in the augmented class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing member or adding an 'augment' modifier.""",
+    withArguments: _withArgumentsNonAugmentationClassMemberConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeNonAugmentationClassMemberConflict =
+    const Code<Message Function(String name)>(
+  "NonAugmentationClassMemberConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAugmentationClassMemberConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonAugmentationClassMemberConflict,
+      problemMessage:
+          """Member '${name}' conflicts with an existing member of the same name in the augmented class.""",
+      correctionMessage: """Try changing the name to an existing member or adding an 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAugmentationClassMemberConflictCause =
+    messageNonAugmentationClassMemberConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAugmentationClassMemberConflictCause =
+    const MessageCode("NonAugmentationClassMemberConflictCause",
+        severity: Severity.context,
+        problemMessage: r"""This is the existing member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonConstConstructor = messageNonConstConstructor;
@@ -8269,6 +8430,37 @@ const MessageCode messageOperatorWithTypeParameters = const MessageCode(
     problemMessage:
         r"""Types parameters aren't allowed when defining an operator.""",
     correctionMessage: r"""Try removing the type parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateOutOfOrderClauses = const Template<
+        Message Function(String string, String string2)>(
+    problemMessageTemplate:
+        r"""The '#string' clause must come before the '#string2' clause.""",
+    correctionMessageTemplate:
+        r"""Try moving the '#string' clause before the '#string2' clause.""",
+    withArguments: _withArgumentsOutOfOrderClauses);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeOutOfOrderClauses =
+    const Code<Message Function(String string, String string2)>(
+        "OutOfOrderClauses",
+        index: 122);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOutOfOrderClauses(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeOutOfOrderClauses,
+      problemMessage:
+          """The '${string}' clause must come before the '${string2}' clause.""",
+      correctionMessage: """Try moving the '${string}' clause before the '${string2}' clause.""",
+      arguments: {'string': string, 'string2': string2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateOverriddenMethodCause =
@@ -10222,6 +10414,44 @@ Message _withArgumentsUnexpectedToken(Token token) {
   return new Message(codeUnexpectedToken,
       problemMessage: """Unexpected token '${lexeme}'.""",
       arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnexpectedTokens = messageUnexpectedTokens;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnexpectedTokens = const MessageCode(
+    "UnexpectedTokens",
+    index: 123,
+    problemMessage: r"""Unexpected tokens.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedAugmentationClassMember = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Augmentation member '#name' doesn't match a member in the augmented class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing member or removing the 'augment' modifier.""",
+    withArguments: _withArgumentsUnmatchedAugmentationClassMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedAugmentationClassMember =
+    const Code<Message Function(String name)>(
+  "UnmatchedAugmentationClassMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedAugmentationClassMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedAugmentationClassMember,
+      problemMessage:
+          """Augmentation member '${name}' doesn't match a member in the augmented class.""",
+      correctionMessage: """Try changing the name to an existing member or removing the 'augment' modifier.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

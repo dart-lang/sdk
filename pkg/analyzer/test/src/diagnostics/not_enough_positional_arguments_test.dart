@@ -57,6 +57,30 @@ class B extends A {
     ]);
   }
 
+  test_enumConstant_withArgumentList() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v();
+  const E(int a);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 11, 3),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 12, 2),
+    ]);
+  }
+
+  test_enumConstant_withoutArgumentList() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  const E(int a);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 11, 1),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 11, 1),
+    ]);
+  }
+
   test_functionExpression() async {
     await assertErrorsInCode('''
 main() {

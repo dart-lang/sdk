@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "package:macro/macro.dart" as mac;
+import "dart:core" as core;
+
+import "package:macro/macro.dart";
+
+@#C1
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ method() → dynamic {}
+}
+@#C1
+@#C1
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ method() → dynamic {}
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ method1() → dynamic {}
+}
+@#C1
+class Class3 extends core::Object {
+  synthetic constructor •() → self::Class3
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ method1() → dynamic {}
+  method method() → dynamic {}
+}
+@#C1
+@#C1
+@#C1
+class Class4 extends core::Object {
+  synthetic constructor •() → self::Class4
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ method1() → dynamic {}
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-5 */ method3() → dynamic {}
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-6 */ method4() → dynamic {}
+  method method() → dynamic {}
+  method method2() → dynamic {}
+}
+
+constants  {
+  #C1 = mac::SequenceMacro {}
+}

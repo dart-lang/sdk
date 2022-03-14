@@ -41,6 +41,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
       if (importElem.prefix?.name == elem.name) {
         var library = importElem.importedLibrary;
         if (library != null) {
+          builder.libraryUriStr = library.source.uri.toString();
           for (var element in importElem.namespace.definedNames.values) {
             if (typesOnly && isConstructor) {
               // Suggest constructors from the imported libraries.
@@ -72,6 +73,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
           if (!typesOnly && importElem.isDeferred) {
             builder.suggestLoadLibraryFunction(library.loadLibraryFunction);
           }
+          builder.libraryUriStr = null;
         }
       }
     }

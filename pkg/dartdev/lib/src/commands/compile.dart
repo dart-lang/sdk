@@ -23,37 +23,20 @@ class Option {
   final String help;
   final String? abbr;
   final String? defaultsTo;
+  final String? valueHelp;
   final List<String>? allowed;
   final Map<String, String>? allowedHelp;
 
-  Option(
-      {required this.flag,
-      required this.help,
-      this.abbr,
-      this.defaultsTo,
-      this.allowed,
-      this.allowedHelp});
+  const Option({
+    required this.flag,
+    required this.help,
+    this.abbr,
+    this.defaultsTo,
+    this.valueHelp,
+    this.allowed,
+    this.allowedHelp,
+  });
 }
-
-final Map<String, Option> commonOptions = {
-  'outputFile': Option(
-    flag: 'output',
-    abbr: 'o',
-    help: '''
-Write the output to <file name>.
-This can be an absolute or relative path.
-''',
-  ),
-  'verbosity': Option(
-    flag: 'verbosity',
-    help: '''
-Sets the verbosity level of the compilation.
-''',
-    defaultsTo: Verbosity.defaultValue,
-    allowed: Verbosity.allowedValues,
-    allowedHelp: Verbosity.allowedValuesHelp,
-  ),
-};
 
 bool checkFile(String sourcePath) {
   if (!FileSystemEntity.isFileSync(sourcePath)) {
@@ -117,19 +100,24 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
   }) : super(commandName, 'Compile Dart $help', verbose) {
     argParser
       ..addOption(
-        commonOptions['outputFile']!.flag,
-        help: commonOptions['outputFile']!.help,
-        abbr: commonOptions['outputFile']!.abbr,
+        outputFileOption.flag,
+        help: outputFileOption.help,
+        abbr: outputFileOption.abbr,
       )
       ..addOption(
-        commonOptions['verbosity']!.flag,
-        help: commonOptions['verbosity']!.help,
-        abbr: commonOptions['verbosity']!.abbr,
-        defaultsTo: commonOptions['verbosity']!.defaultsTo,
-        allowed: commonOptions['verbosity']!.allowed,
-        allowedHelp: commonOptions['verbosity']!.allowedHelp,
+        verbosityOption.flag,
+        help: verbosityOption.help,
+        abbr: verbosityOption.abbr,
+        defaultsTo: verbosityOption.defaultsTo,
+        allowed: verbosityOption.allowed,
+        allowedHelp: verbosityOption.allowedHelp,
+      )
+      ..addMultiOption(
+        defineOption.flag,
+        help: defineOption.help,
+        abbr: defineOption.abbr,
+        valueHelp: defineOption.valueHelp,
       );
-
     addExperimentalFlags(argParser, verbose);
   }
 
@@ -160,7 +148,7 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     }
 
     // Determine output file name.
-    String? outputFile = args[commonOptions['outputFile']!.flag];
+    String? outputFile = args[outputFileOption.flag];
     if (outputFile == null) {
       final inputWithoutDart = sourcePath.endsWith('.dart')
           ? sourcePath.substring(0, sourcePath.length - 5)
@@ -169,12 +157,13 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     }
 
     final enabledExperiments = args.enabledExperiments;
+    final environmentVars = args['define'] ?? <String, String>{};
     // Build arguments.
     List<String> buildArgs = [];
     buildArgs.add('--snapshot-kind=$formatName');
     buildArgs.add('--snapshot=${path.canonicalize(outputFile)}');
 
-    String? verbosity = args[commonOptions['verbosity']!.flag];
+    String? verbosity = args[verbosityOption.flag];
     buildArgs.add('--verbosity=$verbosity');
 
     if (enabledExperiments.isNotEmpty) {
@@ -182,6 +171,9 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     }
     if (verbose) {
       buildArgs.add('-v');
+    }
+    if (environmentVars.isNotEmpty) {
+      buildArgs.addAll(environmentVars.map<String>((e) => '--define=$e'));
     }
     buildArgs.add(path.canonicalize(sourcePath));
 
@@ -214,21 +206,24 @@ class CompileNativeCommand extends CompileSubcommandCommand {
   }) : super(commandName, 'Compile Dart $help', verbose) {
     argParser
       ..addOption(
-        commonOptions['outputFile']!.flag,
-        help: commonOptions['outputFile']!.help,
-        abbr: commonOptions['outputFile']!.abbr,
+        outputFileOption.flag,
+        help: outputFileOption.help,
+        abbr: outputFileOption.abbr,
       )
       ..addOption(
-        commonOptions['verbosity']!.flag,
-        help: commonOptions['verbosity']!.help,
-        abbr: commonOptions['verbosity']!.abbr,
-        defaultsTo: commonOptions['verbosity']!.defaultsTo,
-        allowed: commonOptions['verbosity']!.allowed,
-        allowedHelp: commonOptions['verbosity']!.allowedHelp,
+        verbosityOption.flag,
+        help: verbosityOption.help,
+        abbr: verbosityOption.abbr,
+        defaultsTo: verbosityOption.defaultsTo,
+        allowed: verbosityOption.allowed,
+        allowedHelp: verbosityOption.allowedHelp,
       )
-      ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
-Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
-For example: dart compile $commandName -Da=1,b=2 main.dart''')
+      ..addMultiOption(
+        defineOption.flag,
+        help: defineOption.help,
+        abbr: defineOption.abbr,
+        valueHelp: defineOption.valueHelp,
+      )
       ..addFlag('enable-asserts',
           negatable: false, help: 'Enable assert statements.')
       ..addOption('packages',
@@ -307,9 +302,36 @@ Remove debugging information from the output and save it separately to the speci
 }
 
 abstract class CompileSubcommandCommand extends DartdevCommand {
+  final outputFileOption = Option(
+    flag: 'output',
+    abbr: 'o',
+    help: '''
+Write the output to <file name>.
+This can be an absolute or relative path.
+''',
+  );
+  final verbosityOption = Option(
+    flag: 'verbosity',
+    help: '''
+Sets the verbosity level of the compilation.
+''',
+    defaultsTo: Verbosity.defaultValue,
+    allowed: Verbosity.allowedValues,
+    allowedHelp: Verbosity.allowedValuesHelp,
+  );
+  late final Option defineOption;
+
   CompileSubcommandCommand(String name, String description, bool verbose,
       {bool hidden = false})
-      : super(name, description, verbose, hidden: hidden);
+      : defineOption = Option(
+          flag: 'define',
+          abbr: 'D',
+          valueHelp: 'key=value',
+          help: '''
+Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
+For example: dart compile $name -Da=1,b=2 main.dart''',
+        ),
+        super(name, description, verbose, hidden: hidden);
 }
 
 class CompileCommand extends DartdevCommand {
