@@ -45,6 +45,7 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
   void setUp() {
     registerLintRules();
     super.setUp();
+    server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
     server.handlers = [
       AnalysisDomainHandler(server),
     ];
@@ -408,6 +409,10 @@ main() {
         brokenFile: RemoveContentOverlay(),
       }).toRequest('1'),
     );
+
+    // Wait for the timer to remove the overlay to fire.
+    await Future.delayed(server.pendingFilesRemoveOverlayDelay);
+
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
 

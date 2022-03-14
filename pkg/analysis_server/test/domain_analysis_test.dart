@@ -569,8 +569,8 @@ transforms: []
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
-    // The test file is analyzed, no errors.
-    await server.onAnalysisComplete;
+    // The test file (overlay) is analyzed, no errors.
+    await _waitAnalysisComplete();
     _assertAnalyzedFiles(
       hasErrors: [],
       noErrors: [testFilePathPlatform],
@@ -581,21 +581,84 @@ transforms: []
     newFile(testFilePath, content: 'error');
 
     // But the overlay is still present, so the file is not analyzed.
-    await server.onAnalysisComplete;
+    await _waitAnalysisComplete();
     _assertAnalyzedFiles(
       hasErrors: [],
       notAnalyzed: [testFilePathPlatform],
     );
 
-    // Remove the overlay, now the file will be read.
+    // Ask to remove the overlay, still active, start a timer.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFilePathPlatform: RemoveContentOverlay(),
       }).toRequest('0'),
     );
 
+    // Wait for the timer to remove the overlay to fire.
+    await Future.delayed(server.pendingFilesRemoveOverlayDelay);
+
     // The file has errors.
-    await server.onAnalysisComplete;
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [testFilePathPlatform],
+      noErrors: [],
+      notAnalyzed: [],
+    );
+  }
+
+  Future<void>
+      test_fileSystem_changeFile_hasOverlay_removeOverlay_delayed() async {
+    // Use long delay, so that it does not happen.
+    server.pendingFilesRemoveOverlayDelay = const Duration(seconds: 300);
+
+    newFile(testFilePath, content: '');
+
+    // Add an overlay without errors.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFilePathPlatform: AddContentOverlay(''),
+      }).toRequest('0'),
+    );
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+
+    // The test file (overlay) is analyzed, no errors.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      noErrors: [testFilePathPlatform],
+      notAnalyzed: [],
+    );
+
+    // Change the file, has errors.
+    modifyFile(testFilePath, 'error');
+
+    // But the overlay is still present, so the file is not analyzed.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      notAnalyzed: [testFilePathPlatform],
+    );
+
+    // Ask to remove the overlay, still active, start a timer.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFilePathPlatform: RemoveContentOverlay(),
+      }).toRequest('0'),
+    );
+
+    // Long timer, so still not analyzed.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      notAnalyzed: [testFilePathPlatform],
+    );
+
+    // Change the file again, has errors.
+    newFile(testFilePath, content: 'error');
+
+    // The timer cancelled on the watch event, and the file analyzed.
+    await _waitAnalysisComplete();
     _assertAnalyzedFiles(
       hasErrors: [testFilePathPlatform],
       noErrors: [],
@@ -1279,6 +1342,16 @@ void f(A a) {}
         RequestErrorCode.INVALID_OVERLAY_CHANGE,
       ),
     );
+  }
+
+  /// Pump the event queue, so that watch events are processed.
+  /// Wait for analysis to complete.
+  /// Repeat a few times, eventually there will be no work to do.
+  Future<void> _waitAnalysisComplete() async {
+    for (var i = 0; i < 128; i++) {
+      pumpEventQueue();
+      await server.onAnalysisComplete;
+    }
   }
 }
 

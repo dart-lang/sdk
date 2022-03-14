@@ -3016,7 +3016,12 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
       InstrumentationService.NULL_SERVICE,
     );
 
+    server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
     completionDomain.budgetDuration = const Duration(seconds: 30);
+  }
+
+  Future<void> tearDown() async {
+    await server.dispose();
   }
 
   void writePackageConfig(Folder root, PackageConfigFileBuilder config) {
