@@ -1274,8 +1274,7 @@ mixin StandardBounds {
               type2,
               clientLibrary)
           .withDeclaredNullability(uniteNullabilities(
-              type1.promotedBound!.declaredNullability,
-              type2.declaredNullability));
+              type1.promotedBound!.declaredNullability, type2.nullability));
     }
   }
 

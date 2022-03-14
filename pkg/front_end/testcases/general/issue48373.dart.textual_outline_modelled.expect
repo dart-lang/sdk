@@ -1,0 +1,2 @@
+main() {}
+void fn<T, S>(T? t, S? s) {}
