@@ -5416,7 +5416,9 @@ bool Class::IsSubtypeOf(const Class& cls,
             AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
         // If T0 is Future<S0>, then T0 <: Future<S1>, iff S0 <: S1.
         if (type_arg.IsSubtypeOf(other_type_arg, space, trail)) {
-          if (verified_nullability) {
+          // verified_nullability doesn't take into account the nullability of
+          // S1, just of the FutureOr type.
+          if (verified_nullability || !other_type_arg.IsNonNullable()) {
             return true;
           }
         }
