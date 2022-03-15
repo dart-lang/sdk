@@ -147,15 +147,35 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
             case MessageType.declarationOfRequest:
               DeclarationOfRequest request =
                   new DeclarationOfRequest.deserialize(deserializer, zoneId);
-              TypeDeclarationResolver resolver = request
-                  .typeDeclarationResolver.instance as TypeDeclarationResolver;
-              SerializableResponse response = new SerializableResponse(
-                  requestId: request.id,
-                  responseType: MessageType.remoteInstance,
-                  response: (await resolver.declarationOf(request.identifier)
-                      // TODO: Consider refactoring to avoid the need for this.
-                      as TypeDeclarationImpl),
-                  serializationZoneId: zoneId);
+              SerializableResponse response;
+              try {
+                TypeDeclarationResolver resolver = request
+                    .typeDeclarationResolver
+                    .instance as TypeDeclarationResolver;
+                response = new SerializableResponse(
+                    requestId: request.id,
+                    responseType: MessageType.remoteInstance,
+                    response: (await resolver.declarationOf(request.identifier)
+                        // TODO: Consider refactoring to avoid the need for
+                        //  this.
+                        as TypeDeclarationImpl),
+                    serializationZoneId: zoneId);
+              } on ArgumentError catch (error) {
+                response = new SerializableResponse(
+                    error: '$error',
+                    requestId: request.id,
+                    responseType: MessageType.argumentError,
+                    serializationZoneId: zoneId);
+              } catch (error, stackTrace) {
+                // TODO(johnniwinther,jakemac): How should we handle errors in
+                // general?
+                response = new SerializableResponse(
+                    error: '$error',
+                    stackTrace: '$stackTrace',
+                    requestId: request.id,
+                    responseType: MessageType.error,
+                    serializationZoneId: zoneId);
+              }
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendResult(serializer);

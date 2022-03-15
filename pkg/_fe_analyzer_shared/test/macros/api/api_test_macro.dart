@@ -6,8 +6,6 @@ import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'api_test_expectations.dart';
 
-
-
 macro class ClassMacro
     implements ClassTypesMacro, ClassDeclarationsMacro, ClassDefinitionMacro {
   const ClassMacro();
@@ -25,6 +23,9 @@ macro class ClassMacro
   FutureOr<void> buildDefinitionForClass(
       ClassDeclaration clazz, ClassDefinitionBuilder builder) async {
     await checkClassDeclaration(clazz, classIntrospector: builder);
+    await checkIdentifierResolver(builder);
+    await checkTypeDeclarationResolver(builder,
+        {clazz.identifier : clazz.identifier.name});
   }
 }
 
@@ -51,5 +52,6 @@ macro class FunctionMacro
       FunctionDeclaration function, FunctionDefinitionBuilder builder) async {
     checkFunctionDeclaration(function);
     await checkIdentifierResolver(builder);
+    await checkTypeDeclarationResolver(builder, {function.identifier: null});
   }
 }

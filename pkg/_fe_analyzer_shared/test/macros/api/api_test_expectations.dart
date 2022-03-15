@@ -84,10 +84,17 @@ expect(expected, actual, property) {
   }
 }
 
-Future<void> throws(Future<void> Function() f, property) async {
+Future<void> throws(Future<void> Function() f, property,
+    {String? Function(Object)? expectedError}) async {
   try {
     await f();
-  } catch (_) {
+  } catch (e) {
+    if (expectedError != null) {
+      String? errorMessage = expectedError(e);
+      if (errorMessage != null) {
+        throw 'Unexpected exception on $property: $errorMessage';
+      }
+    }
     return;
   }
   throw 'Expected throws on $property';
@@ -242,6 +249,31 @@ Future<void> checkIdentifierResolver(
   await check(macroApiData, 'getter=', expectThrows: true);
   await check(macroApiData, 'setter', expectThrows: true);
   await check(macroApiData, 'field=', expectThrows: true);
+}
+
+Future<void> checkTypeDeclarationResolver(
+    TypeDeclarationResolver typeDeclarationResolver,
+    Map<Identifier, String?> test) async {
+  Future<void> check(Identifier identifier, String name,
+      {bool expectThrows: false}) async {
+    if (expectThrows) {
+      await throws(() async {
+        await typeDeclarationResolver.declarationOf(identifier);
+      }, '$name from $identifier',
+          expectedError: (e) => e is! ArgumentError
+              ? 'Expected ArgumentError, got ${e.runtimeType}: $e'
+              : null);
+    } else {
+      TypeDeclaration result =
+          await typeDeclarationResolver.declarationOf(identifier);
+      expect(name, result.identifier.name, '$name from $identifier');
+    }
+  }
+
+  test.forEach((Identifier identifier, String? expectedName) {
+    check(identifier, expectedName ?? identifier.name,
+        expectThrows: expectedName == null);
+  });
 }
 
 class ClassData {

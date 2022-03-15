@@ -92,6 +92,10 @@ class SerializableResponse implements Response, Serializable {
         deserializer.moveNext();
         stackTrace = deserializer.expectNullableString();
         break;
+      case MessageType.argumentError:
+        deserializer.moveNext();
+        error = deserializer.expectString();
+        break;
       case MessageType.macroClassIdentifier:
         response = new MacroClassIdentifierImpl.deserialize(deserializer);
         break;
@@ -139,6 +143,9 @@ class SerializableResponse implements Response, Serializable {
       case MessageType.error:
         serializer.addString(error!.toString());
         serializer.addNullableString(stackTrace);
+        break;
+      case MessageType.argumentError:
+        serializer.addString(error!.toString());
         break;
       default:
         response.serializeNullable(serializer);
@@ -752,11 +759,15 @@ class RemoteException implements Exception {
 T _handleResponse<T>(Response response) {
   if (response.responseType == MessageType.error) {
     throw new RemoteException(response.error!.toString(), response.stackTrace);
+  } else if (response.responseType == MessageType.argumentError) {
+    throw new ArgumentError(response.error!.toString());
   }
+
   return response.response as T;
 }
 
 enum MessageType {
+  argumentError,
   boolean,
   constructorsOfRequest,
   declarationOfRequest,
