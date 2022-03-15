@@ -505,6 +505,14 @@ _nightly_builder(
 )
 
 _nightly_builder(
+    "vm-kernel-msvc-windows",
+    category = "vm|misc|m",
+    channels = ["try"],
+    dimensions = windows,
+    goma = False,
+)
+
+_nightly_builder(
     "vm-kernel-linux-debug-simriscv64",
     category = "vm|misc|rv64",
     channels = ["try"],
