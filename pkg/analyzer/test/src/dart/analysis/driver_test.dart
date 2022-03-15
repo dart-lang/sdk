@@ -790,10 +790,10 @@ var A = B;
     var b = newFile2('/test/lib/b.dart', '''
 import 'a.dart';
 ''');
-    newFile2('/test/lib/c.dart', '''
+    var c = newFile2('/test/lib/c.dart', '''
 import 'b.dart';
 ''');
-    newFile2('/test/lib/d.dart', '''
+    var d = newFile2('/test/lib/d.dart', '''
 import 'c.dart';
 ''');
     newFile2('/test/lib/e.dart', '');
@@ -832,7 +832,8 @@ import 'c.dart';
     // Change `b.dart`, also removes `c.dart` and `d.dart` that import it.
     // But `a.dart` and `d.dart` is not affected.
     driver.changeFile(b.path);
-    await driver.applyPendingFileChanges();
+    var affectedPathList = await driver.applyPendingFileChanges();
+    expect(affectedPathList, unorderedEquals([b.path, c.path, d.path]));
 
     // We have a new session.
     var session2 = driver.currentSession;
@@ -863,10 +864,10 @@ import 'c.dart';
     var a = newFile2('/test/lib/a.dart', '''
 part of 'b.dart';
 ''');
-    newFile2('/test/lib/b.dart', '''
+    var b = newFile2('/test/lib/b.dart', '''
 part 'a.dart';
 ''');
-    newFile2('/test/lib/c.dart', '''
+    var c = newFile2('/test/lib/c.dart', '''
 import 'b.dart';
 ''');
     newFile2('/test/lib/d.dart', '');
@@ -900,7 +901,13 @@ import 'b.dart';
     // Removes `c.dart` that imports `b.dart`.
     // But `d.dart` is not affected.
     driver.changeFile(a.path);
-    await driver.applyPendingFileChanges();
+    var affectedPathList = await driver.applyPendingFileChanges();
+    expect(affectedPathList, unorderedEquals([a.path, b.path, c.path]));
+
+    // We have a new session.
+    var session2 = driver.currentSession;
+    expect(session2, isNot(session1));
+
     driver.assertLoadedLibraryUriSet(
       excluded: [
         'package:test/b.dart',
@@ -910,10 +917,6 @@ import 'b.dart';
         'package:test/d.dart',
       ],
     );
-
-    // We have a new session.
-    var session2 = driver.currentSession;
-    expect(session2, isNot(session1));
 
     // `d.dart` moved to the new session.
     // Invalidated libraries stuck with the old session.

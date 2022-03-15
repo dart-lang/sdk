@@ -38,5 +38,12 @@ abstract class AnalysisContext {
 
   /// Return a [Future] that completes after pending file changes are applied,
   /// so that [currentSession] can be used to compute results.
-  Future<void> applyPendingFileChanges();
+  ///
+  /// The value is the set of all files that are potentially affected by
+  /// the pending changes. This set can be both wider than the set of analyzed
+  /// files (because it may include files imported from other packages, and
+  /// which are on the import path from a changed file to an analyze file),
+  /// and narrower than the set of analyzed files (because only files that
+  /// were previously accessed are considered to be known and affected).
+  Future<List<String>> applyPendingFileChanges();
 }

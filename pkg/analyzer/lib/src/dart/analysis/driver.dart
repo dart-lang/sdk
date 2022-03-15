@@ -145,8 +145,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The file changes that should be applied before processing requests.
   final List<_FileChange> _pendingFileChanges = [];
 
+  /// When [_applyFileChangesSynchronously] is `true`, affected files are
+  /// accumulated here.
+  Set<String> _accumulatedAffected = {};
+
   /// The completers to complete after [_pendingFileChanges] are applied.
-  final _pendingFileChangesCompleters = <Completer<void>>[];
+  final _pendingFileChangesCompleters = <Completer<List<String>>>[];
 
   /// The mapping from the files for which analysis was requested using
   /// [getResult] to the [Completer]s to report the result.
@@ -453,7 +457,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _priorityResults.clear();
       if (_applyFileChangesSynchronously) {
-        _removePotentiallyAffectedLibraries(path);
+        _removePotentiallyAffectedLibraries(_accumulatedAffected, path);
         _fileTracker.addFile(path);
       } else {
         _pendingFileChanges.add(
@@ -466,13 +470,22 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// Return a [Future] that completes after pending file changes are applied,
   /// so that [currentSession] can be used to compute results.
-  Future<void> applyPendingFileChanges() {
+  ///
+  /// The value is the set of all files that are potentially affected by
+  /// the pending changes. This set can be both wider than the set of analyzed
+  /// files (because it may include files imported from other packages, and
+  /// which are on the import path from a changed file to an analyze file),
+  /// and narrower than the set of analyzed files (because only files that
+  /// were previously accessed are considered to be known and affected).
+  Future<List<String>> applyPendingFileChanges() {
     if (_pendingFileChanges.isNotEmpty) {
-      var completer = Completer<void>();
+      var completer = Completer<List<String>>();
       _pendingFileChangesCompleters.add(completer);
       return completer.future;
     } else {
-      return Future.value();
+      var accumulatedAffected = _accumulatedAffected.toList();
+      _accumulatedAffected = {};
+      return Future.value(accumulatedAffected);
     }
   }
 
@@ -500,7 +513,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _priorityResults.clear();
       if (_applyFileChangesSynchronously) {
-        _removePotentiallyAffectedLibraries(path);
+        _removePotentiallyAffectedLibraries(_accumulatedAffected, path);
         _fileTracker.changeFile(path);
       } else {
         _pendingFileChanges.add(
@@ -1386,7 +1399,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _lastProducedSignatures.remove(path);
       _priorityResults.clear();
       if (_applyFileChangesSynchronously) {
-        _removePotentiallyAffectedLibraries(path);
+        _removePotentiallyAffectedLibraries(_accumulatedAffected, path);
         _fileTracker.removeFile(path);
       } else {
         _pendingFileChanges.add(
@@ -1464,9 +1477,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   void _applyPendingFileChanges() {
+    var accumulatedAffected = <String>{};
     for (var fileChange in _pendingFileChanges) {
       var path = fileChange.path;
-      _removePotentiallyAffectedLibraries(path);
+      _removePotentiallyAffectedLibraries(accumulatedAffected, path);
       switch (fileChange.kind) {
         case _FileChangeKind.add:
           _fileTracker.addFile(path);
@@ -1485,7 +1499,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       var completers = _pendingFileChangesCompleters.toList();
       _pendingFileChangesCompleters.clear();
       for (var completer in completers) {
-        completer.complete();
+        completer.complete(
+          accumulatedAffected.toList(),
+        );
       }
     }
   }
@@ -1896,12 +1912,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         'missing', errorsResult, AnalysisDriverUnitIndexBuilder());
   }
 
-  void _removePotentiallyAffectedLibraries(String path) {
+  void _removePotentiallyAffectedLibraries(
+    Set<String> accumulatedAffected,
+    String path,
+  ) {
     var affected = <FileState>{};
     _fsState.collectAffected(path, affected);
 
     for (var file in affected) {
       file.invalidateLibraryCycle();
+      accumulatedAffected.add(file.path);
     }
 
     _libraryContext?.elementFactory.removeLibraries(
