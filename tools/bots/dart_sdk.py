@@ -250,7 +250,11 @@ if __name__ == '__main__':
             CreateAndUploadSDKZip(arch, sdk_path)
             DartArchiveUnstrippedBinaries(arch)
             if CHANNEL != bot_utils.Channel.BLEEDING_EDGE:
-                UploadFlutterCipd(arch, sdk_path, CHANNEL)
+                try:
+                    UploadFlutterCipd(arch, sdk_path, CHANNEL)
+                except Exception as error:
+                    print('Error uploading to CIPD:')
+                    print(repr(error))
         if BUILD_OS == 'linux':
             CreateUploadVersionFile()
     else:
