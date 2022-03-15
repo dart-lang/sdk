@@ -407,6 +407,9 @@ abstract class AbstractAnalysisServer {
   }
 
   /// Return the unresolved unit for the file with the given [path].
+  ///
+  /// Callers should handle [InconsistentAnalysisException] exceptions that may
+  /// occur if a file is modified during this operation.
   Future<ParsedUnitResult?> getParsedUnit(String path) async {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
@@ -417,12 +420,8 @@ abstract class AbstractAnalysisServer {
       return null;
     }
 
-    try {
-      var result = await session.getParsedUnit2(path);
-      return result is ParsedUnitResult ? result : null;
-    } on InconsistentAnalysisException {
-      return null;
-    }
+    var result = await session.getParsedUnit2(path);
+    return result is ParsedUnitResult ? result : null;
   }
 
   /// Return the resolved unit for the file with the given [path]. The file is

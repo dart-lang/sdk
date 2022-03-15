@@ -38,6 +38,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -355,6 +356,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         } else {
           showErrorMessageToUser('Unknown message type');
         }
+      } on InconsistentAnalysisException {
+        sendErrorResponse(
+            message,
+            ResponseError(
+              code: ErrorCodes.ContentModified,
+              message: 'Document was modified before operation completed',
+            ));
       } catch (error, stackTrace) {
         final errorMessage = message is ResponseMessage
             ? 'An error occurred while handling the response to request ${message.id}'

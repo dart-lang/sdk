@@ -13,7 +13,6 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 
@@ -98,8 +97,6 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
 
           final edit = createWorkspaceEdit(server, change);
           return await sendWorkspaceEditToClient(edit);
-        } on InconsistentAnalysisException {
-          return fileModifiedError;
         } finally {
           _manager.end(cancelableToken);
           reporter.end();
