@@ -59,7 +59,6 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     this._ipv6,
     this._devToolsConfiguration,
     this.shouldLogRequests,
-    this._enableServicePortFallback,
   ) {
     _clientManager = ClientManager(this);
     _expressionEvaluator = ExpressionEvaluator(this);
@@ -137,7 +136,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     final host = uri?.host ??
         (_ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4)
             .host;
-    var port = uri?.port ?? 0;
+    final port = uri?.port ?? 0;
     var pipeline = const Pipeline();
     if (shouldLogRequests) {
       pipeline = pipeline.addMiddleware(
@@ -156,25 +155,16 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     late String errorMessage;
     final tmpServer = await runZonedGuarded(
       () async {
-        Future<HttpServer?> startServer() async {
-          try {
-            return await io.serve(handler, host, port);
-          } on SocketException catch (e) {
-            if (_enableServicePortFallback && port != 0) {
-              // Try again, this time with a random port.
-              port = 0;
-              return await startServer();
-            }
-            errorMessage = e.message;
-            if (e.osError != null) {
-              errorMessage += ' (${e.osError!.message})';
-            }
-            errorMessage += ': ${e.address?.host}:${e.port}';
-            return null;
+        try {
+          return await io.serve(handler, host, port);
+        } on SocketException catch (e) {
+          errorMessage = e.message;
+          if (e.osError != null) {
+            errorMessage += ' (${e.osError!.message})';
           }
+          errorMessage += ': ${e.address?.host}:${e.port}';
+          return null;
         }
-
-        return await startServer();
       },
       (error, stack) {
         if (shouldLogRequests) {
@@ -397,7 +387,6 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   String? get authCode => _authCode;
   String? _authCode;
 
-  final bool _enableServicePortFallback;
   final bool shouldLogRequests;
 
   Uri get remoteVmServiceUri => _remoteVmServiceUri;

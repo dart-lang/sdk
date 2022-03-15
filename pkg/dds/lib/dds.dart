@@ -37,15 +37,11 @@ abstract class DartDevelopmentService {
   ///
   /// [ipv6] controls whether or not DDS is served via IPv6. IPv4 is enabled by
   /// default.
-  ///
-  /// If [enablesServicePortFallback] is enabled, DDS will attempt to bind to any
-  /// available port if the specified port is unavailable.
   static Future<DartDevelopmentService> startDartDevelopmentService(
     Uri remoteVmServiceUri, {
     Uri? serviceUri,
     bool enableAuthCodes = true,
     bool ipv6 = false,
-    bool enableServicePortFallback = false,
     List<String> cachedUserTags = const [],
     DevToolsConfiguration? devToolsConfiguration,
     bool logRequests = false,
@@ -88,7 +84,6 @@ abstract class DartDevelopmentService {
       ipv6,
       devToolsConfiguration,
       logRequests,
-      enableServicePortFallback,
     );
     await service.startService();
     return service;

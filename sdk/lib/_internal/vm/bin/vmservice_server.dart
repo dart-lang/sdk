@@ -409,8 +409,11 @@ class Server {
       // Already running.
       return this;
     }
+
     // Startup HTTP server.
-    Future<void> startServer() async {
+    var pollError;
+    var pollStack;
+    Future<bool> poll() async {
       try {
         var address;
         var addresses = await InternetAddress.lookup(_ip);
@@ -420,22 +423,33 @@ class Server {
           if (address.type == InternetAddressType.IPv4) break;
         }
         _server = await HttpServer.bind(address, _port);
+        return true;
       } catch (e, st) {
-        if (_port != 0 && _enableServicePortFallback) {
-          serverPrint('Failed to bind Observatory HTTP server to port $_port. '
-              'Falling back to automatic port selection');
-          _port = 0;
-          await startServer();
-        } else {
-          serverPrint('Could not start Observatory HTTP server:\n'
-              '$e\n$st');
-          _notifyServerState('');
-          onServerAddressChange(null);
-        }
+        pollError = e;
+        pollStack = st;
+        return false;
       }
     }
 
-    await startServer();
+    // poll for the network for ~10 seconds.
+    int attempts = 0;
+    final maxAttempts = 10;
+    while (!await poll()) {
+      attempts++;
+      serverPrint('Observatory server failed to start after $attempts tries');
+      if (attempts > maxAttempts) {
+        serverPrint('Could not start Observatory HTTP server:\n'
+            '$pollError\n$pollStack\n');
+        _notifyServerState('');
+        onServerAddressChange(null);
+        return this;
+      }
+      if (_port != 0 && _enableServicePortFallback && attempts >= 3) {
+        _port = 0;
+        serverPrint('Falling back to automatic port selection');
+      }
+      await Future<void>.delayed(const Duration(seconds: 1));
+    }
     if (_service.isExiting) {
       serverPrint('Observatory HTTP server exiting before listening as '
           'vm service has received exit request\n');
