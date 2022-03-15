@@ -16819,8 +16819,6 @@ library
       mixin M @68
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -17105,16 +17103,12 @@ library
       mixin A @6
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
       mixin A @17
         superclassConstraints
           Object
         fields
           x @27
             type: dynamic
-        constructors
-          synthetic @-1
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -17129,8 +17123,6 @@ library
         fields
           y @48
             type: int
-        constructors
-          synthetic @-1
         accessors
           synthetic get y @-1
             returnType: int
@@ -18687,8 +18679,6 @@ library
       mixin M @6
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -18752,16 +18742,12 @@ library
             defaultType: dynamic
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
       mixin M2 @21
         typeParameters
           covariant T @24
             defaultType: dynamic
         superclassConstraints
           M1<T>
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -21710,8 +21696,6 @@ library
             defaultType: void Function()
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -21751,8 +21735,6 @@ library
       mixin M @20
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -26006,8 +25988,6 @@ library
       mixin B @38
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -26341,8 +26321,6 @@ library
       mixin B @32
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -28020,8 +27998,6 @@ library
       mixin M @38
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
         methods
           m @54
             metadata
@@ -28150,8 +28126,6 @@ library
               IntegerLiteral
                 literal: 1 @60
                 staticType: int
-        constructors
-          synthetic @-1
         accessors
           synthetic static get foo @-1
             returnType: int
@@ -28208,8 +28182,6 @@ library
             element: self::@getter::b
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
     topLevelVariables
       static const a @6
         type: dynamic
@@ -28537,8 +28509,6 @@ library
       mixin M @33
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
     topLevelVariables
       static const foo @6
         type: int
@@ -28885,8 +28855,6 @@ library
                 element: self::@getter::foo
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
     topLevelVariables
       static const foo @6
         type: int
@@ -30147,8 +30115,6 @@ library
             type: U
           synthetic s @-1
             type: int
-        constructors
-          synthetic @-1
         accessors
           synthetic get f @-1
             returnType: T
@@ -30188,8 +30154,6 @@ library
         fields
           final x @18
             type: int
-        constructors
-          synthetic @-1
         accessors
           synthetic get x @-1
             returnType: int
@@ -30219,8 +30183,6 @@ library
       mixin M @6
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -30257,8 +30219,6 @@ library
             defaultType: dynamic
         superclassConstraints
           A<U*>*
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -30294,8 +30254,6 @@ library
             defaultType: dynamic
         superclassConstraints
           A<U>
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -30397,8 +30355,6 @@ library
       mixin B @17
         superclassConstraints
           A
-        constructors
-          synthetic @-1
         methods
           A @33
             returnType: void
@@ -30417,8 +30373,6 @@ library
             defaultType: dynamic
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -30434,8 +30388,6 @@ library
             defaultType: dynamic
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -30451,8 +30403,6 @@ library
             defaultType: dynamic
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -30472,8 +30422,6 @@ library
             defaultType: dynamic
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -30878,8 +30826,6 @@ library
             defaultType: dynamic
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -31383,9 +31329,6 @@ library
           foo @16
             type: int
             nonSynthetic: self::@mixin::M::@field::foo
-        constructors
-          synthetic @-1
-            nonSynthetic: self::@mixin::M
         accessors
           synthetic get foo @-1
             returnType: int
@@ -31420,9 +31363,6 @@ library
           synthetic foo @-1
             type: int
             nonSynthetic: self::@mixin::M::@getter::foo
-        constructors
-          synthetic @-1
-            nonSynthetic: self::@mixin::M
         accessors
           get foo @20
             returnType: int
@@ -31450,9 +31390,6 @@ library
           synthetic foo @-1
             type: int
             nonSynthetic: self::@mixin::M::@setter::foo
-        constructors
-          synthetic @-1
-            nonSynthetic: self::@mixin::M
         accessors
           set foo @16
             parameters
@@ -32730,8 +32667,6 @@ library
       mixin M @112
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -35948,13 +35883,9 @@ library
       mixin M1 @41
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
       mixin M2 @53
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
     typeAliases
       X @8
         aliasedType: A<int>?
@@ -35992,13 +35923,9 @@ library
       mixin M1 @41
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
       mixin M2 @53
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
     typeAliases
       X @8
         aliasedType: A<int?>

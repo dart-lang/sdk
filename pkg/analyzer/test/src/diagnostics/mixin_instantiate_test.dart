@@ -92,7 +92,7 @@ InstanceCreationExpression
         staticElement: self::@mixin::M
         staticType: null
       type: M
-    staticElement: self::@mixin::M::@constructor::•
+    staticElement: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )

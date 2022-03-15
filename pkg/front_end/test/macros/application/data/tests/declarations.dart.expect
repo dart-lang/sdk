@@ -81,7 +81,7 @@ static method /* from org-dartlang-augmentation:/a/b/c/main.dart-6 */ topLevelGe
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-7 */ topLevelSetter1GeneratedMethod_s() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-8 */ Class1GeneratedMethod_() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-9 */ Class1Introspection() → void {
-  core::print("constructors=''");
+  core::print("constructors='','redirect','fact'");
   core::print("fields='instanceField1','instanceField2','instanceField3'");
   core::print("methods='instanceMethod1','instanceGetter1','[]','instanceSetter1'");
 }

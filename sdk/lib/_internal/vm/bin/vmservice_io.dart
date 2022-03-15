@@ -103,7 +103,6 @@ class _DebuggingSession {
         enableDevTools.toString(),
         devToolsBinaries,
         enableLogging.toString(),
-        _enableServicePortFallback.toString(),
       ],
       mode: ProcessStartMode.detachedWithStdio,
     );

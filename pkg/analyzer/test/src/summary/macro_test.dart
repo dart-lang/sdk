@@ -70,8 +70,6 @@ library
       mixin M @6
         superclassConstraints
           Object
-        constructors
-          synthetic @-1
 ''');
   }
 }

@@ -222,8 +222,6 @@ class RunCommand extends DartdevCommand {
       final bool debugDds = args['debug-dds'];
 
       bool disableServiceAuthCodes = args['disable-service-auth-codes'];
-      final bool enableServicePortFallback =
-          args['enable-service-port-fallback'];
 
       // If the user wants to start a debugging session we need to do some extra
       // work and spawn a Dart Development Service (DDS) instance. DDS is a VM
@@ -239,7 +237,6 @@ class RunCommand extends DartdevCommand {
           disableServiceAuthCodes,
           launchDevTools,
           debugDds,
-          enableServicePortFallback,
         )) {
           return errorExitCode;
         }
@@ -277,7 +274,6 @@ class _DebuggingSession {
     bool disableServiceAuthCodes,
     bool enableDevTools,
     bool debugDds,
-    bool enableServicePortFallback,
   ) async {
     final sdkDir = dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
@@ -307,7 +303,6 @@ class _DebuggingSession {
         enableDevTools.toString(),
         devToolsBinaries,
         debugDds.toString(),
-        enableServicePortFallback.toString(),
       ],
       mode: ProcessStartMode.detachedWithStdio,
     );

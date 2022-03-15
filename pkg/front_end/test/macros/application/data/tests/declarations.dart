@@ -56,7 +56,7 @@ void set topLevelSetter1(int? value) {}
 void Class1GeneratedMethod_() {}
 
 void Class1Introspection() {
-  print("constructors=''");
+  print("constructors='','redirect','fact'");
   print("fields='instanceField1','instanceField2','instanceField3'");
   print("methods='instanceMethod1','instanceGetter1','[]','instanceSetter1'");
 }

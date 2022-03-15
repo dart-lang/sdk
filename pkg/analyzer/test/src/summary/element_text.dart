@@ -308,8 +308,12 @@ class _ElementWriter {
       _writeElements('fields', e.fields, _writePropertyInducingElement);
 
       var constructors = e.constructors;
-      expect(constructors, isNotEmpty);
-      _writeElements('constructors', constructors, _writeConstructorElement);
+      if (e.isMixin) {
+        expect(constructors, isEmpty);
+      } else {
+        expect(constructors, isNotEmpty);
+        _writeElements('constructors', constructors, _writeConstructorElement);
+      }
 
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeElements('methods', e.methods, _writeMethodElement);

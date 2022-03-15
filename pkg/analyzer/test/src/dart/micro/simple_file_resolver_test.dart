@@ -76,13 +76,12 @@ class A {}
 
     newFile2(bPath, r'''
 import 'a.dart';
-A a;
-B b;
+void f(A a, B b) {}
 ''');
 
     result = await resolveFile(bPath);
     assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 22, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 29, 1),
     ]);
 
     newFile2(aPath, r'''
@@ -222,7 +221,7 @@ import 'a.dart';
 @reflectiveTest
 class FileResolverTest extends FileResolutionTest {
   @override
-  bool isNullSafetyEnabled = false;
+  bool get isNullSafetyEnabled => true;
 
   test_analysisOptions_default_fromPackageUri() async {
     newFile2('/workspace/dart/analysis_options/lib/default.yaml', r'''
@@ -315,13 +314,6 @@ main() {
 ''', [
       error(rule.lintCode, 11, 9),
     ]);
-  }
-
-  test_analysisOptions_no() async {
-    await assertNoErrorsInCode(r'''
-num a = 0;
-int b = a;
-''');
   }
 
   test_basic() async {
@@ -908,14 +900,6 @@ var b = a;
   }
 
   test_nullSafety_enabled() async {
-    isNullSafetyEnabled = true;
-
-    newFile2('/workspace/dart/test/BUILD', r'''
-dart_package(
-  null_safety = True,
-)
-''');
-
     await assertNoErrorsInCode(r'''
 void f(int? a) {
   if (a != null) {
@@ -931,7 +915,7 @@ void f(int? a) {
   }
 
   test_nullSafety_notEnabled() async {
-    isNullSafetyEnabled = true;
+    newFile2('/workspace/dart/test/BUILD', '');
 
     await assertErrorsInCode(r'''
 void f(int? a) {}
