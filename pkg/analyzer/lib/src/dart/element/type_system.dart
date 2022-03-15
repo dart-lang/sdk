@@ -1219,7 +1219,6 @@ class TypeSystemImpl implements TypeSystem {
   }) {
     var typeParameters = mixinElement.typeParameters;
     var inferrer = GenericInferrer(this, typeParameters,
-        considerExtendsClause: false,
         genericMetadataIsEnabled: genericMetadataIsEnabled);
     for (int i = 0; i < srcTypes.length; i++) {
       inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
