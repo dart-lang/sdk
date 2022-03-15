@@ -2383,7 +2383,7 @@ clas^
     );
 
     expect(updated, r'''
-class $1 {
+class ${1:ClassName} {
   $0
 }
 ''');
@@ -2428,7 +2428,7 @@ void f() {
 void f() {
   do {
     $0
-  } while ($1);
+  } while (${1:condition});
 }
 ''');
   }
@@ -2466,7 +2466,7 @@ void f() {
 
     expect(updated, r'''
 void f() {
-  for (var i = 0; i < $1; i++) {
+  for (var i = 0; i < ${1:count}; i++) {
     $0
   }
 }
@@ -2489,7 +2489,7 @@ void f() {
 
     expect(updated, r'''
 void f() {
-  for (var $1 in $2) {
+  for (var ${1:element} in ${2:collection}) {
     $0
   }
 }
@@ -2512,7 +2512,7 @@ void f() {
 
     expect(updated, r'''
 void f() {
-  if ($1) {
+  if (${1:condition}) {
     $0
   }
 }
@@ -2535,7 +2535,7 @@ void f() {
 
     expect(updated, r'''
 void f() {
-  if ($1) {
+  if (${1:condition}) {
     $0
   } else {
     
@@ -2598,8 +2598,8 @@ void f() {
 
     expect(updated, r'''
 void f() {
-  switch ($1) {
-    case $2:
+  switch (${1:expression}) {
+    case ${2:value}:
       $0
       break;
     default:
@@ -2626,7 +2626,7 @@ void f() {
 
     expect(updated, r'''
 void f() {
-  test('$1', () {
+  test('${1:test name}', () {
     $0
   });
 }
@@ -2651,7 +2651,7 @@ void f() {
 
     expect(updated, r'''
 void f() {
-  group('$1', () {
+  group('${1:group name}', () {
     $0
   });
 }
@@ -2699,7 +2699,7 @@ void f() {
 
     expect(updated, r'''
 void f() {
-  while ($1) {
+  while (${1:condition}) {
     $0
   }
 }

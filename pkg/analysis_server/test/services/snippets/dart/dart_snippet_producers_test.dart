@@ -56,19 +56,19 @@ class B {}''';
     expect(code, '''
 class A {}
   
-class  {
+class ClassName {
   
 }
 
 class B {}''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 25);
+    expect(snippet.change.selection!.offset, 34);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           {'file': testFile, 'offset': 20},
         ],
-        'length': 0,
+        'length': 9,
         'suggestions': []
       }
     ]);
@@ -86,7 +86,7 @@ class DartDoWhileLoopSnippetProducerTest extends DartSnippetProducerTest {
   @override
   String get prefix => DartDoWhileLoopSnippetProducer.prefix;
 
-  Future<void> test_for() async {
+  Future<void> test_do() async {
     var code = r'''
 void f() {
   do^
@@ -102,7 +102,7 @@ void f() {
 void f() {
   do {
     
-  } while ();
+  } while (condition);
 }''');
     expect(snippet.change.selection!.file, testFile);
     expect(snippet.change.selection!.offset, 22);
@@ -111,7 +111,7 @@ void f() {
         'positions': [
           {'file': testFile, 'offset': 34},
         ],
-        'length': 0,
+        'length': 9,
         'suggestions': []
       }
     ]);
@@ -143,25 +143,25 @@ void f() {
         .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
     expect(code, '''
 void f() {
-  for (var  in ) {
+  for (var element in collection) {
     
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 34);
+    expect(snippet.change.selection!.offset, 51);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           {'file': testFile, 'offset': 22},
         ],
-        'length': 0,
+        'length': 7,
         'suggestions': []
       },
       {
         'positions': [
-          {'file': testFile, 'offset': 26},
+          {'file': testFile, 'offset': 33},
         ],
-        'length': 0,
+        'length': 10,
         'suggestions': []
       }
     ]);
@@ -193,18 +193,18 @@ void f() {
         .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
     expect(code, '''
 void f() {
-  for (var i = 0; i < ; i++) {
+  for (var i = 0; i < count; i++) {
     
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 46);
+    expect(snippet.change.selection!.offset, 51);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           {'file': testFile, 'offset': 33},
         ],
-        'length': 0,
+        'length': 5,
         'suggestions': []
       }
     ]);
@@ -236,20 +236,20 @@ void f() {
         .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
     expect(code, '''
 void f() {
-  if () {
+  if (condition) {
     
   } else {
     
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 25);
+    expect(snippet.change.selection!.offset, 34);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           {'file': testFile, 'offset': 17},
         ],
-        'length': 0,
+        'length': 9,
         'suggestions': []
       }
     ]);
@@ -272,7 +272,7 @@ void f() {
     expect(code, '''
 void f() {
   if (true) {
-    if () {
+    if (condition) {
       
     } else {
       
@@ -280,13 +280,13 @@ void f() {
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 43);
+    expect(snippet.change.selection!.offset, 52);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           {'file': testFile, 'offset': 33},
         ],
-        'length': 0,
+        'length': 9,
         'suggestions': []
       }
     ]);
@@ -318,18 +318,18 @@ void f() {
         .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
     expect(code, '''
 void f() {
-  if () {
+  if (condition) {
     
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 25);
+    expect(snippet.change.selection!.offset, 34);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           {'file': testFile, 'offset': 17},
         ],
-        'length': 0,
+        'length': 9,
         'suggestions': []
       }
     ]);
@@ -352,19 +352,19 @@ void f() {
     expect(code, '''
 void f() {
   if (true) {
-    if () {
+    if (condition) {
       
     }
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 43);
+    expect(snippet.change.selection!.offset, 52);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           {'file': testFile, 'offset': 33},
         ],
-        'length': 0,
+        'length': 9,
         'suggestions': []
       }
     ]);
@@ -496,30 +496,30 @@ void f() {
         .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
     expect(code, '''
 void f() {
-  switch () {
-    case :
+  switch (expression) {
+    case value:
       
       break;
     default:
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 42);
+    expect(snippet.change.selection!.offset, 57);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       // expression
       {
         'positions': [
           {'file': testFile, 'offset': 21},
         ],
-        'length': 0,
+        'length': 10,
         'suggestions': []
       },
       // value
       {
         'positions': [
-          {'file': testFile, 'offset': 34},
+          {'file': testFile, 'offset': 44},
         ],
-        'length': 0,
+        'length': 5,
         'suggestions': []
       },
     ]);
@@ -542,8 +542,8 @@ void f() {
     expect(code, '''
 void f() {
   if (true) {
-    switch () {
-      case :
+    switch (expression) {
+      case value:
         
         break;
       default:
@@ -551,22 +551,22 @@ void f() {
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 62);
+    expect(snippet.change.selection!.offset, 77);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       // expression
       {
         'positions': [
           {'file': testFile, 'offset': 37},
         ],
-        'length': 0,
+        'length': 10,
         'suggestions': []
       },
       // value
       {
         'positions': [
-          {'file': testFile, 'offset': 52},
+          {'file': testFile, 'offset': 62},
         ],
-        'length': 0,
+        'length': 5,
         'suggestions': []
       },
     ]);
@@ -599,18 +599,18 @@ void f() {
         .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
     expect(code, '''
 void f() {
-  test('', () {
+  test('test name', () {
     
   });
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 31);
+    expect(snippet.change.selection!.offset, 40);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           {'file': testFile, 'offset': 19},
         ],
-        'length': 0,
+        'length': 9,
         'suggestions': []
       }
     ]);
@@ -651,18 +651,18 @@ void f() {
         .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
     expect(code, '''
 void f() {
-  group('', () {
+  group('group name', () {
     
   });
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 32);
+    expect(snippet.change.selection!.offset, 42);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           {'file': testFile, 'offset': 20},
         ],
-        'length': 0,
+        'length': 10,
         'suggestions': []
       }
     ]);
@@ -770,7 +770,7 @@ class DartWhileLoopSnippetProducerTest extends DartSnippetProducerTest {
   @override
   String get prefix => DartWhileLoopSnippetProducer.prefix;
 
-  Future<void> test_for() async {
+  Future<void> test_while() async {
     var code = r'''
 void f() {
   while^
@@ -784,18 +784,18 @@ void f() {
         .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
     expect(code, '''
 void f() {
-  while () {
+  while (condition) {
     
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 28);
+    expect(snippet.change.selection!.offset, 37);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           {'file': testFile, 'offset': 20},
         ],
-        'length': 0,
+        'length': 9,
         'suggestions': []
       }
     ]);

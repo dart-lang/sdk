@@ -75,14 +75,6 @@ abstract class ChangeBuilder {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class EditBuilder {
-  /// Add an empty region that is part of the linked edit group with the given
-  /// [groupName].
-  ///
-  /// Empty linked edits are locations where the user expects to be able to tab
-  /// to but there is no default (or suggested) text. For example inside the
-  /// parens of an `if` statement.
-  void addEmptyLinkedEdit(String groupName);
-
   /// Add a region of text that is part of the linked edit group with the given
   /// [groupName]. The [buildLinkedEdit] function is used to write the content
   /// of the region of text and to add suggestions for other possible values for
