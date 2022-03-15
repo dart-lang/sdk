@@ -51,7 +51,7 @@ class ClassHierarchyNodeBuilder {
     List<Supertype> interfacesList;
     int maxInheritancePath;
 
-    List<TypeBuilder>? directInterfaceBuilders;
+    List<ClassHierarchyNode>? interfaceNodes;
 
     if (classBuilder.isMixinApplication) {
       inferMixinApplication();
@@ -85,7 +85,8 @@ class ClassHierarchyNodeBuilder {
         }
       }
 
-      directInterfaceBuilders = ignoreFunction(classBuilder.interfaceBuilders);
+      List<TypeBuilder>? directInterfaceBuilders =
+          ignoreFunction(classBuilder.interfaceBuilders);
       if (classBuilder.isMixinApplication) {
         if (directInterfaceBuilders == null) {
           directInterfaceBuilders = <TypeBuilder>[
@@ -99,15 +100,13 @@ class ClassHierarchyNodeBuilder {
       }
 
       List<Supertype> superclassInterfaces = supernode.interfaces;
-      // ignore: unnecessary_null_comparison
-      if (superclassInterfaces != null) {
+      if (superclassInterfaces.isNotEmpty) {
         superclassInterfaces = substSupertypes(supertype, superclassInterfaces);
       }
 
       if (directInterfaceBuilders != null) {
         Map<Class, Supertype> interfaces = {};
-        // ignore: unnecessary_null_comparison
-        if (superclassInterfaces != null) {
+        if (superclassInterfaces.isNotEmpty) {
           for (int i = 0; i < superclassInterfaces.length; i++) {
             addInterface(interfaces, superclasses, superclassInterfaces[i]);
           }
@@ -121,31 +120,28 @@ class ClassHierarchyNodeBuilder {
             addInterface(interfaces, superclasses, directInterface);
             ClassHierarchyNode interfaceNode =
                 hierarchy.getNodeFromClass(directInterface.classNode);
-            // ignore: unnecessary_null_comparison
-            if (interfaceNode != null) {
-              if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
-                maxInheritancePath = interfaceNode.maxInheritancePath + 1;
-              }
+            (interfaceNodes ??= []).add(interfaceNode);
 
+            if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
+              maxInheritancePath = interfaceNode.maxInheritancePath + 1;
+            }
+
+            List<Supertype> types =
+                substSupertypes(directInterface, interfaceNode.superclasses);
+            for (int i = 0; i < types.length; i++) {
+              addInterface(interfaces, superclasses, types[i]);
+            }
+            if (interfaceNode.interfaces.isNotEmpty) {
               List<Supertype> types =
-                  substSupertypes(directInterface, interfaceNode.superclasses);
+                  substSupertypes(directInterface, interfaceNode.interfaces);
               for (int i = 0; i < types.length; i++) {
                 addInterface(interfaces, superclasses, types[i]);
-              }
-              // ignore: unnecessary_null_comparison
-              if (interfaceNode.interfaces != null) {
-                List<Supertype> types =
-                    substSupertypes(directInterface, interfaceNode.interfaces);
-                for (int i = 0; i < types.length; i++) {
-                  addInterface(interfaces, superclasses, types[i]);
-                }
               }
             }
           }
         }
         interfacesList = interfaces.values.toList();
-        // ignore: unnecessary_null_comparison
-      } else if (superclassInterfaces != null &&
+      } else if (superclassInterfaces.isNotEmpty &&
           !classBuilder.library.isNonNullableByDefault &&
           supernode.classBuilder.library.isNonNullableByDefault) {
         Map<Class, Supertype> interfaces = {};
@@ -168,13 +164,8 @@ class ClassHierarchyNodeBuilder {
       }
     }
 
-    return new ClassHierarchyNode(
-        classBuilder,
-        supernode,
-        directInterfaceBuilders,
-        superclasses,
-        interfacesList,
-        maxInheritancePath);
+    return new ClassHierarchyNode(classBuilder, supernode, interfaceNodes,
+        superclasses, interfacesList, maxInheritancePath);
   }
 
   Supertype recordSupertype(Supertype supertype) {
@@ -329,9 +320,13 @@ class ClassHierarchyNode {
   /// The class corresponding to this hierarchy node.
   final ClassBuilder classBuilder;
 
-  final ClassHierarchyNode? supernode;
+  /// The [ClassHierarchyNode] for the direct super class of [classBuilder], or
+  /// `null` if this is `Object`.
+  final ClassHierarchyNode? directSuperClassNode;
 
-  final List<TypeBuilder>? directInterfaceBuilders;
+  /// The [ClassHierarchyNode]s for the direct super interfaces of
+  /// [classBuilder].
+  final List<ClassHierarchyNode>? directInterfaceNodes;
 
   /// All superclasses of [classBuilder] excluding itself. The classes are
   /// sorted by depth from the root (Object) in ascending order.
@@ -348,8 +343,8 @@ class ClassHierarchyNode {
 
   ClassHierarchyNode(
       this.classBuilder,
-      this.supernode,
-      this.directInterfaceBuilders,
+      this.directSuperClassNode,
+      this.directInterfaceNodes,
       this.superclasses,
       this.interfaces,
       this.maxInheritancePath);
@@ -390,8 +385,7 @@ class ClassHierarchyNode {
       sb.writeln();
       depth++;
     }
-    // ignore: unnecessary_null_comparison
-    if (interfaces != null) {
+    if (interfaces.isNotEmpty) {
       sb.write("  interfaces:");
       bool first = true;
       for (Supertype i in interfaces) {

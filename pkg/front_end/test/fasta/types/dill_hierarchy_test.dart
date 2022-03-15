@@ -37,12 +37,10 @@ import "package:front_end/src/fasta/ticker.dart" show Ticker;
 const String expectedHierarchy = """
 Object:
   superclasses:
-  interfaces:
 
 A:
   superclasses:
     Object
-  interfaces:
 
 B:
   Longest path to Object: 2

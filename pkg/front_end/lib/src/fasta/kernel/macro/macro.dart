@@ -920,10 +920,10 @@ class _ClassIntrospector implements macro.ClassIntrospector {
     ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
     ClassHierarchyNode node =
         classHierarchy.getNodeFromClassBuilder(classBuilder);
-    ClassHierarchyNode? superNode = node.supernode;
+    ClassHierarchyNode? superNode = node.directSuperClassNode;
     while (superNode != null &&
         superNode.classBuilder.isAnonymousMixinApplication) {
-      superNode = superNode.supernode;
+      superNode = superNode.directSuperClassNode;
     }
     if (superNode != null) {
       return new Future.value(

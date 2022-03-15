@@ -566,12 +566,12 @@ class ClassMembersNodeBuilder {
   }
 
   ClassMembersNode build() {
-    ClassMembersNode? supernode = _hierarchyNode.supernode != null
-        ? _membersBuilder
-            .getNodeFromClassBuilder(_hierarchyNode.supernode!.classBuilder)
+    ClassMembersNode? supernode = _hierarchyNode.directSuperClassNode != null
+        ? _membersBuilder.getNodeFromClassBuilder(
+            _hierarchyNode.directSuperClassNode!.classBuilder)
         : null;
-    List<TypeBuilder>? directInterfaceBuilders =
-        _hierarchyNode.directInterfaceBuilders;
+    List<ClassHierarchyNode>? interfaceNodes =
+        _hierarchyNode.directInterfaceNodes;
 
     /// Set to `true` if the class needs interfaces, that is, if it has any
     /// members where the interface member is different from its corresponding
@@ -770,18 +770,16 @@ class ClassMembersNodeBuilder {
         implement(supernode.interfaceSetterMap ?? supernode.classSetterMap);
       }
 
-      if (directInterfaceBuilders != null) {
-        for (int i = 0; i < directInterfaceBuilders.length; i++) {
+      if (interfaceNodes != null) {
+        for (int i = 0; i < interfaceNodes.length; i++) {
           ClassMembersNode? interfaceNode = _membersBuilder
-              .getNodeFromTypeBuilder(directInterfaceBuilders[i]);
-          if (interfaceNode != null) {
-            hasInterfaces = true;
+              .getNodeFromClassBuilder(interfaceNodes[i].classBuilder);
+          hasInterfaces = true;
 
-            implement(interfaceNode.interfaceMemberMap ??
-                interfaceNode.classMemberMap);
-            implement(interfaceNode.interfaceSetterMap ??
-                interfaceNode.classSetterMap);
-          }
+          implement(
+              interfaceNode.interfaceMemberMap ?? interfaceNode.classMemberMap);
+          implement(
+              interfaceNode.interfaceSetterMap ?? interfaceNode.classSetterMap);
         }
       }
     }
