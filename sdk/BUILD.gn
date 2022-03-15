@@ -753,8 +753,9 @@ group("create_common_sdk") {
   ]
 
   # We do not support AOT on ia32 and should therefore not add the
-  # dart native compilation files (since there is no AOT compiler/runtime available)
-  if (dart_target_arch != "ia32") {
+  # dart native compilation files since there is no AOT compiler/runtime
+  # available.
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
     public_deps += [ ":group_dart2native" ]
   }
 }

@@ -60,9 +60,9 @@ group("runtime") {
     ]
   }
 
-  # We do not support AOT on ia32 and should therefore cannot provide native
+  # We do not support AOT on ia32 and should therefore not provide native
   # snapshot tooling.
-  if (dart_target_arch != "ia32") {
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
     if (dart_runtime_mode == "release") {
       deps += [ "runtime/bin:analyze_snapshot_product" ]
     } else {

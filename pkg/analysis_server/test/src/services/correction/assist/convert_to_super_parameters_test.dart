@@ -454,6 +454,25 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_namedConstructor() async {
+    await resolveTestCode('''
+class A {
+  A.m({int? x});
+}
+class B extends A {
+  B.m({int? x}) : super.m(x: x);
+}
+''');
+    await assertHasAssistAt('B.m', '''
+class A {
+  A.m({int? x});
+}
+class B extends A {
+  B.m({super.x}) : super.m();
+}
+''');
+  }
+
   Future<void> test_positional_first() async {
     await resolveTestCode('''
 class A {

@@ -940,7 +940,7 @@ executable("run_vm_tests") {
     "..:dart_maybe_product_config",
   ]
 
-  if (dart_target_arch != "ia32") {
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
     configs += [ "..:dart_precompiler_config" ]
   }
 
