@@ -21,6 +21,14 @@ T m30<T>(T? p) {
   t = p!; // LINT
   return t;
 }
+Future<T> m40<T extends Object?>(T? p) async => await p!; // LINT
+Future<List<T>> m41<T extends Object?>(T? p) async => await [p!]; // LINT
+List<T> m50<T>(T? p) => [p!]; // LINT
+Set<T> m60<T>(T? p) => {p!}; // LINT
+Map<String, T> m71<T>(T? p) => {'': p!}; // LINT
+Map<T, String> m72<T>(T? p) => {p!: ''}; // LINT
+Iterable<T> m80<T>(T? p) sync* {yield p!;} // LINT
+Stream<T> m90<T>(T? p) async* {yield p!;} // LINT
 class C<T> {
   late T t;
   m(T? p) {

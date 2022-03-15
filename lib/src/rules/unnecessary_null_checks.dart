@@ -40,6 +40,10 @@ DartType? getExpectedType(PostfixExpression node) {
   var realNode =
       node.thisOrAncestorMatching((e) => e.parent is! ParenthesizedExpression);
   var parent = realNode?.parent;
+  var withAwait = parent is AwaitExpression;
+  if (withAwait) {
+    parent = parent!.parent;
+  }
 
   // in return value
   if (parent is ReturnStatement || parent is ExpressionFunctionBody) {
@@ -48,7 +52,32 @@ DartType? getExpectedType(PostfixExpression node) {
       return null;
     }
     var staticType = parentExpression.staticType;
-    return staticType is FunctionType ? staticType.returnType : null;
+    if (staticType is! FunctionType) {
+      return null;
+    }
+    staticType = staticType.returnType;
+    if (withAwait || parentExpression.body.keyword?.lexeme == 'async') {
+      return staticType.isDartAsyncFuture || staticType.isDartAsyncFutureOr
+          ? (staticType as ParameterizedType?)?.typeArguments.first
+          : null;
+    } else {
+      return staticType;
+    }
+  }
+  // in yield value
+  if (parent is YieldStatement) {
+    var parentExpression = parent.thisOrAncestorOfType<FunctionExpression>();
+    if (parentExpression == null) {
+      return null;
+    }
+    var staticType = parentExpression.staticType;
+    if (staticType is! FunctionType) {
+      return null;
+    }
+    staticType = staticType.returnType;
+    return staticType.isDartCoreIterable || staticType.isDartAsyncStream
+        ? (staticType as ParameterizedType).typeArguments.first
+        : null;
   }
   // assignment
   if (parent is AssignmentExpression &&
@@ -70,6 +99,20 @@ DartType? getExpectedType(PostfixExpression node) {
       return null;
     }
     return parentElement.parameters.first.type;
+  }
+  // as member of list
+  if (parent is ListLiteral) {
+    return (parent.staticType as ParameterizedType?)?.typeArguments.first;
+  }
+  // as member of set
+  if (parent is SetOrMapLiteral && parent.isSet) {
+    return (parent.staticType as ParameterizedType?)?.typeArguments.first;
+  }
+  // as member of map
+  if (parent is MapLiteralEntry) {
+    var typeParameters =
+        (parent.parent! as SetOrMapLiteral).staticType as ParameterizedType?;
+    return typeParameters?.typeArguments[parent.key == node ? 0 : 1];
   }
   // as parameter of function
   if (parent is NamedExpression) {
