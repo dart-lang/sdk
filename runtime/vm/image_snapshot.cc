@@ -1298,7 +1298,9 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // tells unwinder that caller's value of register R is stored at address
   // CFA+offs.
 
-#if defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32)
+  UNREACHABLE();
+#elif defined(TARGET_ARCH_X64)
   assembly_stream_->WriteString(".cfi_def_cfa rbp, 16\n");
   assembly_stream_->WriteString(".cfi_offset rbp, -16\n");
   assembly_stream_->WriteString(".cfi_offset rip, -8\n");
@@ -1319,7 +1321,6 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_->WriteString(".cfi_offset r11, -8\n");
 #endif
   assembly_stream_->WriteString(".cfi_offset lr, -4\n");
-
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
 #if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R11);
@@ -1327,6 +1328,16 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_->WriteString(".save {r11, lr}\n");
   assembly_stream_->WriteString(".setfp r11, sp, #0\n");
 #endif
+#elif defined(TARGET_ARCH_RISCV32)
+  assembly_stream_->WriteString(".cfi_def_cfa fp, 0\n");
+  assembly_stream_->WriteString(".cfi_offset fp, -8\n");
+  assembly_stream_->WriteString(".cfi_offset ra, -4\n");
+#elif defined(TARGET_ARCH_RISCV64)
+  assembly_stream_->WriteString(".cfi_def_cfa fp, 0\n");
+  assembly_stream_->WriteString(".cfi_offset fp, -16\n");
+  assembly_stream_->WriteString(".cfi_offset ra, -8\n");
+#else
+#error Unexpected architecture.
 #endif
 }
 
