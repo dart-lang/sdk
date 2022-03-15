@@ -11,13 +11,37 @@ get getter => null;
 set setter(_) => null;
 
 @ClassMacro()
-class Class1 {}
+class Class1 {
+  var field1;
+
+  Class1();
+}
 
 @ClassMacro()
 abstract class Class2 {}
 
 @ClassMacro()
-class Class3 extends Class2 implements Interface1 {}
+class Class3 extends Class2 implements Interface1 {
+  var field1;
+  var field2;
+
+  Class3.new();
+  Class3.named();
+  factory Class3.fact() => Class3.named();
+  factory Class3.redirect() = Class3.named;
+
+  void method1() {}
+  void method2() {}
+
+  get getter1 => null;
+  set setter1(_) {}
+
+  get property1 => null;
+  set property1(_) {}
+
+  static var staticField1;
+  static void staticMethod1() {}
+}
 
 @ClassMacro()
 class Class4 extends Class1 with Mixin1 {}

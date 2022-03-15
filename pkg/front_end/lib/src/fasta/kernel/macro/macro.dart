@@ -864,10 +864,7 @@ class _ClassIntrospector implements macro.ClassIntrospector {
         // TODO(johnniwinther): Should we support synthesized constructors?
         result.add(macroApplications._getMemberDeclaration(memberBuilder)
             as macro.ConstructorDeclaration);
-      }
-    });
-    classBuilder.forEach((_, Builder memberBuilder) {
-      if (memberBuilder is SourceFactoryBuilder) {
+      } else if (memberBuilder is SourceFactoryBuilder) {
         result.add(macroApplications._getMemberDeclaration(memberBuilder)
             as macro.ConstructorDeclaration);
       }

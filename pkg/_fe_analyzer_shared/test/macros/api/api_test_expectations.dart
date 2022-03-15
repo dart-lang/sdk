@@ -5,12 +5,39 @@
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 const Map<String, ClassData> expectedClassData = {
-  'Class1': ClassData(superclassOf: 'Object'),
+  'Class1': ClassData(
+      superclassOf: 'Object', fieldsOf: ['field1'], constructorsOf: ['']),
   'Class2': ClassData(isAbstract: true, superclassOf: 'Object'),
   'Class3': ClassData(
       superclassOf: 'Class2',
       superSuperclassOf: 'Object',
-      interfacesOf: ['Interface1']),
+      interfacesOf: [
+        'Interface1'
+      ],
+      // TODO(johnniwinther): Should we require a specific order?
+      fieldsOf: [
+        'field1',
+        'field2',
+        'staticField1',
+      ],
+      // TODO(johnniwinther): Should we require a specific order?
+      methodsOf: [
+        'method1',
+        'method2',
+        'getter1',
+        'property1',
+        'staticMethod1',
+        'setter1',
+        'property1',
+      ],
+      // TODO(johnniwinther): Should we require a specific order?
+      constructorsOf: [
+        // TODO(johnniwinther): Should we normalize no-name constructor names?
+        '',
+        'named',
+        'fact',
+        'redirect',
+      ]),
   'Class4': ClassData(
       superclassOf: 'Class1',
       superSuperclassOf: 'Object',
@@ -119,6 +146,33 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
         expect(expected.interfacesOf[i], interfacesOf[i].identifier.name,
             '$name.interfacesOf[$i]');
       }
+
+      List<FieldDeclaration> fieldsOf =
+          await classIntrospector.fieldsOf(declaration);
+      expect(
+          expected.fieldsOf.length, fieldsOf.length, '$name.fieldsOf.length');
+      for (int i = 0; i < fieldsOf.length; i++) {
+        expect(expected.fieldsOf[i], fieldsOf[i].identifier.name,
+            '$name.fieldsOf[$i]');
+      }
+
+      List<MethodDeclaration> methodsOf =
+          await classIntrospector.methodsOf(declaration);
+      expect(expected.methodsOf.length, methodsOf.length,
+          '$name.methodsOf.length');
+      for (int i = 0; i < methodsOf.length; i++) {
+        expect(expected.methodsOf[i], methodsOf[i].identifier.name,
+            '$name.methodsOf[$i]');
+      }
+
+      List<ConstructorDeclaration> constructorsOf =
+          await classIntrospector.constructorsOf(declaration);
+      expect(expected.constructorsOf.length, constructorsOf.length,
+          '$name.constructorsOf.length');
+      for (int i = 0; i < constructorsOf.length; i++) {
+        expect(expected.constructorsOf[i], constructorsOf[i].identifier.name,
+            '$name.constructorsOf[$i]');
+      }
     }
     // TODO(johnniwinther): Test more properties when there are supported.
   } else {
@@ -197,6 +251,9 @@ class ClassData {
   final String? superSuperclassOf;
   final List<String> interfacesOf;
   final List<String> mixinsOf;
+  final List<String> fieldsOf;
+  final List<String> methodsOf;
+  final List<String> constructorsOf;
 
   const ClassData(
       {this.isAbstract: false,
@@ -204,7 +261,10 @@ class ClassData {
       required this.superclassOf,
       this.superSuperclassOf,
       this.interfacesOf: const [],
-      this.mixinsOf: const []});
+      this.mixinsOf: const [],
+      this.fieldsOf: const [],
+      this.methodsOf: const [],
+      this.constructorsOf: const []});
 }
 
 class FunctionData {
