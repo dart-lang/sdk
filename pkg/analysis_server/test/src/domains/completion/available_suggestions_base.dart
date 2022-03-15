@@ -81,8 +81,7 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
     newPubspecYamlFile('/home/test', '');
     newPackageConfigJsonFile(
       '/home/test',
-      content: (PackageConfigFileBuilder()
-            ..add(name: 'test', rootPath: '/home/test'))
+      (PackageConfigFileBuilder()..add(name: 'test', rootPath: '/home/test'))
           .toContent(toUriStr: toUriStr),
     );
 

@@ -179,9 +179,9 @@ class C {
         ..add(name: 'bbb', rootPath: bbbPackageRootPath),
     );
 
-    newFile(aaaFilePath, content: 'class A {}');
-    newFile(bbbFilePath, content: 'class B {}');
-    newFile(cccFilePath, content: 'class C {}');
+    newFile2(aaaFilePath, 'class A {}');
+    newFile2(bbbFilePath, 'class B {}');
+    newFile2(cccFilePath, 'class C {}');
 
     await resolveTestCode('class T {}');
 
@@ -252,8 +252,8 @@ mixin M {
   }
 
   test_declarations_onlyForFile() async {
-    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
-    var b = newFile('$testPackageLibPath/b.dart', content: 'class B {}').path;
+    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    var b = newFile2('$testPackageLibPath/b.dart', 'class B {}').path;
 
     var results = WorkspaceSymbols();
     await driver.search.declarations(results, null, null, onlyForFile: b);
@@ -525,7 +525,7 @@ List<A> v2 = null;
   }
 
   test_searchReferences_ClassElement_definedOutside() async {
-    newFile('$testPackageLibPath/lib.dart', content: r'''
+    newFile2('$testPackageLibPath/lib.dart', r'''
 class A {};
 ''');
     await resolveTestCode('''
@@ -600,7 +600,7 @@ void f() {}
   }
 
   test_searchReferences_CompilationUnitElement() async {
-    newFile('$testPackageLibPath/foo.dart');
+    newFile2('$testPackageLibPath/foo.dart', '');
     await resolveTestCode('''
 import 'foo.dart'; // import
 export 'foo.dart'; // export
@@ -734,7 +734,7 @@ void f() {
   A(); // in other
 }
 ''';
-    newFile(other, content: otherCode);
+    newFile2(other, otherCode);
 
     await resolveTestCode('''
 class A {
@@ -1100,7 +1100,7 @@ Random bar() => null;
   }
 
   test_searchReferences_ImportElement_noPrefix_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class N1 {}
 void N2() {}
 int get N3 => 0;
@@ -1184,7 +1184,7 @@ main() {
   }
 
   test_searchReferences_ImportElement_withPrefix_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class N1 {}
 void N2() {}
 int get N3 => 0;
@@ -1239,8 +1239,8 @@ label:
   test_searchReferences_LibraryElement() async {
     var codeA = 'part of lib; // A';
     var codeB = 'part of lib; // B';
-    newFile('$testPackageLibPath/unitA.dart', content: codeA);
-    newFile('$testPackageLibPath/unitB.dart', content: codeB);
+    newFile2('$testPackageLibPath/unitA.dart', codeA);
+    newFile2('$testPackageLibPath/unitB.dart', codeB);
     await resolveTestCode('''
 library lib;
 part 'unitA.dart';
@@ -1272,8 +1272,8 @@ part 'unitB.dart';
 
     var codeA = 'part of lib; // A';
     var codeB = 'part of lib; // B';
-    newFile(partPathA, content: codeA);
-    newFile(partPathB, content: codeB);
+    newFile2(partPathA, codeA);
+    newFile2(partPathB, codeB);
 
     pathForContextSelection = testFilePath;
 
@@ -1786,7 +1786,7 @@ main() {
 part of my_lib;
 ppp.Future c;
 ''';
-    newFile('$testPackageLibPath/my_part.dart', content: partCode);
+    newFile2('$testPackageLibPath/my_part.dart', partCode);
     await resolveTestCode('''
 library my_lib;
 import 'dart:async' as ppp;
@@ -1825,7 +1825,7 @@ main() {
 part of my_lib;
 ppp.Future c;
 ''';
-    newFile(partPath, content: partCode);
+    newFile2(partPath, partCode);
     await resolveFileCode(libPath, '''
 library my_lib;
 import 'dart:async' as ppp;
@@ -1853,9 +1853,9 @@ main() {
     String p3 = convertPath('$testPackageLibPath/part3.dart');
     String code1 = 'part of lib; _C v1;';
     String code2 = 'part of lib; _C v2;';
-    newFile(p1, content: code1);
-    newFile(p2, content: code2);
-    newFile(p3, content: 'part of lib; int v3;');
+    newFile2(p1, code1);
+    newFile2(p2, code2);
+    newFile2(p3, 'part of lib; int v3;');
 
     await resolveTestCode('''
 library lib;
@@ -1897,9 +1897,9 @@ _C v1;
 ''';
     String code2 = 'part of lib; _C v2;';
 
-    newFile(p, content: code);
-    newFile(p1, content: code1);
-    newFile(p2, content: code2);
+    newFile2(p, code);
+    newFile2(p1, code1);
+    newFile2(p2, code2);
 
     await resolveTestCode(code);
 
@@ -1940,8 +1940,8 @@ _C v;
     String code1 = 'part of lib; _C v1;';
     String code2 = 'part of lib; _C v2;';
 
-    newFile(p1, content: code1);
-    newFile(p2, content: code2);
+    newFile2(p1, code1);
+    newFile2(p2, code2);
 
     await resolveFileCode(testFile, testCode);
 
@@ -2059,7 +2059,7 @@ class A {
   }
 
   test_searchReferences_TopLevelVariableElement() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 library lib;
 var V;
 ''');
@@ -2125,7 +2125,7 @@ void f(B p) {
   }
 
   test_searchReferences_TypeAliasElement_fromLegacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 typedef A<T> = Map<int, T>;
 ''');
     await resolveTestCode('''
@@ -2358,7 +2358,7 @@ class F {}
     var aUri = 'package:aaa/a.dart';
     var bUri = 'package:bbb/b.dart';
 
-    newFile(testFilePath, content: r'''
+    newFile2(testFilePath, r'''
 import 'package:aaa/a.dart';
 
 class T1 extends A {
@@ -2370,7 +2370,7 @@ class T2 extends A {
 }
 ''');
 
-    newFile(bbbFilePath, content: r'''
+    newFile2(bbbFilePath, r'''
 import 'package:aaa/a.dart';
 
 class B extends A {
@@ -2378,7 +2378,7 @@ class B extends A {
 }
 ''');
 
-    newFile(aaaFilePath, content: r'''
+    newFile2(aaaFilePath, r'''
 class A {
   void method1() {}
   void method2() {}
@@ -2426,10 +2426,10 @@ class A {
         ..add(name: 'bbb', rootPath: bbbPackageRootPath),
     );
 
-    newFile(testFilePath, content: 'class T implements List {}');
-    newFile(aaaFilePath, content: 'class A implements List {}');
-    newFile(bbbFilePath, content: 'class B implements List {}');
-    newFile(cccFilePath, content: 'class C implements List {}');
+    newFile2(testFilePath, 'class T implements List {}');
+    newFile2(aaaFilePath, 'class A implements List {}');
+    newFile2(bbbFilePath, 'class B implements List {}');
+    newFile2(cccFilePath, 'class C implements List {}');
 
     var coreLibResult =
         await driver.getLibraryByUri('dart:core') as LibraryElementResult;
@@ -2455,11 +2455,11 @@ class A {
   test_subtypes_class_files() async {
     String pathB = convertPath('$testPackageLibPath/b.dart');
     String pathC = convertPath('$testPackageLibPath/c.dart');
-    newFile(pathB, content: r'''
+    newFile2(pathB, r'''
 import 'test.dart';
 class B extends A {}
 ''');
-    newFile(pathC, content: r'''
+    newFile2(pathC, r'''
 import 'test.dart';
 class C extends A {}
 class D {}

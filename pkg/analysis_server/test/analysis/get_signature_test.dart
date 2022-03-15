@@ -177,7 +177,7 @@ main() {
   }
 
   Future<void> test_function_from_other_file() async {
-    newFile('/project/bin/other.dart', content: '''
+    newFile2('/project/bin/other.dart', '''
 /// one doc
 one(String name, int length) {}
 main() {

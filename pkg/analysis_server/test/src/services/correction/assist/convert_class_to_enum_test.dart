@@ -321,7 +321,7 @@ class _E {
   Future<void> test_invalid_hasPart() async {
     // Change this test if the assist becomes able to look for references to the
     // class and its constructors in part files.
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
 ''');
     await resolveTestCode('''

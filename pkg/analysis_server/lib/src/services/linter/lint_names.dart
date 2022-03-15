@@ -136,6 +136,8 @@ class LintNames {
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_late = 'unnecessary_late';
   static const String unnecessary_new = 'unnecessary_new';
+  static const String unnecessary_null_aware_assignments =
+      'unnecessary_null_aware_assignments';
   static const String unnecessary_null_in_if_null_operators =
       'unnecessary_null_in_if_null_operators';
   static const String unnecessary_nullable_for_final_variable_declarations =
@@ -147,6 +149,7 @@ class LintNames {
   static const String unnecessary_string_interpolations =
       'unnecessary_string_interpolations';
   static const String unnecessary_this = 'unnecessary_this';
+  static const String use_enums = 'use_enums';
   static const String use_full_hex_values_for_flutter_colors =
       'use_full_hex_values_for_flutter_colors';
   static const String use_function_type_syntax_for_parameters =

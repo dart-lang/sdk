@@ -17,7 +17,7 @@ main() {
 class InvalidAnnotationFromDeferredLibraryTest
     extends PubPackageResolutionTest {
   test_constructor() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class C { const C(); }
 ''');
@@ -32,7 +32,7 @@ import 'lib1.dart' deferred as a;
   }
 
   test_constructor_argument() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 const x = 0;
 ''');
     await assertErrorsInCode('''
@@ -50,7 +50,7 @@ class C { const C(int i); }
   }
 
   test_from_deferred_library() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class V { const V(); }
 const v = const V();
@@ -66,7 +66,7 @@ import 'lib1.dart' deferred as a;
   }
 
   test_namedConstructor() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class C { const C.name(); }
 ''');

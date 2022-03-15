@@ -42,12 +42,12 @@ void f(Stream<String> args) { }
   }
 
   Future<void> test_organizePathImports() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   static void m() {}
 }
 ''');
-    newFile('$testPackageLibPath/a/b.dart', content: '''
+    newFile2('$testPackageLibPath/a/b.dart', '''
 class B {
   static void m() {}
 }

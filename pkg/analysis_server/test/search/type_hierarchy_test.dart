@@ -164,21 +164,21 @@ class CCC extends BBB implements AAA {}
 
   Future<void> test_class_extends_fileAndPackageUris() async {
     // prepare packages
-    newFile('/packages/pkgA/lib/libA.dart', content: '''
+    newFile2('/packages/pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
 class B extends A {}
 ''');
     newPackageConfigJsonFile(
       '/packages/pkgA',
-      content: (PackageConfigFileBuilder()
+      (PackageConfigFileBuilder()
             ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
           .toContent(toUriStr: toUriStr),
     );
     // reference the package from a project
     newPackageConfigJsonFile(
       projectPath,
-      content: (PackageConfigFileBuilder()
+      (PackageConfigFileBuilder()
             ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
           .toContent(toUriStr: toUriStr),
     );
@@ -652,7 +652,7 @@ class D extends C {
   }
 
   Future<void> test_class_member_method_private_differentLib() async {
-    newFile(join(testFolder, 'lib.dart'), content: r'''
+    newFile2(join(testFolder, 'lib.dart'), r'''
 import 'test.dart';
 class A {
   void _m() {}

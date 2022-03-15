@@ -780,7 +780,7 @@ PostfixExpression
   }
 
   test_inc_prefixedIdentifier_topLevel() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
     await assertNoErrorsInCode(r'''

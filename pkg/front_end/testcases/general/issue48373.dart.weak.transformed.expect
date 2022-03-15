@@ -1,0 +1,9 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method fn<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(self::fn::T? t, self::fn::S? s) → void {
+  core::List<core::Object> x = core::_GrowableList::_literal2<core::Object>(t!, s!);
+  core::List<core::Object> y = x;
+}
+static method main() → dynamic {}

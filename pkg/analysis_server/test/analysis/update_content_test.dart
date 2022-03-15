@@ -83,15 +83,15 @@ class UpdateContentTest extends AbstractAnalysisTest {
   Future<void> test_multiple_contexts() async {
     var project1path = convertPath('/project1');
     var project2path = convertPath('/project2');
-    var fooPath = newFile('/project1/foo.dart', content: '''
+    var fooPath = newFile2('/project1/foo.dart', '''
 library foo;
 import '../project2/baz.dart';
 main() { f(); }''').path;
-    var barPath = newFile('/project2/bar.dart', content: '''
+    var barPath = newFile2('/project2/bar.dart', '''
 library bar;
 import 'baz.dart';
 main() { f(); }''').path;
-    var bazPath = newFile('/project2/baz.dart', content: '''
+    var bazPath = newFile2('/project2/baz.dart', '''
 library baz;
 f(int i) {}
 ''').path;

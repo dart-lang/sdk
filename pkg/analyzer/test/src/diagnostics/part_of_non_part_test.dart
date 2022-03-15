@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class PartOfNonPartTest extends PubPackageResolutionTest {
   test_part_of_non_part() async {
-    newFile('$testPackageLibPath/l2.dart', content: '''
+    newFile2('$testPackageLibPath/l2.dart', '''
 library l2;
 ''');
     await assertErrorsInCode(r'''

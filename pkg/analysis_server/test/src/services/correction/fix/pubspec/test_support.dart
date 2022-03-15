@@ -43,7 +43,7 @@ abstract class PubspecFixTest with ResourceProviderMixin {
 
   void validatePubspec(String content) {
     this.content = content;
-    var pubspecFile = newFile('/home/test/pubspec.yaml', content: content);
+    var pubspecFile = newFile2('/home/test/pubspec.yaml', content);
     document = loadYamlDocument(content);
     var yamlContent = document.contents;
     if (yamlContent is! YamlMap) {

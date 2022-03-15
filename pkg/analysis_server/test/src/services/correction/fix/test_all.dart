@@ -48,6 +48,7 @@ import 'change_to_nearest_precise_value_test.dart'
 import 'change_to_static_access_test.dart' as change_to_static_access;
 import 'change_to_test.dart' as change_to;
 import 'change_type_annotation_test.dart' as change_type_annotation;
+import 'convert_class_to_enum_test.dart' as convert_class_to_enum;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
@@ -128,6 +129,7 @@ import 'qualify_reference_test.dart' as qualify_reference;
 import 'remove_abstract_test.dart' as remove_abstract;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
+import 'remove_assignment_test.dart' as remove_assignment;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
@@ -262,6 +264,7 @@ void main() {
     change_to_nearest_precise_value.main();
     change_to_static_access.main();
     change_type_annotation.main();
+    convert_class_to_enum.main();
     convert_documentation_into_line.main();
     convert_flutter_child.main();
     convert_flutter_children.main();
@@ -335,6 +338,7 @@ void main() {
     remove_abstract.main();
     remove_annotation.main();
     remove_argument.main();
+    remove_assignment.main();
     remove_await.main();
     remove_comparison.main();
     remove_const.main();

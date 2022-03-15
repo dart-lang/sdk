@@ -234,7 +234,7 @@ InstanceCreationExpression
   }
 
   test_prefixed_unnamed_generic() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class C<T> {
   const C();
 }
@@ -286,7 +286,7 @@ InstanceCreationExpression
 
   Future<InstanceCreationExpression> _resolveImplicitConst(String expr,
       {String? prefix}) async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   const A();
   const A.named();
@@ -298,12 +298,12 @@ class B<T extends num> {
 ''');
 
     if (prefix != null) {
-      newFile('$testPackageLibPath/b.dart', content: '''
+      newFile2('$testPackageLibPath/b.dart', '''
 import 'a.dart' as $prefix;
 const a = $expr;
 ''');
     } else {
-      newFile('$testPackageLibPath/b.dart', content: '''
+      newFile2('$testPackageLibPath/b.dart', '''
 import 'a.dart';
 const a = $expr;
 ''');

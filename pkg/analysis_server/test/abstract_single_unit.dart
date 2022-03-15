@@ -57,11 +57,11 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   @override
-  File newFile(String path, {String content = ''}) {
+  File newFile2(String path, String content) {
     if (useLineEndingsForPlatform) {
       content = normalizeNewlinesForPlatform(content);
     }
-    return super.newFile(path, content: content);
+    return super.newFile2(path, content);
   }
 
   Future<void> resolveFile2(String path) async {

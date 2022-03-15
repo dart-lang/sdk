@@ -315,7 +315,7 @@ f() {
   }
 
   test_deadBlock_if_debugConst_prefixedIdentifier2() async {
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 class A {
   static const bool DEBUG = false;
 }''');
@@ -327,7 +327,7 @@ f() {
   }
 
   test_deadBlock_if_debugConst_propertyAccessor() async {
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 class A {
   static const bool DEBUG = false;
 }''');

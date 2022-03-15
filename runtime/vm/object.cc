@@ -5416,7 +5416,9 @@ bool Class::IsSubtypeOf(const Class& cls,
             AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
         // If T0 is Future<S0>, then T0 <: Future<S1>, iff S0 <: S1.
         if (type_arg.IsSubtypeOf(other_type_arg, space, trail)) {
-          if (verified_nullability) {
+          // verified_nullability doesn't take into account the nullability of
+          // S1, just of the FutureOr type.
+          if (verified_nullability || !other_type_arg.IsNonNullable()) {
             return true;
           }
         }
@@ -19847,14 +19849,8 @@ AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
       ASSERT(object_store->nullable_future_null_type() != Type::null());
       return object_store->nullable_future_null_type();
     }
-    // To avoid having to special case FutureOr in nullability checks, we lift
-    // the nullability of the type argument to FutureOr as appropriate.
-    if (IsNullable() || unwrapped_type.IsNullable()) {
-      // FutureOr<T?> = FutureOr<T?>* = FutureOr<T?>?, so mark as nullable.
-      return Type::Cast(*this).ToNullability(Nullability::kNullable, space);
-    } else if (unwrapped_type.IsLegacy()) {
-      // FutureOr<T*> = FutureOr<T*>*, so mark as legacy.
-      return Type::Cast(*this).ToNullability(Nullability::kLegacy, space);
+    if (IsNullable() && unwrapped_type.IsNullable()) {
+      return Type::Cast(*this).ToNullability(Nullability::kNonNullable, space);
     }
   }
   return ptr();

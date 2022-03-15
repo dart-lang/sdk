@@ -193,7 +193,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     shouldBeMigratedFunction ??= (String? path) => true;
     var testPaths = <String>[];
     files.forEach((String path, String content) {
-      newFile(path, content: content);
+      newFile2(path, content);
       testPaths.add(path);
     });
     pathsToProcess ??= testPaths;

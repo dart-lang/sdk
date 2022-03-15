@@ -39,6 +39,7 @@ import 'package:analysis_server/src/services/correction/dart/change_to_nearest_p
 import 'package:analysis_server/src/services/correction/dart/change_to_static_access.dart';
 import 'package:analysis_server/src/services/correction/dart/change_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_class_to_enum.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_child.dart';
@@ -103,6 +104,7 @@ import 'package:analysis_server/src/services/correction/dart/qualify_reference.d
 import 'package:analysis_server/src/services/correction/dart/remove_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
@@ -627,6 +629,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_new: [
       RemoveUnnecessaryNew.newInstance,
     ],
+    LintNames.unnecessary_null_aware_assignments: [
+      RemoveAssignment.newInstance,
+    ],
     LintNames.unnecessary_null_in_if_null_operators: [
       RemoveIfNullOperator.newInstance,
     ],
@@ -650,6 +655,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_this: [
       RemoveThisExpression.newInstance,
+    ],
+    LintNames.use_enums: [
+      ConvertClassToEnum.newInstance,
     ],
     LintNames.use_full_hex_values_for_flutter_colors: [
       ReplaceWithEightDigitHex.newInstance,

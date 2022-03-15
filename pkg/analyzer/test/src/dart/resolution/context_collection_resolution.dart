@@ -102,8 +102,8 @@ class BazelWorkspaceResolutionTest extends ContextResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    newFile('$workspaceRootPath/WORKSPACE', content: '');
-    newFile('$myPackageRootPath/BUILD', content: '');
+    newFile2('$workspaceRootPath/WORKSPACE', '');
+    newFile2('$myPackageRootPath/BUILD', '');
   }
 
   @override
@@ -183,12 +183,12 @@ abstract class ContextResolutionTest
   }
 
   @override
-  File newFile(String path, {String content = ''}) {
+  File newFile2(String path, String content) {
     if (_analysisContextCollection != null && !path.endsWith('.dart')) {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
-    return super.newFile(path, content: content);
+    return super.newFile2(path, content);
   }
 
   @override
@@ -300,18 +300,18 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(
+    newFile2(
       path,
-      content: config.toContent(
+      config.toContent(
         toUriStr: toUriStr,
       ),
     );
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile(
+    newAnalysisOptionsYamlFile2(
       testPackageRootPath,
-      content: config.toContent(),
+      config.toContent(),
     );
   }
 

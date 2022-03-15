@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ExportOfNonLibraryTest extends PubPackageResolutionTest {
   test_export_of_non_library() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 part of lib;
 ''');
     await assertErrorsInCode(r'''
@@ -29,7 +29,7 @@ export 'lib1.dart';
   }
 
   test_libraryDeclared() async {
-    newFile('$testPackageLibPath/lib1.dart', content: "library lib1;");
+    newFile2('$testPackageLibPath/lib1.dart', "library lib1;");
     await assertNoErrorsInCode(r'''
 library L;
 export 'lib1.dart';
@@ -37,7 +37,7 @@ export 'lib1.dart';
   }
 
   test_libraryNotDeclared() async {
-    newFile('$testPackageLibPath/lib1.dart');
+    newFile2('$testPackageLibPath/lib1.dart', '');
     await assertNoErrorsInCode(r'''
 library L;
 export 'lib1.dart';

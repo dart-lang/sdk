@@ -17,8 +17,9 @@ void main() {
 
 class AbstractSdkFixTest extends DataDrivenFixProcessorTest {
   void addSdkDataFile(String content) {
-    newFile('${sdkRoot.path}/lib/_internal/${TransformSetManager.dataFileName}',
-        content: content);
+    newFile2(
+        '${sdkRoot.path}/lib/_internal/${TransformSetManager.dataFileName}',
+        content);
   }
 
   @override

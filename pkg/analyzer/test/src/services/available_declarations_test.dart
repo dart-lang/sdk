@@ -66,7 +66,7 @@ class AbstractContextTest with ResourceProviderMixin {
         buffer.writeln('    - $experiment');
       }
     }
-    newFile(analysisOptionsPath, content: buffer.toString());
+    newFile2(analysisOptionsPath, buffer.toString());
 
     createAnalysisContexts();
   }
@@ -99,7 +99,7 @@ class AbstractContextTest with ResourceProviderMixin {
   ) {
     newPackageConfigJsonFile(
       directoryPath,
-      content: config.toContent(
+      config.toContent(
         toUriStr: toUriStr,
       ),
     );
@@ -121,7 +121,7 @@ class AbstractContextTest with ResourceProviderMixin {
 @reflectiveTest
 class AvailableDeclarationsTest extends _Base {
   test_changesStream_noDuplicates() async {
-    newFile('/home/aaa/lib/a.dart', content: 'class A {}');
+    newFile2('/home/aaa/lib/a.dart', 'class A {}');
 
     newPubspecYamlFile('/home/bbb', r'''
 dependencies:
@@ -131,7 +131,7 @@ dependencies:
       '/home/bbb',
       PackageConfigFileBuilder()..add(name: 'aaa', rootPath: '/home/aaa'),
     );
-    newFile('/home/bbb/lib/b.dart', content: 'class B {}');
+    newFile2('/home/bbb/lib/b.dart', 'class B {}');
 
     newPubspecYamlFile('/home/ccc', r'''
 dependencies:
@@ -141,7 +141,7 @@ dependencies:
       '/home/ccc',
       PackageConfigFileBuilder()..add(name: 'aaa', rootPath: '/home/aaa'),
     );
-    newFile('/home/ccc/lib/c.dart', content: 'class C {}');
+    newFile2('/home/ccc/lib/c.dart', 'class C {}');
 
     createAnalysisContexts();
 
@@ -166,7 +166,7 @@ dependencies:
   }
 
   test_discardContexts() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 class A {}
 ''');
 
@@ -189,7 +189,7 @@ class A {}
   }
 
   test_getContext() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 class A {}
 class B {}
 ''');
@@ -198,7 +198,7 @@ class B {}
   }
 
   test_getLibrary() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 class C {}
 ''');
     tracker.addContext(testAnalysisContext);
@@ -212,7 +212,7 @@ class C {}
   }
 
   test_getLibrary_export_notExisting() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 export 'b.dart';
 class A {}
 ''');
@@ -231,7 +231,7 @@ class A {}
       convertPath('/home/test/lib'),
     );
 
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 export 'foo/a.dart';
 class A {}
 ''');
@@ -245,13 +245,13 @@ class A {}
   }
 
   test_readByteStore() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 class A {}
 ''');
-    newFile('/home/test/lib/b.dart', content: r'''
+    newFile2('/home/test/lib/b.dart', r'''
 class B {}
 ''');
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 export 'a.dart' show A;
 part 'b.dart';
 class C {}
@@ -296,10 +296,10 @@ class ChangeFileTest extends _Base {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part 'a.dart';
 class B {}
 ''');
@@ -316,7 +316,7 @@ class B {}
       ]),
     ]);
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A2 {}
 ''');
     tracker.changeFile(a);
@@ -342,15 +342,15 @@ class A2 {}
     var c = convertPath('/home/test/lib/c.dart');
     var d = convertPath('/home/test/lib/d.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 export 'b.dart';
 class A {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 export 'c.dart';
 class B {}
 ''');
-    newFile(d, content: r'''
+    newFile2(d, r'''
 class D {}
 ''');
     tracker.addContext(testAnalysisContext);
@@ -376,7 +376,7 @@ class D {}
       ]),
     ]);
 
-    newFile(c, content: r'''
+    newFile2(c, r'''
 class C {}
 ''');
     tracker.changeFile(c);
@@ -417,7 +417,7 @@ class C {}
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A {}
 ''');
     var declarationsContext = tracker.addContext(testAnalysisContext);
@@ -430,7 +430,7 @@ class A {}
     ]);
     _assertHasNoLibrary('package:test/b.dart');
 
-    newFile(b, content: r'''
+    newFile2(b, r'''
 class B {}
 ''');
     tracker.changeFile(b);
@@ -461,11 +461,11 @@ class B {}
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 part 'b.dart';
 class A {}
 ''');
-    newFile(c, content: r'''
+    newFile2(c, r'''
 class C {}
 ''');
     tracker.addContext(testAnalysisContext);
@@ -483,7 +483,7 @@ class C {}
       ]),
     ]);
 
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part of 'a.dart';
 class B {}
 ''');
@@ -509,7 +509,7 @@ class B {}
   test_added_part_withoutLibrary() async {
     var b = convertPath('/home/test/lib/b.dart');
 
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part of 'a.dart';
 ''');
     tracker.changeFile(b);
@@ -531,7 +531,7 @@ part of 'a.dart';
     tracker.addContext(testContext);
     await _doAllTrackerWork();
 
-    newFile(filePath, content: 'class A {}');
+    newFile2(filePath, 'class A {}');
     uriToLibrary.clear();
     tracker.changeFile(filePath);
     await _doAllTrackerWork();
@@ -546,7 +546,7 @@ part of 'a.dart';
       relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::A'],
     );
 
-    newFile(filePath, content: 'class B {}');
+    newFile2(filePath, 'class B {}');
     uriToLibrary.clear();
     tracker.changeFile(filePath);
     await _doAllTrackerWork();
@@ -583,7 +583,7 @@ dependencies:
     tracker.addContext(testContext);
     await _doAllTrackerWork();
 
-    newFile(filePath, content: 'class A {}');
+    newFile2(filePath, 'class A {}');
     uriToLibrary.clear();
     tracker.changeFile(filePath);
     await _doAllTrackerWork();
@@ -598,7 +598,7 @@ dependencies:
       relevanceTags: ['ElementKind.CLASS', 'package:aaa/a.dart::A'],
     );
 
-    newFile(filePath, content: 'class B {}');
+    newFile2(filePath, 'class B {}');
     uriToLibrary.clear();
     tracker.changeFile(filePath);
     await _doAllTrackerWork();
@@ -620,7 +620,7 @@ dependencies:
     tracker.addContext(testAnalysisContext);
     await _doAllTrackerWork();
 
-    newFile(filePath, content: 'class A {}');
+    newFile2(filePath, 'class A {}');
     uriToLibrary.clear();
     tracker.changeFile(filePath);
     await _doAllTrackerWork();
@@ -635,7 +635,7 @@ dependencies:
       relevanceTags: ['ElementKind.CLASS', 'dart:math::A'],
     );
 
-    newFile(filePath, content: 'class B {}');
+    newFile2(filePath, 'class B {}');
     uriToLibrary.clear();
     tracker.changeFile(filePath);
     await _doAllTrackerWork();
@@ -657,18 +657,18 @@ dependencies:
     var c = convertPath('/home/test/lib/c.dart');
     var d = convertPath('/home/test/lib/d.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 export 'b.dart';
 class A {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 export 'c.dart';
 class B {}
 ''');
-    newFile(c, content: r'''
+    newFile2(c, r'''
 class C {}
 ''');
-    newFile(d, content: r'''
+    newFile2(d, r'''
 class D {}
 ''');
     tracker.addContext(testAnalysisContext);
@@ -733,8 +733,8 @@ class D {}
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
 
-    newFile(a, content: '');
-    newFile(b, content: '');
+    newFile2(a, '');
+    newFile2(b, '');
     tracker.addContext(testAnalysisContext);
 
     await _doAllTrackerWork();
@@ -753,10 +753,10 @@ class D {}
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 part 'b.dart';
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part of 'a.dart';
 ''');
     tracker.addContext(testAnalysisContext);
@@ -778,15 +778,15 @@ part of 'a.dart';
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 part 'b.dart';
 class A {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part of 'a.dart';
 class B {}
 ''');
-    newFile(c, content: r'''
+    newFile2(c, r'''
 class C {}
 ''');
     tracker.addContext(testAnalysisContext);
@@ -825,7 +825,7 @@ class C {}
   test_deleted_part_withoutLibrary() async {
     var b = convertPath('/home/test/lib/b.dart');
 
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part of 'a.dart';
 ''');
     tracker.addContext(testAnalysisContext);
@@ -841,18 +841,18 @@ part of 'a.dart';
     var c = convertPath('/home/test/lib/c.dart');
     var d = convertPath('/home/test/lib/d.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 export 'b.dart';
 class A {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 export 'c.dart';
 class B {}
 ''');
-    newFile(c, content: r'''
+    newFile2(c, r'''
 class C {}
 ''');
-    newFile(d, content: r'''
+    newFile2(d, r'''
 class D {}
 ''');
     tracker.addContext(testAnalysisContext);
@@ -888,7 +888,7 @@ class D {}
       ]),
     ]);
 
-    newFile(c, content: r'''
+    newFile2(c, r'''
 class C2 {}
 ''');
     tracker.changeFile(c);
@@ -931,13 +931,13 @@ class C2 {}
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 class B {}
 ''');
-    newFile(c, content: r'''
+    newFile2(c, r'''
 export 'a.dart';
 export 'b.dart';
 class C {}
@@ -959,10 +959,10 @@ class C {}
 
     changes.clear();
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A2 {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 class B2 {}
 ''');
     tracker.changeFile(a);
@@ -998,10 +998,10 @@ class B2 {}
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 class B {}
 ''');
     tracker.addContext(testAnalysisContext);
@@ -1018,7 +1018,7 @@ class B {}
       ]),
     ]);
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A2 {}
 ''');
     tracker.changeFile(a);
@@ -1041,11 +1041,11 @@ class A2 {}
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 part 'b.dart';
 class A {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part of 'a.dart';
 class B {}
 ''');
@@ -1067,7 +1067,7 @@ class B {}
       relevanceTags: ['ElementKind.CLASS', 'package:test/a.dart::B'],
     );
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 part 'b.dart';
 class A2 {}
 ''');
@@ -1093,7 +1093,7 @@ class A2 {}
   test_updated_library_to_part() async {
     var a = convertPath('/home/test/lib/a.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A {}
 ''');
     tracker.addContext(testAnalysisContext);
@@ -1105,7 +1105,7 @@ class A {}
       ]),
     ]);
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 part of nothing;
 class A {}
 ''');
@@ -1113,7 +1113,7 @@ class A {}
     await _doAllTrackerWork();
     _assertHasNoLibrary('package:test/a.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A2 {}
 ''');
     tracker.changeFile(a);
@@ -1130,15 +1130,15 @@ class A2 {}
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 part 'b.dart';
 class A {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part of 'a.dart';
 class B {}
 ''');
-    newFile(c, content: r'''
+    newFile2(c, r'''
 class C {}
 ''');
     tracker.addContext(testAnalysisContext);
@@ -1158,7 +1158,7 @@ class C {}
       ]),
     ]);
 
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part of 'a.dart';
 class B2 {}
 ''');
@@ -1184,11 +1184,11 @@ class B2 {}
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 part of unknown;
 class A {}
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 export 'a.dart';
 class B {}
 ''');
@@ -1202,7 +1202,7 @@ class B {}
       ]),
     ]);
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 part of unknown;
 class A2 {}
 ''');
@@ -1219,7 +1219,7 @@ class A2 {}
   test_updated_part_withoutLibrary() async {
     var b = convertPath('/home/test/lib/b.dart');
 
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part of 'a.dart';
 class B {}
 ''');
@@ -1229,7 +1229,7 @@ class B {}
     _assertHasNoLibrary('package:test/a.dart');
     _assertHasNoLibrary('package:test/b.dart');
 
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part of 'a.dart';
 class B2 {}
 ''');
@@ -1244,7 +1244,7 @@ class B2 {}
 @reflectiveTest
 class DartdocInfoTest extends _Base {
   test_samePackage() async {
-    File file = newFile('/home/aaa/lib/definition.dart', content: '''
+    File file = newFile2('/home/aaa/lib/definition.dart', '''
 /// {@template foo}
 /// Body of the template.
 /// {@endtemplate}
@@ -1273,7 +1273,7 @@ After macro.''');
 @reflectiveTest
 class DeclarationTest extends _Base {
   test_CLASS() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 class A {}
 
 abstract class B {}
@@ -1323,7 +1323,7 @@ class D {}
   }
 
   test_class_FIELD() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 class C {
   static int f1 = 0;
 
@@ -1428,7 +1428,7 @@ class C {
   }
 
   test_class_GETTER() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 class C {
   static int get g1 => 0;
 
@@ -1485,7 +1485,7 @@ class C {
   }
 
   test_class_METHOD() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 class C {
   static void m1() {}
 
@@ -1573,7 +1573,7 @@ class C {
   }
 
   test_class_SETTER() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 class C {
   static set s1(int value) {}
 
@@ -1642,7 +1642,7 @@ class C {
   }
 
   test_CLASS_TYPE_ALIAS() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 mixin M {}
 
 class A = Object with M;
@@ -1684,7 +1684,7 @@ class C = Object with M;
   }
 
   test_CONSTRUCTOR() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 class C {
   int f1;
   int f2;
@@ -1789,7 +1789,7 @@ class C {
   }
 
   test_ENUM() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 enum A {v}
 
 @deprecated
@@ -1829,7 +1829,7 @@ enum C {v}
   }
 
   test_ENUM_CONSTANT() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 enum MyEnum {
   a,
 
@@ -1886,7 +1886,7 @@ enum MyEnum {
 
   test_EXTENSION() async {
     createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 extension A on String {}
 
 extension on String {}
@@ -1929,7 +1929,7 @@ extension C on String {}
   }
 
   test_FUNCTION() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 void a() {}
 
 @deprecated
@@ -2013,7 +2013,7 @@ void e<T extends num, U>() {}
   }
 
   test_FUNCTION_defaultArgumentList() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 void a() {}
 
 void b(int a, double bb, String ccc) {}
@@ -2080,7 +2080,7 @@ void d(int a, {int b, @required int c, @required int d, int e}) {}
   }
 
   test_FUNCTION_TYPE_ALIAS() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 typedef A = void Function();
 
 @deprecated
@@ -2193,7 +2193,7 @@ typedef F = void Function<T extends num, U>();
   }
 
   test_FUNCTION_TYPE_ALIAS_noFunction() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 typedef A = ;
 ''');
 
@@ -2205,7 +2205,7 @@ typedef A = ;
   }
 
   test_FUNCTION_TYPE_ALIAS_old() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 typedef void A();
 
 @deprecated
@@ -2318,7 +2318,7 @@ typedef void F<T extends num, U>();
   }
 
   test_GETTER() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 int get a => 0;
 
 @deprecated
@@ -2361,12 +2361,12 @@ int get c => 0;
   }
 
   test_library_isDeprecated() async {
-    newFile('/home/test/lib/a.dart', content: '');
-    newFile('/home/test/lib/b.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', '');
+    newFile2('/home/test/lib/b.dart', r'''
 @deprecated
 library my.lib;
 ''');
-    newFile('/home/test/lib/c.dart', content: r'''
+    newFile2('/home/test/lib/c.dart', r'''
 @Deprecated('description')
 library my.lib;
 ''');
@@ -2380,7 +2380,7 @@ library my.lib;
   }
 
   test_library_partDirective_empty() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 part ' ';
 
 class A {}
@@ -2399,7 +2399,7 @@ class A {}
   }
 
   test_library_partDirective_incomplete() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 part
 
 class A {}
@@ -2418,15 +2418,15 @@ class A {}
   }
 
   test_library_parts() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
-    newFile('/home/test/lib/b.dart', content: r'''
+    newFile2('/home/test/lib/b.dart', r'''
 part of 'test.dart';
 class B {}
 ''');
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 part 'a.dart';
 part 'b.dart';
 class C {}
@@ -2448,12 +2448,12 @@ class C {}
   }
 
   test_library_publicOnly() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 part of 'test.dart';
 class A {}
 class _A {}
 ''');
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 part 'a.dart';
 class B {}
 class _B {}
@@ -2472,12 +2472,12 @@ class _B {}
   }
 
   test_library_publicOnly_enum() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 part of 'test.dart';
 enum A {a, _a}
 enum _A {a, _a}
 ''');
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 part 'a.dart';
 enum B {b, _b}
 enum _B {b, _b}
@@ -2501,7 +2501,7 @@ class A {}
 
 class B {}
 ''';
-    var testPath = newFile('/home/test/lib/test.dart', content: code).path;
+    var testPath = newFile2('/home/test/lib/test.dart', code).path;
 
     tracker.addContext(testAnalysisContext);
     await _doAllTrackerWork();
@@ -2530,7 +2530,7 @@ class B {}
   }
 
   test_MIXIN() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 mixin A {}
 
 @deprecated
@@ -2571,7 +2571,7 @@ mixin C {}
   }
 
   test_SETTER() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 set a(int value) {}
 
 @deprecated
@@ -2623,7 +2623,7 @@ set c(int value) {}
   }
 
   test_TYPE_ALIAS() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 typedef A = double;
 
 @deprecated
@@ -2678,7 +2678,7 @@ typedef C = double;
   }
 
   test_VARIABLE() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 int a;
 
 @deprecated
@@ -2748,7 +2748,7 @@ final double e = 2.7;
 @reflectiveTest
 class ExportTest extends _Base {
   test_classTypeAlias() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 mixin M {}
 class A = Object with M;
 ''');
@@ -2762,12 +2762,12 @@ class A = Object with M;
   }
 
   test_combinators_hide() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 class A {}
 class B {}
 class C {}
 ''');
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 export 'a.dart' hide B;
 class D {}
 ''');
@@ -2788,12 +2788,12 @@ class D {}
   }
 
   test_combinators_show() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 class A {}
 class B {}
 class C {}
 ''');
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 export 'a.dart' show B;
 class D {}
 ''');
@@ -2811,11 +2811,11 @@ class D {}
   }
 
   test_combinators_show_enum() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 enum E1 {a}
 enum E2 {b}
 ''');
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 export 'a.dart' show E1;
 ''');
     tracker.addContext(testAnalysisContext);
@@ -2829,15 +2829,15 @@ export 'a.dart' show E1;
   }
 
   test_cycle() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 export 'b.dart';
 class A {}
 ''');
-    newFile('/home/test/lib/b.dart', content: r'''
+    newFile2('/home/test/lib/b.dart', r'''
 export 'a.dart';
 class B {}
 ''');
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 export 'b.dart';
 class C {}
 ''');
@@ -2877,7 +2877,7 @@ class C {}
   }
 
   test_enum() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 enum E1 {a, b}
 enum E2 {a, b}
 ''');
@@ -2897,7 +2897,7 @@ enum E2 {a, b}
   }
 
   test_function() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 int foo() => 0;
 int bar() => 0;
 ''');
@@ -2911,7 +2911,7 @@ int bar() => 0;
   }
 
   test_functionTypeAlias() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 typedef F = int Function();
 ''');
     tracker.addContext(testAnalysisContext);
@@ -2923,7 +2923,7 @@ typedef F = int Function();
   }
 
   test_missing() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 export 'a.dart';
 class C {}
 ''');
@@ -2938,14 +2938,14 @@ class C {}
   }
 
   test_sequence() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 class A {}
 ''');
-    newFile('/home/test/lib/b.dart', content: r'''
+    newFile2('/home/test/lib/b.dart', r'''
 export 'a.dart';
 class B {}
 ''');
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 export 'b.dart';
 class C {}
 ''');
@@ -2982,11 +2982,11 @@ class C {}
   }
 
   test_shadowedByLocal() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 class A {}
 class B {}
 ''');
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 export 'a.dart';
 
 mixin B {}
@@ -3003,11 +3003,11 @@ mixin B {}
   }
 
   test_simple() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 class A {}
 class B {}
 ''');
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 export 'a.dart';
 class C {}
 ''');
@@ -3028,7 +3028,7 @@ class C {}
   }
 
   test_variable() async {
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 int foo = 0;
 ''');
     tracker.addContext(testAnalysisContext);
@@ -3047,9 +3047,9 @@ class GetLibrariesTest extends _Base {
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
 
-    newFile(a);
-    newFile(b);
-    newFile(c);
+    newFile2(a, '');
+    newFile2(b, '');
+    newFile2(c, '');
 
     var context = tracker.addContext(testAnalysisContext);
     await _doAllTrackerWork();
@@ -3078,13 +3078,13 @@ class GetLibrariesTest extends _Base {
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 part 'b.dart';
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 part of 'a.dart';
 ''');
-    newFile(c);
+    newFile2(c, '');
 
     var context = tracker.addContext(testAnalysisContext);
     await _doAllTrackerWork();
@@ -3100,14 +3100,14 @@ part of 'a.dart';
   }
 
   test_pub() async {
-    newFile('/home/aaa/lib/a.dart', content: 'class A {}');
-    newFile('/home/aaa/lib/src/a2.dart', content: 'class A2 {}');
+    newFile2('/home/aaa/lib/a.dart', 'class A {}');
+    newFile2('/home/aaa/lib/src/a2.dart', 'class A2 {}');
 
-    newFile('/home/bbb/lib/b.dart', content: 'class B {}');
-    newFile('/home/bbb/lib/src/b2.dart', content: 'class B2 {}');
+    newFile2('/home/bbb/lib/b.dart', 'class B {}');
+    newFile2('/home/bbb/lib/src/b2.dart', 'class B2 {}');
 
-    newFile('/home/ccc/lib/c.dart', content: 'class C {}');
-    newFile('/home/ccc/lib/src/c2.dart', content: 'class C2 {}');
+    newFile2('/home/ccc/lib/c.dart', 'class C {}');
+    newFile2('/home/ccc/lib/src/c2.dart', 'class C2 {}');
 
     newPubspecYamlFile('/home/test', r'''
 name: test
@@ -3116,10 +3116,10 @@ dependencies:
 dev_dependencies:
   bbb: any
 ''');
-    newFile('/home/test/lib/t.dart', content: 'class T {}');
-    newFile('/home/test/lib/src/t2.dart', content: 'class T2 {}');
-    newFile('/home/test/bin/t3.dart', content: 'class T3 {}');
-    newFile('/home/test/test/t4.dart', content: 'class T4 {}');
+    newFile2('/home/test/lib/t.dart', 'class T {}');
+    newFile2('/home/test/lib/src/t2.dart', 'class T2 {}');
+    newFile2('/home/test/bin/t3.dart', 'class T3 {}');
+    newFile2('/home/test/test/t4.dart', 'class T4 {}');
 
     newPubspecYamlFile('/home/test/samples/basic', r'''
 name: test
@@ -3127,7 +3127,7 @@ dependencies:
   ccc: any
   test: any
 ''');
-    newFile('/home/test/samples/basic/lib/s.dart', content: 'class S {}');
+    newFile2('/home/test/samples/basic/lib/s.dart', 'class S {}');
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
@@ -3283,7 +3283,7 @@ dependencies:
   }
 
   test_sdk_excludesPrivate() async {
-    newFile('/home/test/lib/test.dart', content: '');
+    newFile2('/home/test/lib/test.dart', '');
 
     var context = tracker.addContext(testAnalysisContext);
     await _doAllTrackerWork();
@@ -3297,15 +3297,15 @@ dependencies:
   }
 
   test_setDependencies() async {
-    newFile('/home/aaa/lib/a.dart', content: r'''
+    newFile2('/home/aaa/lib/a.dart', r'''
 export 'src/a2.dart' show A2;
 class A1 {}
 ''');
-    newFile('/home/aaa/lib/src/a2.dart', content: r'''
+    newFile2('/home/aaa/lib/src/a2.dart', r'''
 class A2 {}
 class A3 {}
 ''');
-    newFile('/home/bbb/lib/b.dart', content: r'''
+    newFile2('/home/bbb/lib/b.dart', r'''
 class B {}
 ''');
 
@@ -3315,9 +3315,9 @@ class B {}
         ..add(name: 'bbb', rootPath: '/home/bbb'),
     );
 
-    newFile('/home/test/lib/t.dart', content: 'class T {}');
-    newFile('/home/test/lib/src/t2.dart', content: 'class T2 {}');
-    newFile('/home/test/test/t3.dart', content: 'class T3 {}');
+    newFile2('/home/test/lib/t.dart', 'class T {}');
+    newFile2('/home/test/lib/src/t2.dart', 'class T2 {}');
+    newFile2('/home/test/test/t3.dart', 'class T3 {}');
 
     var context = tracker.addContext(testAnalysisContext);
     context.setDependencies({
@@ -3410,10 +3410,10 @@ class B {}
   }
 
   test_setDependencies_twice() async {
-    newFile('/home/aaa/lib/a.dart', content: r'''
+    newFile2('/home/aaa/lib/a.dart', r'''
 class A {}
 ''');
-    newFile('/home/bbb/lib/b.dart', content: r'''
+    newFile2('/home/bbb/lib/b.dart', r'''
 class B {}
 ''');
 
@@ -3423,7 +3423,7 @@ class B {}
         ..add(name: 'bbb', rootPath: '/home/bbb'),
     );
 
-    newFile('/home/test/lib/test.dart', content: r'''
+    newFile2('/home/test/lib/test.dart', r'''
 class C {}
 ''');
 
@@ -3488,9 +3488,9 @@ class C {}
     var b = convertPath('/home/test/bin/b.dart');
     var c = convertPath('/home/test/bin/c.dart');
 
-    newFile(a, content: 'class A {}');
-    newFile(b, content: 'class B {}');
-    newFile(c, content: 'class C {}');
+    newFile2(a, 'class A {}');
+    newFile2(b, 'class B {}');
+    newFile2(c, 'class C {}');
     await testAnalysisContext.currentSession.getFile2(a);
     await testAnalysisContext.currentSession.getFile2(b);
     await testAnalysisContext.currentSession.getFile2(c);

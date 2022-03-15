@@ -1587,7 +1587,9 @@ severity: $severity
   }
 
   Future<MacroApplications?> computeMacroApplications() async {
-    if (!enableMacros || _macroClassBuilder == null) return null;
+    if ((!enableMacros || _macroClassBuilder == null) && !forceEnableMacros) {
+      return null;
+    }
 
     Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
     for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {

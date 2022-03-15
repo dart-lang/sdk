@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class PrefixElementTest extends PubPackageResolutionTest {
   test_scope_lookup() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 var foo = 0;
 ''');
 
@@ -40,11 +40,11 @@ import 'a.dart' as prefix;
   }
 
   test_scope_lookup_ambiguous_notSdk_both() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 var foo = 0;
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 var foo = 1.2;
 ''');
 
@@ -79,7 +79,7 @@ import 'b.dart' as prefix;
   }
 
   test_scope_lookup_ambiguous_notSdk_first() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 var pi = 4;
 ''');
 
@@ -101,7 +101,7 @@ import 'dart:math' as prefix;
   }
 
   test_scope_lookup_ambiguous_notSdk_second() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 var pi = 4;
 ''');
 
@@ -123,11 +123,11 @@ import 'a.dart' as prefix;
   }
 
   test_scope_lookup_ambiguous_same() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 var foo = 0;
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -154,11 +154,11 @@ import 'b.dart' as prefix;
   }
 
   test_scope_lookup_differentPrefix() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 var foo = 0;
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 var bar = 0;
 ''');
 

@@ -8,6 +8,8 @@ environment:
 
 dependencies:
   args: ^2.0.0
+  _fe_analyzer_shared:
+    path: ../_fe_analyzer_shared
   build_integration:
     path: ../build_integration
   compiler:

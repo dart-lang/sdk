@@ -43,7 +43,7 @@ import 'unknown.dart';
   }
 
   test_import_appears_after_deleting_target() async {
-    String filePath = newFile('$testPackageLibPath/target.dart').path;
+    String filePath = newFile2('$testPackageLibPath/target.dart', '').path;
 
     await assertErrorsInCode('''
 import 'target.dart';
@@ -72,7 +72,7 @@ import 'target.dart';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 13),
     ]);
 
-    newFile('$testPackageLibPath/target.dart');
+    newFile2('$testPackageLibPath/target.dart', '');
 
     // Make sure the error goes away.
     // TODO(brianwilkerson) The error does not go away, possibly because the

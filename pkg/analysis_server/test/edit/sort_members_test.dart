@@ -195,7 +195,7 @@ class MyAnnotation {
   }
 
   Future<void> test_OK_genericFunctionType() async {
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 analyzer:
   strong-mode: true
 ''');

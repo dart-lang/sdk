@@ -20,7 +20,7 @@ class ResourceUriResolverTest with ResourceProviderMixin {
 
   void setUp() {
     resolver = ResourceUriResolver(resourceProvider);
-    newFile('/test.dart');
+    newFile2('/test.dart', '');
     newFolder('/folder');
   }
 

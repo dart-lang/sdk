@@ -102,7 +102,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile(pubspecFilePath, content: simplePubspecContent);
+    newFile2(pubspecFilePath, simplePubspecContent);
     await initialize();
 
     final res = await getReferences(pubspecFileUri, startOfDocPos);
@@ -137,7 +137,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(contents));
+    newFile2(mainFilePath, withoutMarkers(contents));
     await initialize();
     final res = await getReferences(mainFileUri, positionFromMarker(contents));
 

@@ -112,7 +112,7 @@ void main() {
     bool hasErrors = false,
   }) async {
     this.content = content;
-    newFile(sourcePath, content: content);
+    newFile2(sourcePath, content);
     var result =
         await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
 

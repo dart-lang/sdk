@@ -31,7 +31,7 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
 
   Future<Outline> _computeOutline(String code) async {
     testCode = code;
-    newFile(testPath, content: code);
+    newFile2(testPath, code);
     var resolveResult =
         await (await session).getResolvedUnit(testPath) as ResolvedUnitResult;
     return DartUnitOutlineComputer(

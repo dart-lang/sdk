@@ -17,7 +17,7 @@ main() {
 class NonConstantCaseExpressionFromDeferredLibraryTest
     extends PubPackageResolutionTest {
   test_nested() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 const int c = 0;
 ''');
 
@@ -40,7 +40,7 @@ void f(int e) {
   }
 
   test_simple() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 const int c = 0;
 ''');
 

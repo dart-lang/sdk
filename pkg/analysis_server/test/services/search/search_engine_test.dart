@@ -31,7 +31,7 @@ class PubPackageResolutionTest extends AbstractContextTest {
   String get testFilePath => '$testPackageLibPath/test.dart';
 
   void addTestFile(String content) {
-    newFile(testFilePath, content: content);
+    newFile2(testFilePath, content);
   }
 
   /// Resolve the file with the [path] into [result].
@@ -62,7 +62,7 @@ class SearchEngineImplTest extends PubPackageResolutionTest {
   }
 
   Future<void> test_membersOfSubtypes_classByClass_hasMembers() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void b() {}
@@ -70,14 +70,14 @@ class A {
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 import 'a.dart';
 class B extends A {
   void a() {}
 }
 ''');
 
-    newFile('$testPackageLibPath/c.dart', content: '''
+    newFile2('$testPackageLibPath/c.dart', '''
 import 'a.dart';
 class C extends A {
   void b() {}
@@ -126,7 +126,7 @@ enum E with M {
   }
 
   Future<void> test_membersOfSubtypes_noMembers() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void b() {}
@@ -134,7 +134,7 @@ class A {
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 import 'a.dart';
 class B extends A {}
 ''');
@@ -147,7 +147,7 @@ class B extends A {}
   }
 
   Future<void> test_membersOfSubtypes_noSubtypes() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void b() {}
@@ -155,7 +155,7 @@ class A {
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 import 'a.dart';
 class B {
   void a() {}
@@ -170,7 +170,7 @@ class B {
   }
 
   Future<void> test_membersOfSubtypes_private() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void _b() {}
@@ -181,7 +181,7 @@ class B extends A {
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 import 'a.dart';
 class C extends A {
   void a() {}
@@ -219,12 +219,12 @@ class C implements B {}
   Future<void> test_searchAllSubtypes_acrossDrivers() async {
     var aaaRootPath = _configureForPackage_aaa();
 
-    newFile('$aaaRootPath/lib/a.dart', content: '''
+    newFile2('$aaaRootPath/lib/a.dart', '''
 class T {}
 class A extends T {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 import 'package:aaa/a.dart';
 class B extends A {}
 class C extends B {}
@@ -279,8 +279,8 @@ class B {
 int test;
 ''';
 
-    newFile('$testPackageLibPath/a.dart', content: codeA);
-    newFile('$testPackageLibPath/b.dart', content: codeB);
+    newFile2('$testPackageLibPath/a.dart', codeA);
+    newFile2('$testPackageLibPath/b.dart', codeB);
 
     var matches = await searchEngine.searchMemberDeclarations('test');
     expect(matches, hasLength(2));
@@ -299,7 +299,7 @@ int test;
   }
 
   Future<void> test_searchMemberReferences() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   int test;
 }
@@ -308,7 +308,7 @@ foo(p) {
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 import 'a.dart';
 bar(p) {
   p.test = 1;
@@ -330,7 +330,7 @@ bar(p) {
   Future<void> test_searchReferences() async {
     var aaaRootPath = _configureForPackage_aaa();
 
-    newFile('$aaaRootPath/lib/a.dart', content: '''
+    newFile2('$aaaRootPath/lib/a.dart', '''
 class T {}
 T a;
 ''');
@@ -352,11 +352,11 @@ T b;
   Future<void> test_searchReferences_discover_owned() async {
     var aaaRootPath = _configureForPackage_aaa();
 
-    var a = newFile('$aaaRootPath/lib/a.dart', content: '''
+    var a = newFile2('$aaaRootPath/lib/a.dart', '''
 int a;
 ''').path;
 
-    var t = newFile('$testPackageLibPath/lib/t.dart', content: '''
+    var t = newFile2('$testPackageLibPath/lib/t.dart', '''
 import 'package:aaa/a.dart';
 int t;
 ''').path;
@@ -497,12 +497,12 @@ void g() {
   }
 
   Future<void> test_searchTopLevelDeclarations() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {}
 int a;
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 class B {}
 get b => 42;
 ''');
@@ -528,13 +528,13 @@ get b => 42;
   Future<void> test_searchTopLevelDeclarations_dependentPackage() async {
     var aaaRootPath = _configureForPackage_aaa();
 
-    newFile('$aaaRootPath/lib/a.dart', content: '''
+    newFile2('$aaaRootPath/lib/a.dart', '''
 class A {}
 ''');
 
     // The `package:test` uses the class `A` from the `package:aaa`.
     // So it sees the declaration the element `A`.
-    newFile('$testFilePath', content: '''
+    newFile2('$testFilePath', '''
 import 'package:aaa/a.dart';
 class B extends A {}
 ''');

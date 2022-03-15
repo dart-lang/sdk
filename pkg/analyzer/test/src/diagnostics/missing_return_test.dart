@@ -36,7 +36,7 @@ dynamic f() {}
   }
 
   test_function_sync_block_Never() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 Never foo() {
   throw 0;
 }

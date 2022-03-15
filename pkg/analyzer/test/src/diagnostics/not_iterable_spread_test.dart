@@ -108,6 +108,14 @@ void f<T extends num>(T a) {
       error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 43, 1),
     ]);
   }
+
+  test_spread_map_in_iterable_context() async {
+    await assertErrorsInCode('''
+List<int> f() => [...{1: 2, 3: 4}];
+''', [
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 21, 12),
+    ]);
+  }
 }
 
 @reflectiveTest

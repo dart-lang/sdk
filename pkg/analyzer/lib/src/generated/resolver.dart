@@ -664,7 +664,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // If the constructor-tearoffs feature is enabled, then so is
       // generic-metadata.
       genericMetadataIsEnabled: true,
-    )!;
+    );
     if (typeArgumentTypes.isNotEmpty) {
       staticType = staticType.instantiate(typeArgumentTypes);
     }
@@ -2577,7 +2577,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
         genericMetadataIsEnabled: true,
-      )!;
+      );
       if (typeArgumentTypes.isNotEmpty) {
         callMethodType = callMethodType.instantiate(typeArgumentTypes);
       }

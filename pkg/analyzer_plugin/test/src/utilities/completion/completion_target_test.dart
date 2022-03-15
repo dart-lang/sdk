@@ -951,7 +951,7 @@ class _Base extends AbstractContextTest {
     content = content.substring(0, offset) + content.substring(offset! + 1);
 
     var path = convertPath('/home/test/lib/test.dart');
-    newFile(path, content: content);
+    newFile2(path, content);
 
     var result = await resolveFile(path);
     findElement = FindElement(result.unit);

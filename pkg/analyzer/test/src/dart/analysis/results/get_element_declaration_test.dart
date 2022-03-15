@@ -59,7 +59,7 @@ class A {} // 2
   }
 
   test_class_inPart() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 class A {}
 ''');

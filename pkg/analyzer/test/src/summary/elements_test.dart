@@ -1,97 +1,49 @@
-// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../util/feature_sets.dart';
 import 'element_text.dart';
+import 'elements_base.dart';
 
-/// Abstract base class for resynthesizing and comparing elements.
-///
-/// The return type separator: →
-abstract class AbstractResynthesizeTest with ResourceProviderMixin {
-  /// The set of features enabled in this test.
-  late FeatureSet featureSet;
-
-  DeclaredVariables declaredVariables = DeclaredVariables();
-  late final SourceFactory sourceFactory;
-  late final FolderBasedDartSdk sdk;
-
-  late Source testSource;
-  Set<Source> otherLibrarySources = <Source>{};
-
-  AbstractResynthesizeTest() {
-    var sdkRoot = newFolder('/sdk');
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
-    sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
-
-    sourceFactory = SourceFactory(
-      [
-        DartUriResolver(sdk),
-        PackageMapUriResolver(resourceProvider, {
-          'test': [
-            getFolder('/home/test/lib'),
-          ],
-        }),
-        ResourceUriResolver(resourceProvider),
-      ],
-    );
-  }
-
-  String get testFilePath => '$testPackageLibPath/test.dart';
-
-  String get testPackageLibPath => '$testPackageRootPath/lib';
-
-  String get testPackageRootPath => '/home/test';
-
-  void addLibrary(String uri) {
-    var source = sourceFactory.forUri(uri)!;
-    otherLibrarySources.add(source);
-  }
-
-  Source addLibrarySource(String filePath, String contents) {
-    var source = addSource(filePath, contents);
-    otherLibrarySources.add(source);
-    return source;
-  }
-
-  Source addSource(String path, String contents) {
-    var file = newFile(path, content: contents);
-    var uri = sourceFactory.pathToUri(file.path)!;
-    return sourceFactory.forUri2(uri)!;
-  }
-
-  Source addTestSource(String code, [Uri? uri]) {
-    testSource = addSource(testFilePath, code);
-    return testSource;
-  }
-
-  Future<LibraryElementImpl> checkLibrary(String text,
-      {bool allowErrors = false});
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ElementsKeepLinkingTest);
+    defineReflectiveTests(ElementsFromBytesTest);
+    // defineReflectiveTests(ApplyCheckElementTextReplacements);
+  });
 }
 
-/// Mixin containing test cases exercising summary resynthesis.  Intended to be
-/// applied to a class implementing [AbstractResynthesizeTest].
-mixin ResynthesizeTestCases on AbstractResynthesizeTest {
+@reflectiveTest
+class ApplyCheckElementTextReplacements {
+  test_applyReplacements() {
+    applyCheckElementTextReplacements();
+  }
+}
+
+@reflectiveTest
+class ElementsFromBytesTest extends ElementsTest {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class ElementsKeepLinkingTest extends ElementsTest {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
+abstract class ElementsTest extends ElementsBaseTest {
   test_class_abstract() async {
-    var library = await checkLibrary('abstract class C {}');
+    var library = await buildLibrary('abstract class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -103,7 +55,7 @@ library
   }
 
   test_class_constructor_const() async {
-    var library = await checkLibrary('class C { const C(); }');
+    var library = await buildLibrary('class C { const C(); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -115,7 +67,7 @@ library
   }
 
   test_class_constructor_const_external() async {
-    var library = await checkLibrary('class C { external const C(); }');
+    var library = await buildLibrary('class C { external const C(); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -127,7 +79,7 @@ library
   }
 
   test_class_constructor_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   /**
    * Docs
@@ -146,7 +98,7 @@ library
   }
 
   test_class_constructor_explicit_named() async {
-    var library = await checkLibrary('class C { C.foo(); }');
+    var library = await buildLibrary('class C { C.foo(); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -160,7 +112,7 @@ library
   }
 
   test_class_constructor_explicit_type_params() async {
-    var library = await checkLibrary('class C<T, U> { C(); }');
+    var library = await buildLibrary('class C<T, U> { C(); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -177,7 +129,7 @@ library
   }
 
   test_class_constructor_explicit_unnamed() async {
-    var library = await checkLibrary('class C { C(); }');
+    var library = await buildLibrary('class C { C(); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -189,7 +141,7 @@ library
   }
 
   test_class_constructor_external() async {
-    var library = await checkLibrary('class C { external C(); }');
+    var library = await buildLibrary('class C { external C(); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -201,7 +153,7 @@ library
   }
 
   test_class_constructor_factory() async {
-    var library = await checkLibrary('class C { factory C() => throw 0; }');
+    var library = await buildLibrary('class C { factory C() => throw 0; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -214,7 +166,7 @@ library
 
   test_class_constructor_field_formal_dynamic_dynamic() async {
     var library =
-        await checkLibrary('class C { dynamic x; C(dynamic this.x); }');
+        await buildLibrary('class C { dynamic x; C(dynamic this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -241,7 +193,7 @@ library
   }
 
   test_class_constructor_field_formal_dynamic_typed() async {
-    var library = await checkLibrary('class C { dynamic x; C(int this.x); }');
+    var library = await buildLibrary('class C { dynamic x; C(int this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -268,7 +220,7 @@ library
   }
 
   test_class_constructor_field_formal_dynamic_untyped() async {
-    var library = await checkLibrary('class C { dynamic x; C(this.x); }');
+    var library = await buildLibrary('class C { dynamic x; C(this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -295,7 +247,7 @@ library
   }
 
   test_class_constructor_field_formal_functionTyped_noReturnType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   var x;
   C(this.x(double b));
@@ -330,7 +282,7 @@ library
   }
 
   test_class_constructor_field_formal_functionTyped_withReturnType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   var x;
   C(int this.x(double b));
@@ -365,7 +317,7 @@ library
   }
 
   test_class_constructor_field_formal_functionTyped_withReturnType_generic() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   Function() f;
   C(List<U> this.f<T, U>(T t));
@@ -404,7 +356,7 @@ library
 
   test_class_constructor_field_formal_multiple_matching_fields() async {
     // This is a compile-time error but it should still analyze consistently.
-    var library = await checkLibrary('class C { C(this.x); int x; String x; }',
+    var library = await buildLibrary('class C { C(this.x); int x; String x; }',
         allowErrors: true);
     checkElementText(library, r'''
 library
@@ -443,7 +395,7 @@ library
   test_class_constructor_field_formal_no_matching_field() async {
     // This is a compile-time error but it should still analyze consistently.
     var library =
-        await checkLibrary('class C { C(this.x); }', allowErrors: true);
+        await buildLibrary('class C { C(this.x); }', allowErrors: true);
     checkElementText(library, r'''
 library
   definingUnit
@@ -459,7 +411,7 @@ library
   }
 
   test_class_constructor_field_formal_typed_dynamic() async {
-    var library = await checkLibrary('class C { num x; C(dynamic this.x); }',
+    var library = await buildLibrary('class C { num x; C(dynamic this.x); }',
         allowErrors: true);
     checkElementText(library, r'''
 library
@@ -487,7 +439,7 @@ library
   }
 
   test_class_constructor_field_formal_typed_typed() async {
-    var library = await checkLibrary('class C { num x; C(int this.x); }');
+    var library = await buildLibrary('class C { num x; C(int this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -514,7 +466,7 @@ library
   }
 
   test_class_constructor_field_formal_typed_untyped() async {
-    var library = await checkLibrary('class C { num x; C(this.x); }');
+    var library = await buildLibrary('class C { num x; C(this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -541,7 +493,7 @@ library
   }
 
   test_class_constructor_field_formal_untyped_dynamic() async {
-    var library = await checkLibrary('class C { var x; C(dynamic this.x); }');
+    var library = await buildLibrary('class C { var x; C(dynamic this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -568,7 +520,7 @@ library
   }
 
   test_class_constructor_field_formal_untyped_typed() async {
-    var library = await checkLibrary('class C { var x; C(int this.x); }');
+    var library = await buildLibrary('class C { var x; C(int this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -595,7 +547,7 @@ library
   }
 
   test_class_constructor_field_formal_untyped_untyped() async {
-    var library = await checkLibrary('class C { var x; C(this.x); }');
+    var library = await buildLibrary('class C { var x; C(this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -622,7 +574,7 @@ library
   }
 
   test_class_constructor_fieldFormal_named_noDefault() async {
-    var library = await checkLibrary('class C { int x; C({this.x}); }');
+    var library = await buildLibrary('class C { int x; C({this.x}); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -649,7 +601,7 @@ library
   }
 
   test_class_constructor_fieldFormal_named_withDefault() async {
-    var library = await checkLibrary('class C { int x; C({this.x: 42}); }');
+    var library = await buildLibrary('class C { int x; C({this.x: 42}); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -680,7 +632,7 @@ library
   }
 
   test_class_constructor_fieldFormal_optional_noDefault() async {
-    var library = await checkLibrary('class C { int x; C([this.x]); }');
+    var library = await buildLibrary('class C { int x; C([this.x]); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -707,7 +659,7 @@ library
   }
 
   test_class_constructor_fieldFormal_optional_withDefault() async {
-    var library = await checkLibrary('class C { int x; C([this.x = 42]); }');
+    var library = await buildLibrary('class C { int x; C([this.x = 42]); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -738,7 +690,7 @@ library
   }
 
   test_class_constructor_implicit_type_params() async {
-    var library = await checkLibrary('class C<T, U> {}');
+    var library = await buildLibrary('class C<T, U> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -755,7 +707,7 @@ library
   }
 
   test_class_constructor_initializers_assertInvocation() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   const C(int x) : assert(x >= 42);
 }
@@ -791,7 +743,7 @@ library
   }
 
   test_class_constructor_initializers_assertInvocation_message() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   const C(int x) : assert(x >= 42, 'foo');
 }
@@ -830,7 +782,7 @@ library
   }
 
   test_class_constructor_initializers_field() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   final x;
   const C() : x = 42;
@@ -863,7 +815,7 @@ library
   }
 
   test_class_constructor_initializers_field_notConst() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   final x;
   const C() : x = foo();
@@ -908,7 +860,7 @@ library
   }
 
   test_class_constructor_initializers_field_optionalPositionalParameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   final int _f;
   const A([int f = 0]) : _f = f;
@@ -949,7 +901,7 @@ library
   }
 
   test_class_constructor_initializers_field_withParameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   final x;
   const C(int p) : x = 1 + p;
@@ -994,7 +946,7 @@ library
   }
 
   test_class_constructor_initializers_genericFunctionType() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   const A();
 }
@@ -1065,7 +1017,7 @@ library
   }
 
   test_class_constructor_initializers_superInvocation_argumentContextType() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A(List<String> values);
 }
@@ -1105,7 +1057,7 @@ library
   }
 
   test_class_constructor_initializers_superInvocation_named() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A.aaa(int p);
 }
@@ -1150,7 +1102,7 @@ library
   }
 
   test_class_constructor_initializers_superInvocation_named_underscore() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A._();
 }
@@ -1188,7 +1140,7 @@ library
   }
 
   test_class_constructor_initializers_superInvocation_namedExpression() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A.aaa(a, {int b});
 }
@@ -1245,7 +1197,7 @@ library
   }
 
   test_class_constructor_initializers_superInvocation_unnamed() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A(int p);
 }
@@ -1285,7 +1237,7 @@ library
   }
 
   test_class_constructor_initializers_thisInvocation_argumentContextType() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A(List<String> values);
   const A.empty() : this(const []);
@@ -1322,7 +1274,7 @@ library
   }
 
   test_class_constructor_initializers_thisInvocation_named() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   const C() : this.named(1, 'bbb');
   const C.named(int a, String b);
@@ -1366,7 +1318,7 @@ library
   }
 
   test_class_constructor_initializers_thisInvocation_namedExpression() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   const C() : this.named(1, b: 2);
   const C.named(a, {int b});
@@ -1418,7 +1370,7 @@ library
   }
 
   test_class_constructor_initializers_thisInvocation_unnamed() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   const C.named() : this(1, 'bbb');
   const C(int a, String b);
@@ -1457,7 +1409,7 @@ library
   }
 
   test_class_constructor_parameters_super_explicitType_function() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A(Object? a);
 }
@@ -1495,7 +1447,7 @@ library
   }
 
   test_class_constructor_parameters_super_explicitType_interface() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A(num a);
 }
@@ -1527,7 +1479,7 @@ library
   }
 
   test_class_constructor_parameters_super_explicitType_interface_nullable() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A(num? a);
 }
@@ -1559,7 +1511,7 @@ library
   }
 
   test_class_constructor_parameters_super_invalid_topFunction() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f(super.a) {}
 ''');
     checkElementText(library, r'''
@@ -1576,7 +1528,7 @@ library
   }
 
   test_class_constructor_parameters_super_optionalNamed() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A({required int a, required double b});
 }
@@ -1617,7 +1569,7 @@ library
   }
 
   test_class_constructor_parameters_super_optionalNamed_unresolved() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A({required int a});
 }
@@ -1649,7 +1601,7 @@ library
   }
 
   test_class_constructor_parameters_super_optionalNamed_unresolved2() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A(int a);
 }
@@ -1681,7 +1633,7 @@ library
   }
 
   test_class_constructor_parameters_super_optionalPositional() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A(int a, double b);
 }
@@ -1722,7 +1674,7 @@ library
   }
 
   test_class_constructor_parameters_super_requiredNamed() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A({required int a, required double b});
 }
@@ -1768,7 +1720,7 @@ library
   }
 
   test_class_constructor_parameters_super_requiredPositional() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A(int a, double b);
 }
@@ -1809,7 +1761,7 @@ library
   }
 
   test_class_constructor_parameters_super_requiredPositional_unresolved() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 
 class B extends A {
@@ -1836,7 +1788,7 @@ library
   }
 
   test_class_constructor_parameters_super_requiredPositional_unresolved2() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A({required int a})
 }
@@ -1868,7 +1820,7 @@ library
   }
 
   test_class_constructor_params() async {
-    var library = await checkLibrary('class C { C(x, int y); }');
+    var library = await buildLibrary('class C { C(x, int y); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -1885,7 +1837,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   factory C() = D.named;
   C._();
@@ -1916,7 +1868,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_generic() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T, U> {
   factory C() = D<U, T>.named;
   C._();
@@ -1961,7 +1913,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_generic_viaTypeAlias() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef A<T, U> = C<T, U>;
 class B<T, U> {
   factory B() = A<U, T>.named;
@@ -2016,13 +1968,13 @@ library
   }
 
   test_class_constructor_redirected_factory_named_imported() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart';
 class C {
   factory C() = D.named;
@@ -2046,13 +1998,13 @@ library
   }
 
   test_class_constructor_redirected_factory_named_imported_generic() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart';
 class C<T, U> {
   factory C() = D<U, T>.named;
@@ -2083,13 +2035,13 @@ library
   }
 
   test_class_constructor_redirected_factory_named_prefixed() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart' as foo;
 class C {
   factory C() = foo.D.named;
@@ -2113,13 +2065,13 @@ library
   }
 
   test_class_constructor_redirected_factory_named_prefixed_generic() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart' as foo;
 class C<T, U> {
   factory C() = foo.D<U, T>.named;
@@ -2150,7 +2102,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_unresolved_class() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<E> {
   factory C() = D.named<E>;
 }
@@ -2169,7 +2121,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_unresolved_constructor() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class D {}
 class C<E> {
   factory C() = D.named<E>;
@@ -2192,7 +2144,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   factory C() = D;
   C._();
@@ -2221,7 +2173,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_generic() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T, U> {
   factory C() = D<U, T>;
   C._();
@@ -2264,7 +2216,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_generic_viaTypeAlias() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef A<T, U> = C<T, U>;
 class B<T, U> {
   factory B() = A<U, T>;
@@ -2313,13 +2265,13 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_imported() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D() : super._();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart';
 class C {
   factory C() = D;
@@ -2343,13 +2295,13 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_imported_generic() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart';
 class C<T, U> {
   factory C() = D<U, T>;
@@ -2380,14 +2332,14 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_imported_viaTypeAlias() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 typedef A = B;
 class B extends C {
   B() : super._();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart';
 class C {
   factory C() = A;
@@ -2411,13 +2363,13 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_prefixed() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D() : super._();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart' as foo;
 class C {
   factory C() = foo.D;
@@ -2441,13 +2393,13 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_prefixed_generic() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart' as foo;
 class C<T, U> {
   factory C() = foo.D<U, T>;
@@ -2478,14 +2430,14 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_prefixed_viaTypeAlias() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 typedef A = B;
 class B extends C {
   B() : super._();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart' as foo;
 class C {
   factory C() = foo.A;
@@ -2509,7 +2461,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_unresolved() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<E> {
   factory C() = D<E>;
 }
@@ -2528,7 +2480,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_viaTypeAlias() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef A = C;
 class B {
   factory B() = A;
@@ -2561,7 +2513,7 @@ library
   }
 
   test_class_constructor_redirected_thisInvocation_named() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   const C.named();
   const C() : this.named();
@@ -2594,7 +2546,7 @@ library
   }
 
   test_class_constructor_redirected_thisInvocation_named_generic() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> {
   const C.named();
   const C() : this.named();
@@ -2630,7 +2582,7 @@ library
   }
 
   test_class_constructor_redirected_thisInvocation_named_notConst() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   C.named();
   C() : this.named();
@@ -2651,7 +2603,7 @@ library
   }
 
   test_class_constructor_redirected_thisInvocation_unnamed() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   const C();
   const C.named() : this();
@@ -2679,7 +2631,7 @@ library
   }
 
   test_class_constructor_redirected_thisInvocation_unnamed_generic() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> {
   const C();
   const C.named() : this();
@@ -2710,7 +2662,7 @@ library
   }
 
   test_class_constructor_redirected_thisInvocation_unnamed_notConst() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   C();
   C.named() : this();
@@ -2731,7 +2683,7 @@ library
   }
 
   test_class_constructor_superConstructor_generic_named() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   A.named(T a);
 }
@@ -2765,7 +2717,7 @@ library
   }
 
   test_class_constructor_superConstructor_notGeneric_named() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A.named();
 }
@@ -2791,7 +2743,7 @@ library
   }
 
   test_class_constructor_superConstructor_notGeneric_unnamed_explicit() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 class B extends A {
   B() : super();
@@ -2813,7 +2765,7 @@ library
   }
 
   test_class_constructor_superConstructor_notGeneric_unnamed_implicit() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 class B extends A {
   B();
@@ -2835,7 +2787,7 @@ library
   }
 
   test_class_constructor_superConstructor_notGeneric_unnamed_implicit2() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 class B extends A {}
 ''');
@@ -2855,7 +2807,7 @@ library
   }
 
   test_class_constructor_unnamed_implicit() async {
-    var library = await checkLibrary('class C {}');
+    var library = await buildLibrary('class C {}');
     checkElementText(
         library,
         r'''
@@ -2871,7 +2823,7 @@ library
   }
 
   test_class_constructor_withCycles_const() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   final x;
   const C() : x = const D();
@@ -2949,7 +2901,7 @@ library
   }
 
   test_class_constructor_withCycles_nonConst() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   final x;
   C() : x = new D();
@@ -2985,7 +2937,7 @@ library
   }
 
   test_class_constructors_named() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   C.foo();
 }
@@ -3007,7 +2959,7 @@ library
   }
 
   test_class_constructors_unnamed() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   C();
 }
@@ -3027,7 +2979,7 @@ library
   }
 
   test_class_constructors_unnamed_new() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   C.new();
 }
@@ -3049,7 +3001,7 @@ library
   }
 
   test_class_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /**
  * Docs
  */
@@ -3066,7 +3018,7 @@ library
   }
 
   test_class_documented_mix() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /**
  * aaa
  */
@@ -3131,7 +3083,7 @@ library
   }
 
   test_class_documented_tripleSlash() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /// first
 /// second
 /// third
@@ -3148,7 +3100,7 @@ library
   }
 
   test_class_documented_with_references() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /**
  * Docs referring to [D] and [E]
  */
@@ -3174,7 +3126,7 @@ library
   }
 
   test_class_documented_with_windows_line_endings() async {
-    var library = await checkLibrary('/**\r\n * Docs\r\n */\r\nclass C {}');
+    var library = await buildLibrary('/**\r\n * Docs\r\n */\r\nclass C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -3187,7 +3139,7 @@ library
   }
 
   test_class_documented_withLeadingNotDocumentation() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
@@ -3205,7 +3157,7 @@ library
   }
 
   test_class_documented_withMetadata() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /// Comment 1
 /// Comment 2
 @Annotation()
@@ -3333,7 +3285,7 @@ library
   }
 
   test_class_field_abstract() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 abstract class C {
   abstract int i;
 }
@@ -3360,7 +3312,7 @@ library
   }
 
   test_class_field_const() async {
-    var library = await checkLibrary('class C { static const int i = 0; }');
+    var library = await buildLibrary('class C { static const int i = 0; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -3383,7 +3335,7 @@ library
 
   test_class_field_const_late() async {
     var library =
-        await checkLibrary('class C { static late const int i = 0; }');
+        await buildLibrary('class C { static late const int i = 0; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -3405,7 +3357,7 @@ library
   }
 
   test_class_field_covariant() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   covariant int x;
 }''');
@@ -3431,7 +3383,7 @@ library
   }
 
   test_class_field_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   /**
    * Docs
@@ -3461,7 +3413,7 @@ library
   }
 
   test_class_field_external() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 abstract class C {
   external int i;
 }
@@ -3488,7 +3440,7 @@ library
   }
 
   test_class_field_final_hasInitializer_hasConstConstructor() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   final x = 42;
   const C();
@@ -3515,7 +3467,7 @@ library
   }
 
   test_class_field_final_hasInitializer_hasConstConstructor_genericFunctionType() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   const A();
 }
@@ -3600,7 +3552,7 @@ library
   }
 
   test_class_field_final_hasInitializer_noConstConstructor() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   final x = 42;
 }
@@ -3622,7 +3574,7 @@ library
   }
 
   test_class_field_final_withSetter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {
   final int foo;
   A(this.foo);
@@ -3655,7 +3607,7 @@ library
   }
 
   test_class_field_formal_param_inferred_type_implicit() async {
-    var library = await checkLibrary('class C extends D { var v; C(this.v); }'
+    var library = await buildLibrary('class C extends D { var v; C(this.v); }'
         ' abstract class D { int get v; }');
     checkElementText(library, r'''
 library
@@ -3694,7 +3646,7 @@ library
   }
 
   test_class_field_implicit_type() async {
-    var library = await checkLibrary('class C { var x; }');
+    var library = await buildLibrary('class C { var x; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -3717,7 +3669,7 @@ library
   }
 
   test_class_field_implicit_type_late() async {
-    var library = await checkLibrary('class C { late var x; }');
+    var library = await buildLibrary('class C { late var x; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -3740,7 +3692,7 @@ library
   }
 
   test_class_field_inferred_type_nonStatic_explicit_initialized() async {
-    var library = await checkLibrary('class C { num v = 0; }');
+    var library = await buildLibrary('class C { num v = 0; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -3763,7 +3715,7 @@ library
   }
 
   test_class_field_inferred_type_nonStatic_implicit_initialized() async {
-    var library = await checkLibrary('class C { var v = 0; }');
+    var library = await buildLibrary('class C { var v = 0; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -3786,7 +3738,7 @@ library
   }
 
   test_class_field_inferred_type_nonStatic_implicit_uninitialized() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'class C extends D { var v; } abstract class D { int get v; }');
     checkElementText(library, r'''
 library
@@ -3821,7 +3773,7 @@ library
   }
 
   test_class_field_inferred_type_nonStatic_inherited_resolveInitializer() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = 0;
 abstract class A {
   const A();
@@ -3880,7 +3832,7 @@ library
   }
 
   test_class_field_inferred_type_static_implicit_initialized() async {
-    var library = await checkLibrary('class C { static var v = 0; }');
+    var library = await buildLibrary('class C { static var v = 0; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -3903,7 +3855,7 @@ library
   }
 
   test_class_field_inheritedContextType_double() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 abstract class A {
   const A();
   double get foo;
@@ -3945,7 +3897,7 @@ library
   }
 
   test_class_field_propagatedType_const_noDep() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   static const x = 0;
 }''');
@@ -3970,8 +3922,8 @@ library
   }
 
   test_class_field_propagatedType_final_dep_inLib() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'final a = 1;');
-    var library = await checkLibrary('''
+    addSource('$testPackageLibPath/a.dart', 'final a = 1;');
+    var library = await buildLibrary('''
 import "a.dart";
 class C {
   final b = a / 2;
@@ -3996,7 +3948,7 @@ library
 
   test_class_field_propagatedType_final_dep_inPart() async {
     addSource('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 library lib;
 part "a.dart";
 class C {
@@ -4029,7 +3981,7 @@ library
   }
 
   test_class_field_propagatedType_final_noDep_instance() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   final x = 0;
 }''');
@@ -4050,7 +4002,7 @@ library
   }
 
   test_class_field_propagatedType_final_noDep_static() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   static final x = 0;
 }''');
@@ -4071,7 +4023,7 @@ library
   }
 
   test_class_field_static() async {
-    var library = await checkLibrary('class C { static int i; }');
+    var library = await buildLibrary('class C { static int i; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4094,7 +4046,7 @@ library
   }
 
   test_class_field_static_final_hasConstConstructor() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   static final f = 0;
   const C();
@@ -4117,7 +4069,7 @@ library
   }
 
   test_class_field_static_final_untyped() async {
-    var library = await checkLibrary('class C { static final x = 0; }');
+    var library = await buildLibrary('class C { static final x = 0; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4135,7 +4087,7 @@ library
   }
 
   test_class_field_static_late() async {
-    var library = await checkLibrary('class C { static late int i; }');
+    var library = await buildLibrary('class C { static late int i; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4158,7 +4110,7 @@ library
   }
 
   test_class_field_type_inferred_Never() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   var a = throw 42;
 }
@@ -4191,7 +4143,7 @@ library
 var a = 0;
 ''');
 
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 class C {
   var b = a;
@@ -4222,7 +4174,7 @@ library
   }
 
   test_class_field_typed() async {
-    var library = await checkLibrary('class C { int x = 0; }');
+    var library = await buildLibrary('class C { int x = 0; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4245,7 +4197,7 @@ library
   }
 
   test_class_field_untyped() async {
-    var library = await checkLibrary('class C { var x = 0; }');
+    var library = await buildLibrary('class C { var x = 0; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4268,7 +4220,7 @@ library
   }
 
   test_class_fields() async {
-    var library = await checkLibrary('class C { int i; int j; }');
+    var library = await buildLibrary('class C { int i; int j; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4300,7 +4252,7 @@ library
   }
 
   test_class_fields_late() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   late int foo;
 }
@@ -4327,7 +4279,7 @@ library
   }
 
   test_class_fields_late_final() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   late final int foo;
 }
@@ -4354,7 +4306,7 @@ library
   }
 
   test_class_fields_late_final_initialized() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   late final int foo = 0;
 }
@@ -4376,7 +4328,7 @@ library
   }
 
   test_class_fields_late_inference_usingSuper_methodInvocation() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   int foo() => 0;
 }
@@ -4415,7 +4367,7 @@ library
   }
 
   test_class_fields_late_inference_usingSuper_propertyAccess() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   int get foo => 0;
 }
@@ -4457,7 +4409,7 @@ library
   }
 
   test_class_getter_abstract() async {
-    var library = await checkLibrary('abstract class C { int get x; }');
+    var library = await buildLibrary('abstract class C { int get x; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4475,7 +4427,7 @@ library
   }
 
   test_class_getter_external() async {
-    var library = await checkLibrary('class C { external int get x; }');
+    var library = await buildLibrary('class C { external int get x; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4493,7 +4445,7 @@ library
   }
 
   test_class_getter_implicit_return_type() async {
-    var library = await checkLibrary('class C { get x => null; }');
+    var library = await buildLibrary('class C { get x => null; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4511,7 +4463,7 @@ library
   }
 
   test_class_getter_native() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   int get x() native;
 }
@@ -4533,7 +4485,7 @@ library
   }
 
   test_class_getter_static() async {
-    var library = await checkLibrary('class C { static int get x => null; }');
+    var library = await buildLibrary('class C { static int get x => null; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4552,7 +4504,7 @@ library
 
   test_class_getters() async {
     var library =
-        await checkLibrary('class C { int get x => null; get y => null; }');
+        await buildLibrary('class C { int get x => null; get y => null; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4574,7 +4526,7 @@ library
   }
 
   test_class_implicitField_getterFirst() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   int get x => 0;
   void set x(int value) {}
@@ -4602,7 +4554,7 @@ library
   }
 
   test_class_implicitField_setterFirst() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   void set x(int value) {}
   int get x => 0;
@@ -4630,7 +4582,7 @@ library
   }
 
   test_class_interfaces() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C implements D, E {}
 class D {}
 class E {}
@@ -4655,7 +4607,7 @@ library
   }
 
   test_class_interfaces_Function() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 class B {}
 class C implements A, Function, B {}
@@ -4680,7 +4632,7 @@ library
   }
 
   test_class_interfaces_unresolved() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'class C implements X, Y, Z {} class X {} class Z {}',
         allowErrors: true);
     checkElementText(library, r'''
@@ -4703,7 +4655,7 @@ library
   }
 
   test_class_method_abstract() async {
-    var library = await checkLibrary('abstract class C { f(); }');
+    var library = await buildLibrary('abstract class C { f(); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4718,7 +4670,7 @@ library
   }
 
   test_class_method_async() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:async';
 class C {
   Future f() async {}
@@ -4740,7 +4692,7 @@ library
   }
 
   test_class_method_asyncStar() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:async';
 class C {
   Stream f() async* {}
@@ -4762,7 +4714,7 @@ library
   }
 
   test_class_method_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   /**
    * Docs
@@ -4784,7 +4736,7 @@ library
   }
 
   test_class_method_external() async {
-    var library = await checkLibrary('class C { external f(); }');
+    var library = await buildLibrary('class C { external f(); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4799,7 +4751,7 @@ library
   }
 
   test_class_method_hasImplicitReturnType_false() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   int m() => 0;
 }
@@ -4810,7 +4762,7 @@ class C {
   }
 
   test_class_method_hasImplicitReturnType_true() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   m() => 0;
 }
@@ -4821,7 +4773,7 @@ class C {
   }
 
   test_class_method_inferred_type_nonStatic_implicit_param() async {
-    var library = await checkLibrary('class C extends D { void f(value) {} }'
+    var library = await buildLibrary('class C extends D { void f(value) {} }'
         ' abstract class D { void f(int value); }');
     checkElementText(library, r'''
 library
@@ -4851,7 +4803,7 @@ library
   }
 
   test_class_method_inferred_type_nonStatic_implicit_return() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C extends D {
   f() => null;
 }
@@ -4881,7 +4833,7 @@ library
   }
 
   test_class_method_namedAsSupertype() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {}
 class B extends A {
   void A() {}
@@ -4906,7 +4858,7 @@ library
   }
 
   test_class_method_native() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   int m() native;
 }
@@ -4925,7 +4877,7 @@ library
   }
 
   test_class_method_params() async {
-    var library = await checkLibrary('class C { f(x, y) {} }');
+    var library = await buildLibrary('class C { f(x, y) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4945,7 +4897,7 @@ library
   }
 
   test_class_method_static() async {
-    var library = await checkLibrary('class C { static f() {} }');
+    var library = await buildLibrary('class C { static f() {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4960,7 +4912,7 @@ library
   }
 
   test_class_method_syncStar() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   Iterable<int> f() sync* {
     yield 42;
@@ -4981,7 +4933,7 @@ library
   }
 
   test_class_method_type_parameter() async {
-    var library = await checkLibrary('class C { T f<T, U>(U u) => null; }');
+    var library = await buildLibrary('class C { T f<T, U>(U u) => null; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5002,7 +4954,7 @@ library
   }
 
   test_class_method_type_parameter_in_generic_class() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T, U> {
   V f<V, W>(T t, U u, W w) => null;
 }
@@ -5036,7 +4988,7 @@ library
   }
 
   test_class_method_type_parameter_with_function_typed_parameter() async {
-    var library = await checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
+    var library = await buildLibrary('class C { void f<T, U>(T x(U u)) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5060,7 +5012,7 @@ library
   }
 
   test_class_methods() async {
-    var library = await checkLibrary('class C { f() {} g() {} }');
+    var library = await buildLibrary('class C { f() {} g() {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5077,7 +5029,7 @@ library
   }
 
   test_class_mixins() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C extends D with E, F, G {}
 class D {}
 class E {}
@@ -5113,7 +5065,7 @@ library
   }
 
   test_class_mixins_generic() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class Z extends A with B<int>, C<double> {}
 class A {}
 class B<B1> {}
@@ -5150,7 +5102,7 @@ library
   }
 
   test_class_mixins_unresolved() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'class C extends Object with X, Y, Z {} class X {} class Z {}',
         allowErrors: true);
     checkElementText(library, r'''
@@ -5176,7 +5128,7 @@ library
   test_class_notSimplyBounded_circularity_via_typedef() async {
     // C's type parameter T is not simply bounded because its bound, F, expands
     // to `dynamic F(C)`, which refers to C.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends F> {}
 typedef F(C value);
 ''');
@@ -5205,7 +5157,7 @@ library
   test_class_notSimplyBounded_circularity_with_type_params() async {
     // C's type parameter T is simply bounded because even though it refers to
     // C, it specifies a bound.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends C<dynamic>> {}
 ''');
     checkElementText(library, r'''
@@ -5223,7 +5175,7 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_cycle_class() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends D> {}
 class D<T extends C> {}
 ''');
@@ -5249,7 +5201,7 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_cycle_typedef_functionType() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef C<T extends D> = void Function();
 typedef D<T extends C> = void Function();
 ''');
@@ -5277,7 +5229,7 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_cycle_typedef_interfaceType() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef C<T extends D> = List<T>;
 typedef D<T extends C> = List<T>;
 ''');
@@ -5301,7 +5253,7 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_reference_to_cycle() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends D> {}
 class D<T extends D> {}
 ''');
@@ -5327,7 +5279,7 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_use_of_parameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends D<T>> {}
 class D<T> {}
 ''');
@@ -5354,7 +5306,7 @@ library
   test_class_notSimplyBounded_dependency_with_type_params() async {
     // C's type parameter T is simply bounded because even though it refers to
     // non-simply-bounded type D, it specifies a bound.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends D<dynamic>> {}
 class D<T extends D<T>> {}
 ''');
@@ -5380,7 +5332,7 @@ library
   }
 
   test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends void Function(T)> {}
 ''');
     checkElementText(library, r'''
@@ -5399,7 +5351,7 @@ library
 
   test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends void Function(T)> {}
 ''');
     checkElementText(library, r'''
@@ -5417,7 +5369,7 @@ library
   }
 
   test_class_notSimplyBounded_function_typed_bound_complex_via_return_type() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends T Function()> {}
 ''');
     checkElementText(library, r'''
@@ -5435,7 +5387,7 @@ library
   }
 
   test_class_notSimplyBounded_function_typed_bound_simple() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends void Function()> {}
 ''');
     checkElementText(library, r'''
@@ -5456,7 +5408,7 @@ library
     // C's type parameter T has a bound of F, which is a circular typedef.  This
     // is illegal in Dart, but we need to make sure it doesn't lead to a crash
     // or infinite loop.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends F> {}
 typedef F(G value);
 typedef G(F value);
@@ -5491,7 +5443,7 @@ library
   }
 
   test_class_notSimplyBounded_self() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends C> {}
 ''');
     checkElementText(library, r'''
@@ -5511,7 +5463,7 @@ library
   test_class_notSimplyBounded_simple_because_non_generic() async {
     // If no type parameters are specified, then the class is simply bounded, so
     // there is no reason to assign it a slot.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {}
 ''');
     checkElementText(library, r'''
@@ -5525,7 +5477,7 @@ library
   }
 
   test_class_notSimplyBounded_simple_by_lack_of_cycles() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends D> {}
 class D<T> {}
 ''');
@@ -5552,7 +5504,7 @@ library
   test_class_notSimplyBounded_simple_by_syntax() async {
     // If no bounds are specified, then the class is simply bounded by syntax
     // alone, so there is no reason to assign it a slot.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> {}
 ''');
     checkElementText(library, r'''
@@ -5570,7 +5522,7 @@ library
 
   test_class_operator() async {
     var library =
-        await checkLibrary('class C { C operator+(C other) => null; }');
+        await buildLibrary('class C { C operator+(C other) => null; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5588,7 +5540,7 @@ library
   }
 
   test_class_operator_equal() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   bool operator==(Object other) => false;
 }
@@ -5611,7 +5563,7 @@ library
 
   test_class_operator_external() async {
     var library =
-        await checkLibrary('class C { external C operator+(C other); }');
+        await buildLibrary('class C { external C operator+(C other); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5629,7 +5581,7 @@ library
   }
 
   test_class_operator_greater_equal() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   bool operator>=(C other) => false;
 }
@@ -5652,7 +5604,7 @@ library
 
   test_class_operator_index() async {
     var library =
-        await checkLibrary('class C { bool operator[](int i) => null; }');
+        await buildLibrary('class C { bool operator[](int i) => null; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5670,7 +5622,7 @@ library
   }
 
   test_class_operator_index_set() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   void operator[]=(int i, bool v) {}
 }
@@ -5694,7 +5646,7 @@ library
   }
 
   test_class_operator_less_equal() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   bool operator<=(C other) => false;
 }
@@ -5716,7 +5668,7 @@ library
   }
 
   test_class_ref_nullability_none() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {}
 C c;
 ''');
@@ -5742,7 +5694,7 @@ library
   }
 
   test_class_ref_nullability_question() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {}
 C? c;
 ''');
@@ -5769,7 +5721,7 @@ library
 
   test_class_ref_nullability_star() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {}
 C c;
 ''');
@@ -5796,7 +5748,7 @@ library
 
   test_class_setter_abstract() async {
     var library =
-        await checkLibrary('abstract class C { void set x(int value); }');
+        await buildLibrary('abstract class C { void set x(int value); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5818,7 +5770,7 @@ library
 
   test_class_setter_covariant() async {
     var library =
-        await checkLibrary('class C { void set x(covariant int value); }');
+        await buildLibrary('class C { void set x(covariant int value); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5840,7 +5792,7 @@ library
 
   test_class_setter_external() async {
     var library =
-        await checkLibrary('class C { external void set x(int value); }');
+        await buildLibrary('class C { external void set x(int value); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5861,7 +5813,7 @@ library
   }
 
   test_class_setter_implicit_param_type() async {
-    var library = await checkLibrary('class C { void set x(value) {} }');
+    var library = await buildLibrary('class C { void set x(value) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5882,7 +5834,7 @@ library
   }
 
   test_class_setter_implicit_return_type() async {
-    var library = await checkLibrary('class C { set x(int value) {} }');
+    var library = await buildLibrary('class C { set x(int value) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5903,7 +5855,7 @@ library
   }
 
   test_class_setter_inferred_type_conflictingInheritance() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   int t;
 }
@@ -5976,7 +5928,7 @@ library
 
   test_class_setter_inferred_type_nonStatic_implicit_param() async {
     var library =
-        await checkLibrary('class C extends D { void set f(value) {} }'
+        await buildLibrary('class C extends D { void set f(value) {} }'
             ' abstract class D { void set f(int value); }');
     checkElementText(library, r'''
 library
@@ -6012,7 +5964,7 @@ library
   }
 
   test_class_setter_inferred_type_static_implicit_return() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   static set f(int value) {}
 }
@@ -6037,7 +5989,7 @@ library
   }
 
   test_class_setter_invalid_named_parameter() async {
-    var library = await checkLibrary('class C { void set x({a}) {} }');
+    var library = await buildLibrary('class C { void set x({a}) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6058,7 +6010,7 @@ library
   }
 
   test_class_setter_invalid_no_parameter() async {
-    var library = await checkLibrary('class C { void set x() {} }');
+    var library = await buildLibrary('class C { void set x() {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6076,7 +6028,7 @@ library
   }
 
   test_class_setter_invalid_optional_parameter() async {
-    var library = await checkLibrary('class C { void set x([a]) {} }');
+    var library = await buildLibrary('class C { void set x([a]) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6097,7 +6049,7 @@ library
   }
 
   test_class_setter_invalid_too_many_parameters() async {
-    var library = await checkLibrary('class C { void set x(a, b) {} }');
+    var library = await buildLibrary('class C { void set x(a, b) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6120,7 +6072,7 @@ library
   }
 
   test_class_setter_native() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   void set x(int value) native;
 }
@@ -6146,7 +6098,7 @@ library
 
   test_class_setter_static() async {
     var library =
-        await checkLibrary('class C { static void set x(int value) {} }');
+        await buildLibrary('class C { static void set x(int value) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6167,7 +6119,7 @@ library
   }
 
   test_class_setters() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   void set x(int value) {}
   set y(value) {}
@@ -6200,7 +6152,7 @@ library
   }
 
   test_class_supertype() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C extends D {}
 class D {}
 ''');
@@ -6220,7 +6172,7 @@ library
   }
 
   test_class_supertype_typeArguments() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C extends D<int, double> {}
 class D<T1, T2> {}
 ''');
@@ -6247,7 +6199,7 @@ library
   }
 
   test_class_supertype_typeArguments_self() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {}
 class B extends A<B> {}
 ''');
@@ -6272,7 +6224,7 @@ library
   }
 
   test_class_supertype_unresolved() async {
-    var library = await checkLibrary('class C extends D {}', allowErrors: true);
+    var library = await buildLibrary('class C extends D {}', allowErrors: true);
     checkElementText(library, r'''
 library
   definingUnit
@@ -6284,7 +6236,7 @@ library
   }
 
   test_class_typeParameters() async {
-    var library = await checkLibrary('class C<T, U> {}');
+    var library = await buildLibrary('class C<T, U> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6301,7 +6253,7 @@ library
   }
 
   test_class_typeParameters_bound() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends Object, U extends D> {}
 class D {}
 ''');
@@ -6326,7 +6278,7 @@ library
   }
 
   test_class_typeParameters_cycle_1of1() async {
-    var library = await checkLibrary('class C<T extends T> {}');
+    var library = await buildLibrary('class C<T extends T> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6342,7 +6294,7 @@ library
   }
 
   test_class_typeParameters_cycle_2of3() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C<T extends V, U, V extends T> {}
 ''');
     checkElementText(library, r'''
@@ -6365,7 +6317,7 @@ library
   }
 
   test_class_typeParameters_defaultType_cycle_genericFunctionType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T extends void Function(A)> {}
 ''');
     checkElementText(library, r'''
@@ -6383,7 +6335,7 @@ library
   }
 
   test_class_typeParameters_defaultType_cycle_genericFunctionType2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C<T extends void Function<U extends C>()> {}
 ''');
     checkElementText(library, r'''
@@ -6402,7 +6354,7 @@ library
 
   test_class_typeParameters_defaultType_functionTypeAlias_contravariant_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<X> = void Function(X);
 
 class A<X extends F<X>> {}
@@ -6439,7 +6391,7 @@ library
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_contravariant_nullSafe() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<X> = void Function(X);
 
 class A<X extends F<X>> {}
@@ -6476,7 +6428,7 @@ library
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_covariant_nullSafe() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<X> = X Function();
 
 class A<X extends F<X>> {}
@@ -6510,7 +6462,7 @@ library
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_invariant_legacy() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<X> = X Function(X);
 
 class A<X extends F<X>> {}
@@ -6547,7 +6499,7 @@ library
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_invariant_nullSafe() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<X> = X Function(X);
 
 class A<X extends F<X>> {}
@@ -6585,7 +6537,7 @@ library
 
   test_class_typeParameters_defaultType_genericFunctionType_both_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<X extends X Function(X)> {}
 ''');
     checkElementText(library, r'''
@@ -6603,7 +6555,7 @@ library
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_both_nullSafe() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<X extends X Function(X)> {}
 ''');
     checkElementText(library, r'''
@@ -6622,7 +6574,7 @@ library
 
   test_class_typeParameters_defaultType_genericFunctionType_contravariant_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<X extends void Function(X)> {}
 ''');
     checkElementText(library, r'''
@@ -6640,7 +6592,7 @@ library
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_contravariant_nullSafe() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<X extends void Function(X)> {}
 ''');
     checkElementText(library, r'''
@@ -6658,7 +6610,7 @@ library
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_covariant_legacy() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<X extends X Function()> {}
 ''');
     checkElementText(library, r'''
@@ -6676,7 +6628,7 @@ library
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_covariant_nullSafe() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<X extends X Function()> {}
 ''');
     checkElementText(library, r'''
@@ -6694,7 +6646,7 @@ library
   }
 
   test_class_typeParameters_defaultType_typeAlias_interface_contravariant() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A<X> = List<void Function(X)>;
 
 class B<X extends A<X>> {}
@@ -6726,7 +6678,7 @@ library
   }
 
   test_class_typeParameters_defaultType_typeAlias_interface_covariant() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A<X> = Map<X, int>;
 
 class B<X extends A<X>> {}
@@ -6758,7 +6710,7 @@ library
   }
 
   test_class_typeParameters_f_bound_complex() async {
-    var library = await checkLibrary('class C<T extends List<U>, U> {}');
+    var library = await buildLibrary('class C<T extends List<U>, U> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6776,7 +6728,7 @@ library
   }
 
   test_class_typeParameters_f_bound_simple() async {
-    var library = await checkLibrary('class C<T extends U, U> {}');
+    var library = await buildLibrary('class C<T extends U, U> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6794,7 +6746,7 @@ library
   }
 
   test_class_typeParameters_variance_contravariant() async {
-    var library = await checkLibrary('class C<in T> {}');
+    var library = await buildLibrary('class C<in T> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6809,7 +6761,7 @@ library
   }
 
   test_class_typeParameters_variance_covariant() async {
-    var library = await checkLibrary('class C<out T> {}');
+    var library = await buildLibrary('class C<out T> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6824,7 +6776,7 @@ library
   }
 
   test_class_typeParameters_variance_invariant() async {
-    var library = await checkLibrary('class C<inout T> {}');
+    var library = await buildLibrary('class C<inout T> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6839,7 +6791,7 @@ library
   }
 
   test_class_typeParameters_variance_multiple() async {
-    var library = await checkLibrary('class C<inout T, in U, out V> {}');
+    var library = await buildLibrary('class C<inout T, in U, out V> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6858,7 +6810,7 @@ library
   }
 
   test_classAlias() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C = D with E, F, G;
 class D {}
 class E {}
@@ -6901,7 +6853,7 @@ library
   }
 
   test_classAlias_abstract() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 abstract class C = D with E;
 class D {}
 class E {}
@@ -6934,7 +6886,7 @@ library
   }
 
   test_classAlias_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /**
  * Docs
  */
@@ -6972,7 +6924,7 @@ library
   }
 
   test_classAlias_documented_tripleSlash() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /// aaa
 /// b
 /// cc
@@ -7010,7 +6962,7 @@ library
   }
 
   test_classAlias_documented_withLeadingNonDocumentation() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
@@ -7048,7 +7000,7 @@ library
   }
 
   test_classAlias_generic() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class Z = A with B<int>, C<double>;
 class A {}
 class B<B1> {}
@@ -7092,7 +7044,7 @@ library
   }
 
   test_classAlias_notSimplyBounded_self() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends C> = D with E;
 class D {}
 class E {}
@@ -7131,7 +7083,7 @@ library
   test_classAlias_notSimplyBounded_simple_no_type_parameter_bound() async {
     // If no bounds are specified, then the class is simply bounded by syntax
     // alone, so there is no reason to assign it a slot.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> = D with E;
 class D {}
 class E {}
@@ -7169,7 +7121,7 @@ library
   test_classAlias_notSimplyBounded_simple_non_generic() async {
     // If no type parameters are specified, then the class is simply bounded, so
     // there is no reason to assign it a slot.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C = D with E;
 class D {}
 class E {}
@@ -7202,14 +7154,14 @@ library
   }
 
   test_classAlias_with_const_constructors() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class Base {
   const Base._priv();
   const Base();
   const Base.named();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "a.dart";
 class M {}
 class MixinApp = Base with M;
@@ -7255,7 +7207,7 @@ library
   }
 
   test_classAlias_with_forwarding_constructors() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class Base {
   bool x = true;
   Base._priv();
@@ -7270,7 +7222,7 @@ class Base {
   factory Base.fact2() = Base.noArgs;
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "a.dart";
 class M {}
 class MixinApp = Base with M;
@@ -7442,7 +7394,7 @@ library
   }
 
   test_classAlias_with_forwarding_constructors_type_substitution() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class Base<T> {
   Base.ctor(T t, List<T> l);
 }
@@ -7508,7 +7460,7 @@ library
   }
 
   test_classAlias_with_forwarding_constructors_type_substitution_complex() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class Base<T> {
   Base.ctor(T t, List<T> l);
 }
@@ -7577,7 +7529,7 @@ library
   }
 
   test_classAlias_with_mixin_members() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C = D with E;
 class D {}
 class E {
@@ -7639,7 +7591,7 @@ library
   }
 
   test_classes() async {
-    var library = await checkLibrary('class C {} class D {}');
+    var library = await buildLibrary('class C {} class D {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -7654,7 +7606,7 @@ library
   }
 
   test_closure_executable_with_return_type_from_closure() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 f() {
   print(() {});
   print(() => () => 0);
@@ -7670,7 +7622,7 @@ library
   }
 
   test_closure_generic() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 final f = <U, V>(U x, V y) => y;
 ''');
     checkElementText(library, r'''
@@ -7688,7 +7640,7 @@ library
   test_closure_in_variable_declaration_in_part() async {
     addSource('$testPackageLibPath/a.dart',
         'part of lib; final f = (int i) => i.toDouble();');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 library lib;
 part "a.dart";
 ''');
@@ -7709,7 +7661,7 @@ library
   }
 
   test_codeRange_class() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class Raw {}
 
 /// Comment 1.
@@ -7823,7 +7775,7 @@ library
   }
 
   test_codeRange_class_namedMixin() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 
 class B {}
@@ -8017,7 +7969,7 @@ library
   }
 
   test_codeRange_constructor() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   C();
 
@@ -8142,7 +8094,7 @@ library
   }
 
   test_codeRange_constructor_factory() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   factory C() => throw 0;
 
@@ -8267,7 +8219,7 @@ library
   }
 
   test_codeRange_enum() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E {
   aaa, bbb, ccc
 }
@@ -8373,7 +8325,7 @@ library
   }
 
   test_codeRange_extensions() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 
 extension Raw on A {}
@@ -8489,7 +8441,7 @@ library
   }
 
   test_codeRange_field() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   int withInit = 1;
 
@@ -8571,7 +8523,7 @@ library
   }
 
   test_codeRange_field_annotations() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   /// Comment 1.
   /// Comment 2.
@@ -8820,7 +8772,7 @@ library
   }
 
   test_codeRange_function() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void raw() {}
 
 /// Comment 1.
@@ -8928,7 +8880,7 @@ library
   }
 
   test_codeRange_functionTypeAlias() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef Raw();
 
 /// Comment 1.
@@ -9048,7 +9000,7 @@ library
   }
 
   test_codeRange_genericTypeAlias() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef Raw = Function();
 
 /// Comment 1.
@@ -9168,7 +9120,7 @@ library
   }
 
   test_codeRange_method() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   void raw() {}
 
@@ -9284,7 +9236,7 @@ library
   }
 
   test_codeRange_parameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 main({int a = 1, int b, int c = 2}) {}
 ''');
     checkElementText(library, r'''
@@ -9312,7 +9264,7 @@ library
   }
 
   test_codeRange_parameter_annotations() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 main(@Object() int a, int b, @Object() int c) {}
 ''');
     checkElementText(library, r'''
@@ -9354,7 +9306,7 @@ library
   }
 
   test_codeRange_topLevelVariable() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 int withInit = 1 + 2 * 3;
 
 int withoutInit;
@@ -9428,7 +9380,7 @@ library
   }
 
   test_codeRange_topLevelVariable_annotations() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /// Comment 1.
 /// Comment 2.
 int hasDocComment, hasDocComment2;
@@ -9669,7 +9621,7 @@ library
   }
 
   test_codeRange_type_parameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {}
 void f<U extends num> {}
 ''');
@@ -9704,7 +9656,7 @@ library
   }
 
   test_compilationUnit_nnbd_disabled_via_dart_directive() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 // @dart=2.2
 ''');
     expect(library.isNonNullableByDefault, isFalse);
@@ -9712,17 +9664,17 @@ library
 
   test_compilationUnit_nnbd_disabled_via_feature_set() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('');
+    var library = await buildLibrary('');
     expect(library.isNonNullableByDefault, isFalse);
   }
 
   test_compilationUnit_nnbd_enabled() async {
-    var library = await checkLibrary('');
+    var library = await buildLibrary('');
     expect(library.isNonNullableByDefault, isTrue);
   }
 
   test_const_asExpression() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const num a = 0;
 const b = a as int;
 ''');
@@ -9761,7 +9713,7 @@ library
   }
 
   test_const_assignmentExpression() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = 0;
 const b = (a += 1);
 ''');
@@ -9806,7 +9758,7 @@ library
   }
 
   test_const_cascadeExpression() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = 0..isEven..abs();
 ''');
     checkElementText(library, r'''
@@ -9847,7 +9799,7 @@ library
   }
 
   test_const_classField() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   static const int f1 = 1;
   static const int f2 = C.f1, f3 = C.f2;
@@ -9908,7 +9860,7 @@ library
   }
 
   test_const_constructor_inferred_args() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> {
   final T t;
   const C(this.t);
@@ -10020,7 +9972,7 @@ library
   }
 
   test_const_constructorReference() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {
   A.named();
 }
@@ -10061,7 +10013,7 @@ library
   }
 
   test_const_finalField_hasConstConstructor() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   final int f = 42;
   const C();
@@ -10088,7 +10040,7 @@ library
   }
 
   test_const_functionExpression_typeArgumentTypes() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f<T>(T a) {}
 
 const void Function(int) v = f;
@@ -10123,7 +10075,7 @@ library
   }
 
   test_const_functionReference() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 void f<T>(T a) {}
 const v = f<int>;
 ''');
@@ -10167,7 +10119,7 @@ library
   }
 
   test_const_indexExpression() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = [0];
 const b = 0;
 const c = a[b];
@@ -10222,7 +10174,7 @@ library
   }
 
   test_const_inference_downward_list() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class P<T> {
   const P();
 }
@@ -10326,7 +10278,7 @@ library
   }
 
   test_const_invalid_field_const() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   static const f = 1 + foo();
 }
@@ -10371,7 +10323,7 @@ library
   }
 
   test_const_invalid_field_final() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   final f = 1 + foo();
 }
@@ -10397,7 +10349,7 @@ library
   }
 
   test_const_invalid_functionExpression() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const v = () { return 0; };
 ''');
     checkElementText(library, r'''
@@ -10424,7 +10376,7 @@ library
   }
 
   test_const_invalid_functionExpression_nested() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const v = () { return 0; } + 2;
 ''');
     checkElementText(library, r'''
@@ -10460,7 +10412,7 @@ library
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_const_invalid_intLiteral() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const int x = 0x;
 ''', allowErrors: true);
     checkElementText(library, r'''
@@ -10469,7 +10421,7 @@ const int x = 0;
   }
 
   test_const_invalid_topLevel() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const v = 1 + foo();
 int foo() => 42;
 ''', allowErrors: true);
@@ -10508,7 +10460,7 @@ library
   }
 
   test_const_invalid_typeMismatch() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const int a = 0;
 const bool b = a + 5;
 ''', allowErrors: true);
@@ -10546,7 +10498,7 @@ library
   }
 
   test_const_invokeConstructor_generic_named() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C<K, V> {
   const C.named(K k, V v);
 }
@@ -10627,12 +10579,12 @@ library
   }
 
   test_const_invokeConstructor_generic_named_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C.named(K k, V v);
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const V = const C<int, String>.named(1, '222');
 ''');
@@ -10697,12 +10649,12 @@ library
   }
 
   test_const_invokeConstructor_generic_named_imported_withPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C.named(K k, V v);
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C<int, String>.named(1, '222');
 ''');
@@ -10775,7 +10727,7 @@ library
   }
 
   test_const_invokeConstructor_generic_noTypeArguments() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C<K, V> {
   const C();
 }
@@ -10820,7 +10772,7 @@ library
   }
 
   test_const_invokeConstructor_generic_unnamed() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C<K, V> {
   const C();
 }
@@ -10881,12 +10833,12 @@ library
   }
 
   test_const_invokeConstructor_generic_unnamed_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C();
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const V = const C<int, String>();
 ''');
@@ -10938,12 +10890,12 @@ library
   }
 
   test_const_invokeConstructor_generic_unnamed_imported_withPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C();
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C<int, String>();
 ''');
@@ -11003,7 +10955,7 @@ library
   }
 
   test_const_invokeConstructor_named() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   const C.named(bool a, int b, int c, {String d, double e});
 }
@@ -11088,12 +11040,12 @@ library
   }
 
   test_const_invokeConstructor_named_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {
   const C.named();
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const V = const C.named();
 ''');
@@ -11132,12 +11084,12 @@ library
   }
 
   test_const_invokeConstructor_named_imported_withPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {
   const C.named();
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C.named();
 ''');
@@ -11184,7 +11136,7 @@ library
   }
 
   test_const_invokeConstructor_named_unresolved() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {}
 const V = const C.named();
 ''', allowErrors: true);
@@ -11225,7 +11177,7 @@ library
   }
 
   test_const_invokeConstructor_named_unresolved2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const V = const C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
@@ -11264,11 +11216,11 @@ library
   }
 
   test_const_invokeConstructor_named_unresolved3() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C.named();
 ''', allowErrors: true);
@@ -11315,8 +11267,8 @@ library
   }
 
   test_const_invokeConstructor_named_unresolved4() async {
-    addLibrarySource('$testPackageLibPath/a.dart', '');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/a.dart', '');
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C.named();
 ''', allowErrors: true);
@@ -11363,7 +11315,7 @@ library
   }
 
   test_const_invokeConstructor_named_unresolved5() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const V = const p.C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
@@ -11407,7 +11359,7 @@ library
   }
 
   test_const_invokeConstructor_named_unresolved6() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C<T> {}
 const V = const C.named();
 ''', allowErrors: true);
@@ -11451,7 +11403,7 @@ library
   }
 
   test_const_invokeConstructor_unnamed() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   const C();
 }
@@ -11489,12 +11441,12 @@ library
   }
 
   test_const_invokeConstructor_unnamed_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {
   const C();
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const V = const C();
 ''');
@@ -11528,12 +11480,12 @@ library
   }
 
   test_const_invokeConstructor_unnamed_imported_withPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {
   const C();
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C();
 ''');
@@ -11575,7 +11527,7 @@ library
   }
 
   test_const_invokeConstructor_unnamed_unresolved() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const V = const C();
 ''', allowErrors: true);
     checkElementText(library, r'''
@@ -11606,8 +11558,8 @@ library
   }
 
   test_const_invokeConstructor_unnamed_unresolved2() async {
-    addLibrarySource('$testPackageLibPath/a.dart', '');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/a.dart', '');
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C();
 ''', allowErrors: true);
@@ -11649,7 +11601,7 @@ library
   }
 
   test_const_invokeConstructor_unnamed_unresolved3() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const V = const p.C();
 ''', allowErrors: true);
     checkElementText(library, r'''
@@ -11688,7 +11640,7 @@ library
   }
 
   test_const_isExpression() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = 0;
 const b = a is int;
 ''');
@@ -11727,7 +11679,7 @@ library
   }
 
   test_const_length_ofClassConstField() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   static const String F = '';
 }
@@ -11779,12 +11731,12 @@ library
   }
 
   test_const_length_ofClassConstField_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {
   static const String F = '';
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const int v = C.F.length;
 ''');
@@ -11823,12 +11775,12 @@ library
   }
 
   test_const_length_ofClassConstField_imported_withPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {
   static const String F = '';
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const int v = p.C.F.length;
 ''');
@@ -11874,7 +11826,7 @@ library
   }
 
   test_const_length_ofStringLiteral() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const v = 'abc'.length;
 ''');
     checkElementText(library, r'''
@@ -11900,7 +11852,7 @@ library
   }
 
   test_const_length_ofTopLevelVariable() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const String S = 'abc';
 const v = S.length;
 ''');
@@ -11937,10 +11889,10 @@ library
   }
 
   test_const_length_ofTopLevelVariable_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 const String S = 'abc';
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const v = S.length;
 ''');
@@ -11972,10 +11924,10 @@ library
   }
 
   test_const_length_ofTopLevelVariable_imported_withPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 const String S = 'abc';
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const v = p.S.length;
 ''');
@@ -12014,7 +11966,7 @@ library
   }
 
   test_const_length_staticMethod() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   static int length() => 42;
 }
@@ -12053,7 +12005,7 @@ library
   }
 
   test_const_list_if() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const <int>[if (true) 1];
 ''');
     checkElementText(library, r'''
@@ -12096,7 +12048,7 @@ library
   }
 
   test_const_list_if_else() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const <int>[if (true) 1 else 2];
 ''');
     checkElementText(library, r'''
@@ -12146,7 +12098,7 @@ library
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
     // by type inference.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const [1];
 ''');
     checkElementText(library, r'''
@@ -12172,7 +12124,7 @@ library
   }
 
   test_const_list_spread() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const <int>[...<int>[1]];
 ''');
     checkElementText(library, r'''
@@ -12225,7 +12177,7 @@ library
   }
 
   test_const_list_spread_null_aware() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const <int>[...?<int>[1]];
 ''');
     checkElementText(library, r'''
@@ -12278,7 +12230,7 @@ library
   }
 
   test_const_map_if() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const <int, int>{if (true) 1: 2};
 ''');
     checkElementText(library, r'''
@@ -12336,7 +12288,7 @@ library
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
     // by type inference.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const {1: 1.0};
 ''');
     checkElementText(library, r'''
@@ -12368,7 +12320,7 @@ library
   }
 
   test_const_map_spread() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const <int, int>{...<int, int>{1: 2}};
 ''');
     checkElementText(library, r'''
@@ -12440,7 +12392,7 @@ library
   }
 
   test_const_map_spread_null_aware() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const <int, int>{...?<int, int>{1: 2}};
 ''');
     checkElementText(library, r'''
@@ -12512,7 +12464,7 @@ library
   }
 
   test_const_methodInvocation() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 T f<T>(T a) => a;
 const b = f<int>(0);
 ''');
@@ -12564,7 +12516,7 @@ library
   }
 
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   final x;
   const C({this.x: foo});
@@ -12600,7 +12552,7 @@ library
   }
 
   test_const_parameterDefaultValue_initializingFormal_named() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   final x;
   const C({this.x: 1 + 2});
@@ -12639,7 +12591,7 @@ library
   }
 
   test_const_parameterDefaultValue_initializingFormal_positional() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   final x;
   const C([this.x = 1 + 2]);
@@ -12678,7 +12630,7 @@ library
   }
 
   test_const_parameterDefaultValue_normal() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   const C.positional([p = 1 + 2]);
   const C.named({p: 1 + 2});
@@ -12779,7 +12731,7 @@ library
   }
 
   test_const_postfixExpression_increment() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = 0;
 const b = a++;
 ''');
@@ -12817,7 +12769,7 @@ library
   }
 
   test_const_postfixExpression_nullCheck() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const int? a = 0;
 const b = a!;
 ''');
@@ -12851,7 +12803,7 @@ library
   }
 
   test_const_prefixExpression_class_unaryMinus() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = 0;
 const b = -a;
 ''');
@@ -12885,13 +12837,13 @@ library
   }
 
   test_const_prefixExpression_extension_unaryMinus() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 extension E on Object {
   int operator -() => 0;
 }
 const a = const Object();
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'a.dart';
 const b = -a;
 ''');
@@ -12919,7 +12871,7 @@ library
   }
 
   test_const_prefixExpression_increment() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = 0;
 const b = ++a;
 ''');
@@ -12957,7 +12909,7 @@ library
   }
 
   test_const_reference_staticField() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   static const int F = 42;
 }
@@ -13003,12 +12955,12 @@ library
   }
 
   test_const_reference_staticField_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {
   static const int F = 42;
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const V = C.F;
 ''');
@@ -13040,12 +12992,12 @@ library
   }
 
   test_const_reference_staticField_imported_withPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {
   static const int F = 42;
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = p.C.F;
 ''');
@@ -13084,7 +13036,7 @@ library
   }
 
   test_const_reference_staticMethod() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   static int m(int a, String b) => 42;
 }
@@ -13128,12 +13080,12 @@ library
   }
 
   test_const_reference_staticMethod_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {
   static int m(int a, String b) => 42;
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const V = C.m;
 ''');
@@ -13165,12 +13117,12 @@ library
   }
 
   test_const_reference_staticMethod_imported_withPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {
   static int m(int a, String b) => 42;
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = p.C.m;
 ''');
@@ -13209,7 +13161,7 @@ library
   }
 
   test_const_reference_staticMethod_ofExtension() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 extension E on A {
   static void f() {}
@@ -13252,7 +13204,7 @@ library
   }
 
   test_const_reference_topLevelFunction() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 foo() {}
 const V = foo;
 ''');
@@ -13277,7 +13229,7 @@ library
   }
 
   test_const_reference_topLevelFunction_generic() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 R foo<P, R>(P p) {}
 const V = foo;
 ''');
@@ -13308,10 +13260,10 @@ library
   }
 
   test_const_reference_topLevelFunction_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 foo() {}
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const V = foo;
 ''');
@@ -13335,10 +13287,10 @@ library
   }
 
   test_const_reference_topLevelFunction_imported_withPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 foo() {}
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = p.foo;
 ''');
@@ -13370,7 +13322,7 @@ library
   }
 
   test_const_reference_topLevelVariable() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const A = 1;
 const B = A + 2;
 ''');
@@ -13408,10 +13360,10 @@ library
   }
 
   test_const_reference_topLevelVariable_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 const A = 1;
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const B = A + 2;
 ''');
@@ -13443,10 +13395,10 @@ library
   }
 
   test_const_reference_topLevelVariable_imported_withPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 const A = 1;
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const B = p.A + 2;
 ''');
@@ -13486,7 +13438,7 @@ library
   }
 
   test_const_reference_type() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {}
 class D<T> {}
 enum E {a, b, c}
@@ -13674,7 +13626,7 @@ library
   }
 
   test_const_reference_type_functionType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F();
 class C {
   final f = <F>[];
@@ -13702,12 +13654,12 @@ library
   }
 
   test_const_reference_type_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {}
 enum E {a, b, c}
 typedef F(int a, String b);
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const vClass = C;
 const vEnum = E;
@@ -13751,12 +13703,12 @@ library
   }
 
   test_const_reference_type_imported_withPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C {}
 enum E {a, b, c}
 typedef F(int a, String b);
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const vClass = p.C;
 const vEnum = p.E;
@@ -13824,7 +13776,7 @@ library
   }
 
   test_const_reference_type_typeParameter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C<T> {
   final f = <T>[];
 }
@@ -13849,7 +13801,7 @@ library
   }
 
   test_const_reference_unresolved_prefix0() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const V = foo;
 ''', allowErrors: true);
     checkElementText(library, r'''
@@ -13870,7 +13822,7 @@ library
   }
 
   test_const_reference_unresolved_prefix1() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {}
 const V = C.foo;
 ''', allowErrors: true);
@@ -13904,10 +13856,10 @@ library
   }
 
   test_const_reference_unresolved_prefix2() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'foo.dart' as p;
 const V = p.C.foo;
 ''', allowErrors: true);
@@ -13946,7 +13898,7 @@ library
   }
 
   test_const_set_if() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const <int>{if (true) 1};
 ''');
     checkElementText(library, r'''
@@ -13993,7 +13945,7 @@ library
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
     // by type inference.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const {1};
 ''');
     checkElementText(library, r'''
@@ -14020,7 +13972,7 @@ library
   }
 
   test_const_set_spread() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const <int>{...<int>{1}};
 ''');
     checkElementText(library, r'''
@@ -14075,7 +14027,7 @@ library
   }
 
   test_const_set_spread_null_aware() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const Object x = const <int>{...?<int>{1}};
 ''');
     checkElementText(library, r'''
@@ -14130,7 +14082,7 @@ library
   }
 
   test_const_topLevel_binary() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const vEqual = 1 == 2;
 const vAnd = true && false;
 const vOr = false || true;
@@ -14447,7 +14399,7 @@ library
   }
 
   test_const_topLevel_conditional() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const vConditional = (1 == 2) ? 11 : 22;
 ''');
     checkElementText(library, r'''
@@ -14489,7 +14441,7 @@ library
   }
 
   test_const_topLevel_identical() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const vIdentical = (1 == 2) ? 11 : 22;
 ''');
     checkElementText(library, r'''
@@ -14531,7 +14483,7 @@ library
   }
 
   test_const_topLevel_ifNull() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const vIfNull = 1 ?? 2.0;
 ''');
     checkElementText(library, r'''
@@ -14559,7 +14511,7 @@ library
   }
 
   test_const_topLevel_literal() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const vNull = null;
 const vBoolFalse = false;
 const vBoolTrue = true;
@@ -14720,7 +14672,7 @@ library
   }
 
   test_const_topLevel_methodInvocation_questionPeriod() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const int? a = 0;
 const b = a?.toString();
 ''');
@@ -14761,7 +14713,7 @@ library
   }
 
   test_const_topLevel_methodInvocation_questionPeriodPeriod() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const int? a = 0;
 const b = a?..toString();
 ''');
@@ -14805,7 +14757,7 @@ library
   }
 
   test_const_topLevel_nullSafe_nullAware_propertyAccess() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const String? a = '';
 
 const List<int?> b = [
@@ -14849,7 +14801,7 @@ library
   }
 
   test_const_topLevel_parenthesis() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const int v1 = (1 + 2) * 3;
 const int v2 = -(1 + 2);
 const int v3 = ('aaa' + 'bbb').length;
@@ -14940,7 +14892,7 @@ library
   }
 
   test_const_topLevel_prefix() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const vNotEqual = 1 != 2;
 const vNot = !true;
 const vNegate = -1;
@@ -15007,7 +14959,7 @@ library
   }
 
   test_const_topLevel_super() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const vSuper = super;
 ''');
     checkElementText(library, r'''
@@ -15027,7 +14979,7 @@ library
   }
 
   test_const_topLevel_this() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const vThis = this;
 ''');
     checkElementText(library, r'''
@@ -15047,7 +14999,7 @@ library
   }
 
   test_const_topLevel_throw() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const c = throw 42;
 ''');
     checkElementText(library, r'''
@@ -15071,7 +15023,7 @@ library
 
   test_const_topLevel_throw_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const c = throw 42;
 ''');
     checkElementText(library, r'''
@@ -15094,7 +15046,7 @@ library
   }
 
   test_const_topLevel_typedList() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const vNull = const <Null>[];
 const vDynamic = const <dynamic>[1, 2, 3];
 const vInterfaceNoTypeParameters = const <int>[1, 2, 3];
@@ -15287,8 +15239,8 @@ library
   }
 
   test_const_topLevel_typedList_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/a.dart', 'class C {}');
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const v = const <C>[];
 ''');
@@ -15323,8 +15275,8 @@ library
   }
 
   test_const_topLevel_typedList_importedWithPrefix() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/a.dart', 'class C {}');
+    var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const v = const <p.C>[];
 ''');
@@ -15367,7 +15319,7 @@ library
   }
 
   test_const_topLevel_typedList_typedefArgument() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef int F(String id);
 const v = const <F>[];
 ''');
@@ -15409,7 +15361,7 @@ library
   }
 
   test_const_topLevel_typedMap() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const vDynamic1 = const <dynamic, int>{};
 const vDynamic2 = const <int, dynamic>{};
 const vInterface = const <int, String>{};
@@ -15542,7 +15494,7 @@ library
   }
 
   test_const_topLevel_typedSet() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const vDynamic1 = const <dynamic>{};
 const vInterface = const <int>{};
 const vInterfaceWithTypeArguments = const <List<String>>{};
@@ -15629,7 +15581,7 @@ library
   }
 
   test_const_topLevel_untypedList() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const v = const [1, 2, 3];
 ''');
     checkElementText(library, r'''
@@ -15661,7 +15613,7 @@ library
   }
 
   test_const_topLevel_untypedMap() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
     checkElementText(library, r'''
@@ -15706,7 +15658,7 @@ library
   }
 
   test_const_topLevel_untypedSet() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const v = const {0, 1, 2};
 ''');
     checkElementText(library, r'''
@@ -15739,7 +15691,7 @@ library
   }
 
   test_const_typeLiteral() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const v = List<int>;
 ''');
     checkElementText(library, r'''
@@ -15774,7 +15726,7 @@ library
   }
 
   test_constExpr_pushReference_enum_field() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E {a, b, c}
 final vValue = E.a;
 final vValues = E.values;
@@ -15884,7 +15836,7 @@ library
   }
 
   test_constExpr_pushReference_enum_method() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E {a}
 final vToString = E.a.toString();
 ''');
@@ -15940,7 +15892,7 @@ library
   }
 
   test_constExpr_pushReference_field_simpleIdentifier() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   static const a = b;
   static const b = null;
@@ -15976,7 +15928,7 @@ library
   }
 
   test_constExpr_pushReference_staticMethod_simpleIdentifier() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   static const a = m;
   static m() {}
@@ -16007,7 +15959,7 @@ library
   }
 
   test_defaultValue_eliminateTypeParameters() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   const X({List<T> a = const []});
 }
@@ -16039,7 +15991,7 @@ library
 
   test_defaultValue_eliminateTypeParameters_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   const X({List<T> a = const []});
 }
@@ -16070,7 +16022,7 @@ library
   }
 
   test_defaultValue_genericFunction() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef void F<T>(T v);
 
 void defaultF<T>(T v) {}
@@ -16138,7 +16090,7 @@ library
   }
 
   test_defaultValue_genericFunctionType() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   const A();
 }
@@ -16200,7 +16152,7 @@ library
   }
 
   test_defaultValue_inFunctionTypedFormalParameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f( g({a: 0 is int}) ) {}
 ''');
     checkElementText(library, r'''
@@ -16233,7 +16185,7 @@ library
 
   test_defaultValue_methodMember_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f([Comparator<T> compare = Comparable.compare]) {}
 ''');
     checkElementText(library, r'''
@@ -16269,7 +16221,7 @@ library
   }
 
   test_defaultValue_refersToExtension_method_inside() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 extension E on A {
   static void f() {}
@@ -16303,7 +16255,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class B<T1, T2> {
   const B();
 }
@@ -16353,7 +16305,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_constructor() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class B<T> {
   const B();
 }
@@ -16401,7 +16353,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_constructor2() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 abstract class A<T> {}
 class B<T> implements A<T> {
   const B();
@@ -16461,7 +16413,7 @@ library
 
   test_defaultValue_refersToGenericClass_constructor2_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 abstract class A<T> {}
 class B<T> implements A<T> {
   const B();
@@ -16521,7 +16473,7 @@ library
 
   test_defaultValue_refersToGenericClass_constructor_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class B<T> {
   const B();
 }
@@ -16569,7 +16521,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_functionG() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class B<T> {
   const B();
 }
@@ -16614,7 +16566,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_methodG() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class B<T> {
   const B();
 }
@@ -16664,7 +16616,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_methodG_classG() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class B<T1, T2> {
   const B();
 }
@@ -16719,7 +16671,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_methodNG() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class B<T> {
   const B();
 }
@@ -16770,7 +16722,7 @@ library
   }
 
   test_duplicateDeclaration_class() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {}
 class A {
   var x;
@@ -16818,7 +16770,7 @@ library
   }
 
   test_duplicateDeclaration_classTypeAlias() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {}
 class B {}
 class X = A with M;
@@ -16873,7 +16825,7 @@ library
   }
 
   test_duplicateDeclaration_enum() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {a, b}
 enum E {c, d, e}
 ''');
@@ -17027,7 +16979,7 @@ library
   }
 
   test_duplicateDeclaration_extension() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {}
 extension E on A {}
 extension E on A {
@@ -17077,7 +17029,7 @@ library
   }
 
   test_duplicateDeclaration_function() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 void f() {}
 void f(int a) {}
 void f([int b, double c]) {}
@@ -17104,7 +17056,7 @@ library
   }
 
   test_duplicateDeclaration_functionTypeAlias() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef void F();
 typedef void F(int a);
 typedef void F([int b, double c]);
@@ -17137,7 +17089,7 @@ library
   }
 
   test_duplicateDeclaration_mixin() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 mixin A {}
 mixin A {
   var x;
@@ -17191,7 +17143,7 @@ library
   }
 
   test_duplicateDeclaration_topLevelVariable() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 bool x;
 var x;
 var x = 1;
@@ -17242,7 +17194,7 @@ library
   }
 
   test_enum_constant_inference() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E<T> {
   int(1), string('2');
   const E(T a);
@@ -17334,7 +17286,7 @@ library
 
   /// Test that a constant named `_name` renames the synthetic `name` field.
   test_enum_constant_name() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   _name;
 }
@@ -17385,7 +17337,7 @@ library
   }
 
   test_enum_constant_typeArguments() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E<T> {
   v<double>(42);
   const E(T a);
@@ -17459,7 +17411,7 @@ library
   }
 
   test_enum_constant_underscore() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E {
   _
 }
@@ -17510,7 +17462,7 @@ library
   }
 
   test_enum_constructor_factory_named() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   factory E.named() => v;
@@ -17565,7 +17517,7 @@ library
   }
 
   test_enum_constructor_factory_unnamed() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   factory E() => v;
@@ -17617,7 +17569,7 @@ library
   }
 
   test_enum_constructor_fieldFormal_functionTyped_withReturnType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   final x;
@@ -17681,7 +17633,7 @@ library
   }
 
   test_enum_constructor_fieldFormal_multiple_matching_fields() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E {
   v;
   final int x;
@@ -17747,7 +17699,7 @@ library
   }
 
   test_enum_constructor_fieldFormal_no_matching_field() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E {
   v;
   const E(this.x);
@@ -17803,7 +17755,7 @@ library
   }
 
   test_enum_constructor_fieldFormal_typed_typed() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E {
   v;
   final num x;
@@ -17864,7 +17816,7 @@ library
   }
 
   test_enum_constructor_fieldFormal_untyped_typed() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   final x;
@@ -17925,7 +17877,7 @@ library
   }
 
   test_enum_constructor_fieldFormal_untyped_untyped() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   final x;
@@ -17986,7 +17938,7 @@ library
   }
 
   test_enum_constructor_generative_named() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   v.named(42);
   const E.named(int a);
@@ -18052,7 +18004,7 @@ library
   }
 
   test_enum_constructor_generative_unnamed() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   v(42);
   const E(int a);
@@ -18111,7 +18063,7 @@ library
   }
 
   test_enum_constructor_initializer() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E<T> {
   v;
   final int x;
@@ -18203,7 +18155,7 @@ library
   }
 
   test_enum_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
@@ -18256,7 +18208,7 @@ library
   }
 
   test_enum_field() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   final foo = 42;
@@ -18316,7 +18268,7 @@ library
   }
 
   test_enum_getter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E{
   v;
   int get foo => 0;
@@ -18372,7 +18324,7 @@ library
   }
 
   test_enum_interfaces() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class I {}
 enum E implements I {
   v;
@@ -18430,7 +18382,7 @@ library
   }
 
   test_enum_interfaces_generic() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class I<T> {}
 enum E<U> implements I<U> {
   v;
@@ -18496,7 +18448,7 @@ library
   }
 
   test_enum_interfaces_unresolved() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class X {}
 class Z {}
 enum E implements X, Y, Z {
@@ -18559,7 +18511,7 @@ library
   }
 
   test_enum_method() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E<T> {
   v;
   int foo<U>(T t, U u) => 0;
@@ -18626,7 +18578,7 @@ library
   }
 
   test_enum_method_toString() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   String toString() => 'E';
@@ -18681,7 +18633,7 @@ library
   }
 
   test_enum_mixins() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 mixin M {}
 enum E with M {
   v;
@@ -18741,7 +18693,7 @@ library
   }
 
   test_enum_mixins_inference() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 mixin M1<T> {}
 mixin M2<T> on M1<T> {}
 enum E with M1<int>, M2 {
@@ -18814,7 +18766,7 @@ library
   }
 
   test_enum_setter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E{
   v;
   set foo(int _) {}
@@ -18873,7 +18825,7 @@ library
   }
 
   test_enum_typeParameters() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E<T> {
   v
 }
@@ -18929,7 +18881,7 @@ library
   }
 
   test_enum_typeParameters_bound() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E<T extends num, U extends T> {
   v
 }
@@ -18989,7 +18941,7 @@ library
   }
 
   test_enum_typeParameters_cycle_1of1() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E<T extends T> {}
 ''');
     checkElementText(library, r'''
@@ -19019,7 +18971,7 @@ library
   }
 
   test_enum_typeParameters_cycle_2of3() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E<T extends V, U extends num, V extends T> {}
 ''');
     checkElementText(library, r'''
@@ -19055,7 +19007,7 @@ library
   }
 
   test_enum_typeParameters_defaultType_cycle_genericFunctionType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E<T extends void Function(E)> {}
 ''');
     checkElementText(library, r'''
@@ -19085,7 +19037,7 @@ library
   }
 
   test_enum_typeParameters_variance_contravariant() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E<in T> {}
 ''');
     checkElementText(library, r'''
@@ -19114,7 +19066,7 @@ library
   }
 
   test_enum_typeParameters_variance_covariant() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E<out T> {}
 ''');
     checkElementText(library, r'''
@@ -19143,7 +19095,7 @@ library
   }
 
   test_enum_typeParameters_variance_invariant() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E<inout T> {}
 ''');
     checkElementText(library, r'''
@@ -19172,7 +19124,7 @@ library
   }
 
   test_enum_typeParameters_variance_multiple() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E<inout T, in U, out V> {}
 ''');
     checkElementText(library, r'''
@@ -19205,7 +19157,7 @@ library
   }
 
   test_enum_value_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E {
   /**
    * aaa
@@ -19284,7 +19236,7 @@ library
   }
 
   test_enum_value_documented_withMetadata() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E {
   /**
    * aaa
@@ -19394,7 +19346,7 @@ library
   }
 
   test_enum_values() async {
-    var library = await checkLibrary('enum E { v1, v2 }');
+    var library = await buildLibrary('enum E { v1, v2 }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -19463,7 +19415,7 @@ library
   }
 
   test_enums() async {
-    var library = await checkLibrary('enum E1 { v1 } enum E2 { v2 }');
+    var library = await buildLibrary('enum E1 { v1 } enum E2 { v2 }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -19548,7 +19500,7 @@ library
   }
 
   test_error_extendsEnum() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E {a, b, c}
 
 class M {}
@@ -19697,7 +19649,7 @@ library
   }
 
   test_executable_parameter_type_typedef() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F(int p);
 main(F f) {}
 ''');
@@ -19723,8 +19675,8 @@ library
   }
 
   test_export_class() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'class C {}');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
@@ -19739,12 +19691,12 @@ library
   }
 
   test_export_class_type_alias() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class C = _D with _E;
 class _D {}
 class _E {}
 ''');
-    var library = await checkLibrary('export "a.dart";');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
@@ -19762,10 +19714,10 @@ library
     declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
     });
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/foo.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    var library = await buildLibrary(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -19789,10 +19741,10 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     });
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/foo.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    var library = await buildLibrary(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -19816,10 +19768,10 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/foo.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    var library = await buildLibrary(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -19840,8 +19792,8 @@ library
   }
 
   test_export_function() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'f() {}');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'f() {}');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
@@ -19856,8 +19808,8 @@ library
   }
 
   test_export_getter() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'get f() => null;');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'get f() => null;');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
@@ -19867,13 +19819,13 @@ library
   }
 
   test_export_hide() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 class C {}
 class D {}
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 export 'a.dart' hide A, C;
 ''');
     checkElementText(
@@ -19893,13 +19845,13 @@ library
   }
 
   test_export_multiple_combinators() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 class C {}
 class D {}
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 export 'a.dart' hide A show C;
 ''');
     checkElementText(
@@ -19919,8 +19871,8 @@ library
   }
 
   test_export_setter() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'void set f(value) {}');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'void set f(value) {}');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
@@ -19935,13 +19887,13 @@ library
   }
 
   test_export_show() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 class C {}
 class D {}
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 export 'a.dart' show A, C;
 ''');
     checkElementText(
@@ -19961,11 +19913,11 @@ library
   }
 
   test_export_show_getter_setter() async {
-    addLibrarySource('$testPackageLibPath/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 get f => null;
 void set f(value) {}
 ''');
-    var library = await checkLibrary('export "a.dart" show f;');
+    var library = await buildLibrary('export "a.dart" show f;');
     checkElementText(
         library,
         r'''
@@ -19983,8 +19935,8 @@ library
   }
 
   test_export_typedef() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'typedef F();');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'typedef F();');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
@@ -19999,15 +19951,15 @@ library
   }
 
   test_export_uri() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 export 'foo.dart';
 ''');
     expect(library.exports[0].uri, 'foo.dart');
   }
 
   test_export_variable() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'var x;');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'var x;');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
@@ -20023,8 +19975,8 @@ library
   }
 
   test_export_variable_const() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'const x = 0;');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'const x = 0;');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
@@ -20039,8 +19991,8 @@ library
   }
 
   test_export_variable_final() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'final x = 0;');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'final x = 0;');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(
         library,
         r'''
@@ -20058,15 +20010,15 @@ library
     declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
     });
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/bar.dart', r'''
+    addSource('$testPackageLibPath/foo.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    addSource('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'bar.dart';
 class B extends A {}
 ''');
@@ -20091,15 +20043,15 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'false',
     });
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/bar.dart', r'''
+    addSource('$testPackageLibPath/foo.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    addSource('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'bar.dart';
 class B extends A {}
 ''');
@@ -20124,15 +20076,15 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/bar.dart', r'''
+    addSource('$testPackageLibPath/foo.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    addSource('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'bar.dart';
 class B extends A {}
 ''');
@@ -20153,9 +20105,9 @@ library
   }
 
   test_exports() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'library a;');
-    addLibrarySource('$testPackageLibPath/b.dart', 'library b;');
-    var library = await checkLibrary('export "a.dart"; export "b.dart";');
+    addSource('$testPackageLibPath/a.dart', 'library a;');
+    addSource('$testPackageLibPath/b.dart', 'library b;');
+    var library = await buildLibrary('export "a.dart"; export "b.dart";');
     checkElementText(
         library,
         r'''
@@ -20170,7 +20122,7 @@ library
   }
 
   test_expr_invalid_typeParameter_asPrefix() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> {
   final f = T.k;
 }
@@ -20195,7 +20147,7 @@ library
   }
 
   test_extension_documented_tripleSlash() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /// aaa
 /// bbbb
 /// cc
@@ -20211,7 +20163,7 @@ library
   }
 
   test_extension_field_inferredType_const() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 extension E on int {
   static const x = 0;
 }''');
@@ -20235,7 +20187,7 @@ library
   }
 
   test_function_async() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:async';
 Future f() async {}
 ''');
@@ -20251,7 +20203,7 @@ library
   }
 
   test_function_asyncStar() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:async';
 Stream f() async* {}
 ''');
@@ -20267,7 +20219,7 @@ library
   }
 
   test_function_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
@@ -20284,7 +20236,7 @@ library
   }
 
   test_function_entry_point() async {
-    var library = await checkLibrary('main() {}');
+    var library = await buildLibrary('main() {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20295,8 +20247,8 @@ library
   }
 
   test_function_entry_point_in_export() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'library a; main() {}');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'library a; main() {}');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
@@ -20306,8 +20258,8 @@ library
   }
 
   test_function_entry_point_in_export_hidden() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'library a; main() {}');
-    var library = await checkLibrary('export "a.dart" hide main;');
+    addSource('$testPackageLibPath/a.dart', 'library a; main() {}');
+    var library = await buildLibrary('export "a.dart" hide main;');
     checkElementText(library, r'''
 library
   exports
@@ -20320,7 +20272,7 @@ library
 
   test_function_entry_point_in_part() async {
     addSource('$testPackageLibPath/a.dart', 'part of my.lib; main() {}');
-    var library = await checkLibrary('library my.lib; part "a.dart";');
+    var library = await buildLibrary('library my.lib; part "a.dart";');
     checkElementText(library, r'''
 library
   name: my.lib
@@ -20335,7 +20287,7 @@ library
   }
 
   test_function_external() async {
-    var library = await checkLibrary('external f();');
+    var library = await buildLibrary('external f();');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20346,7 +20298,7 @@ library
   }
 
   test_function_hasImplicitReturnType_false() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 int f() => 0;
 ''');
     var f = library.definingCompilationUnit.functions.single;
@@ -20354,7 +20306,7 @@ int f() => 0;
   }
 
   test_function_hasImplicitReturnType_true() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 f() => 0;
 ''');
     var f = library.definingCompilationUnit.functions.single;
@@ -20362,7 +20314,7 @@ f() => 0;
   }
 
   test_function_parameter_const() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f(const x) {}
 ''');
     checkElementText(library, r'''
@@ -20378,7 +20330,7 @@ library
   }
 
   test_function_parameter_fieldFormal() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f(int this.a) {}
 ''');
     checkElementText(library, r'''
@@ -20395,7 +20347,7 @@ library
   }
 
   test_function_parameter_fieldFormal_default() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f({int this.a: 42}) {}
 ''');
     checkElementText(library, r'''
@@ -20416,7 +20368,7 @@ library
   }
 
   test_function_parameter_fieldFormal_functionTyped() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f(int this.a(int b)) {}
 ''');
     checkElementText(library, r'''
@@ -20436,7 +20388,7 @@ library
   }
 
   test_function_parameter_final() async {
-    var library = await checkLibrary('f(final x) {}');
+    var library = await buildLibrary('f(final x) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20450,7 +20402,7 @@ library
   }
 
   test_function_parameter_kind_named() async {
-    var library = await checkLibrary('f({x}) {}');
+    var library = await buildLibrary('f({x}) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20464,7 +20416,7 @@ library
   }
 
   test_function_parameter_kind_positional() async {
-    var library = await checkLibrary('f([x]) {}');
+    var library = await buildLibrary('f([x]) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20478,7 +20430,7 @@ library
   }
 
   test_function_parameter_kind_required() async {
-    var library = await checkLibrary('f(x) {}');
+    var library = await buildLibrary('f(x) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20492,7 +20444,7 @@ library
   }
 
   test_function_parameter_parameters() async {
-    var library = await checkLibrary('f(g(x, y)) {}');
+    var library = await buildLibrary('f(g(x, y)) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20511,7 +20463,7 @@ library
   }
 
   test_function_parameter_return_type() async {
-    var library = await checkLibrary('f(int g()) {}');
+    var library = await buildLibrary('f(int g()) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20525,7 +20477,7 @@ library
   }
 
   test_function_parameter_return_type_void() async {
-    var library = await checkLibrary('f(void g()) {}');
+    var library = await buildLibrary('f(void g()) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20539,7 +20491,7 @@ library
   }
 
   test_function_parameter_type() async {
-    var library = await checkLibrary('f(int i) {}');
+    var library = await buildLibrary('f(int i) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20553,7 +20505,7 @@ library
   }
 
   test_function_parameters() async {
-    var library = await checkLibrary('f(x, y) {}');
+    var library = await buildLibrary('f(x, y) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20569,7 +20521,7 @@ library
   }
 
   test_function_return_type() async {
-    var library = await checkLibrary('int f() => null;');
+    var library = await buildLibrary('int f() => null;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20580,7 +20532,7 @@ library
   }
 
   test_function_return_type_implicit() async {
-    var library = await checkLibrary('f() => null;');
+    var library = await buildLibrary('f() => null;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20591,7 +20543,7 @@ library
   }
 
   test_function_return_type_void() async {
-    var library = await checkLibrary('void f() {}');
+    var library = await buildLibrary('void f() {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20602,7 +20554,7 @@ library
   }
 
   test_function_type_parameter() async {
-    var library = await checkLibrary('T f<T, U>(U u) => null;');
+    var library = await buildLibrary('T f<T, U>(U u) => null;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20619,7 +20571,7 @@ library
   }
 
   test_function_type_parameter_with_function_typed_parameter() async {
-    var library = await checkLibrary('void f<T, U>(T x(U u)) {}');
+    var library = await buildLibrary('void f<T, U>(T x(U u)) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20639,7 +20591,7 @@ library
   }
 
   test_function_typed_parameter_implicit() async {
-    var library = await checkLibrary('f(g()) => null;');
+    var library = await buildLibrary('f(g()) => null;');
     expect(
         library
             .definingCompilationUnit.functions[0].parameters[0].hasImplicitType,
@@ -20647,7 +20599,7 @@ library
   }
 
   test_functions() async {
-    var library = await checkLibrary('f() {} g() {}');
+    var library = await buildLibrary('f() {} g() {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20660,7 +20612,7 @@ library
   }
 
   test_functionTypeAlias_enclosingElements() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef void F<T>(int a);
 ''');
     var unit = library.definingCompilationUnit;
@@ -20681,7 +20633,7 @@ typedef void F<T>(int a);
   }
 
   test_functionTypeAlias_type_element() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef T F<T>();
 F<int> a;
 ''');
@@ -20693,7 +20645,7 @@ F<int> a;
   }
 
   test_functionTypeAlias_typeParameters_variance_contravariant() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef void F<T>(T a);
 ''');
     checkElementText(library, r'''
@@ -20714,7 +20666,7 @@ library
   }
 
   test_functionTypeAlias_typeParameters_variance_contravariant2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef void F1<T>(T a);
 typedef F1<T> F2<T>();
 ''');
@@ -20746,7 +20698,7 @@ library
   }
 
   test_functionTypeAlias_typeParameters_variance_contravariant3() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F1<T> F2<T>();
 typedef void F1<T>(T a);
 ''');
@@ -20778,7 +20730,7 @@ library
   }
 
   test_functionTypeAlias_typeParameters_variance_covariant() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef T F<T>();
 ''');
     checkElementText(library, r'''
@@ -20796,7 +20748,7 @@ library
   }
 
   test_functionTypeAlias_typeParameters_variance_covariant2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef List<T> F<T>();
 ''');
     checkElementText(library, r'''
@@ -20814,7 +20766,7 @@ library
   }
 
   test_functionTypeAlias_typeParameters_variance_covariant3() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef T F1<T>();
 typedef F1<T> F2<T>();
 ''');
@@ -20843,7 +20795,7 @@ library
   }
 
   test_functionTypeAlias_typeParameters_variance_covariant4() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef void F1<T>(T a);
 typedef void F2<T>(F1<T> a);
 ''');
@@ -20878,7 +20830,7 @@ library
   }
 
   test_functionTypeAlias_typeParameters_variance_invariant() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef T F<T>(T a);
 ''');
     checkElementText(library, r'''
@@ -20899,7 +20851,7 @@ library
   }
 
   test_functionTypeAlias_typeParameters_variance_invariant2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef T F1<T>();
 typedef F1<T> F2<T>(T a);
 ''');
@@ -20931,7 +20883,7 @@ library
   }
 
   test_functionTypeAlias_typeParameters_variance_unrelated() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef void F<T>(int a);
 ''');
     checkElementText(library, r'''
@@ -20952,7 +20904,7 @@ library
   }
 
   test_futureOr() async {
-    var library = await checkLibrary('import "dart:async"; FutureOr<int> x;');
+    var library = await buildLibrary('import "dart:async"; FutureOr<int> x;');
     checkElementText(library, r'''
 library
   imports
@@ -20977,7 +20929,7 @@ library
 
   test_futureOr_const() async {
     var library =
-        await checkLibrary('import "dart:async"; const x = FutureOr;');
+        await buildLibrary('import "dart:async"; const x = FutureOr;');
     checkElementText(library, r'''
 library
   imports
@@ -21003,7 +20955,7 @@ library
   }
 
   test_futureOr_inferred() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "dart:async";
 FutureOr<int> f() => null;
 var x = f();
@@ -21049,7 +21001,7 @@ library
   }
 
   test_generic_function_type_nullability_none() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void Function() f;
 ''');
     checkElementText(library, r'''
@@ -21070,7 +21022,7 @@ library
   }
 
   test_generic_function_type_nullability_question() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void Function()? f;
 ''');
     checkElementText(library, r'''
@@ -21092,7 +21044,7 @@ library
 
   test_generic_function_type_nullability_star() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void Function() f;
 ''');
     checkElementText(library, r'''
@@ -21113,7 +21065,7 @@ library
   }
 
   test_generic_gClass_gMethodStatic() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
     void f<X, Y>(V v, W w, X x, Y y) {
@@ -21148,7 +21100,7 @@ library
   }
 
   test_genericFunction_asFunctionReturnType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 int Function(int a, String b) f() => null;
 ''');
     checkElementText(library, r'''
@@ -21161,7 +21113,7 @@ library
   }
 
   test_genericFunction_asFunctionTypedParameterReturnType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 void f(int Function(int a, String b) p(num c)) => null;
 ''');
     checkElementText(library, r'''
@@ -21180,7 +21132,7 @@ library
   }
 
   test_genericFunction_asGenericFunctionReturnType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F = void Function(String a) Function(int b);
 ''');
     checkElementText(library, r'''
@@ -21198,7 +21150,7 @@ library
   }
 
   test_genericFunction_asMethodReturnType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   int Function(int a, String b) m() => null;
 }
@@ -21217,7 +21169,7 @@ library
   }
 
   test_genericFunction_asParameterType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 void f(int Function(int a, String b) p) => null;
 ''');
     checkElementText(library, r'''
@@ -21233,7 +21185,7 @@ library
   }
 
   test_genericFunction_asTopLevelVariableType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 int Function(int a, String b) v;
 ''');
     checkElementText(library, r'''
@@ -21254,7 +21206,7 @@ library
   }
 
   test_genericFunction_asTypeArgument_ofAnnotation_class() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
@@ -21328,7 +21280,7 @@ library
   }
 
   test_genericFunction_asTypeArgument_ofAnnotation_topLevelVariable() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
@@ -21410,7 +21362,7 @@ library
   }
 
   test_genericFunction_asTypeArgument_parameters_optionalNamed() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
@@ -21495,7 +21447,7 @@ library
   }
 
   test_genericFunction_asTypeArgument_parameters_optionalPositional() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
@@ -21580,7 +21532,7 @@ library
   }
 
   test_genericFunction_asTypeArgument_parameters_requiredNamed() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
@@ -21665,7 +21617,7 @@ library
   }
 
   test_genericFunction_asTypeArgument_parameters_requiredPositional() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
@@ -21744,7 +21696,7 @@ library
   }
 
   test_genericFunction_boundOf_typeParameter_ofMixin() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 mixin B<X extends void Function()> {}
 ''');
     checkElementText(library, r'''
@@ -21764,7 +21716,7 @@ library
   }
 
   test_genericFunction_typeArgument_ofSuperclass_ofClassAlias() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {}
 mixin M {}
 class B = A<void Function()> with M;
@@ -21805,7 +21757,7 @@ library
   }
 
   test_genericFunction_typeParameter_asTypedefArgument() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F1 = Function<V1>(F2<V1>);
 typedef F2<V2> = V2 Function();
 ''');
@@ -21836,7 +21788,7 @@ library
   }
 
   test_genericTypeAlias_enclosingElements() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<T> = void Function<U>(int a);
 ''');
     var unit = library.definingCompilationUnit;
@@ -21861,7 +21813,7 @@ typedef F<T> = void Function<U>(int a);
   }
 
   test_genericTypeAlias_recursive() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F<X extends F> = Function(F);
 ''');
     checkElementText(library, r'''
@@ -21883,7 +21835,7 @@ library
   }
 
   test_getter_async() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 Future<int> get foo async => 0;
 ''');
     checkElementText(library, r'''
@@ -21899,7 +21851,7 @@ library
   }
 
   test_getter_asyncStar() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:async';
 Stream<int> get foo async* {}
 ''');
@@ -21918,7 +21870,7 @@ library
   }
 
   test_getter_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
@@ -21938,7 +21890,7 @@ library
   }
 
   test_getter_external() async {
-    var library = await checkLibrary('external int get x;');
+    var library = await buildLibrary('external int get x;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -21952,7 +21904,7 @@ library
   }
 
   test_getter_inferred_type_nonStatic_implicit_return() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'class C extends D { get f => null; } abstract class D { int get f; }');
     checkElementText(library, r'''
 library
@@ -21982,7 +21934,7 @@ library
   }
 
   test_getter_syncStar() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 Iterator<int> get foo sync* {}
 ''');
     checkElementText(library, r'''
@@ -21998,7 +21950,7 @@ library
   }
 
   test_getters() async {
-    var library = await checkLibrary('int get x => null; get y => null;');
+    var library = await buildLibrary('int get x => null; get y => null;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -22016,7 +21968,7 @@ library
   }
 
   test_implicitCallTearoff() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   void call() {}
 }
@@ -22074,7 +22026,7 @@ library
   }
 
   test_implicitConstructor_named_const() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   final Object x;
   const C.named(this.x);
@@ -22134,7 +22086,7 @@ library
 
   test_implicitTopLevelVariable_getterFirst() async {
     var library =
-        await checkLibrary('int get x => 0; void set x(int value) {}');
+        await buildLibrary('int get x => 0; void set x(int value) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -22154,7 +22106,7 @@ library
 
   test_implicitTopLevelVariable_setterFirst() async {
     var library =
-        await checkLibrary('void set x(int value) {} int get x => 0;');
+        await buildLibrary('void set x(int value) {} int get x => 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -22176,10 +22128,10 @@ library
     declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
     });
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/foo.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -22207,10 +22159,10 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     });
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/foo.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -22238,10 +22190,10 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     });
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/foo.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io == 'true') 'foo_io.dart'
   if (dart.library.html == 'true') 'foo_html.dart';
@@ -22269,10 +22221,10 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/foo.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -22300,10 +22252,10 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    var library = await checkLibrary(r'''
+    addSource('$testPackageLibPath/foo.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
+    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io == 'true') 'foo_io.dart'
   if (dart.library.html == 'true') 'foo_html.dart';
@@ -22327,7 +22279,7 @@ library
   }
 
   test_import_dartCore_explicit() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'dart:core';
 import 'dart:math';
 ''');
@@ -22341,7 +22293,7 @@ library
   }
 
   test_import_dartCore_implicit() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'dart:math';
 ''');
     checkElementText(library, r'''
@@ -22353,8 +22305,8 @@ library
   }
 
   test_import_deferred() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'f() {}');
-    var library = await checkLibrary('''
+    addSource('$testPackageLibPath/a.dart', 'f() {}');
+    var library = await buildLibrary('''
 import 'a.dart' deferred as p;
 ''');
     checkElementText(library, r'''
@@ -22366,8 +22318,7 @@ library
   }
 
   test_import_export() async {
-    addLibrary('dart:async');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'dart:async' as i1;
 export 'dart:math';
 import 'dart:async' as i2;
@@ -22390,8 +22341,7 @@ library
   }
 
   test_import_hide() async {
-    addLibrary('dart:async');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'dart:async' hide Stream, Completer; Future f;
 ''');
     checkElementText(library, r'''
@@ -22416,7 +22366,7 @@ library
   }
 
   test_import_invalidUri_metadata() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 @foo
 import 'ht:';
 ''');
@@ -22445,8 +22395,7 @@ library
   }
 
   test_import_multiple_combinators() async {
-    addLibrary('dart:async');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "dart:async" hide Stream show Future;
 Future f;
 ''');
@@ -22473,8 +22422,8 @@ library
   }
 
   test_import_prefixed() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'library a; class C {}');
-    var library = await checkLibrary('import "a.dart" as a; a.C c;');
+    addSource('$testPackageLibPath/a.dart', 'library a; class C {}');
+    var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
     expect(library.imports[0].prefix!.nameOffset, 19);
     expect(library.imports[0].prefix!.nameLength, 1);
@@ -22499,7 +22448,7 @@ library
   }
 
   test_import_self() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'test.dart' as p;
 class C {}
 class D extends p.C {} // Prevent "unused import" warning
@@ -22525,8 +22474,7 @@ library
   }
 
   test_import_show() async {
-    addLibrary('dart:async');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "dart:async" show Future, Stream;
 Future f;
 Stream s;
@@ -22562,7 +22510,7 @@ library
   }
 
   test_import_show_offsetEnd() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "dart:math" show e, pi;
 ''');
     var import = library.imports[0];
@@ -22572,17 +22520,17 @@ import "dart:math" show e, pi;
   }
 
   test_import_uri() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart';
 ''');
     expect(library.imports[0].uri, 'foo.dart');
   }
 
   test_imports() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'library a; class C {}');
-    addLibrarySource('$testPackageLibPath/b.dart', 'library b; class D {}');
+    addSource('$testPackageLibPath/a.dart', 'library a; class C {}');
+    addSource('$testPackageLibPath/b.dart', 'library b; class D {}');
     var library =
-        await checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
+        await buildLibrary('import "a.dart"; import "b.dart"; C c; D d;');
     checkElementText(library, r'''
 library
   imports
@@ -22613,7 +22561,7 @@ library
   }
 
   test_infer_generic_typedef_complex() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F<T> = D<T,U> Function<U>();
 class C<V> {
   const C(F<V> f);
@@ -22693,7 +22641,7 @@ library
   }
 
   test_infer_generic_typedef_simple() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F = D<T> Function<T>();
 class C {
   const C(F f);
@@ -22761,7 +22709,7 @@ library
   }
 
   test_infer_instanceCreation_fromArguments() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 
 class B extends A {}
@@ -22809,7 +22757,7 @@ library
   }
 
   test_infer_property_set() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   B b;
 }
@@ -22887,7 +22835,7 @@ library
 
   test_inference_issue_32394() async {
     // Test the type inference involved in dartbug.com/32394
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 var x = y.map((a) => a.toString());
 var y = [3];
 var z = x.toList();
@@ -22928,7 +22876,7 @@ library
   }
 
   test_inference_map() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   int p;
 }
@@ -22979,7 +22927,7 @@ library
   test_inferred_function_type_for_variable_in_generic_function() async {
     // In the code below, `x` has an inferred type of `() => int`, with 2
     // (unused) type parameters from the enclosing top level function.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 f<U, V>() {
   var x = () => 0;
 }
@@ -22999,7 +22947,7 @@ library
   test_inferred_function_type_in_generic_class_constructor() async {
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 2 (unused) type parameters from the enclosing class.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<U, V> {
   final x;
   C() : x = (() => () => 0);
@@ -23029,7 +22977,7 @@ library
   test_inferred_function_type_in_generic_class_getter() async {
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 2 (unused) type parameters from the enclosing class.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<U, V> {
   get x => () => () => 0;
 }
@@ -23059,7 +23007,7 @@ library
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 3 (unused) type parameters from the enclosing class
     // and method.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> {
   f<U, V>() {
     print(() => () => 0);
@@ -23088,7 +23036,7 @@ library
   test_inferred_function_type_in_generic_class_setter() async {
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 2 (unused) type parameters from the enclosing class.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<U, V> {
   void set x(value) {
     print(() => () => 0);
@@ -23122,7 +23070,7 @@ library
   test_inferred_function_type_in_generic_closure() async {
     // In the code below, `<U, V>() => () => 0` has an inferred return type of
     // `() => int`, with 3 (unused) type parameters.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 f<T>() {
   print(/*<U, V>*/() => () => 0);
 }
@@ -23141,7 +23089,7 @@ library
   test_inferred_generic_function_type_in_generic_closure() async {
     // In the code below, `<U, V>() => <W, X, Y, Z>() => 0` has an inferred
     // return type of `() => int`, with 7 (unused) type parameters.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 f<T>() {
   print(/*<U, V>*/() => /*<W, X, Y, Z>*/() => 0);
 }
@@ -23158,7 +23106,7 @@ library
   }
 
   test_inferred_type_functionExpressionInvocation_oppositeOrder() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   static final foo = bar(1.2);
   static final bar = baz();
@@ -23190,7 +23138,7 @@ library
   }
 
   test_inferred_type_initializer_cycle() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 var a = b + 1;
 var b = c + 2;
 var c = a + 3;
@@ -23244,7 +23192,7 @@ library
   }
 
   test_inferred_type_is_typedef() async {
-    var library = await checkLibrary('typedef int F(String s);'
+    var library = await buildLibrary('typedef int F(String s);'
         ' class C extends D { var v; }'
         ' abstract class D { F get v; }');
     checkElementText(library, r'''
@@ -23294,7 +23242,7 @@ library
 
   test_inferred_type_nullability_class_ref_none() async {
     addSource('$testPackageLibPath/a.dart', 'int f() => 0;');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'a.dart';
 var x = f();
 ''');
@@ -23319,7 +23267,7 @@ library
 
   test_inferred_type_nullability_class_ref_question() async {
     addSource('$testPackageLibPath/a.dart', 'int? f() => 0;');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'a.dart';
 var x = f();
 ''');
@@ -23344,7 +23292,7 @@ library
 
   test_inferred_type_nullability_function_type_none() async {
     addSource('$testPackageLibPath/a.dart', 'void Function() f() => () {};');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'a.dart';
 var x = f();
 ''');
@@ -23369,7 +23317,7 @@ library
 
   test_inferred_type_nullability_function_type_question() async {
     addSource('$testPackageLibPath/a.dart', 'void Function()? f() => () {};');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'a.dart';
 var x = f();
 ''');
@@ -23393,7 +23341,7 @@ library
   }
 
   test_inferred_type_refers_to_bound_type_param() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> extends D<int, T> {
   var v;
 }
@@ -23444,7 +23392,7 @@ library
   }
 
   test_inferred_type_refers_to_function_typed_param_of_typedef() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef void F(int g(String s));
 h(F f) => null;
 var v = h((y) {});
@@ -23485,7 +23433,7 @@ library
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T, U> extends D<U, int> {
   void f(int x, g) {}
 }
@@ -23539,16 +23487,16 @@ library
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_other_lib() async {
-    addLibrarySource('$testPackageLibPath/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 import 'b.dart';
 abstract class D extends E {}
 ''');
-    addLibrarySource('$testPackageLibPath/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 abstract class E {
   void f(int x, int g(String s));
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'a.dart';
 class C extends D {
   void f(int x, g) {}
@@ -23577,7 +23525,7 @@ library
   }
 
   test_inferred_type_refers_to_method_function_typed_parameter_type() async {
-    var library = await checkLibrary('class C extends D { void f(int x, g) {} }'
+    var library = await buildLibrary('class C extends D { void f(int x, g) {} }'
         ' abstract class D { void f(int x, int g(String s)); }');
     checkElementText(library, r'''
 library
@@ -23614,7 +23562,7 @@ library
   }
 
   test_inferred_type_refers_to_nested_function_typed_param() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 f(void g(int x, void h())) => null;
 var v = f((x, y) {});
 ''');
@@ -23647,7 +23595,7 @@ library
   }
 
   test_inferred_type_refers_to_nested_function_typed_param_named() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 f({void g(int x, void h())}) => null;
 var v = f(g: (x, y) {});
 ''');
@@ -23680,7 +23628,7 @@ library
   }
 
   test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
-    var library = await checkLibrary('class C extends D { void set f(g) {} }'
+    var library = await buildLibrary('class C extends D { void set f(g) {} }'
         ' abstract class D { void set f(int g(String s)); }');
     checkElementText(library, r'''
 library
@@ -23725,7 +23673,7 @@ class A {
   m(Stream p) {}
 }
 ''');
-    LibraryElement library = await checkLibrary(r'''
+    LibraryElement library = await buildLibrary(r'''
 import 'a.dart';
 class B extends A {
   m(p) {}
@@ -23761,7 +23709,7 @@ library
   }
 
   test_inferredType_implicitCreation() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {
   A();
   A.named();
@@ -23803,13 +23751,13 @@ library
   }
 
   test_inferredType_implicitCreation_prefixed() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 class A {
   A();
   A.named();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart' as foo;
 var a1 = foo.A();
 var a2 = foo.A.named();
@@ -23845,7 +23793,7 @@ library
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
     // AnalysisContext does not set the enclosing element for the synthetic
     // FunctionElement created for the [f, g] type argument.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 int f(int x(String y)) => null;
 String g(int x(String y)) => null;
 var v = [f, g];
@@ -23885,7 +23833,7 @@ library
   }
 
   test_inheritance_errors() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 abstract class A {
   int m();
 }
@@ -23942,7 +23890,7 @@ library
   }
 
   test_initializer_executable_with_return_type_from_closure() async {
-    var library = await checkLibrary('var v = () => 0;');
+    var library = await buildLibrary('var v = () => 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -23961,7 +23909,7 @@ library
   }
 
   test_initializer_executable_with_return_type_from_closure_await_dynamic() async {
-    var library = await checkLibrary('var v = (f) async => await f;');
+    var library = await buildLibrary('var v = (f) async => await f;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -23980,7 +23928,7 @@ library
   }
 
   test_initializer_executable_with_return_type_from_closure_await_future3_int() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:async';
 var v = (Future<Future<Future<int>>> f) async => await f;
 ''');
@@ -24005,7 +23953,7 @@ library
   }
 
   test_initializer_executable_with_return_type_from_closure_await_future_int() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:async';
 var v = (Future<int> f) async => await f;
 ''');
@@ -24029,7 +23977,7 @@ library
   }
 
   test_initializer_executable_with_return_type_from_closure_await_future_noArg() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:async';
 var v = (Future f) async => await f;
 ''');
@@ -24053,7 +24001,7 @@ library
   }
 
   test_initializer_executable_with_return_type_from_closure_field() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   var v = () => 0;
 }
@@ -24080,7 +24028,7 @@ library
   }
 
   test_initializer_executable_with_return_type_from_closure_local() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f() {
   int u = 0;
   var v = () => 0;
@@ -24097,7 +24045,7 @@ library
 
   test_instanceInference_operator_equal_legacy_from_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    addLibrarySource('$testPackageLibPath/legacy.dart', r'''
+    addSource('$testPackageLibPath/legacy.dart', r'''
 // @dart = 2.7
 class LegacyDefault {
   bool operator==(other) => false;
@@ -24109,7 +24057,7 @@ class LegacyInt {
   bool operator==(int other) => false;
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'legacy.dart';
 class X1 extends LegacyDefault  {
   bool operator==(other) => false;
@@ -24164,7 +24112,7 @@ library
   }
 
   test_instanceInference_operator_equal_legacy_from_legacy_nullSafe() async {
-    addLibrarySource('$testPackageLibPath/legacy.dart', r'''
+    addSource('$testPackageLibPath/legacy.dart', r'''
 // @dart = 2.7
 class LegacyDefault {
   bool operator==(other) => false;
@@ -24176,7 +24124,7 @@ class LegacyInt {
   bool operator==(int other) => false;
 }
 ''');
-    addLibrarySource('$testPackageLibPath/nullSafe.dart', r'''
+    addSource('$testPackageLibPath/nullSafe.dart', r'''
 class NullSafeDefault {
   bool operator==(other) => false;
 }
@@ -24187,7 +24135,7 @@ class NullSafeInt {
   bool operator==(int other) => false;
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 // @dart = 2.7
 import 'legacy.dart';
 import 'nullSafe.dart';
@@ -24251,7 +24199,7 @@ library
   }
 
   test_instanceInference_operator_equal_nullSafe_from_nullSafe() async {
-    addLibrarySource('$testPackageLibPath/nullSafe.dart', r'''
+    addSource('$testPackageLibPath/nullSafe.dart', r'''
 class NullSafeDefault {
   bool operator==(other) => false;
 }
@@ -24262,7 +24210,7 @@ class NullSafeInt {
   bool operator==(int other) => false;
 }
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'nullSafe.dart';
 class X1 extends NullSafeDefault {
   bool operator==(other) => false;
@@ -24317,7 +24265,7 @@ library
   }
 
   test_instantiateToBounds_boundRefersToEarlierTypeArgument() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<S extends num, T extends C<S, T>> {}
 C c;
 ''');
@@ -24350,7 +24298,7 @@ library
   }
 
   test_instantiateToBounds_boundRefersToItself() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends C<T>> {}
 C c;
 var c2 = new C();
@@ -24408,7 +24356,7 @@ library
 
   test_instantiateToBounds_boundRefersToItself_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends C<T>> {}
 C c;
 var c2 = new C();
@@ -24465,7 +24413,7 @@ library
   }
 
   test_instantiateToBounds_boundRefersToLaterTypeArgument() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends C<T, U>, U extends num> {}
 C c;
 ''');
@@ -24498,14 +24446,14 @@ library
   }
 
   test_instantiateToBounds_functionTypeAlias_reexported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class O {}
 typedef T F<T extends O>(T p);
 ''');
-    addLibrarySource('$testPackageLibPath/b.dart', r'''
+    addSource('$testPackageLibPath/b.dart', r'''
 export 'a.dart' show F;
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'b.dart';
 class C {
   F f() => null;
@@ -24530,7 +24478,7 @@ library
   }
 
   test_instantiateToBounds_functionTypeAlias_simple() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F<T extends num>(T p);
 F f;
 ''');
@@ -24573,7 +24521,7 @@ library
   }
 
   test_instantiateToBounds_genericFunctionAsBound() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {}
 class B<T extends int Function(), U extends A<T>> {}
 B b;
@@ -24613,7 +24561,7 @@ library
   }
 
   test_instantiateToBounds_genericTypeAlias_simple() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F<T extends num> = S Function<S>(T p);
 F f;
 ''');
@@ -24658,7 +24606,7 @@ library
   }
 
   test_instantiateToBounds_issue38498() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<R extends B> {
   final values = <B>[];
 }
@@ -24692,7 +24640,7 @@ library
   }
 
   test_instantiateToBounds_simple() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends num> {}
 C c;
 ''');
@@ -24722,12 +24670,12 @@ library
   }
 
   test_invalid_annotation_prefixed_constructor() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "a.dart" as a;
 @a.A.named
 class C {}
@@ -24766,12 +24714,12 @@ library
   }
 
   test_invalid_annotation_unprefixed_constructor() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "a.dart";
 @A.named
 class C {}
@@ -24805,7 +24753,7 @@ library
   }
 
   test_invalid_importPrefix_asTypeArgument() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'dart:async' as ppp;
 class C {
   List<ppp> v;
@@ -24835,9 +24783,9 @@ library
   }
 
   test_invalid_nameConflict_imported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'V() {}');
-    addLibrarySource('$testPackageLibPath/b.dart', 'V() {}');
-    var library = await checkLibrary('''
+    addSource('$testPackageLibPath/a.dart', 'V() {}');
+    addSource('$testPackageLibPath/b.dart', 'V() {}');
+    var library = await buildLibrary('''
 import 'a.dart';
 import 'b.dart';
 foo([p = V]) {}
@@ -24863,13 +24811,13 @@ library
   }
 
   test_invalid_nameConflict_imported_exported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'V() {}');
-    addLibrarySource('$testPackageLibPath/b.dart', 'V() {}');
-    addLibrarySource('$testPackageLibPath/c.dart', r'''
+    addSource('$testPackageLibPath/a.dart', 'V() {}');
+    addSource('$testPackageLibPath/b.dart', 'V() {}');
+    addSource('$testPackageLibPath/c.dart', r'''
 export 'a.dart';
 export 'b.dart';
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'c.dart';
 foo([p = V]) {}
 ''');
@@ -24893,7 +24841,7 @@ library
   }
 
   test_invalid_nameConflict_local() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 foo([p = V]) {}
 V() {}
 var V;
@@ -24929,7 +24877,7 @@ library
   }
 
   test_invalid_setterParameter_fieldFormalParameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   int foo;
   void set bar(this.foo) {}
@@ -24965,7 +24913,7 @@ library
   }
 
   test_invalid_setterParameter_fieldFormalParameter_self() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   set x(this.x) {}
 }
@@ -24991,7 +24939,7 @@ library
   }
 
   test_invalidUris() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import ':[invaliduri]';
 import ':[invaliduri]:foo.dart';
 import 'a1.dart';
@@ -25029,7 +24977,7 @@ library
   }
 
   test_library() async {
-    var library = await checkLibrary('');
+    var library = await buildLibrary('');
     checkElementText(library, r'''
 library
   definingUnit
@@ -25037,7 +24985,7 @@ library
   }
 
   test_library_documented_lines() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /// aaa
 /// bbb
 library test;
@@ -25052,7 +25000,7 @@ library
   }
 
   test_library_documented_stars() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /**
  * aaa
  * bbb
@@ -25068,7 +25016,7 @@ library
   }
 
   test_library_name_with_spaces() async {
-    var library = await checkLibrary('library foo . bar ;');
+    var library = await buildLibrary('library foo . bar ;');
     checkElementText(library, r'''
 library
   name: foo.bar
@@ -25078,7 +25026,7 @@ library
   }
 
   test_library_named() async {
-    var library = await checkLibrary('library foo.bar;');
+    var library = await buildLibrary('library foo.bar;');
     checkElementText(library, r'''
 library
   name: foo.bar
@@ -25088,7 +25036,7 @@ library
   }
 
   test_localFunctions() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 f() {
   f1() {}
   {
@@ -25106,7 +25054,7 @@ library
   }
 
   test_localFunctions_inConstructor() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   C() {
     f() {}
@@ -25124,7 +25072,7 @@ library
   }
 
   test_localFunctions_inMethod() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   m() {
     f() {}
@@ -25145,7 +25093,7 @@ library
   }
 
   test_localFunctions_inTopLevelGetter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 get g {
   f() {}
 }
@@ -25163,7 +25111,7 @@ library
   }
 
   test_localLabels_inConstructor() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   C() {
     aaa: while (true) {}
@@ -25185,7 +25133,7 @@ library
   }
 
   test_localLabels_inMethod() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   m() {
     aaa: while (true) {}
@@ -25210,7 +25158,7 @@ library
   }
 
   test_localLabels_inTopLevelFunction() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 main() {
   aaa: while (true) {}
   bbb: switch (42) {
@@ -25229,7 +25177,7 @@ library
   }
 
   test_main_class() async {
-    var library = await checkLibrary('class main {}');
+    var library = await buildLibrary('class main {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -25242,7 +25190,7 @@ library
 
   test_main_class_alias() async {
     var library =
-        await checkLibrary('class main = C with D; class C {} class D {}');
+        await buildLibrary('class main = C with D; class C {} class D {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -25271,9 +25219,9 @@ library
   }
 
   test_main_class_alias_via_export() async {
-    addLibrarySource('$testPackageLibPath/a.dart',
+    addSource('$testPackageLibPath/a.dart',
         'class main = C with D; class C {} class D {}');
-    var library = await checkLibrary('export "a.dart";');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
@@ -25283,8 +25231,8 @@ library
   }
 
   test_main_class_via_export() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'class main {}');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'class main {}');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
@@ -25294,7 +25242,7 @@ library
   }
 
   test_main_getter() async {
-    var library = await checkLibrary('get main => null;');
+    var library = await buildLibrary('get main => null;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -25308,8 +25256,8 @@ library
   }
 
   test_main_getter_via_export() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'get main => null;');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'get main => null;');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
@@ -25319,7 +25267,7 @@ library
   }
 
   test_main_typedef() async {
-    var library = await checkLibrary('typedef main();');
+    var library = await buildLibrary('typedef main();');
     checkElementText(library, r'''
 library
   definingUnit
@@ -25332,8 +25280,8 @@ library
   }
 
   test_main_typedef_via_export() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'typedef main();');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'typedef main();');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
@@ -25343,7 +25291,7 @@ library
   }
 
   test_main_variable() async {
-    var library = await checkLibrary('var main;');
+    var library = await buildLibrary('var main;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -25362,8 +25310,8 @@ library
   }
 
   test_main_variable_via_export() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'var main;');
-    var library = await checkLibrary('export "a.dart";');
+    addSource('$testPackageLibPath/a.dart', 'var main;');
+    var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
   exports
@@ -25373,7 +25321,7 @@ library
   }
 
   test_metadata_class_field_first() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = 0;
 class C {
   @a
@@ -25425,7 +25373,7 @@ library
   }
 
   test_metadata_class_scope() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -25496,7 +25444,7 @@ library
   }
 
   test_metadata_classDeclaration() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = null;
 const b = null;
 @a
@@ -25546,7 +25494,7 @@ library
   }
 
   test_metadata_classTypeAlias() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'const a = null; @a class C = D with E; class D {} class E {}');
     checkElementText(library, r'''
 library
@@ -25594,7 +25542,7 @@ library
   }
 
   test_metadata_constructor_call_named() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A.named(int _);
 }
@@ -25643,7 +25591,7 @@ library
   }
 
   test_metadata_constructor_call_named_generic_inference() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   const A.named(T _);
 }
@@ -25702,7 +25650,7 @@ library
   }
 
   test_metadata_constructor_call_named_generic_typeArguments() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   const A.named();
 }
@@ -25759,7 +25707,7 @@ library
   }
 
   test_metadata_constructor_call_named_generic_typeArguments_disabledGenericMetadata() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   const A.named();
 }
@@ -25816,12 +25764,12 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 class A {
   const A.named(int _);
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart' as foo;
 @foo.A.named(0)
 class C {}
@@ -25867,12 +25815,12 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_inference() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A.named(T _);
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "foo.dart" as foo;
 @foo.A.named(0)
 class C {}
@@ -25922,12 +25870,12 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_typeArguments() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A.named();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "foo.dart" as foo;
 @foo.A<int>.named()
 class C {}
@@ -25983,7 +25931,7 @@ library
   }
 
   test_metadata_constructor_call_named_synthetic_ofClassAlias_generic() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A.named();
 }
@@ -26064,7 +26012,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A(int _);
 }
@@ -26103,7 +26051,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_generic_inference() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   const A(T _);
 }
@@ -26148,7 +26096,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_generic_typeArguments() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   const A();
 }
@@ -26196,9 +26144,9 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', 'class A { const A(_); }');
+    addSource('$testPackageLibPath/foo.dart', 'class A { const A(_); }');
     var library =
-        await checkLibrary('import "foo.dart" as foo; @foo.A(0) class C {}');
+        await buildLibrary('import "foo.dart" as foo; @foo.A(0) class C {}');
     checkElementText(library, r'''
 library
   imports
@@ -26235,12 +26183,12 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_inference() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A(T _);
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "foo.dart" as foo;
 @foo.A(0)
 class C {}
@@ -26283,12 +26231,12 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_typeArguments() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A();
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import "foo.dart" as foo;
 @foo.A<int>()
 class C {}
@@ -26337,7 +26285,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_synthetic_ofClassAlias_generic() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A();
 }
@@ -26400,7 +26348,7 @@ library
 
   test_metadata_constructor_call_with_args() async {
     var library =
-        await checkLibrary('class A { const A(x); } @A(null) class C {}');
+        await buildLibrary('class A { const A(x); } @A(null) class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -26434,7 +26382,7 @@ library
 
   test_metadata_constructorDeclaration_named() async {
     var library =
-        await checkLibrary('const a = null; class C { @a C.named(); }');
+        await buildLibrary('const a = null; class C { @a C.named(); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -26466,7 +26414,7 @@ library
   }
 
   test_metadata_constructorDeclaration_unnamed() async {
-    var library = await checkLibrary('const a = null; class C { @a C(); }');
+    var library = await buildLibrary('const a = null; class C { @a C(); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -26496,7 +26444,7 @@ library
   }
 
   test_metadata_enum_constant() async {
-    var library = await checkLibrary('const a = 42; enum E { @a v }');
+    var library = await buildLibrary('const a = 42; enum E { @a v }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -26561,7 +26509,7 @@ library
   }
 
   test_metadata_enum_constant_instanceCreation() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   final dynamic value;
   const A(this.value);
@@ -26707,7 +26655,7 @@ library
   }
 
   test_metadata_enum_constant_self() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   @v
   v
@@ -26767,7 +26715,7 @@ library
   }
 
   test_metadata_enum_constructor() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = 42;
 enum E {
   v;
@@ -26839,7 +26787,7 @@ library
   }
 
   test_metadata_enum_method() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = 42;
 enum E {
   v;
@@ -26914,7 +26862,7 @@ library
   }
 
   test_metadata_enum_scope() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -27021,7 +26969,7 @@ library
   }
 
   test_metadata_enum_typeParameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = 42;
 enum E<@a T> {
   v
@@ -27096,7 +27044,7 @@ library
   }
 
   test_metadata_enumDeclaration() async {
-    var library = await checkLibrary('const a = 42; @a enum E { v }');
+    var library = await buildLibrary('const a = 42; @a enum E { v }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -27161,8 +27109,8 @@ library
   }
 
   test_metadata_exportDirective() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '');
-    var library = await checkLibrary('@a export "foo.dart"; const a = null;');
+    addSource('$testPackageLibPath/foo.dart', '');
+    var library = await buildLibrary('@a export "foo.dart"; const a = null;');
     checkElementText(library, r'''
 library
   metadata
@@ -27198,7 +27146,7 @@ library
   }
 
   test_metadata_extension_scope() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -27267,7 +27215,7 @@ library
   }
 
   test_metadata_extensionDeclaration() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = null;
 class A {}
 @a
@@ -27315,7 +27263,7 @@ library
   }
 
   test_metadata_fieldDeclaration() async {
-    var library = await checkLibrary('const a = null; class C { @a int x; }');
+    var library = await buildLibrary('const a = null; class C { @a int x; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -27356,7 +27304,7 @@ library
   }
 
   test_metadata_fieldFormalParameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = null;
 class C {
   var x;
@@ -27407,7 +27355,7 @@ library
   }
 
   test_metadata_fieldFormalParameter_withDefault() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'const a = null; class C { var x; C([@a this.x = null]); }');
     checkElementText(library, r'''
 library
@@ -27457,7 +27405,7 @@ library
   }
 
   test_metadata_functionDeclaration_function() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = null;
 @a
 f() {}
@@ -27490,7 +27438,7 @@ library
   }
 
   test_metadata_functionDeclaration_getter() async {
-    var library = await checkLibrary('const a = null; @a get f => null;');
+    var library = await buildLibrary('const a = null; @a get f => null;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -27520,7 +27468,7 @@ library
   }
 
   test_metadata_functionDeclaration_setter() async {
-    var library = await checkLibrary('const a = null; @a set f(value) {}');
+    var library = await buildLibrary('const a = null; @a set f(value) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -27553,7 +27501,7 @@ library
   }
 
   test_metadata_functionTypeAlias() async {
-    var library = await checkLibrary('const a = null; @a typedef F();');
+    var library = await buildLibrary('const a = null; @a typedef F();');
     checkElementText(library, r'''
 library
   definingUnit
@@ -27584,7 +27532,7 @@ library
   }
 
   test_metadata_functionTypedFormalParameter() async {
-    var library = await checkLibrary('const a = null; f(@a g()) {}');
+    var library = await buildLibrary('const a = null; f(@a g()) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -27616,7 +27564,7 @@ library
   }
 
   test_metadata_functionTypedFormalParameter_withDefault() async {
-    var library = await checkLibrary('const a = null; f([@a g() = null]) {}');
+    var library = await buildLibrary('const a = null; f([@a g() = null]) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -27652,7 +27600,7 @@ library
   }
 
   test_metadata_genericTypeAlias() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = null;
 const b = null;
 @a
@@ -27703,7 +27651,7 @@ library
   }
 
   test_metadata_importDirective() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 @a
 import "dart:math";
 const a = 0;
@@ -27743,7 +27691,7 @@ library
   }
 
   test_metadata_importDirective_hasShow() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 @a
 import "dart:math" show Random;
 
@@ -27786,7 +27734,7 @@ library
   }
 
   test_metadata_inAliasedElement_formalParameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = 42;
 typedef F = void Function(@a int first)
 ''');
@@ -27823,7 +27771,7 @@ library
   }
 
   test_metadata_inAliasedElement_formalParameter2() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = 42;
 typedef F = void Function(int foo(@a int bar))
 ''');
@@ -27863,7 +27811,7 @@ library
   }
 
   test_metadata_inAliasedElement_typeParameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = 42;
 typedef F = void Function<@a T>(int first)
 ''');
@@ -27902,7 +27850,7 @@ library
   }
 
   test_metadata_invalid_classDeclaration() async {
-    var library = await checkLibrary('f(_) {} @f(42) class C {}');
+    var library = await buildLibrary('f(_) {} @f(42) class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -27935,7 +27883,7 @@ library
   }
 
   test_metadata_libraryDirective() async {
-    var library = await checkLibrary('@a library L; const a = null;');
+    var library = await buildLibrary('@a library L; const a = null;');
     checkElementText(library, r'''
 library
   name: L
@@ -27964,7 +27912,7 @@ library
 
   test_metadata_methodDeclaration_getter() async {
     var library =
-        await checkLibrary('const a = null; class C { @a get m => null; }');
+        await buildLibrary('const a = null; class C { @a get m => null; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -28000,7 +27948,7 @@ library
   }
 
   test_metadata_methodDeclaration_method() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = null;
 const b = null;
 class C {
@@ -28056,7 +28004,7 @@ library
   }
 
   test_metadata_methodDeclaration_method_mixin() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = null;
 const b = null;
 mixin M {
@@ -28114,7 +28062,7 @@ library
   }
 
   test_metadata_methodDeclaration_setter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = null;
 class C {
   @a
@@ -28159,7 +28107,7 @@ library
   }
 
   test_metadata_mixin_scope() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -28232,7 +28180,7 @@ library
   }
 
   test_metadata_mixinDeclaration() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = null;
 const b = null;
 @a
@@ -28284,7 +28232,7 @@ library
   }
 
   test_metadata_offsets_onClass() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -28330,7 +28278,7 @@ library
   }
 
   test_metadata_offsets_onClassConstructor() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 class A {
@@ -28378,7 +28326,7 @@ library
   }
 
   test_metadata_offsets_onClassGetter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 class A {
@@ -28421,7 +28369,7 @@ library
   }
 
   test_metadata_offsets_onClassMethod() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 class A {
@@ -28482,7 +28430,7 @@ library
   }
 
   test_metadata_offsets_onClassSetter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 class A {
@@ -28536,7 +28484,7 @@ library
   }
 
   test_metadata_offsets_onClassTypeAlias() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 class A {}
@@ -28605,7 +28553,7 @@ library
   }
 
   test_metadata_offsets_onEnum() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -28739,7 +28687,7 @@ library
   }
 
   test_metadata_offsets_onExtension() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -28783,7 +28731,7 @@ library
   }
 
   test_metadata_offsets_onFieldDeclaration() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 class A {
@@ -28870,7 +28818,7 @@ library
   }
 
   test_metadata_offsets_onLibrary() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 /// Some documentation.
 @foo
 library my.lib;
@@ -28905,7 +28853,7 @@ library
   }
 
   test_metadata_offsets_onMixin() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -28953,7 +28901,7 @@ library
   }
 
   test_metadata_offsets_onTypeAlias_classic() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -29011,7 +28959,7 @@ library
   }
 
   test_metadata_offsets_onTypeAlias_genericFunctionType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -29087,7 +29035,7 @@ part of my.lib;
 part of my.lib;
 ''');
 
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 library my.lib;
 
 @foo
@@ -29136,7 +29084,7 @@ library
   }
 
   test_metadata_offsets_onUnitFunction() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -29195,7 +29143,7 @@ library
   }
 
   test_metadata_offsets_onUnitGetter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -29230,7 +29178,7 @@ library
   }
 
   test_metadata_offsets_onUnitSetter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -29276,7 +29224,7 @@ library
   }
 
   test_metadata_offsets_onUnitVariable() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const foo = 0;
 
 @foo
@@ -29336,7 +29284,7 @@ library
 
   test_metadata_partDirective() async {
     addSource('$testPackageLibPath/foo.dart', 'part of L;');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 library L;
 @a
 part 'foo.dart';
@@ -29376,7 +29324,7 @@ part of 'test.dart';
     addSource('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 part 'a.dart';
 part 'b.dart';
 ''');
@@ -29387,8 +29335,8 @@ part 'b.dart';
   }
 
   test_metadata_prefixed_variable() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'const b = null;');
-    var library = await checkLibrary('import "a.dart" as a; @a.b class C {}');
+    addSource('$testPackageLibPath/a.dart', 'const b = null;');
+    var library = await buildLibrary('import "a.dart" as a; @a.b class C {}');
     checkElementText(library, r'''
 library
   imports
@@ -29418,7 +29366,7 @@ library
   }
 
   test_metadata_simpleFormalParameter() async {
-    var library = await checkLibrary('const a = null; f(@a x) {}');
+    var library = await buildLibrary('const a = null; f(@a x) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -29450,7 +29398,7 @@ library
   }
 
   test_metadata_simpleFormalParameter_method() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = null;
 
 class C {
@@ -29492,7 +29440,7 @@ library
   }
 
   test_metadata_simpleFormalParameter_unit_setter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = null;
 
 set foo(@a int x) {}
@@ -29529,7 +29477,7 @@ library
   }
 
   test_metadata_simpleFormalParameter_withDefault() async {
-    var library = await checkLibrary('const a = null; f([@a x = null]) {}');
+    var library = await buildLibrary('const a = null; f([@a x = null]) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -29565,7 +29513,7 @@ library
   }
 
   test_metadata_superFormalParameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = null;
 
 class A {
@@ -29617,7 +29565,7 @@ library
   }
 
   test_metadata_topLevelVariableDeclaration() async {
-    var library = await checkLibrary('const a = null; @a int v;');
+    var library = await buildLibrary('const a = null; @a int v;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -29652,7 +29600,7 @@ library
   }
 
   test_metadata_typeParameter_ofClass() async {
-    var library = await checkLibrary('const a = null; class C<@a T> {}');
+    var library = await buildLibrary('const a = null; class C<@a T> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -29685,7 +29633,7 @@ library
   }
 
   test_metadata_typeParameter_ofClassTypeAlias() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 const a = null;
 class C<@a T> = D with E;
 class D {}
@@ -29739,7 +29687,7 @@ library
   }
 
   test_metadata_typeParameter_ofFunction() async {
-    var library = await checkLibrary('const a = null; f<@a T>() {}');
+    var library = await buildLibrary('const a = null; f<@a T>() {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -29770,7 +29718,7 @@ library
   }
 
   test_metadata_typeParameter_ofTypedef() async {
-    var library = await checkLibrary('const a = null; typedef F<@a T>();');
+    var library = await buildLibrary('const a = null; typedef F<@a T>();');
     checkElementText(library, r'''
 library
   definingUnit
@@ -29804,7 +29752,7 @@ library
   }
 
   test_metadata_unit_topLevelVariable_first() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 const a = 0;
 @a
 int x = 0;
@@ -29848,7 +29796,7 @@ library
   }
 
   test_metadata_value_class_staticField() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   static const x = 0;
 }
@@ -29895,7 +29843,7 @@ library
   }
 
   test_metadata_value_enum_constant() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 enum E {a, b, c}
 @E.b
 class C {}
@@ -30010,7 +29958,7 @@ library
   }
 
   test_metadata_value_extension_staticField() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 extension E on int {
   static const x = 0;
 }
@@ -30057,12 +30005,12 @@ library
   }
 
   test_metadata_value_prefix_extension_staticField() async {
-    addLibrarySource('$testPackageLibPath/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 extension E on int {
   static const x = 0;
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'foo.dart' as foo;
 @foo.E.x
 class C {}
@@ -30101,7 +30049,7 @@ library
   }
 
   test_methodInvocation_implicitCall() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {
   double call() => 0.0;
 }
@@ -30149,7 +30097,7 @@ library
   }
 
   test_mixin() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {}
 class B {}
 class C {}
@@ -30226,7 +30174,7 @@ library
   }
 
   test_mixin_field_inferredType_final() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 mixin M {
   final x = 0;
 }''');
@@ -30249,7 +30197,7 @@ library
   }
 
   test_mixin_first() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 mixin M {}
 ''');
 
@@ -30261,7 +30209,7 @@ mixin M {}
   }
 
   test_mixin_implicitObjectSuperclassConstraint() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 mixin M {}
 ''');
     checkElementText(library, r'''
@@ -30278,7 +30226,7 @@ library
 
   test_mixin_inference_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {}
 mixin M<U> on A<U> {}
 class B extends A<int> with M {}
@@ -30315,7 +30263,7 @@ library
   }
 
   test_mixin_inference_nullSafety() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {}
 mixin M<U> on A<U> {}
 class B extends A<int> with M {}
@@ -30352,13 +30300,13 @@ library
   }
 
   test_mixin_inference_nullSafety2() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 
 mixin B<T> on A<T> {}
 mixin C<T> on A<T> {}
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 // @dart=2.8
 import 'a.dart';
 
@@ -30384,11 +30332,11 @@ library
   }
 
   test_mixin_inference_nullSafety_mixed_inOrder() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 mixin M<U> on A<U> {}
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 // @dart = 2.8
 import 'a.dart';
 class B extends A<int> with M {}
@@ -30413,12 +30361,12 @@ library
 
   @FailingTest(reason: 'Out-of-order inference is not specified yet')
   test_mixin_inference_nullSafety_mixed_outOfOrder() async {
-    addLibrarySource('$testPackageLibPath/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 // @dart = 2.8
 class A<T> {}
 mixin M<U> on A<U> {}
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 
 class B extends A<int> with M {}
@@ -30432,7 +30380,7 @@ class B extends A<int> with M<int> {
   }
 
   test_mixin_method_namedAsConstraint() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {}
 mixin B on A {
   void A() {}
@@ -30458,7 +30406,7 @@ library
   }
 
   test_mixin_typeParameters_variance_contravariant() async {
-    var library = await checkLibrary('mixin M<in T> {}');
+    var library = await buildLibrary('mixin M<in T> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -30475,7 +30423,7 @@ library
   }
 
   test_mixin_typeParameters_variance_covariant() async {
-    var library = await checkLibrary('mixin M<out T> {}');
+    var library = await buildLibrary('mixin M<out T> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -30492,7 +30440,7 @@ library
   }
 
   test_mixin_typeParameters_variance_invariant() async {
-    var library = await checkLibrary('mixin M<inout T> {}');
+    var library = await buildLibrary('mixin M<inout T> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -30509,7 +30457,7 @@ library
   }
 
   test_mixin_typeParameters_variance_multiple() async {
-    var library = await checkLibrary('mixin M<inout T, in U, out V> {}');
+    var library = await buildLibrary('mixin M<inout T, in U, out V> {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -30530,12 +30478,12 @@ library
   }
 
   test_nameConflict_exportedAndLocal() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
-    addLibrarySource('$testPackageLibPath/c.dart', '''
+    addSource('$testPackageLibPath/a.dart', 'class C {}');
+    addSource('$testPackageLibPath/c.dart', '''
 export 'a.dart';
 class C {}
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'c.dart';
 C v = null;
 ''');
@@ -30559,13 +30507,13 @@ library
   }
 
   test_nameConflict_exportedAndLocal_exported() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
-    addLibrarySource('$testPackageLibPath/c.dart', '''
+    addSource('$testPackageLibPath/a.dart', 'class C {}');
+    addSource('$testPackageLibPath/c.dart', '''
 export 'a.dart';
 class C {}
 ''');
-    addLibrarySource('$testPackageLibPath/d.dart', 'export "c.dart";');
-    var library = await checkLibrary('''
+    addSource('$testPackageLibPath/d.dart', 'export "c.dart";');
+    var library = await buildLibrary('''
 import 'd.dart';
 C v = null;
 ''');
@@ -30589,17 +30537,17 @@ library
   }
 
   test_nameConflict_exportedAndParted() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
-    addLibrarySource('$testPackageLibPath/b.dart', '''
+    addSource('$testPackageLibPath/a.dart', 'class C {}');
+    addSource('$testPackageLibPath/b.dart', '''
 part of lib;
 class C {}
 ''');
-    addLibrarySource('$testPackageLibPath/c.dart', '''
+    addSource('$testPackageLibPath/c.dart', '''
 library lib;
 export 'a.dart';
 part 'b.dart';
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 import 'c.dart';
 C v = null;
 ''');
@@ -30627,9 +30575,9 @@ library
       return;
     }
 
-    addLibrarySource('$testPackageLibPath/a.dart', 'class A {}');
-    addLibrarySource('$testPackageLibPath/b.dart', 'export "/a.dart";');
-    var library = await checkLibrary('''
+    addSource('$testPackageLibPath/a.dart', 'class A {}');
+    addSource('$testPackageLibPath/b.dart', 'export "/a.dart";');
+    var library = await buildLibrary('''
 import 'a.dart';
 import 'b.dart';
 A v = null;
@@ -30655,7 +30603,7 @@ library
   }
 
   test_nameOffset_class_constructor() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {
   A();
   A.named();
@@ -30675,7 +30623,7 @@ library
   }
 
   test_nameOffset_class_constructor_parameter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {
   A(int a);
 }
@@ -30694,7 +30642,7 @@ library
   }
 
   test_nameOffset_class_field() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {
   int foo = 0;
 }
@@ -30721,7 +30669,7 @@ library
   }
 
   test_nameOffset_class_getter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {
   int get foo => 0;
 }
@@ -30743,7 +30691,7 @@ library
   }
 
   test_nameOffset_class_method() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {
   void foo<T>(int a) {}
 }
@@ -30767,7 +30715,7 @@ library
   }
 
   test_nameOffset_class_setter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {
   set foo(int x) {}
 }
@@ -30792,7 +30740,7 @@ library
   }
 
   test_nameOffset_class_typeParameter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {}
 ''');
     checkElementText(library, r'''
@@ -30809,7 +30757,7 @@ library
   }
 
   test_nameOffset_extension_typeParameter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 extension E<T> on int {}
 ''');
     checkElementText(library, r'''
@@ -30824,7 +30772,7 @@ library
   }
 
   test_nameOffset_function_functionTypedFormal_parameter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 void f(void f<U>(int a)) {}
 ''');
     checkElementText(library, r'''
@@ -30845,7 +30793,7 @@ library
   }
 
   test_nameOffset_function_functionTypedFormal_parameter2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 void f({required void f<U>(int a)}) {}
 ''');
     checkElementText(library, r'''
@@ -30866,7 +30814,7 @@ library
   }
 
   test_nameOffset_function_typeParameter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 void f<T>() {}
 ''');
     checkElementText(library, r'''
@@ -30881,7 +30829,7 @@ library
   }
 
   test_nameOffset_functionTypeAlias_typeParameter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef void F<T>();
 ''');
     checkElementText(library, r'''
@@ -30899,7 +30847,7 @@ library
   }
 
   test_nameOffset_genericTypeAlias_typeParameter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<T> = void Function();
 ''');
     checkElementText(library, r'''
@@ -30917,7 +30865,7 @@ library
   }
 
   test_nameOffset_mixin_typeParameter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 mixin M<T> {}
 ''');
     checkElementText(library, r'''
@@ -30936,7 +30884,7 @@ library
   }
 
   test_nameOffset_unit_getter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 int get foo => 0;
 ''');
     checkElementText(library, r'''
@@ -30952,7 +30900,7 @@ library
   }
 
   test_nested_generic_functions_in_generic_class_with_function_typed_params() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T, U> {
   void g<V, W>() {
     void h<X, Y>(void p(T t, U u, V v, W w, X x, Y y)) {
@@ -30982,7 +30930,7 @@ library
   }
 
   test_nested_generic_functions_in_generic_class_with_local_variables() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T, U> {
   void g<V, W>() {
     void h<X, Y>() {
@@ -31018,7 +30966,7 @@ library
   }
 
   test_nested_generic_functions_with_function_typed_param() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f<T, U>() {
   void g<V, W>() {
     void h<X, Y>(void p(T t, U u, V v, W w, X x, Y y)) {
@@ -31039,7 +30987,7 @@ library
   }
 
   test_nested_generic_functions_with_local_variables() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f<T, U>() {
   void g<V, W>() {
     void h<X, Y>() {
@@ -31066,7 +31014,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_functionType_returnType() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F = G Function();
 typedef G = F Function();
 ''');
@@ -31086,7 +31034,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_functionType_returnType_viaInterfaceType() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F = List<F> Function();
 ''');
     checkElementText(library, r'''
@@ -31101,7 +31049,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_self() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F<T extends F> = void Function();
 ''');
     checkElementText(library, r'''
@@ -31120,7 +31068,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_simple_no_bounds() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F<T> = void Function();
 ''');
     checkElementText(library, r'''
@@ -31138,7 +31086,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_simple_non_generic() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F = void Function();
 ''');
     checkElementText(library, r'''
@@ -31153,7 +31101,7 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_self() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F<T extends F> = List<int>;
 ''');
     checkElementText(library, r'''
@@ -31170,7 +31118,7 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_viaInterfaceType() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F = List<F>;
 ''');
     checkElementText(library, r'''
@@ -31183,7 +31131,7 @@ library
   }
 
   test_nonSynthetic_class_field() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   int foo = 0;
 }
@@ -31218,7 +31166,7 @@ library
   }
 
   test_nonSynthetic_class_getter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   int get foo => 0;
 }
@@ -31246,7 +31194,7 @@ library
   }
 
   test_nonSynthetic_class_setter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class C {
   set foo(int value) {}
 }
@@ -31278,7 +31226,7 @@ library
   }
 
   test_nonSynthetic_enum() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 enum E {
   a, b
 }
@@ -31361,7 +31309,7 @@ library
   }
 
   test_nonSynthetic_extension_getter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 extension E on int {
   int get foo => 0;
 }
@@ -31387,7 +31335,7 @@ library
   }
 
   test_nonSynthetic_extension_setter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 extension E on int {
   set foo(int value) {}
 }
@@ -31417,7 +31365,7 @@ library
   }
 
   test_nonSynthetic_mixin_field() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -31454,7 +31402,7 @@ library
   }
 
   test_nonSynthetic_mixin_getter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 mixin M {
   int get foo => 0;
 }
@@ -31484,7 +31432,7 @@ library
   }
 
   test_nonSynthetic_mixin_setter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 mixin M {
   set foo(int value) {}
 }
@@ -31518,7 +31466,7 @@ library
   }
 
   test_nonSynthetic_unit_getter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 int get foo => 0;
 ''');
     checkElementText(
@@ -31539,7 +31487,7 @@ library
   }
 
   test_nonSynthetic_unit_getterSetter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 int get foo => 0;
 set foo(int value) {}
 ''');
@@ -31568,7 +31516,7 @@ library
   }
 
   test_nonSynthetic_unit_setter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 set foo(int value) {}
 ''');
     checkElementText(
@@ -31593,7 +31541,7 @@ library
   }
 
   test_nonSynthetic_unit_variable() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 int foo = 0;
 ''');
     checkElementText(
@@ -31621,7 +31569,7 @@ library
   }
 
   test_parameter() async {
-    var library = await checkLibrary('void main(int p) {}');
+    var library = await buildLibrary('void main(int p) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -31635,7 +31583,7 @@ library
   }
 
   test_parameter_covariant_explicit_named() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   void m({covariant A a}) {}
 }
@@ -31657,7 +31605,7 @@ library
   }
 
   test_parameter_covariant_explicit_positional() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   void m([covariant A a]) {}
 }
@@ -31679,7 +31627,7 @@ library
   }
 
   test_parameter_covariant_explicit_required() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   void m(covariant A a) {}
 }
@@ -31701,7 +31649,7 @@ library
   }
 
   test_parameter_covariant_inherited() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {
   void f(covariant T t) {}
 }
@@ -31745,7 +31693,7 @@ library
   }
 
   test_parameter_covariant_inherited_named() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   void m({covariant A a}) {}
 }
@@ -31781,7 +31729,7 @@ library
   }
 
   test_parameter_parameters() async {
-    var library = await checkLibrary('class C { f(g(x, y)) {} }');
+    var library = await buildLibrary('class C { f(g(x, y)) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -31804,7 +31752,7 @@ library
   }
 
   test_parameter_parameters_in_generic_class() async {
-    var library = await checkLibrary('class C<A, B> { f(A g(B x)) {} }');
+    var library = await buildLibrary('class C<A, B> { f(A g(B x)) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -31830,7 +31778,7 @@ library
   }
 
   test_parameter_return_type() async {
-    var library = await checkLibrary('class C { f(int g()) {} }');
+    var library = await buildLibrary('class C { f(int g()) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -31848,7 +31796,7 @@ library
   }
 
   test_parameter_return_type_void() async {
-    var library = await checkLibrary('class C { f(void g()) {} }');
+    var library = await buildLibrary('class C { f(void g()) {} }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -31866,7 +31814,7 @@ library
   }
 
   test_parameter_typeParameters() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 void f(T a<T, U>(U u)) {}
 ''');
     checkElementText(library, r'''
@@ -31890,7 +31838,7 @@ library
   test_parameterTypeNotInferred_constructor() async {
     // Strong mode doesn't do type inference on constructor parameters, so it's
     // ok that we don't store inferred type info for them in summaries.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   C.positional([x = 1]);
   C.named({x: 1});
@@ -31928,7 +31876,7 @@ library
   test_parameterTypeNotInferred_initializingFormal() async {
     // Strong mode doesn't do type inference on initializing formals, so it's
     // ok that we don't store inferred type info for them in summaries.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   var x;
   C.positional([this.x = 1]);
@@ -31980,7 +31928,7 @@ library
   test_parameterTypeNotInferred_staticMethod() async {
     // Strong mode doesn't do type inference on parameters of static methods,
     // so it's ok that we don't store inferred type info for them in summaries.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {
   static void positional([x = 1]) {}
   static void named({x: 1}) {}
@@ -32019,7 +31967,7 @@ library
     // Strong mode doesn't do type inference on parameters of top level
     // functions, so it's ok that we don't store inferred type info for them in
     // summaries.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void positional([x = 1]) {}
 void named({x: 1}) {}
 ''');
@@ -32049,7 +31997,7 @@ library
   }
 
   test_part_emptyUri() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 part '';
 class B extends A {}
 ''');
@@ -32070,7 +32018,7 @@ library
   }
 
   test_part_uri() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 part 'foo.dart';
 ''');
     expect(library.parts[0].uri, 'foo.dart');
@@ -32080,7 +32028,7 @@ part 'foo.dart';
     addSource('$testPackageLibPath/a.dart', 'part of my.lib;');
     addSource('$testPackageLibPath/b.dart', 'part of my.lib;');
     var library =
-        await checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+        await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
 library
   name: my.lib
@@ -32094,7 +32042,7 @@ library
 
   test_parts_invalidUri() async {
     addSource('$testPackageLibPath/foo/bar.dart', 'part of my.lib;');
-    var library = await checkLibrary('library my.lib; part "foo/";');
+    var library = await buildLibrary('library my.lib; part "foo/";');
     checkElementText(library, r'''
 library
   name: my.lib
@@ -32107,7 +32055,7 @@ library
 
   test_parts_invalidUri_nullStringValue() async {
     addSource('$testPackageLibPath/foo/bar.dart', 'part of my.lib;');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 library my.lib;
 part "${foo}/bar.dart";
 ''');
@@ -32120,7 +32068,7 @@ library
   }
 
   test_propagated_type_refers_to_closure() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f() {
   var x = () => 0;
   var y = x;
@@ -32136,7 +32084,7 @@ library
   }
 
   test_setter_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
@@ -32159,7 +32107,7 @@ library
   }
 
   test_setter_external() async {
-    var library = await checkLibrary('external void set x(int value);');
+    var library = await buildLibrary('external void set x(int value);');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32176,7 +32124,7 @@ library
   }
 
   test_setter_inferred_type_top_level_implicit_return() async {
-    var library = await checkLibrary('set f(int value) {}');
+    var library = await buildLibrary('set f(int value) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32194,7 +32142,7 @@ library
 
   test_setters() async {
     var library =
-        await checkLibrary('void set x(int value) {} set y(value) {}');
+        await buildLibrary('void set x(int value) {} set y(value) {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32218,7 +32166,7 @@ library
   }
 
   test_syntheticFunctionType_genericClosure() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 final v = f() ? <T>(T t) => 0 : <T>(T t) => 1;
 bool f() => true;
 ''');
@@ -32238,7 +32186,7 @@ library
   }
 
   test_syntheticFunctionType_genericClosure_inGenericFunction() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f<T, U>(bool b) {
   final v = b ? <V>(T t, U u, V v) => 0 : <V>(T t, U u, V v) => 1;
 }
@@ -32259,7 +32207,7 @@ library
   }
 
   test_syntheticFunctionType_inGenericClass() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T, U> {
   var v = f() ? (T t, U u) => 0 : (T t, U u) => 1;
 }
@@ -32295,7 +32243,7 @@ library
   }
 
   test_syntheticFunctionType_inGenericFunction() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void f<T, U>(bool b) {
   var v = b ? (T t, U u) => 0 : (T t, U u) => 1;
 }
@@ -32316,7 +32264,7 @@ library
   }
 
   test_syntheticFunctionType_noArguments() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 final v = f() ? () => 0 : () => 1;
 bool f() => true;
 ''');
@@ -32336,7 +32284,7 @@ library
   }
 
   test_syntheticFunctionType_withArguments() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 final v = f() ? (int x, String y) => 0 : (int x, String y) => 1;
 bool f() => true;
 ''');
@@ -32356,7 +32304,7 @@ library
   }
 
   test_top_level_variable_external() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 external int i;
 ''');
     checkElementText(library, r'''
@@ -32377,7 +32325,7 @@ library
   }
 
   test_type_arguments_explicit_dynamic_dynamic() async {
-    var library = await checkLibrary('Map<dynamic, dynamic> m;');
+    var library = await buildLibrary('Map<dynamic, dynamic> m;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32396,7 +32344,7 @@ library
   }
 
   test_type_arguments_explicit_dynamic_int() async {
-    var library = await checkLibrary('Map<dynamic, int> m;');
+    var library = await buildLibrary('Map<dynamic, int> m;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32415,7 +32363,7 @@ library
   }
 
   test_type_arguments_explicit_String_dynamic() async {
-    var library = await checkLibrary('Map<String, dynamic> m;');
+    var library = await buildLibrary('Map<String, dynamic> m;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32434,7 +32382,7 @@ library
   }
 
   test_type_arguments_explicit_String_int() async {
-    var library = await checkLibrary('Map<String, int> m;');
+    var library = await buildLibrary('Map<String, int> m;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32453,7 +32401,7 @@ library
   }
 
   test_type_arguments_implicit() async {
-    var library = await checkLibrary('Map m;');
+    var library = await buildLibrary('Map m;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32472,7 +32420,7 @@ library
   }
 
   test_type_dynamic() async {
-    var library = await checkLibrary('dynamic d;');
+    var library = await buildLibrary('dynamic d;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32491,7 +32439,7 @@ library
   }
 
   test_type_inference_assignmentExpression_references_onTopLevelVariable() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 var a = () {
   b += 0;
   return 0;
@@ -32525,8 +32473,8 @@ library
   }
 
   test_type_inference_based_on_loadLibrary() async {
-    addLibrarySource('$testPackageLibPath/a.dart', '');
-    var library = await checkLibrary('''
+    addSource('$testPackageLibPath/a.dart', '');
+    var library = await buildLibrary('''
 import 'a.dart' deferred as a;
 var x = a.loadLibrary;
 ''');
@@ -32550,12 +32498,12 @@ library
   }
 
   test_type_inference_classField_fromNullSafe_toLegacy() async {
-    addLibrarySource('$testPackageLibPath/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class E {
   static final a = 0;
 }
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 // @dart = 2.9
 import 'a.dart';
 final v = E.a;
@@ -32575,7 +32523,7 @@ library
   }
 
   test_type_inference_closure_with_function_typed_parameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 var x = (int f(String x)) => 0;
 ''');
     checkElementText(library, r'''
@@ -32596,7 +32544,7 @@ library
   }
 
   test_type_inference_closure_with_function_typed_parameter_new() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 var x = (int Function(String) f) => 0;
 ''');
     checkElementText(library, r'''
@@ -32617,9 +32565,9 @@ library
   }
 
   test_type_inference_depends_on_exported_variable() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'export "b.dart";');
-    addLibrarySource('$testPackageLibPath/b.dart', 'var x = 0;');
-    var library = await checkLibrary('''
+    addSource('$testPackageLibPath/a.dart', 'export "b.dart";');
+    addSource('$testPackageLibPath/b.dart', 'var x = 0;');
+    var library = await buildLibrary('''
 import 'a.dart';
 var y = x;
 ''');
@@ -32643,7 +32591,7 @@ library
   }
 
   test_type_inference_field_depends_onFieldFormal() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   T value;
 
@@ -32697,7 +32645,7 @@ library
   }
 
   test_type_inference_field_depends_onFieldFormal_withMixinApp() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   T value;
 
@@ -32788,7 +32736,7 @@ library
   }
 
   test_type_inference_fieldFormal_depends_onField() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A<T> {
   var f = 0;
   A(this.f);
@@ -32823,7 +32771,7 @@ library
   }
 
   test_type_inference_instanceCreation_notGeneric() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   A(_);
 }
@@ -32866,9 +32814,9 @@ library
   }
 
   test_type_inference_multiplyDefinedElement() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
-    addLibrarySource('$testPackageLibPath/b.dart', 'class C {}');
-    var library = await checkLibrary('''
+    addSource('$testPackageLibPath/a.dart', 'class C {}');
+    addSource('$testPackageLibPath/b.dart', 'class C {}');
+    var library = await buildLibrary('''
 import 'a.dart';
 import 'b.dart';
 var v = C;
@@ -32894,7 +32842,7 @@ library
   }
 
   test_type_inference_nested_function() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 var x = (t) => (u) => t + u;
 ''');
     checkElementText(library, r'''
@@ -32915,7 +32863,7 @@ library
   }
 
   test_type_inference_nested_function_with_parameter_types() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 var x = (int t) => (int u) => t + u;
 ''');
     checkElementText(library, r'''
@@ -32936,7 +32884,7 @@ library
   }
 
   test_type_inference_of_closure_with_default_value() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 var x = ([y: 0]) => y;
 ''');
     checkElementText(library, r'''
@@ -32957,7 +32905,7 @@ library
   }
 
   test_type_inference_topVariable_depends_onFieldFormal() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 
 class B extends A {}
@@ -33013,7 +32961,7 @@ library
   }
 
   test_type_inference_using_extension_getter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 extension on String {
   int get foo => 0;
 }
@@ -33046,7 +32994,7 @@ library
   }
 
   test_type_invalid_topLevelVariableElement_asType() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T extends V> {}
 typedef V F(V p);
 V f(V p) {}
@@ -33102,7 +33050,7 @@ library
   }
 
   test_type_invalid_topLevelVariableElement_asTypeArgument() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 var V;
 static List<V> V2;
 ''', allowErrors: true);
@@ -33133,7 +33081,7 @@ library
   }
 
   test_type_invalid_typeParameter_asPrefix() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> {
   m(T.K p) {}
 }
@@ -33158,7 +33106,7 @@ library
   }
 
   test_type_invalid_unresolvedPrefix() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 p.C v;
 ''', allowErrors: true);
     checkElementText(library, r'''
@@ -33180,7 +33128,7 @@ library
 
   test_type_never_disableNnbd() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('Never d;');
+    var library = await buildLibrary('Never d;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -33199,7 +33147,7 @@ library
   }
 
   test_type_never_enableNnbd() async {
-    var library = await checkLibrary('Never d;');
+    var library = await buildLibrary('Never d;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -33218,7 +33166,7 @@ library
   }
 
   test_type_param_ref_nullability_none() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> {
   T t;
 }
@@ -33248,7 +33196,7 @@ library
   }
 
   test_type_param_ref_nullability_question() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> {
   T? t;
 }
@@ -33279,7 +33227,7 @@ library
 
   test_type_param_ref_nullability_star() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> {
   T t;
 }
@@ -33309,7 +33257,7 @@ library
   }
 
   test_type_reference_lib_to_lib() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C {}
 enum E { v }
 typedef F();
@@ -33406,7 +33354,7 @@ library
     addSource('$testPackageLibPath/a.dart',
         'part of l; class C {} enum E { v } typedef F();');
     var library =
-        await checkLibrary('library l; part "a.dart"; C c; E e; F f;');
+        await buildLibrary('library l; part "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   name: l
@@ -33499,7 +33447,7 @@ library
 
   test_type_reference_part_to_lib() async {
     addSource('$testPackageLibPath/a.dart', 'part of l; C c; E e; F f;');
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'library l; part "a.dart"; class C {} enum E { v } typedef F();');
     checkElementText(library, r'''
 library
@@ -33596,7 +33544,7 @@ library
         'part of l; class C {} enum E { v } typedef F();');
     addSource('$testPackageLibPath/b.dart', 'part of l; C c; E e; F f;');
     var library =
-        await checkLibrary('library l; part "a.dart"; part "b.dart";');
+        await buildLibrary('library l; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
 library
   name: l
@@ -33691,7 +33639,7 @@ library
   test_type_reference_part_to_part() async {
     addSource('$testPackageLibPath/a.dart',
         'part of l; class C {} enum E { v } typedef F(); C c; E e; F f;');
-    var library = await checkLibrary('library l; part "a.dart";');
+    var library = await buildLibrary('library l; part "a.dart";');
     checkElementText(library, r'''
 library
   name: l
@@ -33783,7 +33731,7 @@ library
   }
 
   test_type_reference_to_class() async {
-    var library = await checkLibrary('class C {} C c;');
+    var library = await buildLibrary('class C {} C c;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -33806,7 +33754,7 @@ library
   }
 
   test_type_reference_to_class_with_type_arguments() async {
-    var library = await checkLibrary('class C<T, U> {} C<int, String> c;');
+    var library = await buildLibrary('class C<T, U> {} C<int, String> c;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -33834,7 +33782,7 @@ library
   }
 
   test_type_reference_to_class_with_type_arguments_implicit() async {
-    var library = await checkLibrary('class C<T, U> {} C c;');
+    var library = await buildLibrary('class C<T, U> {} C c;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -33862,7 +33810,7 @@ library
   }
 
   test_type_reference_to_enum() async {
-    var library = await checkLibrary('enum E { v } E e;');
+    var library = await buildLibrary('enum E { v } E e;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -33920,9 +33868,9 @@ library
   }
 
   test_type_reference_to_import() async {
-    addLibrarySource(
+    addSource(
         '$testPackageLibPath/a.dart', 'class C {} enum E { v } typedef F();');
-    var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
+    var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
@@ -33964,10 +33912,10 @@ library
   }
 
   test_type_reference_to_import_export() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'export "b.dart";');
-    addLibrarySource(
+    addSource('$testPackageLibPath/a.dart', 'export "b.dart";');
+    addSource(
         '$testPackageLibPath/b.dart', 'class C {} enum E { v } typedef F();');
-    var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
+    var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
@@ -34009,11 +33957,11 @@ library
   }
 
   test_type_reference_to_import_export_export() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'export "b.dart";');
-    addLibrarySource('$testPackageLibPath/b.dart', 'export "c.dart";');
-    addLibrarySource(
+    addSource('$testPackageLibPath/a.dart', 'export "b.dart";');
+    addSource('$testPackageLibPath/b.dart', 'export "c.dart";');
+    addSource(
         '$testPackageLibPath/c.dart', 'class C {} enum E { v } typedef F();');
-    var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
+    var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
@@ -34055,11 +34003,11 @@ library
   }
 
   test_type_reference_to_import_export_export_in_subdirs() async {
-    addLibrarySource('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
-    addLibrarySource('$testPackageLibPath/a/b/b.dart', 'export "../c/c.dart";');
-    addLibrarySource('$testPackageLibPath/a/c/c.dart',
+    addSource('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
+    addSource('$testPackageLibPath/a/b/b.dart', 'export "../c/c.dart";');
+    addSource('$testPackageLibPath/a/c/c.dart',
         'class C {} enum E { v } typedef F();');
-    var library = await checkLibrary('import "a/a.dart"; C c; E e; F f;');
+    var library = await buildLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
@@ -34101,10 +34049,10 @@ library
   }
 
   test_type_reference_to_import_export_in_subdirs() async {
-    addLibrarySource('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
-    addLibrarySource('$testPackageLibPath/a/b/b.dart',
+    addSource('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
+    addSource('$testPackageLibPath/a/b/b.dart',
         'class C {} enum E { v } typedef F();');
-    var library = await checkLibrary('import "a/a.dart"; C c; E e; F f;');
+    var library = await buildLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
@@ -34146,10 +34094,10 @@ library
   }
 
   test_type_reference_to_import_part() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'library l; part "b.dart";');
+    addSource('$testPackageLibPath/a.dart', 'library l; part "b.dart";');
     addSource('$testPackageLibPath/b.dart',
         'part of l; class C {} enum E { v } typedef F();');
-    var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
+    var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
@@ -34191,11 +34139,11 @@ library
   }
 
   test_type_reference_to_import_part2() async {
-    addLibrarySource('$testPackageLibPath/a.dart',
+    addSource('$testPackageLibPath/a.dart',
         'library l; part "p1.dart"; part "p2.dart";');
     addSource('$testPackageLibPath/p1.dart', 'part of l; class C1 {}');
     addSource('$testPackageLibPath/p2.dart', 'part of l; class C2 {}');
-    var library = await checkLibrary('import "a.dart"; C1 c1; C2 c2;');
+    var library = await buildLibrary('import "a.dart"; C1 c1; C2 c2;');
     checkElementText(library, r'''
 library
   imports
@@ -34225,11 +34173,10 @@ library
   }
 
   test_type_reference_to_import_part_in_subdir() async {
-    addLibrarySource(
-        '$testPackageLibPath/a/b.dart', 'library l; part "c.dart";');
+    addSource('$testPackageLibPath/a/b.dart', 'library l; part "c.dart";');
     addSource('$testPackageLibPath/a/c.dart',
         'part of l; class C {} enum E { v } typedef F();');
-    var library = await checkLibrary('import "a/b.dart"; C c; E e; F f;');
+    var library = await buildLibrary('import "a/b.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
@@ -34271,9 +34218,9 @@ library
   }
 
   test_type_reference_to_import_relative() async {
-    addLibrarySource(
+    addSource(
         '$testPackageLibPath/a.dart', 'class C {} enum E { v } typedef F();');
-    var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
+    var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
   imports
@@ -34315,7 +34262,7 @@ library
   }
 
   test_type_reference_to_typedef() async {
-    var library = await checkLibrary('typedef F(); F f;');
+    var library = await buildLibrary('typedef F(); F f;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -34343,7 +34290,7 @@ library
 
   test_type_reference_to_typedef_with_type_arguments() async {
     var library =
-        await checkLibrary('typedef U F<T, U>(T t); F<int, String> f;');
+        await buildLibrary('typedef U F<T, U>(T t); F<int, String> f;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -34387,7 +34334,7 @@ library
   }
 
   test_type_reference_to_typedef_with_type_arguments_implicit() async {
-    var library = await checkLibrary('typedef U F<T, U>(T t); F f;');
+    var library = await buildLibrary('typedef U F<T, U>(T t); F f;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -34431,7 +34378,7 @@ library
   }
 
   test_type_unresolved() async {
-    var library = await checkLibrary('C c;', allowErrors: true);
+    var library = await buildLibrary('C c;', allowErrors: true);
     checkElementText(library, r'''
 library
   definingUnit
@@ -34450,7 +34397,7 @@ library
   }
 
   test_type_unresolved_prefixed() async {
-    var library = await checkLibrary('import "dart:core" as core; core.C c;',
+    var library = await buildLibrary('import "dart:core" as core; core.C c;',
         allowErrors: true);
     checkElementText(library, r'''
 library
@@ -34472,7 +34419,7 @@ library
   }
 
   test_typeAlias_parameter_typeParameters() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef void F(T a<T, U>(U u));
 ''');
     checkElementText(library, r'''
@@ -34496,7 +34443,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_function_contravariant() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<T> = void Function(T);
 ''');
     checkElementText(library, r'''
@@ -34517,7 +34464,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_function_contravariant2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F1<T> = void Function(T);
 typedef F2<T> = F1<T> Function();
 ''');
@@ -34549,7 +34496,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_function_covariant() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<T> = T Function();
 ''');
     checkElementText(library, r'''
@@ -34567,7 +34514,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_function_covariant2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<T> = List<T> Function();
 ''');
     checkElementText(library, r'''
@@ -34585,7 +34532,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_function_covariant3() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F1<T> = T Function();
 typedef F2<T> = F1<T> Function();
 ''');
@@ -34614,7 +34561,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_function_covariant4() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F1<T> = void Function(T);
 typedef F2<T> = void Function(F1<T>);
 ''');
@@ -34649,7 +34596,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_function_invalid() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {}
 typedef F<T> = void Function(A<int>);
 ''');
@@ -34675,7 +34622,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_function_invalid2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F = void Function();
 typedef G<T> = void Function(F<int>);
 ''');
@@ -34702,7 +34649,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_function_invariant() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<T> = T Function(T);
 ''');
     checkElementText(library, r'''
@@ -34723,7 +34670,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_function_invariant2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F1<T> = T Function();
 typedef F2<T> = F1<T> Function(T);
 ''');
@@ -34755,7 +34702,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_function_unrelated() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef F<T> = void Function(int);
 ''');
     checkElementText(library, r'''
@@ -34776,7 +34723,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_contravariant() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A<T> = List<void Function(T)>;
 ''');
     checkElementText(library, r'''
@@ -34792,7 +34739,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_contravariant2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A<T> = void Function(T);
 typedef B<T> = List<A<T>>;
 ''');
@@ -34819,7 +34766,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_covariant() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A<T> = List<T>;
 ''');
     checkElementText(library, r'''
@@ -34835,7 +34782,7 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_covariant2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A<T> = Map<int, T>;
 typedef B<T> = List<A<T>>;
 ''');
@@ -34857,7 +34804,7 @@ library
   }
 
   test_typedef_function_generic() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);');
     checkElementText(library, r'''
 library
@@ -34883,7 +34830,7 @@ library
   }
 
   test_typedef_function_generic_asFieldType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef Foo<S> = S Function<T>(T x);
 class A {
   Foo<int> f;
@@ -34935,7 +34882,7 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_param_type_name_included() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F = void Function(C c);
 class C<T extends C<T>> {}
 ''');
@@ -34964,7 +34911,7 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_param_type_name_omitted() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F = void Function(C);
 class C<T extends C<T>> {}
 ''');
@@ -34993,7 +34940,7 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_return_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef F = C Function();
 class C<T extends C<T>> {}
 ''');
@@ -35018,7 +34965,7 @@ library
 
   test_typedef_function_typeParameters_f_bound_simple() async {
     var library =
-        await checkLibrary('typedef F<T extends U, U> = U Function(T t);');
+        await buildLibrary('typedef F<T extends U, U> = U Function(T t);');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35042,7 +34989,7 @@ library
   test_typedef_function_typeParameters_f_bound_simple_legacy() async {
     featureSet = FeatureSets.language_2_9;
     var library =
-        await checkLibrary('typedef F<T extends U, U> = U Function(T t);');
+        await buildLibrary('typedef F<T extends U, U> = U Function(T t);');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35064,7 +35011,7 @@ library
   }
 
   test_typedef_legacy_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
@@ -35085,7 +35032,7 @@ library
   test_typedef_legacy_notSimplyBounded_dependency_via_param_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef void F(C c);
 class C<T extends C<T>> {}
 ''');
@@ -35114,7 +35061,7 @@ library
   test_typedef_legacy_notSimplyBounded_dependency_via_return_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef C F();
 class C<T extends C<T>> {}
 ''');
@@ -35138,7 +35085,7 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_self() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef void F<T extends F>();
 ''');
     checkElementText(library, r'''
@@ -35157,7 +35104,7 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_simple_because_non_generic() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 typedef void F();
 ''');
     checkElementText(library, r'''
@@ -35172,7 +35119,7 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_simple_no_bounds() async {
-    var library = await checkLibrary('typedef void F<T>();');
+    var library = await buildLibrary('typedef void F<T>();');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35188,7 +35135,7 @@ library
   }
 
   test_typedef_legacy_parameter_hasImplicitType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef void F(int a, b, [int c, d]);
 ''');
     var F = library.definingCompilationUnit.typeAliases.single;
@@ -35201,7 +35148,7 @@ typedef void F(int a, b, [int c, d]);
   }
 
   test_typedef_legacy_parameter_parameters() async {
-    var library = await checkLibrary('typedef F(g(x, y));');
+    var library = await buildLibrary('typedef F(g(x, y));');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35222,7 +35169,7 @@ library
   }
 
   test_typedef_legacy_parameter_parameters_in_generic_class() async {
-    var library = await checkLibrary('typedef F<A, B>(A g(B x));');
+    var library = await buildLibrary('typedef F<A, B>(A g(B x));');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35246,7 +35193,7 @@ library
   }
 
   test_typedef_legacy_parameter_return_type() async {
-    var library = await checkLibrary('typedef F(int g());');
+    var library = await buildLibrary('typedef F(int g());');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35262,7 +35209,7 @@ library
   }
 
   test_typedef_legacy_parameter_type() async {
-    var library = await checkLibrary('typedef F(int i);');
+    var library = await buildLibrary('typedef F(int i);');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35278,7 +35225,7 @@ library
   }
 
   test_typedef_legacy_parameter_type_generic() async {
-    var library = await checkLibrary('typedef F<T>(T t);');
+    var library = await buildLibrary('typedef F<T>(T t);');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35297,7 +35244,7 @@ library
   }
 
   test_typedef_legacy_parameters() async {
-    var library = await checkLibrary('typedef F(x, y);');
+    var library = await buildLibrary('typedef F(x, y);');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35315,7 +35262,7 @@ library
   }
 
   test_typedef_legacy_parameters_named() async {
-    var library = await checkLibrary('typedef F({y, z, x});');
+    var library = await buildLibrary('typedef F({y, z, x});');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35335,7 +35282,7 @@ library
   }
 
   test_typedef_legacy_return_type() async {
-    var library = await checkLibrary('typedef int F();');
+    var library = await buildLibrary('typedef int F();');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35348,7 +35295,7 @@ library
   }
 
   test_typedef_legacy_return_type_generic() async {
-    var library = await checkLibrary('typedef T F<T>();');
+    var library = await buildLibrary('typedef T F<T>();');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35364,7 +35311,7 @@ library
   }
 
   test_typedef_legacy_return_type_implicit() async {
-    var library = await checkLibrary('typedef F();');
+    var library = await buildLibrary('typedef F();');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35377,7 +35324,7 @@ library
   }
 
   test_typedef_legacy_return_type_void() async {
-    var library = await checkLibrary('typedef void F();');
+    var library = await buildLibrary('typedef void F();');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35390,7 +35337,7 @@ library
   }
 
   test_typedef_legacy_typeParameters() async {
-    var library = await checkLibrary('typedef U F<T, U>(T t);');
+    var library = await buildLibrary('typedef U F<T, U>(T t);');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35411,7 +35358,7 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'typedef U F<T extends Object, U extends D>(T t); class D {}');
     checkElementText(library, r'''
 library
@@ -35439,7 +35386,7 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound_recursive() async {
-    var library = await checkLibrary('typedef void F<T extends F>();');
+    var library = await buildLibrary('typedef void F<T extends F>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
 library
@@ -35457,7 +35404,7 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound_recursive2() async {
-    var library = await checkLibrary('typedef void F<T extends List<F>>();');
+    var library = await buildLibrary('typedef void F<T extends List<F>>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
 library
@@ -35475,7 +35422,7 @@ library
   }
 
   test_typedef_legacy_typeParameters_f_bound_complex() async {
-    var library = await checkLibrary('typedef U F<T extends List<U>, U>(T t);');
+    var library = await buildLibrary('typedef U F<T extends List<U>, U>(T t);');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35498,7 +35445,7 @@ library
 
   test_typedef_legacy_typeParameters_f_bound_complex_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('typedef U F<T extends List<U>, U>(T t);');
+    var library = await buildLibrary('typedef U F<T extends List<U>, U>(T t);');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35520,7 +35467,7 @@ library
   }
 
   test_typedef_legacy_typeParameters_f_bound_simple() async {
-    var library = await checkLibrary('typedef U F<T extends U, U>(T t);');
+    var library = await buildLibrary('typedef U F<T extends U, U>(T t);');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35543,7 +35490,7 @@ library
 
   test_typedef_legacy_typeParameters_f_bound_simple_legacy() async {
     featureSet = FeatureSets.language_2_9;
-    var library = await checkLibrary('typedef U F<T extends U, U>(T t);');
+    var library = await buildLibrary('typedef U F<T extends U, U>(T t);');
     checkElementText(library, r'''
 library
   definingUnit
@@ -35569,7 +35516,7 @@ library
     reason: 'Type dynamic is special, no support for its aliases yet',
   )
   test_typedef_nonFunction_aliasElement_dynamic() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A = dynamic;
 void f(A a) {}
 ''');
@@ -35581,7 +35528,7 @@ void f(dynamic<aliasElement: self::@typeAlias::A> a) {}
   }
 
   test_typedef_nonFunction_aliasElement_functionType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A1 = void Function();
 typedef A2<R> = R Function();
 void f1(A1 a) {}
@@ -35622,7 +35569,7 @@ library
   }
 
   test_typedef_nonFunction_aliasElement_interfaceType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A1 = List<int>;
 typedef A2<T, U> = Map<T, U>;
 void f1(A1 a) {}
@@ -35666,7 +35613,7 @@ library
     reason: 'Type Never is special, no support for its aliases yet',
   )
   test_typedef_nonFunction_aliasElement_never() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A1 = Never;
 typedef A2<T> = Never?;
 void f1(A1 a) {}
@@ -35682,7 +35629,7 @@ void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
   }
 
   test_typedef_nonFunction_aliasElement_typeParameterType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A<T> = T;
 void f<U>(A<U> a) {}
 ''');
@@ -35715,7 +35662,7 @@ library
     reason: 'Type void is special, no support for its aliases yet',
   )
   test_typedef_nonFunction_aliasElement_void() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A = void;
 void f(A a) {}
 ''');
@@ -35727,7 +35674,7 @@ void f(void<aliasElement: self::@typeAlias::A> a) {}
   }
 
   test_typedef_nonFunction_asInterfaceType_interfaceType_none() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X<T> = A<int, T>;
 class A<T, U> {}
 class B implements X<String> {}
@@ -35762,7 +35709,7 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_interfaceType_question() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X<T> = A<T>?;
 class A<T> {}
 class B {}
@@ -35801,7 +35748,7 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_interfaceType_question2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X<T> = A<T?>;
 class A<T> {}
 class B {}
@@ -35844,7 +35791,7 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_Never_none() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = Never;
 class A implements X {}
 ''');
@@ -35862,7 +35809,7 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_Null_none() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = Null;
 class A implements X {}
 ''');
@@ -35880,7 +35827,7 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_typeParameterType() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X<T> = T;
 class A {}
 class B {}
@@ -35915,7 +35862,7 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_void() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = void;
 class A {}
 class B {}
@@ -35944,7 +35891,7 @@ library
   }
 
   test_typedef_nonFunction_asMixinType_none() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = A<int>;
 class A<T> {}
 class B with X {}
@@ -35973,7 +35920,7 @@ library
   }
 
   test_typedef_nonFunction_asMixinType_question() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = A<int>?;
 class A<T> {}
 mixin M1 {}
@@ -36015,7 +35962,7 @@ library
   }
 
   test_typedef_nonFunction_asMixinType_question2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = A<int?>;
 class A<T> {}
 mixin M1 {}
@@ -36059,7 +36006,7 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_Never_none() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = Never;
 class A extends X {}
 ''');
@@ -36077,7 +36024,7 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_none() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = A<int>;
 class A<T> {}
 class B extends X {}
@@ -36107,7 +36054,7 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_none_viaTypeParameter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X<T> = T;
 class A<T> {}
 class B extends X<A<int>> {}
@@ -36142,7 +36089,7 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_Null_none() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = Null;
 class A extends X {}
 ''');
@@ -36160,7 +36107,7 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_question() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = A<int>?;
 class A<T> {}
 class D extends X {}
@@ -36185,7 +36132,7 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_question2() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = A<int?>;
 class A<T> {}
 class D extends X {}
@@ -36215,7 +36162,7 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_Never_none() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = Never;
 class A extends X {}
 ''');
@@ -36233,7 +36180,7 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_Null_none() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef X = Null;
 class A extends X {}
 ''');
@@ -36251,7 +36198,7 @@ library
   }
 
   test_typedef_nonFunction_using_dynamic() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A = dynamic;
 void f(A a) {}
 ''');
@@ -36272,7 +36219,7 @@ library
 
   test_typedef_nonFunction_using_interface_disabled() async {
     featureSet = FeatureSets.language_2_12;
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A = int;
 void f(A a) {}
 ''');
@@ -36297,7 +36244,7 @@ library
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A = int;
 void f(A a) {}
 ''');
@@ -36318,10 +36265,10 @@ library
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters_legacy() async {
-    newFile('/a.dart', content: r'''
+    newFile2('/a.dart', r'''
 typedef A = List<int>;
 ''');
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 // @dart = 2.9
 import 'a.dart';
 void f(A a) {}
@@ -36341,7 +36288,7 @@ library
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters_question() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A = int?;
 void f(A a) {}
 ''');
@@ -36362,7 +36309,7 @@ library
   }
 
   test_typedef_nonFunction_using_interface_withTypeParameters() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A<T> = Map<int, T>;
 void f(A<String> a) {}
 ''');
@@ -36388,7 +36335,7 @@ library
   }
 
   test_typedef_nonFunction_using_Never_none() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A = Never;
 void f(A a) {}
 ''');
@@ -36408,7 +36355,7 @@ library
   }
 
   test_typedef_nonFunction_using_Never_question() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A = Never?;
 void f(A a) {}
 ''');
@@ -36428,7 +36375,7 @@ library
   }
 
   test_typedef_nonFunction_using_typeParameter_none() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A<T> = T;
 void f1(A a) {}
 void f2(A<int> a) {}
@@ -36460,7 +36407,7 @@ library
   }
 
   test_typedef_nonFunction_using_typeParameter_question() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A<T> = T?;
 void f1(A a) {}
 void f2(A<int> a) {}
@@ -36492,7 +36439,7 @@ library
   }
 
   test_typedef_nonFunction_using_void() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 typedef A = void;
 void f(A a) {}
 ''');
@@ -36512,7 +36459,7 @@ library
   }
 
   test_typedefs() async {
-    var library = await checkLibrary('f() {} g() {}');
+    var library = await buildLibrary('f() {} g() {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -36525,7 +36472,7 @@ library
   }
 
   test_unit_implicitVariable_getterFirst() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 int get x => 0;
 void set x(int value) {}
 ''');
@@ -36547,7 +36494,7 @@ library
   }
 
   test_unit_implicitVariable_setterFirst() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 void set x(int value) {}
 int get x => 0;
 ''');
@@ -36569,7 +36516,7 @@ library
   }
 
   test_unit_variable_final_withSetter() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 final int foo = 0;
 set foo(int newValue) {}
 ''');
@@ -36591,7 +36538,7 @@ library
   }
 
   test_unresolved_annotation_instanceCreation_argument_super() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A(_);
 }
@@ -36631,7 +36578,7 @@ library
   }
 
   test_unresolved_annotation_instanceCreation_argument_this() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {
   const A(_);
 }
@@ -36672,7 +36619,7 @@ library
 
   test_unresolved_annotation_namedConstructorCall_noClass() async {
     var library =
-        await checkLibrary('@foo.bar() class C {}', allowErrors: true);
+        await buildLibrary('@foo.bar() class C {}', allowErrors: true);
     checkElementText(library, r'''
 library
   definingUnit
@@ -36704,7 +36651,7 @@ library
 
   test_unresolved_annotation_namedConstructorCall_noConstructor() async {
     var library =
-        await checkLibrary('@String.foo() class C {}', allowErrors: true);
+        await buildLibrary('@String.foo() class C {}', allowErrors: true);
     checkElementText(library, r'''
 library
   definingUnit
@@ -36735,7 +36682,7 @@ library
   }
 
   test_unresolved_annotation_prefixedIdentifier_badPrefix() async {
-    var library = await checkLibrary('@foo.bar class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo.bar class C {}', allowErrors: true);
     checkElementText(library, r'''
 library
   definingUnit
@@ -36763,7 +36710,7 @@ library
   }
 
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'import "dart:async" as foo; @foo.bar class C {}',
         allowErrors: true);
     checkElementText(library, r'''
@@ -36796,7 +36743,7 @@ library
 
   test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() async {
     var library =
-        await checkLibrary('@foo.bar.baz() class C {}', allowErrors: true);
+        await buildLibrary('@foo.bar.baz() class C {}', allowErrors: true);
     checkElementText(library, r'''
 library
   definingUnit
@@ -36832,7 +36779,7 @@ library
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noClass() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'import "dart:async" as foo; @foo.bar.baz() class C {}',
         allowErrors: true);
     checkElementText(library, r'''
@@ -36872,7 +36819,7 @@ library
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'import "dart:async" as foo; @foo.Future.bar() class C {}',
         allowErrors: true);
     checkElementText(library, r'''
@@ -36913,7 +36860,7 @@ library
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() async {
     var library =
-        await checkLibrary('@foo.bar() class C {}', allowErrors: true);
+        await buildLibrary('@foo.bar() class C {}', allowErrors: true);
     checkElementText(library, r'''
 library
   definingUnit
@@ -36944,7 +36891,7 @@ library
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() async {
-    var library = await checkLibrary(
+    var library = await buildLibrary(
         'import "dart:async" as foo; @foo.bar() class C {}',
         allowErrors: true);
     checkElementText(library, r'''
@@ -36979,7 +36926,7 @@ library
   }
 
   test_unresolved_annotation_simpleIdentifier() async {
-    var library = await checkLibrary('@foo class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo class C {}', allowErrors: true);
     checkElementText(library, r'''
 library
   definingUnit
@@ -36999,9 +36946,9 @@ library
   }
 
   test_unresolved_annotation_simpleIdentifier_multiplyDefined() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'const v = 0;');
-    addLibrarySource('$testPackageLibPath/b.dart', 'const v = 0;');
-    var library = await checkLibrary('''
+    addSource('$testPackageLibPath/a.dart', 'const v = 0;');
+    addSource('$testPackageLibPath/b.dart', 'const v = 0;');
+    var library = await buildLibrary('''
 import 'a.dart';
 import 'b.dart';
 
@@ -37030,7 +36977,7 @@ library
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
-    var library = await checkLibrary('@foo() class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo() class C {}', allowErrors: true);
     checkElementText(library, r'''
 library
   definingUnit
@@ -37053,7 +37000,7 @@ library
   }
 
   test_unresolved_export() async {
-    var library = await checkLibrary("export 'foo.dart';", allowErrors: true);
+    var library = await buildLibrary("export 'foo.dart';", allowErrors: true);
     checkElementText(library, r'''
 library
   exports
@@ -37063,7 +37010,7 @@ library
   }
 
   test_unresolved_import() async {
-    var library = await checkLibrary("import 'foo.dart';", allowErrors: true);
+    var library = await buildLibrary("import 'foo.dart';", allowErrors: true);
     var importedLibrary = library.imports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
@@ -37077,7 +37024,7 @@ library
   }
 
   test_unresolved_part() async {
-    var library = await checkLibrary("part 'foo.dart';", allowErrors: true);
+    var library = await buildLibrary("part 'foo.dart';", allowErrors: true);
     checkElementText(library, r'''
 library
   definingUnit
@@ -37087,7 +37034,7 @@ library
   }
 
   test_unused_type_parameter() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class C<T> {
   void f() {}
 }
@@ -37131,7 +37078,7 @@ library
   }
 
   test_variable() async {
-    var library = await checkLibrary('int x = 0;');
+    var library = await buildLibrary('int x = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37150,7 +37097,7 @@ library
   }
 
   test_variable_const() async {
-    var library = await checkLibrary('const int i = 0;');
+    var library = await buildLibrary('const int i = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37168,7 +37115,7 @@ library
   }
 
   test_variable_const_late() async {
-    var library = await checkLibrary('late const int i = 0;');
+    var library = await buildLibrary('late const int i = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37186,7 +37133,7 @@ library
   }
 
   test_variable_documented() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
@@ -37211,7 +37158,7 @@ library
   }
 
   test_variable_final() async {
-    var library = await checkLibrary('final int x = 0;');
+    var library = await buildLibrary('final int x = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37229,7 +37176,7 @@ library
 part of my.lib;
 void set x(int _) {}
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 library my.lib;
 part 'a.dart';
 int get x => 42;''');
@@ -37263,7 +37210,7 @@ library
 part of my.lib;
 int get x => 42;
 ''');
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 library my.lib;
 part 'a.dart';
 void set x(int _) {}
@@ -37298,7 +37245,7 @@ library
     addSource(
         '$testPackageLibPath/b.dart', 'part of my.lib; void set x(int _) {}');
     var library =
-        await checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+        await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
 library
   name: my.lib
@@ -37326,7 +37273,7 @@ library
   }
 
   test_variable_implicit() async {
-    var library = await checkLibrary('int get x => 0;');
+    var library = await buildLibrary('int get x => 0;');
 
     // We intentionally don't check the text, because we want to test
     // requesting individual elements, not all accessors/variables at once.
@@ -37341,7 +37288,7 @@ library
   }
 
   test_variable_implicit_type() async {
-    var library = await checkLibrary('var x;');
+    var library = await buildLibrary('var x;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37360,7 +37307,7 @@ library
   }
 
   test_variable_inferred_type_implicit_initialized() async {
-    var library = await checkLibrary('var v = 0;');
+    var library = await buildLibrary('var v = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37379,7 +37326,7 @@ library
   }
 
   test_variable_initializer() async {
-    var library = await checkLibrary('int v = 0;');
+    var library = await buildLibrary('int v = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37398,7 +37345,7 @@ library
   }
 
   test_variable_initializer_final() async {
-    var library = await checkLibrary('final int v = 0;');
+    var library = await buildLibrary('final int v = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37412,7 +37359,7 @@ library
   }
 
   test_variable_initializer_final_untyped() async {
-    var library = await checkLibrary('final v = 0;');
+    var library = await buildLibrary('final v = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37426,7 +37373,7 @@ library
   }
 
   test_variable_initializer_staticMethod_ofExtension() async {
-    var library = await checkLibrary('''
+    var library = await buildLibrary('''
 class A {}
 extension E on A {
   static int f() => 0;
@@ -37461,7 +37408,7 @@ library
   }
 
   test_variable_initializer_untyped() async {
-    var library = await checkLibrary('var v = 0;');
+    var library = await buildLibrary('var v = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37480,7 +37427,7 @@ library
   }
 
   test_variable_late() async {
-    var library = await checkLibrary('late int x = 0;');
+    var library = await buildLibrary('late int x = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37499,7 +37446,7 @@ library
   }
 
   test_variable_late_final() async {
-    var library = await checkLibrary('late final int x;');
+    var library = await buildLibrary('late final int x;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37518,7 +37465,7 @@ library
   }
 
   test_variable_late_final_initialized() async {
-    var library = await checkLibrary('late final int x = 0;');
+    var library = await buildLibrary('late final int x = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37532,7 +37479,7 @@ library
   }
 
   test_variable_propagatedType_const_noDep() async {
-    var library = await checkLibrary('const i = 0;');
+    var library = await buildLibrary('const i = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37550,8 +37497,8 @@ library
   }
 
   test_variable_propagatedType_final_dep_inLib() async {
-    addLibrarySource('$testPackageLibPath/a.dart', 'final a = 1;');
-    var library = await checkLibrary('import "a.dart"; final b = a / 2;');
+    addSource('$testPackageLibPath/a.dart', 'final a = 1;');
+    var library = await buildLibrary('import "a.dart"; final b = a / 2;');
     checkElementText(library, r'''
 library
   imports
@@ -37569,7 +37516,7 @@ library
   test_variable_propagatedType_final_dep_inPart() async {
     addSource('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
     var library =
-        await checkLibrary('library lib; part "a.dart"; final b = a / 2;');
+        await buildLibrary('library lib; part "a.dart"; final b = a / 2;');
     checkElementText(library, r'''
 library
   name: lib
@@ -37593,7 +37540,7 @@ library
   }
 
   test_variable_propagatedType_final_noDep() async {
-    var library = await checkLibrary('final i = 0;');
+    var library = await buildLibrary('final i = 0;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37608,10 +37555,9 @@ library
 
   test_variable_propagatedType_implicit_dep() async {
     // The propagated type is defined in a library that is not imported.
-    addLibrarySource('$testPackageLibPath/a.dart', 'class C {}');
-    addLibrarySource(
-        '$testPackageLibPath/b.dart', 'import "a.dart"; C f() => null;');
-    var library = await checkLibrary('import "b.dart"; final x = f();');
+    addSource('$testPackageLibPath/a.dart', 'class C {}');
+    addSource('$testPackageLibPath/b.dart', 'import "a.dart"; C f() => null;');
+    var library = await buildLibrary('import "b.dart"; final x = f();');
     checkElementText(library, r'''
 library
   imports
@@ -37631,7 +37577,7 @@ library
         '$testPackageLibPath/a.dart', 'part of my.lib; void set x(int _) {}');
     addSource('$testPackageLibPath/b.dart', 'part of my.lib; int get x => 42;');
     var library =
-        await checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+        await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
 library
   name: my.lib
@@ -37659,7 +37605,7 @@ library
   }
 
   test_variable_type_inferred_Never() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 var a = throw 42;
 ''');
 
@@ -37681,7 +37627,7 @@ library
   }
 
   test_variable_type_inferred_noInitializer() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 var a;
 ''');
 
@@ -37708,7 +37654,7 @@ library
 var a = 0;
 ''');
 
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 var b = a;
 ''');
@@ -37733,7 +37679,7 @@ library
   }
 
   test_variableInitializer_contextType_after_astRewrite() async {
-    var library = await checkLibrary(r'''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
@@ -37775,7 +37721,7 @@ library
   }
 
   test_variables() async {
-    var library = await checkLibrary('int i; int j;');
+    var library = await buildLibrary('int i; int j;');
     checkElementText(library, r'''
 library
   definingUnit

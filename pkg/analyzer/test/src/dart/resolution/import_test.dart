@@ -15,9 +15,9 @@ main() {
 @reflectiveTest
 class ImportDirectiveResolutionTest extends PubPackageResolutionTest {
   test_configurations_default() async {
-    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_html.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_io.dart', content: 'class A {}');
+    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_html.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
       'dart.library.html': 'false',
@@ -43,9 +43,9 @@ var a = A();
   }
 
   test_configurations_first() async {
-    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_html.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_io.dart', content: 'class A {}');
+    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_html.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
       'dart.library.html': 'true',
@@ -71,9 +71,9 @@ var a = A();
   }
 
   test_configurations_second() async {
-    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_html.dart', content: 'class A {}');
-    newFile('$testPackageLibPath/a_io.dart', content: 'class A {}');
+    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_html.dart', 'class A {}');
+    newFile2('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
       'dart.library.html': 'false',

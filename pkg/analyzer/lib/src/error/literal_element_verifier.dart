@@ -211,7 +211,7 @@ class LiteralElementVerifier {
             errorReporter: errorReporter,
             errorNode: expression,
             genericMetadataIsEnabled: true,
-          )!;
+          );
           if (typeArguments.isNotEmpty) {
             tearoffType = tearoffType.instantiate(typeArguments);
           }

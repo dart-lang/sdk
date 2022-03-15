@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class MissingRequiredParamTest extends PubPackageResolutionTest {
   test_constructor_legacy_argumentGiven() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   A({required int a});
 }
@@ -34,7 +34,7 @@ void f() {
   }
 
   test_constructor_legacy_missingArgument() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   A({required int a});
 }
@@ -162,7 +162,7 @@ main() {
   }
 
   test_function_legacy_argumentGiven() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void foo({required int a}) {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -176,7 +176,7 @@ void f() {
   }
 
   test_function_legacy_missingArgument() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void foo({required int a}) {}
 ''');
     await assertErrorsInCode(r'''
@@ -216,7 +216,7 @@ f() {
   }
 
   test_method_inOtherLib() async {
-    newFile('$testPackageLibPath/a_lib.dart', content: r'''
+    newFile2('$testPackageLibPath/a_lib.dart', r'''
 class A {
   void m({required int a}) {}
 }
@@ -232,7 +232,7 @@ f() {
   }
 
   test_method_legacy_argumentGiven() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   void foo({required int a}) {}
 }
@@ -248,7 +248,7 @@ void f(A a) {
   }
 
   test_method_legacy_missingArgument() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   void foo({required int a}) {}
 }
@@ -454,13 +454,13 @@ f() {
   }
 
   test_method_inOtherLib() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   void m({@Required('must specify an `a`') int a}) {}
 }
 ''');
-    newFile('$testPackageLibPath/test.dart', content: r'''
+    newFile2('$testPackageLibPath/test.dart', r'''
 import 'a.dart';
 f() {
   new A().m();

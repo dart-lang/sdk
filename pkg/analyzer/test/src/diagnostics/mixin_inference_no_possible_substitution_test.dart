@@ -22,7 +22,7 @@ main() {
 class MixinInferenceNoPossibleSubstitutionTest extends PubPackageResolutionTest
     with MixinInferenceNoPossibleSubstitutionTestCases {
   test_valid_nonNullableMixins_legacyApplication() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 
 mixin B<T> on A<T> {}

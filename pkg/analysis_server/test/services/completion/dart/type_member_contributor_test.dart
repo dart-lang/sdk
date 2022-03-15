@@ -1079,7 +1079,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_Block_unimported() async {
-    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
+    newFile2('$testPackageLibPath/a.dart', 'class A {}');
     addTestSource('void f() { ^ }');
 
     await computeSuggestions();

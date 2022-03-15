@@ -45,6 +45,7 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
   void setUp() {
     registerLintRules();
     super.setUp();
+    server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
     server.handlers = [
       AnalysisDomainHandler(server),
     ];
@@ -53,7 +54,7 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
 
   Future<void> test_analysisOptionsFile() async {
     var filePath = join(projectPath, 'analysis_options.yaml');
-    var analysisOptionsFile = newFile(filePath, content: '''
+    var analysisOptionsFile = newFile2(filePath, '''
 linter:
   rules:
     - invalid_lint_rule_name
@@ -75,7 +76,7 @@ linter:
 
   Future<void> test_analysisOptionsFile_packageInclude() async {
     var filePath = join(projectPath, 'analysis_options.yaml');
-    var analysisOptionsFile = newFile(filePath, content: '''
+    var analysisOptionsFile = newFile2(filePath, '''
 include: package:pedantic/analysis_options.yaml
 ''').path;
 
@@ -94,7 +95,7 @@ include: package:pedantic/analysis_options.yaml
     // Write a package file that allows resolving the include.
     newPackageConfigJsonFile(
       projectPath,
-      content: (PackageConfigFileBuilder()
+      (PackageConfigFileBuilder()
             ..add(name: 'pedantic', rootPath: pedanticFolder.parent.path))
           .toContent(toUriStr: toUriStr),
     );
@@ -108,14 +109,14 @@ include: package:pedantic/analysis_options.yaml
 
   Future<void> test_androidManifestFile() async {
     var filePath = join(projectPath, 'android', 'AndroidManifest.xml');
-    var manifestFile = newFile(filePath, content: '''
+    var manifestFile = newFile2(filePath, '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''').path;
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -137,14 +138,14 @@ analyzer:
 
   Future<void> test_androidManifestFile_dotDirectoryIgnored() async {
     var filePath = join(projectPath, 'ios', '.symlinks', 'AndroidManifest.xml');
-    var manifestFile = newFile(filePath, content: '''
+    var manifestFile = newFile2(filePath, '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''').path;
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -171,10 +172,10 @@ analyzer:
     // Add the generated project into package_config.json.
     final config = PackageConfigFileBuilder();
     config.add(name: 'foo', rootPath: generatedProject);
-    newFile(configPath, content: config.toContent(toUriStr: toUriStr));
+    newFile2(configPath, config.toContent(toUriStr: toUriStr));
 
     // Set up project that references the class prior to initial analysis.
-    newFile(generatedFile, content: 'class A {}');
+    newFile2(generatedFile, 'class A {}');
     addTestFile('''
 import 'package:foo/foo.dart';
 A? a;
@@ -196,7 +197,7 @@ A? a;
 
   Future<void> test_dataFile() async {
     var filePath = join(projectPath, 'lib', 'fix_data.yaml');
-    var dataFile = newFile(filePath, content: '''
+    var dataFile = newFile2(filePath, '''
 version: 1
 transforms:
 ''').path;
@@ -222,8 +223,7 @@ transforms:
     await createProject();
     addTestFile('');
     var brokenFile =
-        newFile(join(projectPath, '.dart_tool/broken.dart'), content: 'err')
-            .path;
+        newFile2(join(projectPath, '.dart_tool/broken.dart'), 'err').path;
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -247,8 +247,7 @@ transforms:
     await createProject();
     addTestFile('');
     var brokenFile =
-        newFile(join(projectPath, '.dart_tool/broken.dart'), content: 'err')
-            .path;
+        newFile2(join(projectPath, '.dart_tool/broken.dart'), 'err').path;
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -264,14 +263,14 @@ transforms:
   }
 
   Future<void> test_excludedFolder() async {
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 analyzer:
   exclude:
     - excluded/**
 ''');
     await createProject();
     var excludedFile =
-        newFile(join(projectPath, 'excluded/broken.dart'), content: 'err').path;
+        newFile2(join(projectPath, 'excluded/broken.dart'), 'err').path;
 
     // There should be no errors initially.
     await waitForTasksFinished();
@@ -313,7 +312,7 @@ import 'does_not_exist.dart';
   Future<void> test_lintError() async {
     var camelCaseTypesLintName = 'camel_case_types';
 
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 linter:
   rules:
     - $camelCaseTypesLintName
@@ -344,7 +343,7 @@ linter:
 
   Future<void> test_notInAnalysisRoot() async {
     await createProject();
-    var otherFile = newFile('/other.dart', content: 'UnknownType V;').path;
+    var otherFile = newFile2('/other.dart', 'UnknownType V;').path;
     addTestFile('''
 import '/other.dart';
 main() {
@@ -361,8 +360,7 @@ main() {
     await createProject();
     addTestFile('');
     var brokenFile =
-        newFile(join(projectPath, '.dart_tool/broken.dart'), content: 'err')
-            .path;
+        newFile2(join(projectPath, '.dart_tool/broken.dart'), 'err').path;
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -408,6 +406,10 @@ main() {
         brokenFile: RemoveContentOverlay(),
       }).toRequest('1'),
     );
+
+    // Wait for the timer to remove the overlay to fire.
+    await Future.delayed(server.pendingFilesRemoveOverlayDelay);
+
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
 
@@ -439,7 +441,7 @@ main() {
     expect(filesErrors[brokenFile], hasLength(greaterThan(0)));
 
     // Write the file to disk.
-    newFile(brokenFile, content: 'err');
+    newFile2(brokenFile, 'err');
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
 
@@ -505,7 +507,7 @@ version: 1.3.2
   }
 
   Future<void> test_pubspecFile_lint() async {
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 linter:
   rules:
     - sort_pub_dependencies

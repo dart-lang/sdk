@@ -328,7 +328,7 @@ part "my_part.dart";
 void f() {
   var part = 42;
 }''');
-    newFile('/project/bin/my_part.dart', content: 'part of lib;');
+    newFile2('/project/bin/my_part.dart', 'part of lib;');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'part "my_');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'part = 42');
@@ -1677,7 +1677,7 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
   }
 
   void _addLibraryForTestPart() {
-    newFile(join(testFolder, 'my_lib.dart'), content: '''
+    newFile2(join(testFolder, 'my_lib.dart'), '''
 library lib;
 part 'test.dart';
     ''');

@@ -830,7 +830,7 @@ ConstructorReference
   }
 
   test_prefixedAlias_generic_unnamed() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A<T> {
   A();
 }
@@ -886,7 +886,7 @@ ConstructorReference
   }
 
   test_prefixedClass_generic_named() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A<T> {
   A.foo();
 }
@@ -941,7 +941,7 @@ ConstructorReference
   }
 
   test_prefixedClass_generic_targetOfFunctionCall() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A<T> {
   A();
 }
@@ -999,7 +999,7 @@ ConstructorReference
   }
 
   test_prefixedClass_generic_unnamed() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A<T> {
   A();
 }
@@ -1388,7 +1388,7 @@ ConstructorReference
   }
 
   test_prefixedAlias_nonGeneric_named() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   A.foo();
 }
@@ -1430,7 +1430,7 @@ ConstructorReference
   }
 
   test_prefixedAlias_nonGeneric_unnamed() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   A();
 }
@@ -1472,7 +1472,7 @@ ConstructorReference
   }
 
   test_prefixedClass_nonGeneric_named() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   A.foo();
 }
@@ -1513,7 +1513,7 @@ ConstructorReference
   }
 
   test_prefixedClass_nonGeneric_unnamed() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   A();
 }

@@ -10,6 +10,8 @@
 * Deprecated `astFactory`, clients should not create AST nodes manually.
 * Changed `CompilationUnit.lineInfo` to be non-nullable.
 * Changed `CompilationUnitElement.lineInfo` to be non-nullable.
+* Deprecated `ResourceProviderMixin.newFile`, use `newFile2` instead.
+* Deprecated `ResourceProviderMixin.newAnalysisOptionsYamlFile`.
 
 ## 3.3.1
 * Report HintCode.OVERRIDE_ON_NON_OVERRIDING_xyz on enum.

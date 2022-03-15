@@ -101,12 +101,12 @@ class AnalysisOptionsProviderTest with ResourceProviderMixin {
 
   void test_getOptions_crawlUp_hasInFolder() {
     newFolder('/foo/bar');
-    newFile('/foo/$analysisOptionsYaml', content: r'''
+    newFile2('/foo/$analysisOptionsYaml', r'''
 analyzer:
   ignore:
     - foo
 ''');
-    newFile('/foo/bar/$analysisOptionsYaml', content: r'''
+    newFile2('/foo/bar/$analysisOptionsYaml', r'''
 analyzer:
   ignore:
     - bar
@@ -122,12 +122,12 @@ analyzer:
 
   void test_getOptions_crawlUp_hasInParent() {
     newFolder('/foo/bar/baz');
-    newFile('/foo/$analysisOptionsYaml', content: r'''
+    newFile2('/foo/$analysisOptionsYaml', r'''
 analyzer:
   ignore:
     - foo
 ''');
-    newFile('/foo/bar/$analysisOptionsYaml', content: r'''
+    newFile2('/foo/bar/$analysisOptionsYaml', r'''
 analyzer:
   ignore:
     - bar
@@ -148,20 +148,20 @@ analyzer:
   }
 
   void test_getOptions_empty() {
-    newFile('/$analysisOptionsYaml', content: r'''#empty''');
+    newFile2('/$analysisOptionsYaml', r'''#empty''');
     YamlMap options = _getOptions('/');
     expect(options, isNotNull);
     expect(options, isEmpty);
   }
 
   void test_getOptions_include() {
-    newFile('/foo.include', content: r'''
+    newFile2('/foo.include', r'''
 analyzer:
   ignore:
     - ignoreme.dart
     - 'sdk_ext/**'
 ''');
-    newFile('/$analysisOptionsYaml', content: r'''
+    newFile2('/$analysisOptionsYaml', r'''
 include: foo.include
 ''');
     YamlMap options = _getOptions('/');
@@ -179,12 +179,12 @@ include: foo.include
   }
 
   void test_getOptions_include_emptyLints() {
-    newFile('/foo.include', content: r'''
+    newFile2('/foo.include', r'''
 linter:
   rules:
     - prefer_single_quotes
 ''');
-    newFile('/$analysisOptionsYaml', content: r'''
+    newFile2('/$analysisOptionsYaml', r'''
 include: foo.include
 linter:
   rules:
@@ -204,7 +204,7 @@ linter:
   }
 
   void test_getOptions_include_missing() {
-    newFile('/$analysisOptionsYaml', content: r'''
+    newFile2('/$analysisOptionsYaml', r'''
 include: /foo.include
 ''');
     YamlMap options = _getOptions('/');
@@ -212,13 +212,13 @@ include: /foo.include
   }
 
   void test_getOptions_invalid() {
-    newFile('/$analysisOptionsYaml', content: r''':''');
+    newFile2('/$analysisOptionsYaml', r''':''');
     YamlMap options = _getOptions('/');
     expect(options, hasLength(1));
   }
 
   void test_getOptions_simple() {
-    newFile('/$analysisOptionsYaml', content: r'''
+    newFile2('/$analysisOptionsYaml', r'''
 analyzer:
   ignore:
     - ignoreme.dart

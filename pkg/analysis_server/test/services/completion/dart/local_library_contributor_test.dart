@@ -29,12 +29,12 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_partFile_Constructor() async {
     // SimpleIdentifier  NamedType  ConstructorName
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
         library libA;
         import "b.dart";
         part "test.dart";
@@ -64,12 +64,12 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_partFile_Constructor2() async {
     // SimpleIdentifier  NamedType  ConstructorName
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
         part of libA;
         class B { }''');
     addTestSource('''
@@ -97,7 +97,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_partFile_extension() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 part of libA;
 extension E on int {}
 ''');
@@ -115,12 +115,12 @@ void f() {^}
   Future<void>
       test_partFile_InstanceCreationExpression_assignment_filter() async {
     // ConstructorName  InstanceCreationExpression  VariableDeclarationList
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
         part of libA;
         class A {} class B extends A {} class C implements A {} class D {}
         ''');
@@ -162,12 +162,12 @@ void f() {^}
   Future<void>
       test_partFile_InstanceCreationExpression_variable_declaration_filter() async {
     // ConstructorName  InstanceCreationExpression  VariableDeclarationList
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
         part of libA;
         class A {} class B extends A {} class C implements A {} class D {}
         ''');
@@ -205,12 +205,12 @@ void f() {^}
   }
 
   Future<void> test_partFile_TypeName() async {
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
         library libA;
         import "b.dart";
         part "test.dart";
@@ -254,12 +254,12 @@ void f() {^}
   }
 
   Future<void> test_partFile_TypeName2() async {
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
         part of libA;
         class B { var b1; b2(){}}
         int bf() => 0;

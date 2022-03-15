@@ -235,8 +235,8 @@ import 'package:../other.dart';
   }
 
   test_import_referenceIntoLibDirectory() async {
-    newFile("/myproj/pubspec.yaml", content: "");
-    newFile("/myproj/lib/other.dart", content: "");
+    newFile2("/myproj/pubspec.yaml", '');
+    newFile2("/myproj/lib/other.dart", '');
     await _assertErrorsInCodeInFile(
         "/myproj/web/test.dart", "import '../lib/other.dart';", [
       error(HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE, 0, 0),
@@ -244,14 +244,14 @@ import 'package:../other.dart';
   }
 
   test_import_referenceIntoLibDirectory_no_pubspec() async {
-    newFile("/myproj/lib/other.dart", content: "");
+    newFile2("/myproj/lib/other.dart", '');
     await _assertErrorsInCodeInFile(
         "/myproj/web/test.dart", "import '../lib/other.dart';", []);
   }
 
   test_import_referenceOutOfLibDirectory() async {
-    newFile("/myproj/pubspec.yaml", content: "");
-    newFile("/myproj/web/other.dart", content: "");
+    newFile2("/myproj/pubspec.yaml", '');
+    newFile2("/myproj/web/other.dart", '');
     await _assertErrorsInCodeInFile(
         "/myproj/lib/test.dart", "import '../web/other.dart';", [
       error(HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE, 0, 0),
@@ -259,28 +259,28 @@ import 'package:../other.dart';
   }
 
   test_import_referenceOutOfLibDirectory_no_pubspec() async {
-    newFile("/myproj/web/other.dart", content: "");
+    newFile2("/myproj/web/other.dart", '');
     await _assertErrorsInCodeInFile(
         "/myproj/lib/test.dart", "import '../web/other.dart';", []);
   }
 
   test_import_valid_inside_lib1() async {
-    newFile("/myproj/pubspec.yaml", content: "");
-    newFile("/myproj/lib/other.dart", content: "");
+    newFile2("/myproj/pubspec.yaml", '');
+    newFile2("/myproj/lib/other.dart", '');
     await _assertErrorsInCodeInFile(
         "/myproj/lib/test.dart", "import 'other.dart';", []);
   }
 
   test_import_valid_inside_lib2() async {
-    newFile("/myproj/pubspec.yaml", content: "");
-    newFile("/myproj/lib/bar/other.dart", content: "");
+    newFile2("/myproj/pubspec.yaml", '');
+    newFile2("/myproj/lib/bar/other.dart", '');
     await _assertErrorsInCodeInFile(
         "/myproj/lib/foo/test.dart", "import '../bar/other.dart';", []);
   }
 
   test_import_valid_outside_lib() async {
-    newFile("/myproj/pubspec.yaml", content: "");
-    newFile("/myproj/web/other.dart", content: "");
+    newFile2("/myproj/pubspec.yaml", '');
+    newFile2("/myproj/web/other.dart", '');
     await _assertErrorsInCodeInFile(
         "/myproj/lib2/test.dart", "import '../web/other.dart';", []);
   }
@@ -288,7 +288,7 @@ import 'package:../other.dart';
   Future<void> _assertErrorsInCodeInFile(
       String path, String content, List<ExpectedError> expectedErrors) async {
     path = convertPath(path);
-    newFile(path, content: content);
+    newFile2(path, content);
     result = await resolveFile(path);
 
     var errorListener = GatheringErrorListener();

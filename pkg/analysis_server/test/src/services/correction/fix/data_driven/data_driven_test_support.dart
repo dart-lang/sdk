@@ -26,8 +26,8 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   /// Add the file containing the data used by the data-driven fix with the
   /// given [content].
   void addPackageDataFile(String content) {
-    newFile('$workspaceRootPath/p/lib/${TransformSetManager.dataFileName}',
-        content: content);
+    newFile2('$workspaceRootPath/p/lib/${TransformSetManager.dataFileName}',
+        content);
   }
 
   /// Return a code template that will produce the given [text].
@@ -44,7 +44,7 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   /// Set the content of the library that defines the element referenced by the
   /// data on which this test is based.
   void setPackageContent(String content) {
-    newFile('$workspaceRootPath/p/lib/lib.dart', content: content);
+    newFile2('$workspaceRootPath/p/lib/lib.dart', content);
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootPath: '$workspaceRootPath/p'),

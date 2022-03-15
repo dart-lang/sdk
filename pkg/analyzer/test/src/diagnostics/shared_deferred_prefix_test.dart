@@ -16,11 +16,11 @@ main() {
 @reflectiveTest
 class SharedDeferredPrefixTest extends PubPackageResolutionTest {
   test_hasSharedDeferredPrefix() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 f1() {}
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: '''
+    newFile2('$testPackageLibPath/lib2.dart', '''
 library lib2;
 f2() {}
 ''');

@@ -37,7 +37,7 @@ class NullSafetyExperimentGlobalTest extends _FeaturesTest {
 }
 ''');
 
-    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
 int a = 0;
 ''');
 
@@ -74,7 +74,7 @@ var z = pi;
 }
 ''');
 
-    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
 int a = 0;
 ''');
 
@@ -148,9 +148,9 @@ extension E on int {}
 
 class _FeaturesTest extends PubPackageResolutionTest {
   void _configureTestWithJsonConfig(String content) {
-    newFile(
+    newFile2(
       '$testPackageRootPath/.dart_tool/package_config.json',
-      content: content,
+      content,
     );
   }
 }

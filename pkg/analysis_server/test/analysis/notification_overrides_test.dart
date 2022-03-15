@@ -221,7 +221,7 @@ class B extends A {
   }
 
   Future<void> test_class_BAD_privateByPrivate_inDifferentLib() async {
-    newFile(join(testFolder, 'lib.dart'), content: r'''
+    newFile2(join(testFolder, 'lib.dart'), r'''
 class A {
   void _m() {}
 }

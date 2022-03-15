@@ -151,7 +151,7 @@ void f(int x) {
 
 mixin UndefinedSetterTestCases on PubPackageResolutionTest {
   test_importWithPrefix_defined() async {
-    newFile('$testPackageLibPath/lib.dart', content: r'''
+    newFile2('$testPackageLibPath/lib.dart', r'''
 library lib;
 set y(int value) {}''');
     await assertNoErrorsInCode(r'''

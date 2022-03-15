@@ -27,7 +27,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
 
   Future<void> test_getDiagnostics() async {
     newPubspecYamlFile('/project', 'name: project');
-    newFile('/project/bin/test.dart', content: 'main() {}');
+    newFile2('/project/bin/test.dart', 'main() {}');
 
     await server.setAnalysisRoots('0', [convertPath('/project')], []);
 

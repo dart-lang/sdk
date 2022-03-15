@@ -85,7 +85,7 @@ flutter:
   }
 
   void test_flutter_assets_invalidPath() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -95,7 +95,7 @@ flutter:
   }
 
   void test_flutter_assets_nonExistentPath() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -105,7 +105,7 @@ flutter:
   }
 
   void test_flutter_assets_noPath() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -115,7 +115,7 @@ flutter:
   }
 
   void test_flutter_assets_partialPath() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -125,7 +125,7 @@ flutter:
   }
 
   void test_flutter_assets_path_withFollowing() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -135,7 +135,7 @@ flutter:
   }
 
   void test_flutter_assets_path_withoutFollowing() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -380,7 +380,7 @@ dependencies:
       return MockProcess(1, 0, '', '');
     };
 
-    newFile('/home/DEPS');
+    newFile2('/home/DEPS', '');
     pubPackageService.beginCachePreloads([convertPath('/home/test/$fileName')]);
     await pumpEventQueue(times: 500);
 

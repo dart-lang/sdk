@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -97,6 +98,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
     List<DartType>? typeArgumentTypes;
     FunctionType? invokeType;
+    GenericInferrer? inferrer;
     if (_isGenericInferenceDisabled(resolver)) {
       if (rawType != null && rawType.typeFormals.isNotEmpty) {
         typeArgumentTypes = List.filled(
@@ -156,21 +158,17 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       rawType = getFreshTypeParameters(rawType.typeFormals)
           .applyToFunctionType(rawType);
 
-      var downwardsTypeArguments =
-          resolver.typeSystem.inferGenericFunctionOrType(
+      inferrer = resolver.typeSystem.setupGenericTypeInference(
         typeParameters: rawType.typeFormals,
-        parameters: const <ParameterElement>[],
         declaredReturnType: rawType.returnType,
-        argumentTypes: const <DartType>[],
         contextReturnType: contextType,
-        downwards: true,
         isConst: _getIsConst(node),
         errorReporter: resolver.errorReporter,
         errorNode: _getErrorNode(node),
         genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
-      )!;
+      );
 
-      invokeType = rawType.instantiate(downwardsTypeArguments);
+      invokeType = rawType.instantiate(inferrer.downwardsInfer());
     }
 
     super.resolveInvocation(
@@ -182,7 +180,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
     var argumentList = _getArgumentList(node);
 
-    if (typeArgumentTypes == null) {
+    if (inferrer != null) {
       if (rawType != null) {
         // Get the parameters that correspond to the uninstantiated generic.
         List<ParameterElement?> rawParameters =
@@ -200,17 +198,9 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
             argTypes.add(argumentList.arguments[i].typeOrThrow);
           }
         }
-        typeArgumentTypes = resolver.typeSystem.inferGenericFunctionOrType(
-          typeParameters: rawType.typeFormals,
-          parameters: params,
-          declaredReturnType: rawType.returnType,
-          argumentTypes: argTypes,
-          contextReturnType: contextType,
-          isConst: _getIsConst(node),
-          errorReporter: resolver.errorReporter,
-          errorNode: _getErrorNode(node),
-          genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
-        )!;
+        inferrer.constrainArguments(
+            parameters: params, argumentTypes: argTypes);
+        typeArgumentTypes = inferrer.upwardsInfer();
         invokeType = rawType.instantiate(typeArgumentTypes);
       } else {
         typeArgumentTypes = const [];

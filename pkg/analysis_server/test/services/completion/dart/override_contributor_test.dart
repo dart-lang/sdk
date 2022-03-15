@@ -462,7 +462,7 @@ class B extends A {
   }
 
   Future<void> test_private_otherLibrary() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   void foo() {}
   void _bar() {}

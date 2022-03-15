@@ -32,7 +32,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   Folder get sdkRoot => newFolder('/sdk');
 
   void setUp() {
-    newFile('/test/lib/test.dart', content: '');
+    newFile2('/test/lib/test.dart', '');
 
     createMockSdk(
       resourceProvider: resourceProvider,
@@ -457,7 +457,6 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   }
 
   void _newSdkExperimentsFile(String content) {
-    newFile('$sdkRoot/lib/_internal/allowed_experiments.json',
-        content: content);
+    newFile2('$sdkRoot/lib/_internal/allowed_experiments.json', content);
   }
 }

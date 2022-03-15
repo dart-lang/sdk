@@ -33,7 +33,7 @@ class OccurrencesMixinTest with ResourceProviderMixin {
   void setUp() {
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
-    newFile(filePath1);
+    newFile2(filePath1, '');
     contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
     channel = MockChannel();

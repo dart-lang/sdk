@@ -1866,7 +1866,7 @@ void functionAfter() {
 }
 ''';
     var path = convertPath('/home/test/lib/test.dart');
-    newFile(path, content: initialCode);
+    newFile2(path, initialCode);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1918,7 +1918,7 @@ void functionAfter() {
 }
 ''';
     var path = convertPath('/home/test/lib/test.dart');
-    newFile(path, content: initialCode);
+    newFile2(path, initialCode);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1947,7 +1947,7 @@ void functionAfter() {
   Future<void> test_multipleEdits_concurrently() async {
     var initialCode = '00';
     var path = convertPath('/home/test/lib/test.dart');
-    newFile(path, content: initialCode);
+    newFile2(path, initialCode);
 
     var builder = await newBuilder();
     var future = Future.wait([
@@ -1965,7 +1965,7 @@ void functionAfter() {
   Future<void> test_multipleEdits_sequentially() async {
     var initialCode = '00';
     var path = convertPath('/home/test/lib/test.dart');
-    newFile(path, content: initialCode);
+    newFile2(path, initialCode);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {

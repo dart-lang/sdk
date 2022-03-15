@@ -23,7 +23,7 @@ class AnalysisSessionImpl_BazelWorkspaceTest
     extends BazelWorkspaceResolutionTest {
   void test_getErrors_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath');
+    newFile2('$workspaceRootPath/bazel-bin/$relPath', '');
 
     var path = convertPath('$workspaceRootPath/$relPath');
     var session = contextFor(path).currentSession;
@@ -32,9 +32,9 @@ class AnalysisSessionImpl_BazelWorkspaceTest
   }
 
   void test_getErrors_valid() async {
-    var file = newFile(
+    var file = newFile2(
       '$workspaceRootPath/dart/my/lib/a.dart',
-      content: 'var x = 0',
+      'var x = 0',
     );
 
     var session = contextFor(file.path).currentSession;
@@ -46,7 +46,7 @@ class AnalysisSessionImpl_BazelWorkspaceTest
 
   void test_getParsedLibrary2_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath');
+    newFile2('$workspaceRootPath/bazel-bin/$relPath', '');
 
     var path = convertPath('$workspaceRootPath/$relPath');
     var session = contextFor(path).currentSession;
@@ -57,7 +57,7 @@ class AnalysisSessionImpl_BazelWorkspaceTest
   @deprecated
   void test_getParsedLibrary_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath');
+    newFile2('$workspaceRootPath/bazel-bin/$relPath', '');
 
     var path = convertPath('$workspaceRootPath/$relPath');
     var session = contextFor(path).currentSession;
@@ -67,7 +67,7 @@ class AnalysisSessionImpl_BazelWorkspaceTest
 
   void test_getResolvedLibrary_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath');
+    newFile2('$workspaceRootPath/bazel-bin/$relPath', '');
 
     var path = convertPath('$workspaceRootPath/$relPath');
     var session = contextFor(path).currentSession;
@@ -77,7 +77,7 @@ class AnalysisSessionImpl_BazelWorkspaceTest
 
   void test_getResolvedUnit_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath');
+    newFile2('$workspaceRootPath/bazel-bin/$relPath', '');
 
     var path = convertPath('$workspaceRootPath/$relPath');
     var session = contextFor(path).currentSession;
@@ -86,9 +86,9 @@ class AnalysisSessionImpl_BazelWorkspaceTest
   }
 
   void test_getResolvedUnit_valid() async {
-    var file = newFile(
+    var file = newFile2(
       '$workspaceRootPath/dart/my/lib/a.dart',
-      content: 'class A {}',
+      'class A {}',
     );
 
     var session = contextFor(file.path).currentSession;
@@ -99,9 +99,9 @@ class AnalysisSessionImpl_BazelWorkspaceTest
   }
 
   void test_getUnitElement_invalidPath_notAbsolute() async {
-    var file = newFile(
+    var file = newFile2(
       '$workspaceRootPath/dart/my/lib/a.dart',
-      content: 'class A {}',
+      'class A {}',
     );
 
     var session = contextFor(file.path).currentSession;
@@ -111,7 +111,7 @@ class AnalysisSessionImpl_BazelWorkspaceTest
 
   void test_getUnitElement_notPathOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath');
+    newFile2('$workspaceRootPath/bazel-bin/$relPath', '');
 
     var path = convertPath('$workspaceRootPath/$relPath');
     var session = contextFor(path).currentSession;
@@ -120,9 +120,9 @@ class AnalysisSessionImpl_BazelWorkspaceTest
   }
 
   void test_getUnitElement_valid() async {
-    var file = newFile(
+    var file = newFile2(
       '$workspaceRootPath/dart/my/lib/a.dart',
-      content: 'class A {}',
+      'class A {}',
     );
 
     var session = contextFor(file.path).currentSession;
@@ -136,7 +136,7 @@ class AnalysisSessionImpl_BazelWorkspaceTest
 @reflectiveTest
 class AnalysisSessionImplTest extends PubPackageResolutionTest {
   test_getErrors() async {
-    var test = newFile(testFilePath, content: 'class C {');
+    var test = newFile2(testFilePath, 'class C {');
 
     var session = contextFor(testFilePath).currentSession;
     var errorsResult = await session.getErrorsValid(test.path);
@@ -146,7 +146,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
   }
 
   test_getErrors_inconsistent() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
     var session = contextFor(test.path).currentSession;
     driverFor(test.path).changeFile(test.path);
     expect(
@@ -162,7 +162,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
   }
 
   test_getFile2_inconsistent() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
     var session = contextFor(test.path).currentSession;
     driverFor(test.path).changeFile(test.path);
     expect(
@@ -178,7 +178,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
   }
 
   test_getFile2_library() async {
-    var a = newFile('$testPackageLibPath/a.dart', content: '');
+    var a = newFile2('$testPackageLibPath/a.dart', '');
 
     var session = contextFor(testFilePath).currentSession;
     var file = await session.getFile2Valid(a.path);
@@ -188,7 +188,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
   }
 
   test_getFile2_part() async {
-    var a = newFile('$testPackageLibPath/a.dart', content: 'part of lib;');
+    var a = newFile2('$testPackageLibPath/a.dart', 'part of lib;');
 
     var session = contextFor(testFilePath).currentSession;
     var file = await session.getFile2Valid(a.path);
@@ -199,7 +199,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
 
   @deprecated
   test_getFile_inconsistent() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
     var session = contextFor(test.path).currentSession;
     driverFor(test.path).changeFile(test.path);
     expect(
@@ -217,7 +217,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
 
   @deprecated
   test_getFile_library() async {
-    var a = newFile('$testPackageLibPath/a.dart', content: '');
+    var a = newFile2('$testPackageLibPath/a.dart', '');
 
     var session = contextFor(testFilePath).currentSession;
     var file = session.getFileValid(a.path);
@@ -228,7 +228,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
 
   @deprecated
   test_getFile_part() async {
-    var a = newFile('$testPackageLibPath/a.dart', content: 'part of lib;');
+    var a = newFile2('$testPackageLibPath/a.dart', 'part of lib;');
 
     var session = contextFor(testFilePath).currentSession;
     var file = session.getFileValid(a.path);
@@ -238,7 +238,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
   }
 
   test_getLibraryByUri() async {
-    newFile(testFilePath, content: r'''
+    newFile2(testFilePath, r'''
 class A {}
 class B {}
 ''');
@@ -252,7 +252,7 @@ class B {}
   }
 
   test_getLibraryByUri_inconsistent() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
     var session = contextFor(test.path).currentSession;
     driverFor(test.path).changeFile(test.path);
     expect(
@@ -269,7 +269,7 @@ class B {}
 
   @deprecated
   test_getParsedLibrary() async {
-    var test = newFile('$testPackageLibPath/a.dart', content: r'''
+    var test = newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 ''');
@@ -289,7 +289,7 @@ class B {}
   }
 
   test_getParsedLibrary2() async {
-    var test = newFile('$testPackageLibPath/a.dart', content: r'''
+    var test = newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 ''');
@@ -309,7 +309,7 @@ class B {}
   }
 
   test_getParsedLibrary2_getElementDeclaration_class() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 class A {}
 class B {}
 ''');
@@ -329,7 +329,7 @@ class B {}
   }
 
   test_getParsedLibrary2_getElementDeclaration_notThisLibrary() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
 
     var session = contextFor(testFilePath).currentSession;
     var resolvedUnit =
@@ -345,7 +345,7 @@ class B {}
   }
 
   test_getParsedLibrary2_getElementDeclaration_synthetic() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 int foo = 0;
 ''');
 
@@ -370,7 +370,7 @@ int foo = 0;
   }
 
   test_getParsedLibrary2_inconsistent() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
     var session = contextFor(test.path).currentSession;
     driverFor(test.path).changeFile(test.path);
     expect(
@@ -380,7 +380,7 @@ int foo = 0;
   }
 
   test_getParsedLibrary2_invalidPartUri() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 part 'a.dart';
 part ':[invalid uri].dart';
 part 'c.dart';
@@ -411,7 +411,7 @@ part 'c.dart';
   }
 
   test_getParsedLibrary2_notLibrary() async {
-    var test = newFile(testFilePath, content: 'part of "a.dart";');
+    var test = newFile2(testFilePath, 'part of "a.dart";');
     var session = contextFor(testFilePath).currentSession;
     var result = await session.getParsedLibrary2(test.path);
     expect(result, isA<NotLibraryButPartResult>());
@@ -440,9 +440,9 @@ class C2 {}
 class C3 {}
 ''';
 
-    var a = newFile('$testPackageLibPath/a.dart', content: aContent);
-    var b = newFile('$testPackageLibPath/b.dart', content: bContent);
-    var c = newFile('$testPackageLibPath/c.dart', content: cContent);
+    var a = newFile2('$testPackageLibPath/a.dart', aContent);
+    var b = newFile2('$testPackageLibPath/b.dart', bContent);
+    var c = newFile2('$testPackageLibPath/c.dart', cContent);
 
     var session = contextFor(testFilePath).currentSession;
     var parsedLibrary = await session.getParsedLibrary2Valid(a.path);
@@ -472,7 +472,7 @@ class C3 {}
 
   @deprecated
   test_getParsedLibrary_getElementDeclaration_class() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 class A {}
 class B {}
 ''');
@@ -493,7 +493,7 @@ class B {}
 
   @deprecated
   test_getParsedLibrary_getElementDeclaration_notThisLibrary() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
 
     var session = contextFor(testFilePath).currentSession;
     var resolvedUnit =
@@ -510,7 +510,7 @@ class B {}
 
   @deprecated
   test_getParsedLibrary_getElementDeclaration_synthetic() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 int foo = 0;
 ''');
 
@@ -536,7 +536,7 @@ int foo = 0;
 
   @deprecated
   test_getParsedLibrary_inconsistent() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
     var session = contextFor(test.path).currentSession;
     driverFor(test.path).changeFile(test.path);
     expect(
@@ -547,7 +547,7 @@ int foo = 0;
 
   @deprecated
   test_getParsedLibrary_invalidPartUri() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 part 'a.dart';
 part ':[invalid uri].dart';
 part 'c.dart';
@@ -580,7 +580,7 @@ part 'c.dart';
 
   @deprecated
   test_getParsedLibrary_notLibrary() async {
-    var test = newFile(testFilePath, content: 'part of "a.dart";');
+    var test = newFile2(testFilePath, 'part of "a.dart";');
     var session = contextFor(testFilePath).currentSession;
     expect(session.getParsedLibrary(test.path), isA<NotLibraryButPartResult>());
   }
@@ -609,9 +609,9 @@ class C2 {}
 class C3 {}
 ''';
 
-    var a = newFile('$testPackageLibPath/a.dart', content: aContent);
-    var b = newFile('$testPackageLibPath/b.dart', content: bContent);
-    var c = newFile('$testPackageLibPath/c.dart', content: cContent);
+    var a = newFile2('$testPackageLibPath/a.dart', aContent);
+    var b = newFile2('$testPackageLibPath/b.dart', bContent);
+    var c = newFile2('$testPackageLibPath/c.dart', cContent);
 
     var session = contextFor(testFilePath).currentSession;
     var parsedLibrary = session.getParsedLibraryValid(a.path);
@@ -641,7 +641,7 @@ class C3 {}
 
   @deprecated
   test_getParsedLibraryByElement() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
 
     var session = contextFor(testFilePath).currentSession;
     var libraryResult = await session.getLibraryByUriValid(
@@ -662,7 +662,7 @@ class C3 {}
   }
 
   test_getParsedLibraryByElement2() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
 
     var session = contextFor(testFilePath).currentSession;
     var libraryResult = await session.getLibraryByUriValid(
@@ -683,7 +683,7 @@ class C3 {}
   }
 
   test_getParsedLibraryByElement2_differentSession() async {
-    newFile(testFilePath, content: '');
+    newFile2(testFilePath, '');
 
     var session = contextFor(testFilePath).currentSession;
     var libraryResult = await session.getLibraryByUriValid(
@@ -699,7 +699,7 @@ class C3 {}
 
   @deprecated
   test_getParsedLibraryByElement_differentSession() async {
-    newFile(testFilePath, content: '');
+    newFile2(testFilePath, '');
 
     var session = contextFor(testFilePath).currentSession;
     var libraryResult = await session.getLibraryByUriValid(
@@ -715,7 +715,7 @@ class C3 {}
 
   @deprecated
   test_getParsedUnit() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 class A {}
 class B {}
 ''');
@@ -729,7 +729,7 @@ class B {}
   }
 
   test_getParsedUnit2() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 class A {}
 class B {}
 ''');
@@ -743,7 +743,7 @@ class B {}
   }
 
   test_getParsedUnit2_inconsistent() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
     var session = contextFor(test.path).currentSession;
     driverFor(test.path).changeFile(test.path);
     expect(
@@ -760,7 +760,7 @@ class B {}
 
   @deprecated
   test_getParsedUnit_inconsistent() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
     var session = contextFor(test.path).currentSession;
     driverFor(test.path).changeFile(test.path);
     expect(
@@ -782,7 +782,7 @@ part 'b.dart';
 
 class A /*a*/ {}
 ''';
-    var a = newFile('$testPackageLibPath/a.dart', content: aContent);
+    var a = newFile2('$testPackageLibPath/a.dart', aContent);
 
     var bContent = r'''
 part of 'a.dart';
@@ -790,7 +790,7 @@ part of 'a.dart';
 class B /*b*/ {}
 class B2 extends X {}
 ''';
-    var b = newFile('$testPackageLibPath/b.dart', content: bContent);
+    var b = newFile2('$testPackageLibPath/b.dart', bContent);
 
     var session = contextFor(testFilePath).currentSession;
     var resolvedLibrary = await session.getResolvedLibraryValid(a.path);
@@ -839,7 +839,7 @@ class B2 extends X {}
   }
 
   test_getResolvedLibrary_getElementDeclaration_notThisLibrary() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
 
     var session = contextFor(testFilePath).currentSession;
     var resolvedLibrary = await session.getResolvedLibraryValid(test.path);
@@ -851,7 +851,7 @@ class B2 extends X {}
   }
 
   test_getResolvedLibrary_getElementDeclaration_synthetic() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 int foo = 0;
 ''');
 
@@ -876,7 +876,7 @@ int foo = 0;
   }
 
   test_getResolvedLibrary_inconsistent() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
     var session = contextFor(test.path).currentSession;
     driverFor(test.path).changeFile(test.path);
     expect(
@@ -886,7 +886,7 @@ int foo = 0;
   }
 
   test_getResolvedLibrary_invalidPartUri() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 part 'a.dart';
 part ':[invalid uri].dart';
 part 'c.dart';
@@ -917,7 +917,7 @@ part 'c.dart';
   }
 
   test_getResolvedLibrary_notLibrary() async {
-    var test = newFile(testFilePath, content: 'part of "a.dart";');
+    var test = newFile2(testFilePath, 'part of "a.dart";');
 
     var session = contextFor(testFilePath).currentSession;
     var result = await session.getResolvedLibrary(test.path);
@@ -925,7 +925,7 @@ part 'c.dart';
   }
 
   test_getResolvedLibraryByElement() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
 
     var session = contextFor(testFilePath).currentSession;
     var libraryResult = await session.getLibraryByUriValid(
@@ -942,7 +942,7 @@ part 'c.dart';
   }
 
   test_getResolvedLibraryByElement_differentSession() async {
-    newFile(testFilePath, content: '');
+    newFile2(testFilePath, '');
 
     var session = contextFor(testFilePath).currentSession;
     var libraryResult = await session.getLibraryByUriValid(
@@ -957,7 +957,7 @@ part 'c.dart';
   }
 
   test_getResolvedUnit() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 class A {}
 class B {}
 ''');
@@ -974,7 +974,7 @@ class B {}
   }
 
   test_getResolvedUnit_inconsistent() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
     var session = contextFor(test.path).currentSession;
     driverFor(test.path).changeFile(test.path);
     expect(
@@ -984,7 +984,7 @@ class B {}
   }
 
   test_getUnitElement() async {
-    var test = newFile(testFilePath, content: r'''
+    var test = newFile2(testFilePath, r'''
 class A {}
 class B {}
 ''');
@@ -998,7 +998,7 @@ class B {}
   }
 
   test_getUnitElement_inconsistent() async {
-    var test = newFile(testFilePath, content: '');
+    var test = newFile2(testFilePath, '');
     var session = contextFor(test.path).currentSession;
     driverFor(test.path).changeFile(test.path);
     expect(

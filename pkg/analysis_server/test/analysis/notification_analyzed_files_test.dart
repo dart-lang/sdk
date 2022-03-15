@@ -111,7 +111,7 @@ class A {}
     // Making a change that *does* affect the set of reachable files should
     // trigger the notification to be re-sent.
     addTestFile('class A {}');
-    newFile('/foo.dart', content: 'library foo;');
+    newFile2('/foo.dart', 'library foo;');
     await prepareAnalyzedFiles();
     expect(analyzedFilesReceived, isTrue);
 
