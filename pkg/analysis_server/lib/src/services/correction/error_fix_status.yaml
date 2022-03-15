@@ -1843,7 +1843,7 @@ LintCode.use_setters_to_change_properties:
 LintCode.use_string_buffers:
   status: needsEvaluation
 LintCode.use_super_parameters:
-  status: needsFix
+  status: hasFix
 LintCode.use_test_throws_matchers:
   status: needsEvaluation
 LintCode.use_to_and_as_if_applicable:
