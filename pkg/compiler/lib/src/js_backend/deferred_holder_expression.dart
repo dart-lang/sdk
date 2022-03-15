@@ -606,19 +606,9 @@ class DeferredHolderExpressionFinalizerImpl
     final holderCode =
         declareHolders(resourceName, nonStaticStateHolders(resource));
 
-    // Set names if necessary on deferred holders list.
-    js.Expression deferredHoldersList = js.ArrayInitializer(holderCode
-        .activeHolders
-        .map((holder) => js.js("#", holder.localName(resourceName)))
-        .toList(growable: false));
-    js.Statement setNames = js.js.statement(
-        'hunkHelpers.setFunctionNamesIfNecessary(#deferredHoldersList)',
-        {'deferredHoldersList': deferredHoldersList});
-
     // Update holder assignments.
     List<js.Statement> updateHolderAssignments = [
       if (holderCode.allHolders.isNotEmpty) holderCode.statement,
-      setNames
     ];
     for (var holder in holderCode.allHolders) {
       var holderName = holder.localName(resourceName);
