@@ -139,7 +139,8 @@ class ConvertToSuperParameters extends CorrectionProducer {
       }
 
       // Remove the corresponding arguments.
-      if (argumentsToDelete.length == arguments.length) {
+      if (argumentsToDelete.length == arguments.length &&
+          superInvocation.constructorName == null) {
         var initializers = constructor.initializers;
         SourceRange initializerRange;
         if (initializers.length == 1) {
