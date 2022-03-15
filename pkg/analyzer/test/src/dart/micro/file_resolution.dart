@@ -101,7 +101,11 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     );
 
     newFile2('/workspace/WORKSPACE', '');
-    newFile2('/workspace/dart/test/BUILD', '');
+    newFile2('/workspace/dart/test/BUILD', r'''
+dart_package(
+  null_safety = True,
+)
+''');
     createFileResolver();
   }
 
