@@ -51,10 +51,11 @@ class ClassHierarchyNodeBuilder {
     List<Supertype> interfacesList;
     int maxInheritancePath;
 
+    ClassHierarchyNode? mixedInNode;
     List<ClassHierarchyNode>? interfaceNodes;
 
     if (classBuilder.isMixinApplication) {
-      inferMixinApplication();
+      mixedInNode = inferMixinApplication();
     }
 
     if (supernode == null) {
@@ -164,8 +165,8 @@ class ClassHierarchyNodeBuilder {
       }
     }
 
-    return new ClassHierarchyNode(classBuilder, supernode, interfaceNodes,
-        superclasses, interfacesList, maxInheritancePath);
+    return new ClassHierarchyNode(classBuilder, supernode, mixedInNode,
+        interfaceNodes, superclasses, interfacesList, maxInheritancePath);
   }
 
   Supertype recordSupertype(Supertype supertype) {
@@ -275,12 +276,16 @@ class ClassHierarchyNodeBuilder {
     interfaces[type.classNode] = type;
   }
 
-  void inferMixinApplication() {
+  ClassHierarchyNode? inferMixinApplication() {
     Class cls = classBuilder.cls;
     Supertype? mixedInType = cls.mixedInType;
-    if (mixedInType == null) return;
+    if (mixedInType == null) return null;
+    ClassHierarchyNode? mixinNode =
+        hierarchy.getNodeFromClass(mixedInType.classNode);
     List<DartType> typeArguments = mixedInType.typeArguments;
-    if (typeArguments.isEmpty || typeArguments.first is! UnknownType) return;
+    if (typeArguments.isEmpty || typeArguments.first is! UnknownType) {
+      return mixinNode;
+    }
     new BuilderMixinInferrer(
             classBuilder,
             hierarchy.coreTypes,
@@ -294,6 +299,7 @@ class ClassHierarchyNodeBuilder {
     NamedTypeBuilder mixedInTypeBuilder =
         classBuilder.mixedInTypeBuilder as NamedTypeBuilder;
     mixedInTypeBuilder.arguments = inferredArguments;
+    return mixinNode;
   }
 
   /// The class Function from dart:core is supposed to be ignored when used as
@@ -324,6 +330,10 @@ class ClassHierarchyNode {
   /// `null` if this is `Object`.
   final ClassHierarchyNode? directSuperClassNode;
 
+  /// The [ClassHierarchyNode] for the mixed in class, if [classBuilder] is a
+  /// mixin application, or `null` otherwise;
+  final ClassHierarchyNode? mixedInNode;
+
   /// The [ClassHierarchyNode]s for the direct super interfaces of
   /// [classBuilder].
   final List<ClassHierarchyNode>? directInterfaceNodes;
@@ -344,10 +354,16 @@ class ClassHierarchyNode {
   ClassHierarchyNode(
       this.classBuilder,
       this.directSuperClassNode,
+      this.mixedInNode,
       this.directInterfaceNodes,
       this.superclasses,
       this.interfaces,
       this.maxInheritancePath);
+
+  /// Returns `true` if [classBuilder] is a mixin application.
+  ///
+  /// If `true`, [mixedInNode] is non-null.
+  bool get isMixinApplication => mixedInNode != null;
 
   /// Returns a list of all supertypes of [classBuilder], including this node.
   List<ClassHierarchyNode> computeAllSuperNodes(

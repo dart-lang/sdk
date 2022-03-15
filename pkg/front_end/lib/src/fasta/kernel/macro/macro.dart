@@ -891,8 +891,19 @@ class _ClassIntrospector implements macro.ClassIntrospector {
   @override
   Future<List<macro.ClassDeclaration>> interfacesOf(
       macro.ClassDeclaration clazz) {
-    // TODO: implement interfacesOf
-    throw new UnimplementedError('_ClassIntrospector.interfacesOf');
+    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
+    ClassHierarchyNode node =
+        classHierarchy.getNodeFromClassBuilder(classBuilder);
+    List<ClassHierarchyNode>? directInterfaceNodes = node.directInterfaceNodes;
+    if (directInterfaceNodes != null) {
+      List<macro.ClassDeclaration> list = [];
+      for (ClassHierarchyNode interfaceNode in directInterfaceNodes) {
+        list.add(
+            macroApplications._getClassDeclaration(interfaceNode.classBuilder));
+      }
+      return new Future.value(list);
+    }
+    return new Future.value(const []);
   }
 
   @override
@@ -911,8 +922,17 @@ class _ClassIntrospector implements macro.ClassIntrospector {
 
   @override
   Future<List<macro.ClassDeclaration>> mixinsOf(macro.ClassDeclaration clazz) {
-    // TODO: implement mixinsOf
-    throw new UnimplementedError('_ClassIntrospector.mixinsOf');
+    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
+    ClassHierarchyNode node =
+        classHierarchy.getNodeFromClassBuilder(classBuilder);
+    ClassHierarchyNode? superNode = node.directSuperClassNode;
+    List<macro.ClassDeclaration>? list;
+    while (superNode != null && superNode.isMixinApplication) {
+      (list ??= []).add(macroApplications
+          ._getClassDeclaration(superNode.mixedInNode!.classBuilder));
+      superNode = superNode.directSuperClassNode;
+    }
+    return new Future.value(list?.reversed.toList() ?? const []);
   }
 
   @override

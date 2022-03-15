@@ -17,12 +17,25 @@ class Class1 {}
 abstract class Class2 {}
 
 @ClassMacro()
-class Class3 extends Class2 {}
-
-mixin Mixin {}
+class Class3 extends Class2 implements Interface1 {}
 
 @ClassMacro()
-class Class4 extends Class1 with Mixin {}
+class Class4 extends Class1 with Mixin1 {}
+
+@ClassMacro()
+class Class5 extends Class2
+    with Mixin1, Mixin2
+    implements Interface1, Interface2 {}
+
+mixin Mixin1 {}
+
+mixin Mixin2 {}
+
+@ClassMacro()
+abstract class Interface1 {}
+
+@ClassMacro()
+abstract class Interface2 {}
 
 @FunctionMacro()
 void topLevelFunction1(Class1 a, {Class1? b, required Class2? c}) {}

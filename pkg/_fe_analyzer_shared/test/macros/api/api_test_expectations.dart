@@ -7,8 +7,21 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 const Map<String, ClassData> expectedClassData = {
   'Class1': ClassData(superclassOf: 'Object'),
   'Class2': ClassData(isAbstract: true, superclassOf: 'Object'),
-  'Class3': ClassData(superclassOf: 'Class2', superSuperclassOf: 'Object'),
-  'Class4': ClassData(superclassOf: 'Class1', superSuperclassOf: 'Object'),
+  'Class3': ClassData(
+      superclassOf: 'Class2',
+      superSuperclassOf: 'Object',
+      interfacesOf: ['Interface1']),
+  'Class4': ClassData(
+      superclassOf: 'Class1',
+      superSuperclassOf: 'Object',
+      mixinsOf: ['Mixin1']),
+  'Class5': ClassData(
+      superclassOf: 'Class2',
+      superSuperclassOf: 'Object',
+      mixinsOf: ['Mixin1', 'Mixin2'],
+      interfacesOf: ['Interface1', 'Interface2']),
+  'Interface1': ClassData(isAbstract: true, superclassOf: 'Object'),
+  'Interface2': ClassData(isAbstract: true, superclassOf: 'Object'),
 };
 
 const Map<String, FunctionData> expectedFunctionData = {
@@ -90,6 +103,22 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
         expect(expected.superSuperclassOf, superSuperclassOf?.identifier.name,
             '$name.superSuperclassOf');
       }
+      List<ClassDeclaration> mixinsOf =
+          await classIntrospector.mixinsOf(declaration);
+      expect(
+          expected.mixinsOf.length, mixinsOf.length, '$name.mixinsOf.length');
+      for (int i = 0; i < mixinsOf.length; i++) {
+        expect(expected.mixinsOf[i], mixinsOf[i].identifier.name,
+            '$name.mixinsOf[$i]');
+      }
+      List<ClassDeclaration> interfacesOf =
+          await classIntrospector.interfacesOf(declaration);
+      expect(expected.interfacesOf.length, interfacesOf.length,
+          '$name.interfacesOf.length');
+      for (int i = 0; i < interfacesOf.length; i++) {
+        expect(expected.interfacesOf[i], interfacesOf[i].identifier.name,
+            '$name.interfacesOf[$i]');
+      }
     }
     // TODO(johnniwinther): Test more properties when there are supported.
   } else {
@@ -166,12 +195,16 @@ class ClassData {
   final bool isExternal;
   final String superclassOf;
   final String? superSuperclassOf;
+  final List<String> interfacesOf;
+  final List<String> mixinsOf;
 
   const ClassData(
       {this.isAbstract: false,
       this.isExternal: false,
       required this.superclassOf,
-      this.superSuperclassOf});
+      this.superSuperclassOf,
+      this.interfacesOf: const [],
+      this.mixinsOf: const []});
 }
 
 class FunctionData {
