@@ -1118,7 +1118,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
 
-    if (holder.constructors.isEmpty) {
+    if (node is ClassDeclaration && holder.constructors.isEmpty) {
       holder.addConstructor(
         ConstructorElementImpl('', -1)..isSynthetic = true,
       );
