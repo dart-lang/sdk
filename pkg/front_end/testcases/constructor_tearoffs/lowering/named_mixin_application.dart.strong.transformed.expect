@@ -61,7 +61,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object implements s
     return new self::Class::•<self::Class::fact::T%>(field);
   static method _#fact#tearOff<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::_#fact#tearOff::T%>
     return self::Class::fact<self::Class::_#fact#tearOff::T%>(field);
-  static factory redirectingFactory<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::redirectingFactory::T%>
+  static factory redirectingFactory<T extends core::Object? = dynamic>(core::int field = #C2) → self::Class<self::Class::redirectingFactory::T%>
     return new self::Class::•<self::Class::redirectingFactory::T%>(field);
   static method _#redirectingFactory#tearOff<T extends core::Object? = dynamic>(core::int field = #C2) → self::Class<self::Class::_#redirectingFactory#tearOff::T%>
     return new self::Class::•<self::Class::_#redirectingFactory#tearOff::T%>(field);

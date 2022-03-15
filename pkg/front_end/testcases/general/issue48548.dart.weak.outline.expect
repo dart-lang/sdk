@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::A::•]/*isLegacy*/;
+  abstract get value() → core::int;
+  static factory •({core::int value}) → self::A
+    return new self::_AImpl::•(value: value);
+}
+class _AImpl extends core::Object implements self::A {
+  final field core::int value;
+  constructor •({core::int value = 0}) → self::_AImpl
+    ;
+}
+static const field ({value: core::int}) → self::A _new = self::A::•;
+static const field ({value: core::int}) → self::_AImpl _newImpl = self::_AImpl::•;
+static method main(core::List<core::String> args) → void
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue48548.dart:5:16 -> ConstructorTearOffConstant(A.)
+Evaluated: RedirectingFactoryTearOff @ org-dartlang-testcase:///issue48548.dart:15:14 -> RedirectingFactoryTearOffConstant(A.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue48548.dart:16:18 -> ConstructorTearOffConstant(_AImpl.)
+Extra constant evaluation: evaluated: 6, effectively constant: 3

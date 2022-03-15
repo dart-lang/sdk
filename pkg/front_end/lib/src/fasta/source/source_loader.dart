@@ -74,8 +74,8 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart'
     show SynthesizedFunctionNode, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
-import '../kernel/macro.dart';
-import '../kernel/macro_annotation_parser.dart';
+import '../kernel/macro/macro.dart';
+import '../kernel/macro/annotation_parser.dart';
 import '../kernel/transform_collections.dart' show CollectionTransformer;
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;

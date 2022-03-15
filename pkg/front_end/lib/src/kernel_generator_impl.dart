@@ -24,7 +24,7 @@ import 'fasta/dill/dill_target.dart' show DillTarget;
 import 'fasta/fasta_codes.dart' show LocatedMessage;
 import 'fasta/hybrid_file_system.dart';
 import 'fasta/kernel/kernel_target.dart' show BuildResult, KernelTarget;
-import 'fasta/kernel/macro.dart';
+import 'fasta/kernel/macro/macro.dart';
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
 import 'fasta/kernel/verifier.dart' show verifyComponent;
 import 'fasta/source/source_loader.dart' show SourceLoader;

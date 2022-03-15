@@ -52,11 +52,11 @@ class Class1 extends core::Object {
     ;
   static method _#positional#tearOff([core::int field1 = #C9, core::int field2 = #C10]) → self::Class1
     return new self::Class1::positional(field1, field2);
-  static factory redirectPositionalSame([core::int field1 = #C11, core::int field2 = #C11]) → self::Class1
+  static factory redirectPositionalSame([core::int field1 = #C9, core::int field2 = #C10]) → self::Class1
     return new self::Class1::positional(field1, field2);
   static method _#redirectPositionalSame#tearOff([core::int field1 = #C9, core::int field2 = #C10]) → self::Class1
     return new self::Class1::positional(field1, field2);
-  static factory redirectPositionalFewer1([core::int field1 = #C11]) → self::Class1
+  static factory redirectPositionalFewer1([core::int field1 = #C9]) → self::Class1
     return new self::Class1::positional(field1);
   static method _#redirectPositionalFewer1#tearOff([core::int field1 = #C9]) → self::Class1
     return new self::Class1::positional(field1);
@@ -66,19 +66,19 @@ class Class1 extends core::Object {
     return new self::Class1::positional();
   static method _#named#tearOff({core::int field1 = #C9, core::int field2 = #C10}) → self::Class1
     return new self::Class1::named(field1: field1, field2: field2);
-  static factory redirectNamedSame({core::int field1 = #C11, core::int field2 = #C11}) → self::Class1
+  static factory redirectNamedSame({core::int field1 = #C9, core::int field2 = #C10}) → self::Class1
     return new self::Class1::named(field1: field1, field2: field2);
   static method _#redirectNamedSame#tearOff({core::int field1 = #C9, core::int field2 = #C10}) → self::Class1
     return new self::Class1::named(field1: field1, field2: field2);
-  static factory redirectNamedReorder({core::int field2 = #C11, core::int field1 = #C11}) → self::Class1
+  static factory redirectNamedReorder({core::int field2 = #C10, core::int field1 = #C9}) → self::Class1
     return new self::Class1::named(field2: field2, field1: field1);
   static method _#redirectNamedReorder#tearOff({core::int field2 = #C10, core::int field1 = #C9}) → self::Class1
     return new self::Class1::named(field2: field2, field1: field1);
-  static factory redirectNamedFewer1({core::int field1 = #C11}) → self::Class1
+  static factory redirectNamedFewer1({core::int field1 = #C9}) → self::Class1
     return new self::Class1::named(field1: field1);
   static method _#redirectNamedFewer1#tearOff({core::int field1 = #C9}) → self::Class1
     return new self::Class1::named(field1: field1);
-  static factory redirectNamedFewer2({core::int field2 = #C11}) → self::Class1
+  static factory redirectNamedFewer2({core::int field2 = #C10}) → self::Class1
     return new self::Class1::named(field2: field2);
   static method _#redirectNamedFewer2#tearOff({core::int field2 = #C10}) → self::Class1
     return new self::Class1::named(field2: field2);
@@ -93,7 +93,7 @@ static method main() → dynamic {
   self::testDefaultValues();
 }
 static method testDefaultValues() → dynamic {
-  ([core::int, core::int]) → self::Class1 f1a = #C12;
+  ([core::int, core::int]) → self::Class1 f1a = #C11;
   self::Class1 c1a = f1a(){([core::int, core::int]) → self::Class1};
   self::expect(1, c1a.{self::Class1::field1}{core::int});
   self::expect(2, c1a.{self::Class1::field2}{core::int});
@@ -103,7 +103,7 @@ static method testDefaultValues() → dynamic {
   self::Class1 c1c = f1a(42, 87){([core::int, core::int]) → self::Class1};
   self::expect(42, c1c.{self::Class1::field1}{core::int});
   self::expect(87, c1c.{self::Class1::field2}{core::int});
-  ([core::int]) → self::Class1 f1b = #C13;
+  ([core::int]) → self::Class1 f1b = #C12;
   self::Class1 c1d = f1b(){([core::int]) → self::Class1};
   self::expect(1, c1d.{self::Class1::field1}{core::int});
   self::expect(2, c1d.{self::Class1::field2}{core::int});
@@ -116,7 +116,7 @@ Try removing the extra positional arguments.
     f1b(42, 87); // error
        ^" in f1b{<inapplicable>}.(42, 87);
   };
-  () → self::Class1 f1c = #C14;
+  () → self::Class1 f1c = #C13;
   self::Class1 c1f = f1c(){() → self::Class1};
   self::expect(1, c1f.{self::Class1::field1}{core::int});
   self::expect(2, c1f.{self::Class1::field2}{core::int});
@@ -130,7 +130,7 @@ Try removing the extra positional arguments.
     f1c(42, 87); // error
        ^" in f1c{<inapplicable>}.(42, 87);
   };
-  ({field1: core::int, field2: core::int}) → self::Class1 f2a = #C15;
+  ({field1: core::int, field2: core::int}) → self::Class1 f2a = #C14;
   self::Class1 c2a = f2a(){({field1: core::int, field2: core::int}) → self::Class1};
   self::expect(1, c2a.{self::Class1::field1}{core::int});
   self::expect(2, c2a.{self::Class1::field2}{core::int});
@@ -146,7 +146,7 @@ Try removing the extra positional arguments.
   self::Class1 c2e = f2a(field2: 87, field1: 42){({field1: core::int, field2: core::int}) → self::Class1};
   self::expect(42, c2e.{self::Class1::field1}{core::int});
   self::expect(87, c2e.{self::Class1::field2}{core::int});
-  ({field1: core::int, field2: core::int}) → self::Class1 f2b = #C16;
+  ({field1: core::int, field2: core::int}) → self::Class1 f2b = #C15;
   self::Class1 c3a = f2b(){({field1: core::int, field2: core::int}) → self::Class1};
   self::expect(1, c3a.{self::Class1::field1}{core::int});
   self::expect(2, c3a.{self::Class1::field2}{core::int});
@@ -162,7 +162,7 @@ Try removing the extra positional arguments.
   self::Class1 c3e = f2b(field2: 87, field1: 42){({field1: core::int, field2: core::int}) → self::Class1};
   self::expect(42, c3e.{self::Class1::field1}{core::int});
   self::expect(87, c3e.{self::Class1::field2}{core::int});
-  ({field1: core::int}) → self::Class1 f2c = #C17;
+  ({field1: core::int}) → self::Class1 f2c = #C16;
   self::Class1 c4a = f2c(){({field1: core::int}) → self::Class1};
   self::expect(1, c4a.{self::Class1::field1}{core::int});
   self::expect(2, c4a.{self::Class1::field2}{core::int});
@@ -174,7 +174,7 @@ Try removing the extra positional arguments.
     f2c(field1: 42, field2: 87); // error
                     ^^^^^^" in f2c{<inapplicable>}.(field1: 42, field2: 87);
   };
-  ({field2: core::int}) → self::Class1 f2d = #C18;
+  ({field2: core::int}) → self::Class1 f2d = #C17;
   self::Class1 c5a = f2d(){({field2: core::int}) → self::Class1};
   self::expect(1, c5a.{self::Class1::field1}{core::int});
   self::expect(2, c5a.{self::Class1::field2}{core::int});
@@ -186,7 +186,7 @@ Try removing the extra positional arguments.
     f2d(field1: 42, field2: 87); // error
         ^^^^^^" in f2d{<inapplicable>}.(field1: 42, field2: 87);
   };
-  () → self::Class1 f2e = #C19;
+  () → self::Class1 f2e = #C18;
   self::Class1 c6a = f2e(){() → self::Class1};
   self::expect(1, c6a.{self::Class1::field1}{core::int});
   self::expect(2, c6a.{self::Class1::field2}{core::int});
@@ -206,7 +206,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
-static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C20}) → dynamic {
+static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C19}) → dynamic {
   try {
     f(){() → dynamic};
   }
@@ -231,14 +231,13 @@ constants  {
   #C8 = constructor-tearoff self::Class1::redirectNamedFewer3
   #C9 = 1
   #C10 = 2
-  #C11 = null
-  #C12 = static-tearoff self::Class1::_#redirectPositionalSame#tearOff
-  #C13 = static-tearoff self::Class1::_#redirectPositionalFewer1#tearOff
-  #C14 = static-tearoff self::Class1::_#redirectPositionalFewer2#tearOff
-  #C15 = static-tearoff self::Class1::_#redirectNamedSame#tearOff
-  #C16 = static-tearoff self::Class1::_#redirectNamedReorder#tearOff
-  #C17 = static-tearoff self::Class1::_#redirectNamedFewer1#tearOff
-  #C18 = static-tearoff self::Class1::_#redirectNamedFewer2#tearOff
-  #C19 = static-tearoff self::Class1::_#redirectNamedFewer3#tearOff
-  #C20 = false
+  #C11 = static-tearoff self::Class1::_#redirectPositionalSame#tearOff
+  #C12 = static-tearoff self::Class1::_#redirectPositionalFewer1#tearOff
+  #C13 = static-tearoff self::Class1::_#redirectPositionalFewer2#tearOff
+  #C14 = static-tearoff self::Class1::_#redirectNamedSame#tearOff
+  #C15 = static-tearoff self::Class1::_#redirectNamedReorder#tearOff
+  #C16 = static-tearoff self::Class1::_#redirectNamedFewer1#tearOff
+  #C17 = static-tearoff self::Class1::_#redirectNamedFewer2#tearOff
+  #C18 = static-tearoff self::Class1::_#redirectNamedFewer3#tearOff
+  #C19 = false
 }
