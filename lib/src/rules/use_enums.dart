@@ -34,10 +34,10 @@ Candidates for enums are classes that:
 class LogPriority {
   static const error = LogPriority._(1, 'Error');
   static const warning = LogPriority._(2, 'Warning');
-  static const unknown = LogPriority._unknown('Log');
+  static const log = LogPriority._unknown('Log');
 
   final String prefix;
-  final int priorty;
+  final int priority;
   const LogPriority._(this.priority, this.prefix);
   const LogPriority._unknown(String prefix) : this._(-1, prefix);
 }
@@ -49,11 +49,11 @@ enum LogPriority {
   error(1, 'Error'),
   warning(2, 'Warning'),
   log.unknown('Log');
- 
+
   final String prefix;
-  final int priorty;
-  LogPriority(this.priority, this.prefix);
-  LogPriority.unknown(String prefix) : this(-1, prefix);
+  final int priority;
+  const LogPriority(this.priority, this.prefix);
+  const LogPriority.unknown(String prefix) : this(-1, prefix);
 }
 ```
 ''';
