@@ -359,15 +359,6 @@ class EditBuilderImpl implements EditBuilder {
   SourceEdit get sourceEdit => SourceEdit(offset, length, _buffer.toString());
 
   @override
-  void addEmptyLinkedEdit(String groupName) {
-    var start = offset + _buffer.length;
-    var position = Position(fileEditBuilder.fileEdit.file, start);
-    fileEditBuilder.changeBuilder._lockedPositions.add(position);
-    var group = fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
-    group.addPosition(position, 0);
-  }
-
-  @override
   void addLinkedEdit(String groupName,
       void Function(LinkedEditBuilder builder) buildLinkedEdit) {
     var builder = createLinkedEditBuilder();

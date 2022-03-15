@@ -59,9 +59,6 @@ class GenericInferrer {
   /// The list of type parameters being inferred.
   final List<TypeParameterElement> _typeFormals;
 
-  /// Indicates whether type parameter bounds should be included in constraints.
-  final bool considerExtendsClause;
-
   /// The [ErrorReporter] to which inference errors should be reported, or
   /// `null` if errors shouldn't be reported.
   final ErrorReporter? errorReporter;
@@ -75,8 +72,7 @@ class GenericInferrer {
   final bool genericMetadataIsEnabled;
 
   GenericInferrer(this._typeSystem, this._typeFormals,
-      {this.considerExtendsClause = true,
-      this.errorReporter,
+      {this.errorReporter,
       this.errorNode,
       required this.genericMetadataIsEnabled}) {
     if (errorReporter != null) {
@@ -438,7 +434,7 @@ class GenericInferrer {
       var typeParam = _typeFormals[i] as TypeParameterElementImpl;
       _TypeConstraint? extendsClause;
       var bound = typeParam.bound;
-      if (considerExtendsClause && bound != null) {
+      if (bound != null) {
         extendsClause = _TypeConstraint.fromExtends(
             typeParam,
             bound,

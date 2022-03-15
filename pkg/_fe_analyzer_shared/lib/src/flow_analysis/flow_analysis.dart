@@ -3465,8 +3465,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// Otherwise `null`.
   ReferenceWithType<Variable, Type>? _expressionReference;
 
-  int _functionNestingLevel = 0;
-
   final AssignedVariables<Node, Variable> _assignedVariables;
 
   /// Indicates whether initializers of implicitly typed variables should be
@@ -3734,7 +3732,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
-    ++_functionNestingLevel;
     _current = _current.conservativeJoin(const [], info._written);
     _stack.add(new _FunctionExpressionContext(_current));
     _current = _current.conservativeJoin(_assignedVariables._anywhere._written,
@@ -3743,8 +3740,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void functionExpression_end() {
-    --_functionNestingLevel;
-    assert(_functionNestingLevel >= 0);
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _FunctionExpressionContext<Variable, Type>;
     _current = context._previous;

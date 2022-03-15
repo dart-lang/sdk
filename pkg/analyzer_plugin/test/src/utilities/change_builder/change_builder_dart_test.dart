@@ -320,35 +320,6 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('A(int a, {this.b});'));
   }
 
-  Future<void> test_writeEmptyLinkedEditGroup() async {
-    var path = convertPath('/home/test/lib/test.dart');
-    addSource(path, '');
-
-    var builder = await newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
-      builder.addInsertion(0, (builder) {
-        builder.write('if (');
-        builder.addEmptyLinkedEdit('condition');
-        builder.writeln(') {');
-        builder.write('  ');
-        builder.addEmptyLinkedEdit('body');
-        builder.writeln();
-        builder.writeln('}');
-      });
-    });
-
-    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
-    expect(linkedEditGroups, hasLength(2));
-    // inside parens at `if ()`
-    expect(linkedEditGroups[0].length, 0);
-    expect(linkedEditGroups[0].positions, hasLength(1));
-    expect(linkedEditGroups[0].positions[0].offset, 4);
-    // after the indent inside the block
-    expect(linkedEditGroups[1].length, 0);
-    expect(linkedEditGroups[1].positions, hasLength(1));
-    expect(linkedEditGroups[1].positions[0].offset, 10);
-  }
-
   Future<void> test_writeFieldDeclaration_initializerWriter() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'class A {}';

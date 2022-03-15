@@ -1419,6 +1419,11 @@ static constexpr ExtensionSet RV_GC = RV_G | RV_C;
 
 #undef R
 
+inline Register ConcreteRegister(Register r) {
+  return r;
+}
+#define LINK_REGISTER RA
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_RISCV_H_

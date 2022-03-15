@@ -333,6 +333,25 @@ void main(List<String> args) => print("$b $args");
     expect(result.exitCode, 0);
   });
 
+  test('--enable-service-port-fallback', () async {
+    final p = project(mainSrc: '''void main() {}''');
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    final result = await p.run(
+      [
+        'run',
+        '--enable-vm-service=${server.port}',
+        '--enable-service-port-fallback',
+        p.relativeFilePath,
+      ],
+    );
+    final regexp = RegExp(
+        r'Observatory listening on http:\/\/127.0.0.1:(\d*)\/[a-zA-Z0-9_-]+=\/\n.*');
+    final vmServicePort =
+        int.parse(regexp.firstMatch(result.stdout)!.group(1)!);
+    expect(server.port != vmServicePort, isTrue);
+    await server.close();
+  });
+
   test('without verbose CFE info', () async {
     final p = project(mainSrc: '''void main() {}''');
 

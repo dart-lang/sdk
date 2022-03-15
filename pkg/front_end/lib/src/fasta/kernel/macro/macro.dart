@@ -20,6 +20,7 @@ import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/named_type_builder.dart';
 import '../../builder/nullability_builder.dart';
+import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/type_declaration_builder.dart';
 import '../../identifiers.dart';
@@ -47,8 +48,8 @@ const String augmentationScheme = 'org-dartlang-augmentation';
 final Uri macroLibraryUri =
     Uri.parse('package:_fe_analyzer_shared/src/macros/api.dart');
 const String macroClassName = 'Macro';
-final macro.IdentifierImpl dynamicIdentifier = new macro.IdentifierImpl(
-    id: macro.RemoteInstance.uniqueId, name: 'dynamic');
+final IdentifierImpl omittedTypeIdentifier =
+    new OmittedTypeIdentifier(id: macro.RemoteInstance.uniqueId);
 
 class MacroDeclarationData {
   bool macrosAreAvailable = false;
@@ -181,6 +182,7 @@ class MacroApplications {
 
   Map<ClassBuilder, macro.ClassDeclaration> _classDeclarations = {};
   Map<macro.ClassDeclaration, ClassBuilder> _classBuilders = {};
+  Map<TypeAliasBuilder, macro.TypeAliasDeclaration> _typeAliasDeclarations = {};
   Map<MemberBuilder, macro.Declaration?> _memberDeclarations = {};
 
   // TODO(johnniwinther): Support all members.
@@ -189,8 +191,13 @@ class MacroApplications {
         _createMemberDeclaration(memberBuilder);
   }
 
-  macro.ClassDeclaration _getClassDeclaration(ClassBuilder builder) {
+  macro.ClassDeclaration getClassDeclaration(ClassBuilder builder) {
     return _classDeclarations[builder] ??= _createClassDeclaration(builder);
+  }
+
+  macro.TypeAliasDeclaration getTypeAliasDeclaration(TypeAliasBuilder builder) {
+    return _typeAliasDeclarations[builder] ??=
+        _createTypeAliasDeclaration(builder);
   }
 
   ClassBuilder _getClassBuilder(macro.ClassDeclaration declaration) {
@@ -217,20 +224,8 @@ class MacroApplications {
     if (identifier is IdentifierImpl) {
       return identifier.resolveIdentifier();
     } else {
-      // TODO(johnniwinther): Use [_IdentifierImpl] for all identifiers.
-      if (identical(identifier, dynamicIdentifier)) {
-        return new macro.ResolvedIdentifier(
-            kind: macro.IdentifierKind.topLevelMember,
-            name: identifier.name,
-            staticScope: null,
-            uri: Uri.parse('dart:core'));
-      } else {
-        return new macro.ResolvedIdentifier(
-            kind: macro.IdentifierKind.topLevelMember,
-            name: identifier.name,
-            staticScope: null,
-            uri: null);
-      }
+      throw new UnsupportedError(
+          'Unsupported identifier ${identifier} (${identifier.runtimeType})');
     }
   }
 
@@ -259,7 +254,7 @@ class MacroApplications {
               classData.classApplications;
           if (classApplications != null) {
             macro.ClassDeclaration classDeclaration =
-                _getClassDeclaration(classBuilder);
+                getClassDeclaration(classBuilder);
             data.add(new _ApplicationData(libraryBuilder, classBuilder,
                 classDeclaration, classApplications));
           }
@@ -436,7 +431,7 @@ class MacroApplications {
   late macro.TypeDeclarationResolver typeDeclarationResolver;
 
   Future<List<SourceLibraryBuilder>> applyDefinitionMacros() async {
-    typeDeclarationResolver = new _TypeDeclarationResolver();
+    typeDeclarationResolver = new _TypeDeclarationResolver(this);
     List<SourceLibraryBuilder> augmentationLibraries = [];
     Map<SourceLibraryBuilder, List<macro.MacroExecutionResult>> results = {};
     for (_ApplicationData macroApplication in _applicationData) {
@@ -494,6 +489,21 @@ class MacroApplications {
     return declaration;
   }
 
+  macro.TypeAliasDeclaration _createTypeAliasDeclaration(
+      TypeAliasBuilder builder) {
+    macro.TypeAliasDeclaration declaration = new macro.TypeAliasDeclarationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        identifier: new TypeDeclarationBuilderIdentifier(
+            typeDeclarationBuilder: builder,
+            libraryBuilder: builder.library,
+            id: macro.RemoteInstance.uniqueId,
+            name: builder.name),
+        // TODO(johnniwinther): Support typeParameters
+        typeParameters: [],
+        aliasedType: _computeTypeAnnotation(builder.library, builder.type));
+    return declaration;
+  }
+
   List<List<macro.ParameterDeclarationImpl>> _createParameters(
       MemberBuilder builder, List<FormalParameterBuilder>? formals) {
     List<macro.ParameterDeclarationImpl>? positionalParameters;
@@ -543,7 +553,7 @@ class MacroApplications {
     List<List<macro.ParameterDeclarationImpl>> parameters =
         _createParameters(builder, formals);
     macro.ClassDeclaration definingClass =
-        _getClassDeclaration(builder.classBuilder as SourceClassBuilder);
+        getClassDeclaration(builder.classBuilder as SourceClassBuilder);
     return new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: new MemberBuilderIdentifier(
@@ -571,7 +581,7 @@ class MacroApplications {
     List<List<macro.ParameterDeclarationImpl>> parameters =
         _createParameters(builder, builder.formals);
     macro.ClassDeclaration definingClass =
-        _getClassDeclaration(builder.classBuilder as SourceClassBuilder);
+        getClassDeclaration(builder.classBuilder as SourceClassBuilder);
 
     return new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -603,7 +613,7 @@ class MacroApplications {
     macro.ClassDeclaration? definingClass = null;
     if (builder.classBuilder != null) {
       definingClass =
-          _getClassDeclaration(builder.classBuilder as SourceClassBuilder);
+          getClassDeclaration(builder.classBuilder as SourceClassBuilder);
     }
     if (definingClass != null) {
       // TODO(johnniwinther): Should static fields be field or variable
@@ -653,7 +663,7 @@ class MacroApplications {
     macro.ClassDeclaration? definingClass = null;
     if (builder.classBuilder != null) {
       definingClass =
-          _getClassDeclaration(builder.classBuilder as SourceClassBuilder);
+          getClassDeclaration(builder.classBuilder as SourceClassBuilder);
     }
     if (definingClass != null) {
       // TODO(johnniwinther): Should static fields be field or variable
@@ -727,7 +737,7 @@ class MacroApplications {
     }
     return new macro.NamedTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
-        identifier: dynamicIdentifier,
+        identifier: omittedTypeIdentifier,
         isNullable: false,
         typeArguments: const []);
   }
@@ -896,7 +906,7 @@ class _ClassIntrospector implements macro.ClassIntrospector {
       List<macro.ClassDeclaration> list = [];
       for (ClassHierarchyNode interfaceNode in directInterfaceNodes) {
         list.add(
-            macroApplications._getClassDeclaration(interfaceNode.classBuilder));
+            macroApplications.getClassDeclaration(interfaceNode.classBuilder));
       }
       return new Future.value(list);
     }
@@ -926,7 +936,7 @@ class _ClassIntrospector implements macro.ClassIntrospector {
     List<macro.ClassDeclaration>? list;
     while (superNode != null && superNode.isMixinApplication) {
       (list ??= []).add(macroApplications
-          ._getClassDeclaration(superNode.mixedInNode!.classBuilder));
+          .getClassDeclaration(superNode.mixedInNode!.classBuilder));
       superNode = superNode.directSuperClassNode;
     }
     return new Future.value(list?.reversed.toList() ?? const []);
@@ -944,17 +954,24 @@ class _ClassIntrospector implements macro.ClassIntrospector {
     }
     if (superNode != null) {
       return new Future.value(
-          macroApplications._getClassDeclaration(superNode.classBuilder));
+          macroApplications.getClassDeclaration(superNode.classBuilder));
     }
     return new Future.value();
   }
 }
 
 class _TypeDeclarationResolver implements macro.TypeDeclarationResolver {
+  final MacroApplications macroApplications;
+
+  _TypeDeclarationResolver(this.macroApplications);
+
   @override
   Future<macro.TypeDeclaration> declarationOf(macro.Identifier identifier) {
-    // TODO: implement declarationOf
-    throw new UnimplementedError('_TypeDeclarationResolver.declarationOf');
+    if (identifier is IdentifierImpl) {
+      return identifier.resolveTypeDeclaration(macroApplications);
+    }
+    throw new UnsupportedError(
+        'Unsupported identifier $identifier (${identifier.runtimeType})');
   }
 }
 

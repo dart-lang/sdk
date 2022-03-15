@@ -1377,7 +1377,6 @@ static const RegisterSet kCalleeSavedRegisterSet(
 //   RDX : arguments array.
 //   RCX : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  NOT_IN_PRODUCT(__ pushq(Address(RSP, 0)));  // Marker for the profiler.
   __ EnterFrame(0);
 
   const Register kTargetReg = CallingConventions::kArg1Reg;
@@ -1520,7 +1519,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
-  NOT_IN_PRODUCT(__ popq(RCX));  // Drop profiler marker.
 
   __ ret();
 }

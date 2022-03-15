@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,11 +12,24 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToSuperParameters extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SUPER_PARAMETERS;
+
+  @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
+  FixKind get fixKind => DartFixKind.CONVERT_TO_SUPER_PARAMETERS;
+
+  @override
+  FixKind? get multiFixKind => DartFixKind.CONVERT_TO_SUPER_PARAMETERS_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

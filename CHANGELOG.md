@@ -103,9 +103,11 @@
 
 #### Linter
 
-Updated the Linter to `1.19.2`, which includes changes that
+Updated the Linter to `1.20.0`, which includes changes that
 
-- adds new lint: `use_super_initializers`.
+- fixes `unnecessary_null_aware_assignments` property-access
+  false positives.
+- adds new lint: `use_super_parameters`.
 - adds new lint: `use_enums`.
 - adds new lint: `use_colored_box`.
 - improves performance for `sort_constructors`.

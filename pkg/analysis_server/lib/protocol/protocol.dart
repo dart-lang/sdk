@@ -310,6 +310,13 @@ class Response {
   /// then the response will represent an error condition.
   Response(this.id, {this.result, this.error});
 
+  /// Initialize a newly created instance to represent the CONTENT_MODIFIED
+  /// error condition.
+  Response.contentModified(Request request)
+      : this(request.id,
+            error: RequestError(RequestErrorCode.CONTENT_MODIFIED,
+                'File was modified before the operation completed.'));
+
   /// Create and return the `DEBUG_PORT_COULD_NOT_BE_OPENED` error response.
   Response.debugPortCouldNotBeOpened(Request request, dynamic error)
       : this(request.id,

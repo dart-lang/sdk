@@ -568,6 +568,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Convert to spreads everywhere in file',
   );
+  static const CONVERT_TO_SUPER_PARAMETERS = FixKind(
+    'dart.fix.convert.toSuperParameters',
+    30,
+    'Convert to using super parameters',
+  );
+  static const CONVERT_TO_SUPER_PARAMETERS_MULTI = FixKind(
+    'dart.fix.convert.toSuperParameters.multi',
+    30,
+    'Convert to using super parameters everywhere in file',
+  );
   static const CONVERT_TO_WHERE_TYPE = FixKind(
     'dart.fix.convert.toWhereType',
     DartFixKindPriority.DEFAULT,

@@ -40,6 +40,7 @@ ARCH_RENAMES = {
 }
 
 SYSTEM_TO_CIPD = {
+    'win32': 'windows',
     'windows': 'windows',
     'linux': 'linux',
     'macos': 'mac',

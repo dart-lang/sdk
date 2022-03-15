@@ -255,12 +255,14 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 dart/appjit*: SkipSlow # DFE too slow
 dart/b162922506_test: SkipSlow # Generates large input file
 dart/data_uri_spawn_test: Skip # Please triage.
+dart/isolates/fast_object_copy_test*: Slow # issue 46740
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart/snapshot_version_test: RuntimeError # Please triage.
 dart_2/appjit*: SkipSlow # DFE too slow
 dart_2/b162922506_test: SkipSlow # Generates large input file
 dart_2/data_uri_spawn_test: Skip # Please triage.
+dart_2/isolates/fast_object_copy_test*: Slow # issue 46740
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart_2/snapshot_version_test: RuntimeError # Please triage.

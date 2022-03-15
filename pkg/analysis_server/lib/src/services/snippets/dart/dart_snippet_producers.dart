@@ -26,7 +26,7 @@ class DartClassSnippetProducer extends DartSnippetProducer {
       builder.addReplacement(request.replacementRange, (builder) {
         void writeIndented(String string) => builder.write('$indent$string');
         builder.write('class ');
-        builder.addEmptyLinkedEdit('className');
+        builder.addSimpleLinkedEdit('className', 'ClassName');
         builder.writeln(' {');
         writeIndented('  ');
         builder.selectHere();
@@ -67,7 +67,7 @@ class DartDoWhileLoopSnippetProducer extends DartSnippetProducer {
         builder.selectHere();
         builder.writeln();
         writeIndented('} while (');
-        builder.addEmptyLinkedEdit('expression');
+        builder.addSimpleLinkedEdit('condition', 'condition');
         builder.write(');');
       });
     });
@@ -103,9 +103,9 @@ class DartForInLoopSnippetProducer extends DartSnippetProducer {
       builder.addReplacement(request.replacementRange, (builder) {
         void writeIndented(String string) => builder.write('$indent$string');
         builder.write('for ($varOrFinal ');
-        builder.addEmptyLinkedEdit('variableName');
+        builder.addSimpleLinkedEdit('elementName', 'element');
         builder.write(' in ');
-        builder.addEmptyLinkedEdit('collectionName');
+        builder.addSimpleLinkedEdit('collectionName', 'collection');
         builder.writeln(') {');
         writeIndented('  ');
         builder.selectHere();
@@ -142,7 +142,7 @@ class DartForLoopSnippetProducer extends DartSnippetProducer {
       builder.addReplacement(request.replacementRange, (builder) {
         void writeIndented(String string) => builder.write('$indent$string');
         builder.write('for (var i = 0; i < ');
-        builder.addEmptyLinkedEdit('count');
+        builder.addSimpleLinkedEdit('count', 'count');
         builder.writeln('; i++) {');
         writeIndented('  ');
         builder.selectHere();
@@ -181,7 +181,7 @@ class DartIfElseSnippetProducer extends DartSnippetProducer {
         void writeIndentedln(String string) =>
             builder.writeln('$indent$string');
         builder.write('if (');
-        builder.addEmptyLinkedEdit('condition');
+        builder.addSimpleLinkedEdit('condition', 'condition');
         builder.writeln(') {');
         writeIndented('  ');
         builder.selectHere();
@@ -220,7 +220,7 @@ class DartIfSnippetProducer extends DartSnippetProducer {
       builder.addReplacement(request.replacementRange, (builder) {
         void writeIndented(String string) => builder.write('$indent$string');
         builder.write('if (');
-        builder.addEmptyLinkedEdit('condition');
+        builder.addSimpleLinkedEdit('condition', 'condition');
         builder.writeln(') {');
         writeIndented('  ');
         builder.selectHere();
@@ -336,10 +336,10 @@ class DartSwitchSnippetProducer extends DartSnippetProducer {
         void writeIndentedln(String string) =>
             builder.writeln('$indent$string');
         builder.write('switch (');
-        builder.addEmptyLinkedEdit('expression');
+        builder.addSimpleLinkedEdit('expression', 'expression');
         builder.writeln(') {');
         writeIndented('  case ');
-        builder.addEmptyLinkedEdit('value');
+        builder.addSimpleLinkedEdit('value', 'value');
         builder.writeln(':');
         writeIndented('    ');
         builder.selectHere();
@@ -378,7 +378,7 @@ class DartTestBlockSnippetProducer extends DartSnippetProducer {
       builder.addReplacement(request.replacementRange, (builder) {
         void writeIndented(String string) => builder.write('$indent$string');
         builder.write("test('");
-        builder.addEmptyLinkedEdit('testName');
+        builder.addSimpleLinkedEdit('testName', 'test name');
         builder.writeln("', () {");
         writeIndented('  ');
         builder.selectHere();
@@ -425,7 +425,7 @@ class DartTestGroupBlockSnippetProducer extends DartSnippetProducer {
       builder.addReplacement(request.replacementRange, (builder) {
         void writeIndented(String string) => builder.write('$indent$string');
         builder.write("group('");
-        builder.addEmptyLinkedEdit('groupName');
+        builder.addSimpleLinkedEdit('groupName', 'group name');
         builder.writeln("', () {");
         writeIndented('  ');
         builder.selectHere();
@@ -515,7 +515,7 @@ class DartWhileLoopSnippetProducer extends DartSnippetProducer {
       builder.addReplacement(request.replacementRange, (builder) {
         void writeIndented(String string) => builder.write('$indent$string');
         builder.write('while (');
-        builder.addEmptyLinkedEdit('expression');
+        builder.addSimpleLinkedEdit('condition', 'condition');
         builder.writeln(') {');
         writeIndented('  ');
         builder.selectHere();

@@ -363,6 +363,17 @@ p.dynamic f() {}
 ''');
   }
 
+  test_errors_hasNullSuffix() {
+    assertErrorsInCode(r'''
+String f(Map<int, String> a) {
+  return a[0];
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 4,
+          messageContains: ["'String'", 'String?']),
+    ]);
+  }
+
   test_findReferences_class() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
     newFile2(aPath, r'''

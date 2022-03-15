@@ -44,6 +44,7 @@ import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -301,6 +302,9 @@ class AnalysisServer extends AbstractAnalysisServer {
             sendResponse(response);
             return;
           }
+        } on InconsistentAnalysisException {
+          sendResponse(Response.contentModified(request));
+          return;
         } on RequestFailure catch (exception) {
           sendResponse(exception.response);
           return;
