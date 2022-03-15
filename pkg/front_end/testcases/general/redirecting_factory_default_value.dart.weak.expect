@@ -16,7 +16,7 @@ class A extends core::Object {
   constructor •([core::int field = #C2]) → self::A
     : self::A::field = field, super core::Object::•()
     ;
-  static factory redirect([core::int field]) → self::A
+  static factory redirect([core::int field = #C2]) → self::A
     return new self::A::•(field);
 }
 static method main() → dynamic {

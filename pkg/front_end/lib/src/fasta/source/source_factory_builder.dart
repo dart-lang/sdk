@@ -462,34 +462,51 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           new RedirectingFactoryBody(target, typeArguments, function);
       function.body!.parent = function;
     }
-    if (_factoryTearOff != null) {
-      Set<Procedure> seenTargets = {};
-      while (target is Procedure && target.isRedirectingFactory) {
-        if (!seenTargets.add(target)) {
-          // Cyclic dependency.
-          target = null;
-          break;
-        }
-        RedirectingFactoryBody body =
-            target.function.body as RedirectingFactoryBody;
-        if (typeArguments != null) {
-          Substitution substitution = Substitution.fromPairs(
-              target.function.typeParameters, typeArguments);
-          typeArguments =
-              body.typeArguments?.map(substitution.substituteType).toList();
-        } else {
-          typeArguments = body.typeArguments;
-        }
-        target = body.target;
+
+    Set<Procedure> seenTargets = {};
+    while (target is Procedure && target.isRedirectingFactory) {
+      if (!seenTargets.add(target)) {
+        // Cyclic dependency.
+        target = null;
+        break;
       }
-      if (target is Constructor || target is Procedure && target.isFactory) {
+      RedirectingFactoryBody body =
+          target.function.body as RedirectingFactoryBody;
+      if (typeArguments != null) {
+        Substitution substitution = Substitution.fromPairs(
+            target.function.typeParameters, typeArguments);
+        typeArguments =
+            body.typeArguments?.map(substitution.substituteType).toList();
+      } else {
+        typeArguments = body.typeArguments;
+      }
+      target = body.target;
+    }
+
+    if (target is Constructor || target is Procedure && target.isFactory) {
+      typeArguments ??= [];
+      if (_factoryTearOff != null) {
         synthesizedFunctionNodes.add(buildRedirectingFactoryTearOffBody(
             _factoryTearOff!,
             target!,
-            typeArguments ?? [],
+            typeArguments,
             _tearOffTypeParameters!,
             library));
       }
+      Map<TypeParameter, DartType> substitutionMap;
+      if (function.typeParameters.length == typeArguments.length) {
+        substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
+            function.typeParameters, typeArguments);
+      } else {
+        // Error case: Substitute type parameters with `dynamic`.
+        substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
+            function.typeParameters,
+            new List<DartType>.generate(function.typeParameters.length,
+                (int index) => const DynamicType()));
+      }
+      synthesizedFunctionNodes.add(new SynthesizedFunctionNode(
+          substitutionMap, target!.function!, function,
+          libraryBuilder: library, identicalSignatures: false));
     }
     if (isConst && isPatch) {
       _finishPatch();
