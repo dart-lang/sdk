@@ -82,7 +82,7 @@ import 'constant_evaluator.dart' as constants
         ConstantEvaluationData;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
-import 'macro.dart';
+import 'macro/macro.dart';
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget extends TargetImplementation {

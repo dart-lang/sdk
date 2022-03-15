@@ -16,7 +16,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/builder/field_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
-import 'package:front_end/src/fasta/kernel/macro.dart';
+import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/macro_serializer.dart';

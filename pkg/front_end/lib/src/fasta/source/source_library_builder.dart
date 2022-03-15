@@ -66,7 +66,7 @@ import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
-import '../kernel/macro.dart';
+import '../kernel/macro/macro.dart';
 import '../kernel/type_algorithms.dart'
     show
         NonSimplicityIssue,

@@ -116,7 +116,7 @@ import 'import.dart' show Import;
 
 import 'incremental_serializer.dart' show IncrementalSerializer;
 
-import 'kernel/macro.dart' show enableMacros, NeededPrecompilations;
+import 'kernel/macro/macro.dart' show enableMacros, NeededPrecompilations;
 
 import 'scope.dart' show Scope;
 

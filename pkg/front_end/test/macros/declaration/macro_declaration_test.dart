@@ -15,7 +15,7 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/builder/class_builder.dart';
 import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
-import 'package:front_end/src/fasta/kernel/macro.dart';
+import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Arguments;

@@ -7,14 +7,14 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 
-import '../builder/builder.dart';
-import '../builder/class_builder.dart';
-import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
-import '../builder/prefix_builder.dart';
-import '../scope.dart';
-import '../source/diet_parser.dart';
-import '../source/source_library_builder.dart';
+import '../../builder/builder.dart';
+import '../../builder/class_builder.dart';
+import '../../builder/member_builder.dart';
+import '../../builder/metadata_builder.dart';
+import '../../builder/prefix_builder.dart';
+import '../../scope.dart';
+import '../../source/diet_parser.dart';
+import '../../source/source_library_builder.dart';
 
 import 'macro.dart';
 

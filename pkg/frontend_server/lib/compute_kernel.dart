@@ -24,7 +24,7 @@ import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
-import 'package:front_end/src/fasta/kernel/macro.dart';
+import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/flutter.dart';
