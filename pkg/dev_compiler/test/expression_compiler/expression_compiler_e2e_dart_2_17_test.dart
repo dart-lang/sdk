@@ -216,7 +216,6 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
 
       enum E2 with M {
         v1, v2, id_string;
-        int get index => 10;
       }
 
       mixin M on Enum {
@@ -297,7 +296,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'E2.v2.mixinMethod()',
-          expectedResult: '1000');
+          expectedResult: '100');
     });
   });
 }
