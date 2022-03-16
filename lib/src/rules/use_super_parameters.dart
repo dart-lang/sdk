@@ -42,6 +42,15 @@ class B extends A {
 ```
 ''';
 
+/// Return a set containing the elements of all of the parameters that are
+/// referenced in the body of the [constructor].
+Set<ParameterElement> _referencedParameters(
+    ConstructorDeclaration constructor) {
+  var collector = _ReferencedParameterCollector();
+  constructor.body.accept(collector);
+  return collector.foundParameters;
+}
+
 class UseSuperParameters extends LintRule {
   static const LintCode singleParam =
       LintCode('use_super_parameters', "Convert '{0}' to a super parameter.");
@@ -66,6 +75,18 @@ class UseSuperParameters extends LintRule {
   }
 }
 
+class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
+  final Set<ParameterElement> foundParameters = {};
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.staticElement;
+    if (element is ParameterElement) {
+      foundParameters.add(element);
+    }
+  }
+}
+
 class _Visitor extends SimpleAstVisitor {
   final LinterContext context;
   final LintRule rule;
@@ -82,8 +103,10 @@ class _Visitor extends SimpleAstVisitor {
     // todo(pq): consolidate logic shared w/ server
     //  (https://github.com/dart-lang/linter/issues/3263)
 
+    var referencedParameters = _referencedParameters(node);
+
     var identifiers = _checkForConvertiblePositionalParams(
-        constructorElement, superInvocation, parameters);
+        constructorElement, superInvocation, parameters, referencedParameters);
 
     // Bail if there are positional params that can't be converted.
     if (identifiers == null) return;
@@ -91,7 +114,8 @@ class _Visitor extends SimpleAstVisitor {
     for (var parameter in parameters.parameters) {
       var parameterElement = parameter.declaredElement;
       if (parameterElement == null) continue;
-      if (parameterElement.isNamed) {
+      if (parameterElement.isNamed &&
+          !referencedParameters.contains(parameterElement)) {
         if (_checkNamedParameter(
             parameter, parameterElement, constructorElement, superInvocation)) {
           var identifier = parameter.identifier?.name;
@@ -122,7 +146,8 @@ class _Visitor extends SimpleAstVisitor {
   List<String>? _checkForConvertiblePositionalParams(
       ConstructorElement constructorElement,
       SuperConstructorInvocation superInvocation,
-      FormalParameterList parameters) {
+      FormalParameterList parameters,
+      Set<ParameterElement> referencedParameters) {
     var positionalSuperArgs = <SimpleIdentifier>[];
     for (var arg in superInvocation.argumentList.arguments) {
       if (arg is SimpleIdentifier) {
@@ -149,6 +174,7 @@ class _Visitor extends SimpleAstVisitor {
         var constructorParam = constructorParams[i];
         var constructorElement = constructorParam.declaredElement;
         if (constructorElement == null) continue;
+        if (referencedParameters.contains(constructorElement)) continue;
         if (constructorElement == superParam) {
           // Compare the types.
           var superType = superParam.type;

@@ -117,6 +117,32 @@ class C extends B {
 ''');
   }
 
+  test_no_lint_referencedInBody_named() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({int? x});
+}
+class B extends A {
+  B({int? x}) : super(x: x) {
+    print(x);
+  }
+}
+''');
+  }
+
+  test_no_lint_referencedInBody_positional() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int x);
+}
+class B extends A {
+  B(int x) : super(x) {
+    print(x);
+  }
+}
+''');
+  }
+
   test_no_lint_requiredPositional_namedInSuper() async {
     await assertNoDiagnostics(r'''
 class A {
