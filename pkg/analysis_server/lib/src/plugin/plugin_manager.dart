@@ -107,6 +107,13 @@ class PluginException implements Exception {
   String toString() => message;
 }
 
+class PluginFiles {
+  final File execution;
+  final File packages;
+
+  PluginFiles(this.execution, this.packages);
+}
+
 /// Information about a single plugin.
 abstract class PluginInfo {
   /// The object used to manage the receiving and sending of notifications.
@@ -315,9 +322,9 @@ class PluginManager {
     var isNew = false;
     if (plugin == null) {
       isNew = true;
-      List<String> pluginPaths;
+      PluginFiles pluginFiles;
       try {
-        pluginPaths = pathsFor(path);
+        pluginFiles = filesFor(path);
       } catch (exception, stackTrace) {
         plugin = DiscoveredPluginInfo(
             path, '', '', notificationManager, instrumentationService);
@@ -325,8 +332,12 @@ class PluginManager {
         _pluginMap[path] = plugin;
         return;
       }
-      plugin = DiscoveredPluginInfo(path, pluginPaths[0], pluginPaths[1],
-          notificationManager, instrumentationService);
+      plugin = DiscoveredPluginInfo(
+          path,
+          pluginFiles.execution.path,
+          pluginFiles.packages.path,
+          notificationManager,
+          instrumentationService);
       _pluginMap[path] = plugin;
       try {
         var session = await plugin.start(byteStorePath, sdkPath);
@@ -413,24 +424,24 @@ class PluginManager {
     return responses;
   }
 
-  /// Return the execution path and .packages path associated with the plugin at
-  /// the given [path]. Throw a [PluginException] if there is a problem that
-  /// prevents the plugin from being executing.
+  /// Return the files associated with the plugin at the given [pluginPath].
+  /// Throw a [PluginException] if there is a problem that prevents the plugin
+  /// from being executing.
   @visibleForTesting
-  List<String> pathsFor(String pluginPath) {
+  PluginFiles filesFor(String pluginPath) {
     var pluginFolder = resourceProvider.getFolder(pluginPath);
     var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
     if (!pubspecFile.exists) {
       // If there's no pubspec file, then we don't need to copy the package
       // because we won't be running pub.
-      return _computePaths(pluginFolder);
+      return _computeFiles(pluginFolder);
     }
     var workspace = BazelWorkspace.find(resourceProvider, pluginFolder.path) ??
         GnWorkspace.find(resourceProvider, pluginFolder.path);
     if (workspace != null) {
       // Similarly, we won't be running pub if we're in a workspace because
       // there is exactly one version of each package.
-      return _computePaths(pluginFolder, workspace: workspace);
+      return _computeFiles(pluginFolder, workspace: workspace);
     }
     //
     // Copy the plugin directory to a unique subdirectory of the plugin
@@ -447,10 +458,10 @@ class PluginManager {
     if (parentFolder.exists) {
       var executionFolder =
           parentFolder.getChildAssumingFolder(pluginFolder.shortName);
-      return _computePaths(executionFolder, pubCommand: 'upgrade');
+      return _computeFiles(executionFolder, pubCommand: 'upgrade');
     }
     var executionFolder = pluginFolder.copyTo(parentFolder);
-    return _computePaths(executionFolder, pubCommand: 'get');
+    return _computeFiles(executionFolder, pubCommand: 'get');
   }
 
   /// Return a list of all of the plugins that are currently associated with the
@@ -603,11 +614,11 @@ class PluginManager {
     }));
   }
 
-  /// Compute the paths to be returned by the enclosing method given that the
+  /// Compute the files to be returned by the enclosing method given that the
   /// plugin should exist in the given [pluginFolder].
   ///
   /// Runs pub if [pubCommand] is provided and not null.
-  List<String> _computePaths(Folder pluginFolder,
+  PluginFiles _computeFiles(Folder pluginFolder,
       {String? pubCommand, Workspace? workspace}) {
     var pluginFile = pluginFolder
         .getChildAssumingFolder('bin')
@@ -659,7 +670,7 @@ class PluginManager {
       reason ??= 'Could not create packages file for an unknown reason.';
       throw PluginException(reason);
     }
-    return <String>[pluginFile.path, packagesFile.path];
+    return PluginFiles(pluginFile, packagesFile);
   }
 
   WatchEventType _convertChangeType(watcher.ChangeType type) {

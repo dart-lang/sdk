@@ -480,15 +480,14 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     // a .packages file.
     //
     var pluginDirPath = newFolder('/plugin').path;
-    var pluginFilePath = newFile2('/plugin/bin/plugin.dart', '').path;
-    var packagesFilePath = newDotPackagesFile('/plugin', '').path;
+    var pluginFile = newFile2('/plugin/bin/plugin.dart', '');
+    var packagesFile = newDotPackagesFile('/plugin', '');
     //
     // Test path computation.
     //
-    var paths = manager.pathsFor(pluginDirPath);
-    expect(paths, hasLength(2));
-    expect(paths[0], pluginFilePath);
-    expect(paths[1], packagesFilePath);
+    var files = manager.filesFor(pluginDirPath);
+    expect(files.execution, pluginFile);
+    expect(files.packages, packagesFile);
   }
 
   void test_pathsFor_withPubspec_inBazelWorkspace() {
@@ -518,14 +517,13 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     newPackage('b', ['d']);
     newPackage('c', ['d']);
     newPackage('d');
-    var pluginFilePath = newFile2('$pluginDirPath/bin/plugin.dart', '').path;
+    var pluginFile = newFile2('$pluginDirPath/bin/plugin.dart', '');
     //
     // Test path computation.
     //
-    var paths = manager.pathsFor(pluginDirPath);
-    expect(paths, hasLength(2));
-    expect(paths[0], pluginFilePath);
-    var packagesFile = getFile(paths[1]);
+    var files = manager.filesFor(pluginDirPath);
+    expect(files.execution, pluginFile);
+    var packagesFile = files.packages;
     expect(packagesFile.exists, isTrue);
     var content = packagesFile.readAsStringSync();
     var lines = content.split('\n');
