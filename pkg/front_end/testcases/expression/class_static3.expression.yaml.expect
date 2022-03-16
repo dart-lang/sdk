@@ -4,8 +4,8 @@ Errors: {
               ^^^^^^^^^
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return #lib1::globalVar.{dart.core::num::+}(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:13: Error: Undefined name 'staticVar'.\nglobalVar + staticVar + 5\n            ^^^^^^^^^"){(dart.core::num*) →* dart.core::num*}.{dart.core::num::+}(5){(dart.core::num*) →* dart.core::num*};
+  return #lib1::globalVar.{dart.core::num::+}(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:13: Error: Undefined name 'staticVar'.\nglobalVar + staticVar + 5\n            ^^^^^^^^^"){(dart.core::num) → dart.core::double}.{dart.core::double::+}(5){(dart.core::num) → dart.core::double};
 Errors: {
 }
 static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return #lib1::globalVar.{dart.core::num::+}(#lib1::MyClass::staticVar){(dart.core::num*) →* dart.core::int*}.{dart.core::num::+}(5){(dart.core::num*) →* dart.core::int*};
+  return #lib1::globalVar.{dart.core::num::+}(#lib1::MyClass::staticVar){(dart.core::num) → dart.core::int}.{dart.core::num::+}(5){(dart.core::num) → dart.core::int};

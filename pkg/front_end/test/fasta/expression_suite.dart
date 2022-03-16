@@ -613,7 +613,7 @@ Future<Context> createContext(
       errors.add(message);
     }
     ..environmentDefines = const {}
-    ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: false}
+    ..explicitExperimentalFlags = {}
     ..allowedExperimentalFlagsForTesting = const AllowedExperimentalFlags();
 
   final ProcessedOptions options =

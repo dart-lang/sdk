@@ -6,7 +6,7 @@ main() {
 }
 
 class Foo<E1> {
-  E1 get foo => null;
+  E1? get foo => null;
   String get bar => "hello";
 }
 

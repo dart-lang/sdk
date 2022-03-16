@@ -8,6 +8,6 @@ type_definitions: ["T"]
 position: "main.dart#A"
 expression: |
   () {
-    T k = null;
+    T? k = null;
     k = id(k);
   }

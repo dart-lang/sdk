@@ -1,4 +1,8 @@
 Errors: {
+  org-dartlang-debug:synthetic_debug_expression:1:6: Error: The argument type 'List<dynamic>' can't be assigned to the parameter type 'List<T>'.
+   - 'List' is from 'dart:core'.
+  m(id(s = []))
+       ^
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dynamic s) → dynamic
-  return this.{main::D::m}(this.{main::D::id}<dart.core::List<main::D::T*>*>((s = dart.core::_GrowableList::•<dynamic>(0)) as{TypeError} dart.core::List<main::D::T*>*){(dart.core::List<main::D::T*>*) →* dart.core::List<main::D::T*>*}){(dart.core::List<main::D::T*>*) →* dynamic};
+  return this.{main::D::m}(this.{main::D::id}<dart.core::List<main::D::T%>>(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:6: Error: The argument type 'List<dynamic>' can't be assigned to the parameter type 'List<T>'.\n - 'List' is from 'dart:core'.\nm(id(s = []))\n     ^" in (s = dart.core::_GrowableList::•<dynamic>(0)) as{TypeError,ForNonNullableByDefault} Never){(dart.core::List<main::D::T%>) → dart.core::List<main::D::T%>}){(dart.core::List<main::D::T%>) → dynamic};
