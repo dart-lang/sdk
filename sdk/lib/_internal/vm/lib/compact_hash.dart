@@ -35,6 +35,7 @@ abstract class _HashAbstractBase {
 }
 
 abstract class _HashAbstractImmutableBase extends _HashAbstractBase {
+  @pragma("wasm:entry-point")
   Uint32List? get _indexNullable;
 }
 

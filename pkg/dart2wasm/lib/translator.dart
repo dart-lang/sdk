@@ -77,6 +77,8 @@ class Translator {
   late final Class fixedLengthListClass;
   late final Class growableListClass;
   late final Class immutableListClass;
+  late final Class immutableMapClass;
+  late final Class hashFieldBaseClass;
   late final Class stringBaseClass;
   late final Class oneByteStringClass;
   late final Class twoByteStringClass;
@@ -91,6 +93,7 @@ class Translator {
   late final Procedure stringInterpolate;
   late final Procedure mapFactory;
   late final Procedure mapPut;
+  late final Procedure immutableMapIndexNullable;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -172,6 +175,8 @@ class Translator {
     listBaseClass = lookupCore("_ListBase");
     growableListClass = lookupCore("_GrowableList");
     immutableListClass = lookupCore("_ImmutableList");
+    immutableMapClass = lookupCollection("_WasmImmutableLinkedHashMap");
+    hashFieldBaseClass = lookupCollection("_HashFieldBase");
     stringBaseClass = lookupCore("_StringBase");
     oneByteStringClass = lookupCore("_OneByteString");
     twoByteStringClass = lookupCore("_TwoByteString");
@@ -193,6 +198,9 @@ class Translator {
         .superclass! // _LinkedHashMapMixin<K, V>
         .procedures
         .firstWhere((p) => p.name.text == "[]=");
+    immutableMapIndexNullable = lookupCollection("_HashAbstractImmutableBase")
+        .procedures
+        .firstWhere((p) => p.name.text == "_indexNullable");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,
