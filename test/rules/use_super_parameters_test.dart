@@ -22,6 +22,19 @@ class UseSuperParametersTest extends LintRuleTest {
   @override
   String get lintRule => 'use_super_parameters';
 
+  test_functionTypedFormalParameter() async {
+    await assertDiagnostics(r'''
+class A {
+  A(int f(int i));
+}
+class B extends A {
+  B(int f(int i)) : super(f);
+}
+''', [
+      lint('use_super_parameters', 53, 1),
+    ]);
+  }
+
   test_named() async {
     await assertDiagnostics(r'''
 class A {
@@ -44,6 +57,19 @@ class B {
 }
 class C extends B {
   C(int x, int y) : super(y, x);
+}
+''');
+  }
+
+  test_no_lint_invalid_fieldFormalParameter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int x);
+}
+class B extends A {
+  B(int x) : super(x) {
+    print(x);
+  }
 }
 ''');
   }
@@ -133,12 +159,12 @@ class B extends A {
   test_no_lint_referencedInBody_positional() async {
     await assertNoDiagnostics(r'''
 class A {
-  A(int x);
+  int x;
+  A(this.x);
 }
 class B extends A {
-  B(int x) : super(x) {
-    print(x);
-  }
+  int y;
+  B(this.y) : super(y);
 }
 ''');
   }
