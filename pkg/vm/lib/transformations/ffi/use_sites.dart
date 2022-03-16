@@ -689,7 +689,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             InstanceGet(InstanceAccessKind.Instance, VariableGet(arrayVar),
                 arrayNestedDimensionsFlattened.name,
                 interfaceTarget: arrayNestedDimensionsFlattened,
-                resultType: arrayNestedDimensionsFlattened.type)),
+                resultType: arrayNestedDimensionsFlattened.getterType)),
         type: coreTypes.intNonNullableRawType)
       ..fileOffset = node.fileOffset;
     final offsetVar = VariableDeclaration("#offset",
@@ -729,11 +729,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                 InstanceGet(InstanceAccessKind.Instance, VariableGet(arrayVar),
                     arrayNestedDimensionsFirst.name,
                     interfaceTarget: arrayNestedDimensionsFirst,
-                    resultType: arrayNestedDimensionsFirst.type),
+                    resultType: arrayNestedDimensionsFirst.getterType),
                 InstanceGet(InstanceAccessKind.Instance, VariableGet(arrayVar),
                     arrayNestedDimensionsRest.name,
                     interfaceTarget: arrayNestedDimensionsRest,
-                    resultType: arrayNestedDimensionsRest.type)
+                    resultType: arrayNestedDimensionsRest.getterType)
               ], types: [
                 dartType
               ])));

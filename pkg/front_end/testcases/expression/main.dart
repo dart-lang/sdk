@@ -1,7 +1,7 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 library main;
 
 import 'dart:io' show File, Process, exit;
@@ -31,7 +31,7 @@ class A<T> {
   static int staticVar = 3;
   int doit_with_this(int x) => x + 1;
 
-  final int _priv = 0;
+  final int? _priv = 0;
   void _privMethod() {}
 }
 
@@ -40,7 +40,10 @@ T id<T>(T x) => x;
 class B extends A<Object> {
   int x;
   final int y = 7;
-  int _priv;
+  int? _priv;
+
+  B(this.x);
+
   String get z {
     return "";
   }
@@ -52,14 +55,14 @@ class B extends A<Object> {
 class Bound {}
 
 class HasPrivate {
-  int _priv = 0;
+  int? _priv = 0;
 }
 
 class C<T extends Bound> extends HasPrivate {}
 
 void hasBound<T extends Bound>() {}
 
-Object k;
+Object? k;
 
 class D<T> {
   Y id<Y>(Y x) => x;
@@ -97,8 +100,8 @@ extension Foo on String {
 }
 
 class E<T> {
-  T _t;
-  T get t => _t;
+  T? _t;
+  T? get t => _t;
 }
 
 void withBound<E extends String>(List<E> x) {

@@ -7,6 +7,6 @@ definitions: []
 position: "main.dart#A"
 expression: |
   () {
-    T k = null;
+    T? k = null;
     return k;
   }

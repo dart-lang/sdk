@@ -8,5 +8,5 @@ type_definitions: ["T"]
 position: "main.dart#A"
 expression: |
   () {
-    T x = null;
+    T? x = null;
   }

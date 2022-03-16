@@ -36,6 +36,7 @@ import '../fasta_codes.dart'
         templateDuplicatedDeclaration,
         templateDuplicatedDeclarationCause,
         templateDuplicatedDeclarationSyntheticCause,
+        templateEnumContainsRestrictedInstanceDeclaration,
         templateEnumConstantSameNameAsEnclosing;
 
 import '../kernel/body_builder.dart';
@@ -269,6 +270,28 @@ class SourceEnumBuilder extends SourceClassBuilder {
           customValuesDeclaration!.charOffset,
           customValuesDeclaration.fullNameForErrors.length,
           fileUri);
+    }
+
+    for (String restrictedInstanceMemberName in const [
+      "index",
+      "hashCode",
+      "=="
+    ]) {
+      Builder? customIndexDeclaration =
+          scope.lookupLocalMember(restrictedInstanceMemberName, setter: false);
+      if (customIndexDeclaration is MemberBuilder &&
+          !customIndexDeclaration.isAbstract) {
+        // Retrieve the earliest declaration for error reporting.
+        while (customIndexDeclaration?.next != null) {
+          customIndexDeclaration = customIndexDeclaration?.next;
+        }
+        parent.addProblem(
+            templateEnumContainsRestrictedInstanceDeclaration
+                .withArguments(restrictedInstanceMemberName),
+            customIndexDeclaration!.charOffset,
+            customIndexDeclaration.fullNameForErrors.length,
+            fileUri);
+      }
     }
 
     SourceFieldBuilder valuesBuilder = new SourceFieldBuilder(

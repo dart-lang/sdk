@@ -5493,7 +5493,7 @@ EnumFactoryRedirectsToConstructor:
   problemMessage: "Enum factory constructors can't redirect to generative constructors."
 
 EnumContainsValuesDeclaration:
-  problemMessage: "Enums can't contain declarations of members with the name 'values'."
+  problemMessage: "An enum can't declare a member named 'values'."
 
 EnumImplementerContainsValuesDeclaration:
   problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'."
@@ -5516,3 +5516,6 @@ NonAugmentationClassMemberConflictCause:
 
 OptionalSuperParameterWithoutInitializer:
   problemMessage: "Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor."
+
+EnumContainsRestrictedInstanceDeclaration:
+  problemMessage: "An enum can't declare a non-abstract member named '#name'."

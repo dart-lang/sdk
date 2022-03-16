@@ -6,4 +6,4 @@ Errors: {
   ^
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<T extends dynamic>() → dynamic
-  return main::hasBound<#lib1::debugExpr::T*>();
+  return main::hasBound<#lib1::debugExpr::T%>();

@@ -294,7 +294,7 @@ class TimezoneName final {
 };
 
 // The timezone names encountered so far.  The timezone names must live forever.
-std::set<const std::string> timezone_names;
+std::set<std::string> timezone_names;
 
 // Initialized on OS:Init(), deinitialized on OS::Cleanup.
 std::shared_ptr<InspectMetrics> metrics;
@@ -459,9 +459,6 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
   return -1;
 }
-
-// The timezone names encountered so far.  The timezone names must live forever.
-std::set<const std::string> timezone_names;
 
 // TODO(5411554):  May need to hoist these architecture dependent code
 // into a architecture specific file e.g: os_ia32_fuchsia.cc
