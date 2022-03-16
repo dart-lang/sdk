@@ -639,6 +639,7 @@ class Server {
             'snapshots',
             'analysis_server.dart.snapshot'));
       }
+      // ignore: dead_code
     } else {
       var rootDir =
           findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
