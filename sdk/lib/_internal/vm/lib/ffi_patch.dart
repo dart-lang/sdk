@@ -205,15 +205,22 @@ class Array<T extends NativeType> {
   @pragma("vm:entry-point")
   final List<int> _nestedDimensions;
 
+  int? _nestedDimensionsFlattenedCache;
+  int? _nestedDimensionsFirstCache;
+  List<int>? _nestedDimensionsRestCache;
+
   @pragma("vm:entry-point")
   Array._(this._typedDataBase, this._size, this._nestedDimensions);
 
-  late final int _nestedDimensionsFlattened = _nestedDimensions.fold(
-      1, (accumulator, element) => accumulator * element);
+  int get _nestedDimensionsFlattened =>
+      _nestedDimensionsFlattenedCache ??= _nestedDimensions.fold<int>(
+          1, (accumulator, element) => accumulator * element);
 
-  late final int _nestedDimensionsFirst = _nestedDimensions.first;
+  int get _nestedDimensionsFirst =>
+      _nestedDimensionsFirstCache ??= _nestedDimensions.first;
 
-  late final List<int> _nestedDimensionsRest = _nestedDimensions.sublist(1);
+  List<int> get _nestedDimensionsRest =>
+      _nestedDimensionsRestCache ??= _nestedDimensions.sublist(1);
 
   _checkIndex(int index) {
     if (index < 0 || index >= _size) {
