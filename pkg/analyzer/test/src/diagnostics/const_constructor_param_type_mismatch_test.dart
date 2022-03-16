@@ -315,6 +315,34 @@ var v = const A('foo');
     ]);
   }
 
+  test_superFormalParameter_explicit() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A({int a = 0});
+}
+
+class B extends A {
+  static const f = B();
+
+  const B({super.a = 2});
+}
+''');
+  }
+
+  test_superFormalParameter_inherited() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A({int a = 0});
+}
+
+class B extends A {
+  static const f = B();
+
+  const B({super.a});
+}
+''');
+  }
+
   test_unknown_conditionalExpression_unknownCondition() async {
     await assertNoErrorsInCode(r'''
 const bool kIsWeb = identical(0, 0.0);
