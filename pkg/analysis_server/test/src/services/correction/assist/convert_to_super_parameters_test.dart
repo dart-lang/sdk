@@ -735,4 +735,23 @@ class B extends A {
 }
 ''');
   }
+
+  Future<void> test_trailingComma() async {
+    await resolveTestCode('''
+class A {
+  A._(int x, int y);
+}
+class B extends A {
+  B(int x, int y) : super._(x, y,);
+}
+''');
+    await assertHasAssistAt('B(', '''
+class A {
+  A._(int x, int y);
+}
+class B extends A {
+  B(super.x, super.y) : super._();
+}
+''');
+  }
 }
