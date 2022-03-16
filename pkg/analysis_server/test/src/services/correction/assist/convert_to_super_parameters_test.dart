@@ -283,6 +283,34 @@ class B extends A {
     await assertNoAssistAt('B(');
   }
 
+  Future<void> test_invalid_referencedInBody_named() async {
+    await resolveTestCode('''
+class A {
+  A({int? x});
+}
+class B extends A {
+  B({int? x}) : super(x: x) {
+    print(x);
+  }
+}
+''');
+    await assertNoAssistAt('B(');
+  }
+
+  Future<void> test_invalid_referencedInBody_positional() async {
+    await resolveTestCode('''
+class A {
+  A(int x);
+}
+class B extends A {
+  B(int x) : super(x) {
+    print(x);
+  }
+}
+''');
+    await assertNoAssistAt('B(');
+  }
+
   Future<void> test_mixed_first() async {
     await resolveTestCode('''
 class A {
