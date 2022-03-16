@@ -417,8 +417,13 @@ class BulkFixProcessor {
       var configFile = provider.getFile(configFileName);
       try {
         var content = configFile.readAsStringSync();
-        var parser = TransformOverrideSetParser(ErrorReporter(
-            AnalysisErrorListener.NULL_LISTENER, configFile.createSource()));
+        var parser = TransformOverrideSetParser(
+          ErrorReporter(
+            AnalysisErrorListener.NULL_LISTENER,
+            configFile.createSource(),
+            isNonNullableByDefault: false,
+          ),
+        );
         return parser.parse(content);
       } on FileSystemException {
         // Fall through to return null.

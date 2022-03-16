@@ -58,7 +58,10 @@ class TransformSetManager {
       var content = file.readAsStringSync();
       var parser = TransformSetParser(
           ErrorReporter(
-              AnalysisErrorListener.NULL_LISTENER, file.createSource()),
+            AnalysisErrorListener.NULL_LISTENER,
+            file.createSource(),
+            isNonNullableByDefault: false,
+          ),
           file.parent.parent.shortName);
       return parser.parse(content);
     } on FileSystemException {
