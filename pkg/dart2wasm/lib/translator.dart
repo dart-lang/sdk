@@ -190,7 +190,6 @@ class Translator {
     mapFactory = lookupCollection("LinkedHashMap").procedures.firstWhere(
         (p) => p.kind == ProcedureKind.Factory && p.name.text == "_default");
     mapPut = lookupCollection("_CompactLinkedCustomHashMap")
-        .superclass! // _HashBase
         .superclass! // _LinkedHashMapMixin<K, V>
         .procedures
         .firstWhere((p) => p.name.text == "[]=");

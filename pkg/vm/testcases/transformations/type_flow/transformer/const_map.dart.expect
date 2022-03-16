@@ -11,7 +11,7 @@ class _Attribute extends core::Object {
     : super core::Object::•()
     ;
   static method fromReader() → self::_Attribute {
-    final self::_AttributeName name = [@vm.direct-call.metadata=dart.collection::_InternalImmutableLinkedHashMap.[]] [@vm.inferred-type.metadata=#lib::_AttributeName? (skip check)] #C8.{core::Map::[]}(#C1){(core::Object?) → self::_AttributeName?}!;
+    final self::_AttributeName name = [@vm.direct-call.metadata=dart.collection::__InternalImmutableLinkedHashMap&_HashVMImmutableBase&MapMixin&_HashBase&_OperatorEqualsAndCanonicalHashCode&_LinkedHashMapMixin&_UnmodifiableMapMixin&_ImmutableLinkedHashMapMixin.[]] [@vm.inferred-type.metadata=#lib::_AttributeName? (skip check)] #C8.{core::Map::[]}(#C1){(core::Object?) → self::_AttributeName?}!;
     return new self::_Attribute::_();
   }
 }
