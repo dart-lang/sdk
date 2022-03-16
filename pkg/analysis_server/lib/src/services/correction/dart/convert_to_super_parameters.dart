@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -62,6 +63,7 @@ class ConvertToSuperParameters extends CorrectionProducer {
     // set to `null` if a positional argument is found that can't be converted
     // because either all of the positional parameters must be converted or none
     // of them can be converted.
+    var referencedParameters = _referencedParameters(constructor);
     var parameterMap = _parameterMap(constructor.parameters);
     List<_ParameterData>? positional = [];
     var named = <_ParameterData>[];
@@ -71,12 +73,12 @@ class ConvertToSuperParameters extends CorrectionProducer {
         argumentIndex++) {
       var argument = arguments[argumentIndex];
       if (argument is NamedExpression) {
-        var parameterAndElement =
-            _parameterFor(parameterMap, argument.expression);
-        if (parameterAndElement != null && parameterAndElement.isNamed) {
+        var parameter = _parameterFor(parameterMap, argument.expression);
+        if (parameter != null &&
+            parameter.isNamed &&
+            !referencedParameters.contains(parameter.element)) {
           var data = _dataForParameter(
-            parameterAndElement.parameter,
-            parameterAndElement.element,
+            parameter,
             argumentIndex,
             argument.staticParameterElement,
           );
@@ -85,13 +87,14 @@ class ConvertToSuperParameters extends CorrectionProducer {
           }
         }
       } else if (positional != null) {
-        var parameterAndElement = _parameterFor(parameterMap, argument);
-        if (parameterAndElement == null || !parameterAndElement.isPositional) {
+        var parameter = _parameterFor(parameterMap, argument);
+        if (parameter == null ||
+            !parameter.isPositional ||
+            referencedParameters.contains(parameter.element)) {
           positional = null;
         } else {
           var data = _dataForParameter(
-            parameterAndElement.parameter,
-            parameterAndElement.element,
+            parameter,
             argumentIndex,
             argument.staticParameterElement,
           );
@@ -175,10 +178,7 @@ class ConvertToSuperParameters extends CorrectionProducer {
 
   /// If the [parameter] can be converted into a super initializing formal
   /// parameter then return the data needed to do so.
-  _ParameterData? _dataForParameter(
-      _Parameter parameter,
-      ParameterElement thisParameter,
-      int argumentIndex,
+  _ParameterData? _dataForParameter(_Parameter parameter, int argumentIndex,
       ParameterElement? superParameter) {
     if (superParameter == null) {
       return null;
@@ -186,7 +186,7 @@ class ConvertToSuperParameters extends CorrectionProducer {
     // If the type of the `thisParameter` isn't a subtype of the type of the
     // super parameter, then the change isn't appropriate.
     var superType = superParameter.type;
-    var thisType = thisParameter.type;
+    var thisType = parameter.element.type;
     if (!typeSystem.isSubtypeOf(thisType, superType)) {
       return null;
     }
@@ -200,7 +200,7 @@ class ConvertToSuperParameters extends CorrectionProducer {
     return _ParameterData(
       argumentIndex: argumentIndex,
       defaultValueRange: _defaultValueRange(
-          parameter.parameter, superParameter, thisParameter),
+          parameter.parameter, superParameter, parameter.element),
       nameOffset: identifier.offset,
       parameterIndex: parameter.index,
       typeToDelete: superType == thisType ? _type(parameter.parameter) : null,
@@ -259,16 +259,16 @@ class ConvertToSuperParameters extends CorrectionProducer {
     return true;
   }
 
-  /// Return the parameter element corresponding to the [expression], or `null`
-  /// if the expression isn't a simple reference to one of the parameters in the
+  /// Return the parameter corresponding to the [expression], or `null` if the
+  /// expression isn't a simple reference to one of the parameters in the
   /// constructor being converted.
-  _ParameterAndElement? _parameterFor(
+  _Parameter? _parameterFor(
       Map<ParameterElement, _Parameter> parameterMap, Expression expression) {
     if (expression is SimpleIdentifier) {
       var element = expression.staticElement;
       var parameter = parameterMap[element];
-      if (element is ParameterElement && parameter != null) {
-        return _ParameterAndElement(element, parameter);
+      if (parameter != null) {
+        return parameter;
       }
     }
     return null;
@@ -284,10 +284,19 @@ class ConvertToSuperParameters extends CorrectionProducer {
       var parameter = parameters[i];
       var element = parameter.declaredElement;
       if (element != null) {
-        map[element] = _Parameter(parameter, i);
+        map[element] = _Parameter(parameter, element, i);
       }
     }
     return map;
+  }
+
+  /// Return a set containing the elements of all of the parameters that are
+  /// referenced in the body of the [constructor].
+  Set<ParameterElement> _referencedParameters(
+      ConstructorDeclaration constructor) {
+    var collector = _ReferencedParameterCollector();
+    constructor.body.accept(collector);
+    return collector.foundParameters;
   }
 
   /// Return the invocation of the super constructor.
@@ -337,18 +346,11 @@ class ConvertToSuperParameters extends CorrectionProducer {
 class _Parameter {
   final FormalParameter parameter;
 
-  final int index;
-
-  _Parameter(this.parameter, this.index);
-}
-
-/// A data class used to avoid a null check.
-class _ParameterAndElement {
   final ParameterElement element;
 
-  final _Parameter parameter;
+  final int index;
 
-  _ParameterAndElement(this.element, this.parameter);
+  _Parameter(this.parameter, this.element, this.index);
 
   bool get isNamed => element.isNamed;
 
@@ -383,6 +385,18 @@ class _ParameterData {
       required this.defaultValueRange,
       required this.parameterIndex,
       required this.argumentIndex});
+}
+
+class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
+  final Set<ParameterElement> foundParameters = {};
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.staticElement;
+    if (element is ParameterElement) {
+      foundParameters.add(element);
+    }
+  }
 }
 
 /// Information about the ranges of text that need to be removed in order to
