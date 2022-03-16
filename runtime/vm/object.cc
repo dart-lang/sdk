@@ -24498,7 +24498,7 @@ void LinkedHashBase::ComputeAndSetHashMask() const {
   Zone* const zone = thread->zone();
 
   const auto& data_array = Array::Handle(zone, data());
-  const intptr_t data_length = data_array.Length();
+  const intptr_t data_length = Utils::RoundUpToPowerOfTwo(data_array.Length());
   const intptr_t index_size_mult = IsLinkedHashMap() ? 1 : 2;
   const intptr_t index_size = Utils::Maximum(LinkedHashBase::kInitialIndexSize,
                                              data_length * index_size_mult);

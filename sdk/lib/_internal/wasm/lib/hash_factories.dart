@@ -49,3 +49,24 @@ class LinkedHashSet<E> {
   @patch
   factory LinkedHashSet.identity() => new _CompactLinkedIdentityHashSet<E>();
 }
+
+abstract class _HashWasmImmutableBase extends _HashFieldBase
+    implements _HashAbstractImmutableBase {
+  external Uint32List? get _indexNullable;
+}
+
+@pragma("wasm:entry-point")
+class _WasmImmutableLinkedHashMap<K, V> extends _HashWasmImmutableBase
+    with
+        MapMixin<K, V>,
+        _HashBase,
+        _OperatorEqualsAndHashCode,
+        _LinkedHashMapMixin<K, V>,
+        _UnmodifiableMapMixin<K, V>,
+        _ImmutableLinkedHashMapMixin<K, V>
+    implements LinkedHashMap<K, V> {
+  factory _WasmImmutableLinkedHashMap._uninstantiable() {
+    throw new UnsupportedError(
+        "Immutable maps can only be instantiated via constants");
+  }
+}

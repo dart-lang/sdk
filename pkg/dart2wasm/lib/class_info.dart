@@ -21,6 +21,8 @@ class FieldIndex {
   static const boxValue = 1;
   static const identityHash = 1;
   static const stringArray = 2;
+  static const hashBaseIndex = 2;
+  static const hashBaseData = 4;
   static const closureContext = 2;
   static const closureFunction = 3;
   static const typedListBaseLength = 2;
@@ -45,6 +47,8 @@ class FieldIndex {
     check(translator.boxedDoubleClass, "value", FieldIndex.boxValue);
     check(translator.oneByteStringClass, "_array", FieldIndex.stringArray);
     check(translator.twoByteStringClass, "_array", FieldIndex.stringArray);
+    check(translator.hashFieldBaseClass, "_index", FieldIndex.hashBaseIndex);
+    check(translator.hashFieldBaseClass, "_data", FieldIndex.hashBaseData);
     check(translator.functionClass, "context", FieldIndex.closureContext);
   }
 }

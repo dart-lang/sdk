@@ -145,6 +145,13 @@ class Intrinsifier {
       return w.NumType.i64;
     }
 
+    if (node.interfaceTarget == translator.immutableMapIndexNullable) {
+      ClassInfo info = translator.classInfo[translator.hashFieldBaseClass]!;
+      codeGen.wrap(node.receiver, info.nullableType);
+      b.struct_get(info.struct, FieldIndex.hashBaseIndex);
+      return info.struct.fields[FieldIndex.hashBaseIndex].type.unpacked;
+    }
+
     return null;
   }
 

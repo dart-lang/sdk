@@ -293,8 +293,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       const intptr_t used_data = (length << 1);
       map.set_used_data(used_data);
 
-      const intptr_t data_size = Utils::RoundUpToPowerOfTwo(used_data);
-      const auto& data = Array::Handle(Z, Array::New(data_size));
+      const auto& data = Array::Handle(Z, Array::New(used_data));
       map.set_data(data);
 
       map.set_deleted_keys(0);
@@ -343,8 +342,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       const intptr_t used_data = length;
       set.set_used_data(used_data);
 
-      const intptr_t data_size = Utils::RoundUpToPowerOfTwo(used_data);
-      const auto& data = Array::Handle(Z, Array::New(data_size));
+      const auto& data = Array::Handle(Z, Array::New(used_data));
       set.set_data(data);
 
       set.set_deleted_keys(0);

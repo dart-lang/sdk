@@ -154,10 +154,10 @@ def GuessArchitecture():
     os_id = platform.machine()
     if os_id.startswith('armv6'):
         return 'armv6'
+    elif os_id.startswith('aarch64') or os_id == 'arm64':
+        return 'arm64'
     elif os_id.startswith('arm'):
         return 'arm'
-    elif os_id.startswith('aarch64'):
-        return 'arm64'
     elif '64' in os_id:
         return 'x64'
     elif (not os_id) or (not re.match('(x|i[3-6])86', os_id) is None):

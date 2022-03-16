@@ -189,7 +189,6 @@ wasm:
       - _internal/wasm/lib/function.dart
       - _internal/wasm/lib/growable_list.dart
       - _internal/wasm/lib/identical_patch.dart
-      - _internal/wasm/lib/immutable_map.dart
       - _internal/wasm/lib/int.dart
       - _internal/vm/lib/integers_patch.dart
       - _internal/wasm/lib/list.dart

@@ -18,7 +18,7 @@ import 'package:dart2wasm/transformers.dart' as wasmTrans;
 class WasmTarget extends Target {
   Class? _growableList;
   Class? _immutableList;
-  Class? _immutableMap;
+  Class? _wasmImmutableLinkedHashMap;
   Class? _unmodifiableSet;
   Class? _compactLinkedCustomHashMap;
   Class? _compactLinkedHashSet;
@@ -157,8 +157,8 @@ class WasmTarget extends Target {
 
   @override
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
-    return _immutableMap ??=
-        coreTypes.index.getClass('dart:collection', '_ImmutableMap');
+    return _wasmImmutableLinkedHashMap ??= coreTypes.index
+        .getClass('dart:collection', '_WasmImmutableLinkedHashMap');
   }
 
   @override
