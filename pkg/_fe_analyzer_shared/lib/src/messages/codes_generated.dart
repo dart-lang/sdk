@@ -2778,14 +2778,38 @@ const MessageCode messageEnumConstructorTearoff = const MessageCode(
     problemMessage: r"""Enum constructors can't be torn off.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateEnumContainsRestrictedInstanceDeclaration =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""An enum can't declare a non-abstract member named '#name'.""",
+        withArguments: _withArgumentsEnumContainsRestrictedInstanceDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeEnumContainsRestrictedInstanceDeclaration =
+    const Code<Message Function(String name)>(
+  "EnumContainsRestrictedInstanceDeclaration",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumContainsRestrictedInstanceDeclaration(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeEnumContainsRestrictedInstanceDeclaration,
+      problemMessage:
+          """An enum can't declare a non-abstract member named '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumContainsValuesDeclaration =
     messageEnumContainsValuesDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumContainsValuesDeclaration = const MessageCode(
     "EnumContainsValuesDeclaration",
-    problemMessage:
-        r"""Enums can't contain declarations of members with the name 'values'.""");
+    problemMessage: r"""An enum can't declare a member named 'values'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumDeclarationEmpty = messageEnumDeclarationEmpty;

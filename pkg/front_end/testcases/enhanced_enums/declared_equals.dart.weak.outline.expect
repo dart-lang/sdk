@@ -1,0 +1,58 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/declared_equals.dart:8:16: Error: An enum can't declare a non-abstract member named '=='.
+//   bool operator==(Object other) => true; // Error.
+//                ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::element];
+  static const field self::E1 element = const self::E1::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+  operator ==(core::Object other) → core::bool
+    ;
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2> values = const <self::E2>[self::E2::element];
+  static const field self::E2 element = const self::E2::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E2
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+  abstract operator ==(core::Object other) → core::bool;
+}
+abstract class I3 extends core::Object {
+  synthetic constructor •() → self::I3
+    ;
+  abstract operator ==(core::Object other) → core::bool;
+}
+class E3 extends core::_Enum implements self::I3 /*isEnum*/  {
+  static const field core::List<self::E3> values = const <self::E3>[self::E3::element];
+  static const field self::E3 element = const self::E3::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E3
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_equals.dart:5:6 -> ListConstant(const <E1*>[const E1{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_equals.dart:6:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_equals.dart:11:6 -> ListConstant(const <E2*>[const E2{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_equals.dart:12:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_equals.dart:21:6 -> ListConstant(const <E3*>[const E3{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_equals.dart:21:25 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "element"})
+Extra constant evaluation: evaluated: 21, effectively constant: 6

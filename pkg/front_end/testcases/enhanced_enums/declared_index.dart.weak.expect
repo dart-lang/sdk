@@ -1,0 +1,324 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:8:11: Error: An enum can't declare a non-abstract member named 'index'.
+//   int get index => 42; // Error.
+//           ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:14:14: Error: An enum can't declare a non-abstract member named 'index'.
+//   String get index => "foo"; // Error.
+//              ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:20:13: Error: An enum can't declare a non-abstract member named 'index'.
+//   final int index = 42; // Error.
+//             ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:26:16: Error: An enum can't declare a non-abstract member named 'index'.
+//   List<String> index() => []; // Error.
+//                ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:32:13: Error: An enum can't declare a non-abstract member named 'index'.
+//   Never get index => throw 42; // Error.
+//             ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:38:22: Error: An enum can't declare a non-abstract member named 'index'.
+//   final int foo = 0, index = 1, bar = 2; // Error.
+//                      ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:64:18: Error: An enum can't declare a non-abstract member named 'index'.
+//   static int get index => 42; // Error.
+//                  ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:26:16: Error: Can't declare a member that conflicts with an inherited one.
+//   List<String> index() => []; // Error.
+//                ^^^^^
+// sdk/lib/core/enum.dart:101:13: Context: This is the inherited member.
+//   final int index;
+//             ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:64:18: Error: Can't declare a member that conflicts with an inherited one.
+//   static int get index => 42; // Error.
+//                  ^^^^^
+// sdk/lib/core/enum.dart:101:13: Context: This is the inherited member.
+//   final int index;
+//             ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:70:19: Error: Can't declare a member that conflicts with an inherited one.
+//   static void set index(int value) {} // Error.
+//                   ^^^^^
+// sdk/lib/core/enum.dart:101:13: Context: This is the inherited member.
+//   final int index;
+//             ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:74:3: Error: Can't declare a member that conflicts with an inherited one.
+//   index // Error.
+//   ^^^^^
+// sdk/lib/core/enum.dart:101:13: Context: This is the inherited member.
+//   final int index;
+//             ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:14:14: Error: The return type of the method 'E2.index' is 'String', which does not match the return type, 'int', of the overridden method, '_Enum.index'.
+// Change to a subtype of 'int'.
+//   String get index => "foo"; // Error.
+//              ^
+// sdk/lib/core/enum.dart:101:13: Context: This is the overridden method ('index').
+//   final int index;
+//             ^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:52:12: Error: The type 'int' of the inherited field '_Enum.index' is not a subtype of the type 'String' of the setter 'E8.index'.
+//   void set index(String value) {} // Error.
+//            ^^^^^
+// sdk/lib/core/enum.dart:101:13: Context: This is the declaration of the field '_Enum.index'.
+//   final int index;
+//             ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:58:14: Error: The return type of the method 'E9.index' is 'double', which does not match the return type, 'int', of the overridden method, '_Enum.index'.
+// Change to a subtype of 'int'.
+//   double get index; // Error.
+//              ^
+// sdk/lib/core/enum.dart:101:13: Context: This is the overridden method ('index').
+//   final int index;
+//             ^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:55:6: Error: The implementation of 'index' in the non-abstract class 'E9' does not conform to its interface.
+// enum E9 {
+//      ^^
+// sdk/lib/core/enum.dart:101:13: Context: The return type of the method '_Enum.index' is 'int', which does not match the return type, 'double', of the overridden method, 'E9.index'.
+// Change to a subtype of 'double'.
+//   final int index;
+//             ^
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:58:14: Context: This is the overridden method ('index').
+//   double get index; // Error.
+//              ^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:87:6: Error: The implementation of 'index' in the non-abstract class 'E14' does not conform to its interface.
+// enum E14 implements I14 { element } // Error.
+//      ^^^
+// sdk/lib/core/enum.dart:101:13: Context: The return type of the method '_Enum.index' is 'int', which does not match the return type, 'Never', of the overridden method, 'I14.index'.
+// Change to a subtype of 'Never'.
+//   final int index;
+//             ^
+// pkg/front_end/testcases/enhanced_enums/declared_index.dart:84:13: Context: This is the overridden method ('index').
+//   Never get index;
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1> values = #C4;
+  static const field self::E1 element = #C3;
+  const constructor •(core::int index, core::String name) → self::E1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+  get index() → core::int
+    return 42;
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2> values = #C6;
+  static const field self::E2 element = #C5;
+  const constructor •(core::int index, core::String name) → self::E2
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+  get index() → core::String
+    return "foo";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E3> values = #C9;
+  final field core::int index = 42;
+  static const field self::E3 element = #C8;
+  const constructor •(core::int index, core::String name) → self::E3
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E4> values = #C11;
+  static const field self::E4 element = #C10;
+  const constructor •(core::int index, core::String name) → self::E4
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+  method index() → core::List<core::String>
+    return <core::String>[];
+}
+class E5 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E5> values = #C13;
+  static const field self::E5 element = #C12;
+  const constructor •(core::int index, core::String name) → self::E5
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+  get index() → Never
+    return throw 42;
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E6> values = #C17;
+  final field core::int foo = 0;
+  final field core::int index = 1;
+  final field core::int bar = 2;
+  static const field self::E6 element = #C16;
+  const constructor •(core::int index, core::String name) → self::E6
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
+class E7 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E7> values = #C19;
+  static const field self::E7 element = #C18;
+  const constructor •(core::int index, core::String name) → self::E7
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E7.${this.{core::_Enum::_name}{core::String}}";
+  set index(core::int value) → void {}
+  abstract get index() → core::int;
+}
+class E8 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E8> values = #C21;
+  static const field self::E8 element = #C20;
+  const constructor •(core::int index, core::String name) → self::E8
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E8.${this.{core::_Enum::_name}{core::String}}";
+  set index(core::String value) → void {}
+}
+class E9 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E9> values = #C23;
+  static const field self::E9 element = #C22;
+  const constructor •(core::int index, core::String name) → self::E9
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E9.${this.{core::_Enum::_name}{core::String}}";
+  abstract get index() → core::double;
+}
+class E10 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E10> values = #C25;
+  static const field self::E10 element = #C24;
+  const constructor •(core::int index, core::String name) → self::E10
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E10.${this.{core::_Enum::_name}{core::String}}";
+  static get index() → core::int
+    return 42;
+}
+class E11 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E11> values = #C27;
+  static const field self::E11 element = #C26;
+  const constructor •(core::int index, core::String name) → self::E11
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E11.${this.{core::_Enum::_name}{core::String}}";
+  static set index(core::int value) → void {}
+}
+class E12 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E12> values = #C30;
+  static const field self::E12 index = #C29;
+  const constructor •(core::int index, core::String name) → self::E12
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E12.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class I13 extends core::Object {
+  synthetic constructor •() → self::I13
+    : super core::Object::•()
+    ;
+  abstract get index() → core::int;
+}
+class E13 extends core::_Enum implements self::I13 /*isEnum*/  {
+  static const field core::List<self::E13> values = #C32;
+  static const field self::E13 element = #C31;
+  const constructor •(core::int index, core::String name) → self::E13
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E13.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class I14 extends core::Object {
+  synthetic constructor •() → self::I14
+    : super core::Object::•()
+    ;
+  abstract get index() → Never;
+}
+class E14 extends core::_Enum implements self::I14 /*isEnum*/  {
+  static const field core::List<self::E14> values = #C34;
+  static const field self::E14 element = #C33;
+  const constructor •(core::int index, core::String name) → self::E14
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E14.${this.{core::_Enum::_name}{core::String}}";
+  abstract member-signature get index() → Never; -> self::I14::index
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = "element"
+  #C3 = self::E1 {index:#C1, _name:#C2}
+  #C4 = <self::E1*>[#C3]
+  #C5 = self::E2 {index:#C1, _name:#C2}
+  #C6 = <self::E2*>[#C5]
+  #C7 = 42
+  #C8 = self::E3 {index:#C7, index:#C1, _name:#C2}
+  #C9 = <self::E3*>[#C8]
+  #C10 = self::E4 {index:#C1, _name:#C2}
+  #C11 = <self::E4*>[#C10]
+  #C12 = self::E5 {index:#C1, _name:#C2}
+  #C13 = <self::E5*>[#C12]
+  #C14 = 1
+  #C15 = 2
+  #C16 = self::E6 {foo:#C1, index:#C14, bar:#C15, index:#C1, _name:#C2}
+  #C17 = <self::E6*>[#C16]
+  #C18 = self::E7 {index:#C1, _name:#C2}
+  #C19 = <self::E7*>[#C18]
+  #C20 = self::E8 {index:#C1, _name:#C2}
+  #C21 = <self::E8*>[#C20]
+  #C22 = self::E9 {index:#C1, _name:#C2}
+  #C23 = <self::E9*>[#C22]
+  #C24 = self::E10 {index:#C1, _name:#C2}
+  #C25 = <self::E10*>[#C24]
+  #C26 = self::E11 {index:#C1, _name:#C2}
+  #C27 = <self::E11*>[#C26]
+  #C28 = "index"
+  #C29 = self::E12 {index:#C1, _name:#C28}
+  #C30 = <self::E12*>[#C29]
+  #C31 = self::E13 {index:#C1, _name:#C2}
+  #C32 = <self::E13*>[#C31]
+  #C33 = self::E14 {index:#C1, _name:#C2}
+  #C34 = <self::E14*>[#C33]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///declared_index.dart:
+- E1. (from org-dartlang-testcase:///declared_index.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- E2. (from org-dartlang-testcase:///declared_index.dart:11:6)
+- E3. (from org-dartlang-testcase:///declared_index.dart:17:6)
+- E4. (from org-dartlang-testcase:///declared_index.dart:23:6)
+- E5. (from org-dartlang-testcase:///declared_index.dart:29:6)
+- E6. (from org-dartlang-testcase:///declared_index.dart:35:6)
+- E7. (from org-dartlang-testcase:///declared_index.dart:41:6)
+- E8. (from org-dartlang-testcase:///declared_index.dart:49:6)
+- E9. (from org-dartlang-testcase:///declared_index.dart:55:6)
+- E10. (from org-dartlang-testcase:///declared_index.dart:61:6)
+- E11. (from org-dartlang-testcase:///declared_index.dart:67:6)
+- E12. (from org-dartlang-testcase:///declared_index.dart:73:6)
+- E13. (from org-dartlang-testcase:///declared_index.dart:81:6)
+- E14. (from org-dartlang-testcase:///declared_index.dart:87:6)

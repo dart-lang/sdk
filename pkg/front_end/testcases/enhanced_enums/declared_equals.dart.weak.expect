@@ -1,0 +1,68 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/declared_equals.dart:8:16: Error: An enum can't declare a non-abstract member named '=='.
+//   bool operator==(Object other) => true; // Error.
+//                ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1> values = #C4;
+  static const field self::E1 element = #C3;
+  const constructor •(core::int index, core::String name) → self::E1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+  operator ==(core::Object other) → core::bool
+    return true;
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2> values = #C6;
+  static const field self::E2 element = #C5;
+  const constructor •(core::int index, core::String name) → self::E2
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+  abstract operator ==(core::Object other) → core::bool;
+}
+abstract class I3 extends core::Object {
+  synthetic constructor •() → self::I3
+    : super core::Object::•()
+    ;
+  abstract operator ==(core::Object other) → core::bool;
+}
+class E3 extends core::_Enum implements self::I3 /*isEnum*/  {
+  static const field core::List<self::E3> values = #C8;
+  static const field self::E3 element = #C7;
+  const constructor •(core::int index, core::String name) → self::E3
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = "element"
+  #C3 = self::E1 {index:#C1, _name:#C2}
+  #C4 = <self::E1*>[#C3]
+  #C5 = self::E2 {index:#C1, _name:#C2}
+  #C6 = <self::E2*>[#C5]
+  #C7 = self::E3 {index:#C1, _name:#C2}
+  #C8 = <self::E3*>[#C7]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///declared_equals.dart:
+- E1. (from org-dartlang-testcase:///declared_equals.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- E2. (from org-dartlang-testcase:///declared_equals.dart:11:6)
+- E3. (from org-dartlang-testcase:///declared_equals.dart:21:6)

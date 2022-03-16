@@ -217,6 +217,8 @@ EnumConstructorSuperInitializer/analyzerCode: Fail
 EnumConstructorSuperInitializer/example: Fail
 EnumConstructorTearoff/analyzerCode: Fail
 EnumConstructorTearoff/example: Fail
+EnumContainsRestrictedInstanceDeclaration/analyzerCode: Fail
+EnumContainsRestrictedInstanceDeclaration/example: Fail
 EnumContainsValuesDeclaration/analyzerCode: Fail
 EnumContainsValuesDeclaration/example: Fail
 EnumDeclaresConstFactory/analyzerCode: Fail
@@ -225,6 +227,8 @@ EnumDeclaresFactory/analyzerCode: Fail
 EnumDeclaresFactory/example: Fail
 EnumFactoryRedirectsToConstructor/analyzerCode: Fail
 EnumFactoryRedirectsToConstructor/example: Fail
+EnumImplementerContainsForbiddedInstanceDeclaration/analyzerCode: Fail
+EnumImplementerContainsForbiddedInstanceDeclaration/example: Fail
 EnumImplementerContainsValuesDeclaration/analyzerCode: Fail
 EnumImplementerContainsValuesDeclaration/example: Fail
 EnumInstantiation/example: Fail
