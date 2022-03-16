@@ -5226,12 +5226,14 @@ static bool LinkedHashBaseEqual(const LinkedHashBase& map1,
     // Check data, only for non-nested.
     const auto& data1 = Array::Handle(map1.data());
     const auto& data2 = Array::Handle(map2.data());
-    const bool data_length_equal = data1.Length() == data2.Length();
+    const intptr_t data1_length = Smi::Value(map1.used_data());
+    const intptr_t data2_length = Smi::Value(map2.used_data());
+    const bool data_length_equal = data1_length == data2_length;
     bool data_equal = data_length_equal;
     if (data_length_equal) {
       auto& object1 = Instance::Handle();
       auto& object2 = Instance::Handle();
-      for (intptr_t i = 0; i < data1.Length(); i++) {
+      for (intptr_t i = 0; i < data1_length; i++) {
         object1 ^= data1.At(i);
         object2 ^= data2.At(i);
         data_equal &= object1.CanonicalizeEquals(object2);
@@ -5242,14 +5244,14 @@ static bool LinkedHashBaseEqual(const LinkedHashBase& map1,
         THR_Print("LinkedHashBaseEqual Data not equal.\n");
         THR_Print("LinkedHashBaseEqual data1.length %" Pd " data1.length %" Pd
                   " \n",
-                  data1.Length(), data2.Length());
+                  data1_length, data2_length);
         auto& object1 = Instance::Handle();
-        for (intptr_t i = 0; i < data1.Length(); i++) {
+        for (intptr_t i = 0; i < data1_length; i++) {
           object1 ^= data1.At(i);
           THR_Print("LinkedHashBaseEqual data1[%" Pd "] %s\n", i,
                     object1.ToCString());
         }
-        for (intptr_t i = 0; i < data2.Length(); i++) {
+        for (intptr_t i = 0; i < data2_length; i++) {
           object1 ^= data2.At(i);
           THR_Print("LinkedHashBaseEqual data2[%" Pd "] %s\n", i,
                     object1.ToCString());
@@ -5315,7 +5317,7 @@ static LinkedHashMapPtr ConstructImmutableMap(
     const TypeArguments& type_arguments) {
   auto& map = LinkedHashMap::Handle(ImmutableLinkedHashMap::NewUninitialized());
 
-  const auto& data = Array::Handle(Array::New(input_data.Length()));
+  const auto& data = Array::Handle(Array::New(used_data));
   for (intptr_t i = 0; i < used_data; i++) {
     data.SetAt(i, Object::Handle(input_data.At(i)));
   }
@@ -5706,7 +5708,7 @@ static LinkedHashSetPtr ConstructImmutableSet(
     const TypeArguments& type_arguments) {
   auto& set = LinkedHashSet::Handle(ImmutableLinkedHashSet::NewUninitialized());
 
-  const auto& data = Array::Handle(Array::New(input_data.Length()));
+  const auto& data = Array::Handle(Array::New(used_data));
   for (intptr_t i = 0; i < used_data; i++) {
     data.SetAt(i, Object::Handle(input_data.At(i)));
   }

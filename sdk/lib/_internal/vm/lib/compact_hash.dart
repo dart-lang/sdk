@@ -336,8 +336,8 @@ mixin _ImmutableLinkedHashMapMixin<K, V>
   }
 
   void _createIndex() {
-    final size = max(_data.length, _HashBase._INITIAL_INDEX_SIZE);
-    assert(size == _roundUpToPowerOfTwo(size));
+    final size =
+        _roundUpToPowerOfTwo(max(_data.length, _HashBase._INITIAL_INDEX_SIZE));
     final newIndex = new Uint32List(size);
     final hashMask = _HashBase._indexSizeToHashMask(size);
     assert(_hashMask == hashMask);
