@@ -2298,16 +2298,22 @@ void Assembler::LoadFieldAddressForRegOffset(Register address,
 }
 
 void Assembler::PushRegisters(const RegisterSet& regs) {
-  const intptr_t fpu_regs_count = regs.FpuRegisterCount();
-  if (fpu_regs_count > 0) {
-    // Store fpu registers with the lowest register number at the lowest
-    // address.
-    for (intptr_t i = kNumberOfVRegisters - 1; i >= 0; --i) {
-      VRegister fpu_reg = static_cast<VRegister>(i);
-      if (regs.ContainsFpuRegister(fpu_reg)) {
-        PushQuad(fpu_reg);
+  VRegister vprev = kNoVRegister;
+  // Store fpu registers with the lowest register number at the lowest
+  // address.
+  for (intptr_t i = kNumberOfVRegisters - 1; i >= 0; --i) {
+    VRegister fpu_reg = static_cast<VRegister>(i);
+    if (regs.ContainsFpuRegister(fpu_reg)) {
+      if (vprev != kNoVRegister) {
+        PushQuadPair(/*low=*/fpu_reg, /*high=*/vprev);
+        vprev = kNoVRegister;
+      } else {
+        vprev = fpu_reg;
       }
     }
+  }
+  if (vprev != kNoVRegister) {
+    PushQuad(vprev);
   }
 
   // The order in which the registers are pushed must match the order
@@ -2350,50 +2356,98 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   }
   ASSERT(prev == kNoRegister);
 
-  const intptr_t fpu_regs_count = regs.FpuRegisterCount();
-  if (fpu_regs_count > 0) {
-    // Fpu registers have the lowest register number at the lowest address.
-    for (intptr_t i = 0; i < kNumberOfVRegisters; ++i) {
-      VRegister fpu_reg = static_cast<VRegister>(i);
-      if (regs.ContainsFpuRegister(fpu_reg)) {
+  pop_single = (regs.FpuRegisterCount() & 1) == 1;
+  VRegister vprev = kNoVRegister;
+  // Fpu registers have the lowest register number at the lowest address.
+  for (intptr_t i = 0; i < kNumberOfVRegisters; ++i) {
+    VRegister fpu_reg = static_cast<VRegister>(i);
+    if (regs.ContainsFpuRegister(fpu_reg)) {
+      if (pop_single) {
         PopQuad(fpu_reg);
+        pop_single = false;
+      } else if (vprev != kNoVRegister) {
+        PopQuadPair(/*low=*/vprev, /*high=*/fpu_reg);
+        vprev = kNoVRegister;
+      } else {
+        vprev = fpu_reg;
       }
     }
   }
+  ASSERT(vprev == kNoVRegister);
 }
 
 void Assembler::PushNativeCalleeSavedRegisters() {
   // Save the callee-saved registers.
+  // We use str instead of the Push macro because we will be pushing the PP
+  // register when it is not holding a pool-pointer since we are coming from
+  // C++ code.
+  Register prev = kNoRegister;
   for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
     const Register r = static_cast<Register>(i);
-    // We use str instead of the Push macro because we will be pushing the PP
-    // register when it is not holding a pool-pointer since we are coming from
-    // C++ code.
-    str(r, Address(SP, -1 * target::kWordSize, Address::PreIndex));
+    if (prev != kNoRegister) {
+      stp(/*low=*/r, /*high=*/prev,
+          Address(SP, -2 * target::kWordSize, Address::PairPreIndex));
+      prev = kNoRegister;
+    } else {
+      prev = r;
+    }
+  }
+  if (prev != kNoRegister) {
+    str(prev, Address(SP, -1 * target::kWordSize, Address::PreIndex));
   }
 
   // Save the bottom 64-bits of callee-saved V registers.
+  VRegister vprev = kNoVRegister;
   for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
     const VRegister r = static_cast<VRegister>(i);
-    PushDouble(r);
+    if (vprev != kNoVRegister) {
+      PushDoublePair(/*low=*/r, /*high=*/vprev);
+      vprev = kNoVRegister;
+    } else {
+      vprev = r;
+    }
+  }
+  if (vprev != kNoVRegister) {
+    PushDouble(vprev);
   }
 }
 
 void Assembler::PopNativeCalleeSavedRegisters() {
   // Restore the bottom 64-bits of callee-saved V registers.
+  bool pop_single = (kAbiPreservedCpuRegCount & 1) == 1;
+  VRegister vprev = kNoVRegister;
   for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
     const VRegister r = static_cast<VRegister>(i);
-    PopDouble(r);
+    if (pop_single) {
+      PopDouble(r);
+      pop_single = false;
+    } else if (vprev != kNoVRegister) {
+      PopDoublePair(/*low=*/vprev, /*high=*/r);
+      vprev = kNoVRegister;
+    } else {
+      vprev = r;
+    }
   }
 
   // Restore C++ ABI callee-saved registers.
+  // We use ldr instead of the Pop macro because we will be popping the PP
+  // register when it is not holding a pool-pointer since we are returning to
+  // C++ code. We also skip the dart stack pointer SP, since we are still
+  // using it as the stack pointer.
+  pop_single = (kAbiPreservedCpuRegCount & 1) == 1;
+  Register prev = kNoRegister;
   for (int i = kAbiLastPreservedCpuReg; i >= kAbiFirstPreservedCpuReg; i--) {
     Register r = static_cast<Register>(i);
-    // We use ldr instead of the Pop macro because we will be popping the PP
-    // register when it is not holding a pool-pointer since we are returning to
-    // C++ code. We also skip the dart stack pointer SP, since we are still
-    // using it as the stack pointer.
-    ldr(r, Address(SP, 1 * target::kWordSize, Address::PostIndex));
+    if (pop_single) {
+      ldr(r, Address(SP, 1 * target::kWordSize, Address::PostIndex));
+      pop_single = false;
+    } else if (prev != kNoRegister) {
+      ldp(/*low=*/prev, /*high=*/r,
+          Address(SP, 2 * target::kWordSize, Address::PairPostIndex));
+      prev = kNoRegister;
+    } else {
+      prev = r;
+    }
   }
 }
 

@@ -861,6 +861,70 @@ ASSEMBLER_TEST_RUN(PopRegisterPairReversed, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(LoadStoreDoublePair, assembler) {
+  __ SetupDartSP();
+  __ LoadDImmediate(V1, 3.0);
+  __ LoadDImmediate(V2, 4.0);
+  __ PushDoublePair(V1, V2);
+  __ LoadDImmediate(V1, 0.0);
+  __ LoadDImmediate(V2, 0.0);
+  __ PopDoublePair(V1, V2);
+  __ fsubd(V0, V2, V1);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(LoadStoreDoublePair, test) {
+  typedef double (*DoubleReturn)() DART_UNUSED;
+  EXPECT_EQ(1.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov sp, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "fmovd v1, 3.000000\n"
+      "fmovd v2, 4.000000\n"
+      "fstpd v1, v2, [sp, #-16]!\n"
+      "movz tmp, #0x0\n"
+      "fmovdr v1, tmp\n"
+      "movz tmp, #0x0\n"
+      "fmovdr v2, tmp\n"
+      "fldpd v1, v2, [sp], #16 !\n"
+      "fsubd v0, v2, v1\n"
+      "mov csp, sp\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(LoadStoreQuadPair, assembler) {
+  __ SetupDartSP();
+  __ LoadDImmediate(V1, 3.0);
+  __ LoadDImmediate(V2, 4.0);
+  __ PushQuadPair(V1, V2);
+  __ LoadDImmediate(V1, 0.0);
+  __ LoadDImmediate(V2, 0.0);
+  __ PopQuadPair(V1, V2);
+  __ fsubd(V0, V2, V1);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(LoadStoreQuadPair, test) {
+  typedef double (*DoubleReturn)() DART_UNUSED;
+  EXPECT_EQ(1.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov sp, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "fmovd v1, 3.000000\n"
+      "fmovd v2, 4.000000\n"
+      "fstpq v1, v2, [sp, #-32]!\n"
+      "movz tmp, #0x0\n"
+      "fmovdr v1, tmp\n"
+      "movz tmp, #0x0\n"
+      "fmovdr v2, tmp\n"
+      "fldpq v1, v2, [sp], #32 !\n"
+      "fsubd v0, v2, v1\n"
+      "mov csp, sp\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
   __ SetupDartSP();
   __ movz(R0, Immediate(40), 0);

@@ -2113,17 +2113,16 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
 void Simulator::DecodeLoadStoreRegPair(Instr* instr) {
   const int32_t opc = instr->Bits(23, 3);
   const Register rn = instr->RnField();
-  const Register rt = instr->RtField();
-  const Register rt2 = instr->Rt2Field();
   const int64_t rn_val = get_register(rn, R31IsSP);
-  const intptr_t shift = 2 + instr->SFField();
+  const intptr_t shift =
+      (instr->Bit(26) == 1) ? 2 + instr->SzField() : 2 + instr->SFField();
   const intptr_t size = 1 << shift;
   const int32_t offset = (static_cast<uint32_t>(instr->SImm7Field()) << shift);
   uword address = 0;
   uword wb_address = 0;
   bool wb = false;
 
-  if ((instr->Bits(30, 2) == 3) || (instr->Bit(26) != 0)) {
+  if ((instr->Bits(30, 2) == 3)) {
     UnimplementedInstruction(instr);
     return;
   }
@@ -2155,45 +2154,109 @@ void Simulator::DecodeLoadStoreRegPair(Instr* instr) {
   }
 
   // Do access.
-  if (instr->Bit(22)) {
-    // Format(instr, "ldp'sf 'rt, 'ra, 'memop");
-    const bool signd = instr->Bit(30) == 1;
-    int64_t val1 = 0;  // Sign extend into an int64_t.
-    int64_t val2 = 0;
-    if (instr->Bit(31) == 1) {
-      // 64-bit read.
-      val1 = ReadX(address, instr);
-      val2 = ReadX(address + size, instr);
+  if (instr->Bit(26) == 1) {
+    // SIMD/FP.
+    const VRegister vt = instr->VtField();
+    const VRegister vt2 = instr->Vt2Field();
+    if (instr->Bit(22)) {
+      // Format(instr, "ldp 'vt, 'vt2, 'memop");
+      switch (size) {
+        case 4:
+          set_vregisterd(vt, 0, static_cast<int64_t>(ReadWU(address, instr)));
+          set_vregisterd(vt, 1, 0);
+          set_vregisterd(vt2, 0,
+                         static_cast<int64_t>(ReadWU(address + 4, instr)));
+          set_vregisterd(vt2, 1, 0);
+          break;
+        case 8:
+          set_vregisterd(vt, 0, ReadX(address, instr));
+          set_vregisterd(vt, 1, 0);
+          set_vregisterd(vt2, 0, ReadX(address + 8, instr));
+          set_vregisterd(vt2, 1, 0);
+          break;
+        case 16: {
+          simd_value_t val;
+          val.bits.i64[0] = ReadX(address, instr);
+          val.bits.i64[1] = ReadX(address + 8, instr);
+          set_vregister(vt, val);
+          val.bits.i64[0] = ReadX(address + 16, instr);
+          val.bits.i64[1] = ReadX(address + 24, instr);
+          set_vregister(vt2, val);
+          break;
+        }
+        default:
+          UnimplementedInstruction(instr);
+          return;
+      }
     } else {
-      if (signd) {
-        val1 = static_cast<int64_t>(ReadW(address, instr));
-        val2 = static_cast<int64_t>(ReadW(address + size, instr));
-      } else {
-        val1 = static_cast<int64_t>(ReadWU(address, instr));
-        val2 = static_cast<int64_t>(ReadWU(address + size, instr));
+      // Format(instr, "stp 'vt, 'vt2, 'memop");
+      switch (size) {
+        case 4:
+          WriteW(address, get_vregisterd(vt, 0) & kWRegMask, instr);
+          WriteW(address + 4, get_vregisterd(vt2, 0) & kWRegMask, instr);
+          break;
+        case 8:
+          WriteX(address, get_vregisterd(vt, 0), instr);
+          WriteX(address + 8, get_vregisterd(vt2, 0), instr);
+          break;
+        case 16: {
+          simd_value_t val;
+          get_vregister(vt, &val);
+          WriteX(address, val.bits.i64[0], instr);
+          WriteX(address + 8, val.bits.i64[1], instr);
+          get_vregister(vt2, &val);
+          WriteX(address + 16, val.bits.i64[0], instr);
+          WriteX(address + 24, val.bits.i64[1], instr);
+          break;
+        }
+        default:
+          UnimplementedInstruction(instr);
+          return;
       }
     }
-
-    // Write to register.
-    if (instr->Bit(31) == 1) {
-      set_register(instr, rt, val1, R31IsZR);
-      set_register(instr, rt2, val2, R31IsZR);
-    } else {
-      set_wregister(rt, static_cast<int32_t>(val1), R31IsZR);
-      set_wregister(rt2, static_cast<int32_t>(val2), R31IsZR);
-    }
   } else {
-    // Format(instr, "stp'sf 'rt, 'ra, 'memop");
-    if (instr->Bit(31) == 1) {
-      const int64_t val1 = get_register(rt, R31IsZR);
-      const int64_t val2 = get_register(rt2, R31IsZR);
-      WriteX(address, val1, instr);
-      WriteX(address + size, val2, instr);
+    // Integer.
+    const Register rt = instr->RtField();
+    const Register rt2 = instr->Rt2Field();
+    if (instr->Bit(22)) {
+      // Format(instr, "ldp'sf 'rt, 'rt2, 'memop");
+      const bool signd = instr->Bit(30) == 1;
+      int64_t val1 = 0;  // Sign extend into an int64_t.
+      int64_t val2 = 0;
+      if (instr->Bit(31) == 1) {
+        // 64-bit read.
+        val1 = ReadX(address, instr);
+        val2 = ReadX(address + size, instr);
+      } else {
+        if (signd) {
+          val1 = static_cast<int64_t>(ReadW(address, instr));
+          val2 = static_cast<int64_t>(ReadW(address + size, instr));
+        } else {
+          val1 = static_cast<int64_t>(ReadWU(address, instr));
+          val2 = static_cast<int64_t>(ReadWU(address + size, instr));
+        }
+      }
+      // Write to register.
+      if (instr->Bit(31) == 1) {
+        set_register(instr, rt, val1, R31IsZR);
+        set_register(instr, rt2, val2, R31IsZR);
+      } else {
+        set_wregister(rt, static_cast<int32_t>(val1), R31IsZR);
+        set_wregister(rt2, static_cast<int32_t>(val2), R31IsZR);
+      }
     } else {
-      const int32_t val1 = get_wregister(rt, R31IsZR);
-      const int32_t val2 = get_wregister(rt2, R31IsZR);
-      WriteW(address, val1, instr);
-      WriteW(address + size, val2, instr);
+      // Format(instr, "stp'sf 'rt, 'rt2, 'memop");
+      if (instr->Bit(31) == 1) {
+        const int64_t val1 = get_register(rt, R31IsZR);
+        const int64_t val2 = get_register(rt2, R31IsZR);
+        WriteX(address, val1, instr);
+        WriteX(address + size, val2, instr);
+      } else {
+        const int32_t val1 = get_wregister(rt, R31IsZR);
+        const int32_t val2 = get_wregister(rt2, R31IsZR);
+        WriteW(address, val1, instr);
+        WriteW(address + size, val2, instr);
+      }
     }
   }
 
