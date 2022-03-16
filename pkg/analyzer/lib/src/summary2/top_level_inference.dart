@@ -140,7 +140,7 @@ class _BaseConstructor {
 
 class _ConstructorInferenceNode extends _InferenceNode {
   final _InferenceWalker _walker;
-  final ConstructorElement _constructor;
+  final ConstructorElementImpl _constructor;
   final List<_FieldFormalParameter> _fieldParameters = [];
   final List<_SuperFormalParameter> _superParameters = [];
 
@@ -199,10 +199,13 @@ class _ConstructorInferenceNode extends _InferenceNode {
   List<_InferenceNode> computeDependencies() {
     var dependencies = [
       ..._fieldParameters.map((e) => _walker.getNode(e.field)).whereNotNull(),
-      ..._superParameters
-          .map((e) => _walker.getNode(e.superParameter))
-          .whereNotNull(),
     ];
+
+    if (_superParameters.isNotEmpty) {
+      dependencies.addIfNotNull(
+        _walker.getNode(_constructor.superConstructor),
+      );
+    }
 
     dependencies.addIfNotNull(
       _walker.getNode(_baseConstructor?.element),
@@ -224,12 +227,11 @@ class _ConstructorInferenceNode extends _InferenceNode {
     // Update types of a mixin application constructor formal parameters.
     var baseConstructor = _baseConstructor;
     if (baseConstructor != null) {
-      var constructor = _constructor as ConstructorElementImpl;
       var substitution = Substitution.fromInterfaceType(
         baseConstructor.superType,
       );
       forCorrespondingPairs<ParameterElement, ParameterElement>(
-        constructor.parameters,
+        _constructor.parameters,
         baseConstructor.element.parameters,
         (parameter, baseParameter) {
           var type = substitution.substituteType(baseParameter.type);
@@ -239,10 +241,10 @@ class _ConstructorInferenceNode extends _InferenceNode {
       // Update arguments of `SuperConstructorInvocation` to have the types
       // (which we have just set) of the corresponding formal parameters.
       // MixinApp(x, y) : super(x, y);
-      var initializers = constructor.constantInitializers;
+      var initializers = _constructor.constantInitializers;
       var initializer = initializers.single as SuperConstructorInvocation;
       forCorrespondingPairs<ParameterElement, Expression>(
-        constructor.parameters,
+        _constructor.parameters,
         initializer.argumentList.arguments,
         (parameter, argument) {
           (argument as SimpleIdentifierImpl).staticType = parameter.type;
@@ -370,6 +372,7 @@ class _InitializerInference {
 
   void _addClassConstructorFieldFormals(ClassElement class_) {
     for (var constructor in class_.constructors) {
+      constructor as ConstructorElementImpl;
       var inferenceNode = _ConstructorInferenceNode(_walker, constructor);
       _walker._nodes[constructor] = inferenceNode;
     }

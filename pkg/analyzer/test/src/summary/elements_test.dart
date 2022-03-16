@@ -1760,6 +1760,53 @@ library
 ''');
   }
 
+  test_class_constructor_parameters_super_requiredPositional_inferenceOrder() async {
+    // It is important that `C` is declared after `B`, so that we check that
+    // inference happens in order - first `C`, then `B`.
+    var library = await buildLibrary('''
+abstract class A {
+  A(int a);
+}
+
+class B extends C {
+  B(super.a);
+}
+
+class C extends A {
+  C(super.a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      abstract class A @15
+        constructors
+          @21
+            parameters
+              requiredPositional a @27
+                type: int
+      class B @40
+        supertype: C
+        constructors
+          @56
+            parameters
+              requiredPositional final super.a @64
+                type: int
+                superConstructorParameter: a@101
+            superConstructor: self::@class::C::@constructor::•
+      class C @77
+        supertype: A
+        constructors
+          @93
+            parameters
+              requiredPositional final super.a @101
+                type: int
+                superConstructorParameter: a@27
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
   test_class_constructor_parameters_super_requiredPositional_unresolved() async {
     var library = await buildLibrary('''
 class A {}
