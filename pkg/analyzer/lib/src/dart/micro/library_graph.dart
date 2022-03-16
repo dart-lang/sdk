@@ -962,6 +962,7 @@ class _FileStateUnlinked {
       imports: imports,
       informativeBytes: writeUnitInformative(unit),
       lineStarts: Uint32List.fromList(unit.lineInfo.lineStarts),
+      macroClasses: [],
       partOfName: partOfName,
       partOfUri: partOfUriStr,
       parts: parts,

@@ -65,6 +65,31 @@ class AnalysisDriverUnlinkedUnit {
   }
 }
 
+/// Unlinked information about a `macro` class.
+class MacroClass {
+  final String name;
+  final List<String> constructors;
+
+  MacroClass({
+    required this.name,
+    required this.constructors,
+  });
+
+  factory MacroClass.read(
+    SummaryDataReader reader,
+  ) {
+    return MacroClass(
+      name: reader.readStringUtf8(),
+      constructors: reader.readStringUtf8List(),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeStringUtf8(name);
+    sink.writeStringUtf8Iterable(constructors);
+  }
+}
+
 /// Unlinked information about a namespace directive.
 class UnlinkedNamespaceDirective {
   /// The configurations that control which library will actually be used.
@@ -159,6 +184,9 @@ class UnlinkedUnit {
   /// Offsets of the first character of each line in the source code.
   final Uint32List lineStarts;
 
+  /// The list of `macro` classes.
+  final List<MacroClass> macroClasses;
+
   /// The library name of the `part of my.name;` directive.
   final String? partOfName;
 
@@ -176,6 +204,7 @@ class UnlinkedUnit {
     required this.imports,
     required this.informativeBytes,
     required this.lineStarts,
+    required this.macroClasses,
     required this.partOfName,
     required this.partOfUri,
     required this.parts,
@@ -194,6 +223,9 @@ class UnlinkedUnit {
       ),
       informativeBytes: reader.readUint8List(),
       lineStarts: reader.readUInt30List(),
+      macroClasses: reader.readTypedList(
+        () => MacroClass.read(reader),
+      ),
       partOfName: reader.readOptionalStringUtf8(),
       partOfUri: reader.readOptionalStringUtf8(),
       parts: reader.readStringUtf8List(),
@@ -212,6 +244,9 @@ class UnlinkedUnit {
     });
     sink.writeUint8List(informativeBytes);
     sink.writeUint30List(lineStarts);
+    sink.writeList<MacroClass>(macroClasses, (x) {
+      x.write(sink);
+    });
     sink.writeOptionalStringUtf8(partOfName);
     sink.writeOptionalStringUtf8(partOfUri);
     sink.writeStringUtf8Iterable(parts);

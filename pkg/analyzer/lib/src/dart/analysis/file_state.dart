@@ -40,6 +40,7 @@ import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as package_path;
 import 'package:pub_semver/pub_semver.dart';
 
 var counterFileStateRefresh = 0;
@@ -599,6 +600,7 @@ class FileState {
     var exports = <UnlinkedNamespaceDirective>[];
     var imports = <UnlinkedNamespaceDirective>[];
     var parts = <String>[];
+    var macroClasses = <MacroClass>[];
     var hasDartCoreImport = false;
     var hasLibraryDirective = false;
     var hasPartOfDirective = false;
@@ -621,6 +623,25 @@ class FileState {
         hasPartOfDirective = true;
       }
     }
+    for (var declaration in unit.declarations) {
+      if (declaration is ClassDeclarationImpl) {
+        if (declaration.macroKeyword != null) {
+          var constructors = declaration.members
+              .whereType<ConstructorDeclaration>()
+              .map((e) => e.name?.name ?? '')
+              .where((e) => !e.startsWith('_'))
+              .toList();
+          if (constructors.isNotEmpty) {
+            macroClasses.add(
+              MacroClass(
+                name: declaration.name.name,
+                constructors: constructors,
+              ),
+            );
+          }
+        }
+      }
+    }
     if (!hasDartCoreImport) {
       imports.add(
         UnlinkedNamespaceDirective(
@@ -637,6 +658,7 @@ class FileState {
       imports: imports,
       informativeBytes: writeUnitInformative(unit),
       lineStarts: Uint32List.fromList(unit.lineInfo.lineStarts),
+      macroClasses: macroClasses,
       partOfName: null,
       partOfUri: null,
       parts: parts,
@@ -763,6 +785,8 @@ class FileSystemState {
   }) : _fileContentCache = fileContentCache {
     _testView = FileSystemStateTestView(this);
   }
+
+  package_path.Context get pathContext => _resourceProvider.pathContext;
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;

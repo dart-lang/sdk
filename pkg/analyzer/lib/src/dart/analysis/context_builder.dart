@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -58,6 +59,7 @@ class ContextBuilderImpl implements ContextBuilder {
     String? sdkSummaryPath,
     void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
     FileContentCache? fileContentCache,
+    MacroKernelBuilder? macroKernelBuilder,
   }) {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
@@ -115,6 +117,7 @@ class ContextBuilderImpl implements ContextBuilder {
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,
+      macroKernelBuilder: macroKernelBuilder,
     );
 
     if (declaredVariables != null) {

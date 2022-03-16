@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -26,6 +27,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
+import '../../summary/repository_macro_kernel_builder.dart';
 import 'context_collection_resolution_caching.dart';
 import 'resolution.dart';
 
@@ -139,6 +141,8 @@ abstract class ContextResolutionTest
     _declaredVariables = map;
   }
 
+  MacroKernelBuilder? get macroKernelBuilder => null;
+
   bool get retainDataForTesting => false;
 
   Folder get sdkRoot => newFolder('/sdk');
@@ -246,6 +250,7 @@ abstract class ContextResolutionTest
       retainDataForTesting: retainDataForTesting,
       sdkPath: sdkRoot.path,
       updateAnalysisOptions: updateAnalysisOptions,
+      macroKernelBuilder: macroKernelBuilder,
     );
 
     verifyCreatedCollection();
@@ -321,6 +326,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     bool ffi = false,
     bool js = false,
     bool meta = false,
+    MacrosEnvironment? macrosEnvironment,
   }) {
     config = config.copy();
 
@@ -352,6 +358,15 @@ class PubPackageResolutionTest extends ContextResolutionTest {
         getFolder(metaPath),
       );
       config.add(name: 'meta', rootPath: metaPath);
+    }
+
+    if (macrosEnvironment != null) {
+      var packagesRootFolder = getFolder(packagesRootPath);
+      macrosEnvironment.packageSharedFolder.copyTo(packagesRootFolder);
+      config.add(
+        name: '_fe_analyzer_shared',
+        rootPath: getFolder('$packagesRootPath/_fe_analyzer_shared').path,
+      );
     }
 
     var path = '$testPackageRootPath/.dart_tool/package_config.json';
