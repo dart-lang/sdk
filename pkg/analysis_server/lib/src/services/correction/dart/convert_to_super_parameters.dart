@@ -260,16 +260,13 @@ class ConvertToSuperParameters extends CorrectionProducer {
   }
 
   /// Return the parameter corresponding to the [expression], or `null` if the
-  /// expression isn't a simple reference to one of the parameters in the
+  /// expression isn't a simple reference to one of the normal parameters in the
   /// constructor being converted.
   _Parameter? _parameterFor(
       Map<ParameterElement, _Parameter> parameterMap, Expression expression) {
     if (expression is SimpleIdentifier) {
       var element = expression.staticElement;
-      var parameter = parameterMap[element];
-      if (parameter != null) {
-        return parameter;
-      }
+      return parameterMap[element];
     }
     return null;
   }
@@ -278,13 +275,23 @@ class ConvertToSuperParameters extends CorrectionProducer {
   /// elements.
   Map<ParameterElement, _Parameter> _parameterMap(
       FormalParameterList parameterList) {
+    bool validParameter(FormalParameter parameter) {
+      if (parameter is DefaultFormalParameter) {
+        parameter = parameter.parameter;
+      }
+      return parameter is SimpleFormalParameter ||
+          parameter is FunctionTypedFormalParameter;
+    }
+
     var map = <ParameterElement, _Parameter>{};
     var parameters = parameterList.parameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
-      var element = parameter.declaredElement;
-      if (element != null) {
-        map[element] = _Parameter(parameter, element, i);
+      if (validParameter(parameter)) {
+        var element = parameter.declaredElement;
+        if (element != null) {
+          map[element] = _Parameter(parameter, element, i);
+        }
       }
     }
     return map;
