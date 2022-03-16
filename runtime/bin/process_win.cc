@@ -553,6 +553,18 @@ class ProcessStarter {
         EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT;
     if (!Process::ModeIsAttached(mode_)) {
       creation_flags |= DETACHED_PROCESS;
+    } else {
+      // Unless we are inherting stdio which means there is some console
+      // associated with the app, we want to ensure no console window pops
+      // up for the spawned child.
+      if (mode_ != kInheritStdio) {
+        // Normally stdout for console dart application is associated with a
+        // console that is launched from, but for gui applications(flutter on
+        // windows) console might be absent, will be created by CreateProcessW
+        // below. When that happens we ensure that console window doesn't
+        // pop up.
+        creation_flags |= CREATE_NO_WINDOW;
+      }
     }
     BOOL result = CreateProcessW(
         NULL,  // ApplicationName

@@ -71,6 +71,31 @@ class GenericInferrer {
   /// type arguments are allowed to be instantiated with generic function types.
   final bool genericMetadataIsEnabled;
 
+  /// The set of type parameters for which a previous inference phase has
+  /// "fixed" a type; no further constraints will be added for types in this
+  /// list.
+  ///
+  /// Background: sometimes the upwards inference phase of generic type
+  /// inference is capable of assigning a more specific type than the downwards
+  /// inference phase, but we don't want to use the more specific type due to
+  /// Dart's "runtime checked covariant generics" design.  For example, in this
+  /// code:
+  ///
+  ///     List<num> x = [1, 2, 3];
+  ///     x.add(4.0);
+  ///
+  /// Downwards inference provisionally considers the list to be a `List<num>`.
+  /// Without this heuristic, upwards inference would refine the type to
+  /// `List<int>`, leading to a runtime failure.  So what we do is "fix" the
+  /// type parameter to `num` after downwards inference, preventing upwards
+  /// inference from doing any further refinement.
+  ///
+  /// (Note that the heuristic isn't needed for type parameters whose variance
+  /// is explicitly specified using the as-yet-unreleased "variance" feature,
+  /// since type parameters whose variance is explicitly specified don't undergo
+  /// implicit runtime checks).
+  final Set<TypeParameterElement> _fixedTypeParameters = {};
+
   GenericInferrer(this._typeSystem, this._typeFormals,
       {this.errorReporter,
       this.errorNode,
@@ -170,7 +195,7 @@ class GenericInferrer {
     if (success) {
       var constraints = gatherer.computeConstraints();
       for (var entry in constraints.entries) {
-        if (!entry.value.isEmpty) {
+        if (!entry.value.isEmpty && !_fixedTypeParameters.contains(entry.key)) {
           var constraint = _constraints[entry.key]!;
           constraint.add(
             _TypeConstraint(origin, entry.key,
@@ -444,12 +469,20 @@ class GenericInferrer {
       }
 
       var constraints = _constraints[typeParam]!;
-      inferredTypes[i] = downwardsInferPhase
-          ? _inferTypeParameterFromContext(constraints, extendsClause,
-              isContravariant: typeParam.variance.isContravariant)
-          : _inferTypeParameterFromAll(constraints, extendsClause,
-              isContravariant: typeParam.variance.isContravariant,
-              preferUpwardsInference: !typeParam.isLegacyCovariant);
+      if (downwardsInferPhase) {
+        var inferredType = _inferTypeParameterFromContext(
+            constraints, extendsClause,
+            isContravariant: typeParam.variance.isContravariant);
+        inferredTypes[i] = inferredType;
+        if (typeParam.isLegacyCovariant &&
+            UnknownInferredType.isKnown(inferredTypes[i])) {
+          _fixedTypeParameters.add(typeParam);
+        }
+      } else {
+        inferredTypes[i] = _inferTypeParameterFromAll(
+            constraints, extendsClause,
+            isContravariant: typeParam.variance.isContravariant);
+      }
     }
 
     return inferredTypes;
@@ -493,20 +526,7 @@ class GenericInferrer {
 
   DartType _inferTypeParameterFromAll(
       List<_TypeConstraint> constraints, _TypeConstraint? extendsClause,
-      {required bool isContravariant, required bool preferUpwardsInference}) {
-    // See if we already fixed this type from downwards inference.
-    // If so, then we aren't allowed to change it based on argument types unless
-    // [preferUpwardsInference] is true.
-    DartType t = _inferTypeParameterFromContext(
-        constraints.where((c) => c.isDownwards), extendsClause,
-        isContravariant: isContravariant);
-    if (!preferUpwardsInference && UnknownInferredType.isKnown(t)) {
-      // Remove constraints that aren't downward ones; we'll ignore these for
-      // error reporting, because inference already succeeded.
-      constraints.removeWhere((c) => !c.isDownwards);
-      return t;
-    }
-
+      {required bool isContravariant}) {
     if (extendsClause != null) {
       constraints = constraints.toList()..add(extendsClause);
     }
@@ -691,8 +711,6 @@ class _TypeConstraint extends _TypeRange {
             ),
             element,
             upper: extendsType);
-
-  bool get isDownwards => origin is! _TypeConstraintFromArgument;
 
   bool isSatisfiedBy(TypeSystemImpl ts, DartType type) {
     return ts.isSubtypeOf(lowerBound, type) && ts.isSubtypeOf(type, upperBound);
