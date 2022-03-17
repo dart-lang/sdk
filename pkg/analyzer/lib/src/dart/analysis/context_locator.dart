@@ -519,7 +519,7 @@ class ContextLocatorImpl implements ContextLocator {
       return file;
     }
 
-    return _getFile(folder, file_paths.dotPackages);
+    return null;
   }
 
   /// Return `true` if either the directory at [rootPath] or a parent of that

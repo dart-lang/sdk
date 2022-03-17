@@ -19,9 +19,6 @@ const String bazelBuild = 'BUILD';
 /// The name of the `.dart_tool` directory.
 const String dotDartTool = '.dart_tool';
 
-/// File name of package spec files.
-const String dotPackages = '.packages';
-
 /// The name of the data file used to specify data-driven fixes.
 const String fixDataYaml = 'fix_data.yaml';
 
@@ -57,11 +54,6 @@ bool isBazelBuild(p.Context pathContext, String path) {
 /// Return `true` if [path] is a Dart file.
 bool isDart(p.Context pathContext, String path) {
   return pathContext.extension(path) == '.dart';
-}
-
-/// Return `true` if [path] is a `.packages` file.
-bool isDotPackages(p.Context pathContext, String path) {
-  return pathContext.basename(path) == dotPackages;
 }
 
 /// Return `true` if the [path] is a `fix_data.yaml` file.

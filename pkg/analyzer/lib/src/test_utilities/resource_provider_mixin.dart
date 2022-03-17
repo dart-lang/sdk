@@ -79,11 +79,6 @@ mixin ResourceProviderMixin {
     return newFile2(path, content);
   }
 
-  File newDotPackagesFile(String directoryPath, String content) {
-    String path = join(directoryPath, file_paths.dotPackages);
-    return newFile2(path, content);
-  }
-
   @Deprecated('Use newFile2() instead')
   File newFile(String path, {String content = ''}) {
     return newFile2(path, content);
