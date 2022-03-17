@@ -86,8 +86,8 @@ abstract class TestCase {
 
   Future<int> computeVmPort() async {
     var portLine = await lines[0];
-    Expect.isTrue(observatoryPortRegExp.hasMatch(portLine));
-    var match = observatoryPortRegExp.firstMatch(portLine);
+    Expect.isTrue(dartVMServicePortRegExp.hasMatch(portLine));
+    var match = dartVMServicePortRegExp.firstMatch(portLine);
     return int.parse(match!.group(1)!);
   }
 
@@ -384,5 +384,5 @@ const sourceC = r'''
 void g() {}
 ''';
 
-RegExp observatoryPortRegExp =
-    new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)/");
+RegExp dartVMServicePortRegExp = new RegExp(
+    "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)/");

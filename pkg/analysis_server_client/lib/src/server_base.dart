@@ -113,11 +113,11 @@ abstract class ServerBase {
     var trimmedLine = line.trim();
 
     // Guard against lines like:
-    //   {"event":"server.connected","params":{...}}Observatory listening on ...
-    const observatoryMessage = 'Observatory listening on ';
-    if (trimmedLine.contains(observatoryMessage)) {
+    //   {"event":"server.connected","params":{...}}The Dart VM service is listening on ...
+    const dartVMServiceMessage = 'The Dart VM service is listening on ';
+    if (trimmedLine.contains(dartVMServiceMessage)) {
       trimmedLine = trimmedLine
-          .substring(0, trimmedLine.indexOf(observatoryMessage))
+          .substring(0, trimmedLine.indexOf(dartVMServiceMessage))
           .trim();
     }
     if (trimmedLine.isEmpty) {
