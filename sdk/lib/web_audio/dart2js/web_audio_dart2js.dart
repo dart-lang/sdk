@@ -386,7 +386,7 @@ class AudioNode extends EventTarget {
   int? get numberOfOutputs native;
 
   @JSName('connect')
-  AudioNode _connect(destination, [int? output, int? input]) native;
+  AudioNode? _connect(destination, [int? output, int? input]) native;
 
   void disconnect([destination_OR_output, int? output, int? input]) native;
 
