@@ -2096,7 +2096,13 @@ ParserErrorCode.INVALID_SYNC:
   status: needsEvaluation
 ParserErrorCode.INVALID_THIS_IN_INITIALIZER:
   status: needsEvaluation
-ParserErrorCode.INVALID_UNICODE_ESCAPE:
+ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED:
+  status: needsEvaluation
+ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET:
+  status: needsEvaluation
+ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET:
+  status: needsEvaluation
+ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED:
   status: needsEvaluation
 ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION:
   status: needsEvaluation

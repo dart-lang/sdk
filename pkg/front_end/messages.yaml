@@ -1308,16 +1308,40 @@ InvalidHexEscape:
     - "'\\x0'"
     - "'\\x0y'"
 
-InvalidUnicodeEscape:
+InvalidUnicodeEscapeUStarted:
   index: 38
   problemMessage: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'."
-  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE
+  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED
   expression:
     - "'\\u'"
+
+InvalidUnicodeEscapeUNoBracket:
+  index: 124
+  problemMessage: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits."
+  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET
+  expression:
     - "'\\u0F'"
+
+InvalidUnicodeEscapeUBracket:
+  index: 125
+  problemMessage: "An escape sequence starting with '\\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'."
+  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET
+  expression:
     - "'\\u{'"
     - "'\\u{03'"
     - "'\\u{0Z}'"
+    - "'\\u{0000003}'"
+
+InvalidEscapeStarted:
+  index: 126
+  problemMessage: "The string '\\' can't stand alone."
+  correctionMessage: "Try adding another backslash (\\) to escape the '\\'."
+  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED
+  exampleAllowMoreCodes: true
+  expression:
+    - |
+      print('Hello, World!\
+      ');
 
 UnexpectedDollarInString:
   problemMessage: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."

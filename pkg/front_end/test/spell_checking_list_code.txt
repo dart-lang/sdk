@@ -22,6 +22,7 @@ acon
 acov
 across
 activated
+actively
 adequate
 adi
 advantage
@@ -1363,6 +1364,7 @@ unconditionally
 unconstrained
 undeclare
 undergo
+undermine
 undo
 undoable
 unequal
