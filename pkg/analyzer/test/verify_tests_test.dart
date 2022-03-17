@@ -17,8 +17,7 @@ main() {
 }
 
 class _VerifyTests extends VerifyTests {
-  _VerifyTests(String testDirPath, {List<String>? excludedPaths})
-      : super(testDirPath, excludedPaths: excludedPaths);
+  _VerifyTests(String testDirPath) : super(testDirPath);
 
   @override
   bool isExpensive(Resource resource) =>
