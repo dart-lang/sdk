@@ -2,8 +2,14 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-entry_point: "main.dart"
-definitions: []
-position: "main.dart#B"
+sources: |
+  class A {
+    void _privMethod() {}
+  }
+
+  class B extends A {
+    void _privMethod() {}
+  }
+position: "#B"
 expression: |
   super._privMethod

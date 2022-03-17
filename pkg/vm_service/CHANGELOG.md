@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.2.2
+- Updated the following optional fields to be nullable in `SocketStatistic`:
+  - `endTime`
+  - `lastReadTime`
+  - `lastWriteTime`
+
 ## 8.2.1
 - Changed type of `UriList.uris` from `dynamic` to `List<String?>?`.
 - Remove `example/vm_service_asserts.dart'

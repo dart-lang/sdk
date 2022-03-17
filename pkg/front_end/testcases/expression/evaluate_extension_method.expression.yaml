@@ -2,14 +2,24 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-entry_point: "main.dart"
+sources: |
+  void hasList() {
+    List<String> x = ["a", "b", "c"];
+    int xCombinedLength = x.fold<int>(
+        0, (previousValue, element) => previousValue + element.length);
+    print("xCombinedLength = $xCombinedLength");
+  }
+  extension Foo on String {
+    int getFortyTwo() {
+      return 42;
+    }
+  }
 definitions: ["x"]
 # List<String>
 definition_types: ["dart:core", "List", "1", "1", "dart:core", "String", "1", "0"]
 type_definitions: [""]
 type_bounds: []
 type_defaults: []
-position: "main.dart"
 method: "hasList"
 # x is List<String> with entries, so x.first is String, String has extension
 # with method getFortyTwo.

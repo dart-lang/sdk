@@ -2,6 +2,6 @@ Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<T extends dynamic>() → dynamic
   return () → Null {
-    main::A::debugExpr::T? k = null;
-    k = main::id<main::A::debugExpr::T?>(k);
+    #lib1::A::debugExpr::T? k = null;
+    k = #lib1::id<#lib1::A::debugExpr::T?>(k);
   };

@@ -3,7 +3,14 @@
 # BSD-style license that can be found in the LICENSE file.
 
 sources: |
-  main() {}
-position: "dart:collection#LinkedList"
+  // @dart=2.9
+  class D<T> {
+    Y id<Y>(Y x) => x;
+    m(List<T> l) {
+      assert(l is List<T>);
+    }
+  }
+definitions: ["s"]
+position: "#D"
 expression: |
-  first
+  m(id(s = []))

@@ -24,11 +24,15 @@ class AddTrailingComma extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    if (node is! ArgumentList) return;
-
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.arguments.last.end, ',');
-    });
+    if (node is ArgumentList) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(node.arguments.last.end, ',');
+      });
+    } else if (node is FormalParameterList) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(node.parameters.last.end, ',');
+      });
+    }
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

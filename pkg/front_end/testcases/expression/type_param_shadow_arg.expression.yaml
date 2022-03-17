@@ -2,9 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-entry_point: "main.dart"
+sources: |
+  class A<T> {}
+  T id<T>(T x) => x;
 definitions: ["x"]
 type_definitions: ["T"]
-position: "main.dart#A"
+position: "#A"
 expression: |
   id<T>(x)

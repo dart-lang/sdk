@@ -2,9 +2,20 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-entry_point: "main.dart"
+sources: |
+  extension Foo on String {
+    int parseAsInt() {
+      int result = int.parse(this);
+      print("Parsed $this to $result");
+      print(getFortyTwo());
+      return result;
+    }
+
+    int getFortyTwo() {
+      return 42;
+    }
+  }
 definitions: ["#this"]
-position: "main.dart"
 method: "Foo.parseAsInt"
 expression: |
   () { print(getFortyTwo()); return this; }

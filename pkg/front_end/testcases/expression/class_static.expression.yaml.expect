@@ -1,4 +1,4 @@
 Errors: {
 }
 static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return main::A::doit(3);
+  return #lib1::A::doit(3);
