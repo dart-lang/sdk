@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/bad_unicode.dart:6:10: Error: An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.
+// pkg/front_end/testcases/rasta/bad_unicode.dart:6:10: Error: An escape sequence starting with '\u' must be followed by 4 hexadecimal digits.
 //   print("\u00"); // Bad Unicode escape, must have 4 hex digits.
 //          ^^^^
 //

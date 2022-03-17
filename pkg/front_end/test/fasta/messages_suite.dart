@@ -844,8 +844,11 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
     }
     return fail(
         null,
-        suite.formatProblems("Too many messages reported in ${example.name}:",
-            example, messages));
+        suite.formatProblems(
+            "Too many or unexpected messages (${messages.length}) reported "
+            "in ${example.name}:",
+            example,
+            messages));
   }
 }
 

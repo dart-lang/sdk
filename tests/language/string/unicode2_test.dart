@@ -7,11 +7,14 @@
 main() {
   var str = "Foo\u{}Bar";
   //            ^^^^
-  // [analyzer] SYNTACTIC_ERROR.INVALID_UNICODE_ESCAPE
-  // [cfe] An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.
+  // [analyzer] SYNTACTIC_ERROR.INVALID_UNICODE_ESCAPE_U_BRACKET
+  // [cfe] An escape sequence starting with '\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.
   str = "Foo\u{000000000}Bar";
+  //        ^^^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.INVALID_UNICODE_ESCAPE_U_BRACKET
+  // [cfe] An escape sequence starting with '\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.
   str = "Foo\u{DEAF!}Bar";
   //        ^^^^^^^^
-  // [analyzer] SYNTACTIC_ERROR.INVALID_UNICODE_ESCAPE
-  // [cfe] An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.
+  // [analyzer] SYNTACTIC_ERROR.INVALID_UNICODE_ESCAPE_U_BRACKET
+  // [cfe] An escape sequence starting with '\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.
 }

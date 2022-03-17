@@ -193,8 +193,9 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
       code = $LF;
     } else if (!isRaw && code == $BACKSLASH) {
       if (codeUnits.length == ++i) {
+        // This should only be reachable in error cases.
         listener.handleUnescapeError(
-            codes.messageInvalidUnicodeEscape, location, i, /* length = */ 1);
+            codes.messageInvalidEscapeStarted, location, i, /* length = */ 1);
         return new String.fromCharCodes(codeUnits);
       }
       code = codeUnits[i];
@@ -240,47 +241,78 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
       } else if (code == $u) {
         int begin = i;
         if (codeUnits.length == i + 1) {
-          listener.handleUnescapeError(codes.messageInvalidUnicodeEscape,
-              location, begin, codeUnits.length + 1 - begin);
+          listener.handleUnescapeError(
+              codes.messageInvalidUnicodeEscapeUStarted,
+              location,
+              begin,
+              codeUnits.length + 1 - begin);
           return new String.fromCharCodes(codeUnits);
         }
         code = codeUnits[i + 1];
+        bool foundEndBracket = false;
         if (code == $OPEN_CURLY_BRACKET) {
           // Expect 1-6 hex digits followed by '}'.
           if (codeUnits.length == ++i) {
-            listener.handleUnescapeError(codes.messageInvalidUnicodeEscape,
-                location, begin, i + 1 - begin);
+            listener.handleUnescapeError(
+                codes.messageInvalidUnicodeEscapeUBracket,
+                location,
+                begin,
+                i + 1 - begin);
             return new String.fromCharCodes(codeUnits);
           }
           code = 0;
           for (int j = 0; j < 7; j++) {
             if (codeUnits.length == ++i) {
-              listener.handleUnescapeError(codes.messageInvalidUnicodeEscape,
-                  location, begin, i + 1 - begin);
+              listener.handleUnescapeError(
+                  codes.messageInvalidUnicodeEscapeUBracket,
+                  location,
+                  begin,
+                  i + 1 - begin);
               return new String.fromCharCodes(codeUnits);
             }
             int digit = codeUnits[i];
-            if (j != 0 && digit == $CLOSE_CURLY_BRACKET) break;
+            if (j != 0 && digit == $CLOSE_CURLY_BRACKET) {
+              foundEndBracket = true;
+              break;
+            } else if (j == 6) {
+              break;
+            }
             if (!isHexDigit(digit)) {
-              listener.handleUnescapeError(codes.messageInvalidUnicodeEscape,
-                  location, begin, i + 2 - begin);
+              listener.handleUnescapeError(
+                  codes.messageInvalidUnicodeEscapeUBracket,
+                  location,
+                  begin,
+                  i + 2 - begin);
               return new String.fromCharCodes(codeUnits);
             }
             code = (code << 4) + hexDigitValue(digit);
           }
+          if (!foundEndBracket) {
+            listener.handleUnescapeError(
+                codes.messageInvalidUnicodeEscapeUBracket,
+                location,
+                begin,
+                i + 1 - begin);
+          }
         } else {
           // Expect exactly 4 hex digits.
           if (codeUnits.length <= i + 4) {
-            listener.handleUnescapeError(codes.messageInvalidUnicodeEscape,
-                location, begin, codeUnits.length + 1 - begin);
+            listener.handleUnescapeError(
+                codes.messageInvalidUnicodeEscapeUNoBracket,
+                location,
+                begin,
+                codeUnits.length + 1 - begin);
             return new String.fromCharCodes(codeUnits);
           }
           code = 0;
           for (int j = 0; j < 4; j++) {
             int digit = codeUnits[++i];
             if (!isHexDigit(digit)) {
-              listener.handleUnescapeError(codes.messageInvalidUnicodeEscape,
-                  location, begin, i + 1 - begin);
+              listener.handleUnescapeError(
+                  codes.messageInvalidUnicodeEscapeUNoBracket,
+                  location,
+                  begin,
+                  i + 1 - begin);
               return new String.fromCharCodes(codeUnits);
             }
             code = (code << 4) + hexDigitValue(digit);

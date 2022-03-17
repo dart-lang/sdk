@@ -6114,6 +6114,17 @@ Message _withArgumentsInvalidContinueTarget(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidEscapeStarted = messageInvalidEscapeStarted;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidEscapeStarted = const MessageCode(
+    "InvalidEscapeStarted",
+    index: 126,
+    problemMessage: r"""The string '\' can't stand alone.""",
+    correctionMessage:
+        r"""Try adding another backslash (\) to escape the '\'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateInvalidGetterSetterTypeFieldContext =
     const Template<Message Function(String name)>(
@@ -6438,11 +6449,34 @@ Message _withArgumentsInvalidTypeVariableVariancePositionInReturnType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeInvalidUnicodeEscape = messageInvalidUnicodeEscape;
+const Code<Null> codeInvalidUnicodeEscapeUBracket =
+    messageInvalidUnicodeEscapeUBracket;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidUnicodeEscape = const MessageCode(
-    "InvalidUnicodeEscape",
+const MessageCode messageInvalidUnicodeEscapeUBracket = const MessageCode(
+    "InvalidUnicodeEscapeUBracket",
+    index: 125,
+    problemMessage:
+        r"""An escape sequence starting with '\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidUnicodeEscapeUNoBracket =
+    messageInvalidUnicodeEscapeUNoBracket;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidUnicodeEscapeUNoBracket = const MessageCode(
+    "InvalidUnicodeEscapeUNoBracket",
+    index: 124,
+    problemMessage:
+        r"""An escape sequence starting with '\u' must be followed by 4 hexadecimal digits.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidUnicodeEscapeUStarted =
+    messageInvalidUnicodeEscapeUStarted;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidUnicodeEscapeUStarted = const MessageCode(
+    "InvalidUnicodeEscapeUStarted",
     index: 38,
     problemMessage:
         r"""An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.""");
