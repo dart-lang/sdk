@@ -152,9 +152,7 @@ def GuessOS():
 # Try to guess the host architecture.
 def GuessArchitecture():
     os_id = platform.machine()
-    if os_id.startswith('armv6'):
-        return 'armv6'
-    elif os_id.startswith('aarch64') or os_id == 'arm64':
+    if os_id.startswith('aarch64') or os_id == 'arm64':
         return 'arm64'
     elif os_id.startswith('arm'):
         return 'arm'

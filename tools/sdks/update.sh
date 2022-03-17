@@ -34,7 +34,7 @@ rm -rf sdk
 gsutil.py cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-linux-arm-release.zip" .
 unzip -q dartsdk-linux-arm-release.zip -d sdk
 cipd create \
-  -name dart/dart-sdk/linux-armv6l \
+  -name dart/dart-sdk/linux-arm \
   -in sdk \
   -install-mode copy \
   -tag version:$1 \

@@ -35,7 +35,7 @@ def BuildOptions():
     result.add_option("-a",
                       "--arch",
                       help='Target architectures (comma-separated).',
-                      metavar='[all,ia32,x64,armel,armhf]',
+                      metavar='[all,ia32,x64,armhf]',
                       default='x64')
     result.add_option("-t",
                       "--toolchain",
@@ -92,12 +92,6 @@ def BuildDebianPackage(tarball, out_dir, arch, toolchain):
             RunBuildPackage(['-B', '-aarmhf', '-us', '-uc'],
                             join(temp_dir, tarroot), toolchain)
 
-        # Build armel binary package.
-        if 'armel' in arch:
-            print("Building armel package")
-            RunBuildPackage(['-B', '-aarmel', '-us', '-uc'],
-                            join(temp_dir, tarroot), toolchain)
-
         # Copy the Debian package files to the build directory.
         debbase = 'dart_%s' % version
         source_package = [
@@ -108,7 +102,6 @@ def BuildDebianPackage(tarball, out_dir, arch, toolchain):
         i386_package = ['%s-1_i386.deb' % debbase]
         amd64_package = ['%s-1_amd64.deb' % debbase]
         armhf_package = ['%s-1_armhf.deb' % debbase]
-        armel_package = ['%s-1_armel.deb' % debbase]
 
         for name in source_package:
             copyfile(join(temp_dir, name), join(out_dir, name))
@@ -120,9 +113,6 @@ def BuildDebianPackage(tarball, out_dir, arch, toolchain):
                 copyfile(join(temp_dir, name), join(out_dir, name))
         if ('armhf' in arch):
             for name in armhf_package:
-                copyfile(join(temp_dir, name), join(out_dir, name))
-        if ('armel' in arch):
-            for name in armel_package:
                 copyfile(join(temp_dir, name), join(out_dir, name))
 
 
