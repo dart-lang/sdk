@@ -153,6 +153,7 @@ macros/augment_class: FormatterCrash
 macros/class_members: FormatterCrash
 macros/inject_constructor: FormatterCrash
 macros/macro_class: FormatterCrash
+macros/multiple_imports: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
 nnbd/duplicates_instance: FormatterCrash

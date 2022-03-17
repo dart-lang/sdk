@@ -1989,6 +1989,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitLibraryDependency(LibraryDependency node) {
+    writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord(node.isImport ? 'import' : 'export');
     String uriString;

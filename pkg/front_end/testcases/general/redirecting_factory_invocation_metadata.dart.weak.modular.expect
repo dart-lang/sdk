@@ -3,7 +3,9 @@ library name /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
+@#C1
 import "org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart" as self;
+@#C1
 export "org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart";
 
 @#C1
