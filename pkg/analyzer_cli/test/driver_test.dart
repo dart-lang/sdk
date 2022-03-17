@@ -440,8 +440,8 @@ class OptionsTest extends BaseTest {
     // Should have the lint in the project with lint rules enabled.
     expect(
         bulletToDash(outSink),
-        contains(path.join('linter_project', 'test_file.dart') +
-            ':7:7 - camel_case_types'));
+        contains(
+            '${path.join('linter_project', 'test_file.dart')}:7:7 - camel_case_types'));
     // Should be just one lint in total.
     expect(outSink.toString(), contains('1 lint found.'));
   }

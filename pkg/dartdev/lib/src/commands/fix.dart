@@ -215,7 +215,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     for (var originalFile in dartFiles) {
       var filePath = originalFile.path;
       var baseName = path.basename(filePath);
-      var expectFileName = baseName + '.expect';
+      var expectFileName = '$baseName.expect';
       var expectFilePath = path.join(path.dirname(filePath), expectFileName);
       var expectFile = expectFileMap.remove(expectFilePath);
       if (expectFile == null) {

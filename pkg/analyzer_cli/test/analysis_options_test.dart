@@ -18,10 +18,10 @@ void main() {
 
 @reflectiveTest
 class OptionsTest {
-  final _Runner runner = _Runner.setUp();
+  final _Runner _runner = _Runner.setUp();
 
   void tearDown() {
-    runner.tearDown();
+    _runner.tearDown();
   }
 
   Future<void> test_options() async {
@@ -33,15 +33,15 @@ class OptionsTest {
       var expectedPath = path.join(tempDirPath, 'somepkgs', 'flutter', 'lib',
           'analysis_options_user.yaml');
       expect(FileSystemEntity.isFileSync(expectedPath), isTrue);
-      await runner.run2([
+      await _runner.run2([
         '--packages',
         path.join(tempDirPath, 'packagelist'),
         path.join(tempDirPath, 'lib', 'main.dart')
       ]);
-      expect(runner.stdout, contains('The parameter \'child\' is required'));
+      expect(_runner.stdout, contains('The parameter \'child\' is required'));
       // Should be a warning as specified in analysis_options_user.yaml
       // not a hint
-      expect(runner.stdout, contains('1 warning found'));
+      expect(_runner.stdout, contains('1 warning found'));
     });
   }
 }

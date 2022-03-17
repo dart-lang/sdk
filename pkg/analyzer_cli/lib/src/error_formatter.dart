@@ -20,7 +20,7 @@ final Map<String, int> _severityCompare = {
   'hint': 1,
 };
 
-String _pluralize(String word, int count) => count == 1 ? word : word + 's';
+String _pluralize(String word, int count) => count == 1 ? word : '${word}s';
 
 /// Given an absolute path, return a relative path if the file is contained in
 /// the current directory; return the original path otherwise.
