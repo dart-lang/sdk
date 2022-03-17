@@ -87,6 +87,17 @@ void f({a, b}) {
 ''');
   }
 
+  Future<void> test_parameters() async {
+    await resolveTestCode('''
+void f(a,
+  b) {}
+''');
+    await assertHasFix('''
+void f(a,
+  b,) {}
+''');
+  }
+
   Future<void> test_positional() async {
     await resolveTestCode('''
 void f(a, b) {
