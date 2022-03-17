@@ -91,7 +91,7 @@ stderr: ${result.stderr}
   });
 }
 
-late final shouldKeepTemporaryDirectories =
+final shouldKeepTemporaryDirectories =
     Platform.environment['KEEP_TEMPORARY_DIRECTORIES']?.isNotEmpty == true;
 
 Future withTempDir(Future Function(String dir) f) async {
