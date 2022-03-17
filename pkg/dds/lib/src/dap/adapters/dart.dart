@@ -482,6 +482,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isAttach = true;
     _subscribeToOutputStreams = true;
 
+    // When attaching to a process, suppress auto-resuming isolates until the
+    // first time the user resumes anything.
+    _isolateManager.autoResumeStartingIsolates = false;
+
     // Common setup.
     await _prepareForLaunchOrAttach(null);
 
@@ -538,13 +542,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// The URI protocol will be changed to ws/wss but otherwise not normalised.
   /// The caller should handle any other normalisation (such as adding /ws to
   /// the end if required).
-  ///
-  /// If [resumeIfStarting] is true, isolates waiting to start will
-  /// automatically be resumed. This is usually desired in launch requests, but
-  /// not when attaching.
   Future<void> connectDebugger(
     Uri uri, {
-    required bool resumeIfStarting,
+    // TODO(dantup): Remove this after parameter after updating the Flutter
+    //   DAP to not pass it.
+    bool? resumeIfStarting,
   }) async {
     // Start up a DDS instance for this VM.
     if (enableDds) {
@@ -622,7 +624,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     await debuggerConnected(vmInfo);
 
     await _withErrorHandling(
-      () => _configureExistingIsolates(vmService, vmInfo, resumeIfStarting),
+      () => _configureExistingIsolates(vmService, vmInfo),
     );
 
     _debuggerInitializedCompleter.complete();
@@ -633,7 +635,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   Future<void> _configureExistingIsolates(
     vm.VmService vmService,
     vm.VM vmInfo,
-    bool resumeIfStarting,
   ) async {
     final existingIsolateRefs = vmInfo.isolates;
     final existingIsolates = existingIsolateRefs != null
@@ -659,12 +660,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       if (isolate.pauseEvent?.kind?.startsWith('Pause') ?? false) {
         await _isolateManager.handleEvent(
           isolate.pauseEvent!,
-          resumeIfStarting: resumeIfStarting,
         );
       } else if (isolate.runnable == true) {
         // If requested, automatically resume. Otherwise send a Stopped event to
         // inform the client UI the thread is paused.
-        if (resumeIfStarting) {
+        if (_isolateManager.autoResumeStartingIsolates) {
           await _isolateManager.resumeIsolate(isolate);
         } else {
           _isolateManager.sendStoppedOnEntryEvent(thread.threadId);
