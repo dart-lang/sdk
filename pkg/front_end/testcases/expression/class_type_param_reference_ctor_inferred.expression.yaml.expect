@@ -2,5 +2,5 @@ Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dynamic x) → dynamic
   return () → Null {
-    x = new main::A::•<dynamic>();
+    x = new #lib1::A::•<dynamic>();
   };

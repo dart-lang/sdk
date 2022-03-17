@@ -1,4 +1,4 @@
 Errors: {
-  pkg/front_end/testcases/expression/main.dart: Error: Illegal parameter name 'a#b' found during expression compilation.
+  org-dartlang-testcase:///main.dart: Error: Illegal parameter name 'a#b' found during expression compilation.
 }
 <no procedure>

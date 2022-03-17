@@ -2,10 +2,9 @@ Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
   return () → Null {
-    new main::A::•<dynamic>();
-    #C2;
+    new #lib1::A::•<dynamic>();
+    #C1;
   };
 constants  {
-  #C1 = 0
-  #C2 = main::A<dynamic> {_priv:#C1}
+  #C1 = #lib1::A<dynamic> {}
 }

@@ -2,8 +2,14 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-entry_point: "main.dart"
+sources: |
+  class D<T> {
+    Y id<Y>(Y x) => x;
+    m(List<T> l) {
+      assert(l is List<T>);
+    }
+  }
 definitions: ["s"]
-position: "main.dart#D"
+position: "#D"
 expression: |
   m(id(s = []))

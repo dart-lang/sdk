@@ -2,9 +2,27 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+sources:
+  a.dart: |
+    import "b.dart";
+
+    main() {
+      Foo foo = new Foo();
+      print(foo.foo);
+    }
+
+    class Foo<E1> {
+      E1? get foo => null;
+      String get bar => "hello";
+    }
+
+    class Bar {}
+  b.dart: |
+    class Foo<E2> {
+      E2? get foo => null;
+      int get bar => 42;
+    }
 entry_point: "a.dart"
-import: "b.dart"
-definitions: []
 position: "a.dart#Foo"
 expression: |
   foo
