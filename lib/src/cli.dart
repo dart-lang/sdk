@@ -141,7 +141,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     filesToLint.addAll(
       collectFiles(path)
           .map((file) => _absoluteNormalizedPath(file.path))
-          .map((path) => File(path)),
+          .map(File.new),
     );
   }
 

@@ -40,9 +40,8 @@ DartType? getExpectedType(PostfixExpression node) {
   var realNode =
       node.thisOrAncestorMatching((e) => e.parent is! ParenthesizedExpression);
   var parent = realNode?.parent;
-  var withAwait = false;
-  if (parent is AwaitExpression) {
-    withAwait = true;
+  var withAwait = parent is AwaitExpression;
+  if (withAwait) {
     parent = parent.parent;
   }
 
