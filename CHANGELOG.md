@@ -1,3 +1,14 @@
+# 1.21.0
+
+- fixed `use_key_in_widget_constructors` false positive
+  with `key` super parameter initializers
+- fixed `use_super_parameters` false positive with field
+  formal params
+- updated `unnecessary_null_checks` and 
+  `null_check_on_nullable_type_parameter` to handle
+  list/set/map literals, and `yield` and `await`
+  expressions
+
 # 1.20.0
 
 - renamed `use_super_initializers` to `use_super_parameters`
