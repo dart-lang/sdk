@@ -4,16 +4,19 @@
 
 // test w/ `dart test -N use_key_in_widget_constructors`
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
+// todo(pq): re-enable (or migrate) when mocked Flutter packages can be resolved internally
+// see: https://github.com/dart-lang/linter/issues/3296
 
-/// https://github.com/flutter/flutter/issues/100297
-class OtherWidget extends StatelessWidget {
-  const OtherWidget({required super.key}); //OK
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
+// import 'package:flutter/foundation.dart';
+// import 'package:flutter/widgets.dart';
+//
+// /// https://github.com/flutter/flutter/issues/100297
+// class OtherWidget extends StatelessWidget {
+//   const OtherWidget({required super.key}); //OK
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container();
+//   }
+// }
 
