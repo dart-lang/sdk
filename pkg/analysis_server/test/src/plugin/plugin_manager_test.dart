@@ -474,20 +474,20 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     expect(manager.notificationManager, notificationManager);
   }
 
-  void test_pathsFor_withPackagesFile() {
+  void test_pathsFor_withPackageConfigJsonFile() {
     //
     // Build the minimal directory structure for a plugin package that includes
-    // a .packages file.
+    // a '.dart_tool/package_config.json' file.
     //
     var pluginDirPath = newFolder('/plugin').path;
     var pluginFile = newFile2('/plugin/bin/plugin.dart', '');
-    var packagesFile = newDotPackagesFile('/plugin', '');
+    var packageConfigFile = newPackageConfigJsonFile('/plugin', '');
     //
     // Test path computation.
     //
     var files = manager.filesFor(pluginDirPath);
     expect(files.execution, pluginFile);
-    expect(files.packages, packagesFile);
+    expect(files.packages, packageConfigFile);
   }
 
   void test_pathsFor_withPubspec_inBazelWorkspace() {
@@ -514,9 +514,9 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     }
 
     var pluginDirPath = newPackage('plugin', ['b', 'c']);
-    newPackage('b', ['d']);
-    newPackage('c', ['d']);
-    newPackage('d');
+    var bRootPath = newPackage('b', ['d']);
+    var cRootPath = newPackage('c', ['d']);
+    var dRootPath = newPackage('d');
     var pluginFile = newFile2('$pluginDirPath/bin/plugin.dart', '');
     //
     // Test path computation.
@@ -525,18 +525,35 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     expect(files.execution, pluginFile);
     var packagesFile = files.packages;
     expect(packagesFile.exists, isTrue);
+
     var content = packagesFile.readAsStringSync();
-    var lines = content.split('\n');
-    String asFileUri(String input) => Uri.file(convertPath(input)).toString();
-    expect(
-        lines,
-        unorderedEquals([
-          'plugin:${asFileUri('/workspaceRoot/third_party/dart/plugin/lib')}',
-          'b:${asFileUri('/workspaceRoot/third_party/dart/b/lib')}',
-          'c:${asFileUri('/workspaceRoot/third_party/dart/c/lib')}',
-          'd:${asFileUri('/workspaceRoot/third_party/dart/d/lib')}',
-          ''
-        ]));
+    expect(content, '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "b",
+      "rootUri": "${toUriStr(bRootPath)}",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "c",
+      "rootUri": "${toUriStr(cRootPath)}",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "d",
+      "rootUri": "${toUriStr(dRootPath)}",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "plugin",
+      "rootUri": "${toUriStr(pluginDirPath)}",
+      "packageUri": "lib/"
+    }
+  ]
+}
+''');
   }
 
   void test_pluginsForContextRoot_none() {

@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
@@ -627,7 +628,9 @@ class PluginManager {
       throw PluginException('File "${pluginFile.path}" does not exist.');
     }
     String? reason;
-    File? packagesFile = pluginFolder.getChildAssumingFile('.packages');
+    File? packagesFile = pluginFolder
+        .getChildAssumingFolder(file_paths.dotDartTool)
+        .getChildAssumingFile(file_paths.packageConfigJson);
     if (pubCommand != null) {
       var vmPath = Platform.executable;
       var pubPath = path.join(path.dirname(vmPath), 'pub');
@@ -659,7 +662,8 @@ class PluginManager {
         packagesFile =
             _createPackagesFile(pluginFolder, workspace.packageUriResolver);
         if (packagesFile == null) {
-          reason = 'Could not create .packages file in workspace $workspace.';
+          var name = file_paths.packageConfigJson;
+          reason = 'Could not create $name file in workspace $workspace.';
         }
       } else {
         reason = 'Could not create "${packagesFile.path}".';
@@ -690,15 +694,15 @@ class PluginManager {
     return WatchEvent(_convertChangeType(watchEvent.type), watchEvent.path);
   }
 
-  /// Return a temporary `.packages` file that is appropriate for the plugin in
-  /// the given [pluginFolder]. The [packageUriResolver] is used to determine
-  /// the location of the packages that need to be included in the packages
-  /// file.
+  /// Return a temporary `package_config.json` file that is appropriate for
+  /// the plugin in the given [pluginFolder]. The [packageUriResolver] is
+  /// used to determine the location of the packages that need to be included
+  /// in the packages file.
   File? _createPackagesFile(
       Folder pluginFolder, UriResolver packageUriResolver) {
     var pluginPath = pluginFolder.path;
     var stateFolder = resourceProvider.getStateLocation('.plugin_manager')!;
-    var stateName = _uniqueDirectoryName(pluginPath) + '.packages';
+    var stateName = '${_uniqueDirectoryName(pluginPath)}.packages';
     var packagesFile = stateFolder.getChildAssumingFile(stateName);
     if (!packagesFile.exists) {
       var pluginPubspec =
@@ -708,36 +712,55 @@ class PluginManager {
       }
 
       try {
-        var visitedPackages = <String, String>{};
+        var visitedPackageNames = <String>{};
+        var packages = <_Package>[];
         var context = resourceProvider.pathContext;
-        visitedPackages[context.basename(pluginPath)] =
-            context.join(pluginFolder.path, 'lib');
+        packages.add(
+          _Package(
+            context.basename(pluginPath),
+            pluginFolder,
+          ),
+        );
         var pubspecFiles = <File>[];
         pubspecFiles.add(pluginPubspec);
         while (pubspecFiles.isNotEmpty) {
           var pubspecFile = pubspecFiles.removeLast();
-          for (var packageName in _readDependecies(pubspecFile)) {
-            if (!visitedPackages.containsKey(packageName)) {
+          for (var packageName in _readDependencies(pubspecFile)) {
+            if (visitedPackageNames.add(packageName)) {
               var uri = Uri.parse('package:$packageName/$packageName.dart');
               var packageSource = packageUriResolver.resolveAbsolute(uri);
               if (packageSource != null) {
-                var libDirPath = context.dirname(packageSource.fullName);
-                visitedPackages[packageName] = libDirPath;
-                var pubspecPath = context.join(
-                    context.dirname(libDirPath), file_paths.pubspecYaml);
-                pubspecFiles.add(resourceProvider.getFile(pubspecPath));
+                var packageRoot = resourceProvider
+                    .getFile(packageSource.fullName)
+                    .parent
+                    .parent;
+                packages.add(
+                  _Package(packageName, packageRoot),
+                );
+                pubspecFiles.add(
+                  packageRoot.getChildAssumingFile(file_paths.pubspecYaml),
+                );
               }
             }
           }
         }
 
-        var buffer = StringBuffer();
-        visitedPackages.forEach((String name, String path) {
-          buffer.write(name);
-          buffer.write(':');
-          buffer.writeln(Uri.file(path));
-        });
-        packagesFile.writeAsStringSync(buffer.toString());
+        packages.sort((a, b) => a.name.compareTo(b.name));
+
+        var packageConfigBuilder = PackageConfigFileBuilder();
+        for (var package in packages) {
+          packageConfigBuilder.add(
+            name: package.name,
+            rootPath: package.root.path,
+          );
+        }
+        packagesFile.writeAsStringSync(
+          packageConfigBuilder.toContent(
+            toUriStr: (path) {
+              return resourceProvider.pathContext.toUri(path).toString();
+            },
+          ),
+        );
       } catch (exception) {
         // If we are not able to produce a .packages file, return null so that
         // callers will not try to load the plugin.
@@ -751,7 +774,7 @@ class PluginManager {
 
   /// Return the names of packages that are listed as dependencies in the given
   /// [pubspecFile].
-  Iterable<String> _readDependecies(File pubspecFile) {
+  Iterable<String> _readDependencies(File pubspecFile) {
     var document = loadYamlDocument(pubspecFile.readAsStringSync(),
         sourceUrl: pubspecFile.toUri());
     var contents = document.contents;
@@ -994,6 +1017,13 @@ class PluginSession {
     });
     return pluginStoppedCompleter.future;
   }
+}
+
+class _Package {
+  final String name;
+  final Folder root;
+
+  _Package(this.name, this.root);
 }
 
 /// Information about a request that has been sent but for which a response has
