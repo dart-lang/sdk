@@ -58,4 +58,9 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   Future<List<String>> applyPendingFileChanges() {
     return driver.applyPendingFileChanges();
   }
+
+  @override
+  void changeFile(String path) {
+    driver.changeFile(path);
+  }
 }

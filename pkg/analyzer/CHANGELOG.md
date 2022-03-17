@@ -12,6 +12,7 @@
 * Changed `CompilationUnitElement.lineInfo` to be non-nullable.
 * Deprecated `ResourceProviderMixin.newFile`, use `newFile2` instead.
 * Deprecated `ResourceProviderMixin.newAnalysisOptionsYamlFile`.
+* Added `AnalysisContext.changeFile` and `AnalysisContext.applyPendingFileChanges`.
 
 ## 3.3.1
 * Report HintCode.OVERRIDE_ON_NON_OVERRIDING_xyz on enum.

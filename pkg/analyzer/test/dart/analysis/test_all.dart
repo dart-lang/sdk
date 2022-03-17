@@ -4,11 +4,13 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'analysis_context_test.dart' as analysis_context;
 import 'from_environment_evaluator_test.dart' as declared_variables;
 import 'utilities_test.dart' as utilities;
 
 void main() {
   defineReflectiveSuite(() {
+    analysis_context.main();
     declared_variables.main();
     utilities.main();
   }, name: 'analysis');
