@@ -207,8 +207,8 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  List<String> pathsFor(String pluginPath) {
-    fail('Unexpected invocation of pathsFor');
+  PluginFiles filesFor(String pluginPath) {
+    fail('Unexpected invocation of filesFor');
   }
 
   @override

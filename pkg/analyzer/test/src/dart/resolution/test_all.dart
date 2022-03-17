@@ -44,6 +44,7 @@ import 'language_version_test.dart' as language_version;
 import 'library_element_test.dart' as library_element;
 import 'local_function_test.dart' as local_function;
 import 'local_variable_test.dart' as local_variable;
+import 'macro_test.dart' as macro;
 import 'metadata_test.dart' as metadata;
 import 'method_declaration_test.dart' as method_declaration;
 import 'method_invocation_test.dart' as method_invocation;
@@ -108,6 +109,7 @@ main() {
     library_element.main();
     local_function.main();
     local_variable.main();
+    macro.main();
     metadata.main();
     method_declaration.main();
     method_invocation.main();

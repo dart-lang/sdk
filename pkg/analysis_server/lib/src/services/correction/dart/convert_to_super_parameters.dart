@@ -67,7 +67,8 @@ class ConvertToSuperParameters extends CorrectionProducer {
     var parameterMap = _parameterMap(constructor.parameters);
     List<_ParameterData>? positional = [];
     var named = <_ParameterData>[];
-    var arguments = superInvocation.argumentList.arguments;
+    var argumentList = superInvocation.argumentList;
+    var arguments = argumentList.arguments;
     for (var argumentIndex = 0;
         argumentIndex < arguments.length;
         argumentIndex++) {
@@ -156,18 +157,26 @@ class ConvertToSuperParameters extends CorrectionProducer {
       }
 
       // Remove the corresponding arguments.
-      if (argumentsToDelete.length == arguments.length &&
-          superInvocation.constructorName == null) {
-        var initializers = constructor.initializers;
-        SourceRange initializerRange;
-        if (initializers.length == 1) {
-          initializerRange =
-              range.endEnd(constructor.parameters, superInvocation);
+      if (argumentsToDelete.length == arguments.length) {
+        if (superInvocation.constructorName == null) {
+          // Delete the whole invocation.
+          var initializers = constructor.initializers;
+          SourceRange initializerRange;
+          if (initializers.length == 1) {
+            initializerRange =
+                range.endEnd(constructor.parameters, superInvocation);
+          } else {
+            initializerRange = range.nodeInList(initializers, superInvocation);
+          }
+          builder.addDeletion(initializerRange);
         } else {
-          initializerRange = range.nodeInList(initializers, superInvocation);
+          // Leave the invocation, but remove all of the arguments, including
+          // any trailing comma.
+          builder.addDeletion(range.endStart(
+              argumentList.leftParenthesis, argumentList.rightParenthesis));
         }
-        builder.addDeletion(initializerRange);
       } else {
+        // Remove just the arguments that are no longer needed.
         var ranges = range.nodesInList(arguments, argumentsToDelete);
         for (var range in ranges) {
           builder.addDeletion(range);
@@ -260,16 +269,13 @@ class ConvertToSuperParameters extends CorrectionProducer {
   }
 
   /// Return the parameter corresponding to the [expression], or `null` if the
-  /// expression isn't a simple reference to one of the parameters in the
+  /// expression isn't a simple reference to one of the normal parameters in the
   /// constructor being converted.
   _Parameter? _parameterFor(
       Map<ParameterElement, _Parameter> parameterMap, Expression expression) {
     if (expression is SimpleIdentifier) {
       var element = expression.staticElement;
-      var parameter = parameterMap[element];
-      if (parameter != null) {
-        return parameter;
-      }
+      return parameterMap[element];
     }
     return null;
   }
@@ -278,13 +284,23 @@ class ConvertToSuperParameters extends CorrectionProducer {
   /// elements.
   Map<ParameterElement, _Parameter> _parameterMap(
       FormalParameterList parameterList) {
+    bool validParameter(FormalParameter parameter) {
+      if (parameter is DefaultFormalParameter) {
+        parameter = parameter.parameter;
+      }
+      return parameter is SimpleFormalParameter ||
+          parameter is FunctionTypedFormalParameter;
+    }
+
     var map = <ParameterElement, _Parameter>{};
     var parameters = parameterList.parameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
-      var element = parameter.declaredElement;
-      if (element != null) {
-        map[element] = _Parameter(parameter, element, i);
+      if (validParameter(parameter)) {
+        var element = parameter.declaredElement;
+        if (element != null) {
+          map[element] = _Parameter(parameter, element, i);
+        }
       }
     }
     return map;

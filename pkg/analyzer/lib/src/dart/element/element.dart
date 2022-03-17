@@ -1617,6 +1617,20 @@ class DefaultSuperFormalParameterElementImpl
     return null;
   }
 
+  @override
+  EvaluationResultImpl? get evaluationResult {
+    if (constantInitializer != null) {
+      return super.evaluationResult;
+    }
+
+    var superConstructorParameter = this.superConstructorParameter;
+    if (superConstructorParameter is ParameterElementImpl) {
+      return superConstructorParameter.evaluationResult;
+    }
+
+    return null;
+  }
+
   DartObject? get _superConstructorParameterDefaultValue {
     var superDefault = superConstructorParameter?.computeConstantValue();
     var superDefaultType = superDefault?.type;

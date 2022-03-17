@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
@@ -105,6 +106,13 @@ class PluginException implements Exception {
 
   @override
   String toString() => message;
+}
+
+class PluginFiles {
+  final File execution;
+  final File packages;
+
+  PluginFiles(this.execution, this.packages);
 }
 
 /// Information about a single plugin.
@@ -315,9 +323,9 @@ class PluginManager {
     var isNew = false;
     if (plugin == null) {
       isNew = true;
-      List<String> pluginPaths;
+      PluginFiles pluginFiles;
       try {
-        pluginPaths = pathsFor(path);
+        pluginFiles = filesFor(path);
       } catch (exception, stackTrace) {
         plugin = DiscoveredPluginInfo(
             path, '', '', notificationManager, instrumentationService);
@@ -325,8 +333,12 @@ class PluginManager {
         _pluginMap[path] = plugin;
         return;
       }
-      plugin = DiscoveredPluginInfo(path, pluginPaths[0], pluginPaths[1],
-          notificationManager, instrumentationService);
+      plugin = DiscoveredPluginInfo(
+          path,
+          pluginFiles.execution.path,
+          pluginFiles.packages.path,
+          notificationManager,
+          instrumentationService);
       _pluginMap[path] = plugin;
       try {
         var session = await plugin.start(byteStorePath, sdkPath);
@@ -413,24 +425,24 @@ class PluginManager {
     return responses;
   }
 
-  /// Return the execution path and .packages path associated with the plugin at
-  /// the given [path]. Throw a [PluginException] if there is a problem that
-  /// prevents the plugin from being executing.
+  /// Return the files associated with the plugin at the given [pluginPath].
+  /// Throw a [PluginException] if there is a problem that prevents the plugin
+  /// from being executing.
   @visibleForTesting
-  List<String> pathsFor(String pluginPath) {
+  PluginFiles filesFor(String pluginPath) {
     var pluginFolder = resourceProvider.getFolder(pluginPath);
     var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
     if (!pubspecFile.exists) {
       // If there's no pubspec file, then we don't need to copy the package
       // because we won't be running pub.
-      return _computePaths(pluginFolder);
+      return _computeFiles(pluginFolder);
     }
     var workspace = BazelWorkspace.find(resourceProvider, pluginFolder.path) ??
         GnWorkspace.find(resourceProvider, pluginFolder.path);
     if (workspace != null) {
       // Similarly, we won't be running pub if we're in a workspace because
       // there is exactly one version of each package.
-      return _computePaths(pluginFolder, workspace: workspace);
+      return _computeFiles(pluginFolder, workspace: workspace);
     }
     //
     // Copy the plugin directory to a unique subdirectory of the plugin
@@ -447,10 +459,10 @@ class PluginManager {
     if (parentFolder.exists) {
       var executionFolder =
           parentFolder.getChildAssumingFolder(pluginFolder.shortName);
-      return _computePaths(executionFolder, pubCommand: 'upgrade');
+      return _computeFiles(executionFolder, pubCommand: 'upgrade');
     }
     var executionFolder = pluginFolder.copyTo(parentFolder);
-    return _computePaths(executionFolder, pubCommand: 'get');
+    return _computeFiles(executionFolder, pubCommand: 'get');
   }
 
   /// Return a list of all of the plugins that are currently associated with the
@@ -603,11 +615,11 @@ class PluginManager {
     }));
   }
 
-  /// Compute the paths to be returned by the enclosing method given that the
+  /// Compute the files to be returned by the enclosing method given that the
   /// plugin should exist in the given [pluginFolder].
   ///
   /// Runs pub if [pubCommand] is provided and not null.
-  List<String> _computePaths(Folder pluginFolder,
+  PluginFiles _computeFiles(Folder pluginFolder,
       {String? pubCommand, Workspace? workspace}) {
     var pluginFile = pluginFolder
         .getChildAssumingFolder('bin')
@@ -616,7 +628,9 @@ class PluginManager {
       throw PluginException('File "${pluginFile.path}" does not exist.');
     }
     String? reason;
-    File? packagesFile = pluginFolder.getChildAssumingFile('.packages');
+    File? packagesFile = pluginFolder
+        .getChildAssumingFolder(file_paths.dotDartTool)
+        .getChildAssumingFile(file_paths.packageConfigJson);
     if (pubCommand != null) {
       var vmPath = Platform.executable;
       var pubPath = path.join(path.dirname(vmPath), 'pub');
@@ -648,7 +662,8 @@ class PluginManager {
         packagesFile =
             _createPackagesFile(pluginFolder, workspace.packageUriResolver);
         if (packagesFile == null) {
-          reason = 'Could not create .packages file in workspace $workspace.';
+          var name = file_paths.packageConfigJson;
+          reason = 'Could not create $name file in workspace $workspace.';
         }
       } else {
         reason = 'Could not create "${packagesFile.path}".';
@@ -659,7 +674,7 @@ class PluginManager {
       reason ??= 'Could not create packages file for an unknown reason.';
       throw PluginException(reason);
     }
-    return <String>[pluginFile.path, packagesFile.path];
+    return PluginFiles(pluginFile, packagesFile);
   }
 
   WatchEventType _convertChangeType(watcher.ChangeType type) {
@@ -679,15 +694,15 @@ class PluginManager {
     return WatchEvent(_convertChangeType(watchEvent.type), watchEvent.path);
   }
 
-  /// Return a temporary `.packages` file that is appropriate for the plugin in
-  /// the given [pluginFolder]. The [packageUriResolver] is used to determine
-  /// the location of the packages that need to be included in the packages
-  /// file.
+  /// Return a temporary `package_config.json` file that is appropriate for
+  /// the plugin in the given [pluginFolder]. The [packageUriResolver] is
+  /// used to determine the location of the packages that need to be included
+  /// in the packages file.
   File? _createPackagesFile(
       Folder pluginFolder, UriResolver packageUriResolver) {
     var pluginPath = pluginFolder.path;
     var stateFolder = resourceProvider.getStateLocation('.plugin_manager')!;
-    var stateName = _uniqueDirectoryName(pluginPath) + '.packages';
+    var stateName = '${_uniqueDirectoryName(pluginPath)}.packages';
     var packagesFile = stateFolder.getChildAssumingFile(stateName);
     if (!packagesFile.exists) {
       var pluginPubspec =
@@ -697,36 +712,55 @@ class PluginManager {
       }
 
       try {
-        var visitedPackages = <String, String>{};
+        var visitedPackageNames = <String>{};
+        var packages = <_Package>[];
         var context = resourceProvider.pathContext;
-        visitedPackages[context.basename(pluginPath)] =
-            context.join(pluginFolder.path, 'lib');
+        packages.add(
+          _Package(
+            context.basename(pluginPath),
+            pluginFolder,
+          ),
+        );
         var pubspecFiles = <File>[];
         pubspecFiles.add(pluginPubspec);
         while (pubspecFiles.isNotEmpty) {
           var pubspecFile = pubspecFiles.removeLast();
-          for (var packageName in _readDependecies(pubspecFile)) {
-            if (!visitedPackages.containsKey(packageName)) {
+          for (var packageName in _readDependencies(pubspecFile)) {
+            if (visitedPackageNames.add(packageName)) {
               var uri = Uri.parse('package:$packageName/$packageName.dart');
               var packageSource = packageUriResolver.resolveAbsolute(uri);
               if (packageSource != null) {
-                var libDirPath = context.dirname(packageSource.fullName);
-                visitedPackages[packageName] = libDirPath;
-                var pubspecPath = context.join(
-                    context.dirname(libDirPath), file_paths.pubspecYaml);
-                pubspecFiles.add(resourceProvider.getFile(pubspecPath));
+                var packageRoot = resourceProvider
+                    .getFile(packageSource.fullName)
+                    .parent
+                    .parent;
+                packages.add(
+                  _Package(packageName, packageRoot),
+                );
+                pubspecFiles.add(
+                  packageRoot.getChildAssumingFile(file_paths.pubspecYaml),
+                );
               }
             }
           }
         }
 
-        var buffer = StringBuffer();
-        visitedPackages.forEach((String name, String path) {
-          buffer.write(name);
-          buffer.write(':');
-          buffer.writeln(Uri.file(path));
-        });
-        packagesFile.writeAsStringSync(buffer.toString());
+        packages.sort((a, b) => a.name.compareTo(b.name));
+
+        var packageConfigBuilder = PackageConfigFileBuilder();
+        for (var package in packages) {
+          packageConfigBuilder.add(
+            name: package.name,
+            rootPath: package.root.path,
+          );
+        }
+        packagesFile.writeAsStringSync(
+          packageConfigBuilder.toContent(
+            toUriStr: (path) {
+              return resourceProvider.pathContext.toUri(path).toString();
+            },
+          ),
+        );
       } catch (exception) {
         // If we are not able to produce a .packages file, return null so that
         // callers will not try to load the plugin.
@@ -740,7 +774,7 @@ class PluginManager {
 
   /// Return the names of packages that are listed as dependencies in the given
   /// [pubspecFile].
-  Iterable<String> _readDependecies(File pubspecFile) {
+  Iterable<String> _readDependencies(File pubspecFile) {
     var document = loadYamlDocument(pubspecFile.readAsStringSync(),
         sourceUrl: pubspecFile.toUri());
     var contents = document.contents;
@@ -983,6 +1017,13 @@ class PluginSession {
     });
     return pluginStoppedCompleter.future;
   }
+}
+
+class _Package {
+  final String name;
+  final Folder root;
+
+  _Package(this.name, this.root);
 }
 
 /// Information about a request that has been sent but for which a response has

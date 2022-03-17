@@ -451,6 +451,15 @@ interface AudioContext {
 };
 
 [DartSupplemental]
+interface AudioNode : EventTarget {
+    [DartSuppress] AudioNode connect(AudioNode destination, optional unsigned long output = 0, optional unsigned long input = 0);
+    [DartSuppress] void connect(AudioParam destination, optional unsigned long output = 0);
+    AudioNode? connect(AudioNode destination, optional unsigned long output = 0, optional unsigned long input = 0);
+    // Scripts don't unify return types, so this is changed from void to do so.
+    AudioNode? connect(AudioParam destination, optional unsigned long output = 0);
+};
+
+[DartSupplemental]
 interface HTMLInputElement {
     [DartSuppress] attribute boolean webkitSpeech;
     [DartSuppress] attribute boolean webkitGrammar;

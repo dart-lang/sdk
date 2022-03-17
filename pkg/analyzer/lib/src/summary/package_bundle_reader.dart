@@ -119,11 +119,6 @@ class SummaryDataStore {
   final Set<String> _libraryUris = <String>{};
   final Set<String> _partUris = <String>{};
 
-  SummaryDataStore();
-
-  @Deprecated('Use SummaryDataStore() instead')
-  SummaryDataStore.tmp();
-
   /// Add the given [bundle] loaded from the file with the given [path].
   void addBundle(String? path, PackageBundleReader bundle) {
     bundles.add(bundle);

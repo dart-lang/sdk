@@ -255,7 +255,9 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
 void ARM64Decoder::PrintPairMemOperand(Instr* instr) {
   const Register rn = instr->RnField();
   const uint32_t simm7 = instr->SImm7Field();
-  const int32_t offset = simm7 << (2 + instr->Bit(31));
+  const intptr_t shift =
+      (instr->Bit(26) == 1) ? 2 + instr->SzField() : 2 + instr->SFField();
+  const int32_t offset = simm7 << shift;
   Print("[");
   PrintRegister(rn, R31IsSP);
   switch (instr->Bits(23, 3)) {
@@ -300,6 +302,11 @@ int ARM64Decoder::FormatRegister(Instr* instr, const char* format) {
     PrintRegister(reg, R31IsZR);
     return 2;
   } else if (format[1] == 't') {  // 'rt: Rt register
+    if (format[2] == '2') {
+      int reg = instr->Rt2Field();
+      PrintRegister(reg, R31IsZR);
+      return 3;
+    }
     int reg = instr->RtField();
     PrintRegister(reg, R31IsZR);
     return 2;
@@ -331,6 +338,11 @@ int ARM64Decoder::FormatVRegister(Instr* instr, const char* format) {
     PrintVRegister(reg);
     return 2;
   } else if (format[1] == 't') {
+    if (format[2] == '2') {
+      int reg = instr->Vt2Field();
+      PrintVRegister(reg);
+      return 3;
+    }
     int reg = instr->VtField();
     PrintVRegister(reg);
     return 2;
@@ -536,6 +548,32 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       PrintMemOperand(instr);
       return 5;
     }
+    case 'o': {
+      ASSERT(STRING_STARTS_WITH(format, "opc"));
+      if (instr->Bit(26) == 0) {
+        if (instr->Bit(31) == 0) {
+          Print("w");
+        } else {
+          // 64-bit width is most commonly used, no need to print "x".
+        }
+      } else {
+        switch (instr->Bits(30, 2)) {
+          case 0:
+            Print("s");
+            break;
+          case 1:
+            Print("d");
+            break;
+          case 2:
+            Print("q");
+            break;
+          case 3:
+            Print("?");
+            break;
+        }
+      }
+      return 3;
+    }
     case 'p': {
       if (format[1] == 'c') {
         if (format[2] == 'a') {
@@ -719,12 +757,20 @@ void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeLoadStoreRegPair(Instr* instr) {
-  if (instr->Bit(22) == 1) {
-    // Load.
-    Format(instr, "ldp'sf 'rt, 'ra, 'pmemop");
+  if (instr->Bit(26) == 1) {
+    // SIMD or FP src/dst.
+    if (instr->Bit(22) == 1) {
+      Format(instr, "fldp'opc 'vt, 'vt2, 'pmemop");
+    } else {
+      Format(instr, "fstp'opc 'vt, 'vt2, 'pmemop");
+    }
   } else {
-    // Store.
-    Format(instr, "stp'sf 'rt, 'ra, 'pmemop");
+    // Integer src/dst.
+    if (instr->Bit(22) == 1) {
+      Format(instr, "ldp'opc 'rt, 'rt2, 'pmemop");
+    } else {
+      Format(instr, "stp'opc 'rt, 'rt2, 'pmemop");
+    }
   }
 }
 

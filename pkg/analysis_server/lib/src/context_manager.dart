@@ -333,7 +333,11 @@ class ContextManagerImpl implements ContextManager {
       var packageName = file.parent.parent.shortName;
       var content = _readFile(path);
       var errorListener = RecordingErrorListener();
-      var errorReporter = ErrorReporter(errorListener, file.createSource());
+      var errorReporter = ErrorReporter(
+        errorListener,
+        file.createSource(),
+        isNonNullableByDefault: false,
+      );
       var parser = TransformSetParser(errorReporter, packageName);
       parser.parse(content);
       var converter = AnalyzerConverter();

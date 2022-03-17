@@ -42,6 +42,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:meta/meta.dart';
@@ -82,7 +83,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 210;
+  static const int DATA_VERSION = 211;
 
   static const bool _applyFileChangesSynchronously = true;
 
@@ -123,6 +124,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The [SourceFactory] is used to resolve URIs to paths and restore URIs
   /// from file paths.
   SourceFactory _sourceFactory;
+
+  final MacroKernelBuilder? macroKernelBuilder;
 
   /// The declared environment variables.
   DeclaredVariables declaredVariables = DeclaredVariables();
@@ -257,6 +260,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     required SourceFactory sourceFactory,
     required AnalysisOptionsImpl analysisOptions,
     required Packages packages,
+    this.macroKernelBuilder,
     FileContentCache? fileContentCache,
     bool enableIndex = false,
     SummaryDataStore? externalSummaries,
@@ -322,7 +326,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       analysisOptions: _analysisOptions,
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,
+      macroKernelBuilder: macroKernelBuilder,
       externalSummaries: _externalSummaries,
+      fileSystemState: _fsState,
     );
   }
 

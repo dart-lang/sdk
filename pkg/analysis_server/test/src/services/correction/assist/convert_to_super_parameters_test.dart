@@ -164,6 +164,39 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_functionTypedFormalParameter() async {
+    await resolveTestCode('''
+class A {
+  A(int f(int x));
+}
+class B extends A {
+  B(int f(int x)) : super(f);
+}
+''');
+    await assertHasAssistAt('B(', '''
+class A {
+  A(int f(int x));
+}
+class B extends A {
+  B(super.f);
+}
+''');
+  }
+
+  Future<void> test_invalid_fieldFormalParameter() async {
+    await resolveTestCode('''
+class A {
+  int x;
+  A(this.x);
+}
+class B extends A {
+  int y;
+  B(this.y) : super(y);
+}
+''');
+    await assertNoAssistAt('B(');
+  }
+
   Future<void> test_invalid_namedToPositional() async {
     await resolveTestCode('''
 class A {
@@ -699,6 +732,25 @@ class A {
 }
 class B extends A {
   B(super.x);
+}
+''');
+  }
+
+  Future<void> test_trailingComma() async {
+    await resolveTestCode('''
+class A {
+  A._(int x, int y);
+}
+class B extends A {
+  B(int x, int y) : super._(x, y,);
+}
+''');
+    await assertHasAssistAt('B(', '''
+class A {
+  A._(int x, int y);
+}
+class B extends A {
+  B(super.x, super.y) : super._();
 }
 ''');
   }

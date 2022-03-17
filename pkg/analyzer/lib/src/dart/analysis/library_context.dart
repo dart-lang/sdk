@@ -22,7 +22,9 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:path/src/context.dart';
 
 var counterLinkedLibraries = 0;
 var counterLoadedLibraries = 0;
@@ -39,6 +41,8 @@ class LibraryContext {
   final LibraryContextTestView testView;
   final PerformanceLog logger;
   final ByteStore byteStore;
+  final FileSystemState fileSystemState;
+  final MacroKernelBuilder? macroKernelBuilder;
   final SummaryDataStore store = SummaryDataStore();
 
   late final AnalysisContextImpl analysisContext;
@@ -49,9 +53,11 @@ class LibraryContext {
     required AnalysisSessionImpl analysisSession,
     required PerformanceLog logger,
     required ByteStore byteStore,
+    required this.fileSystemState,
     required AnalysisOptionsImpl analysisOptions,
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
+    this.macroKernelBuilder,
     required SummaryDataStore? externalSummaries,
   })  : logger = logger,
         byteStore = byteStore {
@@ -120,9 +126,28 @@ class LibraryContext {
       cycle.directDependencies.forEach(loadBundle);
 
       var unitsInformativeBytes = <Uri, Uint8List>{};
+      var macroLibraries = <MacroLibrary>[];
       for (var library in cycle.libraries) {
+        var macroClasses = <MacroClass>[];
         for (var file in library.libraryFiles) {
           unitsInformativeBytes[file.uri] = file.unlinked2.informativeBytes;
+          for (var macroClass in file.unlinked2.macroClasses) {
+            macroClasses.add(
+              MacroClass(
+                name: macroClass.name,
+                constructors: macroClass.constructors,
+              ),
+            );
+          }
+        }
+        if (macroClasses.isNotEmpty) {
+          macroLibraries.add(
+            MacroLibrary(
+              uri: library.uri,
+              path: library.path,
+              classes: macroClasses,
+            ),
+          );
         }
       }
 
@@ -206,6 +231,17 @@ class LibraryContext {
           ),
         );
       }
+
+      final macroKernelBuilder = this.macroKernelBuilder;
+      if (macroKernelBuilder != null && macroLibraries.isNotEmpty) {
+        var macroKernelKey = cycle.transitiveSignature + '.macro_kernel';
+        var macroKernelBytes = macroKernelBuilder.build(
+          fileSystem: _MacroFileSystem(fileSystemState),
+          libraries: macroLibraries,
+        );
+        byteStore.put(macroKernelKey, macroKernelBytes);
+        bytesPut += macroKernelBytes.length;
+      }
     }
 
     logger.run('Prepare linked bundles', () {
@@ -258,4 +294,31 @@ class LibraryContext {
 
 class LibraryContextTestView {
   final List<Set<String>> linkedCycles = [];
+}
+
+class _MacroFileEntry implements MacroFileEntry {
+  final FileState fileState;
+
+  _MacroFileEntry(this.fileState);
+
+  @override
+  String get content => fileState.content;
+
+  @override
+  bool get exists => fileState.exists;
+}
+
+class _MacroFileSystem implements MacroFileSystem {
+  final FileSystemState fileSystemState;
+
+  _MacroFileSystem(this.fileSystemState);
+
+  @override
+  Context get pathContext => fileSystemState.pathContext;
+
+  @override
+  MacroFileEntry getFile(String path) {
+    var fileState = fileSystemState.getFileForPath(path);
+    return _MacroFileEntry(fileState);
+  }
 }

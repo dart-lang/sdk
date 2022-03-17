@@ -719,6 +719,8 @@ enum LoadStoreRegPairOp {
   LoadStoreRegPairFixed = LoadStoreFixed | B29,
   STP = LoadStoreRegPairFixed,
   LDP = LoadStoreRegPairFixed | B22,
+  FSTP = STP | B26,
+  FLDP = LDP | B26,
 };
 
 // C3.4.1
@@ -1061,6 +1063,8 @@ enum InstructionFields {
   kVmBits = 5,
   kVtShift = 0,
   kVtBits = 5,
+  kVt2Shift = 10,
+  kVt2Bits = 5,
 
   // Immediates.
   kImm3Shift = 10,
@@ -1290,6 +1294,9 @@ class Instr {
   }
   inline VRegister VtField() const {
     return static_cast<VRegister>(Bits(kVtShift, kVtBits));
+  }
+  inline VRegister Vt2Field() const {
+    return static_cast<VRegister>(Bits(kVt2Shift, kVt2Bits));
   }
 
   // Immediates

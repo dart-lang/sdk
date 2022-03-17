@@ -68,7 +68,11 @@ abstract class AbstractCodeFragmentParserTest {
 
   CodeFragmentParser _parser(GatheringErrorListener listener,
       {List<String>? variables}) {
-    var errorReporter = ErrorReporter(listener, MockSource());
+    var errorReporter = ErrorReporter(
+      listener,
+      MockSource(),
+      isNonNullableByDefault: false,
+    );
     var map = <String, ValueGenerator>{};
     if (variables != null) {
       for (var variableName in variables) {

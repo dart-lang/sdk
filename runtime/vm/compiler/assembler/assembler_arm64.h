@@ -1129,6 +1129,18 @@ class Assembler : public AssemblerBase {
            (a.type() == Address::PairPreIndex));
     EmitLoadStoreRegPair(STP, rt, rt2, a, sz);
   }
+  void fldp(VRegister rt, VRegister rt2, Address a, OperandSize sz) {
+    ASSERT((a.type() == Address::PairOffset) ||
+           (a.type() == Address::PairPostIndex) ||
+           (a.type() == Address::PairPreIndex));
+    EmitLoadStoreVRegPair(FLDP, rt, rt2, a, sz);
+  }
+  void fstp(VRegister rt, VRegister rt2, Address a, OperandSize sz) {
+    ASSERT((a.type() == Address::PairOffset) ||
+           (a.type() == Address::PairPostIndex) ||
+           (a.type() == Address::PairPreIndex));
+    EmitLoadStoreVRegPair(FSTP, rt, rt2, a, sz);
+  }
 
   void ldxr(Register rt, Register rn, OperandSize size = kEightBytes) {
     // rt = value
@@ -1618,6 +1630,22 @@ class Assembler : public AssemblerBase {
   }
   void PopQuad(VRegister reg) {
     fldrq(reg, Address(SP, 1 * kQuadSize, Address::PostIndex));
+  }
+  void PushDoublePair(VRegister low, VRegister high) {
+    fstp(low, high,
+         Address(SP, -2 * kDoubleSize, Address::PairPreIndex, kDWord), kDWord);
+  }
+  void PopDoublePair(VRegister low, VRegister high) {
+    fldp(low, high,
+         Address(SP, 2 * kDoubleSize, Address::PairPostIndex, kDWord), kDWord);
+  }
+  void PushQuadPair(VRegister low, VRegister high) {
+    fstp(low, high, Address(SP, -2 * kQuadSize, Address::PairPreIndex, kQWord),
+         kQWord);
+  }
+  void PopQuadPair(VRegister low, VRegister high) {
+    fldp(low, high, Address(SP, 2 * kQuadSize, Address::PairPostIndex, kQWord),
+         kQWord);
   }
   void TagAndPushPP() {
     // Add the heap object tag back to PP before putting it on the stack.
@@ -2741,6 +2769,35 @@ class Assembler : public AssemblerBase {
     }
     const int32_t encoding =
         opc | op | Arm64Encode::Rt(rt) | Arm64Encode::Rt2(rt2) | a.encoding();
+    Emit(encoding);
+  }
+
+  void EmitLoadStoreVRegPair(LoadStoreRegPairOp op,
+                             VRegister rt,
+                             VRegister rt2,
+                             Address a,
+                             OperandSize sz) {
+    ASSERT(op != FLDP || rt != rt2);
+    ASSERT((sz == kSWord) || (sz == kDWord) || (sz == kQWord));
+    ASSERT(a.log2sz_ == -1 || a.log2sz_ == Log2OperandSizeBytes(sz));
+    int32_t opc = 0;
+    switch (sz) {
+      case kSWord:
+        opc = 0;
+        break;
+      case kDWord:
+        opc = B30;
+        break;
+      case kQWord:
+        opc = B31;
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+    const int32_t encoding =
+        opc | op | Arm64Encode::Rt(static_cast<Register>(rt)) |
+        Arm64Encode::Rt2(static_cast<Register>(rt2)) | a.encoding();
     Emit(encoding);
   }
 
