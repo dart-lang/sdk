@@ -513,7 +513,6 @@ class ContextManagerImpl implements ContextManager {
         return file_paths.isDart(pathContext, path) ||
             file_paths.isAnalysisOptionsYaml(pathContext, path) ||
             file_paths.isPubspecYaml(pathContext, path) ||
-            file_paths.isDotPackages(pathContext, path) ||
             file_paths.isPackageConfigJson(pathContext, path);
       }
 
@@ -675,7 +674,6 @@ class ContextManagerImpl implements ContextManager {
     final isPubspec = file_paths.isPubspecYaml(pathContext, path);
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
         file_paths.isBazelBuild(pathContext, path) ||
-        file_paths.isDotPackages(pathContext, path) ||
         file_paths.isPackageConfigJson(pathContext, path) ||
         isPubspec ||
         false) {

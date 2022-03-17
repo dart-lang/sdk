@@ -254,7 +254,7 @@ main() {}
 
     Object createConstraint(ClassEntity cls) {
       return new StrongModeConstraint(compiler.frontendStrategy.commonElements,
-          compiler.frontendStrategy.nativeBasicData, cls);
+          compiler.frontendStrategy.elementMap.nativeBasicData, cls);
     }
 
     for (Impact impact in impacts) {

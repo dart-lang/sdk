@@ -380,17 +380,6 @@ class ContextLocatorImpl implements ContextLocator {
 
     var rootPath = folder.path;
 
-    // TODO(scheglov) Do we need this?
-    if (_hasPackageFileInPath(rootPath)) {
-      // A Bazel or Gn workspace that includes a '.packages' file is treated
-      // like a normal (non-Bazel/Gn) directory. But may still use
-      // package:build or Pub.
-      return PackageBuildWorkspace.find(
-              resourceProvider, packageMap, rootPath) ??
-          PubWorkspace.find(resourceProvider, packageMap, rootPath) ??
-          BasicWorkspace.find(resourceProvider, packageMap, rootPath);
-    }
-
     Workspace? workspace;
     workspace = BazelWorkspace.find(resourceProvider, rootPath,
         lookForBuildFileSubstitutes: false);
@@ -519,16 +508,7 @@ class ContextLocatorImpl implements ContextLocator {
       return file;
     }
 
-    return _getFile(folder, file_paths.dotPackages);
-  }
-
-  /// Return `true` if either the directory at [rootPath] or a parent of that
-  /// directory contains a `.packages` file.
-  bool _hasPackageFileInPath(String rootPath) {
-    var folder = resourceProvider.getFolder(rootPath);
-    return folder.withAncestors.any((current) {
-      return current.getChildAssumingFile('.packages').exists;
-    });
+    return null;
   }
 
   /// Add to the given lists of [folders] and [files] all of the resources in

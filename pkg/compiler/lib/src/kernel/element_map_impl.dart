@@ -38,7 +38,6 @@ import '../js_backend/annotations.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_model/locals.dart';
-import '../kernel/kernel_strategy.dart';
 import '../kernel/dart2js_target.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -58,6 +57,9 @@ class KernelToElementMap implements IrToElementMap {
   @override
   final DiagnosticReporter reporter;
   final Environment _environment;
+  final NativeBasicDataBuilder nativeBasicDataBuilder =
+      NativeBasicDataBuilder();
+  NativeBasicData _nativeBasicData;
   KCommonElements _commonElements;
   KernelElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
@@ -101,12 +103,10 @@ class KernelToElementMap implements IrToElementMap {
   final Map<ir.TreeNode, Local> localFunctionMap = {};
 
   BehaviorBuilder _nativeBehaviorBuilder;
-  final KernelFrontendStrategy _frontendStrategy;
 
   Map<KMember, Map<ir.Expression, TypeMap>> typeMapsForTesting;
 
-  KernelToElementMap(
-      this.reporter, this._environment, this._frontendStrategy, this.options) {
+  KernelToElementMap(this.reporter, this._environment, this.options) {
     _elementEnvironment = KernelElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
@@ -1422,7 +1422,16 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   /// NativeBasicData is need for computation of the default super class.
-  NativeBasicData get nativeBasicData => _frontendStrategy.nativeBasicData;
+  NativeBasicData get nativeBasicData {
+    if (_nativeBasicData == null) {
+      _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
+      assert(
+          _nativeBasicData != null,
+          failedAt(NO_LOCATION_SPANNABLE,
+              "NativeBasicData has not been computed yet."));
+    }
+    return _nativeBasicData;
+  }
 
   /// Adds libraries in [component] to the set of libraries.
   ///

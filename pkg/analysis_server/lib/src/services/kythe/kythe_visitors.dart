@@ -18,6 +18,7 @@ import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show KytheEntry, KytheVName;
+import 'package:path/path.dart' show relative;
 
 import 'schema.dart' as schema;
 
@@ -40,7 +41,25 @@ String _getAnchorSignature(int start, int end) {
   return '$start-$end';
 }
 
-String _getPath(ResourceProvider provider, Element? e) {
+String? _getNodeKind(Element e) {
+  if (e is FieldElement && e.isEnumConstant) {
+    // FieldElement is a kind of VariableElement, so this test case must be
+    // before the e is VariableElement check.
+    return schema.CONSTANT_KIND;
+  } else if (e is VariableElement || e is PrefixElement) {
+    return schema.VARIABLE_KIND;
+  } else if (e is ExecutableElement) {
+    return schema.FUNCTION_KIND;
+  } else if (e is ClassElement || e is TypeParameterElement) {
+    // TODO(jwren): this should be using absvar instead, see
+    // https://kythe.io/docs/schema/#absvar
+    return schema.RECORD_KIND;
+  }
+  return null;
+}
+
+String _getPath(ResourceProvider provider, Element? e,
+    {String? sdkRootPath, String? corpus}) {
   // TODO(jwren) This method simply serves to provide the WORKSPACE relative
   // path for sources in Elements, it needs to be written in a more robust way.
   // TODO(jwren) figure out what source generates a e != null, but
@@ -51,6 +70,20 @@ String _getPath(ResourceProvider provider, Element? e) {
     // "dynamic"
     return '';
   }
+  if (sdkRootPath != null) {
+    final uri = source.uri;
+    if (uri.isScheme('dart')) {
+      final pathSegments = uri.pathSegments;
+      if (pathSegments.length == 1) {
+        final libraryName = pathSegments.single;
+        return '$sdkRootPath/lib/$libraryName/$libraryName.dart';
+      } else {
+        return '$sdkRootPath/lib/${uri.path}';
+      }
+    }
+    return relative(source.fullName, from: '/$corpus/');
+  }
+
   var path = source.fullName;
   var bazelWorkspace = BazelWorkspace.find(provider, path);
   if (bazelWorkspace != null) {
@@ -63,22 +96,62 @@ String _getPath(ResourceProvider provider, Element? e) {
   if (path.lastIndexOf('CORPUS_NAME') != -1) {
     return path.substring(path.lastIndexOf('CORPUS_NAME') + 12);
   }
+
   return path;
 }
 
 /// If a non-null element is passed, the [SignatureElementVisitor] is used to
 /// generate and return a [String] signature, otherwise [schema.DYNAMIC_KIND] is
 /// returned.
-String _getSignature(ResourceProvider provider, Element? element,
-    String nodeKind, String corpus) {
+String _getSignature(
+    ResourceProvider provider, Element? element, String nodeKind, String corpus,
+    {String? sdkRootPath}) {
   assert(nodeKind != schema.ANCHOR_KIND); // Call _getAnchorSignature instead
   if (element == null) {
     return schema.DYNAMIC_KIND;
   }
   if (element is CompilationUnitElement) {
-    return _getPath(provider, element);
+    return _getPath(provider, element,
+        sdkRootPath: sdkRootPath, corpus: corpus);
   }
   return '$nodeKind:${element.accept(SignatureElementVisitor.instance)}';
+}
+
+/// A helper class for getting the Kythe uri's for elements for querying
+/// Kythe from Cider.
+class CiderKytheHelper {
+  final String sdkRootPath;
+  final String corpus;
+  final ResourceProvider resourceProvider;
+
+  CiderKytheHelper(this.resourceProvider, this.corpus, this.sdkRootPath);
+
+  /// Returns a URI that can be used to query Kythe.
+  String toKytheUri(Element e) {
+    var nodeKind = _getNodeKind(e) ?? schema.RECORD_KIND;
+    var vname = _vNameFromElement(e, nodeKind);
+    return 'kythe://$corpus?lang=dart?path=${vname.path}#${vname.signature}';
+  }
+
+  /// Given all parameters for a [KytheVName] this method creates and returns a
+  /// [KytheVName].
+  KytheVName _vName(String signature, String root, String path,
+      [String language = schema.DART_LANG]) {
+    return KytheVName(signature, corpus, root, path, language);
+  }
+
+  /// Given some [Element] and Kythe node kind, this method generates and
+  /// returns the [KytheVName].
+  KytheVName _vNameFromElement(Element? e, String nodeKind) {
+    assert(nodeKind != schema.FILE_KIND);
+    // general case
+    return _vName(
+        _getSignature(resourceProvider, e, nodeKind, corpus,
+            sdkRootPath: sdkRootPath),
+        '',
+        _getPath(resourceProvider, e,
+            sdkRootPath: sdkRootPath, corpus: corpus));
+  }
 }
 
 /// This visitor writes out Kythe facts and edges as specified by the Kythe
@@ -875,23 +948,6 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       if (correspondingSetter != null && !correspondingSetter.isSynthetic) {
         return correspondingSetter;
       }
-    }
-    return null;
-  }
-
-  String? _getNodeKind(Element e) {
-    if (e is FieldElement && e.isEnumConstant) {
-      // FieldElement is a kind of VariableElement, so this test case must be
-      // before the e is VariableElement check.
-      return schema.CONSTANT_KIND;
-    } else if (e is VariableElement || e is PrefixElement) {
-      return schema.VARIABLE_KIND;
-    } else if (e is ExecutableElement) {
-      return schema.FUNCTION_KIND;
-    } else if (e is ClassElement || e is TypeParameterElement) {
-      // TODO(jwren): this should be using absvar instead, see
-      // https://kythe.io/docs/schema/#absvar
-      return schema.RECORD_KIND;
     }
     return null;
   }

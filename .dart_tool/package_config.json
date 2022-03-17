@@ -688,7 +688,7 @@
       "name": "test",
       "rootUri": "../third_party/pkg/test/pkgs/test",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "test_api",
@@ -700,7 +700,7 @@
       "name": "test_core",
       "rootUri": "../third_party/pkg/test/pkgs/test_core",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "test_descriptor",

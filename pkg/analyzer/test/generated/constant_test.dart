@@ -571,6 +571,154 @@ E<String>
     await _assertValueInt(6, "'Dvorak'.length");
   }
 
+  test_superFormalParameter_explicitSuper_hasNamedArgument_requiredNamed() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  final int b;
+  const A({required this.a, required this.b});
+}
+
+class B extends A {
+  final int c;
+  const B(this.c, {required super.b}) : super(a: 1);
+}
+
+const x = B(3, b: 2);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+    b: int 2
+  c: int 3
+''');
+  }
+
+  test_superFormalParameter_explicitSuper_hasNamedArgument_requiredPositional() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  final int b;
+  const A(this.a, {required this.b});
+}
+
+class B extends A {
+  final int c;
+  const B(super.a, {required this.c}) : super(b: 2);
+}
+
+const x = B(1, c: 3);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+    b: int 2
+  c: int 3
+''');
+  }
+
+  test_superFormalParameter_explicitSuper_requiredNamed() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B extends A {
+  final int b;
+  const B(this.b, {required super.a}) : super();
+}
+
+const x = B(2, a: 1);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_explicitSuper_requiredPositional() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B extends A {
+  final int b;
+  const B(super.a, this.b) : super();
+}
+
+const x = B(1, 2);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_implicitSuper_requiredNamed() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B extends A {
+  final int b;
+  const B(this.b, {required super.a});
+}
+
+const x = B(2, a: 1);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_implicitSuper_requiredPositional() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B extends A {
+  final int b;
+  const B(super.a, this.b);
+}
+
+const x = B(1, 2);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
   void _assertTopVarConstValue(String name, String expected) {
     assertDartObjectText(_topVarConstResult(name).value, expected);
   }

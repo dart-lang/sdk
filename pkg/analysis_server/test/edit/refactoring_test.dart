@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -841,11 +842,13 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   late List<RefactoringKind> kinds;
 
   void addFlutterPackage() {
-    var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-    // Create .packages in the project.
-    newFile2(join(projectPath, '.packages'), '''
-flutter:${libFolder.toUri()}
-''');
+    var flutterLib = MockPackages.instance.addFlutter(resourceProvider);
+    newPackageConfigJsonFile(
+      projectPath,
+      (PackageConfigFileBuilder()
+            ..add(name: 'flutter', rootPath: flutterLib.parent.path))
+          .toContent(toUriStr: toUriStr),
+    );
   }
 
   /// Tests that there is refactoring of the given [kind] is available at the

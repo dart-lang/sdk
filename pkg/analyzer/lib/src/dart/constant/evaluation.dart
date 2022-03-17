@@ -16,6 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
@@ -1996,7 +1997,7 @@ class _InitializersEvaluationResult {
 
   /// If a superinitializer was encountered, the arguments passed to the super
   /// constructor, otherwise `null`.
-  final NodeList<Expression>? superArguments;
+  final List<Expression>? superArguments;
 
   _InitializersEvaluationResult(
     this.result, {
@@ -2199,6 +2200,34 @@ class _InstanceCreationEvaluator {
     );
   }
 
+  void _addImplicitArgumentsFromSuperFormals(List<Expression> superArguments) {
+    var positionalIndex = 0;
+    for (var parameter in _constructor.parameters) {
+      if (parameter is SuperFormalParameterElement) {
+        var value = astFactory.simpleIdentifier(
+          StringToken(TokenType.STRING, parameter.name, -1),
+        )
+          ..staticElement = parameter
+          ..staticType = parameter.type;
+        if (parameter.isPositional) {
+          superArguments.insert(positionalIndex++, value);
+        } else {
+          superArguments.add(
+            astFactory.namedExpression(
+              astFactory.label(
+                astFactory.simpleIdentifier(
+                  StringToken(TokenType.STRING, parameter.name, -1),
+                )..staticElement = parameter,
+                StringToken(TokenType.COLON, ':', -1),
+              ),
+              value,
+            )..staticType = value.typeOrThrow,
+          );
+        }
+      }
+    }
+  }
+
   void _checkFields() {
     var fields = _constructor.enclosingElement.fields;
     for (var field in fields) {
@@ -2271,7 +2300,7 @@ class _InstanceCreationEvaluator {
     // If we encounter a superinitializer, store the name of the constructor,
     // and the arguments.
     String? superName;
-    NodeList<Expression>? superArguments;
+    List<Expression>? superArguments;
     for (var initializer in constructorBase.constantInitializers) {
       if (initializer is ConstructorFieldInitializer) {
         var initializerExpression = initializer.expression;
@@ -2303,7 +2332,8 @@ class _InstanceCreationEvaluator {
         if (name != null) {
           superName = name.name;
         }
-        superArguments = initializer.argumentList.arguments;
+        superArguments = initializer.argumentList.arguments.toList();
+        _addImplicitArgumentsFromSuperFormals(superArguments);
       } else if (initializer is RedirectingConstructorInvocation) {
         // This is a redirecting constructor, so just evaluate the constructor
         // it redirects to.
@@ -2340,6 +2370,12 @@ class _InstanceCreationEvaluator {
         }
       }
     }
+
+    if (definingType.superclass != null && superArguments == null) {
+      superArguments = [];
+      _addImplicitArgumentsFromSuperFormals(superArguments);
+    }
+
     return _InitializersEvaluationResult(null,
         evaluationIsComplete: false,
         superName: superName,
@@ -2422,7 +2458,7 @@ class _InstanceCreationEvaluator {
   /// Otherwise these parameters are `null`.
   void _checkSuperConstructorCall({
     required String? superName,
-    required NodeList<Expression>? superArguments,
+    required List<Expression>? superArguments,
   }) {
     var superclass = definingType.superclass;
     if (superclass != null && !superclass.isDartCoreObject) {

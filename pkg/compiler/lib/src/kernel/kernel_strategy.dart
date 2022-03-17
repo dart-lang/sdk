@@ -50,9 +50,6 @@ import 'native_basic_data.dart';
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
 class KernelFrontendStrategy {
-  final NativeBasicDataBuilder nativeBasicDataBuilder =
-      NativeBasicDataBuilder();
-  NativeBasicData _nativeBasicData;
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
   KernelToElementMap _elementMap;
@@ -84,7 +81,7 @@ class KernelFrontendStrategy {
   KernelFrontendStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
     assert(_compilerTask != null);
-    _elementMap = KernelToElementMap(reporter, environment, this, _options);
+    _elementMap = KernelToElementMap(reporter, environment, _options);
     _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
     _backendUsageBuilder = BackendUsageBuilderImpl(this);
     noSuchMethodRegistry =
@@ -135,6 +132,7 @@ class KernelFrontendStrategy {
       CompilerTask task, Compiler compiler) {
     RuntimeTypesNeedBuilder rtiNeedBuilder = _createRuntimeTypesNeedBuilder();
     BackendImpacts impacts = BackendImpacts(commonElements, compiler.options);
+    final nativeBasicData = _elementMap.nativeBasicData;
     _nativeResolutionEnqueuer = NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,
@@ -217,24 +215,13 @@ class KernelFrontendStrategy {
         annotationsData);
   }
 
-  NativeBasicData get nativeBasicData {
-    if (_nativeBasicData == null) {
-      _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
-      assert(
-          _nativeBasicData != null,
-          failedAt(NO_LOCATION_SPANNABLE,
-              "NativeBasicData has not been computed yet."));
-    }
-    return _nativeBasicData;
-  }
-
   /// Registers a set of loaded libraries with this strategy.
   void registerLoadedLibraries(ir.Component component, List<Uri> libraries) {
     _elementMap.addComponent(component);
     _irAnnotationData = processAnnotations(
         ModularCore(component, _elementMap.constantEvaluator));
     _annotationProcessor = KernelAnnotationProcessor(
-        elementMap, nativeBasicDataBuilder, _irAnnotationData);
+        elementMap, elementMap.nativeBasicDataBuilder, _irAnnotationData);
     for (Uri uri in libraries) {
       LibraryEntity library = elementEnvironment.lookupLibrary(uri);
       if (maybeEnableNative(library.canonicalUri)) {
