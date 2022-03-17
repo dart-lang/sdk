@@ -12,8 +12,6 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as ir
 import '../diagnostics/diagnostic_listener.dart';
 import '../diagnostics/messages.dart';
 import '../diagnostics/source_span.dart';
-import '../kernel/element_map.dart';
-import '../environment.dart';
 import '../ir/impact_data.dart';
 import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
@@ -90,40 +88,6 @@ ModularMemberData computeModularMemberData(ir.Member node,
               !annotations.contains(PragmaAnnotation.disableFinal))
       .computeImpact(node);
   return ModularMemberData(scopeModel, impactBuilderData);
-}
-
-ModuleData computeModuleData(
-    ir.Component component,
-    Set<Uri> includedLibraries,
-    CompilerOptions options,
-    DiagnosticReporter reporter,
-    Environment environment,
-    KernelToElementMap elementMap) {
-  var classHierarchy = elementMap.classHierarchy;
-  var typeEnvironment = elementMap.typeEnvironment;
-  var constantEvaluator = elementMap.constantEvaluator;
-  var result = <ir.Member, ImpactBuilderData>{};
-  void computeForMember(ir.Member member) {
-    var scopeModel = ScopeModel.from(member, constantEvaluator);
-    var annotations = processMemberAnnotations(
-        options, reporter, member, computePragmaAnnotationDataFromIr(member));
-    result[member] = computeModularMemberData(member,
-            options: options,
-            typeEnvironment: typeEnvironment,
-            classHierarchy: classHierarchy,
-            scopeModel: scopeModel,
-            annotations: annotations)
-        .impactBuilderData;
-  }
-
-  for (var library in component.libraries) {
-    if (!includedLibraries.contains(library.importUri)) continue;
-    library.members.forEach(computeForMember);
-    for (var cls in library.classes) {
-      cls.members.forEach(computeForMember);
-    }
-  }
-  return ModuleData(result);
 }
 
 void reportLocatedMessage(DiagnosticReporter reporter,

@@ -50,6 +50,7 @@ import 'kernel/kernel_world.dart';
 import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions;
 import 'phase/load_kernel.dart' as load_kernel;
+import 'phase/modular_analysis.dart' as modular_analysis;
 import 'serialization/task.dart';
 import 'serialization/serialization.dart';
 import 'serialization/strategies.dart';
@@ -322,7 +323,11 @@ class Compiler {
       programSplitConstraintsData = constraintParser.read(programSplitJson);
     }
 
-    if (onlyPerformGlobalTypeInference) {
+    if (options.cfeOnly) {
+      await runLoadKernel();
+    } else if (options.modularMode) {
+      await runModularAnalysis();
+    } else if (onlyPerformGlobalTypeInference) {
       ir.Component component =
           await serializationTask.deserializeComponentAndUpdateOptions();
       var closedWorldAndIndices =
@@ -357,48 +362,25 @@ class Compiler {
       await generateJavaScriptCode(globalTypeInferenceResults,
           indices: closedWorldAndIndices.indices);
     } else {
-      final input = load_kernel.Input(options, provider, reporter,
-          initializedCompilerState, forceSerializationForTesting);
-      load_kernel.Output output =
-          await loadKernelTask.measure(() async => load_kernel.run(input));
+      load_kernel.Output output = await runLoadKernel();
       if (output == null || compilationFailed) return;
-      reporter.log("Kernel load complete");
-      if (retainDataForTesting) {
-        componentForTesting = output.component;
-      }
 
       ir.Component component = output.component;
       List<Uri> libraries = output.libraries;
       frontendStrategy.registerLoadedLibraries(component, libraries);
-
-      if (options.modularMode) {
-        await runModularAnalysis(component, output.moduleLibraries);
-      } else {
-        List<ModuleData> data;
-        if (options.hasModularAnalysisInputs) {
-          data = await serializationTask.deserializeModuleData(component);
-        }
-        frontendStrategy.registerModuleData(data);
-
-        // After we've deserialized modular data, we trim the component of any
-        // unnecessary dependencies.
-        // Note: It is critical we wait to trim the dill until after we've
-        // deserialized modular data because some of this data may reference
-        // 'trimmed' elements.
-        if (options.fromDill) {
-          if (options.dumpUnusedLibraries) {
-            dumpUnusedLibraries(component, libraries);
-          }
-          if (options.entryUri != null) {
-            component = trimComponent(component, libraries);
-          }
-        }
-        if (options.cfeOnly) {
-          await serializationTask.serializeComponent(component);
-        } else {
-          await compileFromKernel(output.rootLibraryUri, libraries);
-        }
+      List<ModuleData> data;
+      if (options.hasModularAnalysisInputs) {
+        data = await serializationTask.deserializeModuleData(component);
       }
+      frontendStrategy.registerModuleData(data);
+
+      // After we've deserialized modular data, we trim the component of any
+      // unnecessary dependencies.
+      // Note: It is critical we wait to trim the dill until after we've
+      // deserialized modular data because some of this data may reference
+      // 'trimmed' elements.
+      dumpUnusedLibrariesAndTrimComponent(component, libraries);
+      await compileFromKernel(output.rootLibraryUri, libraries);
     }
   }
 
@@ -498,19 +480,54 @@ class Compiler {
     return closedWorld;
   }
 
-  void runModularAnalysis(
-      ir.Component component, Iterable<Uri> moduleLibraries) {
+  Future<load_kernel.Output> runLoadKernel() async {
+    final input = load_kernel.Input(options, provider, reporter,
+        initializedCompilerState, forceSerializationForTesting);
+    load_kernel.Output output =
+        await loadKernelTask.measure(() async => load_kernel.run(input));
+    if (output == null || compilationFailed) return null;
+    reporter.log("Kernel load complete");
+    if (retainDataForTesting) {
+      componentForTesting = output.component;
+    }
+
+    if (options.cfeOnly) {
+      ir.Component component = output.component;
+      dumpUnusedLibrariesAndTrimComponent(component, output.libraries);
+      await serializationTask.serializeComponent(component);
+    }
+    return output;
+  }
+
+  void dumpUnusedLibrariesAndTrimComponent(
+      ir.Component component, List<Uri> libraries) {
+    if (options.fromDill) {
+      if (options.dumpUnusedLibraries) {
+        dumpUnusedLibraries(component, libraries);
+      }
+      if (options.entryUri != null) {
+        component = trimComponent(component, libraries);
+      }
+    }
+  }
+
+  void runModularAnalysis() async {
+    load_kernel.Output output = await runLoadKernel();
+    if (output == null || compilationFailed) return;
+
+    ir.Component component = output.component;
+    List<Uri> libraries = output.libraries;
+    Set<Uri> moduleLibraries = output.moduleLibraries.toSet();
     _userCodeLocations
         .addAll(moduleLibraries.map((module) => CodeLocation(module)));
-    selfTask.measureSubtask('runModularAnalysis', () {
-      var included = moduleLibraries.toSet();
-      var elementMap = frontendStrategy.elementMap;
-      var moduleData = computeModuleData(
-          component, included, options, reporter, environment, elementMap);
-      if (compilationFailed) return;
-      serializationTask.testModuleSerialization(moduleData, component);
-      serializationTask.serializeModuleData(moduleData, component, included);
-    });
+    final input = modular_analysis.Input(
+        options, reporter, environment, component, libraries, moduleLibraries);
+    ModuleData moduleData = await selfTask.measureSubtask(
+        'runModularAnalysis', () async => modular_analysis.run(input));
+    if (compilationFailed) return;
+    serializationTask.testModuleSerialization(moduleData, component);
+    serializationTask.serializeModuleData(
+        moduleData, component, moduleLibraries);
   }
 
   GlobalTypeInferenceResults performGlobalTypeInference(

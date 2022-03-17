@@ -50,7 +50,7 @@ class Output {
   /// reachable from the [rootLibraryUri].
   ///
   /// Note that [component] may contain some libraries that are excluded here.
-  final Iterable<Uri> libraries;
+  final List<Uri> libraries;
 
   /// When running only dart2js modular analysis, returns the [Uri]s for
   /// libraries loaded in the input module.
@@ -58,7 +58,7 @@ class Output {
   /// This excludes other libraries reachable from them that were loaded as
   /// dependencies. The result of [moduleLibraries] is always a subset of
   /// [libraries].
-  final Iterable<Uri> moduleLibraries;
+  final List<Uri> moduleLibraries;
 
   final fe.InitializedCompilerState initializedCompilerState;
 
