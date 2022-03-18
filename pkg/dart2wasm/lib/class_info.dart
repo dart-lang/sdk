@@ -315,6 +315,10 @@ class ClassInfoCollector {
   void collect() {
     // Create class info and Wasm structs for all classes.
     initializeTop();
+    // Subclasses of the [_Function] class are generated on the fly as fields
+    // with function types are encountered. Therefore, this class must be early
+    // in the initialization order.
+    initialize(translator.functionClass);
     for (Library library in translator.component.libraries) {
       for (Class cls in library.classes) {
         initialize(cls);
