@@ -102,9 +102,7 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
 
   @override
   T? visitNode(AstNode node) {
-    delegates.forEach((delegate) {
-      node.accept(delegate);
-    });
+    delegates.forEach(node.accept);
     node.visitChildren(this);
     return null;
   }

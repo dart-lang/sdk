@@ -169,13 +169,13 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
           GatheringErrorListener(checkRanges: true);
       parseCompilationUnit2(base.toString(), listener, featureSet: featureSet);
       var baseErrorCodes = <ErrorCode>[];
-      listener.errors.forEach((AnalysisError error) {
+      for (var error in listener.errors) {
         if (error.errorCode == ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
             error.errorCode == ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP ||
             error.errorCode == ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE) {
           baseErrorCodes.add(error.errorCode);
         }
-      });
+      }
 
       var expectedValidCodeErrors = <ErrorCode>[];
       expectedValidCodeErrors.addAll(baseErrorCodes);

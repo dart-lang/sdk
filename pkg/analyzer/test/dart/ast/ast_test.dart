@@ -1376,13 +1376,13 @@ class SimpleStringLiteralTest extends ParserTestCase {
     expect(
         astFactory
             .simpleStringLiteral(
-                TokenFactory.tokenFromString("''' \ \nX''"), "X")
+                TokenFactory.tokenFromString("'''  \nX''"), "X")
             .contentsOffset,
         6);
     expect(
         astFactory
             .simpleStringLiteral(
-                TokenFactory.tokenFromString('r""" \ \nX"""'), "X")
+                TokenFactory.tokenFromString('r"""  \nX"""'), "X")
             .contentsOffset,
         7);
   }

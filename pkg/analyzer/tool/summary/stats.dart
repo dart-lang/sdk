@@ -76,11 +76,11 @@ class Stats {
       if (value is SummaryClass) {
         record(value);
       } else if (value is List) {
-        value.forEach((element) {
+        for (var element in value) {
           if (element is SummaryClass) {
             record(element);
           }
-        });
+        }
       }
     });
   }

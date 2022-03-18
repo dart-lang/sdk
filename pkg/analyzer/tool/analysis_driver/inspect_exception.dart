@@ -36,7 +36,7 @@ main(List<String> args) {
   print('');
   print('');
 
-  context.files.forEach((file) {
+  for (var file in context.files) {
     print("=" * 40);
     print('${file.path}');
     print("-" * 40);
@@ -44,5 +44,5 @@ main(List<String> args) {
     print('');
     print('');
     print('');
-  });
+  }
 }

@@ -585,13 +585,13 @@ class AstBuilder extends StackListener {
   void checkFieldFormalParameters(FormalParameterList? parameterList) {
     var parameters = parameterList?.parameters;
     if (parameters != null) {
-      parameters.forEach((FormalParameter param) {
-        if (param is FieldFormalParameter) {
+      for (var parameter in parameters) {
+        if (parameter is FieldFormalParameter) {
           // This error is reported in the BodyBuilder.endFormalParameter.
           handleRecoverableError(messageFieldInitializerOutsideConstructor,
-              param.thisKeyword, param.thisKeyword);
+              parameter.thisKeyword, parameter.thisKeyword);
         }
-      });
+      }
     }
   }
 

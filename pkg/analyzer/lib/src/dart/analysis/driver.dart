@@ -1170,18 +1170,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           return;
         }
         // Notify the completers.
-        _requestedFiles.remove(path)!.forEach((completer) {
+        for (var completer in _requestedFiles.remove(path)!) {
           completer.complete(result.unitResult!);
-        });
+        }
         // Remove from to be analyzed and produce it now.
         _fileTracker.fileWasAnalyzed(path);
         _resultController.add(result.unitResult!);
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
         _fileTracker.fileWasAnalyzed(path);
-        _requestedFiles.remove(path)!.forEach((completer) {
+        for (var completer in _requestedFiles.remove(path)!) {
           completer.completeError(exception, stackTrace);
-        });
+        }
         _clearLibraryContextAfterException();
       }
       return;
@@ -1192,13 +1192,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       String path = _requestedLibraries.keys.first;
       try {
         var result = _computeResolvedLibrary(path);
-        _requestedLibraries.remove(path)!.forEach((completer) {
+        for (var completer in _requestedLibraries.remove(path)!) {
           completer.complete(result);
-        });
+        }
       } catch (exception, stackTrace) {
-        _requestedLibraries.remove(path)!.forEach((completer) {
+        for (var completer in _requestedLibraries.remove(path)!) {
           completer.completeError(exception, stackTrace);
-        });
+        }
         _clearLibraryContextAfterException();
       }
       return;
@@ -1210,9 +1210,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       var completers = _errorsRequestedFiles.remove(path)!;
       var result = _computeErrors(path: path, asIsIfPartWithoutLibrary: false);
       if (result != null) {
-        completers.forEach((completer) {
+        for (var completer in completers) {
           completer.complete(result);
-        });
+        }
       } else {
         _errorsRequestedParts.putIfAbsent(path, () => []).addAll(completers);
       }
@@ -1223,9 +1223,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_indexRequestedFiles.isNotEmpty) {
       String path = _indexRequestedFiles.keys.first;
       AnalysisDriverUnitIndex index = _computeIndex(path);
-      _indexRequestedFiles.remove(path)!.forEach((completer) {
+      for (var completer in _indexRequestedFiles.remove(path)!) {
         completer.complete(index);
-      });
+      }
       return;
     }
 
@@ -1235,9 +1235,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       UnitElementResult? result = _computeUnitElement(path);
       var completers = _unitElementRequestedFiles.remove(path)!;
       if (result != null) {
-        completers.forEach((completer) {
+        for (var completer in completers) {
           completer.complete(result);
-        });
+        }
       } else {
         _unitElementRequestedParts
             .putIfAbsent(path, () => [])
@@ -1327,18 +1327,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         var result = _computeAnalysisResult(path,
             withUnit: true, asIsIfPartWithoutLibrary: true)!;
         // Notify the completers.
-        _requestedParts.remove(path)!.forEach((completer) {
+        for (var completer in _requestedParts.remove(path)!) {
           completer.complete(result.unitResult!);
-        });
+        }
         // Remove from to be analyzed and produce it now.
         _partsToAnalyze.remove(path);
         _resultController.add(result.unitResult!);
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
         _partsToAnalyze.remove(path);
-        _requestedParts.remove(path)!.forEach((completer) {
+        for (var completer in _requestedParts.remove(path)!) {
           completer.completeError(exception, stackTrace);
-        });
+        }
         _clearLibraryContextAfterException();
       }
       return;
@@ -1371,9 +1371,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       String path = _unitElementRequestedParts.keys.first;
       UnitElementResult result =
           _computeUnitElement(path, asIsIfPartWithoutLibrary: true)!;
-      _unitElementRequestedParts.remove(path)!.forEach((completer) {
+      for (var completer in _unitElementRequestedParts.remove(path)!) {
         completer.complete(result);
-      });
+      }
       return;
     }
 
@@ -1382,9 +1382,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       var path = _errorsRequestedParts.keys.first;
       var completers = _errorsRequestedParts.remove(path)!;
       var result = _computeErrors(path: path, asIsIfPartWithoutLibrary: true);
-      completers.forEach((completer) {
+      for (var completer in completers) {
         completer.complete(result);
-      });
+      }
       return;
     }
   }

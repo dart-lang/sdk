@@ -65,7 +65,9 @@ class _LintConfig implements LintConfig {
 
   void addAsListOrString(Object? value, List<String> list) {
     if (value is List) {
-      value.forEach((v) => list.add(v));
+      for (var entry in value) {
+        list.add(entry);
+      }
     } else if (value is String) {
       list.add(value);
     }
@@ -130,12 +132,12 @@ class _LintConfig implements LintConfig {
           // - unnecessary_getters
           // - camel_case_types
           if (v is YamlList) {
-            v.nodes.forEach((rule) {
+            for (var rule in v.nodes) {
               var config = _RuleConfig();
               config.name = asString(rule);
               config.args = {'enabled': true};
               ruleConfigs.add(config);
-            });
+            }
           }
 
           // style_guide: {unnecessary_getters: false, camel_case_types: true}

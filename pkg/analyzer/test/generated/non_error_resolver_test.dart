@@ -2902,7 +2902,7 @@ main() {}
     expect(result.unit.declarations, hasLength(1));
     final mainDecl = result.unit.declarations[0];
     expect(mainDecl.metadata, hasLength(8));
-    mainDecl.metadata.forEach((metadata) {
+    for (var metadata in mainDecl.metadata) {
       final value = metadata.elementAnnotation!.computeConstantValue()!;
       expect(value, isNotNull);
       assertType(value.type, 'B');
@@ -2915,7 +2915,7 @@ main() {}
         expect(unbounded.isNull, true);
         assertType(bounded.type, 'Bounded<String>');
       }
-    });
+    }
   }
 
   test_parameterScope_local() async {

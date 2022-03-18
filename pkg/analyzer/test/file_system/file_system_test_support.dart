@@ -665,9 +665,9 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     expect(children, hasLength(3));
     children.sort((a, b) => a.shortName.compareTo(b.shortName));
     // check that each child exists
-    children.forEach((child) {
+    for (var child in children) {
       expect(child.exists, true);
-    });
+    }
     // check names
     expect(children[0].shortName, 'a.txt');
     expect(children[1].shortName, 'bFolder');

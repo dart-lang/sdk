@@ -219,9 +219,9 @@ class FileResolver {
         var result = performance!.run('getFilesContaining', (performance) {
           return fsState!.getFilesContaining(element.displayName);
         });
-        result.forEach((filePath) {
+        for (var filePath in result) {
           collectReferences(filePath, performance!);
-        });
+        }
       }
       return references;
     });

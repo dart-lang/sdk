@@ -6,6 +6,9 @@ import 'package:analyzer/instrumentation/logger.dart';
 import 'package:analyzer/instrumentation/plugin_data.dart';
 import 'package:analyzer/instrumentation/service.dart';
 
+// TODO(srawlins): Fix these in a presumably breaking change.
+// ignore_for_file: constant_identifier_names
+
 /// A class to adapt an [InstrumentationService] into a log using an [InstrumentationLogger].
 class InstrumentationLogAdapter implements InstrumentationService {
   static const String TAG_ERROR = 'Err';
