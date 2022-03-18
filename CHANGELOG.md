@@ -108,8 +108,11 @@
 
 #### Linter
 
-Updated the Linter to `1.20.0`, which includes changes that
+Updated the Linter to `1.21.1`, which includes changes that
 
+- updates `unnecessary_null_checks` and 
+  `null_check_on_nullable_type_parameter` to handle
+  list/set/map literals, and `yield` and `await` expressions.
 - fixes `unnecessary_null_aware_assignments` property-access
   false positives.
 - adds new lint: `use_super_parameters`.

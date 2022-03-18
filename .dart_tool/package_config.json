@@ -415,7 +415,7 @@
       "name": "linter",
       "rootUri": "../third_party/pkg/linter",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.15"
     },
     {
       "name": "lints",
