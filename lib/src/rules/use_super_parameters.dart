@@ -169,6 +169,7 @@ class _Visitor extends SimpleAstVisitor {
       var superArg = positionalSuperArgs[i];
       var superParam = superArg.staticElement;
       if (superParam is! ParameterElement) return null;
+      if (superParam.isNamed) return null;
       bool match = false;
       for (var i = 0; i < constructorParams.length && !match; ++i) {
         var constructorParam = constructorParams[i];
