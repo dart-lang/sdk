@@ -20,12 +20,12 @@ and read than concatenation.
 
 **BAD:**
 ```dart
-'Hello, ' + name + '! You are ' + (year - birth) + ' years old.';
+'Hello, ' + person.name + ' from ' + person.city + '.';
 ```
 
 **GOOD:**
 ```dart
-'Hello, $name! You are ${year - birth} years old.';
+'Hello, ${person.name} from ${person.city}.'
 ```
 
 ''';
