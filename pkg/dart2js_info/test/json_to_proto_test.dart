@@ -40,7 +40,7 @@ main() {
 
       final expectedPrefixes = <InfoKind, String>{};
       for (final kind in InfoKind.values) {
-        expectedPrefixes[kind] = kindToString(kind) + '/';
+        expectedPrefixes[kind] = '${kindToString(kind)}/';
       }
 
       for (final info in proto.allInfos.entries) {

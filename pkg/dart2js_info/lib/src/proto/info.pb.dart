@@ -37,14 +37,14 @@ class DependencyInfoPB extends $pb.GeneratedMessage {
     $core.String? targetId,
     $core.String? mask,
   }) {
-    final _result = create();
+    final result = create();
     if (targetId != null) {
-      _result.targetId = targetId;
+      result.targetId = targetId;
     }
     if (mask != null) {
-      _result.mask = mask;
+      result.mask = mask;
     }
-    return _result;
+    return result;
   }
   factory DependencyInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -139,17 +139,17 @@ class AllInfoPB extends $pb.GeneratedMessage {
     $core.Map<$core.String, InfoPB>? allInfos,
     $core.Iterable<LibraryDeferredImportsPB>? deferredImports,
   }) {
-    final _result = create();
+    final result = create();
     if (program != null) {
-      _result.program = program;
+      result.program = program;
     }
     if (allInfos != null) {
-      _result.allInfos.addAll(allInfos);
+      result.allInfos.addAll(allInfos);
     }
     if (deferredImports != null) {
-      _result.deferredImports.addAll(deferredImports);
+      result.deferredImports.addAll(deferredImports);
     }
-    return _result;
+    return result;
   }
   factory AllInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -354,59 +354,59 @@ class InfoPB extends $pb.GeneratedMessage {
     ClosureInfoPB? closureInfo,
     ClassTypeInfoPB? classTypeInfo,
   }) {
-    final _result = create();
+    final result = create();
     if (name != null) {
-      _result.name = name;
+      result.name = name;
     }
     if (id != null) {
-      _result.id = id;
+      result.id = id;
     }
     if (serializedId != null) {
-      _result.serializedId = serializedId;
+      result.serializedId = serializedId;
     }
     if (coverageId != null) {
-      _result.coverageId = coverageId;
+      result.coverageId = coverageId;
     }
     if (size != null) {
-      _result.size = size;
+      result.size = size;
     }
     if (parentId != null) {
-      _result.parentId = parentId;
+      result.parentId = parentId;
     }
     if (uses != null) {
-      _result.uses.addAll(uses);
+      result.uses.addAll(uses);
     }
     if (outputUnitId != null) {
-      _result.outputUnitId = outputUnitId;
+      result.outputUnitId = outputUnitId;
     }
     if (libraryInfo != null) {
-      _result.libraryInfo = libraryInfo;
+      result.libraryInfo = libraryInfo;
     }
     if (classInfo != null) {
-      _result.classInfo = classInfo;
+      result.classInfo = classInfo;
     }
     if (functionInfo != null) {
-      _result.functionInfo = functionInfo;
+      result.functionInfo = functionInfo;
     }
     if (fieldInfo != null) {
-      _result.fieldInfo = fieldInfo;
+      result.fieldInfo = fieldInfo;
     }
     if (constantInfo != null) {
-      _result.constantInfo = constantInfo;
+      result.constantInfo = constantInfo;
     }
     if (outputUnitInfo != null) {
-      _result.outputUnitInfo = outputUnitInfo;
+      result.outputUnitInfo = outputUnitInfo;
     }
     if (typedefInfo != null) {
-      _result.typedefInfo = typedefInfo;
+      result.typedefInfo = typedefInfo;
     }
     if (closureInfo != null) {
-      _result.closureInfo = closureInfo;
+      result.closureInfo = closureInfo;
     }
     if (classTypeInfo != null) {
-      _result.classTypeInfo = classTypeInfo;
+      result.classTypeInfo = classTypeInfo;
     }
-    return _result;
+    return result;
   }
   factory InfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -745,47 +745,47 @@ class ProgramInfoPB extends $pb.GeneratedMessage {
     $core.bool? isMirrorsUsed,
     $core.bool? minified,
   }) {
-    final _result = create();
+    final result = create();
     if (entrypointId != null) {
-      _result.entrypointId = entrypointId;
+      result.entrypointId = entrypointId;
     }
     if (size != null) {
-      _result.size = size;
+      result.size = size;
     }
     if (dart2jsVersion != null) {
-      _result.dart2jsVersion = dart2jsVersion;
+      result.dart2jsVersion = dart2jsVersion;
     }
     if (compilationMoment != null) {
-      _result.compilationMoment = compilationMoment;
+      result.compilationMoment = compilationMoment;
     }
     if (compilationDuration != null) {
-      _result.compilationDuration = compilationDuration;
+      result.compilationDuration = compilationDuration;
     }
     if (toProtoDuration != null) {
-      _result.toProtoDuration = toProtoDuration;
+      result.toProtoDuration = toProtoDuration;
     }
     if (dumpInfoDuration != null) {
-      _result.dumpInfoDuration = dumpInfoDuration;
+      result.dumpInfoDuration = dumpInfoDuration;
     }
     if (noSuchMethodEnabled != null) {
-      _result.noSuchMethodEnabled = noSuchMethodEnabled;
+      result.noSuchMethodEnabled = noSuchMethodEnabled;
     }
     if (isRuntimeTypeUsed != null) {
-      _result.isRuntimeTypeUsed = isRuntimeTypeUsed;
+      result.isRuntimeTypeUsed = isRuntimeTypeUsed;
     }
     if (isIsolateUsed != null) {
-      _result.isIsolateUsed = isIsolateUsed;
+      result.isIsolateUsed = isIsolateUsed;
     }
     if (isFunctionApplyUsed != null) {
-      _result.isFunctionApplyUsed = isFunctionApplyUsed;
+      result.isFunctionApplyUsed = isFunctionApplyUsed;
     }
     if (isMirrorsUsed != null) {
-      _result.isMirrorsUsed = isMirrorsUsed;
+      result.isMirrorsUsed = isMirrorsUsed;
     }
     if (minified != null) {
-      _result.minified = minified;
+      result.minified = minified;
     }
-    return _result;
+    return result;
   }
   factory ProgramInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -998,14 +998,14 @@ class LibraryInfoPB extends $pb.GeneratedMessage {
     $core.String? uri,
     $core.Iterable<$core.String>? childrenIds,
   }) {
-    final _result = create();
+    final result = create();
     if (uri != null) {
-      _result.uri = uri;
+      result.uri = uri;
     }
     if (childrenIds != null) {
-      _result.childrenIds.addAll(childrenIds);
+      result.childrenIds.addAll(childrenIds);
     }
-    return _result;
+    return result;
   }
   factory LibraryInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1071,11 +1071,11 @@ class OutputUnitInfoPB extends $pb.GeneratedMessage {
   factory OutputUnitInfoPB({
     $core.Iterable<$core.String>? imports,
   }) {
-    final _result = create();
+    final result = create();
     if (imports != null) {
-      _result.imports.addAll(imports);
+      result.imports.addAll(imports);
     }
-    return _result;
+    return result;
   }
   factory OutputUnitInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1135,14 +1135,14 @@ class ClassInfoPB extends $pb.GeneratedMessage {
     $core.bool? isAbstract,
     $core.Iterable<$core.String>? childrenIds,
   }) {
-    final _result = create();
+    final result = create();
     if (isAbstract != null) {
-      _result.isAbstract = isAbstract;
+      result.isAbstract = isAbstract;
     }
     if (childrenIds != null) {
-      _result.childrenIds.addAll(childrenIds);
+      result.childrenIds.addAll(childrenIds);
     }
-    return _result;
+    return result;
   }
   factory ClassInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1249,11 +1249,11 @@ class ConstantInfoPB extends $pb.GeneratedMessage {
   factory ConstantInfoPB({
     $core.String? code,
   }) {
-    final _result = create();
+    final result = create();
     if (code != null) {
-      _result.code = code;
+      result.code = code;
     }
-    return _result;
+    return result;
   }
   factory ConstantInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1346,26 +1346,26 @@ class FieldInfoPB extends $pb.GeneratedMessage {
     $core.bool? isConst,
     $core.String? initializerId,
   }) {
-    final _result = create();
+    final result = create();
     if (type != null) {
-      _result.type = type;
+      result.type = type;
     }
     if (inferredType != null) {
-      _result.inferredType = inferredType;
+      result.inferredType = inferredType;
     }
     if (childrenIds != null) {
-      _result.childrenIds.addAll(childrenIds);
+      result.childrenIds.addAll(childrenIds);
     }
     if (code != null) {
-      _result.code = code;
+      result.code = code;
     }
     if (isConst != null) {
-      _result.isConst = isConst;
+      result.isConst = isConst;
     }
     if (initializerId != null) {
-      _result.initializerId = initializerId;
+      result.initializerId = initializerId;
     }
-    return _result;
+    return result;
   }
   factory FieldInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1478,11 +1478,11 @@ class TypedefInfoPB extends $pb.GeneratedMessage {
   factory TypedefInfoPB({
     $core.String? type,
   }) {
-    final _result = create();
+    final result = create();
     if (type != null) {
-      _result.type = type;
+      result.type = type;
     }
-    return _result;
+    return result;
   }
   factory TypedefInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1563,20 +1563,20 @@ class FunctionModifiersPB extends $pb.GeneratedMessage {
     $core.bool? isFactory,
     $core.bool? isExternal,
   }) {
-    final _result = create();
+    final result = create();
     if (isStatic != null) {
-      _result.isStatic = isStatic;
+      result.isStatic = isStatic;
     }
     if (isConst != null) {
-      _result.isConst = isConst;
+      result.isConst = isConst;
     }
     if (isFactory != null) {
-      _result.isFactory = isFactory;
+      result.isFactory = isFactory;
     }
     if (isExternal != null) {
-      _result.isExternal = isExternal;
+      result.isExternal = isExternal;
     }
-    return _result;
+    return result;
   }
   factory FunctionModifiersPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1687,17 +1687,17 @@ class ParameterInfoPB extends $pb.GeneratedMessage {
     $core.String? type,
     $core.String? declaredType,
   }) {
-    final _result = create();
+    final result = create();
     if (name != null) {
-      _result.name = name;
+      result.name = name;
     }
     if (type != null) {
-      _result.type = type;
+      result.type = type;
     }
     if (declaredType != null) {
-      _result.declaredType = declaredType;
+      result.declaredType = declaredType;
     }
-    return _result;
+    return result;
   }
   factory ParameterInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1830,32 +1830,32 @@ class FunctionInfoPB extends $pb.GeneratedMessage {
     $core.int? inlinedCount,
     $core.String? code,
   }) {
-    final _result = create();
+    final result = create();
     if (functionModifiers != null) {
-      _result.functionModifiers = functionModifiers;
+      result.functionModifiers = functionModifiers;
     }
     if (childrenIds != null) {
-      _result.childrenIds.addAll(childrenIds);
+      result.childrenIds.addAll(childrenIds);
     }
     if (returnType != null) {
-      _result.returnType = returnType;
+      result.returnType = returnType;
     }
     if (inferredReturnType != null) {
-      _result.inferredReturnType = inferredReturnType;
+      result.inferredReturnType = inferredReturnType;
     }
     if (parameters != null) {
-      _result.parameters.addAll(parameters);
+      result.parameters.addAll(parameters);
     }
     if (sideEffects != null) {
-      _result.sideEffects = sideEffects;
+      result.sideEffects = sideEffects;
     }
     if (inlinedCount != null) {
-      _result.inlinedCount = inlinedCount;
+      result.inlinedCount = inlinedCount;
     }
     if (code != null) {
-      _result.code = code;
+      result.code = code;
     }
-    return _result;
+    return result;
   }
   factory FunctionInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1986,11 +1986,11 @@ class ClosureInfoPB extends $pb.GeneratedMessage {
   factory ClosureInfoPB({
     $core.String? functionId,
   }) {
-    final _result = create();
+    final result = create();
     if (functionId != null) {
-      _result.functionId = functionId;
+      result.functionId = functionId;
     }
-    return _result;
+    return result;
   }
   factory ClosureInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2059,14 +2059,14 @@ class DeferredImportPB extends $pb.GeneratedMessage {
     $core.String? prefix,
     $core.Iterable<$core.String>? files,
   }) {
-    final _result = create();
+    final result = create();
     if (prefix != null) {
-      _result.prefix = prefix;
+      result.prefix = prefix;
     }
     if (files != null) {
-      _result.files.addAll(files);
+      result.files.addAll(files);
     }
-    return _result;
+    return result;
   }
   factory DeferredImportPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2146,17 +2146,17 @@ class LibraryDeferredImportsPB extends $pb.GeneratedMessage {
     $core.String? libraryName,
     $core.Iterable<DeferredImportPB>? imports,
   }) {
-    final _result = create();
+    final result = create();
     if (libraryUri != null) {
-      _result.libraryUri = libraryUri;
+      result.libraryUri = libraryUri;
     }
     if (libraryName != null) {
-      _result.libraryName = libraryName;
+      result.libraryName = libraryName;
     }
     if (imports != null) {
-      _result.imports.addAll(imports);
+      result.imports.addAll(imports);
     }
-    return _result;
+    return result;
   }
   factory LibraryDeferredImportsPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>

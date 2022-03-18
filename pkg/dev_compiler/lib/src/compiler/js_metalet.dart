@@ -322,7 +322,7 @@ class MetaLetVariable extends InterpolatedExpression {
   /// Compute fresh IDs to avoid
   static int _uniqueId = 0;
 
-  MetaLetVariable(this.displayName) : super(displayName + '@${++_uniqueId}');
+  MetaLetVariable(this.displayName) : super('$displayName@${++_uniqueId}');
 }
 
 class _VariableUseCounter extends BaseVisitor<void> {

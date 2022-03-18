@@ -1134,8 +1134,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var mixinType =
           _hierarchy.getClassAsInstanceOf(c, mixinClass).asInterfaceType;
       var mixinName =
-          getLocalClassName(superclass) + '_' + getLocalClassName(mixinClass);
-      var mixinId = _emitTemporaryId(mixinName + '\$');
+          '${getLocalClassName(superclass)}_${getLocalClassName(mixinClass)}';
+      var mixinId = _emitTemporaryId('$mixinName\$');
       // Collect all forwarding stub setters from anonymous mixins classes.
       // These will contain covariant parameter checks that need to be applied.
       var savedClassProperties = _classProperties;
@@ -1246,7 +1246,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           case 'Future':
           case 'Stream':
           case 'StreamSubscription':
-            return runtimeCall('is' + interface.name);
+            return runtimeCall('is${interface.name}');
         }
       }
       return null;
@@ -2635,7 +2635,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.PropertyAccess _emitFutureOrNameNoInterop({String suffix = ''}) {
     return js_ast.PropertyAccess(emitLibraryName(_coreTypes.asyncLibrary),
-        propertyName('FutureOr' + suffix));
+        propertyName('FutureOr$suffix'));
   }
 
   /// Emits the member name portion of a top-level member.
@@ -6450,11 +6450,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Emit the constant as an integer, if possible.
     if (value.isFinite) {
       var intValue = value.toInt();
-      const _MIN_INT32 = -0x80000000;
-      const _MAX_INT32 = 0x7FFFFFFF;
+      const minInt32 = -0x80000000;
+      const maxInt32 = 0x7FFFFFFF;
       if (intValue.toDouble() == value &&
-          intValue >= _MIN_INT32 &&
-          intValue <= _MAX_INT32) {
+          intValue >= minInt32 &&
+          intValue <= maxInt32) {
         return js.number(intValue);
       }
     }
@@ -6474,7 +6474,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitStringConstant(StringConstant node) =>
       js.escapedString(node.value, '"');
 
-  // DDC does not currently use the non-primivite constant nodes; rather these
+  // DDC does not currently use the non-primitive constant nodes; rather these
   // are emitted via their normal expression nodes.
   @override
   js_ast.Expression defaultConstant(Constant node) => _emitInvalidNode(node);

@@ -270,7 +270,7 @@ class RunD8 implements IOModularStep {
     ''';
 
     var wrapper =
-        root.resolveUri(toUri(module, jsId)).toFilePath() + '.wrapper.js';
+        '${root.resolveUri(toUri(module, jsId)).toFilePath()}.wrapper.js';
     await File(wrapper).writeAsString(runjs);
     var d8Args = ['--module', wrapper];
     var result = await _runProcess(
