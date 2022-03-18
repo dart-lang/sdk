@@ -116,6 +116,12 @@ class LinkedElementFactory {
     }
   }
 
+  void dispose() {
+    for (var libraryReference in rootReference.children) {
+      _disposeLibrary(libraryReference.element);
+    }
+  }
+
   Element? elementOfReference(Reference reference) {
     if (reference.element != null) {
       return reference.element;
@@ -198,7 +204,8 @@ class LinkedElementFactory {
     for (var uriStr in uriStrSet) {
       _exportsOfLibrary.remove(uriStr);
       _libraryReaders.remove(uriStr);
-      rootReference.removeChild(uriStr);
+      var libraryReference = rootReference.removeChild(uriStr);
+      _disposeLibrary(libraryReference?.element);
     }
 
     analysisSession.classHierarchy.removeOfLibraries(uriStrSet);
@@ -257,5 +264,11 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
 
     libraryElement.createLoadLibraryFunction();
+  }
+
+  void _disposeLibrary(Element? libraryElement) {
+    if (libraryElement is LibraryElementImpl) {
+      libraryElement.bundleMacroExecutor?.dispose();
+    }
   }
 }

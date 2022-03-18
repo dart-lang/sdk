@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
@@ -43,6 +44,7 @@ class LibraryContext {
   final ByteStore byteStore;
   final FileSystemState fileSystemState;
   final MacroKernelBuilder? macroKernelBuilder;
+  final macro.MacroExecutor? macroExecutor;
   final SummaryDataStore store = SummaryDataStore();
 
   late final AnalysisContextImpl analysisContext;
@@ -57,7 +59,8 @@ class LibraryContext {
     required AnalysisOptionsImpl analysisOptions,
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
-    this.macroKernelBuilder,
+    required this.macroKernelBuilder,
+    required this.macroExecutor,
     required SummaryDataStore? externalSummaries,
   })  : logger = logger,
         byteStore = byteStore {
@@ -91,6 +94,11 @@ class LibraryContext {
         .getChild(unit.uriStr);
     var element = elementFactory.elementOfReference(reference);
     return element as CompilationUnitElement;
+  }
+
+  /// TODO(scheglov) call it
+  void dispose() {
+    elementFactory.dispose();
   }
 
   /// Get the [LibraryElement] for the given library.
@@ -205,7 +213,8 @@ class LibraryContext {
         link2.LinkResult linkResult;
         try {
           timerLinking.start();
-          linkResult = link2.link(elementFactory, inputLibraries);
+          linkResult = link2.link(elementFactory, inputLibraries,
+              macroExecutor: macroExecutor);
           librariesLinked += cycle.libraries.length;
           counterLinkedLibraries += inputLibraries.length;
           timerLinking.stop();
@@ -235,12 +244,30 @@ class LibraryContext {
       final macroKernelBuilder = this.macroKernelBuilder;
       if (macroKernelBuilder != null && macroLibraries.isNotEmpty) {
         var macroKernelKey = cycle.transitiveSignature + '.macro_kernel';
-        var macroKernelBytes = macroKernelBuilder.build(
-          fileSystem: _MacroFileSystem(fileSystemState),
-          libraries: macroLibraries,
-        );
-        byteStore.put(macroKernelKey, macroKernelBytes);
-        bytesPut += macroKernelBytes.length;
+        var macroKernelBytes = byteStore.get(macroKernelKey);
+        if (macroKernelBytes == null) {
+          macroKernelBytes = macroKernelBuilder.build(
+            fileSystem: _MacroFileSystem(fileSystemState),
+            libraries: macroLibraries,
+          );
+          byteStore.put(macroKernelKey, macroKernelBytes);
+          bytesPut += macroKernelBytes.length;
+        } else {
+          bytesGet += macroKernelBytes.length;
+        }
+
+        final macroExecutor = this.macroExecutor;
+        if (macroExecutor != null) {
+          var bundleMacroExecutor = BundleMacroExecutor(
+            executor: macroExecutor,
+            kernelBytes: macroKernelBytes,
+          );
+          for (var libraryFile in cycle.libraries) {
+            var libraryUriStr = libraryFile.uriStr;
+            var libraryElement = elementFactory.libraryOfUri2(libraryUriStr);
+            libraryElement.bundleMacroExecutor = bundleMacroExecutor;
+          }
+        }
       }
     }
 

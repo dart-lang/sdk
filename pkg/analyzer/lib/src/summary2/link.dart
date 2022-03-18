@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
@@ -28,9 +29,10 @@ var timerLinkingLinkingBundle = Stopwatch();
 /// Note that AST units and tokens of [inputLibraries] will be damaged.
 LinkResult link(
   LinkedElementFactory elementFactory,
-  List<LinkInputLibrary> inputLibraries,
-) {
-  var linker = Linker(elementFactory);
+  List<LinkInputLibrary> inputLibraries, {
+  macro.MacroExecutor? macroExecutor,
+}) {
+  var linker = Linker(elementFactory, macroExecutor);
   linker.link(inputLibraries);
   return LinkResult(
     resolutionBytes: linker.resolutionBytes,
@@ -39,6 +41,7 @@ LinkResult link(
 
 class Linker {
   final LinkedElementFactory elementFactory;
+  final macro.MacroExecutor? macroExecutor;
 
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
@@ -49,7 +52,7 @@ class Linker {
 
   late Uint8List resolutionBytes;
 
-  Linker(this.elementFactory);
+  Linker(this.elementFactory, this.macroExecutor);
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -109,6 +112,10 @@ class Linker {
   void _computeLibraryScopes() {
     for (var library in builders.values) {
       library.buildElements();
+    }
+
+    for (var library in builders.values) {
+      library.executeMacroTypesPhase();
     }
 
     for (var library in builders.values) {
