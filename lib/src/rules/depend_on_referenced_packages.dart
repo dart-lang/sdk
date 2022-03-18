@@ -84,10 +84,23 @@ class DependOnReferencedPackages extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor {
+  /// Virtual packages will not have explicit dependencies
+  /// and get skipped.
+  static const virtualPackages = [
+    //https://github.com/dart-lang/linter/issues/3308
+    'flutter_gen',
+  ];
+
   final DependOnReferencedPackages rule;
   final List<String> availableDeps;
 
   _Visitor(this.rule, this.availableDeps);
+
+  @override
+  void visitExportDirective(ExportDirective node) => _checkDirective(node);
+
+  @override
+  void visitImportDirective(ImportDirective node) => _checkDirective(node);
 
   void _checkDirective(UriBasedDirective node) {
     // Is it a package: uri?
@@ -100,13 +113,8 @@ class _Visitor extends SimpleAstVisitor {
     if (firstSlash == -1) return;
 
     var packageName = uriContent.substring(8, firstSlash);
+    if (virtualPackages.contains(packageName)) return;
     if (availableDeps.contains(packageName)) return;
     rule.reportLint(node.uri);
   }
-
-  @override
-  void visitImportDirective(ImportDirective node) => _checkDirective(node);
-
-  @override
-  void visitExportDirective(ExportDirective node) => _checkDirective(node);
 }
