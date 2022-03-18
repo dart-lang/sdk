@@ -272,8 +272,11 @@ class CompositeValidator extends OptionsValidator {
   CompositeValidator(this.validators);
 
   @override
-  void validate(ErrorReporter reporter, YamlMap options) =>
-      validators.forEach((v) => v.validate(reporter, options));
+  void validate(ErrorReporter reporter, YamlMap options) {
+    for (var validator in validators) {
+      validator.validate(reporter, options);
+    }
+  }
 }
 
 /// Validates `analyzer` language configuration options.
@@ -550,7 +553,9 @@ class OptionsFileValidator {
       source,
       isNonNullableByDefault: false,
     );
-    _validators.forEach((OptionsValidator v) => v.validate(reporter, options));
+    for (var validator in _validators) {
+      validator.validate(reporter, options);
+    }
     return recorder.errors;
   }
 }

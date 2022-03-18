@@ -2360,14 +2360,14 @@ class ListState extends InstanceState {
     StringBuffer buffer = StringBuffer();
     buffer.write('[');
     bool first = true;
-    _elements.forEach((DartObjectImpl element) {
+    for (var element in _elements) {
       if (first) {
         first = false;
       } else {
         buffer.write(', ');
       }
       buffer.write(element);
-    });
+    }
     buffer.write(']');
     return buffer.toString();
   }
@@ -2571,14 +2571,14 @@ class SetState extends InstanceState {
     StringBuffer buffer = StringBuffer();
     buffer.write('{');
     bool first = true;
-    _elements.forEach((DartObjectImpl element) {
+    for (var element in _elements) {
       if (first) {
         first = false;
       } else {
         buffer.write(', ');
       }
       buffer.write(element);
-    });
+    }
     buffer.write('}');
     return buffer.toString();
   }

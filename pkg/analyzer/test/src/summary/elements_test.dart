@@ -37738,7 +37738,9 @@ library
       LibraryElementImpl library, List<String> names) {
     var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
     var reference = unit.reference!;
-    names.forEach((name) => reference = reference.getChild(name));
+    for (var name in names) {
+      reference = reference.getChild(name);
+    }
 
     var element = reference.element;
     if (element != null) {

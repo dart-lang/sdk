@@ -5,6 +5,9 @@
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+// We use snake_case for these constants.
+// ignore_for_file: non_constant_identifier_names
+
 /// Information about a single language feature whose presence or absence
 /// depends on the supported Dart SDK version, and possibly on the presence of
 /// experimental flags.

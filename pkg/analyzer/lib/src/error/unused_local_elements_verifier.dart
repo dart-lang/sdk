@@ -101,6 +101,16 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    var element = node.declaredElement;
+    if (element is SuperFormalParameterElement) {
+      usedElements.addElement(element.superConstructorParameter);
+    }
+
+    super.visitDefaultFormalParameter(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     usedElements.addElement(node.constructorElement?.declaration);
 

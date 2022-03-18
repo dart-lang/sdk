@@ -51,6 +51,9 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:pub_semver/pub_semver.dart';
 
+// TODO(srawlins): Fix these in a presumably breaking change.
+// ignore_for_file: constant_identifier_names
+
 /// An element that represents a class or a mixin. The class can be defined by
 /// either a class declaration (with a class body), a mixin application (without
 /// a class body), a mixin declaration, or an enum declaration.

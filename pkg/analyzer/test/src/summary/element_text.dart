@@ -31,10 +31,11 @@ void applyCheckElementTextReplacements() {
   if (_testPath != null && _replacements.isNotEmpty) {
     _replacements.sort((a, b) => b.offset - a.offset);
     String newCode = _testCode!;
-    _replacements.forEach((r) {
-      newCode =
-          newCode.substring(0, r.offset) + r.text + newCode.substring(r.end);
-    });
+    for (var replacement in _replacements) {
+      newCode = newCode.substring(0, replacement.offset) +
+          replacement.text +
+          newCode.substring(replacement.end);
+    }
     File(_testPath!).writeAsStringSync(newCode);
   }
 }

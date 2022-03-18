@@ -567,7 +567,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   }
 
   @override
-  Uri toUri() => provider.pathContext.toUri(path + '/');
+  Uri toUri() => provider.pathContext.toUri('$path/');
 }
 
 /// An in-memory implementation of [Resource].

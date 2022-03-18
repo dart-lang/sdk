@@ -13,7 +13,7 @@ import 'package:watcher/watcher.dart';
 
 /// The name of the directory containing plugin specific subfolders used to
 /// store data across sessions.
-const String _SERVER_DIR = ".dartServer";
+const String _serverDir = ".dartServer";
 
 /// Returns the path to default state location.
 ///
@@ -28,7 +28,7 @@ String? _getStandardStateLocation() {
 
   final home = io.Platform.isWindows ? env['LOCALAPPDATA'] : env['HOME'];
   return home != null && io.FileSystemEntity.isDirectorySync(home)
-      ? join(home, _SERVER_DIR)
+      ? join(home, _serverDir)
       : null;
 }
 

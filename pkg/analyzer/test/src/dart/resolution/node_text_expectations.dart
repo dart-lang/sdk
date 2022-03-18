@@ -104,11 +104,11 @@ class _File {
   void applyReplacements() {
     replacements.sort((a, b) => b.offset - a.offset);
     var newCode = content;
-    replacements.forEach((replacement) {
+    for (var replacement in replacements) {
       newCode = newCode.substring(0, replacement.offset) +
           replacement.text +
           newCode.substring(replacement.end);
-    });
+    }
     io.File(path).writeAsStringSync(newCode);
   }
 }
