@@ -73,8 +73,13 @@ abstract class MacroExecutor {
   ///
   /// The [resolveIdentifier] argument should return the import uri to be used
   /// for that identifier.
-  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
-      ResolvedIdentifier Function(Identifier) resolveIdentifier);
+  ///
+  /// The [inferOmittedType] argument is used to get the inferred type for a
+  /// given [OmittedTypeAnnotation].
+  String buildAugmentationLibrary(
+      Iterable<MacroExecutionResult> macroResults,
+      ResolvedIdentifier Function(Identifier) resolveIdentifier,
+      TypeAnnotation Function(OmittedTypeAnnotation) inferOmittedType);
 
   /// Tell the executor to shut down and clean up any resources it may have
   /// allocated.

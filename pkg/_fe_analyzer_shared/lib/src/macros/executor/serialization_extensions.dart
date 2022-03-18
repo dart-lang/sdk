@@ -48,6 +48,9 @@ extension DeserializerExtensions on Deserializer {
       case RemoteInstanceKind.namedTypeAnnotation:
         moveNext();
         return _expectNamedTypeAnnotation(id) as T;
+      case RemoteInstanceKind.omittedTypeAnnotation:
+        moveNext();
+        return _expectOmittedTypeAnnotation(id) as T;
       case RemoteInstanceKind.parameterDeclaration:
         moveNext();
         return _expectParameterDeclaration(id) as T;
@@ -79,6 +82,13 @@ extension DeserializerExtensions on Deserializer {
         identifier: RemoteInstance.deserialize(this),
         typeArguments: (this..moveNext())._expectRemoteInstanceList(),
       );
+
+  OmittedTypeAnnotation _expectOmittedTypeAnnotation(int id) {
+    expectBool(); // Always `false`.
+    return new OmittedTypeAnnotationImpl(
+      id: id,
+    );
+  }
 
   FunctionTypeAnnotation _expectFunctionTypeAnnotation(int id) =>
       new FunctionTypeAnnotationImpl(
@@ -274,6 +284,9 @@ extension DeserializerExtensions on Deserializer {
       case CodeKind.nullableTypeAnnotation:
         return new NullableTypeAnnotationCode((this..moveNext()).expectCode())
             as T;
+      case CodeKind.omittedTypeAnnotation:
+        return new OmittedTypeAnnotationCode(RemoteInstance.deserialize(this))
+            as T;
       case CodeKind.parameter:
         return new ParameterCode(
             defaultValue: (this..moveNext()).expectNullableCode(),
@@ -353,6 +366,11 @@ extension SerializeCode on Code {
       case CodeKind.nullableTypeAnnotation:
         NullableTypeAnnotationCode self = this as NullableTypeAnnotationCode;
         self.underlyingType.serialize(serializer);
+        return;
+      case CodeKind.omittedTypeAnnotation:
+        OmittedTypeAnnotationCode self = this as OmittedTypeAnnotationCode;
+        (self.typeAnnotation as OmittedTypeAnnotationImpl)
+            .serialize(serializer);
         return;
       case CodeKind.parameter:
         ParameterCode self = this as ParameterCode;

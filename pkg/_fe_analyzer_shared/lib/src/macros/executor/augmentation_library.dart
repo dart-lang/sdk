@@ -9,8 +9,10 @@ import '../executor.dart';
 /// [MacroExecutor.buildAugmentationLibrary].
 mixin AugmentationLibraryBuilder on MacroExecutor {
   @override
-  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
-      ResolvedIdentifier Function(Identifier) resolveIdentifier) {
+  String buildAugmentationLibrary(
+      Iterable<MacroExecutionResult> macroResults,
+      ResolvedIdentifier Function(Identifier) resolveIdentifier,
+      TypeAnnotation Function(OmittedTypeAnnotation) typeInferrer) {
     StringBuffer importsBuffer = new StringBuffer();
     StringBuffer directivesBuffer = new StringBuffer();
     Map<Uri, String> importPrefixes = {};
@@ -51,6 +53,8 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
             writeDirectivePart('${resolved.staticScope!}.');
           }
           writeDirectivePart('${part.name}');
+        } else if (part is OmittedTypeAnnotation) {
+          buildCode(typeInferrer(part).code);
         } else {
           throw new ArgumentError(
               'Code objects only support String, Identifier, and Code '

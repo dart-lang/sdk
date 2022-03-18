@@ -294,8 +294,10 @@ class TestMacroExecutor implements MacroExecutor {
   List<_MacroInstanceIdentifier> macroInstances = [];
 
   @override
-  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
-      ResolvedIdentifier Function(Identifier) resolveIdentifier) {
+  String buildAugmentationLibrary(
+      Iterable<MacroExecutionResult> macroResults,
+      ResolvedIdentifier Function(Identifier) resolveIdentifier,
+      TypeAnnotation Function(OmittedTypeAnnotation) inferOmittedType) {
     return '';
   }
 
