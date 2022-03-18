@@ -936,16 +936,16 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       } else {
         switch (src_type.AsPrimitive().representation()) {
           case compiler::ffi::kInt8:  // Sign extend operand.
-            __ movsxb(dst_reg, ByteRegisterOf(src_reg));
+            __ ExtendValue(dst_reg, src_reg, compiler::kByte);
             return;
           case compiler::ffi::kInt16:
-            __ movsxw(dst_reg, src_reg);
+            __ ExtendValue(dst_reg, src_reg, compiler::kTwoBytes);
             return;
           case compiler::ffi::kUint8:  // Zero extend operand.
-            __ movzxb(dst_reg, ByteRegisterOf(src_reg));
+            __ ExtendValue(dst_reg, src_reg, compiler::kUnsignedByte);
             return;
           case compiler::ffi::kUint16:
-            __ movzxw(dst_reg, src_reg);
+            __ ExtendValue(dst_reg, src_reg, compiler::kUnsignedTwoBytes);
             return;
           default:
             // 32 to 64 bit is covered in IL by Representation conversions.
