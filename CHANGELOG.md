@@ -57,6 +57,11 @@
       throw UnsupportedError("keyLog not implemented");
   ```
 
+- **Breaking Change** [#34218](https://github.com/dart-lang/sdk/issues/34218):
+  Constants in `dart:io` following the `SCREAMING_CAPS` convention have been
+  removed (they were previously deprecated).  Please use the corresponding
+  `lowerCamelCase` constants instead.
+
 - Add a optional `keyLog` parameter to `SecureSocket.connect` and
   `SecureSocket.startConnect`.
 

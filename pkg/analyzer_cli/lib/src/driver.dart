@@ -39,10 +39,10 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 /// Shared IO sink for standard error reporting.
-late StringSink errorSink = io.stderr;
+StringSink errorSink = io.stderr;
 
 /// Shared IO sink for standard out reporting.
-late StringSink outSink = io.stdout;
+StringSink outSink = io.stdout;
 
 /// Test this option map to see if it specifies lint rules.
 bool containsLintRuleEntry(YamlMap options) {

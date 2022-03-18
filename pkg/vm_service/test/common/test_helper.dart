@@ -205,9 +205,9 @@ class _ServiceTesteeLauncher {
           .transform(utf8.decoder)
           .transform(LineSplitter())
           .listen((line) {
-        const kObservatoryListening = 'Observatory listening on ';
-        if (line.startsWith(kObservatoryListening)) {
-          uri = Uri.parse(line.substring(kObservatoryListening.length));
+        const kDartVMServiceListening = 'The Dart VM service is listening on ';
+        if (line.startsWith(kDartVMServiceListening)) {
+          uri = Uri.parse(line.substring(kDartVMServiceListening.length));
         }
         if (pause_on_start || line == '') {
           // Received blank line.

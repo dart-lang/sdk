@@ -138,7 +138,7 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
 
     _printRow(_Row row) {
       if (row is _Divider) {
-        print(' ' + ('-' * (longest + 18)));
+        print(' ${'-' * (longest + 18)}');
         return;
       }
 

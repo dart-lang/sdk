@@ -11,82 +11,52 @@ abstract class ZLibOption {
   /// Minimal value for [ZLibCodec.windowBits], [ZLibEncoder.windowBits]
   /// and [ZLibDecoder.windowBits].
   static const int minWindowBits = 8;
-  @Deprecated("Use minWindowBits instead")
-  static const int MIN_WINDOW_BITS = 8;
 
   /// Maximal value for [ZLibCodec.windowBits], [ZLibEncoder.windowBits]
   /// and [ZLibDecoder.windowBits].
   static const int maxWindowBits = 15;
-  @Deprecated("Use maxWindowBits instead")
-  static const int MAX_WINDOW_BITS = 15;
 
   /// Default value for [ZLibCodec.windowBits], [ZLibEncoder.windowBits]
   /// and [ZLibDecoder.windowBits].
   static const int defaultWindowBits = 15;
-  @Deprecated("Use defaultWindowBits instead")
-  static const int DEFAULT_WINDOW_BITS = 15;
 
   /// Minimal value for [ZLibCodec.level] and [ZLibEncoder.level].
   static const int minLevel = -1;
-  @Deprecated("Use minLevel instead")
-  static const int MIN_LEVEL = -1;
 
   /// Maximal value for [ZLibCodec.level] and [ZLibEncoder.level]
   static const int maxLevel = 9;
-  @Deprecated("Use maxLevel instead")
-  static const int MAX_LEVEL = 9;
 
   /// Default value for [ZLibCodec.level] and [ZLibEncoder.level].
   static const int defaultLevel = 6;
-  @Deprecated("Use defaultLevel instead")
-  static const int DEFAULT_LEVEL = 6;
 
   /// Minimal value for [ZLibCodec.memLevel] and [ZLibEncoder.memLevel].
   static const int minMemLevel = 1;
-  @Deprecated("Use minMemLevel instead")
-  static const int MIN_MEM_LEVEL = 1;
 
   /// Maximal value for [ZLibCodec.memLevel] and [ZLibEncoder.memLevel].
   static const int maxMemLevel = 9;
-  @Deprecated("Use maxMemLevel instead")
-  static const int MAX_MEM_LEVEL = 9;
 
   /// Default value for [ZLibCodec.memLevel] and [ZLibEncoder.memLevel].
   static const int defaultMemLevel = 8;
-  @Deprecated("Use defaultMemLevel instead")
-  static const int DEFAULT_MEM_LEVEL = 8;
 
   /// Recommended strategy for data produced by a filter (or predictor)
   static const int strategyFiltered = 1;
-  @Deprecated("Use strategyFiltered instead")
-  static const int STRATEGY_FILTERED = 1;
 
   /// Use this strategy to force Huffman encoding only (no string match)
   static const int strategyHuffmanOnly = 2;
-  @Deprecated("Use strategyHuffmanOnly instead")
-  static const int STRATEGY_HUFFMAN_ONLY = 2;
 
   /// Use this strategy to limit match distances to one (run-length encoding)
   static const int strategyRle = 3;
-  @Deprecated("Use strategyRle instead")
-  static const int STRATEGY_RLE = 3;
 
   /// This strategy prevents the use of dynamic Huffman codes, allowing for a
   /// simpler decoder
   static const int strategyFixed = 4;
-  @Deprecated("Use strategyFixed instead")
-  static const int STRATEGY_FIXED = 4;
 
   /// Recommended strategy for normal data
   static const int strategyDefault = 0;
-  @Deprecated("Use strategyDefault instead")
-  static const int STRATEGY_DEFAULT = 0;
 }
 
 /// An instance of the default implementation of the [ZLibCodec].
 const ZLibCodec zlib = const ZLibCodec._default();
-@Deprecated("Use zlib instead")
-const ZLibCodec ZLIB = zlib;
 
 /// The [ZLibCodec] encodes raw bytes to ZLib compressed bytes and decodes ZLib
 /// compressed bytes to raw bytes.
@@ -176,8 +146,6 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
 
 /// An instance of the default implementation of the [GZipCodec].
 const GZipCodec gzip = const GZipCodec._default();
-@Deprecated("Use gzip instead")
-const GZipCodec GZIP = gzip;
 
 /// The [GZipCodec] encodes raw bytes to GZip compressed bytes and decodes GZip
 /// compressed bytes to raw bytes.

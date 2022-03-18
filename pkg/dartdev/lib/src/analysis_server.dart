@@ -205,6 +205,7 @@ class AnalysisServer {
       _shutdownResponseReceived = true;
       return null;
     }).timeout(timeout, onTimeout: () async {
+      log.stderr('The analysis server timed out while shutting down.');
       await dispose();
     }).then((value) async {
       await dispose();

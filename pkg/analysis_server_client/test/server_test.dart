@@ -173,7 +173,7 @@ final _badErrorMessage = {
 };
 
 Stream<List<int>> _badMessage() async* {
-  yield utf8.encoder.convert('Observatory listening on foo bar\n');
+  yield utf8.encoder.convert('The Dart VM service is listening on foo bar\n');
   final sampleJson = {
     'id': '0',
     'error': _badErrorMessage,
@@ -182,7 +182,7 @@ Stream<List<int>> _badMessage() async* {
 }
 
 Stream<List<int>> _eventMessage() async* {
-  yield utf8.encoder.convert('Observatory listening on foo bar\n');
+  yield utf8.encoder.convert('The Dart VM service is listening on foo bar\n');
   final sampleJson = {
     'event': 'fooEvent',
     'params': {'foo': 'bar', 'baz': 'bang'}
@@ -191,7 +191,7 @@ Stream<List<int>> _eventMessage() async* {
 }
 
 Stream<List<int>> _goodMessage() async* {
-  yield utf8.encoder.convert('Observatory listening on foo bar\n');
+  yield utf8.encoder.convert('The Dart VM service is listening on foo bar\n');
   final sampleJson = {
     'id': '0',
     'result': {'foo': 'bar'}

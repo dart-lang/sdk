@@ -130,24 +130,16 @@ class ProcessInfo {
 class ProcessStartMode {
   /// Normal child process.
   static const normal = const ProcessStartMode._internal(0);
-  @Deprecated("Use normal instead")
-  static const NORMAL = normal;
 
   /// Stdio handles are inherited by the child process.
   static const inheritStdio = const ProcessStartMode._internal(1);
-  @Deprecated("Use inheritStdio instead")
-  static const INHERIT_STDIO = inheritStdio;
 
   /// Detached child process with no open communication channel.
   static const detached = const ProcessStartMode._internal(2);
-  @Deprecated("Use detached instead")
-  static const DETACHED = detached;
 
   /// Detached child process with stdin, stdout and stderr still open
   /// for communication with the child.
   static const detachedWithStdio = const ProcessStartMode._internal(3);
-  @Deprecated("Use detachedWithStdio instead")
-  static const DETACHED_WITH_STDIO = detachedWithStdio;
 
   static List<ProcessStartMode> get values => const <ProcessStartMode>[
         normal,
@@ -511,65 +503,6 @@ class ProcessSignal {
   static const ProcessSignal sigwinch = const ProcessSignal._(28, "SIGWINCH");
   static const ProcessSignal sigpoll = const ProcessSignal._(29, "SIGPOLL");
   static const ProcessSignal sigsys = const ProcessSignal._(31, "SIGSYS");
-
-  @Deprecated("Use sighup instead")
-  static const ProcessSignal SIGHUP = sighup;
-  @Deprecated("Use sigint instead")
-  static const ProcessSignal SIGINT = sigint;
-  @Deprecated("Use sigquit instead")
-  static const ProcessSignal SIGQUIT = sigquit;
-  @Deprecated("Use sigill instead")
-  static const ProcessSignal SIGILL = sigill;
-  @Deprecated("Use sigtrap instead")
-  static const ProcessSignal SIGTRAP = sigtrap;
-  @Deprecated("Use sigabrt instead")
-  static const ProcessSignal SIGABRT = sigabrt;
-  @Deprecated("Use sigbus instead")
-  static const ProcessSignal SIGBUS = sigbus;
-  @Deprecated("Use sigfpe instead")
-  static const ProcessSignal SIGFPE = sigfpe;
-  @Deprecated("Use sigkill instead")
-  static const ProcessSignal SIGKILL = sigkill;
-  @Deprecated("Use sigusr1 instead")
-  static const ProcessSignal SIGUSR1 = sigusr1;
-  @Deprecated("Use sigsegv instead")
-  static const ProcessSignal SIGSEGV = sigsegv;
-  @Deprecated("Use sigusr2 instead")
-  static const ProcessSignal SIGUSR2 = sigusr2;
-  @Deprecated("Use sigpipe instead")
-  static const ProcessSignal SIGPIPE = sigpipe;
-  @Deprecated("Use sigalrm instead")
-  static const ProcessSignal SIGALRM = sigalrm;
-  @Deprecated("Use sigterm instead")
-  static const ProcessSignal SIGTERM = sigterm;
-  @Deprecated("Use sigchld instead")
-  static const ProcessSignal SIGCHLD = sigchld;
-  @Deprecated("Use sigcont instead")
-  static const ProcessSignal SIGCONT = sigcont;
-  @Deprecated("Use sigstop instead")
-  static const ProcessSignal SIGSTOP = sigstop;
-  @Deprecated("Use sigtstp instead")
-  static const ProcessSignal SIGTSTP = sigtstp;
-  @Deprecated("Use sigttin instead")
-  static const ProcessSignal SIGTTIN = sigttin;
-  @Deprecated("Use sigttou instead")
-  static const ProcessSignal SIGTTOU = sigttou;
-  @Deprecated("Use sigurg instead")
-  static const ProcessSignal SIGURG = sigurg;
-  @Deprecated("Use sigxcpu instead")
-  static const ProcessSignal SIGXCPU = sigxcpu;
-  @Deprecated("Use sigxfsz instead")
-  static const ProcessSignal SIGXFSZ = sigxfsz;
-  @Deprecated("Use sigvtalrm instead")
-  static const ProcessSignal SIGVTALRM = sigvtalrm;
-  @Deprecated("Use sigprof instead")
-  static const ProcessSignal SIGPROF = sigprof;
-  @Deprecated("Use sigwinch instead")
-  static const ProcessSignal SIGWINCH = sigwinch;
-  @Deprecated("Use sigpoll instead")
-  static const ProcessSignal SIGPOLL = sigpoll;
-  @Deprecated("Use sigsys instead")
-  static const ProcessSignal SIGSYS = sigsys;
 
   final int _signalNumber;
   final String _name;

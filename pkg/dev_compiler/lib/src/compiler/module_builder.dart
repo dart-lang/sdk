@@ -490,7 +490,7 @@ String pathToJSIdentifier(String path) {
 
 /// Creates function name given [moduleName].
 String loadFunctionName(String moduleName) =>
-    'load__' + pathToJSIdentifier(moduleName.replaceAll('.', '_'));
+    'load__${pathToJSIdentifier(moduleName.replaceAll('.', '_'))}';
 
 /// Creates function name identifier given [moduleName].
 Identifier loadFunctionIdentifier(String moduleName) =>

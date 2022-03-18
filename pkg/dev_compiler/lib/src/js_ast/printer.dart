@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// ignore_for_file: always_declare_return_types, prefer_single_quotes
+// ignore_for_file: always_declare_return_types, prefer_single_quotes, prefer_interpolation_to_compose_strings
 // ignore_for_file: prefer_collection_literals, omit_local_variable_types
 // ignore_for_file: prefer_final_fields
 // ignore_for_file: prefer_initializing_formals

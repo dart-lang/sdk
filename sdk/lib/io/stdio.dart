@@ -348,15 +348,6 @@ class StdioType {
   static const StdioType file = const StdioType._("file");
   static const StdioType other = const StdioType._("other");
 
-  @Deprecated("Use terminal instead")
-  static const StdioType TERMINAL = terminal;
-  @Deprecated("Use pipe instead")
-  static const StdioType PIPE = pipe;
-  @Deprecated("Use file instead")
-  static const StdioType FILE = file;
-  @Deprecated("Use other instead")
-  static const StdioType OTHER = other;
-
   final String name;
   const StdioType._(this.name);
   String toString() => "StdioType: $name";
