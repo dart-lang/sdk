@@ -247,7 +247,7 @@ class FileResolver {
       errorsSignatureBuilder.addBytes(file.digest);
       var errorsSignature = errorsSignatureBuilder.toByteList();
 
-      var errorsKey = file.path + '.errors';
+      var errorsKey = '${file.path}.errors';
       var bytes = byteStore.get(errorsKey, errorsSignature)?.bytes;
       List<AnalysisError>? errors;
       if (bytes != null) {

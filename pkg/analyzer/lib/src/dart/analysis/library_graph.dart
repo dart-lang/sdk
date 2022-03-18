@@ -64,7 +64,7 @@ class LibraryCycle {
 
   @override
   String toString() {
-    return '[' + libraries.join(', ') + ']';
+    return '[${libraries.join(', ')}]';
   }
 }
 

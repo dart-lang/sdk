@@ -45,7 +45,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
               if ((fields.type == null ? bad() : true) &&
                   fields.type!.toSource() == className) {
                 String fieldName = fields.variables[0].name.name;
-                declaredCodes.add(className + '.' + fieldName);
+                declaredCodes.add('$className.$fieldName');
               }
             }
           }

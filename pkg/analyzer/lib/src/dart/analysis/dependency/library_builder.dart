@@ -31,9 +31,9 @@ class Combinator {
   @override
   String toString() {
     if (isShow) {
-      return 'show ' + names.join(', ');
+      return 'show ${names.join(', ')}';
     } else {
-      return 'hide ' + names.join(', ');
+      return 'hide ${names.join(', ')}';
     }
   }
 }

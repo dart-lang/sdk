@@ -213,7 +213,7 @@ class ErrorCodeValuesTest {
         String name = declarationMirror.simpleName.toString();
         //TODO(danrubel): find a better way to extract the text from the symbol
         assert(name.startsWith('Symbol("') && name.endsWith('")'));
-        return errorType.toString() + '.' + name.substring(8, name.length - 2);
+        return '$errorType.${name.substring(8, name.length - 2)}';
       }).where((String name) {
         return name == name.toUpperCase();
       }).toList();

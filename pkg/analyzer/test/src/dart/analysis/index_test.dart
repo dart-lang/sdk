@@ -2052,7 +2052,7 @@ mixin _IndexMixin on PubPackageResolutionTest {
   void _failWithIndexDump(String msg) {
     String packageIndexJsonString =
         JsonEncoder.withIndent('  ').convert(index.toJson());
-    fail('$msg in\n' + packageIndexJsonString);
+    fail('$msg in\n$packageIndexJsonString');
   }
 
   /// Return the [element] identifier in [index] or fail.

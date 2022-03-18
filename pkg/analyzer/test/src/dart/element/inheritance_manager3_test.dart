@@ -1516,7 +1516,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     }
 
     lines.sort();
-    var actual = lines.isNotEmpty ? lines.join('\n') + '\n' : '';
+    var actual = lines.isNotEmpty ? '${lines.join('\n')}\n' : '';
 
     if (actual != expected) {
       print(actual);

@@ -102,7 +102,7 @@ void checkElementText(
       int expectationEnd = _testCode!.indexOf("'''", expectationOffset);
 
       _replacements.add(
-          _Replacement(expectationOffset, expectationEnd, '\n' + actualText));
+          _Replacement(expectationOffset, expectationEnd, '\n$actualText'));
     }
   }
 

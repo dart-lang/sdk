@@ -56,7 +56,7 @@ class DartRepositoryMacroKernelBuilder implements MacroKernelBuilder {
     );
 
     var macroMainBytes = utf8.encode(macroMainContent) as Uint8List;
-    var macroMainPath = libraries.first.path + '.macro';
+    var macroMainPath = '${libraries.first.path}.macro';
     var macroMainUri = fileSystem.pathContext.toUri(macroMainPath);
 
     options

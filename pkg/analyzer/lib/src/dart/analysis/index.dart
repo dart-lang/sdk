@@ -923,11 +923,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     List<String> members = [];
 
     String getClassElementId(ClassElement element) {
-      return element.library.source.uri.toString() +
-          ';' +
-          element.source.uri.toString() +
-          ';' +
-          element.name;
+      return '${element.library.source.uri};'
+          '${element.source.uri};${element.name}';
     }
 
     void addSupertype(NamedType? type) {

@@ -1304,7 +1304,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// For every constructor we initially set this flag to `true`, and then
   /// set it to `false` during computing constant values if we detect that it
   /// is a part of a cycle.
-  bool _isCycleFree = true;
+  bool isCycleFree = true;
 
   @override
   bool isConstantEvaluated = false;
@@ -1350,16 +1350,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// Set whether this constructor represents a 'const' constructor.
   set isConst(bool isConst) {
     setModifier(Modifier.CONST, isConst);
-  }
-
-  bool get isCycleFree {
-    return _isCycleFree;
-  }
-
-  set isCycleFree(bool isCycleFree) {
-    // This property is updated in ConstantEvaluationEngine even for
-    // resynthesized constructors, so we don't have the usual assert here.
-    _isCycleFree = isCycleFree;
   }
 
   @override
@@ -4584,7 +4574,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
         withNullability: withNullability,
       );
     }).join(', ');
-    return '[' + elementsStr + ']';
+    return '[$elementsStr]';
   }
 
   @override

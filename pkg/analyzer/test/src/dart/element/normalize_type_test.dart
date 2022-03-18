@@ -436,7 +436,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest {
 
   void _assertNullability(DartType type, NullabilitySuffix expected) {
     if (type.nullabilitySuffix != expected) {
-      fail('Expected $expected in ' + _typeString(type));
+      fail('Expected $expected in ${_typeString(type)}');
     }
   }
 
@@ -548,7 +548,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
       if (bound != null) {
         var boundStr = bound.getDisplayString(withNullability: true);
-        str += '${type.element.name} extends ' + boundStr;
+        str += '${type.element.name} extends $boundStr';
       }
 
       if (promotedBound != null) {
@@ -558,7 +558,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
         if (str.isNotEmpty) {
           str += ', ';
         }
-        str += '${type.element.name} & ' + promotedBoundStr;
+        str += '${type.element.name} & $promotedBoundStr';
       }
 
       typeParameters.add(str);
