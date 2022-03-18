@@ -4760,6 +4760,16 @@ SpreadTypeMismatch:
         var b = [...a];
       }
 
+CantHaveNamedParameters:
+  # Used by dart:ffi
+  problemMessage: "'#name' can't be declared with named parameters."
+  external: test/ffi_test.dart
+
+CantHaveOptionalParameters:
+  # Used by dart:ffi
+  problemMessage: "'#name' can't be declared with optional parameters."
+  external: test/ffi_test.dart
+
 SpreadElementTypeMismatch:
   problemMessage: "Can't assign spread elements of type '#type' to collection elements of type '#type2'."
   analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE

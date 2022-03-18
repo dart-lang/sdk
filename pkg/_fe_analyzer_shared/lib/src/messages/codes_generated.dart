@@ -687,6 +687,52 @@ const MessageCode messageCantDisambiguateNotEnoughInformation = const MessageCod
         r"""Try providing type arguments for the literal explicitly to disambiguate it.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateCantHaveNamedParameters =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""'#name' can't be declared with named parameters.""",
+        withArguments: _withArgumentsCantHaveNamedParameters);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeCantHaveNamedParameters =
+    const Code<Message Function(String name)>(
+  "CantHaveNamedParameters",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantHaveNamedParameters(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantHaveNamedParameters,
+      problemMessage: """'${name}' can't be declared with named parameters.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateCantHaveOptionalParameters =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""'#name' can't be declared with optional parameters.""",
+        withArguments: _withArgumentsCantHaveOptionalParameters);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeCantHaveOptionalParameters =
+    const Code<Message Function(String name)>(
+  "CantHaveOptionalParameters",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantHaveOptionalParameters(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantHaveOptionalParameters,
+      problemMessage:
+          """'${name}' can't be declared with optional parameters.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCantInferPackagesFromManyInputs =
     messageCantInferPackagesFromManyInputs;
 

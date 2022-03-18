@@ -56,6 +56,8 @@ CannotReadSdkSpecification/example: Fail
 CantDetermineConstness/analyzerCode: Fail
 CantDisambiguateAmbiguousInformation/analyzerCode: Fail # There's no analyzer code for that error yet.
 CantDisambiguateNotEnoughInformation/analyzerCode: Fail # There's no analyzer code for that error yet.
+CantHaveNamedParameters/analyzerCode: Fail
+CantHaveOptionalParameters/analyzerCode: Fail
 CantInferPackagesFromManyInputs/analyzerCode: Fail
 CantInferPackagesFromManyInputs/example: Fail
 CantInferPackagesFromPackageUri/analyzerCode: Fail
