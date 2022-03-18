@@ -38,15 +38,12 @@ linter:
     - cast_nullable_to_non_nullable
 #    - close_sinks # https://github.com/dart-lang/linter/issues/268
     - comment_references
-    - depend_on_referenced_packages
     - directives_ordering
     - invariant_booleans
     - join_return_with_assignment
 #    - lines_longer_than_80_chars # under review (see #1068)
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
-    - no_leading_underscores_for_library_prefixes
-    - no_leading_underscores_for_local_identifiers
     - noop_primitive_operations
 #    - one_member_abstracts
     - only_throw_errors
@@ -61,7 +58,6 @@ linter:
     - prefer_expression_function_bodies
 #    - prefer_final_locals
     - prefer_foreach
-    - prefer_interpolation_to_compose_strings
 #    - prefer_mixin
     - prefer_null_aware_method_calls
     - prefer_relative_imports
@@ -76,10 +72,7 @@ linter:
     - unawaited_futures # pedantic
     - unnecessary_final
     - unnecessary_lambdas
-    - unnecessary_late
-    - unnecessary_null_aware_assignments
     - unnecessary_null_checks
-    - unnecessary_nullable_for_final_variable_declarations
     - unnecessary_parenthesis
     - unnecessary_statements
     - use_if_null_to_convert_nulls_to_bools
