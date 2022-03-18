@@ -63,7 +63,7 @@ void generateRule(String ruleName, {String? outDir}) {
   updateRuleRegistry(ruleName);
 }
 
-void generateStub(String ruleName, String stubPath, _Generator generator,
+void generateStub(String ruleName, String stubPath, Generator generator,
     {String? outDir}) {
   var generated = generator(ruleName, toClassName(ruleName));
   if (outDir != null) {
@@ -164,4 +164,4 @@ String _generateTest(String libName, String className) => '''
 
 ''';
 
-typedef _Generator = String Function(String libName, String className);
+typedef Generator = String Function(String libName, String className);
