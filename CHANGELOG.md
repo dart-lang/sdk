@@ -1,3 +1,7 @@
+# 1.21.1
+
+- bumped language lower-bound constraint to `2.15.0`
+
 # 1.21.0
 
 - fixed `use_key_in_widget_constructors` false positive
