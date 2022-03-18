@@ -6908,6 +6908,8 @@ TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
   if (result.IsNull()) {
     // Canonicalize each type argument.
     AbstractType& type_arg = AbstractType::Handle(zone);
+    GrowableHandlePtrArray<const AbstractType> canonicalized_types(zone,
+                                                                   num_types);
     for (intptr_t i = 0; i < num_types; i++) {
       type_arg = TypeAt(i);
       type_arg = type_arg.Canonicalize(thread, trail);
@@ -6916,7 +6918,7 @@ TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
         ASSERT(IsRecursive());
         return this->ptr();
       }
-      SetTypeAt(i, type_arg);
+      canonicalized_types.Add(type_arg);
     }
     // Canonicalization of a type argument of a recursive type argument vector
     // may change the hash of the vector, so invalidate.
@@ -6931,6 +6933,9 @@ TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
     // canonical entry.
     result ^= table.GetOrNull(CanonicalTypeArgumentsKey(*this));
     if (result.IsNull()) {
+      for (intptr_t i = 0; i < num_types; i++) {
+        SetTypeAt(i, canonicalized_types.At(i));
+      }
       // Make sure we have an old space object and add it to the table.
       if (this->IsNew()) {
         result ^= Object::Clone(*this, Heap::kOld);
