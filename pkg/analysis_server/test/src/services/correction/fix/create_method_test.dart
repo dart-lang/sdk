@@ -515,6 +515,26 @@ class A {
 ''');
   }
 
+  Future<void> test_functionType_argument() async {
+    await resolveTestCode('''
+class A {
+  a() => b((c) => c.d);
+}
+''');
+    await assertHasFix('''
+class A {
+  a() => b((c) => c.d);
+
+  b(Function(dynamic c) param0) {}
+}
+''');
+    var groups = change.linkedEditGroups;
+    var index = 0;
+    assertLinkedGroup(groups[index++], ['b((c', 'b(Function']);
+    assertLinkedGroup(groups[index++], ['Function(dynamic c)']);
+    assertLinkedGroup(groups[index++], ['param0']);
+  }
+
   Future<void> test_functionType_method_enclosingClass_instance() async {
     await resolveTestCode('''
 class C {

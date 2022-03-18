@@ -349,6 +349,12 @@ class EditBuilderImpl implements EditBuilder {
   /// The buffer in which the content of the edit is being composed.
   final StringBuffer _buffer = StringBuffer();
 
+  /// Whether the builder is currently writing an edit group.
+  ///
+  /// This flag is set internally when writing an edit group to prevent
+  /// nested/overlapping edit groups from being produced.
+  bool _isWritingEditGroup = false;
+
   /// Initialize a newly created builder to build a source edit.
   EditBuilderImpl(this.fileEditBuilder, this.offset, this.length) {
     _eol = fileEditBuilder.changeBuilder.eol;
@@ -363,9 +369,16 @@ class EditBuilderImpl implements EditBuilder {
       void Function(LinkedEditBuilder builder) buildLinkedEdit) {
     var builder = createLinkedEditBuilder();
     var start = offset + _buffer.length;
+    // If we're already writing an edit group we must not produce others nested
+    // inside, so just call the callback without capturing the group.
+    if (_isWritingEditGroup) {
+      return buildLinkedEdit(builder);
+    }
     try {
+      _isWritingEditGroup = true;
       buildLinkedEdit(builder);
     } finally {
+      _isWritingEditGroup = false;
       var end = offset + _buffer.length;
       var length = end - start;
       if (length != 0) {
