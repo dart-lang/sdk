@@ -271,7 +271,7 @@ void main() {
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
-                String get delegate_myVariable => _myVariable;'''));
+                /*inferred*/String get delegate_myVariable => _myVariable;'''));
               });
 
               test('on fields', () async {
@@ -428,7 +428,7 @@ void main() {
                         .map((a) => a.debugString().toString()),
                     unorderedEquals([
                       equalsIgnoringWhitespace('''
-                augment String get _myVariable {
+                augment /*inferred*/String get _myVariable {
                   print('parentClass: ');
                   print('isExternal: false');
                   print('isFinal: true');
@@ -436,11 +436,11 @@ void main() {
                   return augment super;
                 }'''),
                       equalsIgnoringWhitespace('''
-                augment set _myVariable(String value) {
+                augment set _myVariable(/*inferred*/String value) {
                   augment super = value;
                 }'''),
                       equalsIgnoringWhitespace('''
-                augment final String _myVariable = 'new initial value' + augment super;
+                augment final /*inferred*/String _myVariable = 'new initial value' + augment super;
                 '''),
                     ]));
               });

@@ -14,6 +14,7 @@ final executable = Platform.executable;
 main() async {
   // Run the Dart VM with or without:
   //     --packages=<packages|package_config>
+  final futures = <Future>[];
   for (final runWithPackagesArg in const [true, false]) {
     // Run the isolate with or without
     //    Isolate.spawnUri(..., packageConfig: <packages|package_config>)
@@ -22,15 +23,16 @@ main() async {
       print('TEST spawnWithPackageConfig = $spawnWithPackageConfig ');
       final bool checkForResolveUri =
           runWithPackagesArg || !spawnWithPackageConfig;
-      await runDotPackagesTest(
-          runWithPackagesArg, spawnWithPackageConfig, checkForResolveUri);
+      futures.add(runDotPackagesTest(
+          runWithPackagesArg, spawnWithPackageConfig, checkForResolveUri));
       for (final optionalPackageUri in const [true, false]) {
         print('TEST optionalPackageUri = $optionalPackageUri');
-        await runPackageConfigTest(runWithPackagesArg, spawnWithPackageConfig,
-            optionalPackageUri, checkForResolveUri);
+        futures.add(runPackageConfigTest(runWithPackagesArg,
+            spawnWithPackageConfig, optionalPackageUri, checkForResolveUri));
       }
     }
   }
+  await Future.wait(futures);
 }
 
 Future runPackageConfigTest(bool withPackagesArg, bool spawnWithArg,

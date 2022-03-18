@@ -211,6 +211,18 @@ class FunctionTypeAnnotationCode extends TypeAnnotationCode {
   });
 }
 
+class OmittedTypeAnnotationCode extends TypeAnnotationCode {
+  final OmittedTypeAnnotation typeAnnotation;
+
+  OmittedTypeAnnotationCode(this.typeAnnotation);
+
+  @override
+  CodeKind get kind => CodeKind.omittedTypeAnnotation;
+
+  @override
+  List<Object> get parts => [typeAnnotation];
+}
+
 /// A piece of code representing a valid named type parameter.
 class TypeParameterCode implements Code {
   final TypeAnnotationCode? bound;
@@ -250,6 +262,7 @@ enum CodeKind {
   functionTypeAnnotation,
   namedTypeAnnotation,
   nullableTypeAnnotation,
+  omittedTypeAnnotation,
   parameter,
   raw,
   typeParameter,

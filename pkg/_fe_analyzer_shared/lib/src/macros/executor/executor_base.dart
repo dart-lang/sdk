@@ -298,8 +298,10 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
 
   /// These calls are handled by the higher level executor.
   @override
-  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
-          ResolvedIdentifier Function(Identifier) resolveIdentifier) =>
+  String buildAugmentationLibrary(
+          Iterable<MacroExecutionResult> macroResults,
+          ResolvedIdentifier Function(Identifier) resolveIdentifier,
+          TypeAnnotation Function(OmittedTypeAnnotation) inferOmittedType) =>
       throw new StateError('Unreachable');
 
   @override

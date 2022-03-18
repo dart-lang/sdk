@@ -156,6 +156,18 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
   }
 }
 
+class OmittedTypeAnnotationImpl extends TypeAnnotationImpl
+    implements OmittedTypeAnnotation {
+  OmittedTypeAnnotationImpl({required int id})
+      : super(id: id, isNullable: false);
+
+  @override
+  TypeAnnotationCode get code => new OmittedTypeAnnotationCode(this);
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.omittedTypeAnnotation;
+}
+
 abstract class DeclarationImpl extends RemoteInstance implements Declaration {
   final IdentifierImpl identifier;
 

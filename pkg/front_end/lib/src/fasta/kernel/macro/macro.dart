@@ -229,6 +229,11 @@ class MacroApplications {
     }
   }
 
+  macro.TypeAnnotation _inferOmittedType(
+      macro.OmittedTypeAnnotation omittedType) {
+    throw new UnimplementedError('This is not yet supported!');
+  }
+
   Iterable<_ApplicationData> get _applicationData {
     if (_applicationDataCache == null) {
       List<_ApplicationData> data = _applicationDataCache = [];
@@ -325,7 +330,8 @@ class MacroApplications {
       SourceLibraryBuilder sourceLibraryBuilder = entry.key;
       assert(entry.value.isNotEmpty);
       String result = _macroExecutor
-          .buildAugmentationLibrary(entry.value, _resolveIdentifier)
+          .buildAugmentationLibrary(
+              entry.value, _resolveIdentifier, _inferOmittedType)
           .trim();
       assert(
           result.trim().isNotEmpty,
@@ -358,8 +364,8 @@ class MacroApplications {
                 typeResolver,
                 classIntrospector);
         if (result.isNotEmpty) {
-          String source = _macroExecutor
-              .buildAugmentationLibrary([result], _resolveIdentifier);
+          String source = _macroExecutor.buildAugmentationLibrary(
+              [result], _resolveIdentifier, _inferOmittedType);
           SourceLibraryBuilder augmentationLibrary = await applicationData
               .libraryBuilder
               .createAugmentationLibrary(source);
@@ -446,7 +452,7 @@ class MacroApplications {
         in results.entries) {
       SourceLibraryBuilder sourceLibraryBuilder = entry.key;
       String result = _macroExecutor.buildAugmentationLibrary(
-          entry.value, _resolveIdentifier);
+          entry.value, _resolveIdentifier, _inferOmittedType);
       assert(
           result.trim().isNotEmpty,
           "Empty definitions phase augmentation library source for "
