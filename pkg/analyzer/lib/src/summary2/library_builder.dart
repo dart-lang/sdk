@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
@@ -175,6 +176,10 @@ class LibraryBuilder {
   }
 
   void executeMacroTypesPhase() {
+    if (!element.featureSet.isEnabled(Feature.macros)) {
+      return;
+    }
+
     var applier = LibraryMacroApplier(this);
     var augmentationLibrary = applier.executeMacroTypesPhase();
     if (augmentationLibrary == null) {
@@ -186,6 +191,7 @@ class LibraryBuilder {
       featureSet: element.featureSet,
       throwIfDiagnostics: false,
     );
+    var unitNode = parseResult.unit as ast.CompilationUnitImpl;
 
     // For now we model augmentation libraries as parts.
     var unitUri = uri.resolve('_macro_types.dart');
@@ -201,17 +207,20 @@ class LibraryBuilder {
 
     element.parts.add(unitElement);
 
-    var elementBuilder = ElementBuilder(
+    ElementBuilder(
       libraryBuilder: this,
       unitReference: unitReference,
       unitElement: unitElement,
-    );
-    elementBuilder.buildDeclarationElements(parseResult.unit);
+    ).buildDeclarationElements(unitNode);
 
-    // TODO(scheglov) unify with `resolveTypes`.
-    var nodesToBuildType = NodesToBuildType();
-    var resolver = ReferenceResolver(linker, nodesToBuildType, element);
-    parseResult.unit.accept(resolver);
+    units.add(
+      LinkingUnit(
+        isDefiningUnit: false,
+        reference: unitReference,
+        node: unitNode,
+        element: unitElement,
+      ),
+    );
   }
 
   void resolveConstructors() {
@@ -326,7 +335,6 @@ class LibraryBuilder {
       unitElements.add(unitElement);
       linkingUnits.add(
         LinkingUnit(
-          input: inputUnit,
           isDefiningUnit: isDefiningUnit,
           reference: unitReference,
           node: unitNode,
@@ -357,14 +365,12 @@ class LibraryBuilder {
 }
 
 class LinkingUnit {
-  final LinkInputUnit input;
   final bool isDefiningUnit;
   final Reference reference;
   final ast.CompilationUnitImpl node;
   final CompilationUnitElementImpl element;
 
   LinkingUnit({
-    required this.input,
     required this.isDefiningUnit,
     required this.reference,
     required this.node,
