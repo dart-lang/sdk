@@ -1394,7 +1394,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   @override
   void visitArrowFunction(js.ArrowFunction node) {
     sink.writeEnum(JsNodeKind.arrowFunction);
-    sink.begin(JsNodeTags.function);
+    sink.begin(JsNodeTags.arrowFunction);
     visitList(node.params);
     visit(node.body);
     sink.writeEnum(node.asyncModifier);
@@ -1929,7 +1929,7 @@ class JsNodeDeserializer {
       case JsNodeKind.arrowFunction:
         source.begin(JsNodeTags.arrowFunction);
         List<js.Parameter> params = readList();
-        js.Block body = read();
+        js.Node body = read();
         js.AsyncModifier asyncModifier =
             source.readEnum(js.AsyncModifier.values);
         node = js.ArrowFunction(params, body, asyncModifier: asyncModifier);
