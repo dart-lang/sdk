@@ -5274,11 +5274,35 @@ Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
     return CanonicalizeStringInterpolateSingle(this, flow_graph);
   }
 
+  const auto kind = function().recognized_kind();
+
+  if (kind != MethodRecognizer::kUnknown) {
+    if (ArgumentCount() == 1) {
+      const auto argument = ArgumentValueAt(0);
+      if (argument->BindsToConstant()) {
+        Object& result = Object::Handle();
+        if (Evaluate(flow_graph, argument->BoundConstant(), &result)) {
+          return flow_graph->TryCreateConstantReplacementFor(this, result);
+        }
+      }
+    } else if (ArgumentCount() == 2) {
+      const auto argument1 = ArgumentValueAt(0);
+      const auto argument2 = ArgumentValueAt(1);
+      if (argument1->BindsToConstant() && argument2->BindsToConstant()) {
+        Object& result = Object::Handle();
+        if (Evaluate(flow_graph, argument1->BoundConstant(),
+                     argument2->BoundConstant(), &result)) {
+          return flow_graph->TryCreateConstantReplacementFor(this, result);
+        }
+      }
+    }
+  }
+
   if (!compiler_state.is_aot()) {
     return this;
   }
 
-  if (function().recognized_kind() == MethodRecognizer::kObjectRuntimeType) {
+  if (kind == MethodRecognizer::kObjectRuntimeType) {
     if (input_use_list() == NULL) {
       // This function has only environment uses. In precompiled mode it is
       // fine to remove it - because we will never deoptimize.
@@ -5287,6 +5311,68 @@ Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   return this;
+}
+
+bool StaticCallInstr::Evaluate(FlowGraph* flow_graph,
+                               const Object& argument,
+                               Object* result) {
+  const auto kind = function().recognized_kind();
+  switch (kind) {
+    case MethodRecognizer::kSmi_bitLength: {
+      ASSERT(FirstArgIndex() == 0);
+      if (argument.IsInteger()) {
+        const Integer& value = Integer::Handle(
+            flow_graph->zone(),
+            Evaluator::BitLengthEvaluate(argument, representation(),
+                                         flow_graph->thread()));
+        if (!value.IsNull()) {
+          *result = value.ptr();
+          return true;
+        }
+      }
+      break;
+    }
+    case MethodRecognizer::kStringBaseLength:
+    case MethodRecognizer::kStringBaseIsEmpty: {
+      ASSERT(FirstArgIndex() == 0);
+      if (argument.IsString()) {
+        const auto& str = String::Cast(argument);
+        if (kind == MethodRecognizer::kStringBaseLength) {
+          *result = Integer::New(str.Length());
+        } else {
+          *result = Bool::Get(str.Length() == 0).ptr();
+          break;
+        }
+        return true;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+  return false;
+}
+
+bool StaticCallInstr::Evaluate(FlowGraph* flow_graph,
+                               const Object& argument1,
+                               const Object& argument2,
+                               Object* result) {
+  const auto kind = function().recognized_kind();
+  switch (kind) {
+    case MethodRecognizer::kOneByteString_equality:
+    case MethodRecognizer::kTwoByteString_equality: {
+      if (argument1.IsString() && argument2.IsString()) {
+        *result =
+            Bool::Get(String::Cast(argument1).Equals(String::Cast(argument2)))
+                .ptr();
+        return true;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+  return false;
 }
 
 LocationSummary* StaticCallInstr::MakeLocationSummary(Zone* zone,
