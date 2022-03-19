@@ -76,7 +76,7 @@ class GitPackage extends Package {
 
   @override
   String toString() {
-    return '$_clonePath ($label)' + (_keepUpdated! ? ' [synced]' : '');
+    return '$_clonePath ($label)${_keepUpdated! ? ' [synced]' : ''}';
   }
 
   /// Initialize the package with a shallow clone.  Run only once per

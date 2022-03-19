@@ -191,10 +191,11 @@ class NonNullableFix {
     // This method may be called multiple times, for example during a re-run.
     // But the preview server should only be started once.
     if (_server == null) {
-      var wrappedApplyHookWithShutdown = () {
+      void wrappedApplyHookWithShutdown() {
         shutdownServer();
         applyHook();
-      };
+      }
+
       _server = HttpPreviewServer(state, rerun, wrappedApplyHookWithShutdown,
           bindAddress, preferredPort, _logger);
       _server!.serveHttp();
@@ -261,7 +262,7 @@ class NonNullableFix {
         packageMap['languageVersion'] = _intendedLanguageVersion;
         // Pub appears to always use a two-space indent. This will minimize the
         // diff between the previous text and the new text.
-        var newText = JsonEncoder.withIndent('  ').convert(configMap) + '\n';
+        var newText = '${JsonEncoder.withIndent('  ').convert(configMap)}\n';
 
         // TODO(srawlins): This is inelegant. We add an "edit" which replaces
         // the entire content of the package config file with new content, while

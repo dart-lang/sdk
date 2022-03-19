@@ -218,6 +218,10 @@ class DecoratedType implements DecoratedTypeInfo {
   }
 
   @override
+  // TODO(srawlins): Override `hashCode` in this class. It should be based on
+  // [node] and [type], but there is more logic, as seen below in the use of
+  // [RenamedDecoratedFunctionTypes.match].
+  // ignore: hash_and_equals
   bool operator ==(Object other) {
     if (other is DecoratedType) {
       if (!identical(node, other.node)) return false;

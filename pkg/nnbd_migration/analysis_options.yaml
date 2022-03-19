@@ -1,4 +1,4 @@
-include: package:pedantic/analysis_options.1.9.0.yaml
+include: package:lints/recommended.yaml
 
 analyzer:
   errors:
@@ -6,6 +6,12 @@ analyzer:
     always_declare_return_types: ignore
     # There are currently 60 violations.
     annotate_overrides: ignore
+    # A number of class names mix UpperCamelCase with underscores.
+    camel_case_types: ignore
+    # This package freely and frequently imports implementation from analyzer.
+    implementation_imports: ignore
+    # Our test methods are named with snake_case.
+    non_constant_identifier_names: ignore
     # There are currently 200 violations.
     omit_local_variable_types: ignore
     # There are currently 20 violations.

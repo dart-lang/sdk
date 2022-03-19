@@ -31,7 +31,11 @@ class ScopedSet<T> {
   ///
   /// This is useful in post-dominator analysis. Upon non-convergent branching,
   /// all scopes of potentially post-dominated elements becomes empty.
-  void clearEachScope() => _scopeStack.forEach((scope) => scope.clear());
+  void clearEachScope() {
+    for (var scope in _scopeStack) {
+      scope.clear();
+    }
+  }
 
   /// Create a scope like [pushScope], and use it to perform some [action]
   /// before popping it.
@@ -66,6 +70,9 @@ class ScopedSet<T> {
       });
 
   /// Remove element from the current scope and all containing scopes.
-  void removeFromAllScopes(T t) =>
-      _scopeStack.forEach((scope) => scope.remove(t));
+  void removeFromAllScopes(T t) {
+    for (var scope in _scopeStack) {
+      scope.remove(t);
+    }
+  }
 }

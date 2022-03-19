@@ -9484,12 +9484,6 @@ class _ProvisionalApiTestPermissive extends _ProvisionalApiTestBase
     with _ProvisionalApiTestCases {
   @override
   bool get _usePermissiveMode => true;
-
-  // TODO(danrubel): Remove this once the superclass test has been fixed.
-  // This runs in permissive mode but not when permissive mode is disabled.
-  Future<void> test_instanceCreation_noTypeArguments_noParameters() async {
-    super.test_instanceCreation_noTypeArguments_noParameters();
-  }
 }
 
 /// Tests of the provisional API, where the driver is reset between calls to

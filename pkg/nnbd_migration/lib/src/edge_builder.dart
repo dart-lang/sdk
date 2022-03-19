@@ -2010,7 +2010,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           var overriddenElements = _inheritanceManager.getOverridden2(
               enclosingElement,
               Name(enclosingElement.library.source.uri,
-                  declaredElement.name + '='));
+                  '${declaredElement.name}='));
           for (var overriddenElement
               in overriddenElements ?? <ExecutableElement>[]) {
             _handleFieldOverriddenDeclaration(
