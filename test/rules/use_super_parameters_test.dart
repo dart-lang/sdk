@@ -48,6 +48,37 @@ class B extends A {
     ]);
   }
 
+  test_named_someReferencedInBody() async {
+    await assertDiagnostics(r'''
+class A {
+  A({int? x, int? y});
+}
+class B extends A {
+  B({int? x, int? y}) : super(x: x, y: y) {
+    print(x);
+  }
+}
+''', [
+      lint('use_super_parameters', 57, 1,
+          messageContains: "Convert 'y' to a super parameter"),
+    ]);
+  }
+
+  test_named_thisParameter() async {
+    await assertDiagnostics(r'''
+class A {
+  A({int? x, int? y});
+}
+class B extends A {
+  int? x;
+  B({this.x, int? y}) : super(x:x, y:y);
+}
+''', [
+      lint('use_super_parameters', 67, 1,
+          messageContains: "Convert 'y' to a super parameter."),
+    ]);
+  }
+
   test_no_lint_forwardedOutOfOrder() async {
     await assertNoDiagnostics(r'''
 class B {
@@ -154,6 +185,33 @@ class C extends B {
 ''');
   }
 
+  test_no_lint_positionalReferencedInBody() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A.a(int x, int? y);
+}
+class B extends A {
+  B(int x, int? y) : super.a(x, y) {
+    print(x);
+  }
+}
+''');
+  }
+
+  test_no_lint_referencedInBody() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A.a(int x, {int? y});
+}
+class B extends A {
+  B(int x, {int? y}) : super.a(x, y: y) {
+    print(x);
+    print(y);
+  }
+}
+''');
+  }
+
   test_no_lint_referencedInBody_named() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -232,6 +290,18 @@ class A {
 }
 class B extends A {
   B(Object x) : super(x.toString());
+}
+''');
+  }
+
+  test_no_lint_positionalThisParameter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int x, int y);
+}
+class B extends A {
+  int x;
+  B(this.x, int y) : super(x, y);
 }
 ''');
   }

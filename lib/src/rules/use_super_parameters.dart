@@ -114,6 +114,7 @@ class _Visitor extends SimpleAstVisitor {
     for (var parameter in parameters.parameters) {
       var parameterElement = parameter.declaredElement;
       if (parameterElement == null) continue;
+      if (parameterElement is FieldFormalParameterElement) continue;
       if (parameterElement.isNamed &&
           !referencedParameters.contains(parameterElement)) {
         if (_checkNamedParameter(
@@ -173,11 +174,11 @@ class _Visitor extends SimpleAstVisitor {
       bool match = false;
       for (var i = 0; i < constructorParams.length && !match; ++i) {
         var constructorParam = constructorParams[i];
-        if (constructorParam is FieldFormalParameter) continue;
-        if (constructorParam is SuperFormalParameter) continue;
+        if (constructorParam is FieldFormalParameter) return null;
+        if (constructorParam is SuperFormalParameter) return null;
         var constructorElement = constructorParam.declaredElement;
         if (constructorElement == null) continue;
-        if (referencedParameters.contains(constructorElement)) continue;
+        if (referencedParameters.contains(constructorElement)) return null;
         if (constructorElement == superParam) {
           // Compare the types.
           var superType = superParam.type;
