@@ -53,8 +53,8 @@ class LibraryContext {
   LibraryContext({
     required this.testView,
     required AnalysisSessionImpl analysisSession,
-    required PerformanceLog logger,
-    required ByteStore byteStore,
+    required this.logger,
+    required this.byteStore,
     required this.fileSystemState,
     required AnalysisOptionsImpl analysisOptions,
     required DeclaredVariables declaredVariables,
@@ -62,8 +62,7 @@ class LibraryContext {
     required this.macroKernelBuilder,
     required this.macroExecutor,
     required SummaryDataStore? externalSummaries,
-  })  : logger = logger,
-        byteStore = byteStore {
+  }) {
     var synchronousSession =
         SynchronousSession(analysisOptions, declaredVariables);
     analysisContext = AnalysisContextImpl(synchronousSession, sourceFactory);

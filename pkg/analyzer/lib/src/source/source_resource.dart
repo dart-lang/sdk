@@ -44,9 +44,8 @@ class FileSource extends Source {
   /// Initialize a newly created source object to represent the given [file]. If
   /// a [uri] is given, then it will be used as the URI from which the source
   /// was derived, otherwise a `file:` URI will be created based on the [file].
-  FileSource(File file, [Uri? uri])
+  FileSource(this.file, [Uri? uri])
       : uri = uri ?? file.toUri(),
-        file = file,
         id = _idTable.putIfAbsent(
             '${uri ?? file.toUri()}@${file.path}', () => _idTable.length);
 

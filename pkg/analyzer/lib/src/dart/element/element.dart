@@ -4821,10 +4821,8 @@ class ParameterElementImpl extends VariableElementImpl
 class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   final PropertyAccessorElementImpl_ImplicitSetter setter;
 
-  ParameterElementImpl_ofImplicitSetter(
-      PropertyAccessorElementImpl_ImplicitSetter setter)
-      : setter = setter,
-        super(
+  ParameterElementImpl_ofImplicitSetter(this.setter)
+      : super(
           name: '_${setter.variable.name}',
           nameOffset: -1,
           parameterKind: ParameterKind.REQUIRED,
@@ -4989,11 +4987,10 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
-  PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable,
-      {Reference? reference})
+  PropertyAccessorElementImpl.forVariable(this.variable, {Reference? reference})
       : super(variable.name, -1, reference: reference) {
-    this.variable = variable;
-    isAbstract = variable is FieldElementImpl && variable.isAbstract;
+    isAbstract = variable is FieldElementImpl &&
+        (variable as FieldElementImpl).isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
   }

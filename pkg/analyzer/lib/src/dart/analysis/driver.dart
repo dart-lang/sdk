@@ -267,7 +267,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     this.macroKernelBuilder,
     this.macroExecutor,
     FileContentCache? fileContentCache,
-    bool enableIndex = false,
+    this.enableIndex = false,
     SummaryDataStore? externalSummaries,
     bool retainDataForTesting = false,
   })  : _scheduler = scheduler,
@@ -276,7 +276,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _fileContentCache =
             fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
         _analysisOptions = analysisOptions,
-        enableIndex = enableIndex,
         _logger = logger,
         _packages = packages,
         _sourceFactory = sourceFactory,
@@ -2376,11 +2375,10 @@ class AnalysisResult {
         unitResult = null,
         _index = null;
 
-  AnalysisResult.unit(this._signature, ResolvedUnitResultImpl unitResult,
-      AnalysisDriverUnitIndex index)
+  AnalysisResult.unit(
+      this._signature, this.unitResult, AnalysisDriverUnitIndex index)
       : isUnchangedErrors = false,
         errorsResult = null,
-        unitResult = unitResult,
         _index = index;
 }
 

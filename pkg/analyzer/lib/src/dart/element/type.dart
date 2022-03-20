@@ -82,15 +82,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   final NullabilitySuffix nullabilitySuffix;
 
   FunctionTypeImpl({
-    required List<TypeParameterElement> typeFormals,
+    required this.typeFormals,
     required List<ParameterElement> parameters,
-    required DartType returnType,
-    required NullabilitySuffix nullabilitySuffix,
+    required this.returnType,
+    required this.nullabilitySuffix,
     InstantiatedTypeAliasElement? alias,
-  })  : typeFormals = typeFormals,
-        parameters = _sortNamedParameters(parameters),
-        returnType = returnType,
-        nullabilitySuffix = nullabilitySuffix,
+  })  : parameters = _sortNamedParameters(parameters),
         super(null, alias: alias);
 
   @override

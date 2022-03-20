@@ -24,9 +24,7 @@ import 'package:yaml/yaml.dart';
 class PackageBuildFileUriResolver extends ResourceUriResolver {
   final PackageBuildWorkspace workspace;
 
-  PackageBuildFileUriResolver(PackageBuildWorkspace workspace)
-      : workspace = workspace,
-        super(workspace.provider);
+  PackageBuildFileUriResolver(this.workspace) : super(workspace.provider);
 
   @override
   Source? resolveAbsolute(Uri uri) {

@@ -296,14 +296,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       FeatureSet featureSet,
       this.flowAnalysis,
       this._migratableAstInfoProvider,
-      MigrationResolutionHooks? migrationResolutionHooks)
+      this.migrationResolutionHooks)
       : errorReporter = ErrorReporter(
           errorListener,
           source,
           isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
         ),
         _featureSet = featureSet,
-        migrationResolutionHooks = migrationResolutionHooks,
         genericMetadataIsEnabled =
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata) {
     var analysisOptions =
