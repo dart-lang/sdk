@@ -1,0 +1,2 @@
+main2() {}
+main(List<String> args) {}

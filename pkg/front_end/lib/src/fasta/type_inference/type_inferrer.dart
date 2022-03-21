@@ -2488,20 +2488,39 @@ class TypeInferrerImpl implements TypeInferrer {
         namedIndex == arguments.named.length,
         "Expected 'namedIndex' to be ${arguments.named.length}, "
         "got ${namedIndex}.");
-    if (isSpecialCasedBinaryOperator) {
-      calleeType = replaceReturnType(
-          calleeType,
-          typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
-              receiverType!, actualTypes![0],
-              isNonNullableByDefault: isNonNullableByDefault));
-    } else if (isSpecialCasedTernaryOperator) {
-      calleeType = replaceReturnType(
-          calleeType,
-          typeSchemaEnvironment.getTypeOfSpecialCasedTernaryOperator(
-              receiverType!,
-              actualTypes![0],
-              actualTypes[1],
-              libraryBuilder.library));
+
+    if (isSpecialCasedBinaryOperator || isSpecialCasedTernaryOperator) {
+      if (typeChecksNeeded && !identical(calleeType, unknownFunction)) {
+        LocatedMessage? argMessage = helper!.checkArgumentsForType(
+            calleeType, arguments, offset,
+            isExtensionMemberInvocation: isExtensionMemberInvocation);
+        if (argMessage != null) {
+          return new WrapInProblemInferenceResult(
+              const InvalidType(),
+              const InvalidType(),
+              argMessage.messageObject,
+              argMessage.charOffset,
+              argMessage.length,
+              helper!,
+              isInapplicable: true,
+              hoistedArguments: localHoistedExpressions);
+        }
+      }
+      if (isSpecialCasedBinaryOperator) {
+        calleeType = replaceReturnType(
+            calleeType,
+            typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
+                receiverType!, actualTypes![0],
+                isNonNullableByDefault: isNonNullableByDefault));
+      } else if (isSpecialCasedTernaryOperator) {
+        calleeType = replaceReturnType(
+            calleeType,
+            typeSchemaEnvironment.getTypeOfSpecialCasedTernaryOperator(
+                receiverType!,
+                actualTypes![0],
+                actualTypes[1],
+                libraryBuilder.library));
+      }
     }
 
     // Check for and remove duplicated named arguments.
