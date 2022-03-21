@@ -37,9 +37,9 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
     if (typeDeclarationBuilder != null) {
       Uri? uri;
       if (typeDeclarationBuilder is ClassBuilder) {
-        uri = typeDeclarationBuilder.library.importUri;
+        uri = typeDeclarationBuilder.libraryBuilder.importUri;
       } else if (typeDeclarationBuilder is TypeAliasBuilder) {
-        uri = typeDeclarationBuilder.library.importUri;
+        uri = typeDeclarationBuilder.libraryBuilder.importUri;
       } else if (name == 'dynamic') {
         uri = Uri.parse('dart:core');
       }
@@ -144,10 +144,10 @@ class MemberBuilderIdentifier extends IdentifierImpl {
     if (memberBuilder.isStatic || memberBuilder.isConstructor) {
       ClassBuilder classBuilder = memberBuilder.classBuilder!;
       staticScope = classBuilder.name;
-      uri = classBuilder.library.importUri;
+      uri = classBuilder.libraryBuilder.importUri;
       kind = macro.IdentifierKind.staticInstanceMember;
     } else if (memberBuilder.isTopLevel) {
-      uri = memberBuilder.library.importUri;
+      uri = memberBuilder.libraryBuilder.importUri;
       kind = macro.IdentifierKind.topLevelMember;
     } else {
       kind = macro.IdentifierKind.instanceMember;

@@ -104,7 +104,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           isExtensionMember: true,
           reference: _tearOffReference,
           fileUri: fileUri)
-        ..isNonNullableByDefault = library.isNonNullableByDefault;
+        ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
     }
   }
 
@@ -302,8 +302,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   ///       return (S s, Y y) => E|method<T, S>(#this, s, y);
   ///     }
   ///
-  void _buildExtensionTearOff(
-      SourceLibraryBuilder libraryBuilder, ExtensionBuilder extensionBuilder) {
+  void _buildExtensionTearOff(SourceLibraryBuilder sourceLibraryBuilder,
+      ExtensionBuilder extensionBuilder) {
     assert(
         _extensionTearOff != null, "No extension tear off created for $this.");
 
@@ -418,7 +418,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           typeParameters: tearOffTypeParameters,
           positionalParameters: [extensionThis],
           requiredParameterCount: 1,
-          returnType: closure.function.computeFunctionType(library.nonNullable))
+          returnType:
+              closure.function.computeFunctionType(libraryBuilder.nonNullable))
         ..fileOffset = fileOffset
         ..fileEndOffset = fileEndOffset)
       ..fileUri = fileUri

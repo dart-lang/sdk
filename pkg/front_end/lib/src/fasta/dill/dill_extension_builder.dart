@@ -101,14 +101,15 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
   List<TypeVariableBuilder>? get typeParameters {
     if (_typeParameters == null && extension.typeParameters.isNotEmpty) {
       _typeParameters =
-          computeTypeVariableBuilders(library, extension.typeParameters);
+          computeTypeVariableBuilders(libraryBuilder, extension.typeParameters);
     }
     return _typeParameters;
   }
 
   @override
   TypeBuilder get onType {
-    return _onType ??= library.loader.computeTypeBuilder(extension.onType);
+    return _onType ??=
+        libraryBuilder.loader.computeTypeBuilder(extension.onType);
   }
 
   @override

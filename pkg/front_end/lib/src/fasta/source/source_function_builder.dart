@@ -494,7 +494,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   bool checkPatch(FunctionBuilder patch) {
     if (!isExternal) {
-      patch.library.addProblem(
+      patch.libraryBuilder.addProblem(
           messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri!,
           context: [
             messagePatchDeclarationOrigin.withLocation(
@@ -507,7 +507,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   void reportPatchMismatch(Builder patch) {
-    library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
+    libraryBuilder.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
         noLength, patch.fileUri!, context: [
       messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
     ]);

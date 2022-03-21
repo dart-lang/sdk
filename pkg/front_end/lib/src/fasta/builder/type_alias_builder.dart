@@ -42,7 +42,7 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   @override
   LibraryBuilder get parent;
 
-  LibraryBuilder get library;
+  LibraryBuilder get libraryBuilder;
 
   @override
   Uri get fileUri;
@@ -149,7 +149,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   LibraryBuilder get parent => super.parent as LibraryBuilder;
 
   @override
-  LibraryBuilder get library => super.parent as LibraryBuilder;
+  LibraryBuilder get libraryBuilder => super.parent as LibraryBuilder;
 
   /// [arguments] have already been built.
   @override
@@ -280,7 +280,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       }
       if (builders.contains(current)) {
         // Cyclic type alias.
-        currentAliasBuilder.library.addProblem(
+        currentAliasBuilder.libraryBuilder.addProblem(
             templateCyclicTypedef.withArguments(this.name),
             charOffset,
             noLength,
@@ -303,7 +303,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
             if (typeVariables != null)
               for (TypeVariableBuilder typeVariable in typeVariables!)
                 new NamedTypeBuilder.fromTypeDeclarationBuilder(
-                    typeVariable, library.nonNullableBuilder,
+                    typeVariable, libraryBuilder.nonNullableBuilder,
                     arguments: const [],
                     fileUri: fileUri,
                     charOffset: charOffset,
@@ -320,7 +320,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
             }
           }
           if (found) {
-            library.addProblem(
+            libraryBuilder.addProblem(
                 messageTypedefTypeVariableNotConstructor,
                 usedAsClassCharOffset ?? TreeNode.noOffset,
                 noLength,
@@ -383,7 +383,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         if ((currentAliasBuilder.typeVariables?.length ?? 0) !=
             currentTypeArguments.length) {
           if (previousAliasBuilder != null) {
-            previousAliasBuilder.library.addProblem(
+            previousAliasBuilder.libraryBuilder.addProblem(
                 templateTypeArgumentMismatch.withArguments(
                     currentAliasBuilder.typeVariables?.length ?? 0),
                 previousAliasBuilder.charOffset,

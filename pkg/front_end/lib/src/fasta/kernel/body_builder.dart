@@ -390,7 +390,8 @@ class BodyBuilder extends StackListenerImpl
       : this(
             libraryBuilder: part,
             member: field,
-            enclosingScope: declarationBuilder?.scope ?? field.library.scope,
+            enclosingScope:
+                declarationBuilder?.scope ?? field.libraryBuilder.scope,
             formalParameterScope: null,
             hierarchy: part.loader.hierarchy,
             coreTypes: part.loader.coreTypes,
@@ -5502,8 +5503,8 @@ class BodyBuilder extends StackListenerImpl
               // No type arguments provided to unaliased class, use defaults.
               List<DartType> result = new List<DartType>.generate(
                   cls.typeVariables!.length,
-                  (int i) =>
-                      cls.typeVariables![i].defaultType!.build(cls.library),
+                  (int i) => cls.typeVariables![i].defaultType!
+                      .build(cls.libraryBuilder),
                   growable: true);
               forest.argumentsSetTypeArguments(arguments, result);
             }

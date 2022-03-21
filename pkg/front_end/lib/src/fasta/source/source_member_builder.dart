@@ -26,7 +26,7 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   MemberDataForTesting? get dataForTesting;
 
   @override
-  SourceLibraryBuilder get library;
+  SourceLibraryBuilder get libraryBuilder;
 
   /// Builds the core AST structures for this member as needed for the outline.
   void buildMembers(
@@ -91,7 +91,8 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
         super(parent, charOffset, fileUri);
 
   @override
-  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+  SourceLibraryBuilder get libraryBuilder =>
+      super.libraryBuilder as SourceLibraryBuilder;
 
   bool get isRedirectingGenerativeConstructor => false;
 

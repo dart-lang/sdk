@@ -3267,8 +3267,10 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     allowPotentiallyConstantType: true);
               }
               if (isGenericTypedefTearOff) {
-                if (isProperRenameForClass(_helper.typeEnvironment,
-                    aliasBuilder!.typedef, aliasBuilder.library.library)) {
+                if (isProperRenameForClass(
+                    _helper.typeEnvironment,
+                    aliasBuilder!.typedef,
+                    aliasBuilder.libraryBuilder.library)) {
                   return tearOffExpression;
                 }
                 Procedure? tearOffLowering =

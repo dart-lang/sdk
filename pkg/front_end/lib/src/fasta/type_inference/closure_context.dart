@@ -326,7 +326,7 @@ class _SyncClosureContext implements ClosureContext {
         // No explicit return and the function doesn't complete normally; that
         // is, it throws.
         actualReturnedType =
-            NeverType.fromNullability(inferrer.library.nonNullable);
+            NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
       }
       // Use the types seen from the explicit return statements.
       for (int i = 0; i < _returnStatements!.length; i++) {
@@ -344,7 +344,7 @@ class _SyncClosureContext implements ClosureContext {
         } else {
           actualReturnedType = inferrer.typeSchemaEnvironment
               .getStandardUpperBound(
-                  actualReturnedType, type, inferrer.library.library);
+                  actualReturnedType, type, inferrer.libraryBuilder.library);
         }
       }
 
@@ -383,7 +383,7 @@ class _SyncClosureContext implements ClosureContext {
           } else {
             actualReturnedType = inferrer.typeSchemaEnvironment
                 .getStandardUpperBound(
-                    actualReturnedType, type, inferrer.library.library);
+                    actualReturnedType, type, inferrer.libraryBuilder.library);
           }
         }
       } else if (hasImplicitReturn) {
@@ -413,8 +413,8 @@ class _SyncClosureContext implements ClosureContext {
       }
     }
 
-    return _inferredReturnType =
-        demoteTypeInLibrary(inferredReturnType, inferrer.library.library);
+    return _inferredReturnType = demoteTypeInLibrary(
+        inferredReturnType, inferrer.libraryBuilder.library);
   }
 
   @override
@@ -432,7 +432,7 @@ class _SyncClosureContext implements ClosureContext {
       returnType = _declaredReturnType;
     }
     if (!inferrer.isTopLevel &&
-        inferrer.library.isNonNullableByDefault &&
+        inferrer.libraryBuilder.isNonNullableByDefault &&
         !containsInvalidType(returnType) &&
         returnType.isPotentiallyNonNullable &&
         inferrer.flowAnalysis.isReachable) {
@@ -443,7 +443,7 @@ class _SyncClosureContext implements ClosureContext {
           .wrapInProblem(
               new NullLiteral()..fileOffset = fileOffset,
               templateImplicitReturnNull.withArguments(
-                  returnType, inferrer.library.isNonNullableByDefault),
+                  returnType, inferrer.libraryBuilder.isNonNullableByDefault),
               fileOffset,
               noLength))
         ..fileOffset = fileOffset;
@@ -707,7 +707,7 @@ class _AsyncClosureContext implements ClosureContext {
       DartType unfuturedExpectedType =
           inferrer.typeSchemaEnvironment.flatten(contextType);
       DartType futuredExpectedType = inferrer.wrapFutureType(
-          unfuturedExpectedType, inferrer.library.nonNullable);
+          unfuturedExpectedType, inferrer.libraryBuilder.nonNullable);
       if (inferrer.isAssignable(unfuturedExpectedType, expressionType)) {
         contextType = unfuturedExpectedType;
       } else if (inferrer.isAssignable(futuredExpectedType, expressionType)) {
@@ -732,7 +732,8 @@ class _AsyncClosureContext implements ClosureContext {
       } else {
         // No explicit return and the function doesn't complete normally; that
         // is, it throws.
-        inferredType = NeverType.fromNullability(inferrer.library.nonNullable);
+        inferredType =
+            NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
       }
       // Use the types seen from the explicit return statements.
       for (int i = 0; i < _returnStatements!.length; i++) {
@@ -743,7 +744,7 @@ class _AsyncClosureContext implements ClosureContext {
           inferredType = unwrappedType;
         } else {
           inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
-              inferredType, unwrappedType, inferrer.library.library);
+              inferredType, unwrappedType, inferrer.libraryBuilder.library);
         }
       }
 
@@ -767,7 +768,7 @@ class _AsyncClosureContext implements ClosureContext {
       }
       inferredType = inferrer.wrapFutureType(
           inferrer.typeSchemaEnvironment.flatten(inferredType),
-          inferrer.library.nonNullable);
+          inferrer.libraryBuilder.nonNullable);
     } else {
       if (_returnStatements!.isNotEmpty) {
         // Use the types seen from the explicit return statements.
@@ -789,7 +790,7 @@ class _AsyncClosureContext implements ClosureContext {
             inferredType = unwrappedType;
           } else {
             inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
-                inferredType, unwrappedType, inferrer.library.library);
+                inferredType, unwrappedType, inferrer.libraryBuilder.library);
           }
         }
       } else if (hasImplicitReturn) {
@@ -800,8 +801,8 @@ class _AsyncClosureContext implements ClosureContext {
         // that is, it throws.
         inferredType = const NullType();
       }
-      inferredType =
-          inferrer.wrapFutureType(inferredType!, inferrer.library.nonNullable);
+      inferredType = inferrer.wrapFutureType(
+          inferredType!, inferrer.libraryBuilder.nonNullable);
 
       if (!inferrer.typeSchemaEnvironment.isSubtypeOf(
           inferredType, _returnContext, SubtypeCheckMode.withNullabilities)) {
@@ -823,7 +824,7 @@ class _AsyncClosureContext implements ClosureContext {
     }
 
     return _inferredReturnType =
-        demoteTypeInLibrary(inferredType, inferrer.library.library);
+        demoteTypeInLibrary(inferredType, inferrer.libraryBuilder.library);
   }
 
   @override
@@ -842,7 +843,7 @@ class _AsyncClosureContext implements ClosureContext {
     }
     returnType = inferrer.typeSchemaEnvironment.flatten(returnType);
     if (!inferrer.isTopLevel &&
-        inferrer.library.isNonNullableByDefault &&
+        inferrer.libraryBuilder.isNonNullableByDefault &&
         !containsInvalidType(returnType) &&
         returnType.isPotentiallyNonNullable &&
         inferrer.flowAnalysis.isReachable) {
@@ -853,7 +854,7 @@ class _AsyncClosureContext implements ClosureContext {
           .wrapInProblem(
               new NullLiteral()..fileOffset = fileOffset,
               templateImplicitReturnNull.withArguments(
-                  returnType, inferrer.library.isNonNullableByDefault),
+                  returnType, inferrer.libraryBuilder.isNonNullableByDefault),
               fileOffset,
               noLength))
         ..fileOffset = fileOffset;
@@ -922,8 +923,10 @@ class _SyncStarClosureContext implements ClosureContext {
   void handleYield(TypeInferrerImpl inferrer, YieldStatement node,
       ExpressionInferenceResult expressionResult) {
     DartType expectedType = node.isYieldStar
-        ? inferrer.wrapType(_yieldElementContext,
-            inferrer.coreTypes.iterableClass, inferrer.library.nonNullable)
+        ? inferrer.wrapType(
+            _yieldElementContext,
+            inferrer.coreTypes.iterableClass,
+            inferrer.libraryBuilder.nonNullable)
         : _yieldElementContext;
     Expression expression = inferrer
         .ensureAssignableResult(expectedType, expressionResult,
@@ -961,7 +964,7 @@ class _SyncStarClosureContext implements ClosureContext {
         } else {
           inferredElementType = inferrer.typeSchemaEnvironment
               .getStandardUpperBound(
-                  inferredElementType, type, inferrer.library.library);
+                  inferredElementType, type, inferrer.libraryBuilder.library);
         }
       }
     } else if (hasImplicitReturn) {
@@ -972,14 +975,14 @@ class _SyncStarClosureContext implements ClosureContext {
       // it throws.
       if (inferrer.isNonNullableByDefault) {
         inferredElementType =
-            NeverType.fromNullability(inferrer.library.nonNullable);
+            NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
       } else {
         inferredElementType = const NullType();
       }
     }
 
     DartType inferredType = inferrer.wrapType(inferredElementType!,
-        inferrer.coreTypes.iterableClass, inferrer.library.nonNullable);
+        inferrer.coreTypes.iterableClass, inferrer.libraryBuilder.nonNullable);
 
     if (!inferrer.typeSchemaEnvironment.isSubtypeOf(inferredType,
         _yieldElementContext, SubtypeCheckMode.withNullabilities)) {
@@ -988,7 +991,7 @@ class _SyncStarClosureContext implements ClosureContext {
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
     }
 
-    return demoteTypeInLibrary(inferredType, inferrer.library.library);
+    return demoteTypeInLibrary(inferredType, inferrer.libraryBuilder.library);
   }
 
   @override
@@ -1055,7 +1058,7 @@ class _AsyncStarClosureContext implements ClosureContext {
       ExpressionInferenceResult expressionResult) {
     DartType expectedType = node.isYieldStar
         ? inferrer.wrapType(_yieldElementContext,
-            inferrer.coreTypes.streamClass, inferrer.library.nonNullable)
+            inferrer.coreTypes.streamClass, inferrer.libraryBuilder.nonNullable)
         : _yieldElementContext;
 
     Expression expression = inferrer
@@ -1092,8 +1095,8 @@ class _AsyncStarClosureContext implements ClosureContext {
           inferredElementType = elementType;
         } else {
           inferredElementType = inferrer.typeSchemaEnvironment
-              .getStandardUpperBound(
-                  inferredElementType, elementType, inferrer.library.library);
+              .getStandardUpperBound(inferredElementType, elementType,
+                  inferrer.libraryBuilder.library);
         }
       }
     } else if (hasImplicitReturn) {
@@ -1104,14 +1107,14 @@ class _AsyncStarClosureContext implements ClosureContext {
       // it throws.
       if (inferrer.isNonNullableByDefault) {
         inferredElementType =
-            NeverType.fromNullability(inferrer.library.nonNullable);
+            NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
       } else {
         inferredElementType = const NullType();
       }
     }
 
     DartType inferredType = inferrer.wrapType(inferredElementType!,
-        inferrer.coreTypes.streamClass, inferrer.library.nonNullable);
+        inferrer.coreTypes.streamClass, inferrer.libraryBuilder.nonNullable);
 
     if (!inferrer.typeSchemaEnvironment.isSubtypeOf(inferredType,
         _yieldElementContext, SubtypeCheckMode.withNullabilities)) {
@@ -1120,7 +1123,7 @@ class _AsyncStarClosureContext implements ClosureContext {
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
     }
 
-    return demoteTypeInLibrary(inferredType, inferrer.library.library);
+    return demoteTypeInLibrary(inferredType, inferrer.libraryBuilder.library);
   }
 
   @override

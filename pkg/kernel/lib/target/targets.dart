@@ -372,7 +372,8 @@ abstract class Target {
       (importer.isScheme("package") &&
           importer.path.startsWith("dart_internal/"));
 
-  /// Whether the `native` language extension is supported within [library].
+  /// Whether the `native` language extension is supported within the library
+  /// with the given import [uri].
   ///
   /// The `native` language extension is not part of the language specification,
   /// it means something else to each target, and it is enabled under different

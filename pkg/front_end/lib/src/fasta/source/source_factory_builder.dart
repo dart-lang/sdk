@@ -319,8 +319,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
     // Ensure that constant factories only have constant targets/bodies.
     if (isConst && !target.isConst) {
-      library.addProblem(messageConstFactoryRedirectionToNonConst, charOffset,
-          noLength, fileUri);
+      libraryBuilder.addProblem(messageConstFactoryRedirectionToNonConst,
+          charOffset, noLength, fileUri);
     }
 
     bodyInternal = new RedirectingFactoryBody(target, typeArguments, function);
@@ -334,7 +334,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         for (int i = 0; i < function.typeParameters.length; i++) {
           substitution[function.typeParameters[i]] =
               new TypeParameterType.withDefaultNullabilityForLibrary(
-                  actualOrigin!.function.typeParameters[i], library.library);
+                  actualOrigin!.function.typeParameters[i],
+                  libraryBuilder.library);
         }
         typeArguments = new List<DartType>.generate(typeArguments.length,
             (int i) => substitute(typeArguments[i], substitution),
@@ -355,8 +356,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   @override
-  Procedure build(SourceLibraryBuilder libraryBuilder) {
-    buildFunction(libraryBuilder);
+  Procedure build(SourceLibraryBuilder sourceLibraryBuilder) {
+    buildFunction(sourceLibraryBuilder);
     _procedureInternal.function.fileOffset = charOpenParenOffset;
     _procedureInternal.function.fileEndOffset =
         _procedureInternal.fileEndOffset;
@@ -368,14 +369,14 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (redirectionTarget.typeArguments != null) {
       typeArguments = new List<DartType>.generate(
           redirectionTarget.typeArguments!.length,
-          (int i) => redirectionTarget.typeArguments![i].build(library),
+          (int i) => redirectionTarget.typeArguments![i].build(libraryBuilder),
           growable: false);
     }
-    updatePrivateMemberName(_procedureInternal, libraryBuilder);
+    updatePrivateMemberName(_procedureInternal, sourceLibraryBuilder);
     if (_factoryTearOff != null) {
       _tearOffTypeParameters =
           buildRedirectingFactoryTearOffProcedureParameters(
-              _factoryTearOff!, _procedureInternal, libraryBuilder);
+              _factoryTearOff!, _procedureInternal, sourceLibraryBuilder);
     }
     return _procedureInternal;
   }
@@ -409,7 +410,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       Builder? targetBuilder = redirectionTarget.target;
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
-        targetBuilder.buildOutlineExpressions(targetBuilder.library,
+        targetBuilder.buildOutlineExpressions(targetBuilder.libraryBuilder,
             classHierarchy, delayedActionPerformers, synthesizedFunctionNodes);
       }
       if (targetBuilder is FunctionBuilder) {

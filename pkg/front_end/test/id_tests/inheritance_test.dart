@@ -212,7 +212,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       addSupertype(new Supertype(
           classHierarchyNode.classBuilder.cls,
           getAsTypeArguments(classHierarchyNode.classBuilder.cls.typeParameters,
-              classHierarchyNode.classBuilder.library.library)));
+              classHierarchyNode.classBuilder.libraryBuilder.library)));
       classHierarchyNode.superclasses.forEach(addSupertype);
       classHierarchyNode.interfaces.forEach(addSupertype);
       List<String> sorted = supertypes.toList()..sort();
