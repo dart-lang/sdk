@@ -58,8 +58,8 @@ general/constants/js_semantics/number_folds_opt_out: FormatterCrash
 general/constants/non_const_constructor: FormatterCrash
 general/constants/number_folds: FormatterCrash
 general/constants/number_folds_opt_out: FormatterCrash
-general/constants/various: FormatterCrash
 general/constants/various2: FormatterCrash
+general/constants/various: FormatterCrash
 general/constructor_initializer_invalid: FormatterCrash
 general/covariant_generic2: FormatterCrash
 general/duplicated_declarations: FormatterCrash
@@ -98,8 +98,8 @@ general/issue48487: FormatterCrash
 general/issue48487b: FormatterCrash
 general/issue_46886: FormatterCrash
 general/macro_class: FormatterCrash
-general/many_errors: FormatterCrash
 general/many_errors2: FormatterCrash
+general/many_errors: FormatterCrash
 general/missing_prefix_name: FormatterCrash
 general/mixin_inherited_setter_for_mixed_in_field2: FormatterCrash
 general/new_as_selector: FormatterCrash
@@ -216,6 +216,7 @@ regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
 super_parameters/issue47741: FormatterCrash
 super_parameters/issue47922: FormatterCrash
+super_parameters/var_before_super: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash
 variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash
