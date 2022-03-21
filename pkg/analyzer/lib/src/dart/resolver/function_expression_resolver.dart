@@ -39,7 +39,7 @@ class FunctionExpressionResolver {
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
       _resolver.flowAnalysis
-          .executableDeclaration_enter(node, node.parameters, true);
+          .executableDeclaration_enter(node, node.parameters, isClosure: true);
     }
 
     bool wasFunctionTypeSupplied = contextType is FunctionType;

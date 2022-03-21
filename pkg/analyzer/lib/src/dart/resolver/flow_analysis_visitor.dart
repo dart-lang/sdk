@@ -147,7 +147,8 @@ class FlowAnalysisHelper {
   }
 
   void executableDeclaration_enter(
-      AstNode node, FormalParameterList? parameters, bool isClosure) {
+      AstNode node, FormalParameterList? parameters,
+      {required bool isClosure}) {
     if (isClosure) {
       flow!.functionExpression_begin(node);
     }

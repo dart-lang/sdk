@@ -1221,7 +1221,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
-    flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
+    flowAnalysis.executableDeclaration_enter(node, node.parameters,
+        isClosure: false);
 
     var returnType = node.declaredElement!.type.returnType;
 
@@ -1610,7 +1611,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.executableDeclaration_enter(
       node,
       node.functionExpression.parameters,
-      isLocal,
+      isClosure: isLocal,
     );
 
     var functionType = node.declaredElement!.type;
@@ -1907,7 +1908,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
-    flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
+    flowAnalysis.executableDeclaration_enter(node, node.parameters,
+        isClosure: false);
 
     DartType returnType = node.declaredElement!.returnType;
 
