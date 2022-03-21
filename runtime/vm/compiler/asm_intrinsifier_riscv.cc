@@ -1135,13 +1135,14 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
 void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
                                          Label* normal_ir_body) {
   __ lx(A0, Address(SP, 0 * target::kWordSize));
-#if XLEN == 32
-  // Smi field.
-  __ lw(A0, FieldAddress(A0, target::String::hash_offset()));
-#else
+
+#if defined(HASH_IN_OBJECT_HEADER)
   // uint32_t field in header.
   __ lwu(A0, FieldAddress(A0, target::String::hash_offset()));
   __ SmiTag(A0);
+#else
+  // Smi field.
+  __ lx(A0, FieldAddress(A0, target::String::hash_offset()));
 #endif
   __ beqz(A0, normal_ir_body, Assembler::kNearJump);
   __ ret();
@@ -1394,11 +1395,13 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
                                                 Label* normal_ir_body) {
   Label compute_hash;
   __ lx(A1, Address(SP, 0 * target::kWordSize));  // OneByteString object.
-#if XLEN == 32
-  __ lw(A0, FieldAddress(A1, target::String::hash_offset()));
-#else
+#if defined(HASH_IN_OBJECT_HEADER)
+  // uint32_t field in header.
   __ lwu(A0, FieldAddress(A1, target::String::hash_offset()));
   __ SmiTag(A0);
+#else
+  // Smi field.
+  __ lx(A0, FieldAddress(A1, target::String::hash_offset()));
 #endif
   __ beqz(A0, &compute_hash);
   __ ret();  // Return if already computed.
@@ -1472,11 +1475,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ li(A0, 1);
   __ Bind(&done);
 
-#if XLEN == 32
-  __ SmiTag(A0);
-  __ sx(A0, FieldAddress(A1, target::String::hash_offset()));
-  __ ret();
-#else
+#if defined(HASH_IN_OBJECT_HEADER)
   // A1: Untagged address of header word (lr/sc do not support offsets).
   __ subi(A1, A1, kHeapObjectTag);
   __ slli(A0, A0, target::UntaggedObject::kHashTagPos);
@@ -1489,6 +1488,10 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 
   __ srli(A0, A0, target::UntaggedObject::kHashTagPos);
   __ SmiTag(A0);
+  __ ret();
+#else
+  __ SmiTag(A0);
+  __ sx(A0, FieldAddress(A1, target::String::hash_offset()));
   __ ret();
 #endif
 }
@@ -1568,6 +1571,11 @@ static void TryAllocateString(Assembler* assembler,
   // Set the length field using the saved length (T0).
   __ StoreIntoObjectNoBarrier(
       A0, FieldAddress(A0, target::String::length_offset()), T0);
+#if !defined(HASH_IN_OBJECT_HEADER)
+  // Clear hash.
+  __ StoreIntoObjectNoBarrier(
+      A0, FieldAddress(A0, target::String::hash_offset()), ZR);
+#endif
   __ j(ok);
 }
 
