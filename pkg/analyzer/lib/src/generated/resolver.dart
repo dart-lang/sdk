@@ -440,7 +440,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // TODO(scheglov) encapsulate
     var bodyContext = BodyInferenceContext.of(body);
     if (bodyContext == null) {
-      return null;
+      return;
     }
     var returnType = bodyContext.contextType;
     if (returnType == null) {

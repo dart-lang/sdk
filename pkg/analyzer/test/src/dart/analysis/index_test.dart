@@ -82,7 +82,7 @@ class C2 = Object with B;
     assertThat(classElementA)
       ..isAncestorOf('C1 = Object with A')
       ..isAncestorOf('C2 = Object with B');
-    assertThat(classElementB)..isAncestorOf('C2 = Object with B');
+    assertThat(classElementB).isAncestorOf('C2 = Object with B');
   }
 
   test_hasAncestor_MixinDeclaration() async {
@@ -328,7 +328,7 @@ main() {
 }
 ''');
     MethodElement element = findElement.method('foo');
-    assertThat(element)..isInvokedAt('foo();', true);
+    assertThat(element).isInvokedAt('foo();', true);
   }
 
   test_isInvokedBy_MethodElement_ofNamedExtension_static() async {
@@ -342,7 +342,7 @@ main() {
 }
 ''');
     MethodElement element = findElement.method('foo');
-    assertThat(element)..isInvokedAt('foo();', true);
+    assertThat(element).isInvokedAt('foo();', true);
   }
 
   test_isInvokedBy_MethodElement_ofUnnamedExtension_instance() async {
@@ -363,11 +363,11 @@ main() {
 
     var intMethod = findNode.methodDeclaration('foo() {} // int');
     assertThat(intMethod.declaredElement!)
-      ..isInvokedAt('foo(); // int ref', true);
+        .isInvokedAt('foo(); // int ref', true);
 
     var doubleMethod = findNode.methodDeclaration('foo() {} // double');
     assertThat(doubleMethod.declaredElement!)
-      ..isInvokedAt('foo(); // double ref', true);
+        .isInvokedAt('foo(); // double ref', true);
   }
 
   test_isInvokedBy_MethodElement_propagatedType() async {
@@ -636,7 +636,7 @@ class A<T> {}
 extension E on A<int> {}
 ''');
     ClassElement element = findElement.class_('A');
-    assertThat(element)..isReferencedAt('A<int>', false);
+    assertThat(element).isReferencedAt('A<int>', false);
   }
 
   test_isReferencedBy_ClassElement_implicitNew() async {
@@ -695,7 +695,7 @@ main() {
 }
 ''');
     ClassElement element = findElement.class_('A');
-    assertThat(element)..isReferencedAt('A>();', false);
+    assertThat(element).isReferencedAt('A>();', false);
   }
 
   test_isReferencedBy_ClassTypeAlias() async {
@@ -720,7 +720,7 @@ library lib;
 export 'lib.dart';
 ''');
     var element = findElement.export('package:test/lib.dart').exportedLibrary!;
-    assertThat(element)..isReferencedAt("'lib.dart'", true, length: 10);
+    assertThat(element).isReferencedAt("'lib.dart'", true, length: 10);
   }
 
   test_isReferencedBy_CompilationUnitElement_import() async {
@@ -731,7 +731,7 @@ library lib;
 import 'lib.dart';
 ''');
     var element = findElement.import('package:test/lib.dart').importedLibrary!;
-    assertThat(element)..isReferencedAt("'lib.dart'", true, length: 10);
+    assertThat(element).isReferencedAt("'lib.dart'", true, length: 10);
   }
 
   test_isReferencedBy_CompilationUnitElement_part() async {
@@ -741,7 +741,7 @@ library my_lib;
 part 'my_unit.dart';
 ''');
     var element = findElement.part('my_unit.dart');
-    assertThat(element)..isReferencedAt("'my_unit.dart';", true, length: 14);
+    assertThat(element).isReferencedAt("'my_unit.dart';", true, length: 14);
   }
 
   test_isReferencedBy_CompilationUnitElement_part_inPart() async {
@@ -1025,7 +1025,7 @@ main() {
 }
 ''');
     ExtensionElement element = findElement.extension_('E');
-    assertThat(element)..isReferencedAt('E(0).foo()', false);
+    assertThat(element).isReferencedAt('E(0).foo()', false);
   }
 
   test_isReferencedBy_FieldElement_class() async {
@@ -1048,14 +1048,14 @@ main(A a) {
     PropertyAccessorElement getter = field.getter!;
     PropertyAccessorElement setter = field.setter!;
     // A()
-    assertThat(field)..isWrittenAt('field});', true);
+    assertThat(field).isWrittenAt('field});', true);
     // m()
-    assertThat(setter)..isReferencedAt('field = 2; // nq', false);
-    assertThat(getter)..isReferencedAt('field); // nq', false);
+    assertThat(setter).isReferencedAt('field = 2; // nq', false);
+    assertThat(getter).isReferencedAt('field); // nq', false);
     // main()
-    assertThat(setter)..isReferencedAt('field = 3; // q', true);
-    assertThat(getter)..isReferencedAt('field); // q', true);
-    assertThat(field)..isReferencedAt('field: 4', true);
+    assertThat(setter).isReferencedAt('field = 3; // q', true);
+    assertThat(getter).isReferencedAt('field); // q', true);
+    assertThat(field).isReferencedAt('field: 4', true);
   }
 
   test_isReferencedBy_FieldElement_class_multiple() async {
@@ -1077,18 +1077,18 @@ class A {
       FieldElement field = findElement.field('aaa');
       PropertyAccessorElement getter = field.getter!;
       PropertyAccessorElement setter = field.setter!;
-      assertThat(field)..isWrittenAt('aaa, ', true);
-      assertThat(getter)..isReferencedAt('aaa);', false);
-      assertThat(setter)..isReferencedAt('aaa = 1;', false);
+      assertThat(field).isWrittenAt('aaa, ', true);
+      assertThat(getter).isReferencedAt('aaa);', false);
+      assertThat(setter).isReferencedAt('aaa = 1;', false);
     }
     // bbb
     {
       FieldElement field = findElement.field('bbb');
       PropertyAccessorElement getter = field.getter!;
       PropertyAccessorElement setter = field.setter!;
-      assertThat(field)..isWrittenAt('bbb) {}', true);
-      assertThat(getter)..isReferencedAt('bbb);', false);
-      assertThat(setter)..isReferencedAt('bbb = 2;', false);
+      assertThat(field).isWrittenAt('bbb) {}', true);
+      assertThat(getter).isReferencedAt('bbb);', false);
+      assertThat(setter).isReferencedAt('bbb = 2;', false);
     }
   }
 
@@ -1147,14 +1147,14 @@ void f(E e) {
     PropertyAccessorElement getter = field.getter!;
     PropertyAccessorElement setter = field.setter!;
     // E()
-    assertThat(field)..isWrittenAt('field});', true);
+    assertThat(field).isWrittenAt('field});', true);
     // foo()
-    assertThat(setter)..isReferencedAt('field = 2; // nq', false);
-    assertThat(getter)..isReferencedAt('field; // nq', false);
+    assertThat(setter).isReferencedAt('field = 2; // nq', false);
+    assertThat(getter).isReferencedAt('field; // nq', false);
     // f()
-    assertThat(setter)..isReferencedAt('field = 3; // q', true);
-    assertThat(getter)..isReferencedAt('field; // q', true);
-    assertThat(field)..isReferencedAt('field: 4', true);
+    assertThat(setter).isReferencedAt('field = 3; // q', true);
+    assertThat(getter).isReferencedAt('field; // q', true);
+    assertThat(field).isReferencedAt('field: 4', true);
   }
 
   test_isReferencedBy_FieldElement_enum_index() async {
@@ -1171,11 +1171,11 @@ main() {
 ''');
     ClassElement enumElement = findElement.enum_('MyEnum');
     assertThat(enumElement.getGetter('values')!)
-      ..isReferencedAt('values);', true);
+        .isReferencedAt('values);', true);
     assertThat(typeProvider.enumElement!.getGetter('index')!)
-      ..isReferencedAt('index);', true);
-    assertThat(enumElement.getGetter('A')!)..isReferencedAt('A);', true);
-    assertThat(enumElement.getGetter('B')!)..isReferencedAt('B);', true);
+        .isReferencedAt('index);', true);
+    assertThat(enumElement.getGetter('A')!).isReferencedAt('A);', true);
+    assertThat(enumElement.getGetter('B')!).isReferencedAt('B);', true);
   }
 
   test_isReferencedBy_FieldElement_enum_synthetic_hasGetter() async {
@@ -1239,10 +1239,10 @@ main() {
 
     var importFind = findElement.importFind('package:test/foo.dart');
     assertThat(importFind.importedLibrary)
-      ..isReferencedAt('"foo.dart";', true, length: 10);
+        .isReferencedAt('"foo.dart";', true, length: 10);
 
     FunctionElement bar = importFind.topFunction('bar');
-    assertThat(bar)..isInvokedAt('bar();', false);
+    assertThat(bar).isInvokedAt('bar();', false);
   }
 
   test_isReferencedBy_FunctionTypeAliasElement() async {
@@ -1252,7 +1252,7 @@ main(A p) {
 }
 ''');
     Element element = findElement.typeAlias('A');
-    assertThat(element)..isReferencedAt('A p) {', false);
+    assertThat(element).isReferencedAt('A p) {', false);
   }
 
   /// There was a bug in the AST structure, when single [Comment] was cloned and
@@ -1267,7 +1267,7 @@ class A {}
 var myVariable = null;
 ''');
     Element element = findElement.class_('A');
-    assertThat(element)..isReferencedAt('A] text', false);
+    assertThat(element).isReferencedAt('A] text', false);
   }
 
   test_isReferencedBy_MethodElement_class() async {
@@ -1330,7 +1330,7 @@ main() {
 }
 ''');
     Element element = findElement.parameter('p');
-    assertThat(element)..isReferencedAt('p: 1', true);
+    assertThat(element).isReferencedAt('p: 1', true);
   }
 
   test_isReferencedBy_ParameterElement_genericFunctionType() async {
@@ -1384,7 +1384,7 @@ class B extends A {
 }
 ''');
     var element = findElement.unnamedConstructor('A').parameter('a');
-    assertThat(element)..isReferencedAt('a}); // ref', true);
+    assertThat(element).isReferencedAt('a}); // ref', true);
   }
 
   test_isReferencedBy_ParameterElement_ofConstructor_super_positional() async {
@@ -1397,7 +1397,7 @@ class B extends A {
 }
 ''');
     var element = findElement.unnamedConstructor('A').parameter('a');
-    assertThat(element)..isReferencedAt('a); // ref', true);
+    assertThat(element).isReferencedAt('a); // ref', true);
   }
 
   test_isReferencedBy_ParameterElement_optionalNamed_ofConstructor_genericClass() async {
@@ -1411,7 +1411,7 @@ main() {
 }
 ''');
     Element element = findElement.parameter('test');
-    assertThat(element)..isReferencedAt('test: 0', true);
+    assertThat(element).isReferencedAt('test: 0', true);
   }
 
   test_isReferencedBy_ParameterElement_optionalNamed_ofMethod_genericClass() async {
@@ -1425,7 +1425,7 @@ main(A<int> a) {
 }
 ''');
     Element element = findElement.parameter('test');
-    assertThat(element)..isReferencedAt('test: 0', true);
+    assertThat(element).isReferencedAt('test: 0', true);
   }
 
   test_isReferencedBy_ParameterElement_optionalNamed_ofTopFunction() async {
@@ -1437,7 +1437,7 @@ void() {
 }
 ''');
     Element element = findElement.parameter('test');
-    assertThat(element)..isReferencedAt('test: 0', true);
+    assertThat(element).isReferencedAt('test: 0', true);
   }
 
   test_isReferencedBy_ParameterElement_optionalNamed_ofTopFunction_anywhere() async {
@@ -1449,7 +1449,7 @@ void() {
 }
 ''');
     Element element = findElement.parameter('test');
-    assertThat(element)..isReferencedAt('test: 0', true);
+    assertThat(element).isReferencedAt('test: 0', true);
   }
 
   test_isReferencedBy_ParameterElement_optionalPositional() async {
@@ -1476,7 +1476,7 @@ void() {
 }
 ''');
     Element element = findElement.parameter('test');
-    assertThat(element)..isReferencedAt('test: 0', true);
+    assertThat(element).isReferencedAt('test: 0', true);
   }
 
   test_isReferencedBy_PropertyAccessor_ofNamedExtension_instance() async {
@@ -1493,8 +1493,8 @@ main() {
 ''');
     PropertyAccessorElement getter = findElement.getter('foo');
     PropertyAccessorElement setter = findElement.setter('foo');
-    assertThat(getter)..isReferencedAt('foo;', true);
-    assertThat(setter)..isReferencedAt('foo = 0;', true);
+    assertThat(getter).isReferencedAt('foo;', true);
+    assertThat(setter).isReferencedAt('foo = 0;', true);
   }
 
   test_isReferencedBy_PropertyAccessor_ofNamedExtension_static() async {
@@ -1511,8 +1511,8 @@ main() {
 ''');
     PropertyAccessorElement getter = findElement.getter('foo');
     PropertyAccessorElement setter = findElement.setter('foo');
-    assertThat(getter)..isReferencedAt('foo;', true);
-    assertThat(setter)..isReferencedAt('foo = 0;', true);
+    assertThat(getter).isReferencedAt('foo;', true);
+    assertThat(setter).isReferencedAt('foo = 0;', true);
   }
 
   test_isReferencedBy_PropertyAccessor_ofUnnamedExtension_instance() async {
@@ -1538,16 +1538,16 @@ main() {
     var intGetter = findNode.methodDeclaration('0; // int getter');
     var intSetter = findNode.methodDeclaration('{} // int setter');
     assertThat(intGetter.declaredElement!)
-      ..isReferencedAt('foo; // int getter ref', true);
+        .isReferencedAt('foo; // int getter ref', true);
     assertThat(intSetter.declaredElement!)
-      ..isReferencedAt('foo = 0; // int setter ref', true);
+        .isReferencedAt('foo = 0; // int setter ref', true);
 
     var doubleGetter = findNode.methodDeclaration('0; // double getter');
     var doubleSetter = findNode.methodDeclaration('{} // double setter');
     assertThat(doubleGetter.declaredElement!)
-      ..isReferencedAt('foo; // double getter ref', true);
+        .isReferencedAt('foo; // double getter ref', true);
     assertThat(doubleSetter.declaredElement!)
-      ..isReferencedAt('foo = 0; // double setter ref', true);
+        .isReferencedAt('foo = 0; // double setter ref', true);
   }
 
   test_isReferencedBy_synthetic_leastUpperBound() async {
@@ -1577,7 +1577,7 @@ main() {
   print(V); // nq
 }''');
     TopLevelVariableElement variable = importFindLib().topVar('V');
-    assertThat(variable)..isReferencedAt('V; // imp', true);
+    assertThat(variable).isReferencedAt('V; // imp', true);
     assertThat(variable.getter!)
       ..isReferencedAt('V); // q', true)
       ..isReferencedAt('V); // nq', false);

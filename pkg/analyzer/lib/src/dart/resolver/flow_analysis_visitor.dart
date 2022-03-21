@@ -106,7 +106,7 @@ class FlowAnalysisHelper {
   }
 
   void assignmentExpression(AssignmentExpression node) {
-    if (flow == null) return null;
+    if (flow == null) return;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
       flow!.ifNullExpression_rightBegin(node.leftHandSide, node.readType!);
@@ -114,7 +114,7 @@ class FlowAnalysisHelper {
   }
 
   void assignmentExpression_afterRight(AssignmentExpression node) {
-    if (flow == null) return null;
+    if (flow == null) return;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
       flow!.ifNullExpression_end();

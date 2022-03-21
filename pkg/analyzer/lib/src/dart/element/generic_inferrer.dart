@@ -125,7 +125,7 @@ class GenericInferrer {
       genericClass: genericClass,
       isNonNullableByDefault: isNonNullableByDefault,
     );
-    tryMatchSubtypeOf(argumentType, parameterType, origin, covariant: false);
+    _tryMatchSubtypeOf(argumentType, parameterType, origin, covariant: false);
   }
 
   /// Applies all the argument constraints implied by [parameters] and
@@ -164,7 +164,7 @@ class GenericInferrer {
       returnType: fnType.returnType,
       nullabilitySuffix: fnType.nullabilitySuffix,
     );
-    tryMatchSubtypeOf(inferFnType, contextType, origin, covariant: true);
+    _tryMatchSubtypeOf(inferFnType, contextType, origin, covariant: true);
   }
 
   /// Apply a return type constraint, which asserts that the [declaredType]
@@ -175,38 +175,12 @@ class GenericInferrer {
       contextType,
       isNonNullableByDefault: isNonNullableByDefault,
     );
-    tryMatchSubtypeOf(declaredType, contextType, origin, covariant: true);
+    _tryMatchSubtypeOf(declaredType, contextType, origin, covariant: true);
   }
 
   /// Performs downwards inference, producing a set of inferred types that may
   /// contain references to the "unknown type".
   List<DartType> downwardsInfer() => _chooseTypes(downwardsInferPhase: true);
-
-  /// Tries to make [i1] a subtype of [i2] and accumulate constraints as needed.
-  ///
-  /// The return value indicates whether the match was successful.  If it was
-  /// unsuccessful, any constraints that were accumulated during the match
-  /// attempt have been rewound (see [_rewindConstraints]).
-  bool tryMatchSubtypeOf(DartType t1, DartType t2, _TypeConstraintOrigin origin,
-      {required bool covariant}) {
-    var gatherer = TypeConstraintGatherer(
-        typeSystem: _typeSystem, typeParameters: _typeParameters);
-    var success = gatherer.trySubtypeMatch(t1, t2, !covariant);
-    if (success) {
-      var constraints = gatherer.computeConstraints();
-      for (var entry in constraints.entries) {
-        if (!entry.value.isEmpty && !_fixedTypeParameters.contains(entry.key)) {
-          var constraint = _constraints[entry.key]!;
-          constraint.add(
-            _TypeConstraint(origin, entry.key,
-                lower: entry.value.lower, upper: entry.value.upper),
-          );
-        }
-      }
-    }
-
-    return success;
-  }
 
   /// Same as [upwardsInfer], but if [failAtError] is `true` (the default) and
   /// inference fails, returns `null` rather than trying to perform error
@@ -653,6 +627,33 @@ class GenericInferrer {
   DartType _toLegacyElementIfOptOut(DartType type) {
     if (isNonNullableByDefault) return type;
     return NullabilityEliminator.perform(typeProvider, type);
+  }
+
+  /// Tries to make [i1] a subtype of [i2] and accumulate constraints as needed.
+  ///
+  /// The return value indicates whether the match was successful.  If it was
+  /// unsuccessful, any constraints that were accumulated during the match
+  /// attempt have been rewound (see [_rewindConstraints]).
+  bool _tryMatchSubtypeOf(
+      DartType t1, DartType t2, _TypeConstraintOrigin origin,
+      {required bool covariant}) {
+    var gatherer = TypeConstraintGatherer(
+        typeSystem: _typeSystem, typeParameters: _typeParameters);
+    var success = gatherer.trySubtypeMatch(t1, t2, !covariant);
+    if (success) {
+      var constraints = gatherer.computeConstraints();
+      for (var entry in constraints.entries) {
+        if (!entry.value.isEmpty && !_fixedTypeParameters.contains(entry.key)) {
+          var constraint = _constraints[entry.key]!;
+          constraint.add(
+            _TypeConstraint(origin, entry.key,
+                lower: entry.value.lower, upper: entry.value.upper),
+          );
+        }
+      }
+    }
+
+    return success;
   }
 
   String _typeStr(DartType type) {

@@ -57,12 +57,11 @@ MicroContextObjects createMicroContextObjects({
   analysisContext2.currentSession = analysisSession;
   analysisSession.analysisContext = analysisContext2;
 
-  return MicroContextObjects(
+  return MicroContextObjects._(
     declaredVariables: declaredVariables,
     synchronousSession: synchronousSession,
     analysisSession: analysisSession,
     analysisContext: analysisContext,
-    analysisContext2: analysisContext2,
   );
 }
 
@@ -71,14 +70,12 @@ class MicroContextObjects {
   final SynchronousSession synchronousSession;
   final _MicroAnalysisSessionImpl analysisSession;
   final AnalysisContextImpl analysisContext;
-  final _MicroAnalysisContextImpl analysisContext2;
 
-  MicroContextObjects({
+  MicroContextObjects._({
     required this.declaredVariables,
     required this.synchronousSession,
     required this.analysisSession,
     required this.analysisContext,
-    required this.analysisContext2,
   });
 
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {

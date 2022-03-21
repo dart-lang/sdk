@@ -512,7 +512,7 @@ class TestSource extends Source {
   }
 
   @override
-  String toString() => '$_name';
+  String toString() => _name;
 }
 
 class TestSourceWithUri extends TestSource {

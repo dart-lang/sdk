@@ -227,7 +227,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       MethodInvocation invocation = parent;
       if (identical(invocation.methodName, node)) {
         var target = invocation.realTarget;
-        var targetType = target == null ? null : target.staticType;
+        var targetType = target?.staticType;
         if (targetType == null || targetType.isDynamic) {
           return;
         }

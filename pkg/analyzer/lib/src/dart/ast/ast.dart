@@ -4817,10 +4817,10 @@ class FormalParameterListImpl extends AstNodeImpl
     for (int i = 0; i < length; i++) {
       FormalParameter parameter = _parameters[i];
       if (leftDelimiterNeeded && leftDelimiter!.offset < parameter.offset) {
-        result..addToken('leftDelimiter', leftDelimiter);
+        result.addToken('leftDelimiter', leftDelimiter);
         leftDelimiterNeeded = false;
       }
-      result..addNode('parameter', parameter);
+      result.addNode('parameter', parameter);
     }
     return result
       ..addToken('rightDelimiter', rightDelimiter)

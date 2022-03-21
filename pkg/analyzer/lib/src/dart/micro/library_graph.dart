@@ -87,7 +87,7 @@ class FileState {
   /// Files that reference this file.
   final List<FileState> referencingFiles = [];
 
-  _FileStateFiles? _files;
+  FileStateFiles? _files;
 
   LibraryCycle? _libraryCycle;
 
@@ -154,10 +154,10 @@ class FileState {
     }
   }
 
-  _FileStateFiles files({
+  FileStateFiles files({
     OperationPerformanceImpl? performance,
   }) {
-    return _files ??= _FileStateFiles(
+    return _files ??= FileStateFiles(
       owner: this,
       performance: performance ?? OperationPerformanceImpl('<root>'),
     );
@@ -191,6 +191,68 @@ class FileState {
   @override
   String toString() {
     return path;
+  }
+}
+
+class FileStateFiles {
+  final List<FileState> imported = [];
+  final List<FileState> exported = [];
+  final List<FileState> parted = [];
+  final List<FileState> ofLibrary = [];
+
+  FileStateFiles({
+    required FileState owner,
+    required OperationPerformanceImpl performance,
+  }) {
+    var unlinked = owner._unlinked;
+    var location = unlinked.location;
+    var unlinkedUnit = unlinked.unlinked.unit;
+
+    // Build the graph.
+    for (var directive in unlinkedUnit.imports) {
+      var file = location._fileForRelativeUri(
+        relativeUri: directive.uri,
+        performance: performance,
+      );
+      if (file != null) {
+        file.referencingFiles.add(owner);
+        imported.add(file);
+      }
+    }
+    for (var directive in unlinkedUnit.exports) {
+      var file = location._fileForRelativeUri(
+        relativeUri: directive.uri,
+        performance: performance,
+      );
+      if (file != null) {
+        exported.add(file);
+        file.referencingFiles.add(owner);
+      }
+    }
+    for (var uri in unlinkedUnit.parts) {
+      var file = location._fileForRelativeUri(
+        containingLibrary: owner,
+        relativeUri: uri,
+        performance: performance,
+      );
+      if (file != null) {
+        parted.add(file);
+        file.referencingFiles.add(owner);
+      }
+    }
+
+    ofLibrary.add(owner);
+    ofLibrary.addAll(parted);
+  }
+
+  /// Return all directly referenced files - imported, exported or parted.
+  Set<FileState> get directReferencedFiles {
+    return <FileState>{...imported, ...exported, ...parted};
+  }
+
+  /// Return all directly referenced libraries - imported or exported.
+  Set<FileState> get directReferencedLibraries {
+    return <FileState>{...imported, ...exported};
   }
 }
 
@@ -512,68 +574,6 @@ class _ContentWithDigest {
     required this.content,
     required this.digest,
   });
-}
-
-class _FileStateFiles {
-  final List<FileState> imported = [];
-  final List<FileState> exported = [];
-  final List<FileState> parted = [];
-  final List<FileState> ofLibrary = [];
-
-  _FileStateFiles({
-    required FileState owner,
-    required OperationPerformanceImpl performance,
-  }) {
-    var unlinked = owner._unlinked;
-    var location = unlinked.location;
-    var unlinkedUnit = unlinked.unlinked.unit;
-
-    // Build the graph.
-    for (var directive in unlinkedUnit.imports) {
-      var file = location._fileForRelativeUri(
-        relativeUri: directive.uri,
-        performance: performance,
-      );
-      if (file != null) {
-        file.referencingFiles.add(owner);
-        imported.add(file);
-      }
-    }
-    for (var directive in unlinkedUnit.exports) {
-      var file = location._fileForRelativeUri(
-        relativeUri: directive.uri,
-        performance: performance,
-      );
-      if (file != null) {
-        exported.add(file);
-        file.referencingFiles.add(owner);
-      }
-    }
-    for (var uri in unlinkedUnit.parts) {
-      var file = location._fileForRelativeUri(
-        containingLibrary: owner,
-        relativeUri: uri,
-        performance: performance,
-      );
-      if (file != null) {
-        parted.add(file);
-        file.referencingFiles.add(owner);
-      }
-    }
-
-    ofLibrary.add(owner);
-    ofLibrary.addAll(parted);
-  }
-
-  /// Return all directly referenced files - imported, exported or parted.
-  Set<FileState> get directReferencedFiles {
-    return <FileState>{...imported, ...exported, ...parted};
-  }
-
-  /// Return all directly referenced libraries - imported or exported.
-  Set<FileState> get directReferencedLibraries {
-    return <FileState>{...imported, ...exported};
-  }
 }
 
 class _FileStateLocation {
