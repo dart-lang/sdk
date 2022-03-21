@@ -1,3 +1,10 @@
+# 1.21.2
+
+- several `use_super_parameters` false positive fixes
+- updated `depend_on_referenced_packages` to treat
+  `flutter_gen` as a virtual package, not needing an
+  explicit dependency
+
 # 1.21.1
 
 - bumped language lower-bound constraint to `2.15.0`
