@@ -66,13 +66,16 @@ class ConditionScope {
       environment.whereType<_UndefinedExpression>();
 
   void _recursiveGetExpressions(
-      List<Expression?> expressions, Iterable<Element?> elements, bool? value) {
+      List<Expression> expressions, Iterable<Element?> elements, bool? value) {
     for (var element in environment.reversed) {
       if (element.haveToStop(elements)) {
         return;
       }
       if (element is _ConditionExpression && element.value == value) {
-        expressions.add(element.expression);
+        var expression = element.expression;
+        if (expression != null) {
+          expressions.add(expression);
+        }
       }
     }
     outer?._recursiveGetExpressions(expressions, elements, value);
@@ -402,8 +405,8 @@ abstract class ExpressionBox {
 }
 
 class _ConditionExpression extends ExpressionBox {
-  Expression? expression;
-  bool value;
+  final Expression? expression;
+  final bool value;
 
   _ConditionExpression(this.expression, {this.value = true});
 
@@ -423,7 +426,7 @@ class _UndefinedAllExpression extends ExpressionBox {
 }
 
 class _UndefinedExpression extends ExpressionBox {
-  Element element;
+  final Element element;
 
   _UndefinedExpression._internal(this.element);
 
