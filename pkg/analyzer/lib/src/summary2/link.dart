@@ -74,6 +74,11 @@ class Linker {
 
   Reference get rootReference => elementFactory.rootReference;
 
+  bool get _isLinkingDartCore {
+    var dartCoreUri = Uri.parse('dart:core');
+    return builders.containsKey(dartCoreUri);
+  }
+
   /// If the [element] is part of a library being linked, return the node
   /// from which it was created.
   ast.AstNode? getLinkingNode(Element element) {
@@ -99,6 +104,7 @@ class Linker {
   }
 
   void _buildOutlines() {
+    _createTypeSystemIfNotLinkingDartCore();
     _computeLibraryScopes();
     _createTypeSystem();
     _resolveTypes();
@@ -179,6 +185,15 @@ class Linker {
     elementFactory.createTypeProviders(coreLib, asyncLib);
 
     inheritance = InheritanceManager3();
+  }
+
+  /// To resolve macro annotations we need to access exported namespaces of
+  /// imported (and already linked) libraries. While computing it we might
+  /// need `Null` from `dart:core` (to convert null safe types to legacy).
+  void _createTypeSystemIfNotLinkingDartCore() {
+    if (!_isLinkingDartCore) {
+      _createTypeSystem();
+    }
   }
 
   void _detachNodes() {
