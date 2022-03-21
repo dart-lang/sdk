@@ -11,6 +11,7 @@ cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981
 cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
+dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/boxmint_test: Pass, Slow # Uses slow path
 dart/byte_array_optimized_test: Pass, Slow
 dart/data_uri_import_test/none: SkipByDesign
@@ -25,6 +26,7 @@ dart/print_object_layout_test: Pass, Slow # Spawns several subprocesses
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
+dart_2/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart_2/boxmint_test: Pass, Slow # Uses slow path
 dart_2/byte_array_optimized_test: Pass, Slow
 dart_2/data_uri_import_test/none: SkipByDesign

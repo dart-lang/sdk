@@ -163,12 +163,14 @@ main() async {
     //   extra information that needs stripping), so no need to specify
     //   stripUtil for useAsm tests.
 
-    // Test unstripped ELF generation directly.
-    await testAOT(aotDillPath);
-    await testAOT(aotDillPath, forceDrops: true);
+    await Future.wait([
+      // Test unstripped ELF generation directly.
+      testAOT(aotDillPath),
+      testAOT(aotDillPath, forceDrops: true),
 
-    // Test flag-stripped ELF generation.
-    await testAOT(aotDillPath, stripFlag: true);
+      // Test flag-stripped ELF generation.
+      testAOT(aotDillPath, stripFlag: true),
+    ]);
 
     // Since we can't force disassembler support after the fact when running
     // in PRODUCT mode, skip any --disassemble tests. Do these tests last as
@@ -200,10 +202,12 @@ main() async {
       printSkip('assembly tests');
       return;
     }
-    // Test unstripped assembly generation that is then externally stripped.
-    await testAOT(aotDillPath, useAsm: true);
-    // Test stripped assembly generation that is then externally stripped.
-    await testAOT(aotDillPath, useAsm: true, stripFlag: true);
+    await Future.wait([
+      // Test unstripped assembly generation that is then externally stripped.
+      testAOT(aotDillPath, useAsm: true),
+      // Test stripped assembly generation that is then externally stripped.
+      testAOT(aotDillPath, useAsm: true, stripFlag: true),
+    ]);
   });
 }
 
