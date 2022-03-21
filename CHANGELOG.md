@@ -27,6 +27,12 @@
   `Element.scrollIntoViewIfNeeded` should use the new `scrollIntoViewIfNeeded`
   definition instead.
 
+- Change `Performance.mark` and `Performance.measure` to accept their different
+  overloads. `mark` can now accept a `markOptions` map, and `measure` can now
+  accept a `startMark` and `endMark`, or a `measureOptions` map. Both methods
+  return their correct return types now as well - `PerformanceEntry` and
+  `PerformanceMeasure?`, respectively.
+
 #### `dart:indexed_db`
 
 - `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
