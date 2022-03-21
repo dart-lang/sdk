@@ -1189,8 +1189,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  bool operator ==(Object object) =>
-      object is CompilationUnitElementImpl && source == object.source;
+  bool operator ==(Object other) =>
+      other is CompilationUnitElementImpl && source == other.source;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
@@ -2416,13 +2416,11 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  bool operator ==(Object object) {
-    if (identical(this, object)) {
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
       return true;
     }
-    return object is Element &&
-        object.kind == kind &&
-        object.location == location;
+    return other is Element && other.kind == kind && other.location == location;
   }
 
   /// Append a textual representation of this element to the given [builder].
@@ -2622,12 +2620,12 @@ class ElementLocationImpl implements ElementLocation {
   int get hashCode => Object.hashAll(_components);
 
   @override
-  bool operator ==(Object object) {
-    if (identical(this, object)) {
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
       return true;
     }
-    if (object is ElementLocationImpl) {
-      List<String> otherComponents = object._components;
+    if (other is ElementLocationImpl) {
+      List<String> otherComponents = other._components;
       int length = _components.length;
       if (otherComponents.length != length) {
         return false;

@@ -15,10 +15,10 @@ class CharacterLocation {
   CharacterLocation(this.lineNumber, this.columnNumber);
 
   @override
-  bool operator ==(Object object) =>
-      object is CharacterLocation &&
-      lineNumber == object.lineNumber &&
-      columnNumber == object.columnNumber;
+  bool operator ==(Object other) =>
+      other is CharacterLocation &&
+      lineNumber == other.lineNumber &&
+      columnNumber == other.columnNumber;
 
   @override
   String toString() => '$lineNumber:$columnNumber';

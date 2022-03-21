@@ -51,11 +51,11 @@ class CiderSearchMatch {
   CiderSearchMatch(this.path, this.startPositions);
 
   @override
-  bool operator ==(Object object) =>
-      object is CiderSearchMatch &&
-      path == object.path &&
+  bool operator ==(Object other) =>
+      other is CiderSearchMatch &&
+      path == other.path &&
       const ListEquality<CharacterLocation?>()
-          .equals(startPositions, object.startPositions);
+          .equals(startPositions, other.startPositions);
 
   @override
   String toString() {

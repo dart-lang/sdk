@@ -627,9 +627,9 @@ abstract class TableReader<T> extends Reader<T> {
   T createObject(BufferContext bc, int offset);
 
   @override
-  T read(BufferContext bp, int offset) {
-    int objectOffset = bp.derefObject(offset);
-    return createObject(bp, objectOffset);
+  T read(BufferContext bc, int offset) {
+    int objectOffset = bc.derefObject(offset);
+    return createObject(bc, objectOffset);
   }
 }
 

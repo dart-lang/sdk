@@ -99,11 +99,11 @@ class FileSource extends Source {
   UriKind get uriKind => UriKind.fromScheme(uri.scheme);
 
   @override
-  bool operator ==(Object object) {
-    if (object is FileSource) {
-      return id == object.id;
-    } else if (object is Source) {
-      return uri == object.uri;
+  bool operator ==(Object other) {
+    if (other is FileSource) {
+      return id == other.id;
+    } else if (other is Source) {
+      return uri == other.uri;
     }
     return false;
   }
