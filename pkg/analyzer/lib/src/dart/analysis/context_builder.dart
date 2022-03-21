@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -61,7 +60,6 @@ class ContextBuilderImpl implements ContextBuilder {
     void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
     FileContentCache? fileContentCache,
     MacroKernelBuilder? macroKernelBuilder,
-    macro.MacroExecutor? macroExecutor,
   }) {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
@@ -120,7 +118,6 @@ class ContextBuilderImpl implements ContextBuilder {
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,
       macroKernelBuilder: macroKernelBuilder,
-      macroExecutor: macroExecutor,
     );
 
     if (declaredVariables != null) {

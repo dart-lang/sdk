@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -127,9 +126,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   SourceFactory _sourceFactory;
 
   final MacroKernelBuilder? macroKernelBuilder;
-
-  /// The instance of macro executor that is used for all macros.
-  final macro.MacroExecutor? macroExecutor;
 
   /// The declared environment variables.
   DeclaredVariables declaredVariables = DeclaredVariables();
@@ -265,7 +261,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     required AnalysisOptionsImpl analysisOptions,
     required Packages packages,
     this.macroKernelBuilder,
-    this.macroExecutor,
     FileContentCache? fileContentCache,
     this.enableIndex = false,
     SummaryDataStore? externalSummaries,
@@ -331,7 +326,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,
       macroKernelBuilder: macroKernelBuilder,
-      macroExecutor: macroExecutor,
       externalSummaries: _externalSummaries,
       fileSystemState: _fsState,
     );
@@ -542,7 +536,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// periodically.
   @visibleForTesting
   void clearLibraryContext() {
-    _libraryContext?.dispose();
     _libraryContext = null;
   }
 
@@ -596,7 +589,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   @override
   void dispose() {
     _scheduler.remove(this);
-    clearLibraryContext();
   }
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given

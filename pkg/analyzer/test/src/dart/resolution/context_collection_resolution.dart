@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -142,8 +141,6 @@ abstract class ContextResolutionTest
     _declaredVariables = map;
   }
 
-  macro.MacroExecutor? get macroExecutor => null;
-
   MacroKernelBuilder? get macroKernelBuilder => null;
 
   bool get retainDataForTesting => false;
@@ -180,9 +177,7 @@ abstract class ContextResolutionTest
   }
 
   void disposeAnalysisContextCollection() {
-    final analysisContextCollection = _analysisContextCollection;
-    if (analysisContextCollection != null) {
-      analysisContextCollection.dispose();
+    if (_analysisContextCollection != null) {
       _analysisContextCollection = null;
     }
   }
@@ -221,10 +216,6 @@ abstract class ContextResolutionTest
     );
   }
 
-  Future<void> tearDown() async {
-    disposeAnalysisContextCollection();
-  }
-
   /// Override this method to update [analysisOptions] for every context root,
   /// the default or already updated with `analysis_options.yaml` file.
   void updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {}
@@ -260,7 +251,6 @@ abstract class ContextResolutionTest
       sdkPath: sdkRoot.path,
       updateAnalysisOptions: updateAnalysisOptions,
       macroKernelBuilder: macroKernelBuilder,
-      macroExecutor: macroExecutor,
     );
 
     verifyCreatedCollection();
