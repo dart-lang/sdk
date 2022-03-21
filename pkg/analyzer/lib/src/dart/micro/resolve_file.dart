@@ -887,6 +887,8 @@ class _LibraryContext {
         }
         inputsTimer.stop();
 
+        // TODO(scheglov) Migrate when we are ready to switch to async.
+        // ignore: deprecated_member_use_from_same_package
         var linkResult = link2.link(elementFactory, inputLibraries);
         librariesLinked += cycle.libraries.length;
 
