@@ -162,8 +162,8 @@ class KernelTarget extends TargetImplementation {
   final bool errorOnUnevaluatedConstant =
       CompilerContext.current.options.errorOnUnevaluatedConstant;
 
-  final List<SynthesizedFunctionNode> synthesizedFunctionNodes =
-      <SynthesizedFunctionNode>[];
+  final List<DelayedDefaultValueCloner> _delayedDefaultValueCloners =
+      <DelayedDefaultValueCloner>[];
 
   final UriTranslator uriTranslator;
 
@@ -588,7 +588,7 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
       loader.buildOutlineExpressions(
-          loader.hierarchy, synthesizedFunctionNodes);
+          loader.hierarchy, _delayedDefaultValueCloners);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkTypes);
       loader.checkTypes();
@@ -1085,8 +1085,8 @@ class KernelTarget extends TargetImplementation {
         returnType: makeConstructorReturnType(cls));
     SuperInitializer initializer = new SuperInitializer(
         superConstructor, new Arguments(positional, named: named));
-    SynthesizedFunctionNode synthesizedFunctionNode =
-        new SynthesizedFunctionNode(
+    DelayedDefaultValueCloner delayedDefaultValueCloner =
+        new DelayedDefaultValueCloner(
             substitutionMap, superConstructor.function, function,
             libraryBuilder: classBuilder.libraryBuilder);
     if (!isConst) {
@@ -1095,8 +1095,8 @@ class KernelTarget extends TargetImplementation {
       // [SyntheticConstructorBuilder] below.
       //
       // For non-constant constructors default values are cloned as part of the
-      // full compilation using [synthesizedFunctionNodes].
-      synthesizedFunctionNodes.add(synthesizedFunctionNode);
+      // full compilation using [_delayedDefaultValueCloners].
+      _delayedDefaultValueCloners.add(delayedDefaultValueCloner);
     }
     Constructor constructor = new Constructor(function,
         name: superConstructor.name,
@@ -1139,18 +1139,18 @@ class KernelTarget extends TargetImplementation {
         // a potential subclass using super initializing parameters that will
         // required the cloning of the default values.
         origin: superConstructorBuilder,
-        synthesizedFunctionNode: synthesizedFunctionNode);
+        delayedDefaultValueCloner: delayedDefaultValueCloner);
   }
 
   void finishSynthesizedParameters({bool forOutline = false}) {
-    for (SynthesizedFunctionNode synthesizedFunctionNode
-        in synthesizedFunctionNodes) {
-      if (!forOutline || synthesizedFunctionNode.isOutlineNode) {
-        synthesizedFunctionNode.cloneDefaultValues(loader.typeEnvironment);
+    for (DelayedDefaultValueCloner delayedDefaultValueCloner
+        in _delayedDefaultValueCloners) {
+      if (!forOutline || delayedDefaultValueCloner.isOutlineNode) {
+        delayedDefaultValueCloner.cloneDefaultValues(loader.typeEnvironment);
       }
     }
     if (!forOutline) {
-      synthesizedFunctionNodes.clear();
+      _delayedDefaultValueCloners.clear();
     }
     ticker.logMs("Cloned default values of formals");
   }

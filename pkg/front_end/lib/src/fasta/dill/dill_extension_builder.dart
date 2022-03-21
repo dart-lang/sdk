@@ -117,7 +117,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
       LibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValues) {
     // TODO(johnniwinther): Remove the need for this.
   }
 }

@@ -341,11 +341,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     void build(String ignore, Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
       member.buildOutlineExpressions(library, classHierarchy,
-          delayedActionPerformers, synthesizedFunctionNodes);
+          delayedActionPerformers, delayedDefaultValueCloners);
     }
 
     MetadataBuilder.buildAnnotations(isPatch ? origin.cls : cls, metadata,
@@ -2829,7 +2829,7 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     // Do nothing.
   }
 

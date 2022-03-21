@@ -437,7 +437,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!_hasBuiltOutlineExpressions) {
       DeclarationBuilder? classOrExtensionBuilder =
           isClassMember || isExtensionMember

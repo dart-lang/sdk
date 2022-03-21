@@ -36,7 +36,7 @@ abstract class SourceMemberBuilder implements MemberBuilder {
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes);
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// signature of this member.
@@ -135,7 +135,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {}
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
 
   @override
   StringBuffer printOn(StringBuffer buffer) {

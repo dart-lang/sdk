@@ -274,9 +274,9 @@ FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
 /// Creates the body for the redirecting factory [tearOff] with the target
 /// [constructor] and [typeArguments].
 ///
-/// Returns the [SynthesizedFunctionNode] object need to perform default value
+/// Returns the [DelayedDefaultValueCloner] object need to perform default value
 /// computation.
-SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
+DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
     Procedure tearOff,
     Member target,
     List<DartType> typeArguments,
@@ -318,7 +318,7 @@ SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
   }
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, target, arguments);
-  return new SynthesizedFunctionNode(
+  return new DelayedDefaultValueCloner(
       substitutionMap, target.function!, tearOff.function,
       identicalSignatures: false, libraryBuilder: libraryBuilder);
 }

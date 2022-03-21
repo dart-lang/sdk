@@ -260,7 +260,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(
         typedef, metadata, library, null, null, fileUri, library.scope);
     if (typeVariables != null) {
@@ -276,7 +276,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
       InterfaceType targetType = typedef.type as InterfaceType;
-      synthesizedFunctionNodes.add(new SynthesizedFunctionNode(
+      delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
           new Map<TypeParameter, DartType>.fromIterables(
               target.enclosingClass!.typeParameters, targetType.typeArguments),
           target.function!,

@@ -72,7 +72,7 @@ import '../kernel/hierarchy/delayed.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart'
-    show SynthesizedFunctionNode, TypeDependency;
+    show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/macro/macro.dart';
 import '../kernel/macro/annotation_parser.dart';
@@ -2194,12 +2194,12 @@ severity: $severity
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     List<DelayedActionPerformer> delayedActionPerformers =
         <DelayedActionPerformer>[];
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       library.buildOutlineExpressions(
-          classHierarchy, synthesizedFunctionNodes, delayedActionPerformers);
+          classHierarchy, delayedDefaultValueCloners, delayedActionPerformers);
     }
 
     target.benchmarker

@@ -278,7 +278,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
         metadata, library, this, null, fileUri, library.scope);
     if (typeParameters != null) {
@@ -291,7 +291,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     void build(String ignore, Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
       member.buildOutlineExpressions(library, classHierarchy,
-          delayedActionPerformers, synthesizedFunctionNodes);
+          delayedActionPerformers, delayedDefaultValueCloners);
     }
 
     scope.forEach(build);

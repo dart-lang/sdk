@@ -375,7 +375,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     _fieldEncoding.completeSignature(classHierarchy.coreTypes);
 
     for (Annotatable annotatable in _fieldEncoding.annotatables) {
