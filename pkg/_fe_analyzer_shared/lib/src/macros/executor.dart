@@ -66,7 +66,8 @@ abstract class MacroExecutor {
       IdentifierResolver identifierResolver,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector,
-      TypeDeclarationResolver typeDeclarationResolver);
+      TypeDeclarationResolver typeDeclarationResolver,
+      TypeInferrer typeInferrer);
 
   /// Combines multiple [MacroExecutionResult]s into a single library
   /// augmentation file, and returns a [String] representing that file.

@@ -425,7 +425,8 @@ class MacroApplications {
                 identifierResolver,
                 typeResolver,
                 classIntrospector,
-                typeDeclarationResolver);
+                typeDeclarationResolver,
+                typeInferrer);
         if (result.isNotEmpty) {
           results.add(result);
         }
@@ -444,9 +445,11 @@ class MacroApplications {
   }
 
   late macro.TypeDeclarationResolver typeDeclarationResolver;
+  late macro.TypeInferrer typeInferrer;
 
   Future<List<SourceLibraryBuilder>> applyDefinitionMacros() async {
     typeDeclarationResolver = new _TypeDeclarationResolver(this);
+    typeInferrer = new _TypeInferrer(this);
     List<SourceLibraryBuilder> augmentationLibraries = [];
     Map<SourceLibraryBuilder, List<macro.MacroExecutionResult>> results = {};
     for (_ApplicationData macroApplication in _applicationData) {
@@ -989,6 +992,17 @@ class _TypeDeclarationResolver implements macro.TypeDeclarationResolver {
     throw new UnsupportedError(
         'Unsupported identifier $identifier (${identifier.runtimeType})');
   }
+}
+
+class _TypeInferrer implements macro.TypeInferrer {
+  final MacroApplications _macroApplications;
+
+  _TypeInferrer(this._macroApplications);
+
+  @override
+  Future<macro.TypeAnnotation> inferType(
+          macro.OmittedTypeAnnotation omittedType) =>
+      new Future.value(_macroApplications._inferOmittedType(omittedType));
 }
 
 macro.DeclarationKind _declarationKind(macro.Declaration declaration) {

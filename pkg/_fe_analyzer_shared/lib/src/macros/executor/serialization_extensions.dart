@@ -22,6 +22,7 @@ extension DeserializerExtensions on Deserializer {
       case RemoteInstanceKind.staticType:
       case RemoteInstanceKind.typeDeclarationResolver:
       case RemoteInstanceKind.typeResolver:
+      case RemoteInstanceKind.typeInferrer:
         // These are simple wrappers, just pass in the kind
         return new RemoteInstanceImpl(id: id, kind: kind) as T;
       case RemoteInstanceKind.classDeclaration:

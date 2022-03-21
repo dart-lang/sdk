@@ -114,6 +114,21 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
               response.serialize(serializer);
               sendResult(serializer);
               break;
+            case MessageType.inferTypeRequest:
+              InferTypeRequest request =
+                  new InferTypeRequest.deserialize(deserializer, zoneId);
+              TypeAnnotationImpl inferredType =
+                  await (request.typeInferrer.instance as TypeInferrer)
+                      .inferType(request.omittedType) as TypeAnnotationImpl;
+              SerializableResponse response = new SerializableResponse(
+                  response: inferredType,
+                  requestId: request.id,
+                  responseType: MessageType.remoteInstance,
+                  serializationZoneId: zoneId);
+              Serializer serializer = serializerFactory();
+              response.serialize(serializer);
+              sendResult(serializer);
+              break;
             case MessageType.isExactlyTypeRequest:
               IsExactlyTypeRequest request =
                   new IsExactlyTypeRequest.deserialize(deserializer, zoneId);
@@ -335,7 +350,8 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
           IdentifierResolver identifierResolver,
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector,
-          TypeDeclarationResolver typeDeclarationResolver) =>
+          TypeDeclarationResolver typeDeclarationResolver,
+          TypeInferrer typeInferrer) =>
       _sendRequest((zoneId) => new ExecuteDefinitionsPhaseRequest(
           macro,
           declaration,
@@ -355,6 +371,10 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
               instance: typeDeclarationResolver,
               id: RemoteInstance.uniqueId,
               kind: RemoteInstanceKind.typeDeclarationResolver),
+          new RemoteInstanceImpl(
+              instance: typeInferrer,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.typeInferrer),
           serializationZoneId: zoneId));
 
   @override

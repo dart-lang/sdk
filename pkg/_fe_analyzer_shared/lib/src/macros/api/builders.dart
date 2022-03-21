@@ -114,6 +114,18 @@ abstract class TypeDeclarationResolver {
   Future<TypeDeclaration> declarationOf(covariant Identifier identifier);
 }
 
+/// The interface used by [Macro]s to get the inferred type for an
+/// [OmittedTypeAnnotation].
+///
+/// Only available in the definition phase of macro expansion.
+abstract class TypeInferrer {
+  /// Infers a real type annotation for [omittedType].
+  ///
+  /// If no type could be inferred, then a type annotation representing the
+  /// dynamic type will be given.
+  Future<TypeAnnotation> inferType(covariant OmittedTypeAnnotation omittedType);
+}
+
 /// The base class for builders in the definition phase. These can convert
 /// any [TypeAnnotation] into its corresponding [TypeDeclaration], and also
 /// reflect more deeply on those.
@@ -123,7 +135,8 @@ abstract class DefinitionBuilder
         IdentifierResolver,
         TypeResolver,
         ClassIntrospector,
-        TypeDeclarationResolver {}
+        TypeDeclarationResolver,
+        TypeInferrer {}
 
 /// The apis used by [Macro]s that run on classes, to fill in the definitions
 /// of any external declarations within that class.

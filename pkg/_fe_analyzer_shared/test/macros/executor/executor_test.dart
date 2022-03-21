@@ -319,7 +319,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -341,7 +342,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult
                     .classAugmentations['MyClass']!
@@ -359,7 +361,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 expect(
                     definitionResult.classAugmentations['MyClass']!.first
@@ -376,7 +379,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -398,7 +402,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -421,7 +426,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations
@@ -452,7 +458,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 expect(
                     definitionResult.classAugmentations['MyClass']!
@@ -468,7 +475,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult
                     .classAugmentations['MyClass']!
@@ -491,7 +499,7 @@ void main() {
 }
 
 final constructorDefinitionMatcher = equalsIgnoringWhitespace('''
-augment MyClass.myConstructor() {
+augment MyClass.myConstructor(/*inferred*/String myField, ) {
   print('definingClass: MyClass');
   print('isFactory: false');
   print('isAbstract: false');
@@ -499,6 +507,7 @@ augment MyClass.myConstructor() {
   print('isGetter: false');
   print('isSetter: false');
   print('returnType: MyClass');
+  print('positionalParam: String (inferred) myField');
   return augment super();
 }''');
 

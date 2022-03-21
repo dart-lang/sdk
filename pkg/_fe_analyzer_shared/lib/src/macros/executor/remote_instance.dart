@@ -107,5 +107,6 @@ enum RemoteInstanceKind {
   typeParameterDeclaration,
   typeResolver,
   typeDeclarationResolver,
+  typeInferrer,
   variableDeclaration,
 }

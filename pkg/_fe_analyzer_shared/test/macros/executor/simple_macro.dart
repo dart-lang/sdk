@@ -54,11 +54,6 @@ class SimpleMacro
   FutureOr<void> buildDeclarationsForConstructor(
       ConstructorDeclaration constructor,
       ClassMemberDeclarationBuilder builder) {
-    if (constructor.positionalParameters.isNotEmpty ||
-        constructor.namedParameters.isNotEmpty) {
-      throw new UnsupportedError(
-          'Can only run on constructors with no parameters!');
-    }
     var className = constructor.definingClass.name;
     var constructorName = constructor.identifier.name;
     builder.declareInClass(DeclarationCode.fromString(
@@ -69,12 +64,6 @@ class SimpleMacro
   @override
   FutureOr<void> buildDeclarationsForFunction(
       FunctionDeclaration function, DeclarationBuilder builder) {
-    if (!function.isSetter &&
-        (function.positionalParameters.isNotEmpty ||
-            function.namedParameters.isNotEmpty)) {
-      throw new UnsupportedError(
-          'Can only run on functions with no parameters!');
-    }
     var functionName = function.identifier.name;
     builder.declareInLibrary(DeclarationCode.fromParts([
       function.returnType.code,
@@ -161,7 +150,7 @@ class SimpleMacro
     var fields = (await builder.fieldsOf(clazz));
 
     builder.augment(
-      body: _buildFunctionAugmentation(constructor),
+      body: await _buildFunctionAugmentation(constructor, builder),
       initializers: [
         for (var field in fields)
           // TODO: Compare against actual `int` type.
@@ -180,7 +169,7 @@ class SimpleMacro
   @override
   Future<void> buildDefinitionForFunction(
       FunctionDeclaration function, FunctionDefinitionBuilder builder) async {
-    builder.augment(_buildFunctionAugmentation(function));
+    builder.augment(await _buildFunctionAugmentation(function, builder));
   }
 
   @override
@@ -355,47 +344,57 @@ class SimpleMacro
   }
 }
 
-FunctionBodyCode _buildFunctionAugmentation(FunctionDeclaration function) =>
-    FunctionBodyCode.fromParts([
-      '{\n',
-      if (function is MethodDeclaration)
-        "print('definingClass: ${function.definingClass.name}');\n",
-      if (function is ConstructorDeclaration)
-        "print('isFactory: ${function.isFactory}');\n",
-      '''
+Future<FunctionBodyCode> _buildFunctionAugmentation(
+    FunctionDeclaration function, TypeInferrer inferrer) async {
+  Future<List<Object>> typeParts(TypeAnnotation annotation) async {
+    if (annotation is OmittedTypeAnnotation) {
+      var inferred = await inferrer.inferType(annotation);
+      return [inferred.code, ' (inferred)'];
+    }
+    return [annotation.code];
+  }
+
+  return FunctionBodyCode.fromParts([
+    '{\n',
+    if (function is MethodDeclaration)
+      "print('definingClass: ${function.definingClass.name}');\n",
+    if (function is ConstructorDeclaration)
+      "print('isFactory: ${function.isFactory}');\n",
+    '''
       print('isAbstract: ${function.isAbstract}');
       print('isExternal: ${function.isExternal}');
       print('isGetter: ${function.isGetter}');
       print('isSetter: ${function.isSetter}');
       print('returnType: ''',
-      function.returnType.code,
+    function.returnType.code,
+    "');\n",
+    for (var param in function.positionalParameters) ...[
+      "print('positionalParam: ",
+      ...await typeParts(param.type),
+      ' ${param.identifier.name}',
       "');\n",
-      for (var param in function.positionalParameters) ...[
-        "print('positionalParam: ",
-        param.type.code,
-        ' ${param.identifier.name}',
-        "');\n",
-      ],
-      for (var param in function.namedParameters) ...[
-        "print('namedParam: ",
-        param.type.code,
-        ' ${param.identifier.name}',
-        "');\n",
-      ],
-      for (var param in function.typeParameters) ...[
-        "print('typeParam: ${param.identifier.name} ",
-        if (param.bound != null) param.bound!.code,
-        "');\n",
-      ],
-      'return augment super',
-      if (function.isSetter) ...[
-        ' = ',
-        function.positionalParameters.first.identifier,
-      ],
-      if (!function.isGetter && !function.isSetter) '()',
-      ''';
+    ],
+    for (var param in function.namedParameters) ...[
+      "print('namedParam: ",
+      ...await typeParts(param.type),
+      ' ${param.identifier.name}',
+      "');\n",
+    ],
+    for (var param in function.typeParameters) ...[
+      "print('typeParam: ${param.identifier.name} ",
+      if (param.bound != null) param.bound!.code,
+      "');\n",
+    ],
+    'return augment super',
+    if (function.isSetter) ...[
+      ' = ',
+      function.positionalParameters.first.identifier,
+    ],
+    if (!function.isGetter && !function.isSetter) '()',
+    ''';
     }''',
-    ]);
+  ]);
+}
 
 extension _ on String {
   String capitalize() => '${this[0].toUpperCase()}${substring(1)}';
