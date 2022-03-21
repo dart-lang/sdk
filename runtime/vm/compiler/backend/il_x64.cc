@@ -2010,8 +2010,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ movb(element_address,
                 compiler::Immediate(static_cast<int8_t>(constant.Value())));
       } else {
-        ASSERT(locs()->in(2).reg() == RAX);
-        __ movb(element_address, RAX);
+        __ movb(element_address, ByteRegisterOf(locs()->in(2).reg()));
       }
       break;
     case kTypedDataUint8ClampedArrayCid:
@@ -2029,18 +2028,18 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ movb(element_address,
                 compiler::Immediate(static_cast<int8_t>(value)));
       } else {
-        ASSERT(locs()->in(2).reg() == RAX);
+        const Register storedValueReg = locs()->in(2).reg();
         compiler::Label store_value, store_0xff;
-        __ CompareImmediate(RAX, compiler::Immediate(0xFF));
+        __ CompareImmediate(storedValueReg, compiler::Immediate(0xFF));
         __ j(BELOW_EQUAL, &store_value, compiler::Assembler::kNearJump);
         // Clamp to 0x0 or 0xFF respectively.
         __ j(GREATER, &store_0xff);
-        __ xorq(RAX, RAX);
+        __ xorq(storedValueReg, storedValueReg);
         __ jmp(&store_value, compiler::Assembler::kNearJump);
         __ Bind(&store_0xff);
-        __ LoadImmediate(RAX, compiler::Immediate(0xFF));
+        __ LoadImmediate(storedValueReg, compiler::Immediate(0xFF));
         __ Bind(&store_value);
-        __ movb(element_address, RAX);
+        __ movb(element_address, ByteRegisterOf(storedValueReg));
       }
       break;
     }

@@ -334,9 +334,17 @@ class Assembler : public AssemblerBase {
   void name(Register dst, const Address& src) {                                \
     Emit##width(dst, src, __VA_ARGS__);                                        \
   }
+#define RAB(name, ...)                                                         \
+  void name(ByteRegister dst, const Address& src) {                            \
+    EmitB(dst, src, __VA_ARGS__);                                              \
+  }
 #define AR(width, name, ...)                                                   \
   void name(const Address& dst, Register src) {                                \
     Emit##width(src, dst, __VA_ARGS__);                                        \
+  }
+#define ARB(name, ...)                                                         \
+  void name(const Address& dst, ByteRegister src) {                            \
+    EmitB(src, dst, __VA_ARGS__);                                              \
   }
 #define REGULAR_INSTRUCTION(name, ...)                                         \
   RA(W, name##w, __VA_ARGS__)                                                  \
@@ -355,11 +363,11 @@ class Assembler : public AssemblerBase {
 #undef REGULAR_INSTRUCTION
   RA(Q, movsxd, 0x63)
   RR(Q, movsxd, 0x63)
-  AR(L, movb, 0x88)
+  ARB(movb, 0x88)
   AR(L, movl, 0x89)
   AR(Q, movq, 0x89)
   AR(W, movw, 0x89)
-  RA(L, movb, 0x8A)
+  RAB(movb, 0x8A)
   RA(L, movl, 0x8B)
   RA(Q, movq, 0x8B)
   RR(L, movl, 0x8B)
@@ -1315,6 +1323,7 @@ class Assembler : public AssemblerBase {
              int opcode,
              int prefix2 = -1,
              int prefix1 = -1);
+  void EmitB(int reg, const Address& address, int opcode);
   void CmpPS(XmmRegister dst, XmmRegister src, int condition);
 
   inline void EmitUint8(uint8_t value);

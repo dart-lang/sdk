@@ -311,6 +311,13 @@ void Assembler::EmitW(Register reg,
   EmitOperand(reg & 7, address);
 }
 
+void Assembler::EmitB(int reg, const Address& address, int opcode) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(reg & ~0x10, address, reg >= 8 ? REX_PREFIX : REX_NONE);
+  EmitUint8(opcode);
+  EmitOperand(reg & 7, address);
+}
+
 void Assembler::movl(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(dst);
@@ -1507,7 +1514,8 @@ void Assembler::StoreBarrier(Register object,
     testq(value, Immediate(kSmiTagMask));
     j(ZERO, &done, kNearJump);
   }
-  movb(TMP, FieldAddress(object, target::Object::tags_offset()));
+  movb(ByteRegisterOf(TMP),
+       FieldAddress(object, target::Object::tags_offset()));
   shrl(TMP, Immediate(target::UntaggedObject::kBarrierOverlapShift));
   andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
   testb(FieldAddress(value, target::Object::tags_offset()), TMP);
@@ -1573,7 +1581,8 @@ void Assembler::StoreIntoArrayBarrier(Register object,
     testq(value, Immediate(kSmiTagMask));
     j(ZERO, &done, kNearJump);
   }
-  movb(TMP, FieldAddress(object, target::Object::tags_offset()));
+  movb(ByteRegisterOf(TMP),
+       FieldAddress(object, target::Object::tags_offset()));
   shrl(TMP, Immediate(target::UntaggedObject::kBarrierOverlapShift));
   andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
   testb(FieldAddress(value, target::Object::tags_offset()), TMP);
@@ -1755,7 +1764,7 @@ void Assembler::StoreToOffset(Register reg,
   switch (sz) {
     case kByte:
     case kUnsignedByte:
-      return movb(address, reg);
+      return movb(address, ByteRegisterOf(reg));
     case kTwoBytes:
     case kUnsignedTwoBytes:
       return movw(address, reg);

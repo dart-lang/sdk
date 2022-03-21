@@ -1816,7 +1816,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ Bind(&loop);
   __ movzxb(RBX, Address(RSI, RDX, TIMES_1, 0));
   __ movb(FieldAddress(RAX, RDX, TIMES_1, target::OneByteString::data_offset()),
-          RBX);
+          ByteRegisterOf(RBX));
   __ incq(RDX);
   __ Bind(&check);
   __ cmpq(RDX, RCX);
@@ -1833,7 +1833,7 @@ void AsmIntrinsifier::WriteIntoOneByteString(Assembler* assembler,
   __ SmiUntag(RBX);
   __ SmiUntag(RCX);
   __ movb(FieldAddress(RAX, RBX, TIMES_1, target::OneByteString::data_offset()),
-          RCX);
+          ByteRegisterOf(RCX));
   __ ret();
 }
 

@@ -944,7 +944,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
           __ movw(dst_addr, src_reg);
           return;
         case 1:
-          __ movb(dst_addr, src_reg);
+          __ movb(dst_addr, ByteRegisterOf(src_reg));
           return;
         default:
           UNREACHABLE();

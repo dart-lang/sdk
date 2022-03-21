@@ -457,6 +457,102 @@ ProcessInfo b;
       ]),
     );
   }
+
+  Future<void> test_snippets_createMethod_functionTypeNestedParameters() async {
+    const content = '''
+class A {
+  void a() => c^((cell) => cell.south);
+  void b() => c((cell) => cell.west);
+}
+''';
+
+    const expectedContent = r'''
+class A {
+  void a() => c((cell) => cell.south);
+  void b() => c((cell) => cell.west);
+
+  ${1:c}(${2:Function(dynamic cell)} ${3:param0}) {}
+}
+''';
+
+    newFile2(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+      experimentalCapabilities: {
+        'snippetTextEdit': true,
+      },
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final fixAction = findEditAction(codeActions,
+        CodeActionKind('quickfix.create.method'), "Create method 'c'")!;
+
+    // Ensure the edit came back, and using documentChanges.
+    final edit = fixAction.edit!;
+    expect(edit.documentChanges, isNotNull);
+    expect(edit.changes, isNull);
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyDocumentChanges(contents, edit.documentChanges!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void>
+      test_snippets_extractVariable_functionTypeNestedParameters() async {
+    const content = '''
+main() {
+  useFunction(te^st);
+}
+
+useFunction(int g(a, b)) {}
+''';
+
+    const expectedContent = r'''
+main() {
+  ${1:int Function(dynamic a, dynamic b)} ${2:test};
+  useFunction(test);
+}
+
+useFunction(int g(a, b)) {}
+''';
+
+    newFile2(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+      experimentalCapabilities: {
+        'snippetTextEdit': true,
+      },
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.create.localVariable'),
+        "Create local variable 'test'")!;
+
+    // Ensure the edit came back, and using documentChanges.
+    final edit = fixAction.edit!;
+    expect(edit.documentChanges, isNotNull);
+    expect(edit.changes, isNull);
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyDocumentChanges(contents, edit.documentChanges!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
 }
 
 @reflectiveTest
