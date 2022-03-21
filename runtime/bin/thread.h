@@ -37,7 +37,6 @@ namespace bin {
 
 class Thread {
  public:
-  static const ThreadLocalKey kUnsetThreadLocalKey;
   static const ThreadId kInvalidThreadId;
 
   typedef void (*ThreadStartFunction)(uword parameter);
@@ -49,15 +48,8 @@ class Thread {
                    ThreadStartFunction function,
                    uword parameters);
 
-  static ThreadLocalKey CreateThreadLocal();
-  static void DeleteThreadLocal(ThreadLocalKey key);
-  static uword GetThreadLocal(ThreadLocalKey key) {
-    return ThreadInlineImpl::GetThreadLocal(key);
-  }
-  static void SetThreadLocal(ThreadLocalKey key, uword value);
   static intptr_t GetMaxStackSize();
   static ThreadId GetCurrentThreadId();
-  static intptr_t ThreadIdToIntPtr(ThreadId id);
   static bool Compare(ThreadId a, ThreadId b);
 
   static void InitOnce();

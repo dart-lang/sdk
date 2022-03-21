@@ -114,29 +114,7 @@ int Thread::Start(const char* name,
   return 0;
 }
 
-const ThreadLocalKey Thread::kUnsetThreadLocalKey =
-    static_cast<pthread_key_t>(-1);
 const ThreadId Thread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
-
-ThreadLocalKey Thread::CreateThreadLocal() {
-  pthread_key_t key = kUnsetThreadLocalKey;
-  int result = pthread_key_create(&key, NULL);
-  VALIDATE_PTHREAD_RESULT(result);
-  ASSERT(key != kUnsetThreadLocalKey);
-  return key;
-}
-
-void Thread::DeleteThreadLocal(ThreadLocalKey key) {
-  ASSERT(key != kUnsetThreadLocalKey);
-  int result = pthread_key_delete(key);
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
-  ASSERT(key != kUnsetThreadLocalKey);
-  int result = pthread_setspecific(key, reinterpret_cast<void*>(value));
-  VALIDATE_PTHREAD_RESULT(result);
-}
 
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
@@ -145,11 +123,6 @@ intptr_t Thread::GetMaxStackSize() {
 
 ThreadId Thread::GetCurrentThreadId() {
   return pthread_self();
-}
-
-intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
-  return reinterpret_cast<intptr_t>(id);
 }
 
 bool Thread::Compare(ThreadId a, ThreadId b) {

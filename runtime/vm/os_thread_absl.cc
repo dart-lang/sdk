@@ -107,6 +107,7 @@ static void UnblockSIGPROF() {
 // is used to ensure that the thread is properly destroyed if the thread just
 // exits.
 static void* ThreadStart(void* data_ptr) {
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   if (FLAG_worker_thread_priority != kMinInt) {
     if (setpriority(PRIO_PROCESS, syscall(__NR_gettid),
                     FLAG_worker_thread_priority) == -1) {
@@ -114,6 +115,21 @@ static void* ThreadStart(void* data_ptr) {
              FLAG_worker_thread_priority, errno);
     }
   }
+#elif defined(DART_HOST_OS_MACOS)
+  if (FLAG_worker_thread_priority != kMinInt) {
+    const pthread_t thread = pthread_self();
+    int policy = SCHED_FIFO;
+    struct sched_param schedule;
+    if (pthread_getschedparam(thread, &policy, &schedule) != 0) {
+      FATAL1("Obtainign sched param failed: errno = %d\n", errno);
+    }
+    schedule.sched_priority = FLAG_worker_thread_priority;
+    if (pthread_setschedparam(thread, policy, &schedule) != 0) {
+      FATAL2("Setting thread priority to %d failed: errno = %d\n",
+             FLAG_worker_thread_priority, errno);
+    }
+  }
+#endif
 
   ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
@@ -122,11 +138,16 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   // Set the thread name. There is 16 bytes limit on the name (including \0).
   // pthread_setname_np ignores names that are too long rather than truncating.
   char truncated_name[16];
   snprintf(truncated_name, ARRAY_SIZE(truncated_name), "%s", name);
   pthread_setname_np(pthread_self(), truncated_name);
+#elif defined(DART_HOST_OS_MACOS)
+  // Set the thread name.
+  pthread_setname_np(name);
+#endif
 
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
@@ -222,11 +243,19 @@ void OSThread::Join(ThreadJoinId id) {
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) == sizeof(intptr_t));
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   return static_cast<intptr_t>(id);
+#elif defined(DART_HOST_OS_MACOS)
+  return reinterpret_cast<intptr_t>(id);
+#endif
 }
 
 ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   return static_cast<ThreadId>(id);
+#elif defined(DART_HOST_OS_MACOS)
+  return reinterpret_cast<ThreadId>(id);
+#endif
 }
 
 bool OSThread::Compare(ThreadId a, ThreadId b) {
@@ -234,6 +263,7 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 }
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   pthread_attr_t attr;
   // May fail on the main thread.
   if (pthread_getattr_np(pthread_self(), &attr) != 0) {
@@ -251,6 +281,11 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   *lower = reinterpret_cast<uword>(base);
   *upper = *lower + size;
   return true;
+#elif defined(DART_HOST_OS_MACOS)
+  *upper = reinterpret_cast<uword>(pthread_get_stackaddr_np(pthread_self()));
+  *lower = *upper - pthread_get_stacksize_np(pthread_self());
+  return true;
+#endif
 }
 
 #if defined(USING_SAFE_STACK)

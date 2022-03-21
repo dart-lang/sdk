@@ -70,24 +70,7 @@ int Thread::Start(const char* name,
   return 0;
 }
 
-const ThreadLocalKey Thread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
 const ThreadId Thread::kInvalidThreadId = 0;
-
-ThreadLocalKey Thread::CreateThreadLocal() {
-  ThreadLocalKey key = TlsAlloc();
-  if (key == kUnsetThreadLocalKey) {
-    FATAL1("TlsAlloc failed %d", GetLastError());
-  }
-  return key;
-}
-
-void Thread::DeleteThreadLocal(ThreadLocalKey key) {
-  ASSERT(key != kUnsetThreadLocalKey);
-  BOOL result = TlsFree(key);
-  if (!result) {
-    FATAL1("TlsFree failed %d", GetLastError());
-  }
-}
 
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
@@ -98,21 +81,8 @@ ThreadId Thread::GetCurrentThreadId() {
   return ::GetCurrentThreadId();
 }
 
-intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) <= sizeof(intptr_t));
-  return static_cast<intptr_t>(id);
-}
-
 bool Thread::Compare(ThreadId a, ThreadId b) {
   return (a == b);
-}
-
-void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
-  ASSERT(key != kUnsetThreadLocalKey);
-  BOOL result = TlsSetValue(key, reinterpret_cast<void*>(value));
-  if (!result) {
-    FATAL1("TlsSetValue failed %d", GetLastError());
-  }
 }
 
 Mutex::Mutex() {
