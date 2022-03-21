@@ -106,7 +106,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   Future<ImportDirective?> _findNode() async {
     var library = element.library;
     var path = library.source.fullName;
-    var unitResult = await session.getParsedUnit2(path);
+    var unitResult = session.getParsedUnit(path);
     if (unitResult is! ParsedUnitResult) {
       return null;
     }
@@ -122,7 +122,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     SourceReference reference,
   ) async {
     var source = reference.element.source!;
-    var unitResult = await session.getParsedUnit2(source.fullName);
+    var unitResult = session.getParsedUnit(source.fullName);
     if (unitResult is! ParsedUnitResult) {
       return null;
     }

@@ -17,7 +17,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test_runner/src/path.dart';
 
-Future<void> main(List<String> arguments) async {
+void main(List<String> arguments) {
   _initAnalysisContext();
 
   var suites = Directory('tests').listSync();
@@ -26,14 +26,14 @@ Future<void> main(List<String> arguments) async {
   for (var entry in suites) {
     // Skip the co19 tests since they don't use '_test.dart'.
     if (entry is Directory && !entry.path.contains('co19')) {
-      await _checkTestDirectory(entry);
+      _checkTestDirectory(entry);
     }
   }
 }
 
 AnalysisContext _analysisContext;
 
-Future<void> _checkTestDirectory(Directory directory) async {
+void _checkTestDirectory(Directory directory) {
   print('-- ${directory.path} --');
   var paths = directory
       .listSync(recursive: true)
@@ -46,7 +46,7 @@ Future<void> _checkTestDirectory(Directory directory) async {
   print('Finding referenced files...');
   var importedPaths = <String>{};
   for (var path in paths) {
-    await _parseReferences(importedPaths, path);
+    _parseReferences(importedPaths, path);
   }
 
   // Find the ".dart" files that don't end in "_test.dart" but also aren't used
@@ -71,11 +71,10 @@ void _initAnalysisContext() {
   _analysisContext = ContextBuilder().createContext(contextRoot: roots[0]);
 }
 
-Future<void> _parseReferences(
-    Set<String> importedPaths, String filePath) async {
+void _parseReferences(Set<String> importedPaths, String filePath) {
   var absolute = Path(filePath).absolute.toNativePath();
   var analysisSession = _analysisContext.currentSession;
-  var parseResult = await analysisSession.getParsedUnit2(absolute);
+  var parseResult = analysisSession.getParsedUnit(absolute);
   var unit = (parseResult as ParsedUnitResult).unit;
 
   void add(String importPath) {
