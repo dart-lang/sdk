@@ -1,0 +1,13 @@
+abstract class A {
+  const factory A() = B;
+}
+
+abstract class B implements A {
+  const factory B() = C<int>;
+}
+
+class C<T> implements B {
+  const C();
+}
+
+main() {}
