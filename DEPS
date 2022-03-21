@@ -124,7 +124,7 @@ vars = {
   "intl_tag": "9669926609e7efc17dfd74fbb44ec719a7e573cc", # 0.17.0-nullsafety
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
-  "linter_tag": "bced222d3132a1fd883f5ef2b9bb833a1131da8d", # 1.21.1
+  "linter_tag": "582986b8b029f6730a5591621ce05eab39e56f4c", # 1.21.2
   "lints_tag": "8294e5648ab49474541527e2911e72e4c5aefe55", #2.0.0
   "logging_rev": "dfbe88b890c3b4f7bc06da5a7b3b43e9e263b688",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",

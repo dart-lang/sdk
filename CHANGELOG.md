@@ -108,8 +108,10 @@
 
 #### Linter
 
-Updated the Linter to `1.21.1`, which includes changes that
+Updated the Linter to `1.21.2`, which includes changes that
 
+- updates `depend_on_referenced_packages` to treat `flutter_gen` as a virtual 
+  package, not needing an explicit dependency. 
 - updates `unnecessary_null_checks` and 
   `null_check_on_nullable_type_parameter` to handle
   list/set/map literals, and `yield` and `await` expressions.
