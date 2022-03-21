@@ -464,9 +464,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
     if (size != UNKNOWN) {
       return ConstantExpression(
-          IntConstant(size),
-          InterfaceType(listClass, Nullability.legacy,
-              [InterfaceType(intClass, Nullability.legacy)]));
+          IntConstant(size), InterfaceType(intClass, Nullability.legacy));
     }
     // Size unknown.
     return null;
