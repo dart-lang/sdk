@@ -1701,15 +1701,21 @@ severity: $severity
       }
     }
     if (libraryData.isNotEmpty) {
+      target.benchmarker?.beginSubdivide(
+          BenchmarkSubdivides.computeMacroApplications_macroExecutorProvider);
       MacroExecutor macroExecutor =
           await target.context.options.macroExecutorProvider();
+      target.benchmarker?.endSubdivide();
+
       Map<Uri, Uri> precompiledMacroUris =
           target.context.options.precompiledMacroUris;
-      return await MacroApplications.loadMacroIds(
+      MacroApplications result = await MacroApplications.loadMacroIds(
           macroExecutor,
           precompiledMacroUris,
           libraryData,
-          dataForTesting?.macroApplicationData);
+          dataForTesting?.macroApplicationData,
+          target.benchmarker);
+      return result;
     }
     return null;
   }

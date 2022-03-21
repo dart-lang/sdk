@@ -23,6 +23,7 @@ import 'fasta/crash.dart' show withCrashReporting;
 import 'fasta/dill/dill_target.dart' show DillTarget;
 import 'fasta/fasta_codes.dart' show LocatedMessage;
 import 'fasta/hybrid_file_system.dart';
+import 'fasta/kernel/benchmarker.dart' show BenchmarkPhases;
 import 'fasta/kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import 'fasta/kernel/macro/macro.dart';
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
@@ -93,9 +94,14 @@ Future<CompilerResult> generateKernelInternal(
       kernelTarget.setEntryPoints(options.inputs);
       NeededPrecompilations? neededPrecompilations =
           await kernelTarget.computeNeededPrecompilations();
+      kernelTarget.benchmarker?.enterPhase(BenchmarkPhases.precompileMacros);
       if (await precompileMacros(neededPrecompilations, options)) {
+        kernelTarget.benchmarker
+            ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
         continue;
       }
+      kernelTarget.benchmarker
+          ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
       return _buildInternal(
           options: options,
           kernelTarget: kernelTarget,

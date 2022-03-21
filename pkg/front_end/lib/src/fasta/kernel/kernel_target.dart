@@ -417,7 +417,8 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
       NeededPrecompilations? result = loader.computeMacroDeclarations();
 
-      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.unknownComputeNeededPrecompilations);
       return result;
     }, () => loader.currentUriForCrashReporting);
   }
@@ -608,7 +609,7 @@ class KernelTarget extends TargetImplementation {
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
 
-      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+      benchmarker?.enterPhase(BenchmarkPhases.unknownBuildOutlines);
 
       // For whatever reason sourceClassBuilders is kept alive for some amount
       // of time, meaning that all source library builders will be kept alive
@@ -689,7 +690,7 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.body_installAllComponentProblems);
       installAllComponentProblems(loader.allComponentProblems);
 
-      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+      benchmarker?.enterPhase(BenchmarkPhases.unknownBuildComponent);
 
       // For whatever reason sourceClasses is kept alive for some amount
       // of time, meaning that all source library builders will be kept alive

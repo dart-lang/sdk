@@ -8,6 +8,8 @@ import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart
     as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
+import 'package:front_end/src/fasta/kernel/benchmarker.dart'
+    show BenchmarkSubdivides, Benchmarker;
 import 'package:kernel/ast.dart' show DartType;
 import 'package:kernel/src/types.dart';
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
@@ -127,7 +129,8 @@ class MacroApplications {
       macro.MacroExecutor macroExecutor,
       Map<Uri, Uri> precompiledMacroUris,
       Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData,
-      MacroApplicationDataForTesting? dataForTesting) async {
+      MacroApplicationDataForTesting? dataForTesting,
+      Benchmarker? benchmarker) async {
     Map<ClassBuilder, macro.MacroClassIdentifier> classIdCache = {};
 
     Map<MacroApplication, macro.MacroInstanceIdentifier> instanceIdCache = {};
@@ -140,17 +143,23 @@ class MacroApplications {
           String macroClassName = application.classBuilder.name;
           Uri? precompiledMacroUri = precompiledMacroUris[libraryUri];
           try {
+            benchmarker?.beginSubdivide(
+                BenchmarkSubdivides.macroApplications_macroExecutorLoadMacro);
             macro.MacroClassIdentifier macroClassIdentifier =
                 classIdCache[application.classBuilder] ??=
                     await macroExecutor.loadMacro(libraryUri, macroClassName,
                         precompiledKernelUri: precompiledMacroUri);
+            benchmarker?.endSubdivide();
             try {
+              benchmarker?.beginSubdivide(BenchmarkSubdivides
+                  .macroApplications_macroExecutorInstantiateMacro);
               application.instanceIdentifier = instanceIdCache[application] ??=
                   await macroExecutor.instantiateMacro(
                       macroClassIdentifier,
                       application.constructorName,
                       // TODO(johnniwinther): Support macro arguments.
                       new macro.Arguments([], {}));
+              benchmarker?.endSubdivide();
             } catch (e) {
               throw "Error instantiating macro `${application}`: $e";
             }
