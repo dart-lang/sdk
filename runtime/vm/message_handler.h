@@ -211,6 +211,8 @@ class MessageHandler {
   Thread* thread() const { return Thread::Current(); }
 
  private:
+  template <typename GCVisitorType>
+  friend void MournFinalized(GCVisitorType* visitor);
   friend class PortMap;
   friend class MessageHandlerTestPeer;
   friend class MessageHandlerTask;

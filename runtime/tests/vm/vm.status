@@ -108,6 +108,7 @@ dart_2/isolates/reload_*: SkipByDesign # These tests only run on normal JIT.
 [ $compiler == dartkp ]
 dart/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
+dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # Isolate.spawnUri is not supported in AOT.
 dart/redirection_type_shuffling_test: SkipByDesign # Uses dart:mirrors.
 dart/scavenger_abort_test: SkipSlow
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
@@ -442,9 +443,11 @@ dart_2/*: SkipByDesign # Legacy tests are not supposed to run on NNBD bots.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
 [ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart_2/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart_2/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart_2/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart_2/issue32950_test: SkipByDesign # uses spawnUri.
 

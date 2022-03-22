@@ -36,8 +36,8 @@ class ArgumentsDescriptor : public ValueObject {
   intptr_t TypeArgsLen() const;  // 0 if no type argument vector is passed.
   intptr_t FirstArgIndex() const { return TypeArgsLen() > 0 ? 1 : 0; }
   intptr_t CountWithTypeArgs() const { return FirstArgIndex() + Count(); }
-  intptr_t Count() const;            // Excluding type arguments vector.
-  intptr_t Size() const;             // Excluding type arguments vector.
+  intptr_t Count() const;  // Excluding type arguments vector.
+  intptr_t Size() const;   // Excluding type arguments vector.
   intptr_t SizeWithTypeArgs() const { return FirstArgIndex() + Size(); }
   intptr_t PositionalCount() const;  // Excluding type arguments vector.
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
@@ -292,9 +292,11 @@ class DartLibraryCalls : public AllStatic {
   // handler for this port id.
   static ObjectPtr HandleMessage(Dart_Port port_id, const Instance& message);
 
+  // Invokes the finalizer to run its callbacks.
+  static ObjectPtr HandleFinalizerMessage(const FinalizerBase& finalizer);
+
   // Returns a list of open ReceivePorts.
   static ObjectPtr LookupOpenPorts();
-
 
   // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr DrainMicrotaskQueue();

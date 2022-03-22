@@ -276,6 +276,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // target representation.
   Fragment UnboxTruncate(Representation to);
 
+  // Loads the (untagged) thread address.
+  Fragment LoadThread();
+
+  // Loads the (untagged) isolate address.
+  Fragment LoadIsolate();
+
   // Converts a true to 1 and false to 0.
   Fragment BoolToInt();
 

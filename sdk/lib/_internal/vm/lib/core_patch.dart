@@ -13,10 +13,14 @@ import "dart:_internal"
     show
         allocateOneByteString,
         allocateTwoByteString,
+        checkValidWeakTarget,
         ClassID,
         CodeUnits,
         copyRangeFromUint8ListToOneByteString,
         EfficientLengthIterable,
+        FinalizerBase,
+        FinalizerBaseMembers,
+        FinalizerEntry,
         FixedLengthListBase,
         IterableElementError,
         ListIterator,
@@ -28,11 +32,12 @@ import "dart:_internal"
         makeFixedListUnmodifiable,
         makeListFixedLength,
         patch,
+        reachabilityFence,
         unsafeCast,
         writeIntoOneByteString,
         writeIntoTwoByteString;
 
-import "dart:async" show Completer, DeferredLoadException, Future, Timer;
+import "dart:async" show Completer, DeferredLoadException, Future, Timer, Zone;
 
 import "dart:collection"
     show
@@ -49,9 +54,9 @@ import "dart:collection"
 
 import "dart:convert" show ascii, Encoding, json, latin1, utf8;
 
-import "dart:ffi" show Pointer, Struct, Union;
+import "dart:ffi" show Pointer, Struct, Union, NativePort;
 
-import "dart:isolate" show Isolate;
+import "dart:isolate" show Isolate, RawReceivePort;
 
 import "dart:typed_data"
     show Endian, Uint8List, Int64List, Uint16List, Uint32List;

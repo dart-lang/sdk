@@ -4,23 +4,14 @@
 
 // @dart = 2.9
 
-// ignore: import_internal_library, unused_import
-import 'dart:_internal';
-
 import 'package:expect/expect.dart';
+
+import 'helpers.dart';
 
 void main() {
   testWeakReferenceNonExpandoKey();
   testWeakReferenceTypeArgument();
   testWeakReference();
-}
-
-class Nonce {
-  final int value;
-
-  Nonce(this.value);
-
-  String toString() => 'Nonce($value)';
 }
 
 void testWeakReferenceNonExpandoKey() {
@@ -57,7 +48,3 @@ void testWeakReference() {
 
   print('End of test, shutting down.');
 }
-
-// Defined in `dart:_internal`.
-// ignore: undefined_identifier
-void triggerGc() => VMInternalsForTesting.collectAllGarbage();

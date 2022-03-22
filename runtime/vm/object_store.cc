@@ -78,6 +78,8 @@ ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
   resume_capabilities_ = GrowableObjectArray::New();
   exit_listeners_ = GrowableObjectArray::New();
   error_listeners_ = GrowableObjectArray::New();
+  dart_args_1_ = Array::New(1);
+  dart_args_2_ = Array::New(2);
 
   // Allocate pre-allocated unhandled exception object initialized with the
   // pre-allocated OutOfMemoryError.
@@ -467,7 +469,24 @@ void ObjectStore::LazyInitFfiMembers() {
   auto* const thread = Thread::Current();
   SafepointWriteRwLocker locker(thread,
                                 thread->isolate_group()->program_lock());
-  // TODO(http://dartbug.com/47777): Implement finalizers.
+  if (handle_finalizer_message_function_.load() == Function::null()) {
+    auto* const zone = thread->zone();
+    auto& cls = Class::Handle(zone);
+    auto& function = Function::Handle(zone);
+    auto& error = Error::Handle(zone);
+
+    const auto& ffi_lib = Library::Handle(zone, Library::FfiLibrary());
+    ASSERT(!ffi_lib.IsNull());
+
+    cls = finalizer_class();
+    ASSERT(!cls.IsNull());
+    error = cls.EnsureIsFinalized(thread);
+    ASSERT(error.IsNull());
+    function =
+        cls.LookupFunctionAllowPrivate(Symbols::_handleFinalizerMessage());
+    ASSERT(!function.IsNull());
+    handle_finalizer_message_function_.store(function.ptr());
+  }
 }
 
 void ObjectStore::LazyInitIsolateMembers() {
@@ -512,13 +531,14 @@ void ObjectStore::LazyInitInternalMembers() {
     auto* const zone = thread->zone();
     auto& cls = Class::Handle(zone);
     auto& field = Field::Handle(zone);
+    auto& error = Error::Handle(zone);
 
     const auto& internal_lib =
         Library::Handle(zone, Library::InternalLibrary());
     cls = internal_lib.LookupClass(Symbols::Symbol());
     ASSERT(!cls.IsNull());
-    const auto& error = cls.EnsureIsFinalized(thread);
-    ASSERT(error == Error::null());
+    error = cls.EnsureIsFinalized(thread);
+    ASSERT(error.IsNull());
     symbol_class_.store(cls.ptr());
 
     field = cls.LookupInstanceFieldAllowPrivate(Symbols::_name());
