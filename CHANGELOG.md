@@ -116,9 +116,9 @@
 
 Updated the Linter to `1.21.2`, which includes changes that
 
-- updates `depend_on_referenced_packages` to treat `flutter_gen` as a virtual 
-  package, not needing an explicit dependency. 
-- updates `unnecessary_null_checks` and 
+- updates `depend_on_referenced_packages` to treat `flutter_gen` as a virtual
+  package, not needing an explicit dependency.
+- updates `unnecessary_null_checks` and
   `null_check_on_nullable_type_parameter` to handle
   list/set/map literals, and `yield` and `await` expressions.
 - fixes `unnecessary_null_aware_assignments` property-access
@@ -135,6 +135,13 @@ Updated the Linter to `1.21.2`, which includes changes that
   features.
 - updates `unnecessary_late` to report on variable names.
 - marks `null_check_on_nullable_type_parameter` stable.
+
+## 2.16.2 - 2022-03-24
+
+This is a patch release that fixes a dart2js crash when building some Flutter
+web apps (issue [#47916][]).
+
+[#47916]: https://github.com/dart-lang/sdk/issues/47916
 
 ## 2.16.1 - 2022-02-09
 
