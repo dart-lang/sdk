@@ -4,32 +4,31 @@
 
 /*library: 
 Definitions:
-import 'dart:core' as i0;
-import 'dart:math' as i1;
-
+import 'dart:core' as prefix0;
+import 'dart:math' as prefix1;
 
 augment void topLevelFunction1() {
   throw 42;
 }
-augment i0.dynamic topLevelFunction2() {
+augment prefix0.dynamic topLevelFunction2() {
   throw 42;
 }
-augment i0.int topLevelFunction3() {
+augment prefix0.int topLevelFunction3() {
   throw 42;
 }
-augment i0.dynamic topLevelFunction4() {
+augment prefix0.dynamic topLevelFunction4() {
   throw 42;
 }
-augment i1.Random topLevelFunction5() {
+augment prefix1.Random topLevelFunction5() {
   throw 42;
 }
-augment i0.List<i0.int> topLevelFunction6() {
+augment prefix0.List<prefix0.int> topLevelFunction6() {
   throw 42;
 }
-augment i0.Map<i1.Random, i0.List<i0.int>> topLevelFunction7() {
+augment prefix0.Map<prefix1.Random, prefix0.List<prefix0.int>> topLevelFunction7() {
   throw 42;
 }
-augment i0.Map<i0.int?, i0.String>? topLevelFunction8() {
+augment prefix0.Map<prefix0.int?, prefix0.String>? topLevelFunction8() {
   throw 42;
 }
 */

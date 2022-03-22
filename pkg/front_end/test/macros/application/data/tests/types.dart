@@ -4,24 +4,23 @@
 
 /*library: 
 Types:
-import 'dart:core' as i0;
-import 'package:macro/macro.dart' as i1;
-
+import 'dart:core' as prefix0;
+import 'package:macro/macro.dart' as prefix1;
 
 class topLevelFunction1GeneratedClass {
   external void method();
 }
 class topLevelFunction2GeneratedClass {
-  external i0.dynamic method();
+  external prefix0.dynamic method();
 }
 class topLevelFunction3GeneratedClass {
-  external i0.int method();
+  external prefix0.int method();
 }
 class topLevelFunction4GeneratedClass {
-  external i1.FunctionTypesMacro1? method();
+  external prefix1.FunctionTypesMacro1? method();
 }
 class topLevelFunction5GeneratedClass {
-  external i0.dynamic method();
+  external prefix0.dynamic method();
 }*/
 
 import 'package:macro/macro.dart';

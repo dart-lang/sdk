@@ -362,3 +362,40 @@ class SupertypesMacro implements ClassDefinitionMacro {
   }'''));
   }
 }
+
+macro
+
+class ImportConflictMacro implements FunctionDefinitionMacro {
+  const ImportConflictMacro();
+
+  FutureOr<void> buildDefinitionForFunction(FunctionDeclaration function,
+      FunctionDefinitionBuilder builder) {
+    builder.augment(new FunctionBodyCode.fromParts([
+      '{\n  ',
+      'var ',
+      'prefix',
+      ' = ',
+      function.positionalParameters
+          .elementAt(0)
+          .type
+          .code,
+      ';\n  ',
+      'var prefix0',
+      ' = ',
+      function.positionalParameters
+          .elementAt(1)
+          .type
+          .code,
+      ';\n  ',
+      'var pre',
+      'fix',
+      '10 = ',
+      function.positionalParameters
+          .elementAt(2)
+          .type
+          .code,
+      ';\n',
+      '}',
+    ]));
+  }
+}

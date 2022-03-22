@@ -316,7 +316,8 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
   String buildAugmentationLibrary(
           Iterable<MacroExecutionResult> macroResults,
           ResolvedIdentifier Function(Identifier) resolveIdentifier,
-          TypeAnnotation Function(OmittedTypeAnnotation) inferOmittedType) =>
+          TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
+          {Map<OmittedTypeAnnotation, String>? omittedTypes}) =>
       throw new StateError('Unreachable');
 
   @override

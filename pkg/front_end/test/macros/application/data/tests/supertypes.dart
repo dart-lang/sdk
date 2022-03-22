@@ -4,26 +4,25 @@
 
 /*library: 
 Definitions:
-import 'dart:core' as i0;
-
+import 'dart:core' as prefix0;
 
 augment class A {
-augment i0.String getSuperClass() {
+augment prefix0.String getSuperClass() {
     return "Object";
   }
 }
 augment class B {
-augment i0.String getSuperClass() {
+augment prefix0.String getSuperClass() {
     return "A";
   }
 }
 augment class M {
-augment i0.String getSuperClass() {
+augment prefix0.String getSuperClass() {
     return "Object";
   }
 }
 augment class C {
-augment i0.String getSuperClass() {
+augment prefix0.String getSuperClass() {
     return "A";
   }
 }
