@@ -30,7 +30,7 @@
 - Change `Performance.mark` and `Performance.measure` to accept their different
   overloads. `mark` can now accept a `markOptions` map, and `measure` can now
   accept a `startMark` and `endMark`, or a `measureOptions` map. Both methods
-  return their correct return types now as well - `PerformanceEntry` and
+  return their correct return types now as well - `PerformanceEntry?` and
   `PerformanceMeasure?`, respectively.
 
 #### `dart:indexed_db`

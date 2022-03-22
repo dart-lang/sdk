@@ -601,8 +601,13 @@ interface Performance {
     [DartSuppress, Measure] readonly attribute MemoryInfo memory;
     [Measure] readonly attribute MemoryInfo? memory;
     [DartSuppress] void mark(DOMString markName);
-    PerformanceEntry mark(DOMString markName, optional Dictionary markOptions);
+    PerformanceEntry? mark(DOMString markName, optional Dictionary markOptions);
     [DartSuppress] void measure(DOMString measureName, optional DOMString startMark = null, optional DOMString endMark = null);
+    // Note that `startMark` and `endMark` can't be null (but they can be
+    // undefined) in Firefox. Firefox also seems to disallow `measureOptions`.
+    // Safari also requires that `endMark` be non-null if `startMark` is
+    // non-null. In order to unify different browser behavior, we allow all
+    // possible syntaxes.
     PerformanceMeasure? measure(DOMString measureName, optional DOMString? startMark, optional DOMString? endMark);
     PerformanceMeasure? measure(DOMString measureName, Dictionary measureOptions);
 };

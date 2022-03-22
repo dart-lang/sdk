@@ -25239,7 +25239,7 @@ class Performance extends EventTarget {
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 
-  PerformanceEntry mark(String markName, [Map? markOptions]) {
+  PerformanceEntry? mark(String markName, [Map? markOptions]) {
     if (markOptions != null) {
       var markOptions_1 = convertDartToNative_Dictionary(markOptions);
       return _mark_1(markName, markOptions_1);
@@ -25248,9 +25248,9 @@ class Performance extends EventTarget {
   }
 
   @JSName('mark')
-  PerformanceEntry _mark_1(markName, markOptions) native;
+  PerformanceEntry? _mark_1(markName, markOptions) native;
   @JSName('mark')
-  PerformanceEntry _mark_2(markName) native;
+  PerformanceEntry? _mark_2(markName) native;
 
   PerformanceMeasure? measure(String measureName,
       [measureOptions_OR_startMark, String? endMark]) {
