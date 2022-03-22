@@ -219,9 +219,15 @@ ThreadId OSThread::GetCurrentThreadId() {
 
 #ifdef SUPPORT_TIMELINE
 ThreadId OSThread::GetCurrentThreadTraceId() {
+#if defined(DART_HOST_OS_ANDROID)
+  return GetCurrentThreadId();
+#elif defined(DART_HOST_OS_LINUX)
   return syscall(__NR_gettid);
+#elif defined(DART_HOST_OS_MACOS)
+  return ThreadIdFromIntPtr(pthread_mach_thread_np(pthread_self()));
+#endif
 }
-#endif  // PRODUCT
+#endif  // SUPPORT_TIMELINE
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);
