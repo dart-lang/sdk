@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::A::•]/*isLegacy*/;
+  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%>
+    return self::B::•<dynamic, self::A::•::T%>();
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
+    return new self::C::•<self::A::_#new#tearOff::T%, dynamic, dynamic>();
+}
+abstract class B<S extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object implements self::A<self::B::T%> {
+  static final field dynamic _redirecting# = <dynamic>[self::B::•]/*isLegacy*/;
+  static factory •<S extends core::Object? = dynamic, T extends core::Object? = dynamic>() → self::B<self::B::•::S%, self::B::•::T%>
+    return new self::C::•<self::B::•::T%, self::B::•::S%, dynamic>();
+  static method _#new#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>() → self::B<self::B::_#new#tearOff::S%, self::B::_#new#tearOff::T%>
+    return new self::C::•<self::B::_#new#tearOff::T%, self::B::_#new#tearOff::S%, dynamic>();
+}
+class C<T extends core::Object? = dynamic, S extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object implements self::B<self::C::S%, self::C::T%> /*hasConstConstructor*/  {
+  const constructor •() → self::C<self::C::T%, self::C::S%, self::C::U%>
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic, S extends core::Object? = dynamic, U extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::T%, self::C::_#new#tearOff::S%, self::C::_#new#tearOff::U%>
+    return new self::C::•<self::C::_#new#tearOff::T%, self::C::_#new#tearOff::S%, self::C::_#new#tearOff::U%>();
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47916b.dart:5:16 -> ConstructorTearOffConstant(A.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47916b.dart:9:16 -> ConstructorTearOffConstant(B.)
+Extra constant evaluation: evaluated: 9, effectively constant: 2

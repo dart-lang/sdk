@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dart2js/issue47916e.dart:10:23: Error: Redirection constructor target not found: 'C.named'
+//   const factory B() = C.named;
+//                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  static factory •() → self::A
+    return self::B::•();
+  static method _#new#tearOff() → self::A;
+}
+abstract class B extends core::Object implements self::A {
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
+  static factory •() → self::B
+    return invalid-expression "pkg/front_end/testcases/dart2js/issue47916e.dart:10:23: Error: Redirection constructor target not found: 'C.named'
+  const factory B() = C.named;
+                      ^";
+  static method _#new#tearOff() → self::B;
+}
+class C extends core::Object implements self::B {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  static method named() → self::C
+    return new self::C::•();
+  static method _#new#tearOff() → self::C
+    return new self::C::•();
+}
+static method test() → dynamic {
+  #C3;
+  #C4;
+  #C5;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::•
+  #C2 = constructor-tearoff self::B::•
+  #C3 = static-tearoff self::A::_#new#tearOff
+  #C4 = static-tearoff self::B::_#new#tearOff
+  #C5 = static-tearoff self::C::named
+}
