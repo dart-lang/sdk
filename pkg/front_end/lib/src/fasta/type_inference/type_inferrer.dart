@@ -2377,6 +2377,8 @@ class TypeInferrerImpl implements TypeInferrer {
       hoistingEndIndex = 0;
     }
 
+    List<EqualityInfo<VariableDeclaration, DartType>?>? identicalInfo =
+        isIdentical && arguments.positional.length == 2 ? [] : null;
     int positionalIndex = 0;
     int namedIndex = 0;
     for (int evaluationOrderIndex = 0;
@@ -2431,14 +2433,8 @@ class TypeInferrerImpl implements TypeInferrer {
           }
           Expression expression =
               _hoist(result.expression, inferredType, hoistedExpressions);
-          if (isIdentical && arguments.positional.length == 2) {
-            if (index == 0) {
-              flowAnalysis.equalityOp_rightBegin(expression, inferredType);
-            } else {
-              flowAnalysis.equalityOp_end(
-                  arguments.parent as Expression, expression, inferredType);
-            }
-          }
+          identicalInfo
+              ?.add(flowAnalysis.equalityOperand_end(expression, inferredType));
           arguments.positional[index] = expression..parent = arguments;
         }
         if (inferenceNeeded || typeChecksNeeded) {
@@ -2479,6 +2475,10 @@ class TypeInferrerImpl implements TypeInferrer {
           actualTypes!.add(inferredType);
         }
       }
+    }
+    if (identicalInfo != null) {
+      flowAnalysis.equalityOperation_end(
+          arguments.parent as Expression, identicalInfo[0], identicalInfo[1]);
     }
     assert(
         positionalIndex == arguments.positional.length,

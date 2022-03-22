@@ -111,9 +111,10 @@ class BinaryExpressionResolver {
     left = node.leftOperand;
 
     var flow = _resolver.flowAnalysis.flow;
+    EqualityInfo<PromotableElement, DartType>? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
-      flow?.equalityOp_rightBegin(left, left.typeOrThrow);
+      leftInfo = flow?.equalityOperand_end(left, left.typeOrThrow);
     }
 
     var right = node.rightOperand;
@@ -122,7 +123,9 @@ class BinaryExpressionResolver {
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(right);
 
     if (!leftExtensionOverride) {
-      flow?.equalityOp_end(node, right, right.typeOrThrow, notEqual: notEqual);
+      flow?.equalityOperation_end(
+          node, leftInfo, flow.equalityOperand_end(right, right.typeOrThrow),
+          notEqual: notEqual);
     }
 
     _resolveUserDefinableElement(

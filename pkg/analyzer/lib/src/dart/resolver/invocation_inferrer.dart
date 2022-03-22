@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -372,7 +373,8 @@ abstract class InvocationInferrer<Node extends AstNodeImpl> {
     resolver.checkUnreachableNode(argumentList);
     var flow = resolver.flowAnalysis.flow;
     var positionalParameterIndex = 0;
-    bool isIdentical = _isIdentical(node);
+    List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo =
+        _isIdentical(node) ? [] : null;
     var arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
@@ -398,17 +400,14 @@ abstract class InvocationInferrer<Node extends AstNodeImpl> {
       // In case of rewrites, we need to grab the argument again.
       argument = arguments[i];
       if (flow != null) {
-        if (isIdentical) {
-          if (i == 0) {
-            flow.equalityOp_rightBegin(argument, argument.typeOrThrow);
-          } else {
-            assert(i == 1);
-            flow.equalityOp_end(
-                node as Expression, argument, argument.typeOrThrow);
-          }
-        }
+        identicalInfo
+            ?.add(flow.equalityOperand_end(argument, argument.typeOrThrow));
         whyNotPromotedList.add(flow.whyNotPromoted(argument));
       }
+    }
+    if (identicalInfo != null) {
+      flow?.equalityOperation_end(argumentList.parent as Expression,
+          identicalInfo[0], identicalInfo[1]);
     }
   }
 

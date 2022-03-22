@@ -4120,7 +4120,8 @@ class InferenceVisitor
       {required bool isNot}) {
     // ignore: unnecessary_null_comparison
     assert(isNot != null);
-    inferrer.flowAnalysis.equalityOp_rightBegin(left, leftType);
+    EqualityInfo<VariableDeclaration, DartType>? equalityInfo =
+        inferrer.flowAnalysis.equalityOperand_end(left, leftType);
     bool typeNeeded = !inferrer.isTopLevel;
 
     Expression? equals;
@@ -4137,8 +4138,11 @@ class InferenceVisitor
       if (isNot) {
         equals = new Not(equals)..fileOffset = fileOffset;
       }
-      inferrer.flowAnalysis.equalityOp_end(
-          equals, rightResult.expression, rightResult.inferredType,
+      inferrer.flowAnalysis.equalityOperation_end(
+          equals,
+          equalityInfo,
+          inferrer.flowAnalysis.equalityOperand_end(
+              rightResult.expression, rightResult.inferredType),
           notEqual: isNot);
       return new ExpressionInferenceResult(
           inferrer.coreTypes.boolRawType(inferrer.libraryBuilder.nonNullable),
@@ -4206,8 +4210,11 @@ class InferenceVisitor
       }
     }
 
-    inferrer.flowAnalysis.equalityOp_end(
-        equals, right, rightResult.inferredType,
+    inferrer.flowAnalysis.equalityOperation_end(
+        equals,
+        equalityInfo,
+        inferrer.flowAnalysis
+            .equalityOperand_end(right, rightResult.inferredType),
         notEqual: isNot);
     return new ExpressionInferenceResult(
         equalsTarget.isNever
