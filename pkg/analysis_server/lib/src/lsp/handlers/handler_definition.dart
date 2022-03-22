@@ -270,7 +270,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
       return null;
     }
 
-    var parsedLibrary = await session.getParsedLibrary2(libraryPath);
+    var parsedLibrary = session.getParsedLibrary(libraryPath);
     if (parsedLibrary is! ParsedLibraryResult) {
       return null;
     }

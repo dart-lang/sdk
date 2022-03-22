@@ -23,10 +23,10 @@ void main() {
     var contextCollection = AnalysisContextCollection(
       includedPaths: [fixFilePath],
     );
-    var parseResult = await contextCollection
+    var parseResult = contextCollection
         .contextFor(fixFilePath)
         .currentSession
-        .getParsedUnit2(fixFilePath) as ParsedUnitResult;
+        .getParsedUnit(fixFilePath) as ParsedUnitResult;
 
     if (parseResult.errors.isNotEmpty) {
       throw Exception(parseResult.errors);

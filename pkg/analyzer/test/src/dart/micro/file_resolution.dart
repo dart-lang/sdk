@@ -66,9 +66,9 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     fileResolver.testView = FileResolverTestView();
   }
 
-  ErrorsResult getTestErrors() {
+  Future<ErrorsResult> getTestErrors() async {
     var path = convertPath(_testFile);
-    return fileResolver.getErrors(path: path);
+    return fileResolver.getErrors2(path: path);
   }
 
   @override
@@ -76,7 +76,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     String path, {
     OperationPerformanceImpl? performance,
   }) async {
-    result = fileResolver.resolve(
+    result = await fileResolver.resolve2(
       path: path,
       performance: performance,
     );

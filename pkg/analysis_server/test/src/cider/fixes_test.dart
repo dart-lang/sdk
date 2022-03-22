@@ -76,7 +76,7 @@ void f(A a) {
     var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 class Test {}
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f(Test a) {}^
@@ -93,7 +93,7 @@ void f(Test a) {}
     var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 enum Test {a, b, c}
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f(Test a) {}^
@@ -112,7 +112,7 @@ extension E on int {
   void foo() {}
 }
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f() {
@@ -133,7 +133,7 @@ void f() {
     var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 void foo() {}
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f() {
@@ -154,7 +154,7 @@ void f() {
     var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 mixin Test {}
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f(Test a) {}^
@@ -171,7 +171,7 @@ void f(Test a) {}
     var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 var a = 0;
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f() {

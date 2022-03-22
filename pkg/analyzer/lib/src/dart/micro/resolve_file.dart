@@ -180,6 +180,7 @@ class FileResolver {
 
   /// Looks for references to the given Element. All the files currently
   ///  cached by the resolver are searched, generated files are ignored.
+  @Deprecated('Use findReferences2() instead')
   List<CiderSearchMatch> findReferences(Element element,
       {OperationPerformanceImpl? performance}) {
     return logger.run('findReferences for ${element.name}', () {
@@ -220,6 +221,18 @@ class FileResolver {
     });
   }
 
+  /// Looks for references to the given Element. All the files currently
+  ///  cached by the resolver are searched, generated files are ignored.
+  Future<List<CiderSearchMatch>> findReferences2(Element element,
+      {OperationPerformanceImpl? performance}) async {
+    // ignore: deprecated_member_use_from_same_package
+    return findReferences(
+      element,
+      performance: performance,
+    );
+  }
+
+  @Deprecated('Use getErrors2() instead')
   ErrorsResult getErrors({
     required String path,
     OperationPerformanceImpl? performance,
@@ -275,6 +288,17 @@ class FileResolver {
     });
   }
 
+  Future<ErrorsResult> getErrors2({
+    required String path,
+    OperationPerformanceImpl? performance,
+  }) async {
+    // ignore: deprecated_member_use_from_same_package
+    return getErrors(
+      path: path,
+      performance: performance,
+    );
+  }
+
   FileContext getFileContext({
     required String path,
     required OperationPerformanceImpl performance,
@@ -311,6 +335,7 @@ class FileResolver {
     return fsState.getFilesWithTopLevelDeclarations(name);
   }
 
+  @Deprecated('Use getLibraryByUri2() instead')
   LibraryElement getLibraryByUri({
     required String uriStr,
     OperationPerformanceImpl? performance,
@@ -342,6 +367,17 @@ class FileResolver {
     });
 
     return libraryContext!.elementFactory.libraryOfUri2(uriStr);
+  }
+
+  Future<LibraryElement> getLibraryByUri2({
+    required String uriStr,
+    OperationPerformanceImpl? performance,
+  }) async {
+    // ignore: deprecated_member_use_from_same_package
+    return getLibraryByUri(
+      uriStr: uriStr,
+      performance: performance,
+    );
   }
 
   String getLibraryLinkedSignature({
@@ -377,6 +413,7 @@ class FileResolver {
   /// partially resynthesized data, and so prepare for loading linked summaries
   /// from bytes, which will be done by [getErrors]. It is OK for it to
   /// spend some more time on this.
+  @Deprecated('Use linkLibraries2() instead')
   void linkLibraries({
     required String path,
   }) {
@@ -399,6 +436,32 @@ class FileResolver {
     _resetContextObjects();
   }
 
+  /// Ensure that libraries necessary for resolving [path] are linked.
+  ///
+  /// Libraries are linked in library cycles, from the bottom to top, so that
+  /// when we link a cycle, everything it transitively depends is ready. We
+  /// load newly linked libraries from bytes, and when we link a new library
+  /// cycle we partially resynthesize AST and elements from previously
+  /// loaded libraries.
+  ///
+  /// But when we are done linking libraries, and want to resolve just the
+  /// very top library that transitively depends on the whole dependency
+  /// tree, this library will not reference as many elements in the
+  /// dependencies as we needed for linking. Most probably it references
+  /// elements from directly imported libraries, and a couple of layers below.
+  /// So, keeping all previously resynthesized data is usually a waste.
+  ///
+  /// This method ensures that we discard the libraries context, with all its
+  /// partially resynthesized data, and so prepare for loading linked summaries
+  /// from bytes, which will be done by [getErrors2]. It is OK for it to
+  /// spend some more time on this.
+  Future<void> linkLibraries2({
+    required String path,
+  }) async {
+    // ignore: deprecated_member_use_from_same_package
+    linkLibraries(path: path);
+  }
+
   /// Update the cache with list of invalidated ids and clears [removedCacheIds].
   void releaseAndClearRemovedIds() {
     byteStore.release(removedCacheIds);
@@ -417,6 +480,7 @@ class FileResolver {
   }
 
   /// The [completionLine] and [completionColumn] are zero based.
+  @Deprecated('Use resolve2() instead')
   ResolvedUnitResult resolve({
     int? completionLine,
     int? completionColumn,
@@ -458,6 +522,23 @@ class FileResolver {
   }
 
   /// The [completionLine] and [completionColumn] are zero based.
+  Future<ResolvedUnitResult> resolve2({
+    int? completionLine,
+    int? completionColumn,
+    required String path,
+    OperationPerformanceImpl? performance,
+  }) async {
+    // ignore: deprecated_member_use_from_same_package
+    return resolve(
+      completionLine: completionLine,
+      completionColumn: completionColumn,
+      path: path,
+      performance: performance,
+    );
+  }
+
+  /// The [completionLine] and [completionColumn] are zero based.
+  @Deprecated('Use resolveLibrary2() instead')
   ResolvedLibraryResult resolveLibrary({
     int? completionLine,
     int? completionColumn,
@@ -568,6 +649,24 @@ class FileResolver {
 
       return result;
     });
+  }
+
+  /// The [completionLine] and [completionColumn] are zero based.
+  Future<ResolvedLibraryResult> resolveLibrary2({
+    int? completionLine,
+    int? completionColumn,
+    String? completionPath,
+    required String path,
+    OperationPerformanceImpl? performance,
+  }) async {
+    // ignore: deprecated_member_use_from_same_package
+    return resolveLibrary(
+      completionLine: completionLine,
+      completionColumn: completionColumn,
+      completionPath: completionPath,
+      path: path,
+      performance: performance,
+    );
   }
 
   /// Make sure that [fsState], [contextObjects], and [libraryContext] are

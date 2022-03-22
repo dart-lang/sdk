@@ -62,19 +62,10 @@ class AnalysisSessionImpl implements AnalysisSession {
     return result;
   }
 
-  @Deprecated('Use getFile2() instead')
   @override
   SomeFileResult getFile(String path) {
     _checkConsistency();
     var result = _driver.getFileSync(path);
-    _checkConsistency();
-    return result;
-  }
-
-  @override
-  Future<SomeFileResult> getFile2(String path) async {
-    _checkConsistency();
-    var result = await _driver.getFile(path);
     _checkConsistency();
     return result;
   }
@@ -87,7 +78,6 @@ class AnalysisSessionImpl implements AnalysisSession {
     return result;
   }
 
-  @Deprecated('Use getParsedLibrary2() instead')
   @override
   SomeParsedLibraryResult getParsedLibrary(String path) {
     _checkConsistency();
@@ -96,15 +86,6 @@ class AnalysisSessionImpl implements AnalysisSession {
     return result;
   }
 
-  @override
-  Future<SomeParsedLibraryResult> getParsedLibrary2(String path) async {
-    _checkConsistency();
-    var result = await _driver.getParsedLibrary2(path);
-    _checkConsistency();
-    return result;
-  }
-
-  @Deprecated('Use getParsedLibraryByElement2() instead')
   @override
   SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
     _checkConsistency();
@@ -119,33 +100,9 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<SomeParsedLibraryResult> getParsedLibraryByElement2(
-    LibraryElement element,
-  ) async {
-    _checkConsistency();
-
-    if (element.session != this) {
-      return NotElementOfThisSessionResult();
-    }
-
-    var result = await _driver.getParsedLibraryByUri2(element.source.uri);
-    _checkConsistency();
-    return result;
-  }
-
-  @Deprecated('Use getParsedUnit2() instead')
-  @override
   SomeParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
     var result = _driver.parseFileSync(path);
-    _checkConsistency();
-    return result;
-  }
-
-  @override
-  Future<SomeParsedUnitResult> getParsedUnit2(String path) async {
-    _checkConsistency();
-    var result = await _driver.parseFile(path);
     _checkConsistency();
     return result;
   }

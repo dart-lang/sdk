@@ -1,12 +1,5 @@
 ## 3.4.0-dev
-* Deprecated synchronous `getFile`, `getParsedLibrary`, `getParsedLibraryByElement`,
-  `getParsedUnit` from `AnalysisSession`. Use corresponding `getXyz2` asynchronous
-  methods instead. This change is necessary for the future work on macros.
 * Deprecated `Resource.parent2`, use `parent` instead.
-* Deprecated `AnalysisDriver.getFileSync`, use `getFile` instead.
-* Deprecated `AnalysisDriver.getParsedLibrary`, use `getParsedLibrary2` instead.
-* Deprecated `AnalysisDriver.getParsedLibraryByUri`, use `getParsedLibraryByUri2` instead.
-* Deprecated `AnalysisDriver.parseFileSync`, use `parseFile` instead.
 * Deprecated `astFactory`, clients should not create AST nodes manually.
 * Changed `CompilationUnit.lineInfo` to be non-nullable.
 * Changed `CompilationUnitElement.lineInfo` to be non-nullable.

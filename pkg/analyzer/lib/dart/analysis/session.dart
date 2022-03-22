@@ -39,12 +39,7 @@ abstract class AnalysisSession {
 
   /// Return information about the file at the given absolute, normalized
   /// [path].
-  @Deprecated('Use getFile2() instead')
   SomeFileResult getFile(String path);
-
-  /// Return information about the file at the given absolute, normalized
-  /// [path].
-  Future<SomeFileResult> getFile2(String path);
 
   /// Return a future that will complete with information about the library
   /// element representing the library with the given [uri].
@@ -52,32 +47,15 @@ abstract class AnalysisSession {
 
   /// Return information about the results of parsing units of the library file
   /// with the given absolute, normalized [path].
-  @Deprecated('Use getParsedLibrary2() instead')
   SomeParsedLibraryResult getParsedLibrary(String path);
 
   /// Return information about the results of parsing units of the library file
-  /// with the given absolute, normalized [path].
-  Future<SomeParsedLibraryResult> getParsedLibrary2(String path);
-
-  /// Return information about the results of parsing units of the library file
   /// with the given library [element].
-  @Deprecated('Use getParsedLibraryByElement2() instead')
   SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element);
 
-  /// Return information about the results of parsing units of the library file
-  /// with the given library [element].
-  Future<SomeParsedLibraryResult> getParsedLibraryByElement2(
-    LibraryElement element,
-  );
-
   /// Return information about the results of parsing the file with the given
   /// absolute, normalized [path].
-  @Deprecated('Use getParsedUnit2() instead')
   SomeParsedUnitResult getParsedUnit(String path);
-
-  /// Return information about the results of parsing the file with the given
-  /// absolute, normalized [path].
-  Future<SomeParsedUnitResult> getParsedUnit2(String path);
 
   /// Return a future that will complete with information about the results of
   /// resolving all of the files in the library with the given absolute,

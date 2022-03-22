@@ -420,7 +420,7 @@ abstract class AbstractAnalysisServer {
       return null;
     }
 
-    var result = await session.getParsedUnit2(path);
+    var result = session.getParsedUnit(path);
     return result is ParsedUnitResult ? result : null;
   }
 

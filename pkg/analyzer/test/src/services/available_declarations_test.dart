@@ -3491,9 +3491,9 @@ class C {}
     newFile2(a, 'class A {}');
     newFile2(b, 'class B {}');
     newFile2(c, 'class C {}');
-    await testAnalysisContext.currentSession.getFile2(a);
-    await testAnalysisContext.currentSession.getFile2(b);
-    await testAnalysisContext.currentSession.getFile2(c);
+    testAnalysisContext.currentSession.getFile(a);
+    testAnalysisContext.currentSession.getFile(b);
+    testAnalysisContext.currentSession.getFile(c);
 
     var context = tracker.addContext(testAnalysisContext);
     await _doAllTrackerWork();

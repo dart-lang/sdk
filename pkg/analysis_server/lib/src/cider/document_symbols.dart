@@ -15,6 +15,7 @@ class CiderDocumentSymbolsComputer {
 
   CiderDocumentSymbolsComputer(this._fileResolver);
 
+  @Deprecated('Use compute2() instead')
   List<DocumentSymbol> compute(String filePath) {
     var result = <DocumentSymbol>[];
     var resolvedUnit = _fileResolver.resolve(path: filePath);
@@ -33,6 +34,11 @@ class CiderDocumentSymbolsComputer {
         child)));
 
     return result;
+  }
+
+  Future<List<DocumentSymbol>> compute2(String filePath) async {
+    // ignore: deprecated_member_use_from_same_package
+    return compute(filePath);
   }
 
   DocumentSymbol _asDocumentSymbol(

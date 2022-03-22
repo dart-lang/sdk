@@ -359,7 +359,10 @@ config("compiler") {
   # not be compatible with newer ones. To achieve this, we insert a synthetic
   # define into the compile line.
   if (is_clang && (is_linux || is_mac)) {
-    if (is_linux) {
+    if (is_linux && host_cpu == "arm64") {
+      toolchain_stamp_file =
+          "//buildtools/linux-arm64/clang/.versions/clang.cipd_version"
+    } else if (is_linux) {
       toolchain_stamp_file =
           "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
     } else {

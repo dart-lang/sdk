@@ -311,7 +311,7 @@ class HumanErrorFormatter extends ErrorFormatter {
       // TODO(scheglov) We should add `LineInfo` to `DiagnosticMessage`.
       var session = result.session.analysisContext;
       if (session is DriverBasedAnalysisContext) {
-        var fileResult = await session.driver.getFile(message.filePath);
+        var fileResult = session.driver.getFileSync(message.filePath);
         if (fileResult is FileResult) {
           var lineInfo = fileResult.lineInfo;
           var location = lineInfo.getLocation(message.offset);
