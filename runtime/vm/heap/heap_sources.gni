@@ -11,6 +11,8 @@ heap_sources = [
   "compactor.h",
   "freelist.cc",
   "freelist.h",
+  "gc_shared.cc",
+  "gc_shared.h",
   "heap.cc",
   "heap.h",
   "marker.cc",

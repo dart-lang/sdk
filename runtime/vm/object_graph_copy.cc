@@ -35,6 +35,9 @@
   V(ExceptionHandlers)                                                         \
   V(FfiTrampolineData)                                                         \
   V(Field)                                                                     \
+  V(Finalizer)                                                                 \
+  V(FinalizerBase)                                                             \
+  V(FinalizerEntry)                                                            \
   V(Function)                                                                  \
   V(FunctionType)                                                              \
   V(FutureOr)                                                                  \
@@ -600,6 +603,7 @@ class ObjectCopyBase {
       // those are the only non-abstract classes (so we avoid checking more cids
       // here that cannot happen in reality)
       HANDLE_ILLEGAL_CASE(DynamicLibrary)
+      HANDLE_ILLEGAL_CASE(Finalizer)
       HANDLE_ILLEGAL_CASE(MirrorReference)
       HANDLE_ILLEGAL_CASE(Pointer)
       HANDLE_ILLEGAL_CASE(ReceivePort)
@@ -1362,8 +1366,8 @@ class ObjectCopy : public Base {
         Object::null());
     // To satisfy some ASSERT()s in GC we'll use Object:null() explicitly here.
     Base::StoreCompressedPointerNoBarrier(
-        Types::GetWeakPropertyPtr(to), OFFSET_OF(UntaggedWeakProperty, next_),
-        Object::null());
+        Types::GetWeakPropertyPtr(to),
+        OFFSET_OF(UntaggedWeakProperty, next_seen_by_gc_), Object::null());
     Base::EnqueueWeakProperty(from);
   }
 
@@ -1380,8 +1384,8 @@ class ObjectCopy : public Base {
         from, to, OFFSET_OF(UntaggedWeakReference, type_arguments_));
     // To satisfy some ASSERT()s in GC we'll use Object:null() explicitly here.
     Base::StoreCompressedPointerNoBarrier(
-        Types::GetWeakReferencePtr(to), OFFSET_OF(UntaggedWeakReference, next_),
-        Object::null());
+        Types::GetWeakReferencePtr(to),
+        OFFSET_OF(UntaggedWeakReference, next_seen_by_gc_), Object::null());
     Base::EnqueueWeakReference(from);
   }
 
@@ -1815,7 +1819,7 @@ class ObjectGraphCopier {
         // We force the GC to compact, which is more likely to discover
         // untracked pointers (and other issues, like incorrect class table).
         thread_->heap()->CollectAllGarbage(GCReason::kDebugging,
-                                           /*compact=*/ true);
+                                           /*compact=*/true);
       }
 
       // Fast copy failed due to

@@ -1700,6 +1700,29 @@ void WeakReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("target", target_handle);
 }
 
+void FinalizerBase::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
+void Finalizer::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "Finalizer");
+  jsobj.AddServiceId(*this);
+  if (ref) {
+    return;
+  }
+
+  const Object& finalizer_callback = Object::Handle(callback());
+  jsobj.AddProperty("callback", finalizer_callback);
+
+  // Not exposing entries.
+}
+
+void FinalizerEntry::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
 void MirrorReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);

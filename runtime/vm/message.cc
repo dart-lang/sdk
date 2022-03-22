@@ -45,12 +45,20 @@ Message::Message(Dart_Port dest_port,
   ASSERT(IsPersistentHandle());
 }
 
+Message::Message(PersistentHandle* handle, Priority priority)
+    : dest_port_(ILLEGAL_PORT),
+      payload_(handle),
+      snapshot_length_(kFinalizerSnapshotLen),
+      priority_(priority) {
+  ASSERT(IsFinalizerInvocationRequest());
+}
+
 Message::~Message() {
   if (IsSnapshot()) {
     free(payload_.snapshot_);
   }
   delete finalizable_data_;
-  if (IsPersistentHandle()) {
+  if (IsPersistentHandle() || IsFinalizerInvocationRequest()) {
     auto isolate_group = IsolateGroup::Current();
     isolate_group->api_state()->FreePersistentHandle(
         payload_.persistent_handle_);

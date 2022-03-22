@@ -439,6 +439,10 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return WeakProperty::InstanceSize();
     case kWeakReferenceCid:
       return WeakReference::InstanceSize();
+    case kFinalizerCid:
+      return Finalizer::InstanceSize();
+    case kFinalizerEntryCid:
+      return FinalizerEntry::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
     case kPointerCid:
