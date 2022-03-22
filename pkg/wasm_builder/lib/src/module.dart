@@ -27,6 +27,7 @@ class Module with SerializerMixin {
   BaseFunction? startFunction = null;
 
   bool anyFunctionsDefined = false;
+  bool anyMemoriesDefined = false;
   bool anyGlobalsDefined = false;
   bool dataReferencedFromGlobalInitializer = false;
 
@@ -45,12 +46,22 @@ class Module with SerializerMixin {
   }
 
   /// All module imports (functions and globals).
-  Iterable<Import> get imports =>
-      functions.whereType<Import>().followedBy(globals.whereType<Import>());
+  Iterable<Import> get imports => functions
+      .whereType<Import>()
+      .followedBy(memories.whereType<Import>())
+      .followedBy(globals.whereType<Import>());
 
   /// All functions defined in the module.
   Iterable<DefinedFunction> get definedFunctions =>
       functions.whereType<DefinedFunction>();
+
+  /// All memories defined in the module.
+  Iterable<DefinedMemory> get definedMemories =>
+      memories.whereType<DefinedMemory>();
+
+  /// All globals defined in the module.
+  Iterable<DefinedGlobal> get definedGlobals =>
+      globals.whereType<DefinedGlobal>();
 
   /// Add a new function type to the module.
   ///
@@ -119,8 +130,9 @@ class Module with SerializerMixin {
   }
 
   /// Add a new memory to the module.
-  Memory addMemory(int minSize, [int? maxSize]) {
-    final memory = Memory(memories.length, minSize, maxSize);
+  DefinedMemory addMemory(int minSize, [int? maxSize]) {
+    anyMemoriesDefined = true;
+    final memory = DefinedMemory(memories.length, minSize, maxSize);
     memories.add(memory);
     return memory;
   }
@@ -177,6 +189,21 @@ class Module with SerializerMixin {
         ImportedFunction(module, name, functions.length, type, functionName);
     functions.add(function);
     return function;
+  }
+
+  /// Import a memory into the module.
+  ///
+  /// All imported memories must be specified before any memories are declared
+  /// using [Module.addMemory].
+  ImportedMemory importMemory(String module, String name, int minSize,
+      [int? maxSize]) {
+    if (anyMemoriesDefined) {
+      throw "All memory imports must be specified before any definitions.";
+    }
+    final memory =
+        ImportedMemory(module, name, memories.length, minSize, maxSize);
+    memories.add(memory);
+    return memory;
   }
 
   /// Import a global variable into the module.
@@ -381,15 +408,14 @@ class Table implements Serializable {
 }
 
 /// A memory in a module.
-class Memory implements Serializable {
+class Memory {
   final int index;
   final int minSize;
   final int? maxSize;
 
   Memory(this.index, this.minSize, [this.maxSize]);
 
-  @override
-  void serialize(Serializer s) {
+  void _serializeLimits(Serializer s) {
     if (maxSize == null) {
       s.writeByte(0x00);
       s.writeUnsigned(minSize);
@@ -399,6 +425,14 @@ class Memory implements Serializable {
       s.writeUnsigned(maxSize!);
     }
   }
+}
+
+class DefinedMemory extends Memory implements Serializable {
+  DefinedMemory(int index, int minSize, int? maxSize)
+      : super(index, minSize, maxSize);
+
+  @override
+  void serialize(Serializer s) => _serializeLimits(s);
 }
 
 /// A tag in a module.
@@ -515,6 +549,23 @@ class ImportedFunction extends BaseFunction implements Import {
 
   @override
   String toString() => "$module.$name";
+}
+
+/// An imported memory.
+class ImportedMemory extends Memory implements Import {
+  final String module;
+  final String name;
+
+  ImportedMemory(this.module, this.name, int index, int minSize, int? maxSize)
+      : super(index, minSize, maxSize);
+
+  @override
+  void serialize(Serializer s) {
+    s.writeName(module);
+    s.writeName(name);
+    s.writeByte(0x02);
+    _serializeLimits(s);
+  }
 }
 
 /// An imported global variable.
@@ -660,11 +711,11 @@ class MemorySection extends Section {
   int get id => 5;
 
   @override
-  bool get isNotEmpty => module.memories.isNotEmpty;
+  bool get isNotEmpty => module.definedMemories.isNotEmpty;
 
   @override
   void serializeContents() {
-    writeList(module.memories);
+    writeList(module.definedMemories.toList());
   }
 }
 
@@ -690,11 +741,11 @@ class GlobalSection extends Section {
   int get id => 6;
 
   @override
-  bool get isNotEmpty => module.globals.whereType<DefinedGlobal>().isNotEmpty;
+  bool get isNotEmpty => module.definedGlobals.isNotEmpty;
 
   @override
   void serializeContents() {
-    writeList(module.globals.whereType<DefinedGlobal>().toList());
+    writeList(module.definedGlobals.toList());
   }
 }
 

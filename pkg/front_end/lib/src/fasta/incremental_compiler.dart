@@ -1780,10 +1780,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Class? cls;
       if (className != null) {
-        ClassBuilder? classBuilder = libraryBuilder.scope
-            .lookupLocalMember(className, setter: false) as ClassBuilder?;
-        cls = classBuilder?.cls;
-        if (cls == null) return null;
+        Builder? scopeMember =
+            libraryBuilder.scope.lookupLocalMember(className, setter: false);
+        if (scopeMember is ClassBuilder) {
+          cls = scopeMember.cls;
+        } else {
+          return null;
+        }
       }
       Extension? extension;
       String? extensionName;

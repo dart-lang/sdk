@@ -62,12 +62,7 @@ class Message {
   // the VM heap. This is indicated by setting the len_ field to 0.
   Message(Dart_Port dest_port, ObjectPtr raw_obj, Priority priority);
 
-  // A message sent from SendPort.send or SendPort.sendAndExit where sender and
-  // receiver are in the same isolate group.
   Message(Dart_Port dest_port, PersistentHandle* handle, Priority priority);
-
-  // A message sent from GC to run a finalizer.
-  Message(PersistentHandle* handle, Priority priority);
 
   ~Message();
 
@@ -99,7 +94,7 @@ class Message {
     return payload_.raw_obj_;
   }
   PersistentHandle* persistent_handle() const {
-    ASSERT(IsPersistentHandle() || IsFinalizerInvocationRequest());
+    ASSERT(IsPersistentHandle());
     return payload_.persistent_handle_;
   }
   Priority priority() const { return priority_; }
@@ -108,19 +103,13 @@ class Message {
   // of at the top of the message loop. Control messages from dart:isolate or
   // vm-service requests.
   bool IsOOB() const { return priority_ == Message::kOOBPriority; }
-  bool IsSnapshot() const {
-    return !IsRaw() && !IsPersistentHandle() && !IsFinalizerInvocationRequest();
-  }
+  bool IsSnapshot() const { return !IsRaw() && !IsPersistentHandle(); }
   // A message whose object is an immortal object from the vm-isolate's heap.
   bool IsRaw() const { return snapshot_length_ == 0; }
   // A message sent from SendPort.send or SendPort.sendAndExit where sender and
   // receiver are in the same isolate group.
   bool IsPersistentHandle() const {
     return snapshot_length_ == kPersistentHandleSnapshotLen;
-  }
-  // A message sent from GC to run a finalizer.
-  bool IsFinalizerInvocationRequest() const {
-    return snapshot_length_ == kFinalizerSnapshotLen;
   }
 
   void DropFinalizers() {
@@ -135,7 +124,6 @@ class Message {
 
  private:
   static intptr_t const kPersistentHandleSnapshotLen = -1;
-  static intptr_t const kFinalizerSnapshotLen = -2;
 
   friend class MessageQueue;
 

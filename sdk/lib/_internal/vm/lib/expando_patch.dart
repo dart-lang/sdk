@@ -28,8 +28,7 @@ class Expando<T> {
 
   @patch
   T? operator [](Object object) {
-    // TODO(http://dartbug.com/48634): Rename to `key`.
-    checkValidWeakTarget(object, 'object');
+    _checkType(object);
 
     var mask = _size - 1;
     var idx = object._identityHashCode & mask;
@@ -51,8 +50,7 @@ class Expando<T> {
 
   @patch
   void operator []=(Object object, T? value) {
-    // TODO(http://dartbug.com/48634): Rename to `key`.
-    checkValidWeakTarget(object, 'object');
+    _checkType(object);
 
     var mask = _size - 1;
     var idx = object._identityHashCode & mask;
@@ -149,6 +147,19 @@ class Expando<T> {
     }
   }
 
+  static _checkType(object) {
+    if ((object == null) ||
+        (object is bool) ||
+        (object is num) ||
+        (object is String) ||
+        (object is Pointer) ||
+        (object is Struct) ||
+        (object is Union)) {
+      throw new ArgumentError.value(object,
+          "Expandos are not allowed on strings, numbers, booleans, null, Pointers, Structs or Unions.");
+    }
+  }
+
   int get _size => _data.length;
   int get _limit => (3 * (_size ~/ 4));
 
@@ -159,14 +170,14 @@ class Expando<T> {
 @patch
 class WeakReference<T extends Object> {
   @patch
-  factory WeakReference(T target) = _WeakReferenceImpl<T>;
+  factory WeakReference(T object) = _WeakReferenceImpl<T>;
 }
 
 @pragma("vm:entry-point")
 class _WeakReferenceImpl<T extends Object> implements WeakReference<T> {
-  _WeakReferenceImpl(T target) {
-    checkValidWeakTarget(target, 'target');
-    _target = target;
+  _WeakReferenceImpl(T object) {
+    Expando._checkType(object);
+    _target = object;
   }
 
   @pragma("vm:recognized", "other")
@@ -178,4 +189,12 @@ class _WeakReferenceImpl<T extends Object> implements WeakReference<T> {
   @pragma("vm:prefer-inline")
   @pragma("vm:external-name", "WeakReference_setTarget")
   external set _target(T? value);
+}
+
+@patch
+class Finalizer<T> {
+  @patch
+  factory Finalizer(void Function(T) object) {
+    throw UnimplementedError("Finalizer");
+  }
 }

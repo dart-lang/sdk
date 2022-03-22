@@ -236,7 +236,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       ClassInfo info = translator.classInfo[cls]!;
       thisLocal = paramLocals[0];
       w.RefType thisType = info.nonNullableType;
-      if (translator.needsConversion(paramLocals[0].type, thisType)) {
+      if (translator.needsConversion(paramLocals[0].type, thisType) &&
+          !(cls == translator.ffiPointerClass ||
+              translator.isFfiCompound(cls))) {
         preciseThisLocal = addLocal(thisType);
         b.local_get(paramLocals[0]);
         translator.ref_cast(b, info);
@@ -988,6 +990,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitConstructorInvocation(
       ConstructorInvocation node, w.ValueType expectedType) {
+    w.ValueType? intrinsicResult =
+        intrinsifier.generateConstructorIntrinsic(node);
+    if (intrinsicResult != null) return intrinsicResult;
+
     ClassInfo info = translator.classInfo[node.target.enclosingClass]!;
     translator.functions.allocateClass(info.classId);
     w.Local temp = addLocal(info.nonNullableType);
@@ -1014,6 +1020,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       StaticInvocation node, w.ValueType expectedType) {
     w.ValueType? intrinsicResult = intrinsifier.generateStaticIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
+
     _visitArguments(node.arguments, node.targetReference, 0);
     return _call(node.targetReference);
   }
@@ -1042,6 +1049,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       InstanceInvocation node, w.ValueType expectedType) {
     w.ValueType? intrinsicResult = intrinsifier.generateInstanceIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
+
     Procedure target = node.interfaceTarget;
     if (node.kind == InstanceAccessKind.Object) {
       switch (target.name.text) {
@@ -1096,6 +1104,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType visitEqualsCall(EqualsCall node, w.ValueType expectedType) {
     w.ValueType? intrinsicResult = intrinsifier.generateEqualsIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
+
     Member? singleTarget = translator.singleTarget(node);
     if (singleTarget == translator.coreTypes.objectEquals) {
       // Plain reference comparison
@@ -1352,6 +1361,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.ValueType? intrinsicResult =
         intrinsifier.generateStaticGetterIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
+
     Member target = node.target;
     if (target is Field) {
       return translator.globals.readGlobal(b, target);
@@ -1493,6 +1503,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   w.ValueType _directGet(
       Member target, Expression receiver, w.ValueType? Function() intrinsify) {
+    w.ValueType? intrinsicResult = intrinsify();
+    if (intrinsicResult != null) return intrinsicResult;
+
     if (target is Field) {
       ClassInfo info = translator.classInfo[target.enclosingClass]!;
       int fieldIndex = translator.fieldIndex[target]!;
@@ -1504,8 +1517,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     } else {
       // Instance call of getter
       assert(target is Procedure && target.isGetter);
-      w.ValueType? intrinsicResult = intrinsify();
-      if (intrinsicResult != null) return intrinsicResult;
       w.BaseFunction targetFunction =
           translator.functions.getFunction(target.reference);
       wrap(receiver, targetFunction.type.inputs.single);

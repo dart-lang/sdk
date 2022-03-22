@@ -96,6 +96,20 @@ Uint8List serializeComponent(Component component,
 
 const String kDebugClassName = "#DebugClass";
 
+class _CollectLibraryDependencies extends RecursiveVisitor {
+  Set<LibraryDependency> foundLibraryDependencies = {};
+
+  @override
+  void visitLoadLibrary(LoadLibrary node) {
+    foundLibraryDependencies.add(node.import);
+  }
+
+  @override
+  void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    foundLibraryDependencies.add(node.import);
+  }
+}
+
 Component createExpressionEvaluationComponent(Procedure procedure) {
   Library realLibrary = procedure.enclosingLibrary;
 
@@ -105,6 +119,17 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
     ..isNonNullableByDefault = realLibrary.isNonNullableByDefault
     ..nonNullableByDefaultCompiledMode =
         realLibrary.nonNullableByDefaultCompiledMode;
+
+  // Add deferred library dependencies. They are needed for serializing
+  // references to deferred libraries. We can just claim ownership of the ones
+  // we find as they were created when doing the expression compilation.
+  _CollectLibraryDependencies collectLibraryDependencies =
+      new _CollectLibraryDependencies();
+  procedure.accept(collectLibraryDependencies);
+  for (LibraryDependency libraryDependency
+      in collectLibraryDependencies.foundLibraryDependencies) {
+    fakeLibrary.addDependency(libraryDependency);
+  }
 
   TreeNode? realClass = procedure.parent;
   if (realClass is Class) {

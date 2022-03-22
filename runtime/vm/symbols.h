@@ -137,8 +137,6 @@ class ObjectPointerVisitor;
   V(FfiVoid, "Void")                                                           \
   V(FfiHandle, "Handle")                                                       \
   V(Field, "Field")                                                            \
-  V(FinalizerBase, "FinalizerBase")                                            \
-  V(FinalizerEntry, "FinalizerEntry")                                          \
   V(FinallyRetVal, ":finally_ret_val")                                         \
   V(FirstArg, "x")                                                             \
   V(Float32List, "Float32List")                                                \
@@ -310,7 +308,6 @@ class ObjectPointerVisitor;
   V(_ExternalUint64Array, "_ExternalUint64Array")                              \
   V(_ExternalUint8Array, "_ExternalUint8Array")                                \
   V(_ExternalUint8ClampedArray, "_ExternalUint8ClampedArray")                  \
-  V(_FinalizerImpl, "_FinalizerImpl")                                          \
   V(_Float32ArrayFactory, "Float32List.")                                      \
   V(_Float32ArrayView, "_Float32ArrayView")                                    \
   V(_Float32List, "_Float32List")                                              \
@@ -410,7 +407,6 @@ class ObjectPointerVisitor;
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(_future, "_future")                                                        \
   V(_handleMessage, "_handleMessage")                                          \
-  V(_handleFinalizerMessage, "_handleFinalizerMessage")                        \
   V(_instanceOf, "_instanceOf")                                                \
   V(_listGetAt, "_listGetAt")                                                  \
   V(_listLength, "_listLength")                                                \

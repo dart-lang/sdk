@@ -16,6 +16,11 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// member in [generateMemberIntrinsic].
 class Intrinsifier {
   final CodeGenerator codeGen;
+
+  // The ABI type sizes are the same for 32-bit Wasm as for 32-bit ARM, so we
+  // can just use an ABI enum index corresponding to a 32-bit ARM platform.
+  static const int abiEnumIndex = 0; // androidArm
+
   static const w.ValueType boolType = w.NumType.i32;
   static const w.ValueType intType = w.NumType.i64;
   static const w.ValueType doubleType = w.NumType.f64;
@@ -145,11 +150,31 @@ class Intrinsifier {
       return w.NumType.i64;
     }
 
+    // _HashAbstractImmutableBase._indexNullable
     if (node.interfaceTarget == translator.immutableMapIndexNullable) {
       ClassInfo info = translator.classInfo[translator.hashFieldBaseClass]!;
       codeGen.wrap(node.receiver, info.nullableType);
       b.struct_get(info.struct, FieldIndex.hashBaseIndex);
       return info.struct.fields[FieldIndex.hashBaseIndex].type.unpacked;
+    }
+
+    // _Compound._typedDataBase
+    if (node.interfaceTarget.enclosingClass == translator.ffiCompoundClass &&
+        name == '_typedDataBase') {
+      // A compound (subclass of Struct or Union) is represented by its i32
+      // address. The _typedDataBase field contains a Pointer pointing to the
+      // compound, whose representation is the same.
+      codeGen.wrap(node.receiver, w.NumType.i32);
+      return w.NumType.i32;
+    }
+
+    // Pointer.address
+    if (node.interfaceTarget.enclosingClass == translator.ffiPointerClass &&
+        name == 'address') {
+      // A Pointer is represented by its i32 address.
+      codeGen.wrap(node.receiver, w.NumType.i32);
+      b.i64_extend_i32_u();
+      return w.NumType.i64;
     }
 
     return null;
@@ -400,6 +425,31 @@ class Intrinsifier {
     if (receiver is ConstantExpression &&
         receiver.constant is ListConstant &&
         name == '[]') {
+      Expression arg = node.arguments.positional.single;
+
+      // If the list is indexed by a constant, or the ABI index, just pick
+      // the element at that constant index.
+      int? constIndex = null;
+      if (arg is IntLiteral) {
+        constIndex = arg.value;
+      } else if (arg is ConstantExpression) {
+        Constant argConst = arg.constant;
+        if (argConst is IntConstant) {
+          constIndex = argConst.value;
+        }
+      } else if (arg is StaticInvocation) {
+        if (arg.target.enclosingLibrary.name == "dart.ffi" &&
+            arg.name.text == "_abi") {
+          constIndex = abiEnumIndex;
+        }
+      }
+      if (constIndex != null) {
+        ListConstant list = receiver.constant as ListConstant;
+        Expression element = ConstantExpression(list.entries[constIndex]);
+        return codeGen.wrap(element, typeOfExp(element));
+      }
+
+      // Access the underlying array directly.
       ClassInfo info = translator.classInfo[translator.listBaseClass]!;
       w.RefType listType = info.nullableType;
       Field arrayField = translator.listBaseClass.fields
@@ -410,7 +460,7 @@ class Intrinsifier {
               as w.ArrayType;
       codeGen.wrap(receiver, listType);
       b.struct_get(info.struct, arrayFieldIndex);
-      codeGen.wrap(node.arguments.positional.single, w.NumType.i64);
+      codeGen.wrap(arg, w.NumType.i64);
       b.i32_wrap_i64();
       b.array_get(arrayType);
       return translator.topInfo.nullableType;
@@ -451,6 +501,7 @@ class Intrinsifier {
     w.ValueType leftType = typeOfExp(node.left);
     w.ValueType rightType = typeOfExp(node.right);
 
+    // Compare bool or Pointer
     if (leftType == boolType && rightType == boolType) {
       codeGen.wrap(node.left, w.NumType.i32);
       codeGen.wrap(node.right, w.NumType.i32);
@@ -458,6 +509,7 @@ class Intrinsifier {
       return w.NumType.i32;
     }
 
+    // Compare int
     if (leftType == intType && rightType == intType) {
       codeGen.wrap(node.left, w.NumType.i64);
       codeGen.wrap(node.right, w.NumType.i64);
@@ -465,6 +517,7 @@ class Intrinsifier {
       return w.NumType.i32;
     }
 
+    // Compare double
     if (leftType == doubleType && rightType == doubleType) {
       codeGen.wrap(node.left, w.NumType.f64);
       codeGen.wrap(node.right, w.NumType.f64);
@@ -489,6 +542,14 @@ class Intrinsifier {
       int classId = translator.classInfo[cls]!.classId;
       b.i64_const(classId);
       return w.NumType.i64;
+    }
+
+    // nullptr
+    if (target.enclosingLibrary.name == "dart.ffi" &&
+        target.name.text == "nullptr") {
+      // A Pointer is represented by its i32 address.
+      b.i32_const(0);
+      return w.NumType.i32;
     }
 
     return null;
@@ -552,6 +613,9 @@ class Intrinsifier {
               translator.translateType(node.arguments.types.single);
           Expression operand = node.arguments.positional.single;
           return codeGen.wrap(operand, targetType);
+        case "_nativeEffect":
+          // Ignore argument
+          return translator.voidMarker;
         case "allocateOneByteString":
           ClassInfo info = translator.classInfo[translator.oneByteStringClass]!;
           translator.functions.allocateClass(info.classId);
@@ -644,6 +708,123 @@ class Intrinsifier {
       }
     }
 
+    // dart:ffi static functions
+    if (node.target.enclosingLibrary.name == "dart.ffi") {
+      // Pointer.fromAddress
+      if (name == "fromAddress") {
+        // A Pointer is represented by its i32 address.
+        codeGen.wrap(node.arguments.positional.single, w.NumType.i64);
+        b.i32_wrap_i64();
+        return w.NumType.i32;
+      }
+
+      // Accesses to Pointer.value, Pointer.value=, Pointer.[], Pointer.[]= and
+      // the members of structs and unions are desugared by the FFI kernel
+      // transformations into calls to memory load and store functions.
+      RegExp loadStoreFunctionNames = RegExp("^_(load|store)"
+          "((Int|Uint)(8|16|32|64)|(Float|Double)(Unaligned)?|Pointer)\$");
+      if (loadStoreFunctionNames.hasMatch(name)) {
+        Expression pointerArg = node.arguments.positional[0];
+        Expression offsetArg = node.arguments.positional[1];
+        codeGen.wrap(pointerArg, w.NumType.i32);
+        int offset;
+        if (offsetArg is IntLiteral) {
+          offset = offsetArg.value;
+        } else if (offsetArg is ConstantExpression &&
+            offsetArg.constant is IntConstant) {
+          offset = (offsetArg.constant as IntConstant).value;
+        } else {
+          codeGen.wrap(offsetArg, w.NumType.i64);
+          b.i32_wrap_i64();
+          b.i32_add();
+          offset = 0;
+        }
+        switch (name) {
+          case "_loadInt8":
+            b.i64_load8_s(translator.ffiMemory, offset);
+            return w.NumType.i64;
+          case "_loadUint8":
+            b.i64_load8_u(translator.ffiMemory, offset);
+            return w.NumType.i64;
+          case "_loadInt16":
+            b.i64_load16_s(translator.ffiMemory, offset);
+            return w.NumType.i64;
+          case "_loadUint16":
+            b.i64_load16_u(translator.ffiMemory, offset);
+            return w.NumType.i64;
+          case "_loadInt32":
+            b.i64_load32_s(translator.ffiMemory, offset);
+            return w.NumType.i64;
+          case "_loadUint32":
+            b.i64_load32_u(translator.ffiMemory, offset);
+            return w.NumType.i64;
+          case "_loadInt64":
+          case "_loadUint64":
+            b.i64_load(translator.ffiMemory, offset);
+            return w.NumType.i64;
+          case "_loadFloat":
+            b.f32_load(translator.ffiMemory, offset);
+            b.f64_promote_f32();
+            return w.NumType.f64;
+          case "_loadFloatUnaligned":
+            b.f32_load(translator.ffiMemory, offset, 0);
+            b.f64_promote_f32();
+            return w.NumType.f64;
+          case "_loadDouble":
+            b.f64_load(translator.ffiMemory, offset);
+            return w.NumType.f64;
+          case "_loadDoubleUnaligned":
+            b.f64_load(translator.ffiMemory, offset, 0);
+            return w.NumType.f64;
+          case "_loadPointer":
+            b.i32_load(translator.ffiMemory, offset);
+            return w.NumType.i32;
+          case "_storeInt8":
+          case "_storeUint8":
+            codeGen.wrap(node.arguments.positional[2], w.NumType.i64);
+            b.i64_store8(translator.ffiMemory, offset);
+            return translator.voidMarker;
+          case "_storeInt16":
+          case "_storeUint16":
+            codeGen.wrap(node.arguments.positional[2], w.NumType.i64);
+            b.i64_store16(translator.ffiMemory, offset);
+            return translator.voidMarker;
+          case "_storeInt32":
+          case "_storeUint32":
+            codeGen.wrap(node.arguments.positional[2], w.NumType.i64);
+            b.i64_store32(translator.ffiMemory, offset);
+            return translator.voidMarker;
+          case "_storeInt64":
+          case "_storeUint64":
+            codeGen.wrap(node.arguments.positional[2], w.NumType.i64);
+            b.i64_store(translator.ffiMemory, offset);
+            return translator.voidMarker;
+          case "_storeFloat":
+            codeGen.wrap(node.arguments.positional[2], w.NumType.f64);
+            b.f32_demote_f64();
+            b.f32_store(translator.ffiMemory, offset);
+            return translator.voidMarker;
+          case "_storeFloatUnaligned":
+            codeGen.wrap(node.arguments.positional[2], w.NumType.f64);
+            b.f32_demote_f64();
+            b.f32_store(translator.ffiMemory, offset, 0);
+            return translator.voidMarker;
+          case "_storeDouble":
+            codeGen.wrap(node.arguments.positional[2], w.NumType.f64);
+            b.f64_store(translator.ffiMemory, offset);
+            return translator.voidMarker;
+          case "_storeDoubleUnaligned":
+            codeGen.wrap(node.arguments.positional[2], w.NumType.f64);
+            b.f64_store(translator.ffiMemory, offset, 0);
+            return translator.voidMarker;
+          case "_storePointer":
+            codeGen.wrap(node.arguments.positional[2], w.NumType.i32);
+            b.i32_store(translator.ffiMemory, offset);
+            return translator.voidMarker;
+        }
+      }
+    }
+
     // Wasm(Int|Float|Object)Array constructors
     if (node.target.enclosingClass?.superclass ==
         translator.wasmArrayBaseClass) {
@@ -678,6 +859,21 @@ class Intrinsifier {
           codeGen.wrap(value, w.NumType.f64);
           return w.NumType.f64;
       }
+    }
+
+    return null;
+  }
+
+  w.ValueType? generateConstructorIntrinsic(ConstructorInvocation node) {
+    String name = node.name.text;
+
+    // _Compound.#fromTypedDataBase
+    if (name == "#fromTypedDataBase") {
+      // A compound (subclass of Struct or Union) is represented by its i32
+      // address. The argument to the #fromTypedDataBase constructor is a
+      // Pointer, whose representation is the same.
+      codeGen.wrap(node.arguments.positional.single, w.NumType.i32);
+      return w.NumType.i32;
     }
 
     return null;

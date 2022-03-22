@@ -623,20 +623,6 @@ class UntaggedObject {
     }
   }
 
-  template <typename type,
-            typename compressed_type,
-            std::memory_order order = std::memory_order_relaxed>
-  type ExchangeCompressedPointer(compressed_type const* addr, type value) {
-    compressed_type previous_value =
-        reinterpret_cast<std::atomic<compressed_type>*>(
-            const_cast<compressed_type*>(addr))
-            ->exchange(static_cast<compressed_type>(value), order);
-    if (value.IsHeapObject()) {
-      CheckHeapPointerStore(value, Thread::Current());
-    }
-    return static_cast<type>(previous_value.Decompress(heap_base()));
-  }
-
   template <std::memory_order order = std::memory_order_relaxed>
   SmiPtr LoadSmi(SmiPtr const* addr) const {
     return reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
@@ -3279,7 +3265,7 @@ class UntaggedRegExp : public UntaggedInstance {
 class UntaggedWeakProperty : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakProperty);
 
-  COMPRESSED_POINTER_FIELD(ObjectPtr, key)  // Weak reference.
+  COMPRESSED_POINTER_FIELD(ObjectPtr, key)
   VISIT_FROM(key)
   COMPRESSED_POINTER_FIELD(ObjectPtr, value)
   VISIT_TO(value)
@@ -3287,10 +3273,8 @@ class UntaggedWeakProperty : public UntaggedInstance {
 
   // Linked list is chaining all pending weak properties. Not visited by
   // pointer visitors.
-  COMPRESSED_POINTER_FIELD(WeakPropertyPtr, next_seen_by_gc)
+  CompressedWeakPropertyPtr next_;
 
-  template <typename Type, typename PtrType>
-  friend struct GCLinkedList;
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3304,7 +3288,7 @@ class UntaggedWeakProperty : public UntaggedInstance {
 class UntaggedWeakReference : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakReference);
 
-  COMPRESSED_POINTER_FIELD(ObjectPtr, target)  // Weak reference.
+  COMPRESSED_POINTER_FIELD(ObjectPtr, target)
   VISIT_FROM(target)
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_TO(type_arguments)
@@ -3312,10 +3296,8 @@ class UntaggedWeakReference : public UntaggedInstance {
 
   // Linked list is chaining all pending weak properties. Not visited by
   // pointer visitors.
-  COMPRESSED_POINTER_FIELD(WeakReferencePtr, next_seen_by_gc)
+  CompressedWeakReferencePtr next_;
 
-  template <typename Type, typename PtrType>
-  friend struct GCLinkedList;
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3324,92 +3306,6 @@ class UntaggedWeakReference : public UntaggedInstance {
   friend class ScavengerVisitorBase;
   friend class FastObjectCopy;  // For OFFSET_OF
   friend class SlowObjectCopy;  // For OFFSET_OF
-};
-
-class UntaggedFinalizerBase : public UntaggedInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(FinalizerBase);
-
-  // The isolate this finalizer belongs to. Updated on sent and exit and set
-  // to null on isolate shutdown. See Isolate::finalizers_.
-  Isolate* isolate_;
-
-  COMPRESSED_POINTER_FIELD(ObjectPtr, detachments)
-  VISIT_FROM(detachments)
-  COMPRESSED_POINTER_FIELD(LinkedHashSetPtr, all_entries)
-  COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
-
-// With compressed pointers, the first field in a subclass is at offset 28.
-// If the fields would be public, the first field in a subclass is at offset 32.
-// On Windows, it is always at offset 32, no matter public/private.
-// This makes it 32 for all OSes.
-// We can't use ALIGN8 on the first fields of the subclasses because they use
-// the COMPRESSED_POINTER_FIELD macro to define it.
-#ifdef DART_COMPRESSED_POINTERS
-  uint32_t align_next_field;
-#endif
-
-  template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
-  friend class GCMarker;
-  template <bool>
-  friend class MarkingVisitorBase;
-  friend class Scavenger;
-  template <bool>
-  friend class ScavengerVisitorBase;
-};
-
-class UntaggedFinalizer : public UntaggedFinalizerBase {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Finalizer);
-
-  COMPRESSED_POINTER_FIELD(ClosurePtr, callback)
-  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
-  VISIT_TO(type_arguments)
-
-  template <std::memory_order order = std::memory_order_relaxed>
-  FinalizerEntryPtr exchange_entries_collected(FinalizerEntryPtr value) {
-    return ExchangeCompressedPointer<FinalizerEntryPtr,
-                                     CompressedFinalizerEntryPtr, order>(
-        &entries_collected_, value);
-  }
-
-  template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
-  friend class GCMarker;
-  template <bool>
-  friend class MarkingVisitorBase;
-  friend class Scavenger;
-  template <bool>
-  friend class ScavengerVisitorBase;
-};
-
-class UntaggedFinalizerEntry : public UntaggedInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(FinalizerEntry);
-
-  COMPRESSED_POINTER_FIELD(ObjectPtr, value)  // Weak reference.
-  VISIT_FROM(value)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, detach)  // Weak reference.
-  COMPRESSED_POINTER_FIELD(ObjectPtr, token)
-  COMPRESSED_POINTER_FIELD(FinalizerBasePtr, finalizer)  // Weak reference.
-  // Used for the linked list in Finalizer::entries_collected_. That cannot be
-  // an ordinary list because we need to add elements during a GC so we cannot
-  // modify the heap.
-  COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, next)
-  VISIT_TO(next)
-
-  // Linked list is chaining all pending. Not visited by pointer visitors.
-  // Only populated during the GC, otherwise null.
-  COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, next_seen_by_gc)
-
-  template <typename Type, typename PtrType>
-  friend struct GCLinkedList;
-  template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
-  friend class GCMarker;
-  template <bool>
-  friend class MarkingVisitorBase;
-  friend class Scavenger;
-  template <bool>
-  friend class ScavengerVisitorBase;
 };
 
 // MirrorReferences are used by mirrors to hold reflectees that are VM

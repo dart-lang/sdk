@@ -1065,10 +1065,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
 
-  static intptr_t finalizers_offset() {
-    return OFFSET_OF(Isolate, finalizers_);
-  }
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
   NativeCallbackTrampolines* native_callback_trampolines() {
     return &native_callback_trampolines_;
@@ -1544,9 +1540,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   UserTagPtr default_tag_;
   CodePtr ic_miss_code_;
   FieldTable* field_table_ = nullptr;
-  // Used to clear out `UntaggedFinalizerBase::isolate_` pointers on isolate
-  // shutdown to prevent usage of dangling pointers.
-  GrowableObjectArrayPtr finalizers_;
   bool single_step_ = false;
   bool is_system_isolate_ = false;
   // End accessed from generated code.
@@ -1658,7 +1651,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Dart_EnvironmentCallback environment_callback_ = nullptr;
   Random random_;
   Simulator* simulator_ = nullptr;
-  Mutex mutex_;  // Protects compiler stats.
+  Mutex mutex_;                            // Protects compiler stats.
   MessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
   DeoptContext* deopt_context_ = nullptr;
@@ -1734,7 +1727,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;
-  friend class IsolateGroup;  // reload_context_
+  friend class IsolateGroup;   // reload_context_
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

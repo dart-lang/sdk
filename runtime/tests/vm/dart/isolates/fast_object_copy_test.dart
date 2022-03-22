@@ -245,7 +245,6 @@ class SendReceiveTest extends SendReceiveTestBase {
 
     await testWeakProperty();
     await testWeakReference();
-    await testFinalizer();
 
     await testForbiddenClosures();
   }
@@ -755,14 +754,6 @@ class SendReceiveTest extends SendReceiveTestBase {
       Expect.isNull(weakRef3copy.target);
       Expect.equals(weakRef4.target?.value, weakRef4copy.target?.value);
     }
-  }
-
-  Future testFinalizer() async {
-    print('testFinalizer');
-
-    void callback(Object token) {}
-    final finalizer = Finalizer<Object>(callback);
-    Expect.throwsArgumentError(() => sendPort.send(finalizer));
   }
 
   Future testForbiddenClosures() async {
