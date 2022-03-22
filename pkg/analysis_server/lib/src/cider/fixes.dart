@@ -40,7 +40,7 @@ class CiderFixesComputer {
   /// Compute quick fixes for errors on the line with the [offset].
   Future<List<CiderErrorFixes>> compute(String path, int lineNumber) async {
     var result = <CiderErrorFixes>[];
-    var resolvedUnit = _fileResolver.resolve(path: path);
+    var resolvedUnit = await _fileResolver.resolve2(path: path);
 
     var lineInfo = resolvedUnit.lineInfo;
 
@@ -89,7 +89,7 @@ class _CiderDartFixContextImpl extends DartFixContextImpl {
     var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
     for (var file in files) {
       if (file.partOfLibrary == null) {
-        var libraryElement = _fileResolver.getLibraryByUri(
+        var libraryElement = await _fileResolver.getLibraryByUri2(
           uriStr: file.uriStr,
         );
         TopLevelDeclarations.addElement(result, libraryElement, name);

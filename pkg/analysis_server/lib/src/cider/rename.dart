@@ -81,6 +81,7 @@ class CheckNameResponse {
 
   String get oldName => canRename.refactoringElement.element.displayName;
 
+  @Deprecated('Use computeRenameRanges2() instead')
   RenameResponse? computeRenameRanges() {
     var elements = <Element>[];
     var element = canRename.refactoringElement.element;
@@ -105,6 +106,11 @@ class CheckNameResponse {
     }
     return RenameResponse(matches, this, flutterWidgetRename: flutterRename);
   }
+
+  Future<RenameResponse?> computeRenameRanges2() async {
+    // ignore: deprecated_member_use_from_same_package
+    return computeRenameRanges();
+  }
 }
 
 class CiderRenameComputer {
@@ -114,6 +120,7 @@ class CiderRenameComputer {
 
   /// Check if the identifier at the [line], [column] for the file at the
   /// [filePath] can be renamed.
+  @Deprecated('Use canRename2() instead')
   CanRenameResponse? canRename(String filePath, int line, int column) {
     var resolvedUnit = _fileResolver.resolve(path: filePath);
     var lineInfo = resolvedUnit.lineInfo;
@@ -142,6 +149,14 @@ class CiderRenameComputer {
       return CanRenameResponse(lineInfo, refactoring, _fileResolver, filePath);
     }
     return null;
+  }
+
+  /// Check if the identifier at the [line], [column] for the file at the
+  /// [filePath] can be renamed.
+  Future<CanRenameResponse?> canRename2(
+      String filePath, int line, int column) async {
+    // ignore: deprecated_member_use_from_same_package
+    return canRename(filePath, line, column);
   }
 
   bool _canRenameElement(Element element) {

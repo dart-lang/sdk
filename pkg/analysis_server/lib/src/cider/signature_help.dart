@@ -15,6 +15,7 @@ class CiderSignatureHelpComputer {
 
   CiderSignatureHelpComputer(this._fileResolver);
 
+  @Deprecated('Use compute2() instead')
   SignatureHelpResponse? compute(String filePath, int line, int column) {
     var resolvedUnit = _fileResolver.resolve(path: filePath);
     var lineInfo = resolvedUnit.lineInfo;
@@ -43,6 +44,12 @@ class CiderSignatureHelpComputer {
       }
     }
     return null;
+  }
+
+  Future<SignatureHelpResponse?> compute2(
+      String filePath, int line, int column) async {
+    // ignore: deprecated_member_use_from_same_package
+    return compute(filePath, line, column);
   }
 }
 

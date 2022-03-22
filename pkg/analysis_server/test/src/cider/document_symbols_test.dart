@@ -18,8 +18,8 @@ void main() {
 
 @reflectiveTest
 class CiderDocumentSymbolsComputerTest extends CiderServiceTest {
-  void test_class() {
-    var unitOutline = _compute('''
+  void test_class() async {
+    var unitOutline = await _compute('''
 abstract class A<K, V> {
   int fa, fb;
   String fc;
@@ -145,10 +145,10 @@ R fb<R, P>(P p) {}
     }
   }
 
-  void test_isTest_isTestGroup() {
+  void test_isTest_isTestGroup() async {
     BazelMockPackages.instance.addMeta(resourceProvider);
 
-    var outline = _compute('''
+    var outline = await _compute('''
 import 'package:meta/meta.dart';
 
 @isTestGroup
@@ -268,11 +268,11 @@ void f() {
     );
   }
 
-  List<DocumentSymbol> _compute(String content) {
+  Future<List<DocumentSymbol>> _compute(String content) async {
     newFile2(testPath, content);
     return CiderDocumentSymbolsComputer(
       fileResolver,
-    ).compute(convertPath(testPath));
+    ).compute2(convertPath(testPath));
   }
 
   void _expect(DocumentSymbol outline,

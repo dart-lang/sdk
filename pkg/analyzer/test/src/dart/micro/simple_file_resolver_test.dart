@@ -393,7 +393,8 @@ void func() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(6, aPath));
+    var element = await _findElement(6, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(4, 11)]),
       CiderSearchMatch(aPath, [CharacterLocation(1, 7)])
@@ -414,7 +415,8 @@ class A {
 ''');
 
     await resolveFile(aPath);
-    var result = fileResolver.findReferences(_findElement(16, aPath));
+    var element = await _findElement(16, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(
           aPath, [CharacterLocation(2, 7), CharacterLocation(5, 5)])
@@ -433,7 +435,8 @@ foo(String str) {}
 ''');
 
     await resolveFile(aPath);
-    var result = fileResolver.findReferences(_findElement(11, aPath));
+    var element = await _findElement(11, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(
           aPath, [CharacterLocation(2, 3), CharacterLocation(5, 1)])
@@ -459,7 +462,8 @@ main() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(20, aPath));
+    var element = await _findElement(20, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(5, 15)]),
       CiderSearchMatch(aPath, [CharacterLocation(2, 11)])
@@ -478,7 +482,8 @@ class A {
 }
 ''');
     await resolveFile(aPath);
-    var result = fileResolver.findReferences(_findElement(39, aPath));
+    var element = await _findElement(39, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(
           aPath, [CharacterLocation(3, 9), CharacterLocation(4, 11)])
@@ -511,7 +516,8 @@ main() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(17, aPath));
+    var element = await _findElement(17, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(5, 5)]),
       CiderSearchMatch(
@@ -538,7 +544,8 @@ main() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(21, aPath));
+    var element = await _findElement(21, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(5, 5)]),
       CiderSearchMatch(aPath, [CharacterLocation(2, 12)])
@@ -565,7 +572,8 @@ main() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(19, aPath));
+    var element = await _findElement(19, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(4, 13)]),
       CiderSearchMatch(aPath, [CharacterLocation(3, 9)])
@@ -592,7 +600,8 @@ main() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(20, aPath));
+    var element = await _findElement(20, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(4, 3)]),
       CiderSearchMatch(aPath, [CharacterLocation(3, 10)])
@@ -612,7 +621,8 @@ void func() {
 ''');
 
     await resolveFile(aPath);
-    var result = fileResolver.findReferences(_findElement(10, aPath));
+    var element = await _findElement(10, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(
           aPath, [CharacterLocation(1, 11), CharacterLocation(4, 11)])
@@ -630,7 +640,8 @@ class Foo<T> {
 }
 ''');
     await resolveFile(aPath);
-    var result = fileResolver.findReferences(_findElement(10, aPath));
+    var element = await _findElement(10, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(aPath, [
         CharacterLocation(1, 11),
@@ -658,7 +669,8 @@ void f(func o) {}
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(8, aPath));
+    var element = await _findElement(8, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(3, 8)]),
       CiderSearchMatch(aPath, [CharacterLocation(1, 9)])
@@ -666,13 +678,13 @@ void f(func o) {}
     expect(result, unorderedEquals(expected));
   }
 
-  test_getErrors() {
+  test_getErrors() async {
     addTestFile(r'''
 var a = b;
 var foo = 0;
 ''');
 
-    var result = getTestErrors();
+    var result = await getTestErrors();
     expect(result.path, convertPath('/workspace/dart/test/lib/test.dart'));
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.errors, [
@@ -681,7 +693,7 @@ var foo = 0;
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }
 
-  test_getErrors_reuse() {
+  test_getErrors_reuse() async {
     addTestFile('var a = b;');
 
     var path = convertPath('/workspace/dart/test/lib/test.dart');
@@ -690,34 +702,34 @@ var foo = 0;
     expect(fileResolver.testView!.resolvedLibraries, isEmpty);
 
     // No cached, will resolve once.
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // Has cached, will be not resolved again.
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
 
     // Change the file, new resolver.
     // With changed file the previously cached result cannot be used.
     addTestFile('var a = c;');
     createFileResolver();
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
   }
 
-  test_getErrors_reuse_changeDependency() {
+  test_getErrors_reuse_changeDependency() async {
     newFile2('/workspace/dart/test/lib/a.dart', r'''
 var a = 0;
 ''');
@@ -733,11 +745,11 @@ var b = a.foo;
     expect(fileResolver.testView!.resolvedLibraries, isEmpty);
 
     // No cached, will resolve once.
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // Has cached, will be not resolved again.
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // Change the dependency, new resolver.
@@ -747,13 +759,13 @@ var b = a.foo;
 var a = 4.2;
 ''');
     createFileResolver();
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
   }
 
@@ -782,39 +794,41 @@ var b = 1 + 2;
     assertHasOneVariable();
   }
 
-  test_getLibraryByUri() {
+  test_getLibraryByUri() async {
     newFile2('/workspace/dart/my/lib/a.dart', r'''
 class A {}
 ''');
 
-    var element = fileResolver.getLibraryByUri(
+    var element = await fileResolver.getLibraryByUri2(
       uriStr: 'package:dart.my/a.dart',
     );
     expect(element.definingCompilationUnit.classes, hasLength(1));
   }
 
-  test_getLibraryByUri_notExistingFile() {
-    var element = fileResolver.getLibraryByUri(
+  test_getLibraryByUri_notExistingFile() async {
+    var element = await fileResolver.getLibraryByUri2(
       uriStr: 'package:dart.my/a.dart',
     );
     expect(element.definingCompilationUnit.classes, isEmpty);
   }
 
-  test_getLibraryByUri_partOf() {
+  test_getLibraryByUri_partOf() async {
     newFile2('/workspace/dart/my/lib/a.dart', r'''
 part of 'b.dart';
 ''');
 
-    expect(() {
-      fileResolver.getLibraryByUri(
+    expect(() async {
+      await fileResolver.getLibraryByUri2(
         uriStr: 'package:dart.my/a.dart',
       );
     }, throwsArgumentError);
   }
 
-  test_getLibraryByUri_unresolvedUri() {
-    expect(() {
-      fileResolver.getLibraryByUri(uriStr: 'my:unresolved');
+  test_getLibraryByUri_unresolvedUri() async {
+    expect(() async {
+      await fileResolver.getLibraryByUri2(
+        uriStr: 'my:unresolved',
+      );
     }, throwsArgumentError);
   }
 
@@ -835,16 +849,16 @@ import 'dart:math';
     assertNoErrorsInResult();
   }
 
-  test_linkLibraries_getErrors() {
+  test_linkLibraries_getErrors() async {
     addTestFile(r'''
 var a = b;
 var foo = 0;
 ''');
 
     var path = convertPath('/workspace/dart/test/lib/test.dart');
-    fileResolver.linkLibraries(path: path);
+    await fileResolver.linkLibraries2(path: path);
 
-    var result = getTestErrors();
+    var result = await getTestErrors();
     expect(result.path, path);
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.errors, [
@@ -1136,7 +1150,7 @@ part of 'a.dart';
     var testView = fileResolver.testView!;
     expect(testView.resolvedLibraries, isEmpty);
 
-    fileResolver.resolve(
+    await fileResolver.resolve2(
       path: b_path,
       completionLine: 0,
       completionColumn: 0,
@@ -1169,7 +1183,7 @@ void func() {
 }
 ''');
 
-    var result = fileResolver.resolveLibrary(path: aPath);
+    var result = await fileResolver.resolveLibrary2(path: aPath);
     expect(result.units.length, 2);
     expect(result.units[0].path, aPath);
     expect(result.units[0].uri, Uri.parse('package:dart.test/a.dart'));
@@ -1270,8 +1284,8 @@ import 'foo:bar';
     expect(fileResolver.fsState!.testView.removedPaths, matcher);
   }
 
-  Element _findElement(int offset, String filePath) {
-    var resolvedUnit = fileResolver.resolve(path: filePath);
+  Future<Element> _findElement(int offset, String filePath) async {
+    var resolvedUnit = await fileResolver.resolve2(path: filePath);
     var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
     var element = getElementOfNode(node);
     return element!;
