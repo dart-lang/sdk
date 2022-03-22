@@ -162,8 +162,8 @@ class KernelTarget extends TargetImplementation {
   final bool errorOnUnevaluatedConstant =
       CompilerContext.current.options.errorOnUnevaluatedConstant;
 
-  final List<SynthesizedFunctionNode> synthesizedFunctionNodes =
-      <SynthesizedFunctionNode>[];
+  final List<DelayedDefaultValueCloner> _delayedDefaultValueCloners =
+      <DelayedDefaultValueCloner>[];
 
   final UriTranslator uriTranslator;
 
@@ -417,7 +417,8 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
       NeededPrecompilations? result = loader.computeMacroDeclarations();
 
-      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.unknownComputeNeededPrecompilations);
       return result;
     }, () => loader.currentUriForCrashReporting);
   }
@@ -587,7 +588,7 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
       loader.buildOutlineExpressions(
-          loader.hierarchy, synthesizedFunctionNodes);
+          loader.hierarchy, _delayedDefaultValueCloners);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkTypes);
       loader.checkTypes();
@@ -608,7 +609,7 @@ class KernelTarget extends TargetImplementation {
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
 
-      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+      benchmarker?.enterPhase(BenchmarkPhases.unknownBuildOutlines);
 
       // For whatever reason sourceClassBuilders is kept alive for some amount
       // of time, meaning that all source library builders will be kept alive
@@ -689,7 +690,7 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.body_installAllComponentProblems);
       installAllComponentProblems(loader.allComponentProblems);
 
-      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+      benchmarker?.enterPhase(BenchmarkPhases.unknownBuildComponent);
 
       // For whatever reason sourceClasses is kept alive for some amount
       // of time, meaning that all source library builders will be kept alive
@@ -915,7 +916,7 @@ class KernelTarget extends TargetImplementation {
 
   void installForwardingConstructors(SourceClassBuilder builder) {
     assert(builder.isMixinApplication);
-    if (builder.library.loader != loader) return;
+    if (builder.libraryBuilder.loader != loader) return;
     if (builder.cls.constructors.isNotEmpty) {
       // These were installed by a subclass in the recursive call below.
       return;
@@ -1084,18 +1085,18 @@ class KernelTarget extends TargetImplementation {
         returnType: makeConstructorReturnType(cls));
     SuperInitializer initializer = new SuperInitializer(
         superConstructor, new Arguments(positional, named: named));
-    SynthesizedFunctionNode synthesizedFunctionNode =
-        new SynthesizedFunctionNode(
+    DelayedDefaultValueCloner delayedDefaultValueCloner =
+        new DelayedDefaultValueCloner(
             substitutionMap, superConstructor.function, function,
-            libraryBuilder: classBuilder.library);
+            libraryBuilder: classBuilder.libraryBuilder);
     if (!isConst) {
       // For constant constructors default values are computed and cloned part
       // of the outline expression and therefore passed to the
       // [SyntheticConstructorBuilder] below.
       //
       // For non-constant constructors default values are cloned as part of the
-      // full compilation using [synthesizedFunctionNodes].
-      synthesizedFunctionNodes.add(synthesizedFunctionNode);
+      // full compilation using [_delayedDefaultValueCloners].
+      _delayedDefaultValueCloners.add(delayedDefaultValueCloner);
     }
     Constructor constructor = new Constructor(function,
         name: superConstructor.name,
@@ -1119,7 +1120,7 @@ class KernelTarget extends TargetImplementation {
 
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
         superConstructor.name.text,
-        classBuilder.library,
+        classBuilder.libraryBuilder,
         cls.fileUri,
         cls.fileOffset,
         tearOffReference,
@@ -1127,7 +1128,7 @@ class KernelTarget extends TargetImplementation {
 
     if (constructorTearOff != null) {
       buildConstructorTearOffProcedure(constructorTearOff, constructor,
-          classBuilder.cls, classBuilder.library);
+          classBuilder.cls, classBuilder.libraryBuilder);
     }
     return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff,
@@ -1138,18 +1139,18 @@ class KernelTarget extends TargetImplementation {
         // a potential subclass using super initializing parameters that will
         // required the cloning of the default values.
         origin: superConstructorBuilder,
-        synthesizedFunctionNode: synthesizedFunctionNode);
+        delayedDefaultValueCloner: delayedDefaultValueCloner);
   }
 
   void finishSynthesizedParameters({bool forOutline = false}) {
-    for (SynthesizedFunctionNode synthesizedFunctionNode
-        in synthesizedFunctionNodes) {
-      if (!forOutline || synthesizedFunctionNode.isOutlineNode) {
-        synthesizedFunctionNode.cloneDefaultValues(loader.typeEnvironment);
+    for (DelayedDefaultValueCloner delayedDefaultValueCloner
+        in _delayedDefaultValueCloners) {
+      if (!forOutline || delayedDefaultValueCloner.isOutlineNode) {
+        delayedDefaultValueCloner.cloneDefaultValues(loader.typeEnvironment);
       }
     }
     if (!forOutline) {
-      synthesizedFunctionNodes.clear();
+      _delayedDefaultValueCloners.clear();
     }
     ticker.logMs("Cloned default values of formals");
   }
@@ -1174,7 +1175,7 @@ class KernelTarget extends TargetImplementation {
           enclosingClass.enclosingLibrary.isNonNullableByDefault;
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
         '',
-        classBuilder.library,
+        classBuilder.libraryBuilder,
         enclosingClass.fileUri,
         enclosingClass.fileOffset,
         tearOffReference,
@@ -1182,7 +1183,7 @@ class KernelTarget extends TargetImplementation {
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
       buildConstructorTearOffProcedure(constructorTearOff, constructor,
-          classBuilder.cls, classBuilder.library);
+          classBuilder.cls, classBuilder.libraryBuilder);
     }
     return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff);
@@ -1389,7 +1390,7 @@ class KernelTarget extends TargetImplementation {
                   .toList());
           nonFinalFields.clear();
         }
-        SourceLibraryBuilder library = builder.library;
+        SourceLibraryBuilder library = builder.libraryBuilder;
         if (library.isNonNullableByDefault) {
           if (constructor.isConst && lateFinalFields.isNotEmpty) {
             for (FieldBuilder field in lateFinalFields) {
@@ -1452,7 +1453,7 @@ class KernelTarget extends TargetImplementation {
         if (!fieldBuilder.isLate) {
           if (fieldBuilder.isFinal &&
               uninitializedFinalOrNonNullableFieldIsError) {
-            String uri = '${fieldBuilder.library.importUri}';
+            String uri = '${fieldBuilder.libraryBuilder.importUri}';
             String file = fieldBuilder.fileUri.pathSegments.last;
             if (uri == 'dart:html' ||
                 uri == 'dart:svg' ||
@@ -1461,7 +1462,7 @@ class KernelTarget extends TargetImplementation {
               // TODO(johnniwinther): Use external getters instead of final
               // fields. See https://github.com/dart-lang/sdk/issues/33762
             } else {
-              builder.library.addProblem(
+              builder.libraryBuilder.addProblem(
                   templateFinalFieldNotInitialized
                       .withArguments(fieldBuilder.name),
                   fieldBuilder.charOffset,
@@ -1471,7 +1472,7 @@ class KernelTarget extends TargetImplementation {
           } else if (fieldBuilder.fieldType is! InvalidType &&
               fieldBuilder.fieldType.isPotentiallyNonNullable &&
               uninitializedFinalOrNonNullableFieldIsError) {
-            SourceLibraryBuilder library = builder.library;
+            SourceLibraryBuilder library = builder.libraryBuilder;
             if (library.isNonNullableByDefault) {
               library.addProblem(
                   templateFieldNonNullableWithoutInitializerError.withArguments(
@@ -1500,7 +1501,7 @@ class KernelTarget extends TargetImplementation {
           initializer.parent = constructorBuilder.constructor;
           constructorBuilder.constructor.initializers.insert(0, initializer);
           if (fieldBuilder.isFinal) {
-            builder.library.addProblem(
+            builder.libraryBuilder.addProblem(
                 templateFinalFieldNotInitializedByConstructor
                     .withArguments(fieldBuilder.name),
                 constructorBuilder.charOffset,
@@ -1515,7 +1516,7 @@ class KernelTarget extends TargetImplementation {
           } else if (fieldBuilder.field.type is! InvalidType &&
               !fieldBuilder.isLate &&
               fieldBuilder.field.type.isPotentiallyNonNullable) {
-            SourceLibraryBuilder library = builder.library;
+            SourceLibraryBuilder library = builder.libraryBuilder;
             if (library.isNonNullableByDefault) {
               library.addProblem(
                   templateFieldNonNullableNotInitializedByConstructorError

@@ -26,7 +26,7 @@ class UseResultVerifier {
   void checkPropertyAccess(PropertyAccess node) {
     var element = node.propertyName.staticElement;
     if (element == null) {
-      return null;
+      return;
     }
 
     _check(node, element);
@@ -45,7 +45,7 @@ class UseResultVerifier {
 
     var element = node.staticElement;
     if (element == null) {
-      return null;
+      return;
     }
 
     _check(node, element);

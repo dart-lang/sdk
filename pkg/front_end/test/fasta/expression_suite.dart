@@ -67,6 +67,8 @@ import 'package:vm/target/vm.dart' show VmTarget;
 
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
+import '../testing_utils.dart' show checkEnvironment;
+
 import '../utils/kernel_chain.dart' show runDiff, openWrite;
 
 class Context extends ChainContext {
@@ -568,6 +570,12 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
+  const Set<String> knownEnvironmentKeys = {
+    "updateExpectations",
+    "fuzz",
+  };
+  checkEnvironment(environment, knownEnvironmentKeys);
+
   final Uri base = Uri.parse("org-dartlang-test:///");
 
   /// Unused because we supply entry points to [computeDelta] directly above.

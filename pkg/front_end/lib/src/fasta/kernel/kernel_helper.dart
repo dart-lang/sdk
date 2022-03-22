@@ -19,7 +19,7 @@ import '../messages.dart';
 /// created from the constructors in the superclass, and for tear off lowerings
 /// for redirecting factories, which are created from the effective target
 /// constructor.
-class SynthesizedFunctionNode {
+class DelayedDefaultValueCloner {
   /// Type parameter map from type parameters in scope [_original] to types
   /// in scope of [_synthesized].
   // TODO(johnniwinther): Is this ever needed? Should occurrence of type
@@ -49,7 +49,7 @@ class SynthesizedFunctionNode {
 
   CloneVisitorNotMembers? _cloner;
 
-  SynthesizedFunctionNode(
+  DelayedDefaultValueCloner(
       this._typeSubstitution, this._original, this._synthesized,
       {this.identicalSignatures: true,
       List<int?>? positionalSuperParameters: null,
@@ -240,7 +240,7 @@ class SynthesizedFunctionNode {
 
   @override
   String toString() {
-    return "SynthesizedFunctionNode(original=${_original.parent}, "
+    return "DelayedDefaultValueCloner(original=${_original.parent}, "
         "synthesized=${_synthesized.parent})";
   }
 }

@@ -15,26 +15,7 @@
 namespace dart {
 namespace bin {
 
-typedef DWORD ThreadLocalKey;
 typedef DWORD ThreadId;
-
-class ThreadInlineImpl {
- private:
-  ThreadInlineImpl() {}
-  ~ThreadInlineImpl() {}
-
-  static uword GetThreadLocal(ThreadLocalKey key) {
-    static ThreadLocalKey kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
-    ASSERT(key != kUnsetThreadLocalKey);
-    return reinterpret_cast<uword>(TlsGetValue(key));
-  }
-
-  friend class Thread;
-  friend unsigned int __stdcall ThreadEntry(void* data_ptr);
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
-};
 
 class MutexData {
  private:

@@ -68,7 +68,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
   /// (happens internally in Blaze or when we have cached summaries).
   bool get keepLinkingLibraries;
 
-  _SdkBundle get sdkBundle {
+  Future<_SdkBundle> get sdkBundle async {
     if (_sdkBundle != null) {
       return _sdkBundle!;
     }
@@ -102,7 +102,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       Reference.root(),
     );
 
-    var sdkLinkResult = link(elementFactory, inputLibraries);
+    var sdkLinkResult = await link2(elementFactory, inputLibraries);
 
     return _sdkBundle = _SdkBundle(
       resolutionBytes: sdkLinkResult.resolutionBytes,
@@ -156,11 +156,11 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       BundleReader(
         elementFactory: elementFactory,
         unitsInformativeBytes: {},
-        resolutionBytes: sdkBundle.resolutionBytes,
+        resolutionBytes: (await sdkBundle).resolutionBytes,
       ),
     );
 
-    var linkResult = link(elementFactory, inputLibraries);
+    var linkResult = await link2(elementFactory, inputLibraries);
 
     if (!keepLinkingLibraries) {
       elementFactory.removeBundle(

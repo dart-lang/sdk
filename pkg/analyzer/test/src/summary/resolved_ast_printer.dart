@@ -1250,7 +1250,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     if (name.isEmpty) {
       name = '•';
     }
-    return _referenceToString(parent) + '::$name';
+    return '${_referenceToString(parent)}::$name';
   }
 
   String _substitutionMapStr(Map<TypeParameterElement, DartType> map) {

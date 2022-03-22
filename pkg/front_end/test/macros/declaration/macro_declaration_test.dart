@@ -323,7 +323,8 @@ class TestMacroExecutor implements MacroExecutor {
       IdentifierResolver identifierResolver,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector,
-      TypeDeclarationResolver typeDeclarationResolver) async {
+      TypeDeclarationResolver typeDeclarationResolver,
+      TypeInferrer typeInferrer) async {
     return new _MacroExecutionResult();
   }
 

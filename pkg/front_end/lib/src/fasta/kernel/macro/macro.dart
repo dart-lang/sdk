@@ -8,6 +8,8 @@ import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart
     as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
+import 'package:front_end/src/fasta/kernel/benchmarker.dart'
+    show BenchmarkSubdivides, Benchmarker;
 import 'package:kernel/ast.dart' show DartType;
 import 'package:kernel/src/types.dart';
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
@@ -127,7 +129,8 @@ class MacroApplications {
       macro.MacroExecutor macroExecutor,
       Map<Uri, Uri> precompiledMacroUris,
       Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData,
-      MacroApplicationDataForTesting? dataForTesting) async {
+      MacroApplicationDataForTesting? dataForTesting,
+      Benchmarker? benchmarker) async {
     Map<ClassBuilder, macro.MacroClassIdentifier> classIdCache = {};
 
     Map<MacroApplication, macro.MacroInstanceIdentifier> instanceIdCache = {};
@@ -136,28 +139,34 @@ class MacroApplications {
         List<MacroApplication>? applications) async {
       if (applications != null) {
         for (MacroApplication application in applications) {
-          Uri libraryUri = application.classBuilder.library.importUri;
+          Uri libraryUri = application.classBuilder.libraryBuilder.importUri;
           String macroClassName = application.classBuilder.name;
           Uri? precompiledMacroUri = precompiledMacroUris[libraryUri];
           try {
+            benchmarker?.beginSubdivide(
+                BenchmarkSubdivides.macroApplications_macroExecutorLoadMacro);
             macro.MacroClassIdentifier macroClassIdentifier =
                 classIdCache[application.classBuilder] ??=
                     await macroExecutor.loadMacro(libraryUri, macroClassName,
                         precompiledKernelUri: precompiledMacroUri);
+            benchmarker?.endSubdivide();
             try {
+              benchmarker?.beginSubdivide(BenchmarkSubdivides
+                  .macroApplications_macroExecutorInstantiateMacro);
               application.instanceIdentifier = instanceIdCache[application] ??=
                   await macroExecutor.instantiateMacro(
                       macroClassIdentifier,
                       application.constructorName,
                       // TODO(johnniwinther): Support macro arguments.
                       new macro.Arguments([], {}));
+              benchmarker?.endSubdivide();
             } catch (e) {
               throw "Error instantiating macro `${application}`: $e";
             }
           } catch (e) {
             throw "Error loading macro class "
                 "'${application.classBuilder.name}' from "
-                "'${application.classBuilder.library.importUri}': $e";
+                "'${application.classBuilder.libraryBuilder.importUri}': $e";
           }
         }
       }
@@ -416,7 +425,8 @@ class MacroApplications {
                 identifierResolver,
                 typeResolver,
                 classIntrospector,
-                typeDeclarationResolver);
+                typeDeclarationResolver,
+                typeInferrer);
         if (result.isNotEmpty) {
           results.add(result);
         }
@@ -435,9 +445,11 @@ class MacroApplications {
   }
 
   late macro.TypeDeclarationResolver typeDeclarationResolver;
+  late macro.TypeInferrer typeInferrer;
 
   Future<List<SourceLibraryBuilder>> applyDefinitionMacros() async {
     typeDeclarationResolver = new _TypeDeclarationResolver(this);
+    typeInferrer = new _TypeInferrer(this);
     List<SourceLibraryBuilder> augmentationLibraries = [];
     Map<SourceLibraryBuilder, List<macro.MacroExecutionResult>> results = {};
     for (_ApplicationData macroApplication in _applicationData) {
@@ -478,7 +490,7 @@ class MacroApplications {
         id: macro.RemoteInstance.uniqueId,
         identifier: new TypeDeclarationBuilderIdentifier(
             typeDeclarationBuilder: builder,
-            libraryBuilder: builder.library,
+            libraryBuilder: builder.libraryBuilder,
             id: macro.RemoteInstance.uniqueId,
             name: builder.name),
         // TODO(johnniwinther): Support typeParameters
@@ -501,12 +513,13 @@ class MacroApplications {
         id: macro.RemoteInstance.uniqueId,
         identifier: new TypeDeclarationBuilderIdentifier(
             typeDeclarationBuilder: builder,
-            libraryBuilder: builder.library,
+            libraryBuilder: builder.libraryBuilder,
             id: macro.RemoteInstance.uniqueId,
             name: builder.name),
         // TODO(johnniwinther): Support typeParameters
         typeParameters: [],
-        aliasedType: _computeTypeAnnotation(builder.library, builder.type));
+        aliasedType:
+            _computeTypeAnnotation(builder.libraryBuilder, builder.type));
     return declaration;
   }
 
@@ -521,12 +534,12 @@ class MacroApplications {
       namedParameters = [];
       for (FormalParameterBuilder formal in formals) {
         macro.TypeAnnotationImpl type =
-            computeTypeAnnotation(builder.library, formal.type);
+            computeTypeAnnotation(builder.libraryBuilder, formal.type);
         macro.IdentifierImpl identifier = new FormalParameterBuilderIdentifier(
             id: macro.RemoteInstance.uniqueId,
             name: formal.name,
             parameterBuilder: formal,
-            libraryBuilder: builder.library);
+            libraryBuilder: builder.libraryBuilder);
         if (formal.isNamed) {
           namedParameters.add(new macro.ParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
@@ -576,7 +589,7 @@ class MacroApplications {
       positionalParameters: parameters[0],
       namedParameters: parameters[1],
       // TODO(johnniwinther): Support constructor return type.
-      returnType: computeTypeAnnotation(builder.library, null),
+      returnType: computeTypeAnnotation(builder.libraryBuilder, null),
       // TODO(johnniwinther): Support typeParameters
       typeParameters: const [],
     );
@@ -605,7 +618,7 @@ class MacroApplications {
       positionalParameters: parameters[0],
       namedParameters: parameters[1],
       // TODO(johnniwinther): Support constructor return type.
-      returnType: computeTypeAnnotation(builder.library, null),
+      returnType: computeTypeAnnotation(builder.libraryBuilder, null),
       // TODO(johnniwinther): Support typeParameters
       typeParameters: const [],
     );
@@ -640,7 +653,7 @@ class MacroApplications {
           positionalParameters: parameters[0],
           namedParameters: parameters[1],
           returnType:
-              computeTypeAnnotation(builder.library, builder.returnType),
+              computeTypeAnnotation(builder.libraryBuilder, builder.returnType),
           // TODO(johnniwinther): Support typeParameters
           typeParameters: const []);
     } else {
@@ -658,7 +671,7 @@ class MacroApplications {
           positionalParameters: parameters[0],
           namedParameters: parameters[1],
           returnType:
-              computeTypeAnnotation(builder.library, builder.returnType),
+              computeTypeAnnotation(builder.libraryBuilder, builder.returnType),
           // TODO(johnniwinther): Support typeParameters
           typeParameters: const []);
     }
@@ -685,7 +698,7 @@ class MacroApplications {
           isFinal: builder.isFinal,
           isLate: builder.isLate,
           isStatic: builder.isStatic,
-          type: computeTypeAnnotation(builder.library, builder.type));
+          type: computeTypeAnnotation(builder.libraryBuilder, builder.type));
     } else {
       return new macro.VariableDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
@@ -696,7 +709,7 @@ class MacroApplications {
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
           isLate: builder.isLate,
-          type: computeTypeAnnotation(builder.library, builder.type));
+          type: computeTypeAnnotation(builder.libraryBuilder, builder.type));
     }
   }
 
@@ -979,6 +992,17 @@ class _TypeDeclarationResolver implements macro.TypeDeclarationResolver {
     throw new UnsupportedError(
         'Unsupported identifier $identifier (${identifier.runtimeType})');
   }
+}
+
+class _TypeInferrer implements macro.TypeInferrer {
+  final MacroApplications _macroApplications;
+
+  _TypeInferrer(this._macroApplications);
+
+  @override
+  Future<macro.TypeAnnotation> inferType(
+          macro.OmittedTypeAnnotation omittedType) =>
+      new Future.value(_macroApplications._inferOmittedType(omittedType));
 }
 
 macro.DeclarationKind _declarationKind(macro.Declaration declaration) {

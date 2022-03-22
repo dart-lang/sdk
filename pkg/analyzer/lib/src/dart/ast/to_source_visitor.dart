@@ -1069,7 +1069,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     // added to the interface.
     var varianceKeyword = (node as TypeParameterImpl).varianceKeyword;
     if (varianceKeyword != null) {
-      sink.write(varianceKeyword.lexeme + ' ');
+      sink.write('${varianceKeyword.lexeme} ');
     }
     _visitNode(node.name);
     _visitNode(node.bound, prefix: ' extends ');

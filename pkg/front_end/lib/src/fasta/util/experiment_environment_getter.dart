@@ -4,8 +4,11 @@
 
 import 'dart:io' show Platform;
 
+const String enableIncrementalCompilerBenchmarking =
+    "DART_CFE_ENABLE_INCREMENTAL_COMPILER_BENCHMARKING";
+
 const Set<String> _known = {
-  // Currently there's no live experiments.
+  enableIncrementalCompilerBenchmarking,
 };
 
 Set<String> getExperimentEnvironment() {

@@ -239,7 +239,7 @@ class ForwardingNode {
                 parameter.type,
                 superParameterType,
                 _combinedMemberSignature
-                        .classBuilder.library.isNonNullableByDefault
+                        .classBuilder.libraryBuilder.isNonNullableByDefault
                     ? SubtypeCheckMode.withNullabilities
                     : SubtypeCheckMode.ignoringNullabilities)) {
               expression = new AsExpression(expression, superParameterType)
@@ -268,7 +268,7 @@ class ForwardingNode {
                 parameter.type,
                 superParameterType,
                 _combinedMemberSignature
-                        .classBuilder.library.isNonNullableByDefault
+                        .classBuilder.libraryBuilder.isNonNullableByDefault
                     ? SubtypeCheckMode.withNullabilities
                     : SubtypeCheckMode.ignoringNullabilities)) {
               expression = new AsExpression(expression, superParameterType)
@@ -307,7 +307,7 @@ class ForwardingNode {
               parameter.type,
               superParameterType,
               _combinedMemberSignature
-                      .classBuilder.library.isNonNullableByDefault
+                      .classBuilder.libraryBuilder.isNonNullableByDefault
                   ? SubtypeCheckMode.withNullabilities
                   : SubtypeCheckMode.ignoringNullabilities)) {
             expression = new AsExpression(expression, superParameterType)

@@ -55,7 +55,7 @@ class FileSourceTest with ResourceProviderMixin {
   }
 
   void test_fileReadMode_changed() {
-    FileSource.fileReadMode = (String s) => s + 'xyz';
+    FileSource.fileReadMode = (String s) => '${s}xyz';
     expect(FileSource.fileReadMode('a'), 'axyz');
     expect(FileSource.fileReadMode('a\n'), 'a\nxyz');
     expect(FileSource.fileReadMode('ab'), 'abxyz');

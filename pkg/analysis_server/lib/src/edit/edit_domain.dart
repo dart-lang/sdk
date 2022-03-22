@@ -4,57 +4,30 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analysis_server/src/plugin/result_converter.dart';
+import 'package:analysis_server/src/handler/legacy/edit_bulk_fixes.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_assists.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_fixes.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_postfix_completion.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_statement_completion.dart';
+import 'package:analysis_server/src/handler/legacy/edit_import_elements.dart';
+import 'package:analysis_server/src/handler/legacy/edit_is_postfix_completion_applicable.dart';
+import 'package:analysis_server/src/handler/legacy/edit_organize_directives.dart';
+import 'package:analysis_server/src/handler/legacy/edit_sort_members.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisError, Element;
 import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
-import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
-import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix/manifest/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/correction/organize_imports.dart';
-import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart' as engine;
-import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
-import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/parser.dart' as engine;
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/manifest/manifest_validator.dart';
-import 'package:analyzer/src/manifest/manifest_values.dart';
-import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
-import 'package:html/parser.dart';
-import 'package:yaml/yaml.dart';
 
 int test_resetCount = 0;
 
@@ -81,40 +54,6 @@ class EditDomainHandler extends AbstractRequestHandler {
     refactoringWorkspace =
         RefactoringWorkspace(server.driverMap.values, server.searchEngine);
     _newRefactoringManager();
-  }
-
-  Future bulkFixes(Request request) async {
-    //
-    // Compute bulk fixes
-    //
-    try {
-      var params = EditBulkFixesParams.fromRequest(request);
-      for (var file in params.included) {
-        if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-          return;
-        }
-      }
-
-      var collection = AnalysisContextCollectionImpl(
-        includedPaths: params.included,
-        resourceProvider: server.resourceProvider,
-        sdkPath: server.sdkPath,
-      );
-      var workspace = DartChangeWorkspace(
-          collection.contexts.map((c) => c.currentSession).toList());
-      var processor = BulkFixProcessor(server.instrumentationService, workspace,
-          useConfigFiles: params.inTestMode ?? false);
-
-      var changeBuilder = await processor.fixErrors(collection.contexts);
-
-      var response = EditBulkFixesResult(
-              changeBuilder.sourceChange.edits, processor.fixDetails)
-          .toResponse(request.id);
-      server.sendResponse(response);
-    } catch (exception, stackTrace) {
-      server.sendServerErrorNotification('Exception while getting bulk fixes',
-          CaughtException(exception, stackTrace), stackTrace);
-    }
   }
 
   Response format(Request request) {
@@ -173,170 +112,6 @@ class EditDomainHandler extends AbstractRequestHandler {
     return EditFormatResult(edits, newStart, newLength).toResponse(request.id);
   }
 
-  Future getAssists(Request request) async {
-    var params = EditGetAssistsParams.fromRequest(request);
-    var file = params.file;
-    var offset = params.offset;
-    var length = params.length;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    //
-    // Allow plugins to start computing assists.
-    //
-    Map<PluginInfo, Future<plugin.Response>> pluginFutures;
-    var requestParams = plugin.EditGetAssistsParams(file, offset, length);
-    var driver = server.getAnalysisDriver(file);
-    if (driver == null) {
-      pluginFutures = <PluginInfo, Future<plugin.Response>>{};
-    } else {
-      pluginFutures = server.pluginManager.broadcastRequest(
-        requestParams,
-        contextRoot: driver.analysisContext!.contextRoot,
-      );
-    }
-
-    //
-    // Compute fixes associated with server-generated errors.
-    //
-    var changes = await _computeServerAssists(request, file, offset, length);
-
-    //
-    // Add the fixes produced by plugins to the server-generated fixes.
-    //
-    var responses =
-        await waitForResponses(pluginFutures, requestParameters: requestParams);
-    server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');
-    var converter = ResultConverter();
-    var pluginChanges = <plugin.PrioritizedSourceChange>[];
-    for (var response in responses) {
-      var result = plugin.EditGetAssistsResult.fromResponse(response);
-      pluginChanges.addAll(result.assists);
-    }
-    pluginChanges
-        .sort((first, second) => first.priority.compareTo(second.priority));
-    changes.addAll(pluginChanges.map(converter.convertPrioritizedSourceChange));
-
-    //
-    // Send the response.
-    //
-    server.sendResponse(EditGetAssistsResult(changes).toResponse(request.id));
-  }
-
-  Future<void> getFixes(Request request) async {
-    var params = EditGetFixesParams.fromRequest(request);
-    var file = params.file;
-    var offset = params.offset;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    if (!server.isAnalyzed(file)) {
-      server.sendResponse(Response.getFixesInvalidFile(request));
-      return;
-    }
-
-    //
-    // Allow plugins to start computing fixes.
-    //
-    Map<PluginInfo, Future<plugin.Response>> pluginFutures;
-    var requestParams = plugin.EditGetFixesParams(file, offset);
-    var driver = server.getAnalysisDriver(file);
-    if (driver == null) {
-      pluginFutures = <PluginInfo, Future<plugin.Response>>{};
-    } else {
-      pluginFutures = server.pluginManager.broadcastRequest(
-        requestParams,
-        contextRoot: driver.analysisContext!.contextRoot,
-      );
-    }
-    //
-    // Compute fixes associated with server-generated errors.
-    //
-    List<AnalysisErrorFixes>? errorFixesList;
-    while (errorFixesList == null) {
-      try {
-        errorFixesList = await _computeServerErrorFixes(request, file, offset);
-      } on InconsistentAnalysisException {
-        // Loop around to try again to compute the fixes.
-      }
-    }
-    //
-    // Add the fixes produced by plugins to the server-generated fixes.
-    //
-    var responses =
-        await waitForResponses(pluginFutures, requestParameters: requestParams);
-    server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');
-    var converter = ResultConverter();
-    for (var response in responses) {
-      var result = plugin.EditGetFixesResult.fromResponse(response);
-      errorFixesList
-          .addAll(result.fixes.map(converter.convertAnalysisErrorFixes));
-    }
-    //
-    // Send the response.
-    //
-    server.sendResponse(
-        EditGetFixesResult(errorFixesList).toResponse(request.id));
-  }
-
-  Future getPostfixCompletion(Request request) async {
-    server.options.analytics?.sendEvent('edit', 'getPostfixCompletion');
-
-    var params = EditGetPostfixCompletionParams.fromRequest(request);
-    var file = params.file;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    SourceChange? change;
-
-    var result = await server.getResolvedUnit(file);
-    if (result != null) {
-      var context = PostfixCompletionContext(
-        result,
-        params.offset,
-        params.key,
-      );
-      var processor = PostfixCompletionProcessor(context);
-      var completion = await processor.compute();
-      change = completion.change;
-    }
-    change ??= SourceChange('', edits: []);
-
-    var response =
-        EditGetPostfixCompletionResult(change).toResponse(request.id);
-    server.sendResponse(response);
-  }
-
-  Future getStatementCompletion(Request request) async {
-    var params = EditGetStatementCompletionParams.fromRequest(request);
-    var file = params.file;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    SourceChange? change;
-
-    var result = await server.getResolvedUnit(file);
-    if (result != null) {
-      var context = StatementCompletionContext(result, params.offset);
-      var processor = StatementCompletionProcessor(context);
-      var completion = await processor.compute();
-      change = completion.change;
-    }
-    change ??= SourceChange('', edits: []);
-
-    var response =
-        EditGetStatementCompletionResult(change, false).toResponse(request.id);
-    server.sendResponse(response);
-  }
-
   @override
   Response? handleRequest(
       Request request, CancellationToken cancellationToken) {
@@ -345,35 +120,41 @@ class EditDomainHandler extends AbstractRequestHandler {
       if (requestName == EDIT_REQUEST_FORMAT) {
         return format(request);
       } else if (requestName == EDIT_REQUEST_GET_ASSISTS) {
-        getAssists(request);
+        EditGetAssistsHandler(server, request, cancellationToken).handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS) {
-        return _getAvailableRefactorings(request);
+        _getAvailableRefactorings(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_BULK_FIXES) {
-        bulkFixes(request);
+        EditBulkFixes(server, request, cancellationToken).handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_FIXES) {
-        getFixes(request);
+        EditGetFixesHandler(server, request, cancellationToken).handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
         return _getRefactoring(request, cancellationToken);
       } else if (requestName == EDIT_REQUEST_IMPORT_ELEMENTS) {
-        importElements(request);
+        EditImportElementsHandler(server, request, cancellationToken).handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_ORGANIZE_DIRECTIVES) {
-        organizeDirectives(request);
+        EditOrganizeDirectivesHandler(server, request, cancellationToken)
+            .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_SORT_MEMBERS) {
-        sortMembers(request);
+        EditSortMembersHandler(server, request, cancellationToken).handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_STATEMENT_COMPLETION) {
-        getStatementCompletion(request);
+        EditGetStatementCompletionHandler(server, request, cancellationToken)
+            .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE) {
-        isPostfixCompletionApplicable(request);
+        EditIsPostfixCompletionApplicableHandler(
+                server, request, cancellationToken)
+            .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_POSTFIX_COMPLETION) {
-        getPostfixCompletion(request);
+        EditGetPostfixCompletionHandler(server, request, cancellationToken)
+            .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName ==
           EDIT_REQUEST_LIST_POSTFIX_COMPLETION_TEMPLATES) {
@@ -383,73 +164,6 @@ class EditDomainHandler extends AbstractRequestHandler {
       return exception.response;
     }
     return null;
-  }
-
-  /// Implement the `edit.importElements` request.
-  Future<void> importElements(Request request) async {
-    var params = EditImportElementsParams.fromRequest(request);
-    var file = params.file;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    //
-    // Prepare the resolved unit.
-    //
-    var result = await server.getResolvedUnit(file);
-    if (result == null) {
-      server.sendResponse(Response.importElementsInvalidFile(request));
-      return;
-    }
-    var libraryUnit = result.libraryElement.definingCompilationUnit;
-    if (libraryUnit != result.unit.declaredElement) {
-      // The file in the request is a part of a library. We need to pass the
-      // defining compilation unit to the computer, not the part.
-      result = await server.getResolvedUnit(libraryUnit.source.fullName);
-      if (result == null) {
-        server.sendResponse(Response.importElementsInvalidFile(request));
-        return;
-      }
-    }
-    //
-    // Compute the edits required to import the required elements.
-    //
-    var computer = ImportElementsComputer(server.resourceProvider, result);
-    var change = await computer.createEdits(params.elements);
-    var edits = change.edits;
-    var edit = edits.isEmpty ? null : edits[0];
-    //
-    // Send the response.
-    //
-    server.sendResponse(
-        EditImportElementsResult(edit: edit).toResponse(request.id));
-  }
-
-  Future isPostfixCompletionApplicable(Request request) async {
-    var params = EditGetPostfixCompletionParams.fromRequest(request);
-    var file = params.file;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    var value = false;
-
-    var result = await server.getResolvedUnit(file);
-    if (result != null) {
-      var context = PostfixCompletionContext(
-        result,
-        params.offset,
-        params.key,
-      );
-      var processor = PostfixCompletionProcessor(context);
-      value = await processor.isApplicable();
-    }
-
-    var response =
-        EditIsPostfixCompletionApplicableResult(value).toResponse(request.id);
-    server.sendResponse(response);
   }
 
   Response listPostfixCompletionTemplates(Request request) {
@@ -462,338 +176,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         .toResponse(request.id);
   }
 
-  Future<void> organizeDirectives(Request request) async {
-    server.options.analytics?.sendEvent('edit', 'organizeDirectives');
-
-    var params = EditOrganizeDirectivesParams.fromRequest(request);
-    var file = params.file;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    var pathContext = server.resourceProvider.pathContext;
-    if (!file_paths.isDart(pathContext, file)) {
-      server.sendResponse(Response.fileNotAnalyzed(request, file));
-      return;
-    }
-
-    // Prepare the file information.
-    var result = await server.getResolvedUnit(file);
-    if (result == null) {
-      server.sendResponse(Response.fileNotAnalyzed(request, file));
-      return;
-    }
-    var fileStamp = -1;
-    var code = result.content;
-    var unit = result.unit;
-    var errors = result.errors;
-    // check if there are scan/parse errors in the file
-    var numScanParseErrors = _getNumberOfScanParseErrors(errors);
-    if (numScanParseErrors != 0) {
-      server.sendResponse(Response.organizeDirectivesError(
-          request, 'File has $numScanParseErrors scan/parse errors.'));
-      return;
-    }
-    // do organize
-    var sorter = ImportOrganizer(code, unit, errors);
-    var edits = sorter.organize();
-    var fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
-    server.sendResponse(
-        EditOrganizeDirectivesResult(fileEdit).toResponse(request.id));
-  }
-
-  Future<void> sortMembers(Request request) async {
-    var params = EditSortMembersParams.fromRequest(request);
-    var file = params.file;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    var pathContext = server.resourceProvider.pathContext;
-    if (!file_paths.isDart(pathContext, file)) {
-      server.sendResponse(Response.sortMembersInvalidFile(request));
-      return;
-    }
-
-    // Prepare the file information.
-    var result = await server.getParsedUnit(file);
-    if (result == null) {
-      server.sendResponse(Response.fileNotAnalyzed(request, file));
-      return;
-    }
-
-    var fileStamp = -1;
-    var code = result.content;
-    var unit = result.unit;
-    var errors = result.errors;
-    // Check if there are scan/parse errors in the file.
-    var numScanParseErrors = _getNumberOfScanParseErrors(errors);
-    if (numScanParseErrors != 0) {
-      server.sendResponse(
-          Response.sortMembersParseErrors(request, numScanParseErrors));
-      return;
-    }
-    // Do sort.
-    var sorter = MemberSorter(code, unit, result.lineInfo);
-    var edits = sorter.sort();
-    var fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
-    server.sendResponse(EditSortMembersResult(fileEdit).toResponse(request.id));
-  }
-
-  /// Compute and return the fixes associated with server-generated errors in
-  /// analysis options files.
-  Future<List<AnalysisErrorFixes>> _computeAnalysisOptionsFixes(
-      String file, int offset) async {
-    var errorFixesList = <AnalysisErrorFixes>[];
-    var resourceProvider = server.resourceProvider;
-    var optionsFile = resourceProvider.getFile(file);
-    var content = _safelyRead(optionsFile);
-    if (content == null) {
-      return errorFixesList;
-    }
-    var driver = server.getAnalysisDriver(file);
-    if (driver == null) {
-      return errorFixesList;
-    }
-    await driver.applyPendingFileChanges();
-    var session = driver.currentSession;
-    var sourceFactory = driver.sourceFactory;
-    var errors = analyzeAnalysisOptions(
-      optionsFile.createSource(),
-      content,
-      sourceFactory,
-      session.analysisContext.contextRoot.root.path,
-    );
-    var options = _getOptions(sourceFactory, content);
-    if (options == null) {
-      return errorFixesList;
-    }
-    for (var error in errors) {
-      var generator = AnalysisOptionsFixGenerator(
-          resourceProvider, error, content, options);
-      var fixes = await generator.computeFixes();
-      if (fixes.isNotEmpty) {
-        fixes.sort(Fix.SORT_BY_RELEVANCE);
-        var lineInfo = LineInfo.fromContent(content);
-        var result = engine.ErrorsResultImpl(
-            session, file, Uri.file(file), lineInfo, false, errors);
-        var serverError = newAnalysisError_fromEngine(result, error);
-        var errorFixes = AnalysisErrorFixes(serverError);
-        errorFixesList.add(errorFixes);
-        fixes.forEach((fix) {
-          errorFixes.fixes.add(fix.change);
-        });
-      }
-    }
-    return errorFixesList;
-  }
-
-  /// Compute and return the fixes associated with server-generated errors in
-  /// Dart files.
-  Future<List<AnalysisErrorFixes>> _computeDartFixes(
-      Request request, String file, int offset) async {
-    var errorFixesList = <AnalysisErrorFixes>[];
-    var result = await server.getResolvedUnit(file);
-    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
-    if (result != null) {
-      var lineInfo = result.lineInfo;
-      var requestLine = lineInfo.getLocation(offset).lineNumber;
-      for (var error in result.errors) {
-        var errorLine = lineInfo.getLocation(error.offset).lineNumber;
-        if (errorLine == requestLine) {
-          var workspace = DartChangeWorkspace(
-            await server.currentSessions,
-          );
-          var context = DartFixContextImpl(
-              server.instrumentationService, workspace, result, error);
-
-          List<Fix> fixes;
-          try {
-            fixes = await DartFixContributor().computeFixes(context);
-          } on InconsistentAnalysisException {
-            fixes = [];
-          } catch (exception, stackTrace) {
-            var parametersFile = '''
-offset: $offset
-error: $error
-error.errorCode: ${error.errorCode}
-''';
-            throw CaughtExceptionWithFiles(exception, stackTrace, {
-              file: result.content,
-              'parameters': parametersFile,
-            });
-          }
-
-          if (fixes.isNotEmpty) {
-            fixes.sort(Fix.SORT_BY_RELEVANCE);
-            var serverError = newAnalysisError_fromEngine(result, error);
-            var errorFixes = AnalysisErrorFixes(serverError);
-            errorFixesList.add(errorFixes);
-            fixes.forEach((fix) {
-              errorFixes.fixes.add(fix.change);
-            });
-          }
-        }
-      }
-    }
-    server.requestStatistics?.addItemTimeNow(request, 'computedFixes');
-    return errorFixesList;
-  }
-
-  /// Compute and return the fixes associated with server-generated errors in
-  /// Android manifest files.
-  Future<List<AnalysisErrorFixes>> _computeManifestFixes(
-      String file, int offset) async {
-    var errorFixesList = <AnalysisErrorFixes>[];
-    var manifestFile = server.resourceProvider.getFile(file);
-    var content = _safelyRead(manifestFile);
-    if (content == null) {
-      return errorFixesList;
-    }
-    var document =
-        parseFragment(content, container: MANIFEST_TAG, generateSpans: true);
-    var validator = ManifestValidator(manifestFile.createSource());
-    var session = await server.getAnalysisSession(file);
-    if (session == null) {
-      return errorFixesList;
-    }
-    var errors = validator.validate(content, true);
-    for (var error in errors) {
-      var generator = ManifestFixGenerator(error, content, document);
-      var fixes = await generator.computeFixes();
-      if (fixes.isNotEmpty) {
-        fixes.sort(Fix.SORT_BY_RELEVANCE);
-        var lineInfo = LineInfo.fromContent(content);
-        var result = engine.ErrorsResultImpl(
-            session, file, Uri.file(file), lineInfo, false, errors);
-        var serverError = newAnalysisError_fromEngine(result, error);
-        var errorFixes = AnalysisErrorFixes(serverError);
-        errorFixesList.add(errorFixes);
-        fixes.forEach((fix) {
-          errorFixes.fixes.add(fix.change);
-        });
-      }
-    }
-    return errorFixesList;
-  }
-
-  /// Compute and return the fixes associated with server-generated errors in
-  /// pubspec.yaml files.
-  Future<List<AnalysisErrorFixes>> _computePubspecFixes(
-      String file, int offset) async {
-    var errorFixesList = <AnalysisErrorFixes>[];
-    var resourceProvider = server.resourceProvider;
-    var pubspecFile = resourceProvider.getFile(file);
-    var content = _safelyRead(pubspecFile);
-    if (content == null) {
-      return errorFixesList;
-    }
-    var session = await server.getAnalysisSession(file);
-    if (session == null) {
-      return errorFixesList;
-    }
-    YamlDocument document;
-    try {
-      document = loadYamlDocument(content);
-    } catch (exception) {
-      return errorFixesList;
-    }
-    var yamlContent = document.contents;
-    if (yamlContent is! YamlMap) {
-      yamlContent = YamlMap();
-    }
-    var validator =
-        PubspecValidator(resourceProvider, pubspecFile.createSource());
-    var errors = validator.validate(yamlContent.nodes);
-    for (var error in errors) {
-      var generator =
-          PubspecFixGenerator(resourceProvider, error, content, document);
-      var fixes = await generator.computeFixes();
-      if (fixes.isNotEmpty) {
-        fixes.sort(Fix.SORT_BY_RELEVANCE);
-        var lineInfo = LineInfo.fromContent(content);
-        var result = engine.ErrorsResultImpl(
-            session, file, Uri.file(file), lineInfo, false, errors);
-        var serverError = newAnalysisError_fromEngine(result, error);
-        var errorFixes = AnalysisErrorFixes(serverError);
-        errorFixesList.add(errorFixes);
-        fixes.forEach((fix) {
-          errorFixes.fixes.add(fix.change);
-        });
-      }
-    }
-    return errorFixesList;
-  }
-
-  Future<List<SourceChange>> _computeServerAssists(
-      Request request, String file, int offset, int length) async {
-    var changes = <SourceChange>[];
-
-    var result = await server.getResolvedUnit(file);
-    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
-
-    if (result != null) {
-      var context = DartAssistContextImpl(
-        server.instrumentationService,
-        DartChangeWorkspace(
-          await server.currentSessions,
-        ),
-        result,
-        offset,
-        length,
-      );
-
-      try {
-        var processor = AssistProcessor(context);
-        var assists = await processor.compute();
-        assists.sort(Assist.SORT_BY_RELEVANCE);
-        for (var assist in assists) {
-          changes.add(assist.change);
-        }
-      } on InconsistentAnalysisException {
-        // ignore
-      } catch (exception, stackTrace) {
-        var parametersFile = '''
-offset: $offset
-length: $length
-      ''';
-        throw CaughtExceptionWithFiles(exception, stackTrace, {
-          file: result.content,
-          'parameters': parametersFile,
-        });
-      }
-
-      server.requestStatistics?.addItemTimeNow(request, 'computedAssists');
-    }
-
-    return changes;
-  }
-
-  /// Compute and return the fixes associated with server-generated errors.
-  Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
-      Request request, String file, int offset) async {
-    var pathContext = server.resourceProvider.pathContext;
-    if (file_paths.isDart(pathContext, file)) {
-      return _computeDartFixes(request, file, offset);
-    } else if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
-      return _computeAnalysisOptionsFixes(file, offset);
-    } else if (file_paths.isPubspecYaml(pathContext, file)) {
-      return _computePubspecFixes(file, offset);
-    } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
-      // TODO(brianwilkerson) Do we need to check more than the file name?
-      return _computeManifestFixes(file, offset);
-    }
-    return <AnalysisErrorFixes>[];
-  }
-
-  Response _getAvailableRefactorings(Request request) {
-    _getAvailableRefactoringsImpl(request);
-    return Response.DELAYED_RESPONSE;
-  }
-
-  Future _getAvailableRefactoringsImpl(Request request) async {
+  Future<void> _getAvailableRefactorings(Request request) async {
     var params = EditGetAvailableRefactoringsParams.fromRequest(request);
     var file = params.file;
     var offset = params.offset;
@@ -860,15 +243,6 @@ length: $length
     server.sendResponse(result.toResponse(request.id));
   }
 
-  YamlMap? _getOptions(SourceFactory sourceFactory, String content) {
-    var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-    try {
-      return optionsProvider.getOptionsFromString(content);
-    } on OptionsFormatException {
-      return null;
-    }
-  }
-
   Response _getRefactoring(
       Request request, CancellationToken cancellationToken) {
     final refactoringManager = this.refactoringManager;
@@ -889,27 +263,6 @@ length: $length
     if (refactoringWorkspace != null) {
       refactoringManager = _RefactoringManager(server, refactoringWorkspace);
     }
-  }
-
-  /// Return the contents of the [file], or `null` if the file does not exist or
-  /// cannot be read.
-  String? _safelyRead(File file) {
-    try {
-      return file.readAsStringSync();
-    } on FileSystemException {
-      return null;
-    }
-  }
-
-  static int _getNumberOfScanParseErrors(List<engine.AnalysisError> errors) {
-    var numScanParseErrors = 0;
-    for (var error in errors) {
-      if (error.errorCode is engine.ScannerErrorCode ||
-          error.errorCode is engine.ParserErrorCode) {
-        numScanParseErrors++;
-      }
-    }
-    return numScanParseErrors;
   }
 }
 

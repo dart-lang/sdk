@@ -129,14 +129,16 @@ class ClassMemberDeclarationBuilderImpl extends DeclarationBuilderImpl
 
 /// Base class for all [DefinitionBuilder]s.
 class DefinitionBuilderBase extends DeclarationBuilderBase
-    implements TypeDeclarationResolver {
+    implements TypeDeclarationResolver, TypeInferrer {
   final TypeDeclarationResolver typeDeclarationResolver;
+  final TypeInferrer typeInferrer;
 
   DefinitionBuilderBase(
       IdentifierResolver identifierResolver,
       ClassIntrospector classIntrospector,
       TypeResolver typeResolver,
       this.typeDeclarationResolver,
+      this.typeInferrer,
       {Map<String, List<DeclarationCode>>? parentClassAugmentations,
       List<DeclarationCode>? parentLibraryAugmentations})
       : super(identifierResolver, classIntrospector, typeResolver,
@@ -146,6 +148,10 @@ class DefinitionBuilderBase extends DeclarationBuilderBase
   @override
   Future<TypeDeclaration> declarationOf(IdentifierImpl identifier) =>
       typeDeclarationResolver.declarationOf(identifier);
+
+  @override
+  Future<TypeAnnotation> inferType(OmittedTypeAnnotationImpl omittedType) =>
+      typeInferrer.inferType(omittedType);
 }
 
 class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
@@ -159,10 +165,11 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
       ClassIntrospector classIntrospector,
       TypeResolver typeResolver,
       TypeDeclarationResolver typeDeclarationResolver,
+      TypeInferrer typeInferrer,
       {Map<String, List<DeclarationCode>>? parentClassAugmentations,
       List<DeclarationCode>? parentLibraryAugmentations})
       : super(identifierResolver, classIntrospector, typeResolver,
-            typeDeclarationResolver,
+            typeDeclarationResolver, typeInferrer,
             parentClassAugmentations: parentClassAugmentations,
             parentLibraryAugmentations: parentLibraryAugmentations);
 
@@ -173,7 +180,7 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
         (await classIntrospector.constructorsOf(declaration))
             .firstWhere((constructor) => constructor.identifier == identifier);
     return new ConstructorDefinitionBuilderImpl(constructor, identifierResolver,
-        classIntrospector, typeResolver, typeDeclarationResolver,
+        classIntrospector, typeResolver, typeDeclarationResolver, typeInferrer,
         parentClassAugmentations: _classAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -183,7 +190,7 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
     FieldDeclaration field = (await classIntrospector.fieldsOf(declaration))
         .firstWhere((field) => field.identifier == identifier);
     return new VariableDefinitionBuilderImpl(field, identifierResolver,
-        classIntrospector, typeResolver, typeDeclarationResolver,
+        classIntrospector, typeResolver, typeDeclarationResolver, typeInferrer,
         parentClassAugmentations: _classAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -193,7 +200,7 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
     MethodDeclaration method = (await classIntrospector.methodsOf(declaration))
         .firstWhere((method) => method.identifier == identifier);
     return new FunctionDefinitionBuilderImpl(method, identifierResolver,
-        classIntrospector, typeResolver, typeDeclarationResolver,
+        classIntrospector, typeResolver, typeDeclarationResolver, typeInferrer,
         parentClassAugmentations: _classAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -210,10 +217,11 @@ class FunctionDefinitionBuilderImpl extends DefinitionBuilderBase
       ClassIntrospector classIntrospector,
       TypeResolver typeResolver,
       TypeDeclarationResolver typeDeclarationResolver,
+      TypeInferrer typeInferrer,
       {Map<String, List<DeclarationCode>>? parentClassAugmentations,
       List<DeclarationCode>? parentLibraryAugmentations})
       : super(identifierResolver, classIntrospector, typeResolver,
-            typeDeclarationResolver,
+            typeDeclarationResolver, typeInferrer,
             parentClassAugmentations: parentClassAugmentations,
             parentLibraryAugmentations: parentLibraryAugmentations);
 
@@ -242,10 +250,11 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
       ClassIntrospector classIntrospector,
       TypeResolver typeResolver,
       TypeDeclarationResolver typeDeclarationResolver,
+      TypeInferrer typeInferrer,
       {Map<String, List<DeclarationCode>>? parentClassAugmentations,
       List<DeclarationCode>? parentLibraryAugmentations})
       : super(identifierResolver, classIntrospector, typeResolver,
-            typeDeclarationResolver,
+            typeDeclarationResolver, typeInferrer,
             parentClassAugmentations: parentClassAugmentations,
             parentLibraryAugmentations: parentLibraryAugmentations);
 
@@ -272,10 +281,11 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
       ClassIntrospector classIntrospector,
       TypeResolver typeResolver,
       TypeDeclarationResolver typeDeclarationResolver,
+      TypeInferrer typeInferrer,
       {Map<String, List<DeclarationCode>>? parentClassAugmentations,
       List<DeclarationCode>? parentLibraryAugmentations})
       : super(identifierResolver, classIntrospector, typeResolver,
-            typeDeclarationResolver,
+            typeDeclarationResolver, typeInferrer,
             parentClassAugmentations: parentClassAugmentations,
             parentLibraryAugmentations: parentLibraryAugmentations);
 

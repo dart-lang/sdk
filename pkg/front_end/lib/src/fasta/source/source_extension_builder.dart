@@ -72,7 +72,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
         super(metadata, modifiers, name, parent, nameOffset, scope);
 
   @override
-  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+  SourceLibraryBuilder get libraryBuilder =>
+      super.libraryBuilder as SourceLibraryBuilder;
 
   @override
   SourceExtensionBuilder get origin => _origin ?? this;
@@ -81,7 +82,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   Extension get extension => isPatch ? origin._extension : _extension;
 
   /// Builds the [Extension] for this extension build and inserts the members
-  /// into the [Library] of [libraryBuilder].
+  /// into the [Library] of [sourceLibraryBuilder].
   ///
   /// [addMembersToLibrary] is `true` if the extension members should be added
   /// to the library. This is `false` if the extension is in conflict with
@@ -89,13 +90,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   /// added to the library to avoid name clashes with other members in the
   /// library.
   Extension build(
-      SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary,
+      SourceLibraryBuilder sourceLibraryBuilder, LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
-    _extension.onType = onType.build(libraryBuilder);
+    _extension.onType = onType.build(sourceLibraryBuilder);
     extensionTypeShowHideClauseBuilder.buildAndStoreTypes(
-        _extension, libraryBuilder);
+        _extension, sourceLibraryBuilder);
 
-    SourceLibraryBuilder.checkMemberConflicts(library, scope,
+    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, scope,
         checkForInstanceVsStaticConflict: true,
         checkForMethodVsSetterConflict: true);
 
@@ -123,7 +124,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
           }
         } else if (declaration is SourceMemberBuilder) {
           SourceMemberBuilder memberBuilder = declaration;
-          memberBuilder.buildMembers(libraryBuilder,
+          memberBuilder.buildMembers(sourceLibraryBuilder,
               (Member member, BuiltMemberKind memberKind) {
             if (addMembersToLibrary &&
                 !memberBuilder.isPatch &&
@@ -167,17 +168,17 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
               assert(kind != null);
               Reference memberReference;
               if (member is Field) {
-                libraryBuilder.library.addField(member);
+                sourceLibraryBuilder.library.addField(member);
                 memberReference = member.fieldReference;
               } else if (member is Procedure) {
-                libraryBuilder.library.addProcedure(member);
+                sourceLibraryBuilder.library.addProcedure(member);
                 memberReference = member.reference;
               } else {
                 unhandled("${member.runtimeType}", "buildBuilders",
                     member.fileOffset, member.fileUri);
               }
               extension.members.add(new ExtensionMemberDescriptor(
-                  name: new Name(name, libraryBuilder.library),
+                  name: new Name(name, sourceLibraryBuilder.library),
                   member: memberReference,
                   isStatic: memberBuilder.isStatic,
                   kind: kind));
@@ -221,8 +222,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       // TODO(johnniwinther): Check that type parameters and on-type match
       // with origin declaration.
     } else {
-      library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
-          noLength, patch.fileUri, context: [
+      libraryBuilder.addProblem(messagePatchDeclarationMismatch,
+          patch.charOffset, noLength, patch.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
             fileUri, charOffset, noLength)
       ]);
@@ -241,28 +242,28 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    library.checkBoundsInTypeParameters(
+    libraryBuilder.checkBoundsInTypeParameters(
         typeEnvironment, extension.typeParameters, fileUri);
 
     // Check on clause.
     // ignore: unnecessary_null_comparison
     if (_extension.onType != null) {
-      library.checkBoundsInType(_extension.onType, typeEnvironment,
+      libraryBuilder.checkBoundsInType(_extension.onType, typeEnvironment,
           onType.fileUri!, onType.charOffset!);
     }
 
     forEach((String name, Builder builder) {
       if (builder is SourceFieldBuilder) {
         // Check fields.
-        library.checkTypesInField(builder, typeEnvironment);
+        libraryBuilder.checkTypesInField(builder, typeEnvironment);
       } else if (builder is SourceProcedureBuilder) {
         // Check procedures
-        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
+        libraryBuilder.checkTypesInFunctionBuilder(builder, typeEnvironment);
         if (builder.isGetter) {
           Builder? setterDeclaration =
               scope.lookupLocalMember(builder.name, setter: true);
           if (setterDeclaration != null) {
-            library.checkGetterSetterTypes(builder,
+            libraryBuilder.checkGetterSetterTypes(builder,
                 setterDeclaration as ProcedureBuilder, typeEnvironment);
           }
         }
@@ -277,7 +278,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
         metadata, library, this, null, fileUri, library.scope);
     if (typeParameters != null) {
@@ -290,7 +291,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     void build(String ignore, Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
       member.buildOutlineExpressions(library, classHierarchy,
-          delayedActionPerformers, synthesizedFunctionNodes);
+          delayedActionPerformers, delayedDefaultValueCloners);
     }
 
     scope.forEach(build);

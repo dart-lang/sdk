@@ -952,4 +952,76 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
   EXPECT_EQ(reinterpret_cast<intptr_t>(thread), result_int);
 }
 
+static void TestConstantFoldToSmi(const Library& root_library,
+                                  const char* function_name,
+                                  CompilerPass::PipelineMode mode,
+                                  intptr_t expected_value) {
+  const auto& function =
+      Function::Handle(GetFunction(root_library, function_name));
+
+  TestPipeline pipeline(function, mode);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  ReturnInstr* ret = nullptr;
+
+  ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchReturn, &ret},
+  }));
+
+  ConstantInstr* constant = ret->value()->definition()->AsConstant();
+  EXPECT(constant != nullptr);
+  if (constant != nullptr) {
+    const Object& value = constant->value();
+    EXPECT(value.IsSmi());
+    if (value.IsSmi()) {
+      const intptr_t int_value = Smi::Cast(value).Value();
+      EXPECT_EQ(expected_value, int_value);
+    }
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(ConstantFold_bitLength) {
+  // clang-format off
+  auto kScript = R"(
+      b0() => 0. bitLength;  // 0...00000
+      b1() => 1. bitLength;  // 0...00001
+      b100() => 100. bitLength;
+      b200() => 200. bitLength;
+      bffff() => 0xffff. bitLength;
+      m1() => (-1).bitLength;  // 1...11111
+      m2() => (-2).bitLength;  // 1...11110
+
+      main() {
+        b0();
+        b1();
+        b100();
+        b200();
+        bffff();
+        m1();
+        m2();
+      }
+    )";
+  // clang-format on
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+
+  auto test = [&](const char* function, intptr_t expected) {
+    TestConstantFoldToSmi(root_library, function, CompilerPass::kJIT, expected);
+    TestConstantFoldToSmi(root_library, function, CompilerPass::kAOT, expected);
+  };
+
+  test("b0", 0);
+  test("b1", 1);
+  test("b100", 7);
+  test("b200", 8);
+  test("bffff", 16);
+  test("m1", 0);
+  test("m2", 1);
+}
 }  // namespace dart

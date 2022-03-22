@@ -145,7 +145,7 @@ class ListLiteral extends Expression {
 
   @override
   String toCode() {
-    return '[' + elements.map((e) => e.toCode()).join(', ') + ']';
+    return '[${elements.map((e) => e.toCode()).join(', ')}]';
   }
 }
 

@@ -27,6 +27,12 @@
   `Element.scrollIntoViewIfNeeded` should use the new `scrollIntoViewIfNeeded`
   definition instead.
 
+- Change `Performance.mark` and `Performance.measure` to accept their different
+  overloads. `mark` can now accept a `markOptions` map, and `measure` can now
+  accept a `startMark` and `endMark`, or a `measureOptions` map. Both methods
+  return their correct return types now as well - `PerformanceEntry` and
+  `PerformanceMeasure?`, respectively.
+
 #### `dart:indexed_db`
 
 - `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
@@ -108,8 +114,13 @@
 
 #### Linter
 
-Updated the Linter to `1.20.0`, which includes changes that
+Updated the Linter to `1.21.2`, which includes changes that
 
+- updates `depend_on_referenced_packages` to treat `flutter_gen` as a virtual 
+  package, not needing an explicit dependency. 
+- updates `unnecessary_null_checks` and 
+  `null_check_on_nullable_type_parameter` to handle
+  list/set/map literals, and `yield` and `await` expressions.
 - fixes `unnecessary_null_aware_assignments` property-access
   false positives.
 - adds new lint: `use_super_parameters`.

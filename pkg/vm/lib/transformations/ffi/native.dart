@@ -6,6 +6,8 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         messageFfiNativeMustBeExternal,
         messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer,
+        templateCantHaveNamedParameters,
+        templateCantHaveOptionalParameters,
         templateFfiNativeUnexpectedNumberOfParameters,
         templateFfiNativeUnexpectedNumberOfParametersWithReceiver;
 
@@ -344,6 +346,25 @@ class FfiNativeTransformer extends FfiTransformer {
   // annotation matches.
   bool _verifySignatures(Procedure node, FunctionType dartFunctionType,
       FunctionType ffiFunctionType, int annotationOffset) {
+    if (ffiFunctionType.namedParameters.length > 0) {
+      diagnosticReporter.report(
+          templateCantHaveNamedParameters.withArguments('FfiNative'),
+          annotationOffset,
+          0,
+          node.location?.file);
+      return false;
+    }
+
+    if (ffiFunctionType.positionalParameters.length >
+        ffiFunctionType.requiredParameterCount) {
+      diagnosticReporter.report(
+          templateCantHaveOptionalParameters.withArguments('FfiNative'),
+          annotationOffset,
+          0,
+          node.location?.file);
+      return false;
+    }
+
     if (dartFunctionType.positionalParameters.length !=
         ffiFunctionType.positionalParameters.length) {
       final template = (node.isStatic
@@ -384,7 +405,7 @@ class FfiNativeTransformer extends FfiTransformer {
       FunctionType ffiFunctionType,
       List<Expression> argumentList) {
     if (!_verifySignatures(
-        node, ffiFunctionType, dartFunctionType, annotationOffset)) {
+        node, dartFunctionType, ffiFunctionType, annotationOffset)) {
       return node;
     }
 

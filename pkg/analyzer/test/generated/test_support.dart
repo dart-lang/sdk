@@ -447,7 +447,7 @@ class TestSource extends Source {
   TimestampedData<String> get contents {
     readCount++;
     if (generateExceptionOnRead) {
-      String msg = "I/O Exception while getting the contents of " + _name;
+      String msg = "I/O Exception while getting the contents of $_name";
       throw Exception(msg);
     }
     return TimestampedData<String>(0, _contents);
@@ -512,7 +512,7 @@ class TestSource extends Source {
   }
 
   @override
-  String toString() => '$_name';
+  String toString() => _name;
 }
 
 class TestSourceWithUri extends TestSource {

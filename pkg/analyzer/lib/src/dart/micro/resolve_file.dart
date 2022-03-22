@@ -51,11 +51,11 @@ class CiderSearchMatch {
   CiderSearchMatch(this.path, this.startPositions);
 
   @override
-  bool operator ==(Object object) =>
-      object is CiderSearchMatch &&
-      path == object.path &&
+  bool operator ==(Object other) =>
+      other is CiderSearchMatch &&
+      path == other.path &&
       const ListEquality<CharacterLocation?>()
-          .equals(startPositions, object.startPositions);
+          .equals(startPositions, other.startPositions);
 
   @override
   String toString() {
@@ -132,22 +132,15 @@ class FileResolver {
         );
 
   FileResolver.from({
-    required PerformanceLog logger,
-    required ResourceProvider resourceProvider,
-    required SourceFactory sourceFactory,
-    required String Function(String path) getFileDigest,
-    required void Function(List<String> paths)? prefetchFiles,
-    required Workspace workspace,
-    bool Function(String path)? isGenerated,
+    required this.logger,
+    required this.resourceProvider,
+    required this.sourceFactory,
+    required this.getFileDigest,
+    required this.prefetchFiles,
+    required this.workspace,
+    this.isGenerated,
     CiderByteStore? byteStore,
-  })  : logger = logger,
-        sourceFactory = sourceFactory,
-        resourceProvider = resourceProvider,
-        getFileDigest = getFileDigest,
-        prefetchFiles = prefetchFiles,
-        workspace = workspace,
-        isGenerated = isGenerated,
-        byteStore = byteStore ?? CiderCachedByteStore(memoryCacheSize);
+  }) : byteStore = byteStore ?? CiderCachedByteStore(memoryCacheSize);
 
   /// Update the resolver to reflect the fact that the file with the given
   /// [path] was changed. We need to make sure that when this file, of any file
@@ -247,7 +240,7 @@ class FileResolver {
       errorsSignatureBuilder.addBytes(file.digest);
       var errorsSignature = errorsSignatureBuilder.toByteList();
 
-      var errorsKey = file.path + '.errors';
+      var errorsKey = '${file.path}.errors';
       var bytes = byteStore.get(errorsKey, errorsSignature)?.bytes;
       List<AnalysisError>? errors;
       if (bytes != null) {
@@ -894,6 +887,8 @@ class _LibraryContext {
         }
         inputsTimer.stop();
 
+        // TODO(scheglov) Migrate when we are ready to switch to async.
+        // ignore: deprecated_member_use_from_same_package
         var linkResult = link2.link(elementFactory, inputLibraries);
         librariesLinked += cycle.libraries.length;
 

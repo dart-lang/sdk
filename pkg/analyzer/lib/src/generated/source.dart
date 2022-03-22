@@ -37,7 +37,7 @@ abstract class BasicSource extends Source {
   String get shortName => pathos.basename(fullName);
 
   @override
-  bool operator ==(Object object) => object is Source && object.uri == uri;
+  bool operator ==(Object other) => other is Source && other.uri == uri;
 }
 
 /// Instances of the class `DartUriResolver` resolve `dart` URI's.
@@ -241,7 +241,7 @@ abstract class Source {
   ///         source code as this source
   /// See [Object.==].
   @override
-  bool operator ==(Object object);
+  bool operator ==(Object other);
 
   /// Return `true` if this source exists.
   ///

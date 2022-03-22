@@ -276,7 +276,7 @@ class DevToolsServer {
     // Ensure browsers don't cache older versions of the app.
     _server.defaultResponseHeaders.add(
       HttpHeaders.cacheControlHeader,
-      'max-age=900',
+      'max-age=0',
     );
 
     // Serve requests in an error zone to prevent failures

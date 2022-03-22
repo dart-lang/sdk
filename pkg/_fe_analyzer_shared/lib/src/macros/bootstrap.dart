@@ -289,10 +289,14 @@ Future<SerializableResponse> _executeDefinitionsPhase(
         sendRequest,
         remoteInstance: request.classIntrospector,
         serializationZoneId: request.serializationZoneId);
+    var typeInferrer = ClientTypeInferrer(
+        sendRequest,
+        remoteInstance: request.typeInferrer,
+        serializationZoneId: request.serializationZoneId);
 
     var result = await executeDefinitionMacro(
         instance, request.declaration, identifierResolver, classIntrospector,
-        typeResolver, typeDeclarationResolver);
+        typeResolver, typeDeclarationResolver, typeInferrer);
     return new SerializableResponse(
         responseType: MessageType.macroExecutionResult,
         response: result,

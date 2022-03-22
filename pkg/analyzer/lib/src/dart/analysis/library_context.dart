@@ -51,16 +51,15 @@ class LibraryContext {
   LibraryContext({
     required this.testView,
     required AnalysisSessionImpl analysisSession,
-    required PerformanceLog logger,
-    required ByteStore byteStore,
+    required this.logger,
+    required this.byteStore,
     required this.fileSystemState,
     required AnalysisOptionsImpl analysisOptions,
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
     this.macroKernelBuilder,
     required SummaryDataStore? externalSummaries,
-  })  : logger = logger,
-        byteStore = byteStore {
+  }) {
     var synchronousSession =
         SynchronousSession(analysisOptions, declaredVariables);
     analysisContext = AnalysisContextImpl(synchronousSession, sourceFactory);
@@ -205,6 +204,8 @@ class LibraryContext {
         link2.LinkResult linkResult;
         try {
           timerLinking.start();
+          // TODO(scheglov) Migrate when we are ready to switch to async.
+          // ignore: deprecated_member_use_from_same_package
           linkResult = link2.link(elementFactory, inputLibraries);
           librariesLinked += cycle.libraries.length;
           counterLinkedLibraries += inputLibraries.length;

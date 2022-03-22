@@ -499,7 +499,7 @@ class FindNode {
         }
       }
     }
-    throw StateError('$name');
+    throw StateError(name);
   }
 
   TryStatement tryStatement(String search) {

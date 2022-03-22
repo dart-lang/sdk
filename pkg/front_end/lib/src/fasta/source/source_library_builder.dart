@@ -3017,13 +3017,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
       List<DelayedActionPerformer> delayedActionPerformers) {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.buildOutlineExpressions(
-            classHierarchy, synthesizedFunctionNodes, delayedActionPerformers);
+        patchLibrary.buildOutlineExpressions(classHierarchy,
+            delayedDefaultValueCloners, delayedActionPerformers);
       }
     }
 
@@ -3035,16 +3035,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Builder declaration = iterator.current;
       if (declaration is SourceClassBuilder) {
         declaration.buildOutlineExpressions(this, classHierarchy,
-            delayedActionPerformers, synthesizedFunctionNodes);
+            delayedActionPerformers, delayedDefaultValueCloners);
       } else if (declaration is ExtensionBuilder) {
         declaration.buildOutlineExpressions(this, classHierarchy,
-            delayedActionPerformers, synthesizedFunctionNodes);
+            delayedActionPerformers, delayedDefaultValueCloners);
       } else if (declaration is SourceMemberBuilder) {
         declaration.buildOutlineExpressions(this, classHierarchy,
-            delayedActionPerformers, synthesizedFunctionNodes);
+            delayedActionPerformers, delayedDefaultValueCloners);
       } else if (declaration is SourceTypeAliasBuilder) {
         declaration.buildOutlineExpressions(this, classHierarchy,
-            delayedActionPerformers, synthesizedFunctionNodes);
+            delayedActionPerformers, delayedDefaultValueCloners);
       } else {
         assert(
             declaration is PrefixBuilder ||

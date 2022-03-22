@@ -91,7 +91,7 @@ class DillTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.dill_finalizeExports);
       loader.finalizeExports(
           suppressFinalizationErrors: suppressFinalizationErrors);
-      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+      benchmarker?.enterPhase(BenchmarkPhases.unknownDillTarget);
     }
     isLoaded = true;
   }

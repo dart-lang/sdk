@@ -186,7 +186,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
 
   void read(ElementImpl element) {
     if (_offset == -1) {
-      return null;
+      return;
     }
 
     var dataReader = _libraryReader._reader.fork(_offset);

@@ -371,7 +371,7 @@ class Variables {
   DecoratedType _createDecoratedElementType(Element element) {
     if (_graph.isBeingMigrated(element.library!.source) &&
         !_isLoadLibraryElement(element)) {
-      var description;
+      Object? description;
       if (ElementTypeProvider.current is MigrationResolutionHooksImpl) {
         // Don't attempt to call toString() on element, or we will overflow.
         description = element.location;

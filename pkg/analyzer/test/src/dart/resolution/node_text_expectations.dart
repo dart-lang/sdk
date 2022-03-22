@@ -53,7 +53,7 @@ class NodeTextExpectationsCollector {
             _Replacement(
               expectationOffset,
               expectationEnd,
-              '\n' + actual,
+              '\n$actual',
             ),
           );
         }

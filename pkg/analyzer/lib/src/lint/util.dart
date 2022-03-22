@@ -72,7 +72,7 @@ class _SourceVisitor extends GeneralizingAstVisitor {
   _SourceVisitor(this.sink);
 
   String asString(AstNode node) =>
-      typeInfo(node.runtimeType) + ' [${node.toString()}]';
+      '${typeInfo(node.runtimeType)} [${node.toString()}]';
 
   List<CommentToken> getPrecedingComments(Token token) {
     var comments = <CommentToken>[];

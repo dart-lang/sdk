@@ -4889,6 +4889,11 @@ class StaticCallInstr : public TemplateDartCall<0> {
   DECLARE_INSTRUCTION(StaticCall)
   virtual CompileType ComputeType() const;
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
+  bool Evaluate(FlowGraph* flow_graph, const Object& argument, Object* result);
+  bool Evaluate(FlowGraph* flow_graph,
+                const Object& argument1,
+                const Object& argument2,
+                Object* result);
 
   // Accessors forwarded to the AST node.
   const Function& function() const { return function_; }

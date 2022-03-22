@@ -48,8 +48,8 @@ class BoolState extends InstanceState {
   String get typeName => "bool";
 
   @override
-  bool operator ==(Object object) =>
-      object is BoolState && identical(value, object.value);
+  bool operator ==(Object other) =>
+      other is BoolState && identical(value, other.value);
 
   @override
   BoolState convertToBool() => this;
@@ -211,10 +211,10 @@ class DartObjectImpl implements DartObject {
   List<DartType>? get typeArguments => (_state as FunctionState)._typeArguments;
 
   @override
-  bool operator ==(Object object) {
-    if (object is DartObjectImpl) {
-      return _typeSystem.runtimeTypesEqual(type, object.type) &&
-          _state == object._state;
+  bool operator ==(Object other) {
+    if (other is DartObjectImpl) {
+      return _typeSystem.runtimeTypesEqual(type, other.type) &&
+          _state == other._state;
     }
     return false;
   }
@@ -979,8 +979,8 @@ class DoubleState extends NumState {
   String get typeName => "double";
 
   @override
-  bool operator ==(Object object) =>
-      object is DoubleState && (value == object.value);
+  bool operator ==(Object other) =>
+      other is DoubleState && (value == other.value);
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -1289,22 +1289,22 @@ class FunctionState extends InstanceState {
   String get typeName => "Function";
 
   @override
-  bool operator ==(Object object) {
-    if (object is! FunctionState) {
+  bool operator ==(Object other) {
+    if (other is! FunctionState) {
       return false;
     }
-    if (_element != object._element) {
+    if (_element != other._element) {
       return false;
     }
     var typeArguments = _typeArguments;
-    var otherTypeArguments = object._typeArguments;
+    var otherTypeArguments = other._typeArguments;
     if (typeArguments == null || otherTypeArguments == null) {
       return typeArguments == null && otherTypeArguments == null;
     }
     if (typeArguments.length != otherTypeArguments.length) {
       return false;
     }
-    if (_viaTypeAlias != object._viaTypeAlias) {
+    if (_viaTypeAlias != other._viaTypeAlias) {
       return false;
     }
     for (var i = 0; i < typeArguments.length; i++) {
@@ -1412,18 +1412,18 @@ class GenericState extends InstanceState {
   String get typeName => "user defined type";
 
   @override
-  bool operator ==(Object object) {
-    if (object is GenericState) {
+  bool operator ==(Object other) {
+    if (other is GenericState) {
       HashSet<String> otherFields =
-          HashSet<String>.from(object._fieldMap.keys.toSet());
+          HashSet<String>.from(other._fieldMap.keys.toSet());
       for (String fieldName in _fieldMap.keys.toSet()) {
-        if (_fieldMap[fieldName] != object._fieldMap[fieldName]) {
+        if (_fieldMap[fieldName] != other._fieldMap[fieldName]) {
           return false;
         }
         otherFields.remove(fieldName);
       }
       for (String fieldName in otherFields) {
-        if (object._fieldMap[fieldName] != _fieldMap[fieldName]) {
+        if (other._fieldMap[fieldName] != _fieldMap[fieldName]) {
           return false;
         }
       }
@@ -1897,8 +1897,7 @@ class IntState extends NumState {
   String get typeName => "int";
 
   @override
-  bool operator ==(Object object) =>
-      object is IntState && (value == object.value);
+  bool operator ==(Object other) => other is IntState && (value == other.value);
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -2322,9 +2321,9 @@ class ListState extends InstanceState {
   String get typeName => "List";
 
   @override
-  bool operator ==(Object object) {
-    if (object is ListState) {
-      List<DartObjectImpl> otherElements = object._elements;
+  bool operator ==(Object other) {
+    if (other is ListState) {
+      List<DartObjectImpl> otherElements = other._elements;
       int count = _elements.length;
       if (otherElements.length != count) {
         return false;
@@ -2395,9 +2394,9 @@ class MapState extends InstanceState {
   String get typeName => "Map";
 
   @override
-  bool operator ==(Object object) {
-    if (object is MapState) {
-      Map<DartObjectImpl, DartObjectImpl> otherElements = object._entries;
+  bool operator ==(Object other) {
+    if (other is MapState) {
+      Map<DartObjectImpl, DartObjectImpl> otherElements = other._entries;
       int count = _entries.length;
       if (otherElements.length != count) {
         return false;
@@ -2468,7 +2467,7 @@ class NullState extends InstanceState {
   String get typeName => "Null";
 
   @override
-  bool operator ==(Object object) => object is NullState;
+  bool operator ==(Object other) => other is NullState;
 
   @override
   BoolState convertToBool() {
@@ -2532,10 +2531,10 @@ class SetState extends InstanceState {
   String get typeName => "Set";
 
   @override
-  bool operator ==(Object object) {
-    if (object is SetState) {
+  bool operator ==(Object other) {
+    if (other is SetState) {
       List<DartObjectImpl> elements = _elements.toList();
-      List<DartObjectImpl> otherElements = object._elements.toList();
+      List<DartObjectImpl> otherElements = other._elements.toList();
       int count = elements.length;
       if (otherElements.length != count) {
         return false;
@@ -2608,8 +2607,8 @@ class StringState extends InstanceState {
   String get typeName => "String";
 
   @override
-  bool operator ==(Object object) =>
-      object is StringState && (value == object.value);
+  bool operator ==(Object other) =>
+      other is StringState && (value == other.value);
 
   @override
   StringState concatenate(InstanceState rightOperand) {
@@ -2677,8 +2676,8 @@ class SymbolState extends InstanceState {
   String get typeName => "Symbol";
 
   @override
-  bool operator ==(Object object) =>
-      object is SymbolState && (value == object.value);
+  bool operator ==(Object other) =>
+      other is SymbolState && (value == other.value);
 
   @override
   StringState convertToString() {
@@ -2728,8 +2727,8 @@ class TypeState extends InstanceState {
   String get typeName => "Type";
 
   @override
-  bool operator ==(Object object) =>
-      object is TypeState && (_type == object._type);
+  bool operator ==(Object other) =>
+      other is TypeState && (_type == other._type);
 
   @override
   StringState convertToString() {

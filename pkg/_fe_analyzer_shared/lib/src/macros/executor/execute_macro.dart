@@ -105,13 +105,19 @@ Future<MacroExecutionResult> executeDefinitionMacro(
     IdentifierResolver identifierResolver,
     ClassIntrospector classIntrospector,
     TypeResolver typeResolver,
-    TypeDeclarationResolver typeDeclarationResolver) async {
+    TypeDeclarationResolver typeDeclarationResolver,
+    TypeInferrer typeInferrer) async {
   if (declaration is FunctionDeclaration) {
     if (macro is ConstructorDefinitionMacro &&
         declaration is ConstructorDeclaration) {
       ConstructorDefinitionBuilderImpl builder =
-          new ConstructorDefinitionBuilderImpl(declaration, identifierResolver,
-              classIntrospector, typeResolver, typeDeclarationResolver);
+          new ConstructorDefinitionBuilderImpl(
+              declaration,
+              identifierResolver,
+              classIntrospector,
+              typeResolver,
+              typeDeclarationResolver,
+              typeInferrer);
       await macro.buildDefinitionForConstructor(declaration, builder);
       return builder.result;
     } else {
@@ -120,7 +126,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
           identifierResolver,
           classIntrospector,
           typeResolver,
-          typeDeclarationResolver);
+          typeDeclarationResolver,
+          typeInferrer);
       if (macro is MethodDefinitionMacro && declaration is MethodDeclaration) {
         await macro.buildDefinitionForMethod(declaration, builder);
         return builder.result;
@@ -135,7 +142,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
         identifierResolver,
         classIntrospector,
         typeResolver,
-        typeDeclarationResolver);
+        typeDeclarationResolver,
+        typeInferrer);
     if (macro is FieldDefinitionMacro && declaration is FieldDeclaration) {
       await macro.buildDefinitionForField(declaration, builder);
       return builder.result;
@@ -149,7 +157,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
         identifierResolver,
         classIntrospector,
         typeResolver,
-        typeDeclarationResolver);
+        typeDeclarationResolver,
+        typeInferrer);
     await macro.buildDefinitionForClass(declaration, builder);
     return builder.result;
   }

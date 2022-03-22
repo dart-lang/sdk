@@ -56,16 +56,15 @@ class DartRepositoryMacroKernelBuilder implements MacroKernelBuilder {
     );
 
     var macroMainBytes = utf8.encode(macroMainContent) as Uint8List;
-    var macroMainPath = libraries.first.path + '.macro';
+    var macroMainPath = '${libraries.first.path}.macro';
     var macroMainUri = fileSystem.pathContext.toUri(macroMainPath);
 
-    options
-      ..fileSystem = _FileSystem(
-        fileSystem,
-        platformDillBytes,
-        macroMainUri,
-        macroMainBytes,
-      );
+    options.fileSystem = _FileSystem(
+      fileSystem,
+      platformDillBytes,
+      macroMainUri,
+      macroMainBytes,
+    );
 
     // TODO(scheglov) For now we convert async into sync.
     // ignore: deprecated_member_use

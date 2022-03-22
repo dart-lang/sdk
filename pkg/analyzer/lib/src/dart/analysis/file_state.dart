@@ -1031,10 +1031,9 @@ class FileUriProperties {
         packageName = null;
 
   FileUriProperties._package({
-    required String packageName,
+    required this.packageName,
     required bool isSrc,
-  })  : _flags = isSrc ? _isSrc : 0,
-        packageName = packageName;
+  }) : _flags = isSrc ? _isSrc : 0;
 
   const FileUriProperties._unknown()
       : _flags = 0,

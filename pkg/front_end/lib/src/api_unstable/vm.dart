@@ -68,6 +68,8 @@ export '../fasta/fasta_codes.dart'
         messageFfiPackedAnnotationAlignment,
         messageNonPositiveArrayDimensions,
         noLength,
+        templateCantHaveNamedParameters,
+        templateCantHaveOptionalParameters,
         templateFfiDartTypeMismatch,
         templateFfiEmptyStruct,
         templateFfiExpectedConstantArg,

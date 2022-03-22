@@ -35,7 +35,7 @@ class UnknownInferredType extends TypeImpl {
   NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.star;
 
   @override
-  bool operator ==(Object object) => identical(object, this);
+  bool operator ==(Object other) => identical(other, this);
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {

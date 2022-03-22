@@ -75,7 +75,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         super(metadata, name, parent, charOffset);
 
   @override
-  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+  SourceLibraryBuilder get libraryBuilder =>
+      super.libraryBuilder as SourceLibraryBuilder;
 
   @override
   List<TypeVariableBuilder>? get typeVariables => _typeVariables;
@@ -141,7 +142,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     if (thisType != null) {
       if (identical(thisType, pendingTypeAliasMarker)) {
         thisType = cyclicTypeAliasMarker;
-        library.addProblem(templateCyclicTypedef.withArguments(name),
+        libraryBuilder.addProblem(templateCyclicTypedef.withArguments(name),
             charOffset, noLength, fileUri);
         return const InvalidType();
       } else if (identical(thisType, cyclicTypeAliasMarker)) {
@@ -156,14 +157,14 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     TypeBuilder? type = this.type;
     // ignore: unnecessary_null_comparison
     if (type != null) {
-      DartType builtType =
-          type.build(library, origin: thisTypedefType(typedef, library));
+      DartType builtType = type.build(libraryBuilder,
+          origin: thisTypedefType(typedef, libraryBuilder));
       // ignore: unnecessary_null_comparison
       if (builtType != null) {
         if (typeVariables != null) {
           for (TypeVariableBuilder tv in typeVariables!) {
             // Follow bound in order to find all cycles
-            tv.bound?.build(library);
+            tv.bound?.build(libraryBuilder);
           }
         }
         if (identical(thisType, cyclicTypeAliasMarker)) {
@@ -204,7 +205,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         // At this point, [parent] should be a [SourceLibraryBuilder] because
         // otherwise it's a compiled library loaded from a dill file, and the
         // bounds should have been assigned.
-        library.registerPendingNullability(
+        libraryBuilder.registerPendingNullability(
             _typeVariables![i].fileUri!,
             _typeVariables![i].charOffset,
             asTypeArguments[i] as TypeParameterType);
@@ -248,9 +249,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    library.checkBoundsInTypeParameters(
+    libraryBuilder.checkBoundsInTypeParameters(
         typeEnvironment, typedef.typeParameters, fileUri);
-    library.checkBoundsInType(
+    libraryBuilder.checkBoundsInType(
         typedef.type!, typeEnvironment, fileUri, type?.charOffset ?? charOffset,
         allowSuperBounded: false);
   }
@@ -259,7 +260,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(
         typedef, metadata, library, null, null, fileUri, library.scope);
     if (typeVariables != null) {
@@ -275,7 +276,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
       InterfaceType targetType = typedef.type as InterfaceType;
-      synthesizedFunctionNodes.add(new SynthesizedFunctionNode(
+      delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
           new Map<TypeParameter, DartType>.fromIterables(
               target.enclosingClass!.typeParameters, targetType.typeArguments),
           target.function!,
@@ -318,7 +319,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             target = builder.readTarget!;
           }
           Name targetName =
-              new Name(constructorName, declaration.library.library);
+              new Name(constructorName, declaration.libraryBuilder.library);
           Reference? tearOffReference;
           if (library.referencesFromIndexed != null) {
             tearOffReference = library.referencesFromIndexed!

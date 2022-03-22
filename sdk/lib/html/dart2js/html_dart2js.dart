@@ -25239,9 +25239,50 @@ class Performance extends EventTarget {
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 
-  void mark(String markName) native;
+  PerformanceEntry mark(String markName, [Map? markOptions]) {
+    if (markOptions != null) {
+      var markOptions_1 = convertDartToNative_Dictionary(markOptions);
+      return _mark_1(markName, markOptions_1);
+    }
+    return _mark_2(markName);
+  }
 
-  void measure(String measureName, String? startMark, String? endMark) native;
+  @JSName('mark')
+  PerformanceEntry _mark_1(markName, markOptions) native;
+  @JSName('mark')
+  PerformanceEntry _mark_2(markName) native;
+
+  PerformanceMeasure? measure(String measureName,
+      [measureOptions_OR_startMark, String? endMark]) {
+    if (measureOptions_OR_startMark == null && endMark == null) {
+      return _measure_1(measureName);
+    }
+    if ((measureOptions_OR_startMark is String ||
+            measureOptions_OR_startMark == null) &&
+        endMark == null) {
+      return _measure_2(measureName, measureOptions_OR_startMark);
+    }
+    if ((measureOptions_OR_startMark is String ||
+        measureOptions_OR_startMark == null)) {
+      return _measure_3(measureName, measureOptions_OR_startMark, endMark);
+    }
+    if ((measureOptions_OR_startMark is Map) && endMark == null) {
+      var measureOptions_1 =
+          convertDartToNative_Dictionary(measureOptions_OR_startMark);
+      return _measure_4(measureName, measureOptions_1);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @JSName('measure')
+  PerformanceMeasure? _measure_1(measureName) native;
+  @JSName('measure')
+  PerformanceMeasure? _measure_2(measureName, String? startMark) native;
+  @JSName('measure')
+  PerformanceMeasure? _measure_3(measureName, String? startMark, endMark)
+      native;
+  @JSName('measure')
+  PerformanceMeasure? _measure_4(measureName, measureOptions) native;
 
   double now() native;
 

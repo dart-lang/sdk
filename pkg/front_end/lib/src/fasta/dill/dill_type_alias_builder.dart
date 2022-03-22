@@ -42,7 +42,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   List<TypeVariableBuilder>? get typeVariables {
     if (_typeVariables == null && typedef.typeParameters.isNotEmpty) {
       _typeVariables =
-          computeTypeVariableBuilders(library, typedef.typeParameters);
+          computeTypeVariableBuilders(libraryBuilder, typedef.typeParameters);
     }
     return _typeVariables;
   }
@@ -61,7 +61,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   TypeBuilder? get type {
     if (_type == null && typedef.type is! InvalidType) {
-      _type = library.loader.computeTypeBuilder(typedef.type!);
+      _type = libraryBuilder.loader.computeTypeBuilder(typedef.type!);
     }
     // TODO(johnniwinther): Support TypeBuilder for InvalidType.
     return _type;

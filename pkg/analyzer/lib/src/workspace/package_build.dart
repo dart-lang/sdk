@@ -24,9 +24,7 @@ import 'package:yaml/yaml.dart';
 class PackageBuildFileUriResolver extends ResourceUriResolver {
   final PackageBuildWorkspace workspace;
 
-  PackageBuildFileUriResolver(PackageBuildWorkspace workspace)
-      : workspace = workspace,
-        super(workspace.provider);
+  PackageBuildFileUriResolver(this.workspace) : super(workspace.provider);
 
   @override
   Source? resolveAbsolute(Uri uri) {
@@ -270,17 +268,17 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
   }
 
   @override
-  PackageBuildWorkspacePackage? findPackageFor(String path) {
+  PackageBuildWorkspacePackage? findPackageFor(String filePath) {
     var pathContext = provider.pathContext;
 
     // Must be in this workspace.
-    if (!pathContext.isWithin(root, path)) {
+    if (!pathContext.isWithin(root, filePath)) {
       return null;
     }
 
     // If generated, must be for this package.
-    if (pathContext.isWithin(generatedRootPath, path)) {
-      if (!pathContext.isWithin(generatedThisPath, path)) {
+    if (pathContext.isWithin(generatedRootPath, filePath)) {
+      if (!pathContext.isWithin(generatedThisPath, filePath)) {
         return null;
       }
     }

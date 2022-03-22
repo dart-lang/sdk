@@ -119,7 +119,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           isExternal: isExternal,
           isFinal: isFinal,
           isCovariantByDeclaration: isCovariantByDeclaration,
-          isNonNullableByDefault: library.isNonNullableByDefault);
+          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
     } else if (isLate &&
         libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
             hasInitializer: hasInitializer,
@@ -250,7 +250,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           isConst: isConst,
           isLate: isLate,
           hasInitializer: hasInitializer,
-          isNonNullableByDefault: library.isNonNullableByDefault,
+          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
           fieldReference: fieldReference,
           getterReference: fieldGetterReference,
           setterReference: fieldSetterReference);
@@ -375,7 +375,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     _fieldEncoding.completeSignature(classHierarchy.coreTypes);
 
     for (Annotatable annotatable in _fieldEncoding.annotatables) {
@@ -446,7 +446,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   DartType inferType() {
-    SourceLibraryBuilder library = this.library;
     if (fieldType is! ImplicitFieldType) {
       // We have already inferred a type.
       return fieldType;
@@ -457,7 +456,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     if (fieldType is ImplicitFieldType) {
       // `fieldType` may have changed if a circularity was detected when
       // [inferredType] was computed.
-      if (!library.isNonNullableByDefault) {
+      if (!libraryBuilder.isNonNullableByDefault) {
         inferredType = legacyErasure(inferredType);
       }
       fieldType = implicitFieldType.checkInferred(inferredType);

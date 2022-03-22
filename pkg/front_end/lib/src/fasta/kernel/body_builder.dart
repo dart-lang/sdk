@@ -390,7 +390,8 @@ class BodyBuilder extends StackListenerImpl
       : this(
             libraryBuilder: part,
             member: field,
-            enclosingScope: declarationBuilder?.scope ?? field.library.scope,
+            enclosingScope:
+                declarationBuilder?.scope ?? field.libraryBuilder.scope,
             formalParameterScope: null,
             hierarchy: part.loader.hierarchy,
             coreTypes: part.loader.coreTypes,
@@ -4330,6 +4331,7 @@ class BodyBuilder extends StackListenerImpl
     push((covariantToken != null ? covariantMask : 0) |
         (requiredToken != null ? requiredMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
+    push(varFinalOrConst ?? NullValue.Token);
   }
 
   @override
@@ -4361,6 +4363,13 @@ class BodyBuilder extends StackListenerImpl
       // error. Also, notice that the type of the problematic parameter isn't
       // `invalid-type`.
       buildDartType(type, allowPotentiallyConstantType: false);
+    }
+    Token? varOrFinalOrConst = pop(NullValue.Token) as Token?;
+    if (superKeyword != null && varOrFinalOrConst != null) {
+      handleRecoverableError(
+          fasta.templateExtraneousModifier.withArguments(varOrFinalOrConst),
+          varOrFinalOrConst,
+          varOrFinalOrConst);
     }
     int modifiers = pop() as int;
     if (inCatchClause) {
@@ -5502,8 +5511,8 @@ class BodyBuilder extends StackListenerImpl
               // No type arguments provided to unaliased class, use defaults.
               List<DartType> result = new List<DartType>.generate(
                   cls.typeVariables!.length,
-                  (int i) =>
-                      cls.typeVariables![i].defaultType!.build(cls.library),
+                  (int i) => cls.typeVariables![i].defaultType!
+                      .build(cls.libraryBuilder),
                   growable: true);
               forest.argumentsSetTypeArguments(arguments, result);
             }

@@ -111,6 +111,15 @@ class TestNamedStaticType implements NamedStaticType {
       (library == other.library && identifier.name == other.identifier.name);
 }
 
+/// Assumes all omitted types are [TestOmittedTypeAnnotation]s and just returns
+/// the inferred type directly.
+class TestTypeInferrer implements TypeInferrer {
+  @override
+  Future<TypeAnnotation> inferType(
+          TestOmittedTypeAnnotation omittedType) async =>
+      omittedType.inferredType;
+}
+
 /// Knows its inferred type ahead of time.
 class TestOmittedTypeAnnotation extends OmittedTypeAnnotationImpl {
   final TypeAnnotation inferredType;
@@ -361,7 +370,15 @@ class Fixtures {
       isOperator: false,
       isSetter: false,
       namedParameters: [],
-      positionalParameters: [],
+      positionalParameters: [
+        ParameterDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
+            isNamed: false,
+            isRequired: true,
+            type: TestOmittedTypeAnnotation(myField.type))
+      ],
       returnType: myClassType,
       typeParameters: [],
       definingClass: myClassType.identifier,
@@ -447,4 +464,6 @@ class Fixtures {
   );
   static final testTypeDeclarationResolver =
       TestTypeDeclarationResolver({myClass.identifier: myClass});
+
+  static final testTypeInferrer = TestTypeInferrer();
 }

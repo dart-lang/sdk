@@ -489,6 +489,35 @@ void ConstantPropagator::VisitDispatchTableCall(DispatchTableCallInstr* instr) {
 
 void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
   const auto kind = instr->function().recognized_kind();
+  if (kind != MethodRecognizer::kUnknown) {
+    if (instr->ArgumentCount() == 1) {
+      const Object& argument = instr->ArgumentAt(0)->constant_value();
+      if (IsUnknown(argument)) {
+        return;
+      }
+      if (IsConstant(argument)) {
+        Object& value = Object::ZoneHandle(Z);
+        if (instr->Evaluate(graph_, argument, &value)) {
+          SetValue(instr, value);
+          return;
+        }
+      }
+    } else if (instr->ArgumentCount() == 2) {
+      const Object& argument1 = instr->ArgumentAt(0)->constant_value();
+      const Object& argument2 = instr->ArgumentAt(1)->constant_value();
+      if (IsUnknown(argument1) || IsUnknown(argument2)) {
+        return;
+      }
+      if (IsConstant(argument1) && IsConstant(argument2)) {
+        Object& value = Object::ZoneHandle(Z);
+        if (instr->Evaluate(graph_, argument1, argument2, &value)) {
+          SetValue(instr, value);
+          return;
+        }
+      }
+    }
+  }
+
   switch (kind) {
     case MethodRecognizer::kOneByteString_equality:
     case MethodRecognizer::kTwoByteString_equality: {
@@ -497,29 +526,6 @@ void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
       if (instr->ArgumentAt(0)->OriginalDefinition() ==
           instr->ArgumentAt(1)->OriginalDefinition()) {
         SetValue(instr, Bool::True());
-        return;
-      }
-      // Otherwise evaluate string compare with propagated constants.
-      const Object& o1 = instr->ArgumentAt(0)->constant_value();
-      const Object& o2 = instr->ArgumentAt(1)->constant_value();
-      if (o1.IsString() && o2.IsString()) {
-        SetValue(instr, Bool::Get(String::Cast(o1).Equals(String::Cast(o2))));
-        return;
-      }
-      break;
-    }
-    case MethodRecognizer::kStringBaseLength:
-    case MethodRecognizer::kStringBaseIsEmpty: {
-      ASSERT(instr->FirstArgIndex() == 0);
-      // Otherwise evaluate string length with propagated constants.
-      const Object& o = instr->ArgumentAt(0)->constant_value();
-      if (o.IsString()) {
-        const auto& str = String::Cast(o);
-        if (kind == MethodRecognizer::kStringBaseLength) {
-          SetValue(instr, Integer::ZoneHandle(Z, Integer::New(str.Length())));
-        } else {
-          SetValue(instr, Bool::Get(str.Length() == 0));
-        }
         return;
       }
       break;

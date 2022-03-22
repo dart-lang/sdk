@@ -70,7 +70,7 @@ class ClassMembersNodeBuilder {
   ClassBuilder get classBuilder => _hierarchyNode.classBuilder;
 
   bool get shouldModifyKernel =>
-      classBuilder.library.loader == hierarchy.loader;
+      classBuilder.libraryBuilder.loader == hierarchy.loader;
 
   ClassMember? checkInheritanceConflict(ClassMember a, ClassMember b) {
     if (a.isStatic || a.isProperty != b.isProperty) {
@@ -373,7 +373,7 @@ class ClassMembersNodeBuilder {
       ClassBuilder classBuilder,
       DartType? inferredType,
       DartType inheritedType) {
-    if (classBuilder.library.isNonNullableByDefault) {
+    if (classBuilder.libraryBuilder.isNonNullableByDefault) {
       if (inferredType == null) {
         return inheritedType;
       } else {
@@ -531,7 +531,7 @@ class ClassMembersNodeBuilder {
         staticMember = b;
         instanceMember = a;
       }
-      classBuilder.library.addProblem(messageStaticAndInstanceConflict,
+      classBuilder.libraryBuilder.addProblem(messageStaticAndInstanceConflict,
           staticMember.charOffset, name.length, staticMember.fileUri,
           context: <LocatedMessage>[
             messageStaticAndInstanceConflictCause.withLocation(
@@ -553,7 +553,7 @@ class ClassMembersNodeBuilder {
         existing = b;
         duplicate = a;
       }
-      classBuilder.library.addProblem(
+      classBuilder.libraryBuilder.addProblem(
           templateDuplicatedDeclaration.withArguments(name),
           duplicate.charOffset,
           name.length,
@@ -937,8 +937,8 @@ class ClassMembersNodeBuilder {
     ///    }
     ///
     bool needsMemberSignatureFor(ClassMember classMember) {
-      return !classBuilder.library.isNonNullableByDefault &&
-          classMember.classBuilder.library.isNonNullableByDefault;
+      return !classBuilder.libraryBuilder.isNonNullableByDefault &&
+          classMember.classBuilder.libraryBuilder.isNonNullableByDefault;
     }
 
     memberMap.forEach((Name name, Tuple tuple) {
@@ -2338,7 +2338,7 @@ class ClassMembersNodeBuilder {
   void reportMissingMembers(List<ClassMember> abstractMembers) {
     Map<String, LocatedMessage> contextMap = <String, LocatedMessage>{};
     for (ClassMember declaration in unfoldDeclarations(abstractMembers)) {
-      if (isNameVisibleIn(declaration.name, classBuilder.library)) {
+      if (isNameVisibleIn(declaration.name, classBuilder.libraryBuilder)) {
         String name = declaration.fullNameForErrors;
         String className = declaration.classBuilder.fullNameForErrors;
         String displayName =

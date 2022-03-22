@@ -552,17 +552,21 @@ class SourceEnumBuilder extends SourceClassBuilder {
   }
 
   @override
-  Class build(SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
+  Class build(
+      SourceLibraryBuilder sourceLibraryBuilder, LibraryBuilder coreLibrary) {
     cls.isEnum = true;
-    intType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    intType.resolveIn(
+        coreLibrary.scope, charOffset, fileUri, sourceLibraryBuilder);
     stringType.resolveIn(
-        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+        coreLibrary.scope, charOffset, fileUri, sourceLibraryBuilder);
     objectType.resolveIn(
-        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+        coreLibrary.scope, charOffset, fileUri, sourceLibraryBuilder);
     NamedTypeBuilder? enumType = _computeEnumSupertype();
-    enumType!.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    enumType!.resolveIn(
+        coreLibrary.scope, charOffset, fileUri, sourceLibraryBuilder);
 
-    listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    listType.resolveIn(
+        coreLibrary.scope, charOffset, fileUri, sourceLibraryBuilder);
 
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
@@ -571,7 +575,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           Builder declaration = firstMemberNamed(enumConstantInfo.name)!;
           if (declaration.isField) {
             SourceFieldBuilder fieldBuilder = declaration as SourceFieldBuilder;
-            fieldBuilder.build(libraryBuilder);
+            fieldBuilder.build(sourceLibraryBuilder);
             values.add(new StaticGet(fieldBuilder.field));
           }
         }
@@ -579,7 +583,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     }
     SourceFieldBuilder valuesBuilder =
         firstMemberNamed("values") as SourceFieldBuilder;
-    valuesBuilder.build(libraryBuilder);
+    valuesBuilder.build(sourceLibraryBuilder);
 
     // The super initializer for the synthesized default constructor is
     // inserted here if the enum's supertype is _Enum to preserve the legacy
@@ -590,11 +594,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
     if (identical(this.supertypeBuilder, enumType)) {
       if (synthesizedDefaultConstructorBuilder != null) {
         Constructor constructor =
-            synthesizedDefaultConstructorBuilder!.build(libraryBuilder);
+            synthesizedDefaultConstructorBuilder!.build(sourceLibraryBuilder);
         ClassBuilder objectClass = objectType.declaration as ClassBuilder;
         ClassBuilder enumClass = enumType.declaration as ClassBuilder;
         MemberBuilder? superConstructor = enumClass.findConstructorOrFactory(
-            "", charOffset, fileUri, libraryBuilder);
+            "", charOffset, fileUri, sourceLibraryBuilder);
         if (superConstructor == null || !superConstructor.isConstructor) {
           // TODO(ahe): Ideally, we would also want to check that [Object]'s
           // unnamed constructor requires no arguments. But that information
@@ -602,7 +606,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           // situation that can happen unless you start modifying the SDK
           // sources. (We should add a correct message. We no longer depend on
           // Object here.)
-          library.addProblem(
+          libraryBuilder.addProblem(
               messageNoUnnamedConstructorInObject,
               objectClass.charOffset,
               objectClass.name.length,
@@ -611,19 +615,19 @@ class SourceEnumBuilder extends SourceClassBuilder {
           constructor.initializers.add(new SuperInitializer(
               superConstructor.member as Constructor,
               new Arguments.forwarded(
-                  constructor.function, libraryBuilder.library))
+                  constructor.function, sourceLibraryBuilder.library))
             ..parent = constructor);
         }
         synthesizedDefaultConstructorBuilder = null;
       }
     }
 
-    return super.build(libraryBuilder, coreLibrary);
+    return super.build(sourceLibraryBuilder, coreLibrary);
   }
 
-  DartType buildElement(SourceLibraryBuilder libraryBuilder,
+  DartType buildElement(SourceLibraryBuilder sourceLibraryBuilder,
       SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
-    DartType selfType = this.selfType.build(libraryBuilder);
+    DartType selfType = this.selfType.build(sourceLibraryBuilder);
     Builder? builder = firstMemberNamed(fieldBuilder.name);
     if (builder == null || !builder.isField) return selfType;
     fieldBuilder = builder as SourceFieldBuilder;
@@ -669,19 +673,19 @@ class SourceEnumBuilder extends SourceClassBuilder {
     if (typeArgumentBuilders != null) {
       typeArguments = <DartType>[];
       for (TypeBuilder typeBuilder in typeArgumentBuilders) {
-        typeArguments.add(typeBuilder.build(library));
+        typeArguments.add(typeBuilder.build(libraryBuilder));
       }
     }
-    if (libraryBuilder.enableEnhancedEnumsInLibrary) {
+    if (sourceLibraryBuilder.enableEnhancedEnumsInLibrary) {
       // We need to create a BodyBuilder to solve the following: 1) if
       // the arguments token is provided, we'll use the BodyBuilder to
       // parse them and perform inference, 2) if the type arguments
       // aren't provided, but required, we'll use it to infer them, and
       // 3) in case of erroneous code the constructor invocation should
       // be built via a body builder to detect potential errors.
-      BodyBuilder bodyBuilder = library.loader
+      BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              library, this, this, scope, fileUri);
+              libraryBuilder, this, this, scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.inferred;
 
       if (enumConstantInfo.argumentsBeginToken != null) {
@@ -732,8 +736,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
           !constructorBuilder.isConst) {
         // This can only occur if there enhanced enum features are used
         // when they are not enabled.
-        assert(libraryBuilder.loader.hasSeenError);
-        String text = libraryBuilder.loader.target.context
+        assert(sourceLibraryBuilder.loader.hasSeenError);
+        String text = sourceLibraryBuilder.loader.target.context
             .format(
                 templateConstructorNotFound
                     .withArguments(fullConstructorNameForErrors)
@@ -760,10 +764,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder libraryBuilder,
+      SourceLibraryBuilder sourceLibraryBuilder,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
@@ -771,7 +775,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           Builder declaration = firstMemberNamed(enumConstantInfo.name)!;
           if (declaration.isField) {
             SourceFieldBuilder fieldBuilder = declaration as SourceFieldBuilder;
-            fieldBuilder.build(libraryBuilder);
+            fieldBuilder.build(sourceLibraryBuilder);
             values.add(new StaticGet(fieldBuilder.field));
           }
         }
@@ -782,11 +786,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
     valuesBuilder.buildBody(
         classHierarchy.coreTypes,
         new ListLiteral(values,
-            typeArgument: rawType(library.nonNullable), isConst: true));
+            typeArgument: rawType(libraryBuilder.nonNullable), isConst: true));
 
     for (SourceFieldBuilder elementBuilder in elementBuilders) {
       elementBuilder.fieldType = buildElement(
-          libraryBuilder, elementBuilder, classHierarchy.coreTypes);
+          sourceLibraryBuilder, elementBuilder, classHierarchy.coreTypes);
     }
     delayedActionPerformers.addAll(_delayedActionPerformers);
     _delayedActionPerformers.clear();
@@ -809,8 +813,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
           resultType: nameField.getterType),
     ]));
 
-    super.buildOutlineExpressions(library, classHierarchy,
-        delayedActionPerformers, synthesizedFunctionNodes);
+    super.buildOutlineExpressions(libraryBuilder, classHierarchy,
+        delayedActionPerformers, delayedDefaultValueCloners);
   }
 }
 

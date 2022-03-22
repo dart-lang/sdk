@@ -27,7 +27,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
-import '../kernel/kernel_helper.dart' show SynthesizedFunctionNode;
+import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
 import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
 import '../messages.dart'
@@ -81,8 +81,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   final bool _hasSuperInitializingFormals;
 
-  final List<SynthesizedFunctionNode> _superParameterDefaultValueCloners =
-      <SynthesizedFunctionNode>[];
+  final List<DelayedDefaultValueCloner> _superParameterDefaultValueCloners =
+      <DelayedDefaultValueCloner>[];
 
   @override
   List<FormalParameterBuilder>? formals;
@@ -186,19 +186,19 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   bool _hasBeenBuilt = false;
 
   @override
-  Constructor build(SourceLibraryBuilder libraryBuilder) {
+  Constructor build(SourceLibraryBuilder sourceLibraryBuilder) {
     if (!_hasBeenBuilt) {
-      buildFunction(libraryBuilder);
+      buildFunction(sourceLibraryBuilder);
       _constructor.function.fileOffset = charOpenParenOffset;
       _constructor.function.fileEndOffset = _constructor.fileEndOffset;
       _constructor.function.typeParameters = const <TypeParameter>[];
       _constructor.isConst = isConst;
       _constructor.isExternal = isExternal;
-      updatePrivateMemberName(_constructor, libraryBuilder);
+      updatePrivateMemberName(_constructor, sourceLibraryBuilder);
 
       if (_constructorTearOff != null) {
         buildConstructorTearOffProcedure(_constructorTearOff!, _constructor,
-            classBuilder.cls, libraryBuilder);
+            classBuilder.cls, sourceLibraryBuilder);
       }
 
       _hasBeenBuilt = true;
@@ -217,10 +217,10 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       }
       if (needsInference) {
         assert(
-            library == libraryBuilder,
-            "Unexpected library builder ${libraryBuilder} for"
-            " constructor $this in ${library}.");
-        libraryBuilder.loader
+            libraryBuilder == sourceLibraryBuilder,
+            "Unexpected library builder ${sourceLibraryBuilder} for"
+            " constructor $this in ${libraryBuilder}.");
+        sourceLibraryBuilder.loader
             .registerConstructorToBeInferred(_constructor, this);
       }
     }
@@ -242,9 +242,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       if (_hasSuperInitializingFormals) {
         List<Initializer>? initializers;
         if (beginInitializers != null) {
-          BodyBuilder bodyBuilder = library.loader
-              .createBodyBuilderForOutlineExpression(
-                  library, classBuilder, this, classBuilder.scope, fileUri);
+          BodyBuilder bodyBuilder = libraryBuilder.loader
+              .createBodyBuilderForOutlineExpression(libraryBuilder,
+                  classBuilder, this, classBuilder.scope, fileUri);
           bodyBuilder.constantContext = ConstantContext.required;
           initializers = bodyBuilder.parseInitializers(beginInitializers!,
               doFinishConstructor: false);
@@ -289,7 +289,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       superTarget = (initializers.last as SuperInitializer).target;
     } else {
       MemberBuilder? memberBuilder = superclassBuilder.constructorScope
-          .lookup("", charOffset, library.fileUri);
+          .lookup("", charOffset, libraryBuilder.fileUri);
       if (memberBuilder is ConstructorBuilder) {
         superTarget = memberBuilder.constructor;
       } else {
@@ -299,14 +299,14 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     }
 
     MemberBuilder? constructorBuilder =
-        superclassBuilder.findConstructorOrFactory(
-            superTarget.name.text, charOffset, library.fileUri, library);
+        superclassBuilder.findConstructorOrFactory(superTarget.name.text,
+            charOffset, libraryBuilder.fileUri, libraryBuilder);
     return constructorBuilder is ConstructorBuilder ? constructorBuilder : null;
   }
 
   void finalizeSuperInitializingFormals(
       TypeEnvironment typeEnvironment,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
       List<Initializer>? initializers) {
     if (formals == null) return;
     if (!_hasSuperInitializingFormals) return;
@@ -419,12 +419,12 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     }
 
     if (positionalSuperParameters != null || namedSuperParameters != null) {
-      synthesizedFunctionNodes.add(new SynthesizedFunctionNode(
+      delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
           substitution, superTarget.function, constructor.function,
           positionalSuperParameters: positionalSuperParameters ?? const <int>[],
           namedSuperParameters: namedSuperParameters ?? const <String>[],
           isOutlineNode: true,
-          libraryBuilder: library));
+          libraryBuilder: libraryBuilder));
     }
   }
 
@@ -435,14 +435,14 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
     if (isConst && isPatch) {
       origin.buildOutlineExpressions(library, classHierarchy,
-          delayedActionPerformers, synthesizedFunctionNodes);
+          delayedActionPerformers, delayedDefaultValueCloners);
     }
     super.buildOutlineExpressions(library, classHierarchy,
-        delayedActionPerformers, synthesizedFunctionNodes);
+        delayedActionPerformers, delayedDefaultValueCloners);
 
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline. We also need to parse
@@ -468,7 +468,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       bodyBuilder.performBacklogComputations(delayedActionPerformers);
     }
     beginInitializers = null;
-    addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
+    addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     if (isConst && isPatch) {
       _finishPatch();
     }
@@ -476,18 +476,18 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   void addSuperParameterDefaultValueCloners(
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     ConstructorBuilder? superTargetBuilder =
         _computeSuperTargetBuilder(constructor.initializers);
     if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
       superTargetBuilder
-          .addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
+          .addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     } else if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
       superTargetBuilder
-          .addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
+          .addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     }
 
-    synthesizedFunctionNodes.addAll(_superParameterDefaultValueCloners);
+    delayedDefaultValueCloners.addAll(_superParameterDefaultValueCloners);
     _superParameterDefaultValueCloners.clear();
   }
 
@@ -771,17 +771,19 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
   // when it's the supertype for both old SourceMemberBuilder and
   // SyntheticConstructorBuilder.
   MemberBuilder? _origin;
-  SynthesizedFunctionNode? _synthesizedFunctionNode;
+  DelayedDefaultValueCloner? _delayedDefaultValueCloner;
 
   SyntheticSourceConstructorBuilder(SourceClassBuilder parent,
       Constructor constructor, Procedure? constructorTearOff,
-      {MemberBuilder? origin, SynthesizedFunctionNode? synthesizedFunctionNode})
+      {MemberBuilder? origin,
+      DelayedDefaultValueCloner? delayedDefaultValueCloner})
       : _origin = origin,
-        _synthesizedFunctionNode = synthesizedFunctionNode,
+        _delayedDefaultValueCloner = delayedDefaultValueCloner,
         super(constructor, constructorTearOff, parent);
 
   @override
-  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+  SourceLibraryBuilder get libraryBuilder =>
+      super.libraryBuilder as SourceLibraryBuilder;
 
   // TODO(johnniwinther,cstefantsova): Rename [actualOrigin] to avoid the
   //  confusion with patches.
@@ -803,39 +805,39 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       SourceLibraryBuilder libraryBuilder,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_origin != null) {
       // Ensure that default value expressions have been created for [_origin].
-      LibraryBuilder originLibraryBuilder = _origin!.library;
+      LibraryBuilder originLibraryBuilder = _origin!.libraryBuilder;
       if (originLibraryBuilder is SourceLibraryBuilder) {
         // If [_origin] is from a source library, we need to build the default
         // values and initializers first.
         MemberBuilder origin = _origin!;
         if (origin is DeclaredSourceConstructorBuilder) {
           origin.buildOutlineExpressions(originLibraryBuilder, classHierarchy,
-              delayedActionPerformers, synthesizedFunctionNodes);
+              delayedActionPerformers, delayedDefaultValueCloners);
         } else if (origin is SyntheticSourceConstructorBuilder) {
           origin.buildOutlineExpressions(originLibraryBuilder, classHierarchy,
-              delayedActionPerformers, synthesizedFunctionNodes);
+              delayedActionPerformers, delayedDefaultValueCloners);
         }
       }
-      addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
+      addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
       _origin = null;
     }
   }
 
   void addSuperParameterDefaultValueCloners(
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MemberBuilder? origin = _origin;
     if (origin is DeclaredSourceConstructorBuilder) {
-      origin.addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
+      origin.addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     } else if (origin is SyntheticSourceConstructorBuilder) {
-      origin.addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
+      origin.addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     }
-    if (_synthesizedFunctionNode != null) {
-      synthesizedFunctionNodes
-          .add(_synthesizedFunctionNode!..isOutlineNode = true);
-      _synthesizedFunctionNode = null;
+    if (_delayedDefaultValueCloner != null) {
+      delayedDefaultValueCloners
+          .add(_delayedDefaultValueCloner!..isOutlineNode = true);
+      _delayedDefaultValueCloner = null;
     }
   }
 

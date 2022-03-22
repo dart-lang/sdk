@@ -805,7 +805,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  SourceLibraryBuilder get library {
+  SourceLibraryBuilder get libraryBuilder {
     throw new UnsupportedError('AmbiguousMemberBuilder.library');
   }
 
@@ -818,7 +818,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
   }

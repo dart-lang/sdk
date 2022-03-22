@@ -22,9 +22,7 @@ import 'package:pub_semver/pub_semver.dart';
 class BazelFileUriResolver extends ResourceUriResolver {
   final BazelWorkspace workspace;
 
-  BazelFileUriResolver(BazelWorkspace workspace)
-      : workspace = workspace,
-        super(workspace.provider);
+  BazelFileUriResolver(this.workspace) : super(workspace.provider);
 
   @override
   Source? resolveAbsolute(Uri uri) {

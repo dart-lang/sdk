@@ -296,14 +296,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       FeatureSet featureSet,
       this.flowAnalysis,
       this._migratableAstInfoProvider,
-      MigrationResolutionHooks? migrationResolutionHooks)
+      this.migrationResolutionHooks)
       : errorReporter = ErrorReporter(
           errorListener,
           source,
           isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
         ),
         _featureSet = featureSet,
-        migrationResolutionHooks = migrationResolutionHooks,
         genericMetadataIsEnabled =
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata) {
     var analysisOptions =
@@ -441,7 +440,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // TODO(scheglov) encapsulate
     var bodyContext = BodyInferenceContext.of(body);
     if (bodyContext == null) {
-      return null;
+      return;
     }
     var returnType = bodyContext.contextType;
     if (returnType == null) {
@@ -1222,7 +1221,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
-    flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
+    flowAnalysis.executableDeclaration_enter(node, node.parameters,
+        isClosure: false);
 
     var returnType = node.declaredElement!.type.returnType;
 
@@ -1611,7 +1611,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.executableDeclaration_enter(
       node,
       node.functionExpression.parameters,
-      isLocal,
+      isClosure: isLocal,
     );
 
     var functionType = node.declaredElement!.type;
@@ -1908,7 +1908,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
-    flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
+    flowAnalysis.executableDeclaration_enter(node, node.parameters,
+        isClosure: false);
 
     DartType returnType = node.declaredElement!.returnType;
 

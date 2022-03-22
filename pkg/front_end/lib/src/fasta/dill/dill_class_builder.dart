@@ -53,7 +53,8 @@ class DillClassBuilder extends ClassBuilderImpl {
   DillClassBuilder get origin => this;
 
   @override
-  DillLibraryBuilder get library => super.library as DillLibraryBuilder;
+  DillLibraryBuilder get libraryBuilder =>
+      super.libraryBuilder as DillLibraryBuilder;
 
   @override
   bool get isMacro => cls.isMacro;
@@ -66,7 +67,7 @@ class DillClassBuilder extends ClassBuilderImpl {
     List<TypeVariableBuilder>? typeVariables = super.typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {
       typeVariables = super.typeVariables =
-          computeTypeVariableBuilders(library, cls.typeParameters);
+          computeTypeVariableBuilders(libraryBuilder, cls.typeParameters);
     }
     return typeVariables;
   }
@@ -81,7 +82,7 @@ class DillClassBuilder extends ClassBuilderImpl {
       Supertype? targetSupertype = cls.supertype;
       if (targetSupertype == null) return null;
       super.supertypeBuilder =
-          supertype = computeTypeBuilder(library, targetSupertype);
+          supertype = computeTypeBuilder(libraryBuilder, targetSupertype);
     }
     return supertype;
   }
@@ -160,7 +161,7 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   TypeBuilder? get mixedInTypeBuilder {
-    return computeTypeBuilder(library, cls.mixedInType);
+    return computeTypeBuilder(libraryBuilder, cls.mixedInType);
   }
 
   @override
@@ -174,7 +175,8 @@ class DillClassBuilder extends ClassBuilderImpl {
     if (super.interfaceBuilders == null) {
       List<TypeBuilder> result = new List<TypeBuilder>.generate(
           cls.implementedTypes.length,
-          (int i) => computeTypeBuilder(library, cls.implementedTypes[i])!,
+          (int i) =>
+              computeTypeBuilder(libraryBuilder, cls.implementedTypes[i])!,
           growable: false);
       super.interfaceBuilders = result;
     }

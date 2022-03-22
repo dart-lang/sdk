@@ -1233,7 +1233,7 @@ class _File {
       pathKeyBuilder.addInt(DATA_VERSION);
       pathKeyBuilder.addString(path);
       pathKeyBuilder.addInt(modificationStamp);
-      pathKey = pathKeyBuilder.toHex() + '.declarations_content';
+      pathKey = '${pathKeyBuilder.toHex()}.declarations_content';
     }
 
     // With Bazel multiple workspaces might be copies of the same workspace,
@@ -1254,7 +1254,7 @@ class _File {
         tracker._byteStore.put(pathKey, contentHashBytes);
       }
 
-      contentKey = hex.encode(contentHashBytes) + '.declarations';
+      contentKey = '${hex.encode(contentHashBytes)}.declarations';
     }
 
     var bytes = tracker._byteStore.get(contentKey);

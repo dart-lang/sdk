@@ -1189,8 +1189,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  bool operator ==(Object object) =>
-      object is CompilationUnitElementImpl && source == object.source;
+  bool operator ==(Object other) =>
+      other is CompilationUnitElementImpl && source == other.source;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
@@ -1299,7 +1299,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// For every constructor we initially set this flag to `true`, and then
   /// set it to `false` during computing constant values if we detect that it
   /// is a part of a cycle.
-  bool _isCycleFree = true;
+  bool isCycleFree = true;
 
   @override
   bool isConstantEvaluated = false;
@@ -1345,16 +1345,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// Set whether this constructor represents a 'const' constructor.
   set isConst(bool isConst) {
     setModifier(Modifier.CONST, isConst);
-  }
-
-  bool get isCycleFree {
-    return _isCycleFree;
-  }
-
-  set isCycleFree(bool isCycleFree) {
-    // This property is updated in ConstantEvaluationEngine even for
-    // resynthesized constructors, so we don't have the usual assert here.
-    _isCycleFree = isCycleFree;
   }
 
   @override
@@ -2426,13 +2416,11 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  bool operator ==(Object object) {
-    if (identical(this, object)) {
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
       return true;
     }
-    return object is Element &&
-        object.kind == kind &&
-        object.location == location;
+    return other is Element && other.kind == kind && other.location == location;
   }
 
   /// Append a textual representation of this element to the given [builder].
@@ -2632,12 +2620,12 @@ class ElementLocationImpl implements ElementLocation {
   int get hashCode => Object.hashAll(_components);
 
   @override
-  bool operator ==(Object object) {
-    if (identical(this, object)) {
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
       return true;
     }
-    if (object is ElementLocationImpl) {
-      List<String> otherComponents = object._components;
+    if (other is ElementLocationImpl) {
+      List<String> otherComponents = other._components;
       int length = _components.length;
       if (otherComponents.length != length) {
         return false;
@@ -4576,7 +4564,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
         withNullability: withNullability,
       );
     }).join(', ');
-    return '[' + elementsStr + ']';
+    return '[$elementsStr]';
   }
 
   @override
@@ -4823,10 +4811,8 @@ class ParameterElementImpl extends VariableElementImpl
 class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   final PropertyAccessorElementImpl_ImplicitSetter setter;
 
-  ParameterElementImpl_ofImplicitSetter(
-      PropertyAccessorElementImpl_ImplicitSetter setter)
-      : setter = setter,
-        super(
+  ParameterElementImpl_ofImplicitSetter(this.setter)
+      : super(
           name: '_${setter.variable.name}',
           nameOffset: -1,
           parameterKind: ParameterKind.REQUIRED,
@@ -4991,11 +4977,10 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
-  PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable,
-      {Reference? reference})
+  PropertyAccessorElementImpl.forVariable(this.variable, {Reference? reference})
       : super(variable.name, -1, reference: reference) {
-    this.variable = variable;
-    isAbstract = variable is FieldElementImpl && variable.isAbstract;
+    isAbstract = variable is FieldElementImpl &&
+        (variable as FieldElementImpl).isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
   }

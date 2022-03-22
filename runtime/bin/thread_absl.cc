@@ -71,11 +71,16 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   // Set the thread name. There is 16 bytes limit on the name (including \0).
   // pthread_setname_np ignores names that are too long rather than truncating.
   char truncated_name[16];
   snprintf(truncated_name, sizeof(truncated_name), "%s", name);
   pthread_setname_np(pthread_self(), truncated_name);
+#elif defined(DART_HOST_OS_MACOS)
+  // Set the thread name.
+  pthread_setname_np(name);
+#endif
 
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
@@ -108,29 +113,7 @@ int Thread::Start(const char* name,
   return 0;
 }
 
-const ThreadLocalKey Thread::kUnsetThreadLocalKey =
-    static_cast<pthread_key_t>(-1);
 const ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(0);
-
-ThreadLocalKey Thread::CreateThreadLocal() {
-  pthread_key_t key = kUnsetThreadLocalKey;
-  int result = pthread_key_create(&key, NULL);
-  VALIDATE_PTHREAD_RESULT(result);
-  ASSERT(key != kUnsetThreadLocalKey);
-  return key;
-}
-
-void Thread::DeleteThreadLocal(ThreadLocalKey key) {
-  ASSERT(key != kUnsetThreadLocalKey);
-  int result = pthread_key_delete(key);
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
-  ASSERT(key != kUnsetThreadLocalKey);
-  int result = pthread_setspecific(key, reinterpret_cast<void*>(value));
-  VALIDATE_PTHREAD_RESULT(result);
-}
 
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
@@ -139,11 +122,6 @@ intptr_t Thread::GetMaxStackSize() {
 
 ThreadId Thread::GetCurrentThreadId() {
   return pthread_self();
-}
-
-intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
-  return static_cast<intptr_t>(id);
 }
 
 bool Thread::Compare(ThreadId a, ThreadId b) {

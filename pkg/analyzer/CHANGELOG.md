@@ -13,6 +13,7 @@
 * Deprecated `ResourceProviderMixin.newFile`, use `newFile2` instead.
 * Deprecated `ResourceProviderMixin.newAnalysisOptionsYamlFile`.
 * Added `AnalysisContext.changeFile` and `AnalysisContext.applyPendingFileChanges`.
+* Deprecated `buildSdkSummary`, use asynchronous `buildSdkSummary2` instead.
 
 ## 3.3.1
 * Report HintCode.OVERRIDE_ON_NON_OVERRIDING_xyz on enum.

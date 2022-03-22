@@ -154,10 +154,9 @@ class TypeProviderImpl extends TypeProviderBase {
   TypeProviderImpl({
     required LibraryElement coreLibrary,
     required LibraryElement asyncLibrary,
-    required bool isNonNullableByDefault,
+    required this.isNonNullableByDefault,
   })  : _coreLibrary = coreLibrary,
-        _asyncLibrary = asyncLibrary,
-        isNonNullableByDefault = isNonNullableByDefault;
+        _asyncLibrary = asyncLibrary;
 
   TypeProviderImpl get asLegacy {
     if (isNonNullableByDefault) {

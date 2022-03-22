@@ -329,6 +329,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
   final RemoteInstanceImpl typeResolver;
   final RemoteInstanceImpl classIntrospector;
   final RemoteInstanceImpl typeDeclarationResolver;
+  final RemoteInstanceImpl typeInferrer;
 
   ExecuteDefinitionsPhaseRequest(
       this.macro,
@@ -337,6 +338,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
       this.typeResolver,
       this.classIntrospector,
       this.typeDeclarationResolver,
+      this.typeInferrer,
       {required int serializationZoneId})
       : super(serializationZoneId: serializationZoneId);
 
@@ -350,6 +352,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
         typeResolver = RemoteInstance.deserialize(deserializer),
         classIntrospector = RemoteInstance.deserialize(deserializer),
         typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
+        typeInferrer = RemoteInstance.deserialize(deserializer),
         super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
@@ -360,6 +363,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
     typeResolver.serialize(serializer);
     classIntrospector.serialize(serializer);
     typeDeclarationResolver.serialize(serializer);
+    typeInferrer.serialize(serializer);
 
     super.serialize(serializer);
   }
@@ -526,8 +530,35 @@ class DeclarationOfRequest extends Request {
   }
 }
 
+/// A request to get an inferred [TypeAnnotation] for an
+/// [OmittedTypeAnnotation].
+class InferTypeRequest extends Request {
+  final OmittedTypeAnnotationImpl omittedType;
+  final RemoteInstanceImpl typeInferrer;
+
+  InferTypeRequest(this.omittedType, this.typeInferrer,
+      {required int serializationZoneId})
+      : super(serializationZoneId: serializationZoneId);
+
+  /// When deserializing we have already consumed the message type, so we don't
+  /// consume it again.
+  InferTypeRequest.deserialize(
+      Deserializer deserializer, int serializationZoneId)
+      : omittedType = RemoteInstance.deserialize(deserializer),
+        typeInferrer = RemoteInstance.deserialize(deserializer),
+        super.deserialize(deserializer, serializationZoneId);
+
+  @override
+  void serialize(Serializer serializer) {
+    serializer.addInt(MessageType.inferTypeRequest.index);
+    omittedType.serialize(serializer);
+    typeInferrer.serialize(serializer);
+    super.serialize(serializer);
+  }
+}
+
 /// Client side implementation of an [IdentifierResolver], which creates a
-/// [ResolveIdentifierRequest] and passes it to a given [sendRequest] function
+/// [ResolveIdentifierRequest] and passes it to a given [_sendRequest] function
 /// which can return the [Response].
 class ClientIdentifierResolver implements IdentifierResolver {
   /// The actual remote instance of this type resolver.
@@ -742,6 +773,31 @@ class ClientTypeDeclarationResolver implements TypeDeclarationResolver {
   }
 }
 
+/// Client side implementation of a [TypeInferrer], converts all
+/// invocations into remote procedure calls.
+class ClientTypeInferrer implements TypeInferrer {
+  /// The actual remote instance of this type resolver.
+  final RemoteInstanceImpl remoteInstance;
+
+  /// The ID of the zone in which to find the original type resolver.
+  final int serializationZoneId;
+
+  /// A function that can send a request and return a response using an
+  /// arbitrary communication channel.
+  final Future<Response> Function(Request request) sendRequest;
+
+  ClientTypeInferrer(this.sendRequest,
+      {required this.remoteInstance, required this.serializationZoneId});
+
+  @override
+  Future<TypeAnnotation> inferType(
+      OmittedTypeAnnotationImpl omittedType) async {
+    InferTypeRequest request = new InferTypeRequest(omittedType, remoteInstance,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<TypeAnnotation>(await sendRequest(request));
+  }
+}
+
 /// An exception that occurred remotely, the exception object and stack trace
 /// are serialized as [String]s and both included in the [toString] output.
 class RemoteException implements Exception {
@@ -784,6 +840,7 @@ enum MessageType {
   instantiateMacroRequest,
   resolveIdentifierRequest,
   resolveTypeRequest,
+  inferTypeRequest,
   isExactlyTypeRequest,
   isSubtypeOfRequest,
   loadMacroRequest,

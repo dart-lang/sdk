@@ -72,7 +72,7 @@ import '../kernel/hierarchy/delayed.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart'
-    show SynthesizedFunctionNode, TypeDependency;
+    show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/macro/macro.dart';
 import '../kernel/macro/annotation_parser.dart';
@@ -1449,7 +1449,7 @@ severity: $severity
       while (iterator.moveNext()) {
         Builder builder = iterator.current;
         if (builder is ClassBuilder && builder.isMacro) {
-          Uri libraryUri = builder.library.importUri;
+          Uri libraryUri = builder.libraryBuilder.importUri;
           if (!precompiledMacroUris.containsKey(libraryUri)) {
             (macroLibraries[libraryUri] ??= []).add(builder);
             if (retainDataForTesting) {
@@ -1701,15 +1701,21 @@ severity: $severity
       }
     }
     if (libraryData.isNotEmpty) {
+      target.benchmarker?.beginSubdivide(
+          BenchmarkSubdivides.computeMacroApplications_macroExecutorProvider);
       MacroExecutor macroExecutor =
           await target.context.options.macroExecutorProvider();
+      target.benchmarker?.endSubdivide();
+
       Map<Uri, Uri> precompiledMacroUris =
           target.context.options.precompiledMacroUris;
-      return await MacroApplications.loadMacroIds(
+      MacroApplications result = await MacroApplications.loadMacroIds(
           macroExecutor,
           precompiledMacroUris,
           libraryData,
-          dataForTesting?.macroApplicationData);
+          dataForTesting?.macroApplicationData,
+          target.benchmarker);
+      return result;
     }
     return null;
   }
@@ -1794,7 +1800,7 @@ severity: $severity
   /// found.
   void checkObjectClassHierarchy(ClassBuilder objectClass) {
     if (objectClass is SourceClassBuilder &&
-        objectClass.library.loader == this) {
+        objectClass.libraryBuilder.loader == this) {
       if (objectClass.supertypeBuilder != null) {
         objectClass.supertypeBuilder = null;
         objectClass.addProblem(
@@ -1897,7 +1903,7 @@ severity: $severity
   }
 
   bool checkEnumSupertypeIsDenylisted(SourceClassBuilder cls) {
-    if (!cls.library.enableEnhancedEnumsInLibrary) {
+    if (!cls.libraryBuilder.enableEnhancedEnumsInLibrary) {
       cls.addProblem(
           templateEnumSupertypeOfNonAbstractClass.withArguments(cls.name),
           cls.charOffset,
@@ -1920,7 +1926,7 @@ severity: $severity
       if (supertype is SourceEnumBuilder) {
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
-      } else if (!cls.library.mayImplementRestrictedTypes &&
+      } else if (!cls.libraryBuilder.mayImplementRestrictedTypes &&
           (denyListedClasses.contains(supertype) ||
               identical(supertype, enumClass) &&
                   checkEnumSupertypeIsDenylisted(cls))) {
@@ -1968,7 +1974,7 @@ severity: $severity
                       aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
                 ]);
             return;
-          } else if (!cls.library.mayImplementRestrictedTypes &&
+          } else if (!cls.libraryBuilder.mayImplementRestrictedTypes &&
               denyListedClasses.contains(builder)) {
             cls.addProblem(
                 templateExtendingRestricted
@@ -2106,7 +2112,7 @@ severity: $severity
   void checkSupertypes(
       List<SourceClassBuilder> sourceClasses, Class enumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.library.loader == this && !builder.isPatch) {
+      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
         builder.checkSupertypes(
             coreTypes, hierarchyBuilder, enumClass, _macroClassBuilder?.cls);
       }
@@ -2151,7 +2157,7 @@ severity: $severity
   void checkRedirectingFactories(List<SourceClassBuilder> sourceClasses) {
     // TODO(ahe): Move this to [ClassHierarchyBuilder].
     for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.library.loader == this && !builder.isPatch) {
+      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
         builder.checkRedirectingFactories(
             typeInferenceEngine.typeSchemaEnvironment);
       }
@@ -2165,7 +2171,7 @@ severity: $severity
 
     List<Class> changedClasses = <Class>[];
     for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.library.loader == this && !builder.isPatch) {
+      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
         if (builder.addNoSuchMethodForwarders(target, hierarchy)) {
           changedClasses.add(builder.cls);
         }
@@ -2177,7 +2183,7 @@ severity: $severity
 
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.library.loader == this && !builder.isPatch) {
+      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
         Class? mixedInClass = builder.cls.mixedInClass;
         if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
           builder.checkMixinApplication(hierarchy, coreTypes);
@@ -2188,12 +2194,12 @@ severity: $severity
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     List<DelayedActionPerformer> delayedActionPerformers =
         <DelayedActionPerformer>[];
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       library.buildOutlineExpressions(
-          classHierarchy, synthesizedFunctionNodes, delayedActionPerformers);
+          classHierarchy, delayedDefaultValueCloners, delayedActionPerformers);
     }
 
     target.benchmarker

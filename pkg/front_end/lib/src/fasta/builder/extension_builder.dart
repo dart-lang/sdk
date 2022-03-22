@@ -39,7 +39,7 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes);
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
 
   /// Looks up extension member by [name] taking privacy into account.
   ///
@@ -70,7 +70,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
     if (accessingLibrary.nameOriginBuilder.origin !=
-            library.nameOriginBuilder.origin &&
+            libraryBuilder.nameOriginBuilder.origin &&
         name.startsWith("_")) {
       return null;
     }
@@ -187,7 +187,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       }
     }
     if (builder != null) {
-      if (name.isPrivate && library.library != name.library) {
+      if (name.isPrivate && libraryBuilder.library != name.library) {
         builder = null;
       } else if (builder is FieldBuilder &&
           !builder.isStatic &&

@@ -600,6 +600,11 @@ interface Performance {
     // Marked as nullable to address browser compatibility. See 41905.
     [DartSuppress, Measure] readonly attribute MemoryInfo memory;
     [Measure] readonly attribute MemoryInfo? memory;
+    [DartSuppress] void mark(DOMString markName);
+    PerformanceEntry mark(DOMString markName, optional Dictionary markOptions);
+    [DartSuppress] void measure(DOMString measureName, optional DOMString startMark = null, optional DOMString endMark = null);
+    PerformanceMeasure? measure(DOMString measureName, optional DOMString? startMark, optional DOMString? endMark);
+    PerformanceMeasure? measure(DOMString measureName, Dictionary measureOptions);
 };
 
 [DartSupplemental]

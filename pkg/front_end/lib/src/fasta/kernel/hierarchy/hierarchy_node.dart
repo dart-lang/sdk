@@ -69,7 +69,9 @@ class ClassHierarchyNodeBuilder {
       superclasses = new List<Supertype>.filled(
           supernode.superclasses.length + 1, dummySupertype);
       Supertype? supertype = classBuilder.supertypeBuilder!.buildSupertype(
-          classBuilder.library, classBuilder.charOffset, classBuilder.fileUri);
+          classBuilder.libraryBuilder,
+          classBuilder.charOffset,
+          classBuilder.fileUri);
       if (supertype == null) {
         // If the superclass is not an interface type we use Object instead.
         // A similar normalization is performed on [supernode] above.
@@ -79,8 +81,8 @@ class ClassHierarchyNodeBuilder {
       superclasses.setRange(0, superclasses.length - 1,
           substSupertypes(supertype, supernode.superclasses));
       superclasses[superclasses.length - 1] = supertype;
-      if (!classBuilder.library.isNonNullableByDefault &&
-          supernode.classBuilder.library.isNonNullableByDefault) {
+      if (!classBuilder.libraryBuilder.isNonNullableByDefault &&
+          supernode.classBuilder.libraryBuilder.isNonNullableByDefault) {
         for (int i = 0; i < superclasses.length; i++) {
           superclasses[i] = legacyErasureSupertype(superclasses[i]);
         }
@@ -115,8 +117,8 @@ class ClassHierarchyNodeBuilder {
 
         for (int i = 0; i < directInterfaceBuilders.length; i++) {
           Supertype? directInterface = directInterfaceBuilders[i]
-              .buildSupertype(classBuilder.library, classBuilder.charOffset,
-                  classBuilder.fileUri);
+              .buildSupertype(classBuilder.libraryBuilder,
+                  classBuilder.charOffset, classBuilder.fileUri);
           if (directInterface != null) {
             addInterface(interfaces, superclasses, directInterface);
             ClassHierarchyNode interfaceNode =
@@ -143,8 +145,8 @@ class ClassHierarchyNodeBuilder {
         }
         interfacesList = interfaces.values.toList();
       } else if (superclassInterfaces.isNotEmpty &&
-          !classBuilder.library.isNonNullableByDefault &&
-          supernode.classBuilder.library.isNonNullableByDefault) {
+          !classBuilder.libraryBuilder.isNonNullableByDefault &&
+          supernode.classBuilder.libraryBuilder.isNonNullableByDefault) {
         Map<Class, Supertype> interfaces = {};
         for (int i = 0; i < superclassInterfaces.length; i++) {
           addInterface(interfaces, superclasses, superclassInterfaces[i]);
@@ -227,7 +229,7 @@ class ClassHierarchyNodeBuilder {
       List<Supertype> superclasses, Supertype type) {
     // ignore: unnecessary_null_comparison
     if (type == null) return null;
-    if (!classBuilder.library.isNonNullableByDefault) {
+    if (!classBuilder.libraryBuilder.isNonNullableByDefault) {
       type = legacyErasureSupertype(type);
     }
     ClassHierarchyNode node = hierarchy.getNodeFromClass(type.classNode);
@@ -238,7 +240,7 @@ class ClassHierarchyNodeBuilder {
     Supertype? superclass = depth < myDepth ? superclasses[depth] : null;
     if (superclass != null && superclass.classNode == type.classNode) {
       // This is a potential conflict.
-      if (classBuilder.library.isNonNullableByDefault) {
+      if (classBuilder.libraryBuilder.isNonNullableByDefault) {
         superclass = nnbdTopMergeSupertype(
             hierarchy.coreTypes,
             normSupertype(hierarchy.coreTypes, superclass),
@@ -257,7 +259,7 @@ class ClassHierarchyNodeBuilder {
       Supertype? interface = interfaces[type.classNode];
       if (interface != null) {
         // This is a potential conflict.
-        if (classBuilder.library.isNonNullableByDefault) {
+        if (classBuilder.libraryBuilder.isNonNullableByDefault) {
           interface = nnbdTopMergeSupertype(
               hierarchy.coreTypes,
               normSupertype(hierarchy.coreTypes, interface),

@@ -32,7 +32,7 @@ class DecoratedTypeTest extends Object
 
   final Variables _variables;
 
-  final _ElementTypeProvider elementTypeProvider;
+  final _ElementTypeProvider _elementTypeProvider;
 
   @override
   final decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
@@ -45,7 +45,7 @@ class DecoratedTypeTest extends Object
   }
 
   DecoratedTypeTest._(this.graph, this.typeProvider, this._variables)
-      : elementTypeProvider = _ElementTypeProvider(_variables);
+      : _elementTypeProvider = _ElementTypeProvider(_variables);
 
   NullabilityNode get always => graph.always;
 
@@ -60,7 +60,7 @@ class DecoratedTypeTest extends Object
 
   void setUp() {
     DecoratedTypeParameterBounds.current = decoratedTypeParameterBounds;
-    ElementTypeProvider.current = elementTypeProvider;
+    ElementTypeProvider.current = _elementTypeProvider;
   }
 
   void tearDown() {
@@ -341,7 +341,7 @@ class DecoratedTypeTest extends Object
         function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends dynamic>()');
     assertDartType(
-        elementTypeProvider.getTypeParameterBound(type.typeFormals[0])!,
+        _elementTypeProvider.getTypeParameterBound(type.typeFormals[0])!,
         'dynamic');
   }
 
@@ -351,7 +351,7 @@ class DecoratedTypeTest extends Object
         function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends num?>()');
     assertDartType(
-        elementTypeProvider.getTypeParameterBound(type.typeFormals[0])!,
+        _elementTypeProvider.getTypeParameterBound(type.typeFormals[0])!,
         'num?');
   }
 
@@ -361,7 +361,7 @@ class DecoratedTypeTest extends Object
         function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends Object?>()');
     assertDartType(
-        elementTypeProvider.getTypeParameterBound(type.typeFormals[0])!,
+        _elementTypeProvider.getTypeParameterBound(type.typeFormals[0])!,
         'Object?');
   }
 
