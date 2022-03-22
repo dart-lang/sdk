@@ -81,12 +81,16 @@ static void GenerateCallToCallLeafRuntimeStub(compiler::Assembler* assembler,
   const Smi& rhs_index = Smi::ZoneHandle(Smi::New(rhs_index_value));
   const Smi& length = Smi::ZoneHandle(Smi::New(length_value));
   __ EnterDartFrame(0);
-  __ ReserveAlignedFrameSpace(0);
-  __ LoadObject(R0, str);
-  __ LoadObject(R1, lhs_index);
-  __ LoadObject(R2, rhs_index);
-  __ LoadObject(R3, length);
-  __ CallRuntime(kCaseInsensitiveCompareUCS2RuntimeEntry, 4);
+  {
+    compiler::LeafRuntimeScope rt(assembler,
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
+    __ LoadObject(R0, str);
+    __ LoadObject(R1, lhs_index);
+    __ LoadObject(R2, rhs_index);
+    __ LoadObject(R3, length);
+    rt.Call(kCaseInsensitiveCompareUCS2RuntimeEntry, 4);
+  }
   __ LeaveDartFrame();
   __ ret();  // Return value is in R0.
 }
@@ -107,6 +111,10 @@ ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       *CreateFunction("Test_CallLeafRuntimeStubCode"), nullptr, &assembler,
       Code::PoolAttachment::kAttachPool));
+  if (FLAG_disassemble) {
+    OS::PrintErr("Disassemble:\n");
+    code.Disassemble();
+  }
   const Function& function = RegisterFakeFunction(kName, code);
   Instance& result = Instance::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());

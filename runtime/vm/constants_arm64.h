@@ -380,6 +380,7 @@ const int64_t kWRegMask = 0x00000000ffffffffL;
 // List of registers used in load/store multiple.
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFFFFFF;
+const RegList kAllFpuRegistersList = 0xFFFFFFFF;
 
 // See "Procedure Call Standard for the ARM 64-bit Architecture", document
 // number "ARM IHI 0055B", May 22 2013.
@@ -428,16 +429,6 @@ const Register kDartFirstVolatileCpuReg = R0;
 const Register kDartLastVolatileCpuReg = R14;
 const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
-
-// Two callee save scratch registers used by leaf runtime call sequence.
-const Register kCallLeafRuntimeCalleeSaveScratch1 = R20;
-const Register kCallLeafRuntimeCalleeSaveScratch2 = R25;
-static_assert((R(kCallLeafRuntimeCalleeSaveScratch1) & kAbiPreservedCpuRegs) !=
-                  0,
-              "Need callee save scratch register for leaf runtime calls.");
-static_assert((R(kCallLeafRuntimeCalleeSaveScratch2) & kAbiPreservedCpuRegs) !=
-                  0,
-              "Need callee save scratch register for leaf runtime calls.");
 
 constexpr int kStoreBufferWrapperSize = 32;
 

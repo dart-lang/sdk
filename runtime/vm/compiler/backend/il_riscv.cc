@@ -4903,6 +4903,9 @@ void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     UNIMPLEMENTED();
   }
 
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
   if (locs()->in(3).IsRegister()) {
     __ mv(A3, locs()->in(3).reg());
   } else if (locs()->in(3).IsStackSlot()) {
@@ -4910,10 +4913,7 @@ void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     UNIMPLEMENTED();
   }
-
-  // Call the function.
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
+  rt.Call(TargetFunction(), TargetFunction().argument_count());
 }
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
@@ -5235,8 +5235,15 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     UNIMPLEMENTED();
   }
 
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), InputCount());
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
+  ASSERT(locs()->in(0).fpu_reg() == FA0);
+  if (InputCount() == 2) {
+    ASSERT(locs()->in(1).fpu_reg() == FA1);
+  }
+  rt.Call(TargetFunction(), InputCount());
+  ASSERT(locs()->out(0).fpu_reg() == FA0);
 
   // TODO(riscv): Special case pow?
 }

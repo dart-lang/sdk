@@ -5664,9 +5664,11 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
 }
 
 void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Call the function.
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
+  // Call the function. Parameters are already in their correct spots.
+  rt.Call(TargetFunction(), TargetFunction().argument_count());
 }
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
@@ -6116,15 +6118,20 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ vmovd(D1, D2);
   if (TargetCPUFeatures::hardfp_supported()) {
     ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
-    __ CallRuntime(instr->TargetFunction(), kInputCount);
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
+    rt.Call(instr->TargetFunction(), kInputCount);
   } else {
     // If the ABI is not "hardfp", then we have to move the double arguments
     // to the integer registers, and take the results from the integer
     // registers.
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
     __ vmovrrd(R0, R1, D0);
     __ vmovrrd(R2, R3, D1);
-    ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
-    __ CallRuntime(instr->TargetFunction(), kInputCount);
+    rt.Call(instr->TargetFunction(), kInputCount);
     __ vmovdrr(D0, R0, R1);
     __ vmovdrr(D1, R2, R3);
   }
@@ -6142,16 +6149,20 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ vmovd(D1, D2);
   }
   if (TargetCPUFeatures::hardfp_supported()) {
-    ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-    __ CallRuntime(TargetFunction(), InputCount());
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
+    rt.Call(TargetFunction(), TargetFunction().argument_count());
   } else {
     // If the ABI is not "hardfp", then we have to move the double arguments
     // to the integer registers, and take the results from the integer
     // registers.
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
     __ vmovrrd(R0, R1, D0);
     __ vmovrrd(R2, R3, D1);
-    ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-    __ CallRuntime(TargetFunction(), InputCount());
+    rt.Call(TargetFunction(), TargetFunction().argument_count());
     __ vmovdrr(D0, R0, R1);
     __ vmovdrr(D1, R2, R3);
   }

@@ -825,18 +825,12 @@ class Assembler : public AssemblerBase {
   void EnterFullSafepoint(Register scratch);
   void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
 
-  // Create a frame for calling into runtime that preserves all volatile
-  // registers.  Frame's RSP is guaranteed to be correctly aligned and
-  // frame_space bytes are reserved under it.
-  void EnterCallRuntimeFrame(intptr_t frame_space);
-  void LeaveCallRuntimeFrame();
-
+  // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
   void Call(const Code& code,
             bool movable_target = false,
             CodeEntryKind entry_kind = CodeEntryKind::kNormal);
-  void CallToRuntime();
   // Will not clobber any registers and can therefore be called with 5 live
   // registers.
   void CallVmStub(const Code& code);

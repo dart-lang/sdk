@@ -4804,23 +4804,14 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
 }
 
 void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Save ESP. EDI is chosen because it is callee saved so we do not need to
-  // back it up before calling into the runtime.
-  static const Register kSavedSPReg = EDI;
-  __ movl(kSavedSPReg, ESP);
-  __ ReserveAlignedFrameSpace(kWordSize * TargetFunction().argument_count());
-
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/4 * compiler::target::kWordSize,
+                                /*preserve_registers=*/false);
   __ movl(compiler::Address(ESP, +0 * kWordSize), locs()->in(0).reg());
   __ movl(compiler::Address(ESP, +1 * kWordSize), locs()->in(1).reg());
   __ movl(compiler::Address(ESP, +2 * kWordSize), locs()->in(2).reg());
   __ movl(compiler::Address(ESP, +3 * kWordSize), locs()->in(3).reg());
-
-  // Call the function.
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
-
-  // Restore ESP and pop the old value off the stack.
-  __ movl(ESP, kSavedSPReg);
+  rt.Call(TargetFunction(), 4);
 }
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
@@ -5281,18 +5272,17 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ jmp(&skip_call);
 
   __ Bind(&do_pow);
-  // Save ESP.
-  __ movl(locs->temp(InvokeMathCFunctionInstr::kSavedSpTempIndex).reg(), ESP);
-  __ ReserveAlignedFrameSpace(kDoubleSize * kInputCount);
-  for (intptr_t i = 0; i < kInputCount; i++) {
-    __ movsd(compiler::Address(ESP, kDoubleSize * i), locs->in(i).fpu_reg());
+  {
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/kDoubleSize * kInputCount,
+                                  /*preserve_registers=*/false);
+    for (intptr_t i = 0; i < kInputCount; i++) {
+      __ movsd(compiler::Address(ESP, kDoubleSize * i), locs->in(i).fpu_reg());
+    }
+    rt.Call(instr->TargetFunction(), kInputCount);
+    __ fstpl(compiler::Address(ESP, 0));
+    __ movsd(locs->out(0).fpu_reg(), compiler::Address(ESP, 0));
   }
-  ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(instr->TargetFunction(), kInputCount);
-  __ fstpl(compiler::Address(ESP, 0));
-  __ movsd(locs->out(0).fpu_reg(), compiler::Address(ESP, 0));
-  // Restore ESP.
-  __ movl(ESP, locs->temp(InvokeMathCFunctionInstr::kSavedSpTempIndex).reg());
   __ Bind(&skip_call);
 }
 
@@ -5301,19 +5291,19 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     InvokeDoublePow(compiler, this);
     return;
   }
-  // Save ESP.
-  __ movl(locs()->temp(kSavedSpTempIndex).reg(), ESP);
-  __ ReserveAlignedFrameSpace(kDoubleSize * InputCount());
-  for (intptr_t i = 0; i < InputCount(); i++) {
-    __ movsd(compiler::Address(ESP, kDoubleSize * i), locs()->in(i).fpu_reg());
-  }
 
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), InputCount());
-  __ fstpl(compiler::Address(ESP, 0));
-  __ movsd(locs()->out(0).fpu_reg(), compiler::Address(ESP, 0));
-  // Restore ESP.
-  __ movl(ESP, locs()->temp(kSavedSpTempIndex).reg());
+  {
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/kDoubleSize * InputCount(),
+                                  /*preserve_registers=*/false);
+    for (intptr_t i = 0; i < InputCount(); i++) {
+      __ movsd(compiler::Address(ESP, kDoubleSize * i),
+               locs()->in(i).fpu_reg());
+    }
+    rt.Call(TargetFunction(), InputCount());
+    __ fstpl(compiler::Address(ESP, 0));
+    __ movsd(locs()->out(0).fpu_reg(), compiler::Address(ESP, 0));
+  }
 }
 
 LocationSummary* ExtractNthOutputInstr::MakeLocationSummary(Zone* zone,

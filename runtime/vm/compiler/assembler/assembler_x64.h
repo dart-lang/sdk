@@ -772,7 +772,6 @@ class Assembler : public AssemblerBase {
   void CallPatchable(const Code& code,
                      CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void Call(const Code& stub_entry);
-  void CallToRuntime();
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
@@ -880,12 +879,7 @@ class Assembler : public AssemblerBase {
   // Clobbers RAX.
   void EmitEntryFrameVerification();
 
-  // Create a frame for calling into runtime that preserves all volatile
-  // registers.  Frame's RSP is guaranteed to be correctly aligned and
-  // frame_space bytes are reserved under it.
-  void EnterCallRuntimeFrame(intptr_t frame_space);
-  void LeaveCallRuntimeFrame();
-
+  // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
   // Call runtime function. Reserves shadow space on the stack before calling

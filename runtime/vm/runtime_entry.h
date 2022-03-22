@@ -38,7 +38,7 @@ class RuntimeEntry : public BaseRuntimeEntry {
                bool can_lazy_deopt)
       :
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        compiler::RuntimeEntry(this, &CallInternal),
+        compiler::RuntimeEntry(this),
 #endif
         name_(name),
         function_(function),
@@ -55,15 +55,6 @@ class RuntimeEntry : public BaseRuntimeEntry {
   bool is_float() const { return is_float_; }
   bool can_lazy_deopt() const { return can_lazy_deopt_; }
   uword GetEntryPoint() const;
-
-  // Generate code to call the runtime entry.
-  NOT_IN_PRECOMPILED(void Call(compiler::Assembler* assembler,
-                               intptr_t argument_count) const);
-
- protected:
-  NOT_IN_PRECOMPILED(static void CallInternal(const RuntimeEntry* runtime_entry,
-                                              compiler::Assembler* assembler,
-                                              intptr_t argument_count));
 
  private:
   const char* const name_;

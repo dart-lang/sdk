@@ -41,16 +41,13 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
   __ testl(EAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
   __ BranchIf(NOT_ZERO, &done);
 
-  if (preserve_registers) {
-    __ EnterCallRuntimeFrame(2 * target::kWordSize);
-  } else {
-    __ ReserveAlignedFrameSpace(2 * target::kWordSize);
-  }
-  __ movl(Address(ESP, 1 * target::kWordSize), THR);
-  __ movl(Address(ESP, 0 * target::kWordSize), EAX);
-  __ CallRuntime(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
-  if (preserve_registers) {
-    __ LeaveCallRuntimeFrame();
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/2 * target::kWordSize,
+                        preserve_registers);
+    __ movl(Address(ESP, 1 * target::kWordSize), THR);
+    __ movl(Address(ESP, 0 * target::kWordSize), EAX);
+    rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   }
 
   __ Bind(&done);
@@ -651,15 +648,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     offset += kFpuRegisterSize;
   }
 
-  __ movl(ECX, ESP);  // Preserve saved registers block.
-  __ ReserveAlignedFrameSpace(2 * target::kWordSize);
-  __ movl(Address(ESP, 0 * target::kWordSize),
-          ECX);  // Start of register block.
-  bool is_lazy =
-      (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
-  __ movl(Address(ESP, 1 * target::kWordSize), Immediate(is_lazy ? 1 : 0));
-  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
-  // Result (EAX) is stack-size (FP - SP) in bytes.
+  {
+    __ movl(ECX, ESP);  // Preserve saved registers block.
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/2 * target::kWordSize,
+                        /*preserve_registers=*/false);
+    bool is_lazy =
+        (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
+    __ movl(Address(ESP, 0 * target::kWordSize),
+            ECX);  // Start of register block.
+    __ movl(Address(ESP, 1 * target::kWordSize), Immediate(is_lazy ? 1 : 0));
+    rt.Call(kDeoptimizeCopyFrameRuntimeEntry, 2);
+    // Result (EAX) is stack-size (FP - SP) in bytes.
+  }
 
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into EBX temporarily.
@@ -686,9 +687,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ pushl(EBX);  // Preserve exception as first local.
     __ pushl(ECX);  // Preserve stacktrace as first local.
   }
-  __ ReserveAlignedFrameSpace(1 * target::kWordSize);
-  __ movl(Address(ESP, 0), EBP);  // Pass last FP as parameter on stack.
-  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/1 * target::kWordSize,
+                        /*preserve_registers=*/false);
+    __ movl(Address(ESP, 0), EBP);  // Pass last FP as parameter on stack.
+    rt.Call(kDeoptimizeFillFrameRuntimeEntry, 1);
+  }
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into EBX.
     __ movl(EBX, Address(EBP, target::frame_layout.first_local_from_fp *
@@ -1324,7 +1329,6 @@ COMPILE_ASSERT(kWriteBarrierObjectReg == EDX);
 COMPILE_ASSERT(kWriteBarrierValueReg == kNoRegister);
 COMPILE_ASSERT(kWriteBarrierSlotReg == EDI);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           Address stub_code,
                                            bool cards) {
   Label remember_card;
 
@@ -1406,13 +1410,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   // Handle overflow: Call the runtime leaf function.
   __ Bind(&overflow);
-  // Setup frame, push callee-saved registers.
-
-  __ EnterCallRuntimeFrame(1 * target::kWordSize);
-  __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
-  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
-  // Restore callee-saved registers, tear down frame.
-  __ LeaveCallRuntimeFrame();
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/1 * target::kWordSize,
+                        /*preserve_registers=*/true);
+    __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
+    rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+  }
   __ ret();
 
   __ Bind(&lost_race);
@@ -1444,11 +1448,15 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
     // Card table not yet allocated.
     __ Bind(&remember_card_slow);
-    __ EnterCallRuntimeFrame(2 * target::kWordSize);
-    __ movl(Address(ESP, 0 * target::kWordSize), EDX);  // Object
-    __ movl(Address(ESP, 1 * target::kWordSize), EDI);  // Slot
-    __ CallRuntime(kRememberCardRuntimeEntry, 2);
-    __ LeaveCallRuntimeFrame();
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/2 * target::kWordSize,
+                          /*preserve_registers=*/true);
+      __ movl(Address(ESP, 0 * target::kWordSize), EDX);  // Object
+      __ movl(Address(ESP, 1 * target::kWordSize), EDI);  // Slot
+      rt.Call(kRememberCardRuntimeEntry, 2);
+    }
     __ popl(ECX);
     __ popl(EAX);
     __ ret();
@@ -1456,15 +1464,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 }
 
 void StubCodeCompiler::GenerateWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler, Address(THR, target::Thread::write_barrier_code_offset()),
-      false);
+  GenerateWriteBarrierStubHelper(assembler, false);
 }
 
 void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler,
-      Address(THR, target::Thread::array_write_barrier_code_offset()), true);
+  GenerateWriteBarrierStubHelper(assembler, true);
 }
 
 void StubCodeCompiler::GenerateAllocateObjectStub(Assembler* assembler) {
