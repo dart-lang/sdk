@@ -97,7 +97,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         typeDeclarationBuilder.isNullClass;
   }
 
-  Typedef build(SourceLibraryBuilder libraryBuilder) {
+  Typedef build() {
     typedef.type ??= buildThisType();
 
     TypeBuilder? type = this.type;
@@ -257,21 +257,20 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    MetadataBuilder.buildAnnotations(
-        typedef, metadata, library, null, null, fileUri, library.scope);
+    MetadataBuilder.buildAnnotations(typedef, metadata, libraryBuilder, null,
+        null, fileUri, libraryBuilder.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(
-            library,
+            libraryBuilder,
             null,
             null,
             classHierarchy,
             delayedActionPerformers,
-            computeTypeParameterScope(library.scope));
+            computeTypeParameterScope(libraryBuilder.scope));
       }
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
@@ -281,7 +280,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               target.enclosingClass!.typeParameters, targetType.typeArguments),
           target.function!,
           tearOff.function,
-          libraryBuilder: library));
+          libraryBuilder: libraryBuilder));
     });
   }
 

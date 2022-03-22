@@ -1138,7 +1138,7 @@ class KernelTarget extends TargetImplementation {
         // outline for const constructors, and additionally it is required for
         // a potential subclass using super initializing parameters that will
         // required the cloning of the default values.
-        origin: superConstructorBuilder,
+        definingConstructor: superConstructorBuilder,
         delayedDefaultValueCloner: delayedDefaultValueCloner);
   }
 

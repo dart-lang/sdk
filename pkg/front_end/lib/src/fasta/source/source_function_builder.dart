@@ -34,7 +34,6 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import '../util/helpers.dart' show DelayedActionPerformer;
-import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_member_builder.dart';
 
 abstract class SourceFunctionBuilder
@@ -315,7 +314,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   bool get isNative => nativeMethodName != null;
 
-  void buildFunction(SourceLibraryBuilder library) {
+  void buildFunction() {
     function.asyncMarker = asyncModifier;
     function.body = body;
     body?.parent = function;
@@ -344,7 +343,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     }
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        VariableDeclaration parameter = formal.build(library, 0);
+        VariableDeclaration parameter = formal.build(libraryBuilder, 0);
         if (needsCheckVisitor != null) {
           if (parameter.type.accept(needsCheckVisitor)) {
             parameter.isCovariantByClass = true;
@@ -360,10 +359,10 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           function.requiredParameterCount++;
         }
 
-        if (library.isNonNullableByDefault) {
+        if (libraryBuilder.isNonNullableByDefault) {
           // Required named parameters can't have default values.
           if (formal.isNamedRequired && formal.initializerToken != null) {
-            library.addProblem(
+            libraryBuilder.addProblem(
                 templateRequiredNamedParameterHasDefaultValueError
                     .withArguments(formal.name),
                 formal.charOffset,
@@ -388,7 +387,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       function.requiredParameterCount = 1;
     }
     if (returnType != null) {
-      function.returnType = returnType!.build(library);
+      function.returnType = returnType!.build(libraryBuilder);
     }
     if (isExtensionInstanceMember) {
       ExtensionBuilder extensionBuilder = parent as ExtensionBuilder;
@@ -434,7 +433,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
@@ -443,13 +441,14 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           isClassMember || isExtensionMember
               ? parent as DeclarationBuilder
               : null;
-      Scope parentScope = classOrExtensionBuilder?.scope ?? library.scope;
-      MetadataBuilder.buildAnnotations(member, metadata, library,
+      Scope parentScope =
+          classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
+      MetadataBuilder.buildAnnotations(member, metadata, libraryBuilder,
           classOrExtensionBuilder, this, fileUri, parentScope);
       if (typeVariables != null) {
         for (int i = 0; i < typeVariables!.length; i++) {
           typeVariables![i].buildOutlineExpressions(
-              library,
+              libraryBuilder,
               classOrExtensionBuilder,
               this,
               classHierarchy,
@@ -464,14 +463,15 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         // buildOutlineExpressions to clear initializerToken to prevent
         // consuming too much memory.
         for (FormalParameterBuilder formal in formals!) {
-          formal.buildOutlineExpressions(library, delayedActionPerformers);
+          formal.buildOutlineExpressions(
+              libraryBuilder, delayedActionPerformers);
         }
       }
       _hasBuiltOutlineExpressions = true;
     }
   }
 
-  Member build(SourceLibraryBuilder library);
+  Member build();
 
   @override
   void becomeNative(SourceLoader loader) {

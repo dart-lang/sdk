@@ -3034,16 +3034,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is SourceClassBuilder) {
-        declaration.buildOutlineExpressions(this, classHierarchy,
+        declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
-      } else if (declaration is ExtensionBuilder) {
-        declaration.buildOutlineExpressions(this, classHierarchy,
+      } else if (declaration is SourceExtensionBuilder) {
+        declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
       } else if (declaration is SourceMemberBuilder) {
-        declaration.buildOutlineExpressions(this, classHierarchy,
+        declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
       } else if (declaration is SourceTypeAliasBuilder) {
-        declaration.buildOutlineExpressions(this, classHierarchy,
+        declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
       } else {
         assert(
@@ -3072,20 +3072,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     if (declaration is SourceClassBuilder) {
-      Class cls = declaration.build(this, coreLibrary);
+      Class cls = declaration.build(coreLibrary);
       if (!declaration.isPatch) {
         cls.name += findDuplicateSuffix(declaration);
         library.addClass(cls);
       }
     } else if (declaration is SourceExtensionBuilder) {
-      Extension extension = declaration.build(this, coreLibrary,
+      Extension extension = declaration.build(coreLibrary,
           addMembersToLibrary: !declaration.isDuplicate);
       if (!declaration.isPatch && !declaration.isDuplicate) {
         library.addExtension(extension);
       }
     } else if (declaration is SourceMemberBuilder) {
-      declaration.buildMembers(this,
-          (Member member, BuiltMemberKind memberKind) {
+      declaration.buildMembers((Member member, BuiltMemberKind memberKind) {
         if (member is Field) {
           member.isStatic = true;
           if (!declaration.isPatch && !declaration.isDuplicate) {
@@ -3104,12 +3103,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       });
     } else if (declaration is SourceTypeAliasBuilder) {
-      Typedef typedef = declaration.build(this);
+      Typedef typedef = declaration.build();
       if (!declaration.isPatch && !declaration.isDuplicate) {
         library.addTypedef(typedef);
       }
     } else if (declaration is SourceEnumBuilder) {
-      Class cls = declaration.build(this, coreLibrary);
+      Class cls = declaration.build(coreLibrary);
       if (!declaration.isPatch) {
         cls.name += findDuplicateSuffix(declaration);
         library.addClass(cls);

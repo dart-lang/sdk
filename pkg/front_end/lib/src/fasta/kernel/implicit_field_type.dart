@@ -133,8 +133,8 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
       return inferredType!;
     } else if (parent is SourceEnumBuilder &&
         parent.elementBuilders.contains(fieldBuilder)) {
-      inferredType = parent.buildElement(parent.libraryBuilder, fieldBuilder,
-          parent.libraryBuilder.loader.coreTypes);
+      inferredType = parent.buildElement(
+          fieldBuilder, parent.libraryBuilder.loader.coreTypes);
     } else if (initializerToken != null) {
       InterfaceType? enclosingClassThisType = fieldBuilder.classBuilder == null
           ? null

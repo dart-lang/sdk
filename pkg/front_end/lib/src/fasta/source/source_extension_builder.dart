@@ -82,19 +82,18 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   Extension get extension => isPatch ? origin._extension : _extension;
 
   /// Builds the [Extension] for this extension build and inserts the members
-  /// into the [Library] of [sourceLibraryBuilder].
+  /// into the [Library] of [libraryBuilder].
   ///
   /// [addMembersToLibrary] is `true` if the extension members should be added
   /// to the library. This is `false` if the extension is in conflict with
   /// another library member. In this case, the extension member should not be
   /// added to the library to avoid name clashes with other members in the
   /// library.
-  Extension build(
-      SourceLibraryBuilder sourceLibraryBuilder, LibraryBuilder coreLibrary,
+  Extension build(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
-    _extension.onType = onType.build(sourceLibraryBuilder);
+    _extension.onType = onType.build(libraryBuilder);
     extensionTypeShowHideClauseBuilder.buildAndStoreTypes(
-        _extension, sourceLibraryBuilder);
+        _extension, libraryBuilder);
 
     SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, scope,
         checkForInstanceVsStaticConflict: true,
@@ -124,8 +123,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
           }
         } else if (declaration is SourceMemberBuilder) {
           SourceMemberBuilder memberBuilder = declaration;
-          memberBuilder.buildMembers(sourceLibraryBuilder,
-              (Member member, BuiltMemberKind memberKind) {
+          memberBuilder
+              .buildMembers((Member member, BuiltMemberKind memberKind) {
             if (addMembersToLibrary &&
                 !memberBuilder.isPatch &&
                 !memberBuilder.isDuplicate &&
@@ -168,17 +167,17 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
               assert(kind != null);
               Reference memberReference;
               if (member is Field) {
-                sourceLibraryBuilder.library.addField(member);
+                libraryBuilder.library.addField(member);
                 memberReference = member.fieldReference;
               } else if (member is Procedure) {
-                sourceLibraryBuilder.library.addProcedure(member);
+                libraryBuilder.library.addProcedure(member);
                 memberReference = member.reference;
               } else {
                 unhandled("${member.runtimeType}", "buildBuilders",
                     member.fileOffset, member.fileUri);
               }
               extension.members.add(new ExtensionMemberDescriptor(
-                  name: new Name(name, sourceLibraryBuilder.library),
+                  name: new Name(name, libraryBuilder.library),
                   member: memberReference,
                   isStatic: memberBuilder.isStatic,
                   kind: kind));
@@ -273,25 +272,23 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     });
   }
 
-  @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
-        metadata, library, this, null, fileUri, library.scope);
+        metadata, libraryBuilder, this, null, fileUri, libraryBuilder.scope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(library, this, null,
+        typeParameters![i].buildOutlineExpressions(libraryBuilder, this, null,
             classHierarchy, delayedActionPerformers, scope.parent!);
       }
     }
 
     void build(String ignore, Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
-      member.buildOutlineExpressions(library, classHierarchy,
-          delayedActionPerformers, delayedDefaultValueCloners);
+      member.buildOutlineExpressions(
+          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
 
     scope.forEach(build);
