@@ -868,8 +868,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return executeCommand(command);
   }
 
-  Future<Object?> executeCommand(Command command,
-      {Either2<int, String>? workDoneToken}) async {
+  Future<T> executeCommand<T>(
+    Command command, {
+    T Function(Map<String, Object?>)? decoder,
+    Either2<int, String>? workDoneToken,
+  }) async {
     final request = makeRequest(
       Method.workspace_executeCommand,
       ExecuteCommandParams(
@@ -878,7 +881,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         workDoneToken: workDoneToken,
       ),
     );
-    return expectSuccessfulResponseTo(request, (result) => result);
+    return expectSuccessfulResponseTo<T, Map<String, Object?>>(
+        request, decoder ?? (result) => result as T);
   }
 
   void expect(Object? actual, Matcher matcher, {String? reason}) =>
