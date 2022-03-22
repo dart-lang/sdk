@@ -281,6 +281,25 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_named_oneWithNameChange() async {
+    await resolveTestCode('''
+class A {
+  A({int? x, int? y});
+}
+class B extends A {
+  B({int? x, int? z}) : super(x: x, y: z);
+}
+''');
+    await assertHasFix('''
+class A {
+  A({int? x, int? y});
+}
+class B extends A {
+  B({super.x, int? z}) : super(y: z);
+}
+''');
+  }
+
   Future<void> test_named_only() async {
     await resolveTestCode('''
 class A {
