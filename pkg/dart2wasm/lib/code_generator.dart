@@ -1723,8 +1723,20 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitNullCheck(NullCheck node, w.ValueType expectedType) {
-    // TODO(joshualitt): Check and throw exception
-    return wrap(node.operand, expectedType);
+    w.ValueType operandType =
+        translator.translateType(dartTypeOf(node.operand));
+    w.ValueType nonNullOperandType = operandType.withNullability(false);
+    w.Label nullCheckBlock = b.block(const [], [nonNullOperandType]);
+    wrap(node.operand, operandType);
+
+    // We lower a null check to a br_on_non_null, throwing a [TypeError] in the
+    // null case.
+    b.br_on_non_null(nullCheckBlock);
+    _call(translator.stackTraceCurrent.reference);
+    _call(translator.throwNullCheckError.reference);
+    b.unreachable();
+    b.end();
+    return nonNullOperandType;
   }
 
   void _visitArguments(Arguments node, Reference target, int signatureOffset) {

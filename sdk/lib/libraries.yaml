@@ -185,6 +185,7 @@ wasm:
       - _internal/vm/lib/bool_patch.dart
       - _internal/wasm/lib/date_patch.dart
       - _internal/wasm/lib/double.dart
+      - _internal/wasm/lib/errors_patch.dart
       - _internal/wasm/lib/expando_patch.dart
       - _internal/wasm/lib/function.dart
       - _internal/wasm/lib/growable_list.dart
