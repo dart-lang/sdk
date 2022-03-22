@@ -50,7 +50,8 @@ void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
 
 FILETIME GetFiletimeFromMillis(int64_t millis) {
   static const int64_t kTimeScaler = 10000;  // 100 ns to ms.
-  TimeStamp t = {.t_ = millis * kTimeScaler + kFileTimeEpoch};
+  TimeStamp t;
+  t.t_ = millis * kTimeScaler + kFileTimeEpoch;
   return t.ft_;
 }
 

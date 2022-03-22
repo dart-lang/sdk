@@ -1133,11 +1133,11 @@ intptr_t PassAsPointer(void* ptr) {
 }
 
 intptr_t PassAsPointerAndValue(void* ptr, intptr_t value) {
-  return reinterpret_cast<intptr_t>(value);
+  return value;
 }
 
 intptr_t PassAsValueAndPointer(intptr_t value, void* ptr) {
-  return reinterpret_cast<intptr_t>(value);
+  return value;
 }
 
 intptr_t* AllocateResource(intptr_t value) {

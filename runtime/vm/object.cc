@@ -10455,11 +10455,13 @@ intptr_t Field::guarded_cid() const {
   // code (in which case the caller might get different answers if it obtains
   // the guarded cid multiple times).
   Thread* thread = Thread::Current();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(!thread->IsInsideCompiler() || is_static());
+#else
   ASSERT(!thread->IsInsideCompiler() ||
-#if !defined(DART_PRECOMPILED_RUNTIME)
          ((CompilerState::Current().should_clone_fields() == !IsOriginal())) ||
-#endif
          is_static());
+#endif
 #endif
   return LoadNonPointer<ClassIdTagType, std::memory_order_relaxed>(
       &untag()->guarded_cid_);
@@ -10470,11 +10472,13 @@ bool Field::is_nullable() const {
   // Same assert as guarded_cid(), because is_nullable() also needs to be
   // consistent for the background compiler.
   Thread* thread = Thread::Current();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(!thread->IsInsideCompiler() || is_static());
+#else
   ASSERT(!thread->IsInsideCompiler() ||
-#if !defined(DART_PRECOMPILED_RUNTIME)
          ((CompilerState::Current().should_clone_fields() == !IsOriginal())) ||
-#endif
          is_static());
+#endif
 #endif
   return is_nullable_unsafe();
 }
