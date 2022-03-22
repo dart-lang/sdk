@@ -372,7 +372,10 @@ abstract class InvocationInferrer<Node extends AstNodeImpl> {
     resolver.checkUnreachableNode(argumentList);
     var flow = resolver.flowAnalysis.flow;
     var positionalParameterIndex = 0;
-    for (var argument in _iterateArguments(resolver, argumentList)) {
+    bool isIdentical = _isIdentical(node);
+    var arguments = argumentList.arguments;
+    for (int i = 0; i < arguments.length; i++) {
+      var argument = arguments[i];
       ParameterElement? parameter;
       if (argument is NamedExpression) {
         parameter = namedParameters[argument.name.label.name];
@@ -392,7 +395,18 @@ abstract class InvocationInferrer<Node extends AstNodeImpl> {
             resolver, node, parameterType, contextType);
       }
       resolver.analyzeExpression(argument, parameterContextType);
+      // In case of rewrites, we need to grab the argument again.
+      argument = arguments[i];
       if (flow != null) {
+        if (isIdentical) {
+          if (i == 0) {
+            flow.equalityOp_rightBegin(argument, argument.typeOrThrow);
+          } else {
+            assert(i == 1);
+            flow.equalityOp_end(
+                node as Expression, argument, argument.typeOrThrow);
+          }
+        }
         whyNotPromotedList.add(flow.whyNotPromoted(argument));
       }
     }
@@ -409,13 +423,9 @@ abstract class InvocationInferrer<Node extends AstNodeImpl> {
   /// Gets the argument list for the invocation.  TODO(paulberry): remove?
   ArgumentListImpl _getArgumentList(Node node);
 
-  /// Iterates through the argument list for the invocation.  Usually this is
-  /// just a simple iteration through the arguments, but in certain cases, some
-  /// flow analysis methods need to be called in between visiting the various
-  /// arguments.
-  Iterable<Expression> _iterateArguments(
-          ResolverVisitor resolver, ArgumentList argumentList) =>
-      argumentList.arguments;
+  /// Determines whether [node] is an invocation of the core function
+  /// `identical` (which needs special flow analysis treatment).
+  bool _isIdentical(Node node) => false;
 
   /// Computes the return type of the method or function represented by the
   /// given type that is being invoked.
@@ -432,23 +442,7 @@ abstract class InvocationInferrer<Node extends AstNodeImpl> {
 /// nodes of type [MethodInvocation].
 class MethodInvocationInferrer
     extends InvocationExpressionInferrer<MethodInvocationImpl> {
-  /// Gets the appropriate instance of [MethodInvocation] for the given [node].
-  ///
-  /// This factory takes care of the fact that invocations of `identical` need
-  /// to have special integration with flow analysis.
-  factory MethodInvocationInferrer.forNode(MethodInvocationImpl node) {
-    var invokedMethod = node.methodName.staticElement;
-    if (invokedMethod != null &&
-        invokedMethod.name == 'identical' &&
-        invokedMethod.library!.isDartCore &&
-        node.argumentList.arguments.length == 2) {
-      return const _IdenticalInvocationInferrer._();
-    } else {
-      return const MethodInvocationInferrer._();
-    }
-  }
-
-  const MethodInvocationInferrer._() : super._();
+  const MethodInvocationInferrer() : super._();
 
   @override
   DartType? _computeContextForArgument(
@@ -467,6 +461,15 @@ class MethodInvocationInferrer
           parameterType);
     }
     return contextType;
+  }
+
+  @override
+  bool _isIdentical(MethodInvocationImpl node) {
+    var invokedMethod = node.methodName.staticElement;
+    return invokedMethod is FunctionElement &&
+        invokedMethod.name == 'identical' &&
+        invokedMethod.library.isDartCore &&
+        node.argumentList.arguments.length == 2;
   }
 
   @override
@@ -508,29 +511,4 @@ class SuperConstructorInvocationInferrer
   @override
   ArgumentListImpl _getArgumentList(SuperConstructorInvocationImpl node) =>
       node.argumentList;
-}
-
-/// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [MethodInvocation] that resolve to the core function
-/// `identical`.  (Such nodes need to be handled in a special way due to the
-/// interaction between `identical` and flow analysis).
-class _IdenticalInvocationInferrer extends MethodInvocationInferrer {
-  const _IdenticalInvocationInferrer._() : super._();
-
-  @override
-  Iterable<Expression> _iterateArguments(
-      ResolverVisitor resolver, ArgumentList argumentList) sync* {
-    var flow = resolver.flowAnalysis.flow;
-    var arguments = argumentList.arguments;
-    assert(arguments.length == 2);
-    var firstArg = arguments[0];
-    yield firstArg;
-    firstArg = arguments[0]; // In case it was rewritten
-    flow?.equalityOp_rightBegin(firstArg, firstArg.typeOrThrow);
-    var secondArg = arguments[1];
-    yield secondArg;
-    secondArg = arguments[1]; // In case it was rewritten
-    flow?.equalityOp_end(
-        argumentList.parent as Expression, secondArg, secondArg.typeOrThrow);
-  }
 }
