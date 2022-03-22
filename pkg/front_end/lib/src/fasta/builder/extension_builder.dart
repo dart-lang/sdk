@@ -3,16 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
 
 import '../fasta_codes.dart'
     show templateInternalProblemNotFoundIn, templateTypeArgumentMismatch;
-import '../kernel/kernel_helper.dart';
+import '../problems.dart';
 import '../scope.dart';
 import '../source/source_library_builder.dart';
-import '../problems.dart';
-import '../util/helpers.dart';
-
 import 'builder.dart';
 import 'declaration_builder.dart';
 import 'field_builder.dart';
@@ -34,12 +30,6 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
 
   /// Return the [Extension] built by this builder.
   Extension get extension;
-
-  void buildOutlineExpressions(
-      SourceLibraryBuilder library,
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
 
   /// Looks up extension member by [name] taking privacy into account.
   ///

@@ -29,11 +29,9 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   SourceLibraryBuilder get libraryBuilder;
 
   /// Builds the core AST structures for this member as needed for the outline.
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f);
+  void buildMembers(void Function(Member, BuiltMemberKind) f);
 
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
@@ -62,8 +60,7 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
       retainDataForTesting ? new MemberDataForTesting() : null;
 
   @override
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
     assert(false, "Unexpected call to $runtimeType.buildMembers.");
   }
 
@@ -132,7 +129,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}

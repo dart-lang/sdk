@@ -155,8 +155,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   SourceLibraryBuilder get libraryBuilder =>
       super.libraryBuilder as SourceLibraryBuilder;
 
-  Class build(SourceLibraryBuilder library, LibraryBuilder coreLibrary) {
-    SourceLibraryBuilder.checkMemberConflicts(library, scope,
+  Class build(LibraryBuilder coreLibrary) {
+    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, scope,
         // These checks are performed as part of the class hierarchy
         // computation.
         checkForInstanceVsStaticConflict: false,
@@ -179,8 +179,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           }
         } else if (declaration is SourceMemberBuilder) {
           SourceMemberBuilder memberBuilder = declaration;
-          memberBuilder.buildMembers(library,
-              (Member member, BuiltMemberKind memberKind) {
+          memberBuilder
+              .buildMembers((Member member, BuiltMemberKind memberKind) {
             member.parent = cls;
             if (!memberBuilder.isPatch &&
                 !memberBuilder.isDuplicate &&
@@ -214,12 +214,12 @@ class SourceClassBuilder extends ClassBuilderImpl
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
     Supertype? supertype =
-        supertypeBuilder?.buildSupertype(library, charOffset, fileUri);
+        supertypeBuilder?.buildSupertype(libraryBuilder, charOffset, fileUri);
     if (supertype != null) {
       Class superclass = supertype.classNode;
       if (superclass.name == 'Function' &&
           superclass.enclosingLibrary == coreLibrary.library) {
-        library.addProblem(
+        libraryBuilder.addProblem(
             messageExtendFunction, charOffset, noLength, fileUri);
         supertype = null;
         supertypeBuilder = null;
@@ -232,7 +232,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       // cannot be extended.  However, a mixin declaration with a single
       // superclass constraint is encoded with the constraint as the supertype,
       // and that is allowed to be a mixin's interface.
-      library.addProblem(
+      libraryBuilder.addProblem(
           templateSupertypeIsIllegal.withArguments(actualCls.superclass!.name),
           charOffset,
           noLength,
@@ -247,10 +247,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (mixedInTypeBuilder != null) {
       mixedInTypeBuilder = _checkSupertype(mixedInTypeBuilder!);
     }
-    Supertype? mixedInType =
-        mixedInTypeBuilder?.buildMixedInType(library, charOffset, fileUri);
+    Supertype? mixedInType = mixedInTypeBuilder?.buildMixedInType(
+        libraryBuilder, charOffset, fileUri);
     if (_isFunction(mixedInType, coreLibrary)) {
-      library.addProblem(messageMixinFunction, charOffset, noLength, fileUri);
+      libraryBuilder.addProblem(
+          messageMixinFunction, charOffset, noLength, fileUri);
       mixedInType = null;
       mixedInTypeBuilder = null;
       actualCls.isAnonymousMixin = false;
@@ -269,11 +270,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);
-        Supertype? supertype =
-            interfaceBuilders![i].buildSupertype(library, charOffset, fileUri);
+        Supertype? supertype = interfaceBuilders![i]
+            .buildSupertype(libraryBuilder, charOffset, fileUri);
         if (supertype != null) {
           if (_isFunction(supertype, coreLibrary)) {
-            library.addProblem(
+            libraryBuilder.addProblem(
                 messageImplementFunction, charOffset, noLength, fileUri);
             continue;
           }
@@ -338,21 +339,20 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     void build(String ignore, Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
-      member.buildOutlineExpressions(library, classHierarchy,
-          delayedActionPerformers, delayedDefaultValueCloners);
+      member.buildOutlineExpressions(
+          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
 
     MetadataBuilder.buildAnnotations(isPatch ? origin.cls : cls, metadata,
-        library, this, null, fileUri, library.scope);
+        libraryBuilder, this, null, fileUri, libraryBuilder.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
-        typeVariables![i].buildOutlineExpressions(library, this, null,
+        typeVariables![i].buildOutlineExpressions(libraryBuilder, this, null,
             classHierarchy, delayedActionPerformers, scope.parent!);
       }
     }
@@ -2826,7 +2826,6 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {

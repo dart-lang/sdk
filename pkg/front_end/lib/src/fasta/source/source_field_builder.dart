@@ -356,14 +356,13 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   Iterable<Member> get exportedMembers => _fieldEncoding.exportedMembers;
 
   @override
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
-    build(library);
-    _fieldEncoding.registerMembers(library, this, f);
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+    build();
+    _fieldEncoding.registerMembers(libraryBuilder, this, f);
   }
 
   /// Builds the core AST structures for this field as needed for the outline.
-  void build(SourceLibraryBuilder libraryBuilder) {
+  void build() {
     if (type != null) {
       fieldType = type!.build(libraryBuilder);
     }
@@ -372,7 +371,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
@@ -382,11 +380,11 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       MetadataBuilder.buildAnnotations(
           annotatable,
           metadata,
-          library,
+          libraryBuilder,
           declarationBuilder,
           this,
           fileUri,
-          declarationBuilder?.scope ?? library.scope);
+          declarationBuilder?.scope ?? libraryBuilder.scope);
     }
 
     // For modular compilation we need to include initializers of all const
@@ -398,10 +396,10 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
                 isClassMember &&
                 classBuilder!.declaresConstConstructor)) &&
         _constInitializerToken != null) {
-      Scope scope = declarationBuilder?.scope ?? library.scope;
-      BodyBuilder bodyBuilder = library.loader
+      Scope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
+      BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              library, declarationBuilder, this, scope, fileUri);
+              libraryBuilder, declarationBuilder, this, scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.required;
       Expression initializer = bodyBuilder.typeInferrer
@@ -413,9 +411,9 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
         // Wrap the initializer in a temporary parent expression; the
         // transformations need a parent relation.
         Not wrapper = new Not(initializer);
-        SourceLoader loader = library.loader;
+        SourceLoader loader = libraryBuilder.loader;
         loader.transformPostInference(wrapper, bodyBuilder.transformSetLiterals,
-            bodyBuilder.transformCollections, library.library);
+            bodyBuilder.transformCollections, libraryBuilder.library);
         initializer = wrapper.operand;
       }
       buildBody(classHierarchy.coreTypes, initializer);

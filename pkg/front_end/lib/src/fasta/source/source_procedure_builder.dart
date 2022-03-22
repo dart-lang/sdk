@@ -229,9 +229,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   Iterable<Member> get exportedMembers => [procedure];
 
   @override
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
-    Member member = build(library);
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+    Member member = build();
     if (isExtensionMethod) {
       switch (kind) {
         case ProcedureKind.Method:
@@ -259,8 +258,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  Procedure build(SourceLibraryBuilder libraryBuilder) {
-    buildFunction(libraryBuilder);
+  Procedure build() {
+    buildFunction();
     _procedure.function.fileOffset = charOpenParenOffset;
     _procedure.function.fileEndOffset = _procedure.fileEndOffset;
     _procedure.isAbstract = isAbstract;

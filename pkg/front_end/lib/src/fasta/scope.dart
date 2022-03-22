@@ -815,7 +815,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
@@ -824,8 +823,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
     assert(false, "Unexpected call to $runtimeType.buildMembers.");
   }
 

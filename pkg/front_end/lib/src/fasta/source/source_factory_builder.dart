@@ -130,9 +130,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   Iterable<Member> get exportedMembers => [_procedure];
 
   @override
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
-    Member member = build(library);
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+    Member member = build();
     f(member, BuiltMemberKind.Method);
     if (_factoryTearOff != null) {
       f(_factoryTearOff!, BuiltMemberKind.Method);
@@ -140,8 +139,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
-  Procedure build(SourceLibraryBuilder libraryBuilder) {
-    buildFunction(libraryBuilder);
+  Procedure build() {
+    buildFunction();
     _procedureInternal.function.fileOffset = charOpenParenOffset;
     _procedureInternal.function.fileEndOffset =
         _procedureInternal.fileEndOffset;
@@ -162,13 +161,12 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
-    super.buildOutlineExpressions(library, classHierarchy,
-        delayedActionPerformers, delayedDefaultValueCloners);
+    super.buildOutlineExpressions(
+        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     _hasBuiltOutlines = true;
   }
 
@@ -346,9 +344,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   @override
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
-    Member member = build(library);
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+    Member member = build();
     f(member, BuiltMemberKind.RedirectingFactory);
     if (_factoryTearOff != null) {
       f(_factoryTearOff!, BuiltMemberKind.Method);
@@ -356,8 +353,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   @override
-  Procedure build(SourceLibraryBuilder sourceLibraryBuilder) {
-    buildFunction(sourceLibraryBuilder);
+  Procedure build() {
+    buildFunction();
     _procedureInternal.function.fileOffset = charOpenParenOffset;
     _procedureInternal.function.fileEndOffset =
         _procedureInternal.fileEndOffset;
@@ -372,11 +369,11 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           (int i) => redirectionTarget.typeArguments![i].build(libraryBuilder),
           growable: false);
     }
-    updatePrivateMemberName(_procedureInternal, sourceLibraryBuilder);
+    updatePrivateMemberName(_procedureInternal, libraryBuilder);
     if (_factoryTearOff != null) {
       _tearOffTypeParameters =
           buildRedirectingFactoryTearOffProcedureParameters(
-              _factoryTearOff!, _procedureInternal, sourceLibraryBuilder);
+              _factoryTearOff!, _procedureInternal, libraryBuilder);
     }
     return _procedureInternal;
   }
@@ -386,35 +383,32 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
     if (isConst && isPatch) {
-      origin.buildOutlineExpressions(library, classHierarchy,
-          delayedActionPerformers, delayedDefaultValueCloners);
+      origin.buildOutlineExpressions(
+          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
-    super.buildOutlineExpressions(library, classHierarchy,
-        delayedActionPerformers, delayedDefaultValueCloners);
+    super.buildOutlineExpressions(
+        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     RedirectingFactoryBody redirectingFactoryBody =
         _procedureInternal.function.body as RedirectingFactoryBody;
     List<DartType>? typeArguments = redirectingFactoryBody.typeArguments;
     Member? target = redirectingFactoryBody.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
-      TypeInferrer inferrer = library.loader.typeInferenceEngine
+      TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
           .createLocalTypeInferrer(
-              fileUri, classBuilder!.thisType, library, null);
-      inferrer.helper = library.loader.createBodyBuilderForOutlineExpression(
-          library, classBuilder, this, classBuilder!.scope, fileUri);
+              fileUri, classBuilder!.thisType, libraryBuilder, null);
+      inferrer.helper = libraryBuilder.loader
+          .createBodyBuilderForOutlineExpression(
+              libraryBuilder, classBuilder, this, classBuilder!.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
-        targetBuilder.buildOutlineExpressions(
-            targetBuilder.libraryBuilder,
-            classHierarchy,
-            delayedActionPerformers,
-            delayedDefaultValueCloners);
+        targetBuilder.buildOutlineExpressions(classHierarchy,
+            delayedActionPerformers, delayedDefaultValueCloners);
       }
       if (targetBuilder is FunctionBuilder) {
         target = targetBuilder.member;
@@ -495,7 +489,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             target!,
             typeArguments,
             _tearOffTypeParameters!,
-            library));
+            libraryBuilder));
       }
       Map<TypeParameter, DartType> substitutionMap;
       if (function.typeParameters.length == typeArguments.length) {
@@ -510,7 +504,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       }
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
           substitutionMap, target!.function!, function,
-          libraryBuilder: library, identicalSignatures: false));
+          libraryBuilder: libraryBuilder, identicalSignatures: false));
     }
     if (isConst && isPatch) {
       _finishPatch();
