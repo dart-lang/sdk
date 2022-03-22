@@ -1,3 +1,10 @@
+## 2.16.2 - 2022-03-24
+
+This is a patch release that fixes a dart2js crash when building some Flutter
+web apps (issue [#47916][]).
+
+[#47916]: https://github.com/dart-lang/sdk/issues/47916
+
 ## 2.16.1 - 2022-02-09
 
 This is a patch release that fixes an AOT precompiler crash when building some
