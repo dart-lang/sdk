@@ -1045,34 +1045,6 @@ class WeakReference : public AllStatic {
   FINAL_CLASS();
 };
 
-class FinalizerBase : public AllStatic {
- public:
-  static word all_entries_offset();
-  static word detachments_offset();
-  static word entries_collected_offset();
-  static word isolate_offset();
-  FINAL_CLASS();
-};
-
-class Finalizer : public AllStatic {
- public:
-  static word type_arguments_offset();
-  static word callback_offset();
-  static word InstanceSize();
-  FINAL_CLASS();
-};
-
-class FinalizerEntry : public AllStatic {
- public:
-  static word value_offset();
-  static word detach_offset();
-  static word token_offset();
-  static word next_offset();
-  static word finalizer_offset();
-  static word InstanceSize();
-  FINAL_CLASS();
-};
-
 class MirrorReference : public AllStatic {
  public:
   static word InstanceSize();
@@ -1270,7 +1242,6 @@ class Isolate : public AllStatic {
   static word current_tag_offset();
   static word user_tag_offset();
   static word ic_miss_code_offset();
-  static word finalizers_offset();
 #if !defined(PRODUCT)
   static word single_step_offset();
 #endif  // !defined(PRODUCT)

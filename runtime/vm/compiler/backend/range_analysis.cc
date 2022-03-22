@@ -2797,16 +2797,6 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function:
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
-    case Slot::Kind::kFinalizer_callback:
-    case Slot::Kind::kFinalizer_type_arguments:
-    case Slot::Kind::kFinalizerBase_all_entries:
-    case Slot::Kind::kFinalizerBase_detachments:
-    case Slot::Kind::kFinalizerBase_entries_collected:
-    case Slot::Kind::kFinalizerEntry_detach:
-    case Slot::Kind::kFinalizerEntry_finalizer:
-    case Slot::Kind::kFinalizerEntry_next:
-    case Slot::Kind::kFinalizerEntry_token:
-    case Slot::Kind::kFinalizerEntry_value:
     case Slot::Kind::kFunction_data:
     case Slot::Kind::kFunction_signature:
     case Slot::Kind::kFunctionType_named_parameter_names:

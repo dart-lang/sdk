@@ -207,15 +207,15 @@ abstract class Finalizer<T> {
   /// with different, or the same, finalization token.
   void attach(Object value, T finalizationToken, {Object? detach});
 
-  /// Detaches this finalizer from values attached with [detach].
+  /// Detaches the finalizer from values attached with [detachToken].
   ///
   /// Each attachment between this finalizer and a value,
-  /// which was created by calling [attach] with the [detach] object as
+  /// which was created by calling [attach] with the [detachToken] object as
   /// `detach` argument, is removed.
   ///
   /// If the finalizer was attached multiple times to the same value
   /// with different detachment keys,
-  /// only those attachments which used [detach] are removed.
+  /// only those attachments which used [detachToken] are removed.
   ///
   /// After detaching, an attachment won't cause any callbacks to happen
   /// if the object become inaccessible.
@@ -242,5 +242,5 @@ abstract class Finalizer<T> {
   ///   }
   /// }
   /// ```
-  void detach(Object detach);
+  void detach(Object detachToken);
 }

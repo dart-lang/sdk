@@ -68,9 +68,6 @@ typedef uint16_t ClassIdTagType;
   V(TypeArguments)                                                             \
   V(AbstractType)                                                              \
   V(Type)                                                                      \
-  V(FinalizerBase)                                                             \
-  V(Finalizer)                                                                 \
-  V(FinalizerEntry)                                                            \
   V(FunctionType)                                                              \
   V(TypeRef)                                                                   \
   V(TypeParameter)                                                             \

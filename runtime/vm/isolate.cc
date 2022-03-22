@@ -1388,15 +1388,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
         }
       }
     }
-  } else if (message->IsFinalizerInvocationRequest()) {
-    const Object& msg_handler = Object::Handle(
-        zone,
-        DartLibraryCalls::HandleFinalizerMessage(FinalizerBase::Cast(msg)));
-    if (msg_handler.IsError()) {
-      status = ProcessUnhandledException(Error::Cast(msg_handler));
-    } else {
-      // The handler closure which was used to successfully handle the message.
-    }
   } else if (message->dest_port() == Message::kIllegalPort) {
     // Check whether this is a delayed OOB message which needed handling as
     // part of the regular message dispatch. All other messages are dropped on
@@ -1695,7 +1686,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       default_tag_(UserTag::null()),
       ic_miss_code_(Code::null()),
       field_table_(new FieldTable(/*isolate=*/this)),
-      finalizers_(GrowableObjectArray::null()),
       isolate_group_(isolate_group),
       isolate_object_store_(new IsolateObjectStore()),
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -2475,34 +2465,6 @@ void Isolate::LowLevelShutdown() {
     }
   }
 
-  // Set live finalizers isolate to null, before deleting the message handler.
-  // TODO(http://dartbug.com/47777): How to detect if the isolate field was ever
-  // initialized beyond RAW_NULL?
-  const auto& finalizers =
-      GrowableObjectArray::Handle(stack_zone.GetZone(), finalizers_);
-  if (!finalizers.IsNull()) {
-    const intptr_t num_finalizers = finalizers.Length();
-    auto& weak_reference = WeakReference::Handle(stack_zone.GetZone());
-    auto& finalizer = FinalizerBase::Handle(stack_zone.GetZone());
-    for (int i = 0; i < num_finalizers; i++) {
-      weak_reference ^= finalizers.At(i);
-      finalizer ^= weak_reference.target();
-      if (!finalizer.IsNull()) {
-        if (finalizer.isolate() == this) {
-          if (FLAG_trace_finalizers) {
-            THR_Print("Isolate %p Setting finalizer %p isolate to null\n", this,
-                      finalizer.ptr()->untag());
-          }
-          // Finalizer was not sent to another isolate with send and exit.
-          finalizer.set_isolate(nullptr);
-        } else {
-          // TODO(http://dartbug.com/47777): Send and exit support.
-          UNREACHABLE();
-        }
-      }
-    }
-  }
-
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts(message_handler());
 
@@ -2609,6 +2571,7 @@ void Isolate::Shutdown() {
           "--check-reloaded is enabled.\n");
     }
   }
+
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   // Then, proceed with low-level teardown.
@@ -2758,7 +2721,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&finalizers_));
 #if !defined(PRODUCT)
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&pending_service_extension_calls_));

@@ -3916,11 +3916,6 @@ ObjectPtr ReadObjectGraphCopyMessage(Thread* thread, PersistentHandle* handle) {
 ObjectPtr ReadMessage(Thread* thread, Message* message) {
   if (message->IsRaw()) {
     return message->raw_obj();
-  } else if (message->IsFinalizerInvocationRequest()) {
-    PersistentHandle* handle = message->persistent_handle();
-    Object& msg_obj = Object::Handle(thread->zone(), handle->ptr());
-    ASSERT(msg_obj.IsFinalizer());
-    return msg_obj.ptr();
   } else if (message->IsPersistentHandle()) {
     return ReadObjectGraphCopyMessage(thread, message->persistent_handle());
   } else {
