@@ -847,7 +847,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   FieldEntity getField(ir.Field node) => getFieldInternal(node);
 
   @override
-  DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
+  DartType getDartType(ir.DartType type) => _typeConverter.visitType(type);
 
   @override
   TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
@@ -864,7 +864,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   @override
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
-      _typeConverter.convert(type).withoutNullability;
+      _typeConverter.visitType(type).withoutNullability;
 
   @override
   FunctionType getFunctionType(ir.FunctionNode node) {

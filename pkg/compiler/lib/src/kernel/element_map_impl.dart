@@ -505,7 +505,7 @@ class KernelToElementMap implements IrToElementMap {
 
   /// Returns the [DartType] corresponding to [type].
   @override
-  DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
+  DartType getDartType(ir.DartType type) => _typeConverter.visitType(type);
 
   /// Returns the [TypeVariableType] corresponding to [type].
   TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
@@ -521,7 +521,7 @@ class KernelToElementMap implements IrToElementMap {
 
   /// Returns the [InterfaceType] corresponding to [type].
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
-      _typeConverter.convert(type).withoutNullability;
+      _typeConverter.visitType(type).withoutNullability;
 
   /// Returns the [FunctionType] of the [node].
   @override
