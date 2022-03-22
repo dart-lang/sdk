@@ -11,6 +11,12 @@ import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:vm/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
+import 'package:vm/transformations/ffi/common.dart' as ffiHelper
+    show calculateTransitiveImportsOfDartFfiIfUsed;
+import 'package:vm/transformations/ffi/definitions.dart'
+    as transformFfiDefinitions show transformLibraries;
+import 'package:vm/transformations/ffi/use_sites.dart' as transformFfiUseSites
+    show transformLibraries;
 
 import 'package:dart2wasm/constants_backend.dart';
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
@@ -33,6 +39,14 @@ class WasmTarget extends Target {
 
   @override
   TargetFlags get flags => TargetFlags(enableNullSafety: true);
+
+  @override
+  List<String> get extraRequiredLibraries => const <String>[
+        'dart:ffi',
+        'dart:_internal',
+        'dart:typed_data',
+        'dart:nativewrappers',
+      ];
 
   @override
   List<String> get extraIndexedLibraries => const <String>[
@@ -81,6 +95,24 @@ class WasmTarget extends Target {
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
+
+    List<Library>? transitiveImportingDartFfi = ffiHelper
+        .calculateTransitiveImportsOfDartFfiIfUsed(component, libraries);
+    if (transitiveImportingDartFfi == null) {
+      logger?.call("Skipped ffi transformation");
+    } else {
+      transformFfiDefinitions.transformLibraries(
+          component,
+          coreTypes,
+          hierarchy,
+          transitiveImportingDartFfi,
+          diagnosticReporter,
+          referenceFromIndex,
+          changedStructureNotifier);
+      transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
+          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
+      logger?.call("Transformed ffi annotations");
+    }
 
     wasmTrans.transformLibraries(libraries, coreTypes, hierarchy);
   }

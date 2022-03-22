@@ -84,6 +84,12 @@ class Lists {
 // Important: this is unsafe and must be used with care.
 external T unsafeCast<T>(Object? v);
 
+// This function can be used to keep an object alive till that point.
+void reachabilityFence(Object? object) {}
+
+// This function can be used to encode native side effects.
+external void _nativeEffect(Object object);
+
 // Thomas Wang 64-bit mix.
 // https://gist.github.com/badboy/6267743
 int mix64(int n) {

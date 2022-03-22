@@ -83,11 +83,13 @@ class Translator {
   late final Class oneByteStringClass;
   late final Class twoByteStringClass;
   late final Class typeClass;
+  late final Class stackTraceClass;
+  late final Class ffiCompoundClass;
+  late final Class ffiPointerClass;
   late final Class typedListBaseClass;
   late final Class typedListClass;
   late final Class typedListViewClass;
   late final Class byteDataViewClass;
-  late final Class stackTraceClass;
   late final Procedure stackTraceCurrent;
   late final Procedure stringEquals;
   late final Procedure stringInterpolate;
@@ -115,7 +117,10 @@ class Translator {
   late final w.Module m;
   late final w.DefinedFunction initFunction;
   late final w.ValueType voidMarker;
+  // Lazily create exception tag if used.
   late final w.Tag exceptionTag = createExceptionTag();
+  // Lazily import FFI memory if used.
+  late final w.Memory ffiMemory = m.importMemory("ffi", "memory", 0);
 
   // Caches for when identical source constructs need a common representation.
   final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
@@ -138,29 +143,17 @@ class Translator {
     dispatchTable = DispatchTable(this);
     functions = FunctionCollector(this);
 
-    Library coreLibrary =
-        component.libraries.firstWhere((l) => l.name == "dart.core");
-    Class lookupCore(String name) {
-      return coreLibrary.classes.firstWhere((c) => c.name == name);
+    Class Function(String) makeLookup(String libraryName) {
+      Library library =
+          component.libraries.firstWhere((l) => l.name == libraryName);
+      return (name) => library.classes.firstWhere((c) => c.name == name);
     }
 
-    Library collectionLibrary =
-        component.libraries.firstWhere((l) => l.name == "dart.collection");
-    Class lookupCollection(String name) {
-      return collectionLibrary.classes.firstWhere((c) => c.name == name);
-    }
-
-    Library typedDataLibrary =
-        component.libraries.firstWhere((l) => l.name == "dart.typed_data");
-    Class lookupTypedData(String name) {
-      return typedDataLibrary.classes.firstWhere((c) => c.name == name);
-    }
-
-    Library wasmLibrary =
-        component.libraries.firstWhere((l) => l.name == "dart.wasm");
-    Class lookupWasm(String name) {
-      return wasmLibrary.classes.firstWhere((c) => c.name == name);
-    }
+    Class Function(String) lookupCore = makeLookup("dart.core");
+    Class Function(String) lookupCollection = makeLookup("dart.collection");
+    Class Function(String) lookupFfi = makeLookup("dart.ffi");
+    Class Function(String) lookupTypedData = makeLookup("dart.typed_data");
+    Class Function(String) lookupWasm = makeLookup("dart.wasm");
 
     wasmTypesBaseClass = lookupWasm("_WasmBase");
     wasmArrayBaseClass = lookupWasm("_WasmArray");
@@ -182,6 +175,8 @@ class Translator {
     twoByteStringClass = lookupCore("_TwoByteString");
     typeClass = lookupCore("_Type");
     stackTraceClass = lookupCore("StackTrace");
+    ffiCompoundClass = lookupFfi("_Compound");
+    ffiPointerClass = lookupFfi("Pointer");
     typedListBaseClass = lookupTypedData("_TypedListBase");
     typedListClass = lookupTypedData("_TypedList");
     typedListViewClass = lookupTypedData("_TypedListView");
@@ -217,6 +212,7 @@ class Translator {
       lookupWasm("WasmI64"): w.NumType.i64,
       lookupWasm("WasmF32"): w.NumType.f32,
       lookupWasm("WasmF64"): w.NumType.f64,
+      ffiPointerClass: w.NumType.i32,
     };
     boxedClasses = {
       w.NumType.i32: boxedBoolClass,
@@ -371,28 +367,39 @@ class Translator {
     throw "Packed types are only allowed in arrays and fields";
   }
 
-  bool isWasmType(Class cls) {
+  bool _hasSuperclass(Class cls, Class superclass) {
     while (cls.superclass != null) {
       cls = cls.superclass!;
-      if (cls == wasmTypesBaseClass) return true;
+      if (cls == superclass) return true;
     }
     return false;
   }
 
-  w.StorageType typeForInfo(ClassInfo info, bool nullable) {
+  bool isWasmType(Class cls) => _hasSuperclass(cls, wasmTypesBaseClass);
+
+  bool isFfiCompound(Class cls) => _hasSuperclass(cls, ffiCompoundClass);
+
+  w.StorageType typeForInfo(ClassInfo info, bool nullable,
+      {bool ensureBoxed = false}) {
     Class? cls = info.cls;
     if (cls != null) {
       w.StorageType? builtin = builtinTypes[cls];
       if (builtin != null) {
-        if (!nullable) return builtin;
+        if (!nullable && (!ensureBoxed || cls == ffiPointerClass)) {
+          return builtin;
+        }
         if (isWasmType(cls)) {
           if (builtin.isPrimitive) throw "Wasm numeric types can't be nullable";
           return (builtin as w.RefType).withNullability(true);
         }
+        if (cls == ffiPointerClass) throw "FFI types can't be nullable";
         Class? boxedClass = boxedClasses[builtin];
         if (boxedClass != null) {
           info = classInfo[boxedClass]!;
         }
+      } else if (isFfiCompound(cls)) {
+        if (nullable) throw "FFI types can't be nullable";
+        return w.NumType.i32;
       }
     }
     return w.RefType.def(info.repr.struct,
@@ -527,13 +534,6 @@ class Translator {
       b.end();
       return function;
     });
-  }
-
-  w.ValueType ensureBoxed(w.ValueType type) {
-    // Box receiver if it's primitive
-    if (type is w.RefType) return type;
-    return w.RefType.def(classInfo[boxedClasses[type]!]!.struct,
-        nullable: false);
   }
 
   w.ValueType typeForLocal(w.ValueType type) {

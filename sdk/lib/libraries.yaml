@@ -203,6 +203,17 @@ wasm:
       uri: developer/developer.dart
       patches:
       - _internal/wasm/lib/developer.dart
+    ffi:
+      uri: "ffi/ffi.dart"
+      patches:
+        - "_internal/vm/lib/ffi_patch.dart"
+        - "_internal/vm/lib/ffi_allocation_patch.dart"
+        - "_internal/vm/lib/ffi_dynamic_library_patch.dart"
+        - "_internal/vm/lib/ffi_native_finalizer_patch.dart"
+        - "_internal/vm/lib/ffi_native_type_patch.dart"
+        - "_internal/vm/lib/ffi_struct_patch.dart"
+    nativewrappers:
+      uri: "html/dartium/nativewrappers.dart"
     isolate:
       uri: isolate/isolate.dart
     math:
