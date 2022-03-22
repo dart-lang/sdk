@@ -1433,14 +1433,14 @@ void Elf::FinalizeEhFrame() {
       // Caller FP at FP+kSavedCallerPcSlotFromFp*kWordSize,
       // where FP is CFA - kCallerSpSlotFromFp*kWordSize.
       COMPILE_ASSERT((kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) <= 0);
-      cfa_offset(DWARF_FP,
-                 (kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) * kWordSize);
+      cfa_offset(DWARF_FP, (kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) *
+                               compiler::target::kWordSize);
 
       // Caller LR at FP+kSavedCallerPcSlotFromFp*kWordSize,
       // where FP is CFA - kCallerSpSlotFromFp*kWordSize
       COMPILE_ASSERT((kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) <= 0);
-      cfa_offset(DWARF_RA,
-                 (kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) * kWordSize);
+      cfa_offset(DWARF_RA, (kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) *
+                               compiler::target::kWordSize);
     });
   }
 
