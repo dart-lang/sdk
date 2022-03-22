@@ -19,6 +19,7 @@ enum ExperimentalFlag {
   extensionMethods,
   extensionTypes,
   genericMetadata,
+  inferenceUpdate1,
   macros,
   namedArgumentsAnywhere,
   nonNullable,
@@ -42,6 +43,7 @@ const Version enableEnhancedEnumsVersion = const Version(2, 17);
 const Version enableExtensionMethodsVersion = const Version(2, 6);
 const Version enableExtensionTypesVersion = const Version(2, 17);
 const Version enableGenericMetadataVersion = const Version(2, 14);
+const Version enableInferenceUpdate1Version = const Version(2, 17);
 const Version enableMacrosVersion = const Version(2, 17);
 const Version enableNamedArgumentsAnywhereVersion = const Version(2, 17);
 const Version enableNonNullableVersion = const Version(2, 12);
@@ -74,6 +76,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.extensionTypes;
     case "generic-metadata":
       return ExperimentalFlag.genericMetadata;
+    case "inference-update-1":
+      return ExperimentalFlag.inferenceUpdate1;
     case "macros":
       return ExperimentalFlag.macros;
     case "named-arguments-anywhere":
@@ -110,6 +114,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.extensionMethods: true,
   ExperimentalFlag.extensionTypes: false,
   ExperimentalFlag.genericMetadata: true,
+  ExperimentalFlag.inferenceUpdate1: false,
   ExperimentalFlag.macros: false,
   ExperimentalFlag.namedArgumentsAnywhere: true,
   ExperimentalFlag.nonNullable: true,
@@ -133,6 +138,7 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.extensionMethods: true,
   ExperimentalFlag.extensionTypes: false,
   ExperimentalFlag.genericMetadata: true,
+  ExperimentalFlag.inferenceUpdate1: false,
   ExperimentalFlag.macros: false,
   ExperimentalFlag.namedArgumentsAnywhere: false,
   ExperimentalFlag.nonNullable: true,
@@ -156,6 +162,7 @@ const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
   ExperimentalFlag.extensionMethods: const Version(2, 6),
   ExperimentalFlag.extensionTypes: const Version(2, 17),
   ExperimentalFlag.genericMetadata: const Version(2, 14),
+  ExperimentalFlag.inferenceUpdate1: const Version(2, 17),
   ExperimentalFlag.macros: const Version(2, 17),
   ExperimentalFlag.namedArgumentsAnywhere: const Version(2, 17),
   ExperimentalFlag.nonNullable: const Version(2, 12),
@@ -179,6 +186,7 @@ const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   ExperimentalFlag.extensionMethods: const Version(2, 6),
   ExperimentalFlag.extensionTypes: const Version(2, 17),
   ExperimentalFlag.genericMetadata: const Version(2, 14),
+  ExperimentalFlag.inferenceUpdate1: const Version(2, 17),
   ExperimentalFlag.macros: const Version(2, 17),
   ExperimentalFlag.namedArgumentsAnywhere: const Version(2, 17),
   ExperimentalFlag.nonNullable: const Version(2, 10),

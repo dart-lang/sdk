@@ -125,6 +125,9 @@ features:
   macros:
     help: "Static meta-programming"
 
+  inference-update-1:
+    help: "Enhanced type inference"
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

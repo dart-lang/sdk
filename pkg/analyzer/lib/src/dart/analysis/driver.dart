@@ -83,7 +83,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 211;
+  static const int DATA_VERSION = 212;
 
   static const bool _applyFileChangesSynchronously = true;
 
