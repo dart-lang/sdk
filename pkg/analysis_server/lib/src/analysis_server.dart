@@ -569,10 +569,11 @@ class AnalysisServer extends AbstractAnalysisServer {
                   'Invalid overlay change')));
         }
       } else if (change is RemoveContentOverlay) {
-        _pendingFilesToRemoveOverlay[file]?.cancel();
+        _pendingFilesToRemoveOverlay.remove(file)?.cancel();
         _pendingFilesToRemoveOverlay[file] = Timer(
           pendingFilesRemoveOverlayDelay,
           () {
+            _pendingFilesToRemoveOverlay.remove(file);
             resourceProvider.removeOverlay(file);
             _changeFileInDrivers(file);
           },
@@ -583,7 +584,7 @@ class AnalysisServer extends AbstractAnalysisServer {
         throw AnalysisException('Illegal change type');
       }
 
-      _pendingFilesToRemoveOverlay[file]?.cancel();
+      _pendingFilesToRemoveOverlay.remove(file)?.cancel();
       resourceProvider.setOverlay(
         file,
         content: newContents,
