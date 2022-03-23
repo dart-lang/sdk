@@ -1237,6 +1237,10 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// invoke an undefined method on an object.
   static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
 
+  /// Return `true` if this function represents `identical` from the
+  /// `dart:core` library.
+  bool get isDartCoreIdentical;
+
   /// Return `true` if the function is an entry point, i.e. a top-level function
   /// and has the name `main`.
   bool get isEntryPoint;

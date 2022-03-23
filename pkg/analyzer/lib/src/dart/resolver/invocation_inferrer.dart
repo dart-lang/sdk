@@ -461,8 +461,7 @@ class MethodInvocationInferrer
   bool _isIdentical(MethodInvocationImpl node) {
     var invokedMethod = node.methodName.staticElement;
     return invokedMethod is FunctionElement &&
-        invokedMethod.name == 'identical' &&
-        invokedMethod.library.isDartCore &&
+        invokedMethod.isDartCoreIdentical &&
         node.argumentList.arguments.length == 2;
   }
 
