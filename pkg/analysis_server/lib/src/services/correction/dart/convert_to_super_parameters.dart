@@ -77,6 +77,7 @@ class ConvertToSuperParameters extends CorrectionProducer {
         var parameter = _parameterFor(parameterMap, argument.expression);
         if (parameter != null &&
             parameter.isNamed &&
+            parameter.element.name == argument.name.label.name &&
             !referencedParameters.contains(parameter.element)) {
           var data = _dataForParameter(
             parameter,

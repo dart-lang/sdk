@@ -77,10 +77,19 @@ abstract class MacroExecutor {
   ///
   /// The [inferOmittedType] argument is used to get the inferred type for a
   /// given [OmittedTypeAnnotation].
+  ///
+  /// If [omittedTypes] is provided, [inferOmittedType] is allowed to return
+  /// `null` for types that have not yet been inferred. In this case a fresh
+  /// name will be used for the omitted type in the generated library code and
+  /// the omitted type will be mapped to the fresh name in [omittedTypes].
+  ///
+  /// The generated library files content must be deterministic, including the
+  /// generation of fresh names for import prefixes and omitted types.
   String buildAugmentationLibrary(
       Iterable<MacroExecutionResult> macroResults,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,
-      TypeAnnotation Function(OmittedTypeAnnotation) inferOmittedType);
+      TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
+      {Map<OmittedTypeAnnotation, String>? omittedTypes});
 
   /// Tell the executor to shut down and clean up any resources it may have
   /// allocated.

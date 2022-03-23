@@ -26,9 +26,8 @@ namespace bin {
 static const int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
 static const int64_t kAppSnapshotPageSize = 16 * KB;
 
-static const char kMachOAppSnapshotSegmentName[] __attribute__((unused)) =
-    "__CUSTOM";
-static const char kMachOAppSnapshotSectionName[] __attribute__((unused)) =
+static const char kMachOAppSnapshotSegmentName[] DART_UNUSED = "__CUSTOM";
+static const char kMachOAppSnapshotSectionName[] DART_UNUSED =
     "__dart_app_snap";
 
 class MappedAppSnapshot : public AppSnapshot {

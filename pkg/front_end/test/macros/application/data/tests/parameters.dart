@@ -4,19 +4,18 @@
 
 /*library: 
 Definitions:
-import 'dart:core' as i0;
+import 'dart:core' as prefix0;
 
-
-augment void topLevelFunction1(i0.int a, ) {
+augment void topLevelFunction1(prefix0.int a, ) {
   throw 42;
 }
-augment void topLevelFunction2(i0.int a, i0.int b, ) {
+augment void topLevelFunction2(prefix0.int a, prefix0.int b, ) {
   throw 42;
 }
-augment void topLevelFunction3(i0.int a, [i0.int? b, ]) {
+augment void topLevelFunction3(prefix0.int a, [prefix0.int? b, ]) {
   throw 42;
 }
-augment void topLevelFunction4(i0.int a, {i0.int? b, i0.int? c, }) {
+augment void topLevelFunction4(prefix0.int a, {prefix0.int? b, prefix0.int? c, }) {
   throw 42;
 }
 */

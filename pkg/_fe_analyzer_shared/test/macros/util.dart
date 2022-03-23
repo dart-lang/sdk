@@ -117,14 +117,14 @@ class TestTypeInferrer implements TypeInferrer {
   @override
   Future<TypeAnnotation> inferType(
           TestOmittedTypeAnnotation omittedType) async =>
-      omittedType.inferredType;
+      omittedType.inferredType!;
 }
 
 /// Knows its inferred type ahead of time.
 class TestOmittedTypeAnnotation extends OmittedTypeAnnotationImpl {
-  final TypeAnnotation inferredType;
+  final TypeAnnotation? inferredType;
 
-  TestOmittedTypeAnnotation(this.inferredType)
+  TestOmittedTypeAnnotation([this.inferredType])
       : super(id: RemoteInstance.uniqueId);
 }
 
@@ -155,8 +155,12 @@ extension DebugCodeString on Code {
       } else if (part is IdentifierImpl) {
         buffer.write(part.name);
       } else if (part is TestOmittedTypeAnnotation) {
-        buffer.write('/*inferred*/');
-        part.inferredType.code.debugString(buffer);
+        if (part.inferredType != null) {
+          buffer.write('/*inferred*/');
+          part.inferredType!.code.debugString(buffer);
+        } else {
+          buffer.write('/*omitted*/');
+        }
       } else {
         buffer.write(part as String);
       }

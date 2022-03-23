@@ -53,5 +53,14 @@ abstract class AnalysisContext {
   /// The file is expected to be a Dart file, reporting non-Dart files, such
   /// as configuration files `analysis_options.yaml`, `package_config.json`,
   /// etc will not re-create analysis contexts.
+  ///
+  /// This will invalidate any previously returned [AnalysisSession], to
+  /// get a new analysis session apply pending file changes:
+  /// ```dart
+  /// analysisContext.changeFile(...);
+  /// await analysisContext.applyPendingFileChanges();
+  /// var analysisSession = analysisContext.currentSession;
+  /// var resolvedUnit = analysisSession.getResolvedUnit(...);
+  /// ```
   void changeFile(String path);
 }

@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "package:macro/macro.dart" as mac;
 
-import "dart:core" as i0;
-import "package:macro/macro.dart" as i1;
+import "dart:core" as prefix0;
+import "package:macro/macro.dart" as prefix1;
 import "package:macro/macro.dart";
 
 class topLevelFunction1GeneratedClass extends core::Object { // from org-dartlang-augmentation:/a/b/c/main.dart-0

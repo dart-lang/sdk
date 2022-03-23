@@ -4,25 +4,24 @@
 
 /*library: 
 Definitions:
-import 'org-dartlang-test:///a/b/c/main.dart' as i0;
+import 'org-dartlang-test:///a/b/c/main.dart' as prefix0;
 
-
-augment i0.A topLevelFunction1(i0.A a, ) {
+augment prefix0.A topLevelFunction1(prefix0.A a, ) {
   print('isExactly=true');
   print('isSubtype=true');
   throw 42;
 }
-augment i0.B2 topLevelFunction2(i0.B1 a, ) {
+augment prefix0.B2 topLevelFunction2(prefix0.B1 a, ) {
   print('isExactly=false');
   print('isSubtype=true');
   throw 42;
 }
-augment i0.C2 topLevelFunction3(i0.C1 a, ) {
+augment prefix0.C2 topLevelFunction3(prefix0.C1 a, ) {
   print('isExactly=false');
   print('isSubtype=false');
   throw 42;
 }
-augment i0.D2 topLevelFunction4(i0.D1 a, ) {
+augment prefix0.D2 topLevelFunction4(prefix0.D1 a, ) {
   print('isExactly=false');
   print('isSubtype=false');
   throw 42;

@@ -304,6 +304,11 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
 
 class StringRAII {
  public:
+  explicit StringRAII(StringRAII& origin) {
+    own_ = origin.own_;
+    s_ = origin.release();
+  }
+
   explicit StringRAII(const char* s) : s_(s), own_(false) {}
   explicit StringRAII(char* s) : s_(s), own_(true) {}
   ~StringRAII() {
@@ -385,9 +390,10 @@ static StringRAII PrefixLongPathIfExceedLimit(
 
   // Long relative path have to be converted to absolute path before prefixing.
   bool is_ok = true;
-  StringRAII absolute_path_raii = File::IsAbsolutePath(path)
-                                      ? StringRAII(path)
-                                      : ConvertToAbsolutePath(path, &is_ok);
+  StringRAII absolute_path_raii(
+      File::IsAbsolutePath(path)
+          ? StringRAII(path)
+          : StringRAII(ConvertToAbsolutePath(path, &is_ok)));
   if (!is_ok) {
     return StringRAII(path);
   }

@@ -122,6 +122,7 @@ binders
 binds
 bj
 bk
+blend
 blindly
 blob
 blobs
@@ -1249,6 +1250,7 @@ subst
 substed
 substitutes
 substitutor
+suffixing
 suggests
 suite
 sum
