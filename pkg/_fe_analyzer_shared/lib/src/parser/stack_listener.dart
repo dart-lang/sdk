@@ -56,6 +56,7 @@ enum NullValue {
   Initializers,
   Labels,
   Metadata,
+  MixinApplicationBuilder,
   Modifiers,
   Name,
   OperatorList,

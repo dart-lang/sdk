@@ -1669,9 +1669,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         instanceTypeVariableAccess: instanceTypeVariableAccess));
   }
 
-  TypeBuilder addMixinApplication(
-      TypeBuilder? supertype, List<TypeBuilder> mixins, int charOffset) {
-    return new MixinApplicationBuilder(supertype, mixins, fileUri, charOffset);
+  MixinApplicationBuilder addMixinApplication(
+      List<TypeBuilder> mixins, int charOffset) {
+    return new MixinApplicationBuilder(mixins, fileUri, charOffset);
   }
 
   TypeBuilder addVoidType(int charOffset) {
@@ -1778,6 +1778,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String className,
       List<TypeVariableBuilder>? typeVariables,
       TypeBuilder? supertype,
+      MixinApplicationBuilder? mixins,
       List<TypeBuilder>? interfaces,
       int startOffset,
       int nameOffset,
@@ -1792,6 +1793,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         className,
         typeVariables,
         supertype,
+        mixins,
         interfaces,
         startOffset,
         nameOffset,
@@ -1806,13 +1808,24 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int modifiers,
       String className,
       List<TypeVariableBuilder>? typeVariables,
-      TypeBuilder? supertype,
+      List<TypeBuilder>? supertypeConstraints,
       List<TypeBuilder>? interfaces,
       int startOffset,
       int nameOffset,
       int endOffset,
       int supertypeOffset,
       {required bool isAugmentation}) {
+    TypeBuilder? supertype;
+    MixinApplicationBuilder? mixinApplication;
+    if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
+      supertype = supertypeConstraints.first;
+      if (supertypeConstraints.length > 1) {
+        mixinApplication = new MixinApplicationBuilder(
+            supertypeConstraints.skip(1).toList(),
+            supertype.fileUri!,
+            supertype.charOffset!);
+      }
+    }
     _addClass(
         TypeParameterScopeKind.mixinDeclaration,
         metadata,
@@ -1820,6 +1833,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         className,
         typeVariables,
         supertype,
+        mixinApplication,
         interfaces,
         startOffset,
         nameOffset,
@@ -1836,6 +1850,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String className,
       List<TypeVariableBuilder>? typeVariables,
       TypeBuilder? supertype,
+      MixinApplicationBuilder? mixins,
       List<TypeBuilder>? interfaces,
       int startOffset,
       int nameOffset,
@@ -1878,8 +1893,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         modifiers,
         className,
         typeVariables,
-        applyMixins(supertype, startOffset, nameOffset, endOffset, className,
-            isMixinDeclaration,
+        applyMixins(supertype, mixins, startOffset, nameOffset, endOffset,
+            className, isMixinDeclaration,
             typeVariables: typeVariables,
             isMacro: false,
             // TODO(johnniwinther): How can we support class with mixins?
@@ -2148,7 +2163,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   TypeBuilder? applyMixins(
-      TypeBuilder? type,
+      TypeBuilder? supertype,
+      MixinApplicationBuilder? mixinApplications,
       int startCharOffset,
       int charOffset,
       int charEndOffset,
@@ -2171,7 +2187,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             "interfaces", "unnamed mixin application", charOffset, fileUri);
       }
     }
-    if (type is MixinApplicationBuilder) {
+    if (mixinApplications != null) {
       // Documentation below assumes the given mixin application is in one of
       // these forms:
       //
@@ -2188,7 +2204,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       /// 1. `S with M1`.
       /// 2. `(S with M1) with M2`.
       /// 3. `((S with M1) with M2) with M3`.
-      TypeBuilder supertype = type.supertype ?? loader.target.objectType;
+      supertype ??= loader.target.objectType;
 
       /// The variable part of the mixin application's synthetic name. It
       /// starts out as the name of the superclass, but is only used after it
@@ -2269,9 +2285,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       /// Iterate over the mixins from left to right. At the end of each
       /// iteration, a new [supertype] is computed that is the mixin
       /// application of [supertype] with the current mixin.
-      for (int i = 0; i < type.mixins.length; i++) {
-        TypeBuilder mixin = type.mixins[i];
-        isNamedMixinApplication = name != null && mixin == type.mixins.last;
+      for (int i = 0; i < mixinApplications.mixins.length; i++) {
+        TypeBuilder mixin = mixinApplications.mixins[i];
+        isNamedMixinApplication =
+            name != null && mixin == mixinApplications.mixins.last;
         bool isGeneric = false;
         if (!isNamedMixinApplication) {
           if (supertype is NamedTypeBuilder) {
@@ -2362,7 +2379,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             isNamedMixinApplication
                 ? interfaces
                 : isMixinDeclaration
-                    ? [supertype, mixin]
+                    ? [supertype!, mixin]
                     : null,
             null, // No `on` clause types.
             new Scope(
@@ -2394,7 +2411,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
       return supertype;
     } else {
-      return type;
+      return supertype;
     }
   }
 
@@ -2403,7 +2420,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String name,
       List<TypeVariableBuilder>? typeVariables,
       int modifiers,
-      TypeBuilder? mixinApplication,
+      TypeBuilder? supertype,
+      MixinApplicationBuilder mixinApplication,
       List<TypeBuilder>? interfaces,
       int startCharOffset,
       int charOffset,
@@ -2413,7 +2431,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
         .resolveNamedTypes(typeVariables, this);
-    TypeBuilder supertype = applyMixins(mixinApplication, startCharOffset,
+    supertype = applyMixins(supertype, mixinApplication, startCharOffset,
         charOffset, charEndOffset, name, false,
         metadata: metadata,
         name: name,
@@ -2851,7 +2869,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<MetadataBuilder>? metadata,
       String name,
       List<TypeVariableBuilder>? typeVariables,
-      TypeBuilder? supertypeBuilder,
+      MixinApplicationBuilder? supertypeBuilder,
       List<TypeBuilder>? interfaceBuilders,
       List<EnumConstantInfo?>? enumConstantInfos,
       int startCharOffset,
@@ -2874,8 +2892,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         metadata,
         name,
         typeVariables,
-        applyMixins(supertypeBuilder, startCharOffset, charOffset,
-            charEndOffset, name, /* isMixinDeclaration = */ false,
+        applyMixins(
+            loader.target.underscoreEnumType,
+            supertypeBuilder,
+            startCharOffset,
+            charOffset,
+            charEndOffset,
+            name,
+            /* isMixinDeclaration = */ false,
             typeVariables: typeVariables,
             isMacro: false,
             isAugmentation: false),

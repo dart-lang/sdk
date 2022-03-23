@@ -65,6 +65,7 @@ general/covariant_generic2: FormatterCrash
 general/duplicated_declarations: FormatterCrash
 general/enum_super_constructor: FormatterCrash
 general/error_recovery/annotations: FormatterCrash
+general/error_recovery/class_header: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_general.crash: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_get.crash: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_return_type.crash: FormatterCrash
