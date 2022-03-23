@@ -119,6 +119,7 @@ class FunctionExpressionInvocationResolver {
         const FunctionExpressionInvocationInferrer().resolveInvocation(
       resolver: _resolver,
       node: node,
+      argumentList: node.argumentList,
       rawType: rawType,
       whyNotPromotedList: whyNotPromotedList,
       contextType: contextType,
@@ -208,6 +209,7 @@ class FunctionExpressionInvocationResolver {
     const FunctionExpressionInvocationInferrer().resolveInvocation(
         resolver: _resolver,
         node: node,
+        argumentList: node.argumentList,
         rawType: null,
         contextType: contextType,
         whyNotPromotedList: whyNotPromotedList);

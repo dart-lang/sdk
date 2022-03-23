@@ -1540,9 +1540,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var receiverContextType =
         ExtensionMemberResolver(this).computeOverrideReceiverContextType(node);
-    const ExtensionOverrideInferrer().resolveInvocation(
+    const InvocationInferrer<ExtensionOverrideImpl>().resolveInvocation(
         resolver: this,
         node: node,
+        argumentList: node.argumentList,
         rawType: receiverContextType == null
             ? null
             : FunctionTypeImpl(
@@ -2163,12 +2164,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitRedirectingConstructorInvocation(
         node as RedirectingConstructorInvocationImpl);
-    const RedirectingConstructorInvocationInferrer().resolveInvocation(
-        resolver: this,
-        node: node,
-        rawType: node.staticElement?.type,
-        contextType: null,
-        whyNotPromotedList: whyNotPromotedList);
+    const InvocationInferrer<RedirectingConstructorInvocationImpl>()
+        .resolveInvocation(
+            resolver: this,
+            node: node,
+            argumentList: node.argumentList,
+            rawType: node.staticElement?.type,
+            contextType: null,
+            whyNotPromotedList: whyNotPromotedList);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
@@ -2271,12 +2274,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitSuperConstructorInvocation(
         node as SuperConstructorInvocationImpl);
-    const SuperConstructorInvocationInferrer().resolveInvocation(
-        resolver: this,
-        node: node,
-        rawType: node.staticElement?.type,
-        contextType: null,
-        whyNotPromotedList: whyNotPromotedList);
+    const InvocationInferrer<SuperConstructorInvocationImpl>()
+        .resolveInvocation(
+            resolver: this,
+            node: node,
+            argumentList: node.argumentList,
+            rawType: node.staticElement?.type,
+            contextType: null,
+            whyNotPromotedList: whyNotPromotedList);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
