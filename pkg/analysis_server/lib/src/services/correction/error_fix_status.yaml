@@ -1,28 +1,42 @@
 # This file contains a map. The key of each top-level entry is the unique name
-# of either an error code or a lint name. The value of each top-level entry is
-# a map describing the status of fixes related to that diagnostic.
+# of an error code. The value of each top-level entry is a map describing the
+# status of fixes related to that diagnostic.
 #
 # In every second-level map, the first key is `status` and the corresponding
 # value is one of the following:
-# - needsEvaluation, if the diagnostic has not been evaluated in terms of fixes.
-# - hasFix, if the diagnostic has one or more fixes.
-# - noFix, if no fix seems appropriate for the diagnostic. There should be a
+# - 'needsEvaluation', if the diagnostic has not been evaluated in terms of
+#   fixes.
+# - 'hasFix', if the diagnostic has one or more fixes.
+# - 'noFix', if no fix seems appropriate for the diagnostic. There should be a
 #   second key named `reason` whose value is text explaining why there is no
 #   appropriate fix.
-# - needsFix, if the diagnostic needs a fix, with a possible issue link. If an
+# - 'needsFix', if the diagnostic needs a fix, with a possible issue link. If an
 #   issue has been opened, there should be a second key named `issue` whose
 #   value is the URL of the issue.
 #
+# The other keys in the second-level map are all optional, and include
+# - 'since', whose value is the version number of the SDK in which the
+#   diagnostic was added.
+# - 'notes', whose value is text, typically describing why we think a fix for
+#   the diagnostic is not appropriate.
+# - 'issue', whose value is a list of the URLs of GitHub issues for the fixes
+#   that should be added. Ideally every issue marked as 'needFix' would have an
+#   issue created for it.
+#
 # Stats:
-# - 809 "needsEvaluation"
-# -  19 "needsFix"
-# - 253 "hasFix"
-# -   3 "noFix"
+# - 759 "needsEvaluation"
+# -  32 "needsFix"
+# - 265 "hasFix"
+# -  41 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
+  notes: |-
+    The fix needs to be made in the included file.
 AnalysisOptionsErrorCode.PARSE_ERROR:
   status: noFix
+  notes: |-
+    There isn't enough information to be able to provide a fix.
 AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED:
   status: needsEvaluation
 AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
@@ -32,11 +46,22 @@ AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED:
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
   status: needsEvaluation
 AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    It would not be performant to search the disk for analysis options files
+    that could be included.
+    
+    We could potentially have a fix to create the referenced file that currently
+    doesn't exist.
 AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix needs to be made in the included file.
 AnalysisOptionsWarningCode.INVALID_OPTION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    We could look for valid options that are similar to the invalid option and
+    replace the invalid option with the selected replacement.
 AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT:
   status: needsEvaluation
 AnalysisOptionsWarningCode.SPEC_MODE_REMOVED:
@@ -276,6 +301,7 @@ CompileTimeErrorCode.COULD_NOT_INFER:
   status: needsEvaluation
 CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR:
   status: hasFix
+  issue: https://github.com/dart-lang/sdk/issues/48644
 CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER:
@@ -560,7 +586,8 @@ CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP:
   status: needsEvaluation
 CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET:
   status: needsEvaluation
-CompileTimeErrorCode.INVALID_URI: needsEvaluation
+CompileTimeErrorCode.INVALID_URI:
+  status: needsEvaluation
 CompileTimeErrorCode.INVALID_USE_OF_COVARIANT:
   status: needsEvaluation
 CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE:
@@ -1141,9 +1168,13 @@ FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
   status: needsEvaluation
 HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
 HintCode.ASSIGNMENT_OF_DO_NOT_STORE:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
 HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
   status: hasFix
 HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
@@ -1155,21 +1186,33 @@ HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
 HintCode.DEAD_CODE_ON_CATCH_SUBTYPE:
   status: hasFix
 HintCode.DEPRECATED_EXTENDS_FUNCTION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The fix is to remove `Function` from where it's referenced.
 HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The fix is to rename the class, which can't be done as a fix.
 HintCode.DEPRECATED_IMPLEMENTS_FUNCTION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The fix is to remove `Function` from where it's referenced.
 HintCode.DEPRECATED_MEMBER_USE:
   status: hasFix
 HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Should probably be able to use `DataDriven`.
 HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Should probably be able to use `DataDriven`.
 HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE:
   status: hasFix
 HintCode.DEPRECATED_MIXIN_FUNCTION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The fix is to remove `Function` from where it's referenced.
 HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
 HintCode.DIVISION_OPTIMIZATION:
@@ -1177,19 +1220,29 @@ HintCode.DIVISION_OPTIMIZATION:
 HintCode.DUPLICATE_HIDDEN_NAME:
   status: hasFix
 HintCode.DUPLICATE_IGNORE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated error code.
 HintCode.DUPLICATE_IMPORT:
   status: hasFix
 HintCode.DUPLICATE_SHOWN_NAME:
   status: hasFix
 HintCode.EQUAL_ELEMENTS_IN_SET:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
 HintCode.EQUAL_KEYS_IN_MAP:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
 HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
 HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    One fix is to convert the reference to a 'package:' URI.
 HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
   status: needsEvaluation
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
