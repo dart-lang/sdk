@@ -182,30 +182,25 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     var argumentList = _getArgumentList(node);
 
     if (inferrer != null) {
-      if (rawType != null) {
-        // Get the parameters that correspond to the uninstantiated generic.
-        List<ParameterElement?> rawParameters =
-            ResolverVisitor.resolveArgumentsToParameters(
-          argumentList: argumentList,
-          parameters: rawType.parameters,
-        );
+      // Get the parameters that correspond to the uninstantiated generic.
+      List<ParameterElement?> rawParameters =
+          ResolverVisitor.resolveArgumentsToParameters(
+        argumentList: argumentList,
+        parameters: rawType!.parameters,
+      );
 
-        List<ParameterElement> params = <ParameterElement>[];
-        List<DartType> argTypes = <DartType>[];
-        for (int i = 0, length = rawParameters.length; i < length; i++) {
-          ParameterElement? parameter = rawParameters[i];
-          if (parameter != null) {
-            params.add(parameter);
-            argTypes.add(argumentList.arguments[i].typeOrThrow);
-          }
+      List<ParameterElement> params = <ParameterElement>[];
+      List<DartType> argTypes = <DartType>[];
+      for (int i = 0, length = rawParameters.length; i < length; i++) {
+        ParameterElement? parameter = rawParameters[i];
+        if (parameter != null) {
+          params.add(parameter);
+          argTypes.add(argumentList.arguments[i].typeOrThrow);
         }
-        inferrer.constrainArguments(
-            parameters: params, argumentTypes: argTypes);
-        typeArgumentTypes = inferrer.upwardsInfer();
-        invokeType = rawType.instantiate(typeArgumentTypes);
-      } else {
-        typeArgumentTypes = const [];
       }
+      inferrer.constrainArguments(parameters: params, argumentTypes: argTypes);
+      typeArgumentTypes = inferrer.upwardsInfer();
+      invokeType = rawType.instantiate(typeArgumentTypes);
     }
 
     var parameters = _storeResult(node, typeArgumentTypes, invokeType);
