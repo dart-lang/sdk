@@ -89,118 +89,185 @@ abstract class BaseVisitor<T> implements NodeVisitor<T> {
   const BaseVisitor();
 
   T visitNode(Node node);
+  @override
   T visitComment(Comment node);
 
+  @override
   T visitProgram(Program node) => visitNode(node);
 
   T visitStatement(Statement node) => visitNode(node);
   T visitLoop(Loop node) => visitStatement(node);
   T visitJump(Statement node) => visitStatement(node);
 
+  @override
   T visitBlock(Block node) => visitStatement(node);
+  @override
   T visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
+  @override
   T visitEmptyStatement(EmptyStatement node) => visitStatement(node);
+  @override
   T visitIf(If node) => visitStatement(node);
+  @override
   T visitFor(For node) => visitLoop(node);
+  @override
   T visitForIn(ForIn node) => visitLoop(node);
+  @override
   T visitWhile(While node) => visitLoop(node);
+  @override
   T visitDo(Do node) => visitLoop(node);
+  @override
   T visitContinue(Continue node) => visitJump(node);
+  @override
   T visitBreak(Break node) => visitJump(node);
+  @override
   T visitReturn(Return node) => visitJump(node);
+  @override
   T visitThrow(Throw node) => visitJump(node);
+  @override
   T visitTry(Try node) => visitStatement(node);
+  @override
   T visitSwitch(Switch node) => visitStatement(node);
+  @override
   T visitFunctionDeclaration(FunctionDeclaration node) => visitStatement(node);
+  @override
   T visitLabeledStatement(LabeledStatement node) => visitStatement(node);
+  @override
   T visitLiteralStatement(LiteralStatement node) => visitStatement(node);
 
+  @override
   T visitCatch(Catch node) => visitNode(node);
+  @override
   T visitCase(Case node) => visitNode(node);
+  @override
   T visitDefault(Default node) => visitNode(node);
 
   T visitExpression(Expression node) => visitNode(node);
   T visitVariableReference(VariableReference node) => visitExpression(node);
 
+  @override
   T visitLiteralExpression(LiteralExpression node) => visitExpression(node);
+  @override
   T visitVariableDeclarationList(VariableDeclarationList node) =>
       visitExpression(node);
+  @override
   T visitAssignment(Assignment node) => visitExpression(node);
+  @override
   T visitVariableInitialization(VariableInitialization node) =>
       visitExpression(node);
 
+  @override
   T visitConditional(Conditional node) => visitExpression(node);
+  @override
   T visitNew(New node) => visitExpression(node);
+  @override
   T visitCall(Call node) => visitExpression(node);
+  @override
   T visitBinary(Binary node) => visitExpression(node);
+  @override
   T visitPrefix(Prefix node) => visitExpression(node);
+  @override
   T visitPostfix(Postfix node) => visitExpression(node);
+  @override
   T visitAccess(PropertyAccess node) => visitExpression(node);
 
+  @override
   T visitVariableUse(VariableUse node) => visitVariableReference(node);
+  @override
   T visitVariableDeclaration(VariableDeclaration node) =>
       visitVariableReference(node);
+  @override
   T visitParameter(Parameter node) => visitVariableDeclaration(node);
+  @override
   T visitThis(This node) => visitParameter(node);
 
+  @override
   T visitNamedFunction(NamedFunction node) => visitExpression(node);
   T visitFunctionExpression(FunctionExpression node) => visitExpression(node);
+  @override
   T visitFun(Fun node) => visitFunctionExpression(node);
+  @override
   T visitArrowFunction(ArrowFunction node) => visitFunctionExpression(node);
 
   T visitToken(DeferredToken node) => visitExpression(node);
 
+  @override
   T visitDeferredStatement(DeferredStatement node) => visitStatement(node);
+  @override
   T visitDeferredExpression(DeferredExpression node) => visitExpression(node);
+  @override
   T visitDeferredNumber(DeferredNumber node) => visitToken(node);
+  @override
   T visitDeferredString(DeferredString node) => visitToken(node);
 
   T visitLiteral(Literal node) => visitExpression(node);
 
+  @override
   T visitLiteralBool(LiteralBool node) => visitLiteral(node);
+  @override
   T visitLiteralString(LiteralString node) => visitLiteral(node);
+  @override
   T visitLiteralNumber(LiteralNumber node) => visitLiteral(node);
+  @override
   T visitLiteralNull(LiteralNull node) => visitLiteral(node);
 
+  @override
   T visitStringConcatenation(StringConcatenation node) => visitLiteral(node);
 
+  @override
   T visitName(Name node) => visitNode(node);
 
+  @override
   T visitParentheses(Parentheses node) => visitExpression(node);
 
+  @override
   T visitArrayInitializer(ArrayInitializer node) => visitExpression(node);
+  @override
   T visitArrayHole(ArrayHole node) => visitExpression(node);
+  @override
   T visitObjectInitializer(ObjectInitializer node) => visitExpression(node);
+  @override
   T visitProperty(Property node) => visitNode(node);
+  @override
   T visitMethodDefinition(MethodDefinition node) => visitNode(node);
+  @override
   T visitRegExpLiteral(RegExpLiteral node) => visitExpression(node);
 
   T visitInterpolatedNode(InterpolatedNode node) => visitNode(node);
 
+  @override
   T visitInterpolatedExpression(InterpolatedExpression node) =>
       visitInterpolatedNode(node);
+  @override
   T visitInterpolatedLiteral(InterpolatedLiteral node) =>
       visitInterpolatedNode(node);
+  @override
   T visitInterpolatedParameter(InterpolatedParameter node) =>
       visitInterpolatedNode(node);
+  @override
   T visitInterpolatedSelector(InterpolatedSelector node) =>
       visitInterpolatedNode(node);
+  @override
   T visitInterpolatedStatement(InterpolatedStatement node) =>
       visitInterpolatedNode(node);
+  @override
   T visitInterpolatedDeclaration(InterpolatedDeclaration node) {
     return visitInterpolatedNode(node);
   }
 
+  @override
   T visitAwait(Await node) => visitExpression(node);
+  @override
   T visitDartYield(DartYield node) => visitStatement(node);
 }
 
 class BaseVisitorVoid extends BaseVisitor<void> {
+  @override
   void visitNode(Node node) {
     node.visitChildren(this);
   }
 
   // Ignore comments by default.
+  @override
   void visitComment(Comment node) {}
 }
 
@@ -289,131 +356,198 @@ abstract class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
   const BaseVisitor1();
 
   R visitNode(Node node, A arg);
+  @override
   R visitComment(Comment node, A arg);
 
+  @override
   R visitProgram(Program node, A arg) => visitNode(node, arg);
 
   R visitStatement(Statement node, A arg) => visitNode(node, arg);
   R visitLoop(Loop node, A arg) => visitStatement(node, arg);
   R visitJump(Statement node, A arg) => visitStatement(node, arg);
 
+  @override
   R visitBlock(Block node, A arg) => visitStatement(node, arg);
+  @override
   R visitExpressionStatement(ExpressionStatement node, A arg) =>
       visitStatement(node, arg);
+  @override
   R visitEmptyStatement(EmptyStatement node, A arg) =>
       visitStatement(node, arg);
+  @override
   R visitIf(If node, A arg) => visitStatement(node, arg);
+  @override
   R visitFor(For node, A arg) => visitLoop(node, arg);
+  @override
   R visitForIn(ForIn node, A arg) => visitLoop(node, arg);
+  @override
   R visitWhile(While node, A arg) => visitLoop(node, arg);
+  @override
   R visitDo(Do node, A arg) => visitLoop(node, arg);
+  @override
   R visitContinue(Continue node, A arg) => visitJump(node, arg);
+  @override
   R visitBreak(Break node, A arg) => visitJump(node, arg);
+  @override
   R visitReturn(Return node, A arg) => visitJump(node, arg);
+  @override
   R visitThrow(Throw node, A arg) => visitJump(node, arg);
+  @override
   R visitTry(Try node, A arg) => visitStatement(node, arg);
+  @override
   R visitSwitch(Switch node, A arg) => visitStatement(node, arg);
+  @override
   R visitFunctionDeclaration(FunctionDeclaration node, A arg) =>
       visitStatement(node, arg);
+  @override
   R visitLabeledStatement(LabeledStatement node, A arg) =>
       visitStatement(node, arg);
+  @override
   R visitLiteralStatement(LiteralStatement node, A arg) =>
       visitStatement(node, arg);
 
+  @override
   R visitCatch(Catch node, A arg) => visitNode(node, arg);
+  @override
   R visitCase(Case node, A arg) => visitNode(node, arg);
+  @override
   R visitDefault(Default node, A arg) => visitNode(node, arg);
 
   R visitExpression(Expression node, A arg) => visitNode(node, arg);
   R visitVariableReference(VariableReference node, A arg) =>
       visitExpression(node, arg);
 
+  @override
   R visitLiteralExpression(LiteralExpression node, A arg) =>
       visitExpression(node, arg);
+  @override
   R visitVariableDeclarationList(VariableDeclarationList node, A arg) =>
       visitExpression(node, arg);
+  @override
   R visitAssignment(Assignment node, A arg) => visitExpression(node, arg);
+  @override
   R visitVariableInitialization(VariableInitialization node, A arg) =>
       visitExpression(node, arg);
 
+  @override
   R visitConditional(Conditional node, A arg) => visitExpression(node, arg);
+  @override
   R visitNew(New node, A arg) => visitExpression(node, arg);
+  @override
   R visitCall(Call node, A arg) => visitExpression(node, arg);
+  @override
   R visitBinary(Binary node, A arg) => visitExpression(node, arg);
+  @override
   R visitPrefix(Prefix node, A arg) => visitExpression(node, arg);
+  @override
   R visitPostfix(Postfix node, A arg) => visitExpression(node, arg);
+  @override
   R visitAccess(PropertyAccess node, A arg) => visitExpression(node, arg);
 
+  @override
   R visitVariableUse(VariableUse node, A arg) =>
       visitVariableReference(node, arg);
+  @override
   R visitVariableDeclaration(VariableDeclaration node, A arg) =>
       visitVariableReference(node, arg);
+  @override
   R visitParameter(Parameter node, A arg) =>
       visitVariableDeclaration(node, arg);
+  @override
   R visitThis(This node, A arg) => visitParameter(node, arg);
 
+  @override
   R visitNamedFunction(NamedFunction node, A arg) => visitExpression(node, arg);
+  @override
   R visitFun(Fun node, A arg) => visitExpression(node, arg);
+  @override
   R visitArrowFunction(ArrowFunction node, A arg) => visitExpression(node, arg);
 
   R visitToken(DeferredToken node, A arg) => visitExpression(node, arg);
 
+  @override
   R visitDeferredStatement(DeferredStatement node, A arg) =>
       visitStatement(node, arg);
+  @override
   R visitDeferredExpression(DeferredExpression node, A arg) =>
       visitExpression(node, arg);
+  @override
   R visitDeferredNumber(DeferredNumber node, A arg) => visitToken(node, arg);
+  @override
   R visitDeferredString(DeferredString node, A arg) => visitToken(node, arg);
 
   R visitLiteral(Literal node, A arg) => visitExpression(node, arg);
 
+  @override
   R visitLiteralBool(LiteralBool node, A arg) => visitLiteral(node, arg);
+  @override
   R visitLiteralString(LiteralString node, A arg) => visitLiteral(node, arg);
+  @override
   R visitLiteralNumber(LiteralNumber node, A arg) => visitLiteral(node, arg);
+  @override
   R visitLiteralNull(LiteralNull node, A arg) => visitLiteral(node, arg);
 
+  @override
   R visitStringConcatenation(StringConcatenation node, A arg) =>
       visitLiteral(node, arg);
 
+  @override
   R visitName(Name node, A arg) => visitNode(node, arg);
 
+  @override
   R visitParentheses(Parentheses node, A arg) => visitExpression(node, arg);
 
+  @override
   R visitArrayInitializer(ArrayInitializer node, A arg) =>
       visitExpression(node, arg);
+  @override
   R visitArrayHole(ArrayHole node, A arg) => visitExpression(node, arg);
+  @override
   R visitObjectInitializer(ObjectInitializer node, A arg) =>
       visitExpression(node, arg);
+  @override
   R visitProperty(Property node, A arg) => visitNode(node, arg);
+  @override
   R visitMethodDefinition(MethodDefinition node, A arg) => visitNode(node, arg);
+  @override
   R visitRegExpLiteral(RegExpLiteral node, A arg) => visitExpression(node, arg);
 
   R visitInterpolatedNode(InterpolatedNode node, A arg) => visitNode(node, arg);
 
+  @override
   R visitInterpolatedExpression(InterpolatedExpression node, A arg) =>
       visitInterpolatedNode(node, arg);
+  @override
   R visitInterpolatedLiteral(InterpolatedLiteral node, A arg) =>
       visitInterpolatedNode(node, arg);
+  @override
   R visitInterpolatedParameter(InterpolatedParameter node, A arg) =>
       visitInterpolatedNode(node, arg);
+  @override
   R visitInterpolatedSelector(InterpolatedSelector node, A arg) =>
       visitInterpolatedNode(node, arg);
+  @override
   R visitInterpolatedStatement(InterpolatedStatement node, A arg) =>
       visitInterpolatedNode(node, arg);
+  @override
   R visitInterpolatedDeclaration(InterpolatedDeclaration node, A arg) {
     return visitInterpolatedNode(node, arg);
   }
 
+  @override
   R visitAwait(Await node, A arg) => visitExpression(node, arg);
+  @override
   R visitDartYield(DartYield node, A arg) => visitStatement(node, arg);
 }
 
 class BaseVisitor1Void<A> extends BaseVisitor1<void, A> {
+  @override
   void visitNode(Node node, A arg) {
     node.visitChildren1(this, arg);
   }
 
   // Ignore comments by default.
+  @override
   void visitComment(Comment node, A arg) {}
 }
 
@@ -477,38 +611,48 @@ class Program extends Node {
   final List<Statement> body;
   Program(this.body);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProgram(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitProgram(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     for (Statement statement in body) statement.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     for (Statement statement in body) statement.accept1(visitor, arg);
   }
 
+  @override
   Program _clone() => Program(body);
 }
 
 abstract class Statement extends Node {
+  @override
   Statement toStatement() => this;
 }
 
 /// Interface for a deferred [Statement] value. An implementation has to provide
 /// a value via the [statement] getter the latest when the ast is printed.
 abstract class DeferredStatement extends Statement {
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitDeferredStatement(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitDeferredStatement(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     statement.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     statement.accept1(visitor, arg);
   }
@@ -523,19 +667,24 @@ class Block extends Statement {
 
   Block.empty() : this.statements = [];
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitBlock(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitBlock(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     for (Statement statement in statements) statement.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     for (Statement statement in statements) statement.accept1(visitor, arg);
   }
 
+  @override
   Block _clone() => Block(statements);
 }
 
@@ -546,34 +695,44 @@ class ExpressionStatement extends Statement {
     assert(this.expression != null);
   }
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitExpressionStatement(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitExpressionStatement(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     expression.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     expression.accept1(visitor, arg);
   }
 
+  @override
   ExpressionStatement _clone() => ExpressionStatement(expression);
 }
 
 class EmptyStatement extends Statement {
   EmptyStatement();
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitEmptyStatement(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitEmptyStatement(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   EmptyStatement _clone() => EmptyStatement();
 }
 
@@ -588,23 +747,28 @@ class If extends Statement {
 
   bool get hasElse => otherwise is! EmptyStatement;
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitIf(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitIf(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     condition.accept(visitor);
     then.accept(visitor);
     otherwise.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     condition.accept1(visitor, arg);
     then.accept1(visitor, arg);
     otherwise.accept1(visitor, arg);
   }
 
+  @override
   If _clone() => If(condition, then, otherwise);
 }
 
@@ -621,11 +785,14 @@ class For extends Loop {
 
   For(this.init, this.condition, this.update, Statement body) : super(body);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitFor(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitFor(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     if (init != null) init.accept(visitor);
     if (condition != null) condition.accept(visitor);
@@ -633,6 +800,7 @@ class For extends Loop {
     body.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     if (init != null) init.accept1(visitor, arg);
     if (condition != null) condition.accept1(visitor, arg);
@@ -640,6 +808,7 @@ class For extends Loop {
     body.accept1(visitor, arg);
   }
 
+  @override
   For _clone() => For(init, condition, update, body);
 }
 
@@ -651,23 +820,28 @@ class ForIn extends Loop {
 
   ForIn(this.leftHandSide, this.object, Statement body) : super(body);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitForIn(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitForIn(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     leftHandSide.accept(visitor);
     object.accept(visitor);
     body.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     leftHandSide.accept1(visitor, arg);
     object.accept1(visitor, arg);
     body.accept1(visitor, arg);
   }
 
+  @override
   ForIn _clone() => ForIn(leftHandSide, object, body);
 }
 
@@ -676,21 +850,26 @@ class While extends Loop {
 
   While(this.condition, Statement body) : super(body);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitWhile(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitWhile(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     condition.accept(visitor);
     body.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     condition.accept1(visitor, arg);
     body.accept1(visitor, arg);
   }
 
+  @override
   While _clone() => While(condition, body);
 }
 
@@ -699,21 +878,26 @@ class Do extends Loop {
 
   Do(Statement body, this.condition) : super(body);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitDo(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitDo(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     body.accept(visitor);
     condition.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     body.accept1(visitor, arg);
     condition.accept1(visitor, arg);
   }
 
+  @override
   Do _clone() => Do(body, condition);
 }
 
@@ -722,15 +906,20 @@ class Continue extends Statement {
 
   Continue(this.targetLabel);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitContinue(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitContinue(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   Continue _clone() => Continue(targetLabel);
 }
 
@@ -739,15 +928,20 @@ class Break extends Statement {
 
   Break(this.targetLabel);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitBreak(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitBreak(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   Break _clone() => Break(targetLabel);
 }
 
@@ -756,19 +950,24 @@ class Return extends Statement {
 
   Return([this.value = null]);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitReturn(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitReturn(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     if (value != null) value.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     if (value != null) value.accept1(visitor, arg);
   }
 
+  @override
   Return _clone() => Return(value);
 }
 
@@ -777,19 +976,24 @@ class Throw extends Statement {
 
   Throw(this.expression);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitThrow(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitThrow(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     expression.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     expression.accept1(visitor, arg);
   }
 
+  @override
   Throw _clone() => Throw(expression);
 }
 
@@ -802,23 +1006,28 @@ class Try extends Statement {
     assert(catchPart != null || finallyPart != null);
   }
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitTry(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitTry(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     body.accept(visitor);
     if (catchPart != null) catchPart.accept(visitor);
     if (finallyPart != null) finallyPart.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     body.accept1(visitor, arg);
     if (catchPart != null) catchPart.accept1(visitor, arg);
     if (finallyPart != null) finallyPart.accept1(visitor, arg);
   }
 
+  @override
   Try _clone() => Try(body, catchPart, finallyPart);
 }
 
@@ -828,21 +1037,26 @@ class Catch extends Node {
 
   Catch(this.declaration, this.body);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitCatch(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitCatch(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     declaration.accept(visitor);
     body.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     declaration.accept1(visitor, arg);
     body.accept1(visitor, arg);
   }
 
+  @override
   Catch _clone() => Catch(declaration, body);
 }
 
@@ -852,21 +1066,26 @@ class Switch extends Statement {
 
   Switch(this.key, this.cases);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitSwitch(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitSwitch(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     key.accept(visitor);
     for (SwitchClause clause in cases) clause.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     key.accept1(visitor, arg);
     for (SwitchClause clause in cases) clause.accept1(visitor, arg);
   }
 
+  @override
   Switch _clone() => Switch(key, cases);
 }
 
@@ -881,40 +1100,50 @@ class Case extends SwitchClause {
 
   Case(this.expression, Block body) : super(body);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitCase(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitCase(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     expression.accept(visitor);
     body.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     expression.accept1(visitor, arg);
     body.accept1(visitor, arg);
   }
 
+  @override
   Case _clone() => Case(expression, body);
 }
 
 class Default extends SwitchClause {
   Default(Block body) : super(body);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitDefault(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitDefault(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     body.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     body.accept1(visitor, arg);
   }
 
+  @override
   Default _clone() => Default(body);
 }
 
@@ -924,21 +1153,26 @@ class FunctionDeclaration extends Statement {
 
   FunctionDeclaration(this.name, this.function);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitFunctionDeclaration(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitFunctionDeclaration(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     name.accept(visitor);
     function.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     name.accept1(visitor, arg);
     function.accept1(visitor, arg);
   }
 
+  @override
   FunctionDeclaration _clone() => FunctionDeclaration(name, function);
 }
 
@@ -948,19 +1182,24 @@ class LabeledStatement extends Statement {
 
   LabeledStatement(this.label, this.body);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitLabeledStatement(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitLabeledStatement(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     body.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     body.accept1(visitor, arg);
   }
 
+  @override
   LabeledStatement _clone() => LabeledStatement(label, body);
 }
 
@@ -969,15 +1208,20 @@ class LiteralStatement extends Statement {
 
   LiteralStatement(this.code);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitLiteralStatement(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitLiteralStatement(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   LiteralStatement _clone() => LiteralStatement(code);
 }
 
@@ -990,19 +1234,24 @@ class DartYield extends Statement {
 
   DartYield(this.expression, this.hasStar);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitDartYield(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitDartYield(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     expression.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     expression.accept1(visitor, arg);
   }
 
+  @override
   DartYield _clone() => DartYield(expression, hasStar);
 }
 
@@ -1011,6 +1260,7 @@ abstract class Expression extends Node {
   // have precedence depending on how the deferred node is resolved.
   int get precedenceLevel;
 
+  @override
   Statement toStatement() => ExpressionStatement(this);
 }
 
@@ -1025,17 +1275,21 @@ abstract class Declaration implements VariableReference {}
 // that is used. How should the printer know if an occurrence of a Name is meant
 // to be a Literal or a Declaration (which includes a VariableUse)?
 abstract class Name extends Literal implements Declaration, Parameter {
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitName(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitName(this, arg);
 
+  @override
   Name _clone();
 
   /// Returns the text of this name.
   ///
   /// May throw if the text has not been decided. Typically the text is decided
   /// in some finalization phase that happens before the AST is printed.
+  @override
   String get name;
 
   /// Returns a unique [key] for this name.
@@ -1044,6 +1298,7 @@ abstract class Name extends Literal implements Declaration, Parameter {
   /// consumption. As such, it might be long or cryptic.
   String get key;
 
+  @override
   bool get allowRename => false;
 }
 
@@ -1060,10 +1315,12 @@ class LiteralStringFromName extends LiteralString {
   @override
   String get value => name.name;
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     name.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     name.accept1(visitor, arg);
   }
@@ -1073,19 +1330,25 @@ class LiteralExpression extends Expression {
   final String template;
   LiteralExpression(this.template);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitLiteralExpression(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitLiteralExpression(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   LiteralExpression _clone() => LiteralExpression(template);
 
   // Code that uses LiteralExpression must take care of operator precedences,
   // and put parenthesis if needed.
+  @override
   int get precedenceLevel => PRIMARY;
 }
 
@@ -1101,26 +1364,32 @@ class VariableDeclarationList extends Expression {
 
   VariableDeclarationList(this.declarations, {this.indentSplits = true});
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitVariableDeclarationList(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitVariableDeclarationList(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     for (VariableInitialization declaration in declarations) {
       declaration.accept(visitor);
     }
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     for (VariableInitialization declaration in declarations) {
       declaration.accept1(visitor, arg);
     }
   }
 
+  @override
   VariableDeclarationList _clone() => VariableDeclarationList(declarations);
 
+  @override
   int get precedenceLevel => EXPRESSION;
 }
 
@@ -1131,21 +1400,27 @@ class Parentheses extends Expression {
 
   Parentheses(this.enclosed);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitParentheses(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitParentheses(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     enclosed.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     enclosed.accept1(visitor, arg);
   }
 
+  @override
   Parentheses _clone() => Parentheses(enclosed);
 
+  @override
   int get precedenceLevel => PRIMARY;
 }
 
@@ -1160,25 +1435,31 @@ class Assignment extends Expression {
   Assignment.compound(this.leftHandSide, this.op, this.value)
       : assert(value != null);
 
+  @override
   int get precedenceLevel => ASSIGNMENT;
 
   bool get isCompound => op != null;
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitAssignment(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitAssignment(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     leftHandSide.accept(visitor);
     value.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     leftHandSide.accept1(visitor, arg);
     value.accept1(visitor, arg);
   }
 
+  @override
   Assignment _clone() => Assignment.compound(leftHandSide, op, value);
 }
 
@@ -1190,24 +1471,30 @@ class VariableInitialization extends Expression {
 
   VariableInitialization(this.declaration, this.value);
 
+  @override
   int get precedenceLevel => ASSIGNMENT;
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitVariableInitialization(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitVariableInitialization(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     declaration.accept(visitor);
     value?.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     declaration.accept1(visitor, arg);
     value?.accept1(visitor, arg);
   }
 
+  @override
   VariableInitialization _clone() => VariableInitialization(declaration, value);
 }
 
@@ -1218,25 +1505,31 @@ class Conditional extends Expression {
 
   Conditional(this.condition, this.then, this.otherwise);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitConditional(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitConditional(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     condition.accept(visitor);
     then.accept(visitor);
     otherwise.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     condition.accept1(visitor, arg);
     then.accept1(visitor, arg);
     otherwise.accept1(visitor, arg);
   }
 
+  @override
   Conditional _clone() => Conditional(condition, then, otherwise);
 
+  @override
   int get precedenceLevel => ASSIGNMENT;
 }
 
@@ -1249,11 +1542,14 @@ class Call extends Expression {
     this._sourceInformation = sourceInformation;
   }
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitCall(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitCall(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     target.accept(visitor);
     for (Expression arg in arguments) {
@@ -1261,6 +1557,7 @@ class Call extends Expression {
     }
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     target.accept1(visitor, arg);
     for (Expression arg in arguments) {
@@ -1268,19 +1565,24 @@ class Call extends Expression {
     }
   }
 
+  @override
   Call _clone() => Call(target, arguments);
 
+  @override
   int get precedenceLevel => CALL;
 }
 
 class New extends Call {
   New(Expression cls, List<Expression> arguments) : super(cls, arguments);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitNew(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitNew(this, arg);
 
+  @override
   New _clone() => New(target, arguments);
 }
 
@@ -1291,25 +1593,32 @@ class Binary extends Expression {
 
   Binary(this.op, this.left, this.right);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitBinary(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitBinary(this, arg);
 
+  @override
   Binary _clone() => Binary(op, left, right);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     left.accept(visitor);
     right.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     left.accept1(visitor, arg);
     right.accept1(visitor, arg);
   }
 
+  @override
   bool get isCommaOperator => op == ',';
 
+  @override
   int get precedenceLevel {
     // TODO(floitsch): switch to constant map.
     switch (op) {
@@ -1360,21 +1669,27 @@ class Prefix extends Expression {
 
   Prefix(this.op, this.argument);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitPrefix(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitPrefix(this, arg);
 
+  @override
   Prefix _clone() => Prefix(op, argument);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     argument.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     argument.accept1(visitor, arg);
   }
 
+  @override
   int get precedenceLevel => UNARY;
 }
 
@@ -1384,21 +1699,27 @@ class Postfix extends Expression {
 
   Postfix(this.op, this.argument);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitPostfix(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitPostfix(this, arg);
 
+  @override
   Postfix _clone() => Postfix(op, argument);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     argument.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     argument.accept1(visitor, arg);
   }
 
+  @override
   int get precedenceLevel => UNARY;
 }
 
@@ -1411,25 +1732,33 @@ abstract class VariableReference extends Expression {
     assert(_identifierRE.hasMatch(name), "Non-identifier name '$name'");
   }
 
+  @override
   T accept<T>(NodeVisitor<T> visitor);
 
+  @override
   int get precedenceLevel => PRIMARY;
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 }
 
 class VariableUse extends VariableReference {
   VariableUse(String name) : super(name);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitVariableUse(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitVariableUse(this, arg);
 
+  @override
   VariableUse _clone() => VariableUse(name);
 
+  @override
   String toString() => 'VariableUse($name)';
 }
 
@@ -1438,33 +1767,42 @@ class VariableDeclaration extends VariableReference implements Declaration {
 
   VariableDeclaration(String name, {this.allowRename = true}) : super(name);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitVariableDeclaration(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitVariableDeclaration(this, arg);
 
+  @override
   VariableDeclaration _clone() => VariableDeclaration(name);
 }
 
 class Parameter extends VariableDeclaration {
   Parameter(String name) : super(name);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitParameter(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitParameter(this, arg);
 
+  @override
   Parameter _clone() => Parameter(name);
 }
 
 class This extends Parameter {
   This() : super("this");
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitThis(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitThis(this, arg);
 
+  @override
   This _clone() => This();
 }
 
@@ -1474,23 +1812,29 @@ class NamedFunction extends Expression {
 
   NamedFunction(this.name, this.function);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitNamedFunction(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitNamedFunction(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     name.accept(visitor);
     function.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     name.accept1(visitor, arg);
     function.accept1(visitor, arg);
   }
 
+  @override
   NamedFunction _clone() => NamedFunction(name, function);
 
+  @override
   int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
@@ -1510,23 +1854,29 @@ class Fun extends FunctionExpression {
 
   Fun(this.params, this.body, {this.asyncModifier = AsyncModifier.sync});
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitFun(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitFun(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     for (Parameter param in params) param.accept(visitor);
     body.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     for (Parameter param in params) param.accept1(visitor, arg);
     body.accept1(visitor, arg);
   }
 
+  @override
   Fun _clone() => Fun(params, body, asyncModifier: asyncModifier);
 
+  @override
   int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
@@ -1546,25 +1896,31 @@ class ArrowFunction extends FunctionExpression {
       {this.asyncModifier = AsyncModifier.sync,
       this.implicitReturnAllowed = true});
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrowFunction(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitArrowFunction(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     for (Parameter param in params) param.accept(visitor);
     body.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     for (Parameter param in params) param.accept1(visitor, arg);
     body.accept1(visitor, arg);
   }
 
+  @override
   ArrowFunction _clone() => ArrowFunction(params, body,
       asyncModifier: asyncModifier,
       implicitReturnAllowed: implicitReturnAllowed);
 
+  @override
   int get precedenceLevel => ASSIGNMENT;
 }
 
@@ -1588,6 +1944,7 @@ class AsyncModifier {
 
   static const List<AsyncModifier> values = [sync, async, asyncStar, syncStar];
 
+  @override
   String toString() => description;
 }
 
@@ -1603,23 +1960,29 @@ class PropertyAccess extends Expression {
   PropertyAccess.indexed(this.receiver, int index)
       : selector = LiteralNumber('$index');
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitAccess(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitAccess(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     receiver.accept(visitor);
     selector.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     receiver.accept1(visitor, arg);
     selector.accept1(visitor, arg);
   }
 
+  @override
   PropertyAccess _clone() => PropertyAccess(receiver, selector);
 
+  @override
   int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
@@ -1628,36 +1991,45 @@ class PropertyAccess extends Expression {
 /// [DeferredToken] is not limited to templates but may also occur in
 /// fully instantiated asts.
 abstract class DeferredToken extends Expression {
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   DeferredToken _clone() => this;
 }
 
 /// Interface for a deferred integer value. An implementation has to provide
 /// a value via the [value] getter the latest when the ast is printed.
 abstract class DeferredNumber extends DeferredToken implements Literal {
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitDeferredNumber(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitDeferredNumber(this, arg);
 
   int get value;
 
+  @override
   int get precedenceLevel => value.isNegative ? UNARY : PRIMARY;
 }
 
 /// Interface for a deferred string value. An implementation has to provide
 /// a value via the [value] getter the latest when the ast is printed.
 abstract class DeferredString extends DeferredToken implements Literal {
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitDeferredString(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitDeferredString(this, arg);
 
   String get value;
 
+  @override
   int get precedenceLevel => PRIMARY;
 }
 
@@ -1666,8 +2038,10 @@ abstract class DeferredString extends DeferredToken implements Literal {
 /// Also, [precedenceLevel] has to return the same value that
 /// [value.precedenceLevel] returns once [value] is bound to an [Expression].
 abstract class DeferredExpression extends DeferredToken {
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitDeferredExpression(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitDeferredExpression(this, arg);
 
@@ -1675,10 +2049,13 @@ abstract class DeferredExpression extends DeferredToken {
 }
 
 abstract class Literal extends Expression {
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   int get precedenceLevel => PRIMARY;
 }
 
@@ -1687,24 +2064,30 @@ class LiteralBool extends Literal {
 
   LiteralBool(this.value);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitLiteralBool(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitLiteralBool(this, arg);
 
   // [visitChildren] inherited from [Literal].
 
+  @override
   LiteralBool _clone() => LiteralBool(value);
 }
 
 class LiteralNull extends Literal {
   LiteralNull();
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitLiteralNull(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitLiteralNull(this, arg);
 
+  @override
   LiteralNull _clone() => LiteralNull();
 }
 
@@ -1718,11 +2101,14 @@ class LiteralString extends Literal {
   /// printer's settings.
   LiteralString(this.value);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitLiteralString(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitLiteralString(this, arg);
 
+  @override
   LiteralString _clone() => LiteralString(value);
 
   @override
@@ -1758,19 +2144,24 @@ class StringConcatenation extends Literal {
   /// concatenated string.
   StringConcatenation(this.parts);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitStringConcatenation(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitStringConcatenation(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     for (Literal part in parts) part.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     for (Literal part in parts) part.accept1(visitor, arg);
   }
 
+  @override
   StringConcatenation _clone() => StringConcatenation(this.parts);
 }
 
@@ -1779,13 +2170,17 @@ class LiteralNumber extends Literal {
 
   LiteralNumber(this.value);
 
+  @override
   int get precedenceLevel => value.startsWith('-') ? UNARY : PRIMARY;
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitLiteralNumber(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitLiteralNumber(this, arg);
 
+  @override
   LiteralNumber _clone() => LiteralNumber(value);
 }
 
@@ -1794,38 +2189,50 @@ class ArrayInitializer extends Expression {
 
   ArrayInitializer(this.elements) : assert(!elements.contains(null));
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrayInitializer(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitArrayInitializer(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     for (Expression element in elements) element.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     for (Expression element in elements) element.accept1(visitor, arg);
   }
 
+  @override
   ArrayInitializer _clone() => ArrayInitializer(elements);
 
+  @override
   int get precedenceLevel => PRIMARY;
 }
 
 /// An empty place in an [ArrayInitializer].
 /// For example the list [1, , , 2] would contain two holes.
 class ArrayHole extends Expression {
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrayHole(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitArrayHole(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   ArrayHole _clone() => ArrayHole();
 
+  @override
   int get precedenceLevel => PRIMARY;
 }
 
@@ -1840,22 +2247,28 @@ class ObjectInitializer extends Expression {
   /// If false print each property on a seperate line.
   ObjectInitializer(this.properties, {this.isOneLiner = true});
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitObjectInitializer(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitObjectInitializer(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     for (Property init in properties) init.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     for (Property init in properties) init.accept1(visitor, arg);
   }
 
+  @override
   ObjectInitializer _clone() =>
       ObjectInitializer(properties, isOneLiner: isOneLiner);
 
+  @override
   int get precedenceLevel => PRIMARY;
 }
 
@@ -1866,21 +2279,26 @@ class Property extends Node {
   Property(this.name, this.value)
       : assert(name is Literal || name is DeferredExpression);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProperty(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitProperty(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     name.accept(visitor);
     value.accept(visitor);
   }
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     name.accept1(visitor, arg);
     value.accept1(visitor, arg);
   }
 
+  @override
   Property _clone() => Property(name, value);
 }
 
@@ -1897,6 +2315,7 @@ class MethodDefinition extends Node implements Property {
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitMethodDefinition(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitMethodDefinition(this, arg);
 
@@ -1926,125 +2345,166 @@ abstract class InterpolatedNode implements Node {
 }
 
 class InterpolatedExpression extends Expression with InterpolatedNode {
+  @override
   final nameOrPosition;
 
   InterpolatedExpression(this.nameOrPosition);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitInterpolatedExpression(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitInterpolatedExpression(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   InterpolatedExpression _clone() => InterpolatedExpression(nameOrPosition);
 
+  @override
   int get precedenceLevel => PRIMARY;
 }
 
 class InterpolatedLiteral extends Literal with InterpolatedNode {
+  @override
   final nameOrPosition;
 
   InterpolatedLiteral(this.nameOrPosition);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitInterpolatedLiteral(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitInterpolatedLiteral(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   InterpolatedLiteral _clone() => InterpolatedLiteral(nameOrPosition);
 }
 
 class InterpolatedParameter extends Expression
     with InterpolatedNode
     implements Parameter {
+  @override
   final nameOrPosition;
 
   InterpolatedParameter(this.nameOrPosition);
 
+  @override
   String get name {
     throw "InterpolatedParameter.name must not be invoked";
   }
 
+  @override
   bool get allowRename => false;
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitInterpolatedParameter(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitInterpolatedParameter(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   InterpolatedParameter _clone() => InterpolatedParameter(nameOrPosition);
 
+  @override
   int get precedenceLevel => PRIMARY;
 }
 
 class InterpolatedSelector extends Expression with InterpolatedNode {
+  @override
   final nameOrPosition;
 
   InterpolatedSelector(this.nameOrPosition);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitInterpolatedSelector(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitInterpolatedSelector(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   InterpolatedSelector _clone() => InterpolatedSelector(nameOrPosition);
 
+  @override
   int get precedenceLevel => PRIMARY;
 }
 
 class InterpolatedStatement extends Statement with InterpolatedNode {
+  @override
   final nameOrPosition;
 
   InterpolatedStatement(this.nameOrPosition);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitInterpolatedStatement(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitInterpolatedStatement(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   InterpolatedStatement _clone() => InterpolatedStatement(nameOrPosition);
 }
 
 class InterpolatedDeclaration extends Expression
     with InterpolatedNode
     implements Declaration {
+  @override
   final nameOrPosition;
 
   InterpolatedDeclaration(this.nameOrPosition);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitInterpolatedDeclaration(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitInterpolatedDeclaration(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   InterpolatedDeclaration _clone() {
     return InterpolatedDeclaration(nameOrPosition);
   }
@@ -2065,17 +2525,23 @@ class RegExpLiteral extends Expression {
 
   RegExpLiteral(this.pattern);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitRegExpLiteral(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitRegExpLiteral(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
+  @override
   RegExpLiteral _clone() => RegExpLiteral(pattern);
 
+  @override
   int get precedenceLevel => PRIMARY;
 }
 
@@ -2089,18 +2555,24 @@ class Await extends Expression {
 
   Await(this.expression);
 
+  @override
   int get precedenceLevel => UNARY;
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitAwait(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitAwait(this, arg);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) => expression.accept(visitor);
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       expression.accept1(visitor, arg);
 
+  @override
   Await _clone() => Await(expression);
 }
 
@@ -2113,15 +2585,20 @@ class Comment extends Statement {
 
   Comment(this.comment);
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitComment(this);
 
+  @override
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitComment(this, arg);
 
+  @override
   Comment _clone() => Comment(comment);
 
+  @override
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
+  @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 }
 

@@ -166,7 +166,9 @@ function() {
 ];
 
 class FixedName extends Name {
+  @override
   final String name;
+  @override
   String get key => name;
 
   FixedName(this.name);
@@ -207,6 +209,7 @@ class Context extends SimpleJavaScriptPrintingContext {
 
   String tag(int value) => '@$value';
 
+  @override
   void enterNode(Node node, int startPosition) {
     int value = id(node);
     if (mode == TestMode.ENTER) {
@@ -214,6 +217,7 @@ class Context extends SimpleJavaScriptPrintingContext {
     }
   }
 
+  @override
   void exitNode(
       Node node, int startPosition, int endPosition, int delimiterPosition) {
     int value = id(node);
@@ -224,6 +228,7 @@ class Context extends SimpleJavaScriptPrintingContext {
     }
   }
 
+  @override
   String getText() {
     String text = super.getText();
     int offset = 0;

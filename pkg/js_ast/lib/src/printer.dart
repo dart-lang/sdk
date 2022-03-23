@@ -55,6 +55,7 @@ abstract class JavaScriptPrintingContext {
 class SimpleJavaScriptPrintingContext extends JavaScriptPrintingContext {
   final StringBuffer buffer = StringBuffer();
 
+  @override
   void emit(String string) {
     buffer.write(string);
   }
@@ -63,6 +64,7 @@ class SimpleJavaScriptPrintingContext extends JavaScriptPrintingContext {
 }
 
 class _DebugJavaScriptPrintingContext extends SimpleJavaScriptPrintingContext {
+  @override
   bool get isDebugContext => true;
 }
 
@@ -1589,31 +1591,38 @@ class VarCollector extends BaseVisitorVoid {
     }
   }
 
+  @override
   void visitFunctionDeclaration(FunctionDeclaration declaration) {
     // Note that we don't bother collecting the name of the function.
     collectVarsInFunction(declaration.function);
   }
 
+  @override
   void visitNamedFunction(NamedFunction namedFunction) {
     // Note that we don't bother collecting the name of the function.
     collectVarsInFunction(namedFunction.function);
   }
 
+  @override
   void visitMethodDefinition(MethodDefinition method) {
     // Note that we don't bother collecting the name of the function.
     collectVarsInFunction(method.function);
   }
 
+  @override
   void visitFun(Fun fun) {
     collectVarsInFunction(fun);
   }
 
+  @override
   void visitArrowFunction(ArrowFunction fun) {
     collectVarsInFunction(fun);
   }
 
+  @override
   void visitThis(This node) {}
 
+  @override
   void visitComment(Comment node) {
     if (node.comment.contains(disableVariableMinificationPattern)) {
       enableRenaming = false;
@@ -1622,6 +1631,7 @@ class VarCollector extends BaseVisitorVoid {
     }
   }
 
+  @override
   void visitVariableDeclaration(VariableDeclaration decl) {
     if (enableRenaming && decl.allowRename) vars.add(decl.name);
   }
@@ -1634,35 +1644,52 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
   DanglingElseVisitor(this.context);
 
+  @override
   bool visitProgram(Program node) => false;
 
+  @override
   bool visitNode(Node node) {
     context.error("Forgot node: $node");
     return true;
   }
 
+  @override
   bool visitComment(Comment node) => true;
 
+  @override
   bool visitBlock(Block node) => false;
+  @override
   bool visitExpressionStatement(ExpressionStatement node) => false;
+  @override
   bool visitEmptyStatement(EmptyStatement node) => false;
+  @override
   bool visitDeferredStatement(DeferredStatement node) {
     return node.statement.accept(this);
   }
 
+  @override
   bool visitIf(If node) {
     if (!node.hasElse) return true;
     return node.otherwise.accept(this);
   }
 
+  @override
   bool visitFor(For node) => node.body.accept(this);
+  @override
   bool visitForIn(ForIn node) => node.body.accept(this);
+  @override
   bool visitWhile(While node) => node.body.accept(this);
+  @override
   bool visitDo(Do node) => false;
+  @override
   bool visitContinue(Continue node) => false;
+  @override
   bool visitBreak(Break node) => false;
+  @override
   bool visitReturn(Return node) => false;
+  @override
   bool visitThrow(Throw node) => false;
+  @override
   bool visitTry(Try node) {
     if (node.finallyPart != null) {
       return node.finallyPart.accept(this);
@@ -1671,16 +1698,25 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
     }
   }
 
+  @override
   bool visitCatch(Catch node) => node.body.accept(this);
+  @override
   bool visitSwitch(Switch node) => false;
+  @override
   bool visitCase(Case node) => false;
+  @override
   bool visitDefault(Default node) => false;
+  @override
   bool visitFunctionDeclaration(FunctionDeclaration node) => false;
+  @override
   bool visitLabeledStatement(LabeledStatement node) => node.body.accept(this);
+  @override
   bool visitLiteralStatement(LiteralStatement node) => true;
 
+  @override
   bool visitDartYield(DartYield node) => false;
 
+  @override
   bool visitExpression(Expression node) => false;
 }
 
@@ -1693,10 +1729,15 @@ abstract class LocalNamer {
 }
 
 class IdentityNamer implements LocalNamer {
+  @override
   String getName(String oldName) => oldName;
+  @override
   String declareVariable(String oldName) => oldName;
+  @override
   String declareParameter(String oldName) => oldName;
+  @override
   void enterScope(VarCollector vars) {}
+  @override
   void leaveScope() {}
 }
 
@@ -1709,6 +1750,7 @@ class MinifyRenamer implements LocalNamer {
 
   MinifyRenamer();
 
+  @override
   void enterScope(VarCollector vars) {
     maps.add({});
     variableNumberStack.add(variableNumber);
@@ -1717,12 +1759,14 @@ class MinifyRenamer implements LocalNamer {
     vars.forEachParam(declareParameter);
   }
 
+  @override
   void leaveScope() {
     maps.removeLast();
     variableNumber = variableNumberStack.removeLast();
     parameterNumber = parameterNumberStack.removeLast();
   }
 
+  @override
   String getName(String oldName) {
     // Go from inner scope to outer looking for mapping of name.
     for (int i = maps.length - 1; i >= 0; i--) {
@@ -1750,6 +1794,7 @@ class MinifyRenamer implements LocalNamer {
   // that we give up trying to be nice to the compression algorithm and just
   // use the same namespace for arguments and variables, starting with A, and
   // moving on to a0, a1, etc.
+  @override
   String declareVariable(String oldName) {
     if (avoidRenaming(oldName)) return oldName;
     var newName;
@@ -1764,6 +1809,7 @@ class MinifyRenamer implements LocalNamer {
     return newName;
   }
 
+  @override
   String declareParameter(String oldName) {
     if (avoidRenaming(oldName)) return oldName;
     var newName;
