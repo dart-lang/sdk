@@ -2422,15 +2422,15 @@ void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
     head = next;
   } while (head != nullptr);
   head = reversed_head;
-
   if (Service::profiler_stream.enabled() && !IsSystemIsolate(this)) {
-    SampleBlockListProcessor buffer(head);
     StackZone zone(thread);
-    HandleScope handle_scope(thread);
-    StreamableSampleFilter filter(main_port());
-    Profile profile;
-    profile.Build(thread, &filter, &buffer);
-    if (profile.sample_count() > 0) {
+    SampleBlockListProcessor buffer(head);
+    if (buffer.HasStreamableSamples(thread)) {
+      HandleScope handle_scope(thread);
+      StreamableSampleFilter filter(main_port());
+      Profile profile;
+      profile.Build(thread, &filter, &buffer);
+      ASSERT(profile.sample_count() > 0);
       ServiceEvent event(this, ServiceEvent::kCpuSamples);
       event.set_cpu_profile(&profile);
       Service::HandleEvent(&event);

@@ -713,6 +713,38 @@ ProcessedSampleBuffer* SampleBlockListProcessor::BuildProcessedSampleBuffer(
   return buffer;
 }
 
+bool SampleBlockListProcessor::HasStreamableSamples(Thread* thread) {
+  ReusableGrowableObjectArrayHandleScope reusable_array_handle_scope(thread);
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  GrowableObjectArray& tag_table = reusable_array_handle_scope.Handle();
+  tag_table ^= isolate->tag_table();
+  UserTag& tag = UserTag::Handle(zone);
+  while (head_ != nullptr) {
+    if (head_->HasStreamableSamples(tag_table, &tag)) {
+      return true;
+    }
+    head_ = head_->next_free_;
+  }
+  return false;
+}
+
+bool SampleBlock::HasStreamableSamples(const GrowableObjectArray& tag_table,
+                                       UserTag* tag) {
+  for (intptr_t i = 0; i < capacity_; ++i) {
+    Sample* sample = At(i);
+    uword sample_tag = sample->user_tag();
+    for (intptr_t j = 0; j < tag_table.Length(); ++j) {
+      *tag ^= tag_table.At(j);
+      if (tag->tag() == sample_tag && tag->streamable()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 ProcessedSampleBuffer* SampleBlockBuffer::BuildProcessedSampleBuffer(
     SampleFilter* filter,
     ProcessedSampleBuffer* buffer) {
