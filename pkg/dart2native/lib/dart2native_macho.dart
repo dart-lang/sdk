@@ -316,8 +316,11 @@ Future writeAppendedMachOExecutable(
     // similar to the linker (the linker-signed option flag) to ensure that any
     // LC_CODE_SIGNATURE block has the correct CD hashes. This is necessary for
     // platforms where signature verification is always on (e.g., OS X on M1).
+    //
+    // We use the `-f` flag to force signature overwriting as the official
+    // Dart binaries (including dartaotruntime) are fully signed.
     final signingProcess = await Process.run(
-        'codesign', ['-o', 'linker-signed', '-s', '-', outputPath]);
+        'codesign', ['-f', '-o', 'linker-signed', '-s', '-', outputPath]);
     if (signingProcess.exitCode != 0) {
       print('Subcommand terminated with exit code ${signingProcess.exitCode}.');
       if (signingProcess.stdout.isNotEmpty) {

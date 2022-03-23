@@ -1992,6 +1992,57 @@ suitable value:
 var l = const [0];
 {% endprettify %}
 
+### concrete_class_has_enum_superinterface
+
+_Concrete classes can't have 'Enum' as a superinterface._
+
+#### Description
+
+The analyzer produces this diagnostic when a concrete class indirectly has
+the class `Enum` as a superinterface.
+
+#### Example
+
+The following code produces this diagnostic because the concrete class `B`
+has `Enum` as a superinterface as a result of implementing `A`:
+
+{% prettify dart tag=pre+code %}
+abstract class A implements Enum {}
+
+class [!B!] implements A {}
+{% endprettify %}
+
+#### Common fixes
+
+If the implemented class isn't the class you intend to implement, then
+change it:
+
+{% prettify dart tag=pre+code %}
+abstract class A implements Enum {}
+
+class B implements C {}
+
+class C {}
+{% endprettify %}
+
+If the implemented class can be changed to not implement `Enum`, then do
+so:
+
+{% prettify dart tag=pre+code %}
+abstract class A {}
+
+class B implements A {}
+{% endprettify %}
+
+If the implemented class can't be changed to not implement `Enum`, then
+remove it from the `implements` clause:
+
+{% prettify dart tag=pre+code %}
+abstract class A implements Enum {}
+
+class B {}
+{% endprettify %}
+
 ### concrete_class_with_abstract_member
 
 _'{0}' must have a method body because '{1}' isn't abstract._
@@ -4237,6 +4288,152 @@ enum F {
 }
 {% endprettify %}
 
+### enum_constant_with_non_const_constructor
+
+_The invoked constructor isn't a 'const' constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when an enum constant is being
+created using either a factory constructor or a generative constructor
+that isn't marked as being `const`.
+
+#### Example
+
+The following code produces this diagnostic because the enum constant `e`
+is being initialized by a factory constructor:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  [!e!]();
+
+  factory E() => e;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use a generative constructor marked as `const`:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  e._();
+
+  factory E() => e;
+
+  const E._();
+}
+{% endprettify %}
+
+### enum_mixin_with_instance_variable
+
+_Mixins applied to enums can't have instance variables._
+
+#### Description
+
+The analyzer produces this diagnostic when a mixin that's applied to an
+enum declares one or more instance variables. This isn't allowed because
+the enum constants are constant, and there isn't any way for the
+constructor in the enum to initialize any of the mixin's fields.
+
+#### Example
+
+The following code produces this diagnostic because the mixin `M` defines
+the instance field `x`:
+
+{% prettify dart tag=pre+code %}
+mixin M {
+  int x = 0;
+}
+
+enum E with [!M!] {
+  a
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to apply the mixin, then change all instance fields into
+getter and setter pairs and implement them in the enum if necessary:
+
+{% prettify dart tag=pre+code %}
+mixin M {
+  int get x => 0;
+}
+
+enum E with M {
+  a
+}
+{% endprettify %}
+
+If you don't need to apply the mixin, then remove it:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  a
+}
+{% endprettify %}
+
+### enum_with_abstract_member
+
+_'{0}' must have a method body because '{1}' is an enum._
+
+#### Description
+
+The analyzer produces this diagnostic when a member of an enum is found
+that doesn't have a concrete implementation. Enums aren't allowed to
+contain abstract members.
+
+#### Example
+
+The following code produces this diagnostic because `m` is an abstract
+method and `E` is an enum:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  e;
+
+  [!void m();!]
+}
+{% endprettify %}
+
+#### Common fixes
+
+Provide an implementation for the member:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  e;
+
+  void m() {}
+}
+{% endprettify %}
+
+### enum_with_name_values
+
+_The name 'values' is not a valid name for an enum._
+
+#### Description
+
+The analyzer produces this diagnostic when an enum is declared to have the
+name `values`. This isn't allowed because the enum has an implicit static
+field named `values`, and the two would collide.
+
+#### Example
+
+The following code produces this diagnostic because there's an enum
+declaration that has the name `values`:
+
+{% prettify dart tag=pre+code %}
+enum [!values!] {
+  c
+}
+{% endprettify %}
+
+#### Common fixes
+
+Rename the enum to something other than `values`.
+
 ### equal_elements_in_const_set
 
 _Two elements in a constant set literal can't be equal._
@@ -6281,6 +6478,122 @@ If the function should be synchronous, then remove the `async` modifier:
 int f() => 0;
 {% endprettify %}
 
+### illegal_concrete_enum_member
+
+_A concrete instance member named '{0}' can't be declared in a class that
+implements 'Enum'._
+
+_A concrete instance member named '{0}' can't be inherited from '{1}' in a class
+that implements 'Enum'._
+
+#### Description
+
+The analyzer produces this diagnostic when either an enum declaration, a
+class that implements `Enum`, or a mixin with a superclass constraint of
+`Enum`, declares or inherits a concrete instance member named either
+`index`, `hashCode`, or `==`.
+
+#### Examples
+
+The following code produces this diagnostic because the enum `E` declares
+an instance getter named `index`:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  v;
+
+  int get [!index!] => 0;
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the class `C`, which
+implements `Enum`, declares an instance field named `hashCode`:
+
+{% prettify dart tag=pre+code %}
+abstract class C implements Enum {
+  int [!hashCode!] = 0;
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the class `C`, which
+indirectly implements `Enum` through the class `A`, declares an instance
+getter named `hashCode`:
+
+{% prettify dart tag=pre+code %}
+abstract class A implements Enum {}
+
+abstract class C implements A {
+  int get [!hashCode!] => 0;
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the mixin `M`, which
+has `Enum` in the `on` clause, declares an explicit operator named `==`:
+
+{% prettify dart tag=pre+code %}
+mixin M on Enum {
+  bool operator [!==!](Object? other) => false;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Rename the conflicting member:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  v;
+
+  int get getIndex => 0;
+}
+{% endprettify %}
+
+### illegal_enum_values
+
+_An instance member named 'values' can't be declared in a class that implements
+'Enum'._
+
+_An instance member named 'values' can't be inherited from '{0}' in a class that
+implements 'Enum'._
+
+#### Description
+
+The analyzer produces this diagnostic when either a class that implements
+`Enum` or a mixin with a superclass constraint of `Enum` has an instance
+member named `values`.
+
+#### Examples
+
+The following code produces this diagnostic because the class `C`, which
+implements `Enum`, declares an instance field named `values`:
+
+{% prettify dart tag=pre+code %}
+abstract class C implements Enum {
+  int get [!values!] => 0;
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the class `B`, which
+implements `Enum`, inherits an instance method named `values` from `A`:
+
+{% prettify dart tag=pre+code %}
+abstract class A {
+  int values() => 0;
+}
+
+abstract class [!B!] extends A implements Enum {}
+{% endprettify %}
+
+#### Common fixes
+
+Change the name of the conflicting member:
+
+{% prettify dart tag=pre+code %}
+abstract class C implements Enum {
+  int get value => 0;
+}
+{% endprettify %}
+
 ### illegal_sync_generator_return_type
 
 _Functions marked 'sync*' must have a return type that is a supertype of
@@ -6418,6 +6731,90 @@ the `extends` clause:
 class A {}
 
 class B implements A {}
+{% endprettify %}
+
+### implicit_super_initializer_missing_arguments
+
+_The implicitly invoked unnamed constructor from '{0}' has required parameters._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor implicitly
+invokes the unnamed constructor from the superclass, the unnamed
+constructor of the superclass has a required parameter, and there's no
+super parameter corresponding to the required parameter.
+
+#### Examples
+
+The following code produces this diagnostic because the unnamed
+constructor in the class `B` implicitly invokes the unnamed constructor in
+the class `A`, but the constructor in `A` has a required positional
+parameter named `x`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class B extends A {
+  [!B!]();
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the unnamed
+constructor in the class `B` implicitly invokes the unnamed constructor in
+the class `A`, but the constructor in `A` has a required named parameter
+named `x`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A({required int x});
+}
+
+class B extends A {
+  [!B!]();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you can add a parameter to the constructor in the subclass, then add a
+super parameter corresponding to the required parameter in the superclass'
+constructor. The new parameter can either be required:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A({required int x});
+}
+
+class B extends A {
+  B({required super.x});
+}
+{% endprettify %}
+
+or it can be optional:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A({required int x});
+}
+
+class B extends A {
+  B({super.x = 0});
+}
+{% endprettify %}
+
+If you can't add a parameter to the constructor in the subclass, then add
+an explicit super constructor invocation with the required argument:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B() : super(0);
+}
 {% endprettify %}
 
 ### implicit_this_reference_in_initializer
@@ -8364,6 +8761,62 @@ class B extends A {
 }
 {% endprettify %}
 
+### invalid_reference_to_generative_enum_constructor
+
+_Generative enum constructors can only be used as targets of redirection._
+
+#### Description
+
+The analyzer produces this diagnostic when a generative constructor
+defined on an enum is used anywhere other than to create one of the enum
+constants or as the target of a redirection from another constructor in
+the same enum.
+
+#### Example
+
+The following code produces this diagnostic because the constructor for
+`E` is being used to create an instance in the function `f`:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  a(0);
+
+  const E(int x);
+}
+
+E f() => const [!E!](2); 
+{% endprettify %}
+
+#### Common fixes
+
+If there's an enum constant with the same value, or if you add such a
+constant, then reference the constant directly:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  a(0), b(2);
+
+  const E(int x);
+}
+
+E f() => E.b; 
+{% endprettify %}
+
+If you need to use a constructor invocation, then use a factory
+constructor:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  a(0);
+
+  const E(int x);
+
+  factory E.c(int x) => a;
+}
+
+E f() => E.c(2);
+{% endprettify %}
+
 ### invalid_reference_to_this
 
 _Invalid reference to 'this' expression._
@@ -8452,6 +8905,90 @@ match the callback:
 {% prettify dart tag=pre+code %}
 void f(Future<String> future, String Function(dynamic, StackTrace) callback) {
   future.catchError(callback);
+}
+{% endprettify %}
+
+### invalid_super_formal_parameter_location
+
+_Super parameters can only be used in non-redirecting generative constructors._
+
+#### Description
+
+The analyzer produces this diagnostic when a super parameter is used
+anywhere other than a non-redirecting generative constructor.
+
+#### Examples
+
+The following code produces this diagnostic because the super parameter
+`x` is in a redirecting generative constructor:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B.b([!super!].x) : this._();
+  B._() : super(0);
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the super parameter
+`x` isn't in a generative constructor:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class C extends A {
+  factory C.c([!super!].x) => C._();
+  C._() : super(0);
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the super parameter
+`x` is in a method:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class D extends A {
+  D() : super(0);
+
+  void m([!super!].x) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the function containing the super parameter can be changed to be a
+non-redirecting generative constructor, then do so:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B.b(super.x);
+}
+{% endprettify %}
+
+If the function containing the super parameter can't be changed to be a
+non-redirecting generative constructor, then remove the `super`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class D extends A {
+  D() : super(0);
+
+  void m(int x) {}
 }
 {% endprettify %}
 
@@ -11531,6 +12068,83 @@ class C {
 void f() => const C();
 {% endprettify %}
 
+### non_const_generative_enum_constructor
+
+_Generative enum constructors must be 'const'._
+
+#### Description
+
+The analyzer produces this diagnostic when an enum declaration contains a
+generative constructor that isn't marked as `const`.
+
+#### Example
+
+The following code produces this diagnostic because the constructor in `E`
+isn't marked as being `const`:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  e;
+
+  [!E!]();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add the `const` keyword before the constructor:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  e;
+
+  const E();
+}
+{% endprettify %}
+
+### non_final_field_in_enum
+
+_Enums can only declare final fields._
+
+#### Description
+
+The analyzer produces this diagnostic when an instance field in an enum
+isn't marked as `final`.
+
+#### Example
+
+The following code produces this diagnostic because the field `f` isn't a
+final field:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  c;
+
+  int [!f!] = 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the field must be defined for the enum, then mark the field as being
+`final`:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  c;
+
+  final int f = 0;
+}
+{% endprettify %}
+
+If the field can be removed, then remove it:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  c
+}
+{% endprettify %}
+
 ### non_generative_constructor
 
 _The generative constructor '{0}' is expected, but a factory was found._
@@ -13230,6 +13844,70 @@ name: local_package
 ```
 
 If the path is wrong, then replace it with the correct path.
+
+### positional_super_formal_parameter_with_positional_argument
+
+_Positional super parameters can't be used when the super constructor invocation
+has a positional argument._
+
+#### Description
+
+The analyzer produces this diagnostic when some, but not all, of the
+positional parameters provided to the constructor of the superclass are
+using a super parameter.
+
+Positional super parameters are associated with positional parameters in
+the super constructor by their index. That is, the first super parameter
+is associated with the first positional parameter in the super
+constructor, the second with the second, and so on. The same is true for
+positional arguments. Having both positional super parameters and
+positional arguments means that there are two values associated with the
+same parameter in the superclass's constructor, and hence isn't allowed.
+
+#### Example
+
+The following code produces this diagnostic because the constructor
+`B.new` is using a super parameter to pass one of the required positional
+parameters to the super constructor in `A`, but is explicitly passing the
+other in the super constructor invocation:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x, int y);
+}
+
+class B extends A {
+  B(int x, super.[!y!]) : super(x);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If all the positional parameters can be super parameters, then convert the
+normal positional parameters to be super parameters:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x, int y);
+}
+
+class B extends A {
+  B(super.x, super.y);
+}
+{% endprettify %}
+
+If some positional parameters can't be super parameters, then convert the
+super parameters to be normal parameters:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x, int y);
+}
+
+class B extends A {
+  B(int x, int y) : super(x, y);
+}
+{% endprettify %}
 
 ### prefix_collides_with_top_level_member
 
@@ -15561,6 +16239,220 @@ typedef T<S> = S;
 class C extends Object {}
 {% endprettify %}
 
+### super_formal_parameter_type_is_not_subtype_of_associated
+
+_The type '{0}' of this parameter isn't a subtype of the type '{1}' of the
+associated super constructor parameter._
+
+#### Description
+
+The analyzer produces this diagnostic when the type of a super parameter
+isn't a subtype of the corresponding parameter from the super constructor.
+
+#### Example
+
+The following code produces this diagnostic because the type of the super
+parameter `x` in the constructor for `B` isn't a subtype of the parameter
+`x` in the constructor for `A`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(num x);
+}
+
+class B extends A {
+  B(String super.[!x!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the type of the super parameter can be the same as the parameter from
+the super constructor, then remove the type annotation from the super
+parameter (if the type is implicit, it is inferred from the type in the
+super constructor):
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(num x);
+}
+
+class B extends A {
+  B(super.x);
+}
+{% endprettify %}
+
+If the type of the super parameter can be a subtype of the corresponding
+parameter's type, then change the type of the super parameter:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(num x);
+}
+
+class B extends A {
+  B(int super.x);
+}
+{% endprettify %}
+
+If the type of the super parameter can't be changed, then use a normal
+parameter instead of a super parameter:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(num x);
+}
+
+class B extends A {
+  B(String x) : super(x.length);
+}
+{% endprettify %}
+
+### super_formal_parameter_without_associated_named
+
+_No associated named super constructor parameter._
+
+#### Description
+
+The analyzer produces this diagnostic when there's a named super parameter
+in a constructor and the implicitly or explicitly invoked super
+constructor doesn't have a named parameter with the same name.
+
+Named super parameters are associated by name with named parameters in the
+super constructor.
+
+#### Example
+
+The following code produces this diagnostic because the constructor in `A`
+doesn't have a parameter named `y`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A({int? x});
+}
+
+class B extends A {
+  B({super.[!y!]});
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the super parameter should be associated with an existing parameter
+from the super constructor, then change the name to match the name of the
+corresponding parameter:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A({int? x});
+}
+
+class B extends A {
+  B({super.x});
+}
+{% endprettify %}
+
+If the super parameter should be associated with a parameter that hasn't
+yet been added to the super constructor, then add it:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A({int? x, int? y});
+}
+
+class B extends A {
+  B({super.y});
+}
+{% endprettify %}
+
+If the super parameter doesn't correspond to a named parameter from the
+super constructor, then change it to be a normal parameter:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A({int? x});
+}
+
+class B extends A {
+  B({int? y});
+}
+{% endprettify %}
+
+### super_formal_parameter_without_associated_positional
+
+_No associated positional super constructor parameter._
+
+#### Description
+
+The analyzer produces this diagnostic when there's a positional super
+parameter in a constructor and the implicitly or explicitly invoked super
+constructor doesn't have a positional parameter at the corresponding
+index.
+
+Positional super parameters are associated with positional parameters in
+the super constructor by their index. That is, the first super parameter
+is associated with the first positional parameter in the super
+constructor, the second with the second, and so on.
+
+#### Examples
+
+The following code produces this diagnostic because the constructor in `B`
+has a positional super parameter, but there's no positional parameter in
+the super constructor in `A`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A({int? x});
+}
+
+class B extends A {
+  B(super.[!x!]);
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the constructor in `B`
+has two positional super parameters, but there's only one positional
+parameter in the super constructor in `A`, which means that there's no
+corresponding parameter for `y`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B(super.x, super.[!y!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the super constructor should have a positional parameter corresponding
+to the super parameter, then update the super constructor appropriately:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x, int y);
+}
+
+class B extends A {
+  B(super.x, super.y);
+}
+{% endprettify %}
+
+If the super constructor is correct, or can't be changed, then convert the
+super parameter into a normal parameter:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B(super.x, int y);
+}
+{% endprettify %}
+
 ### super_invocation_not_last
 
 <a id="invalid_super_invocation" aria-hidden="true"></a>_(Previously known as `invalid_super_invocation`)_
@@ -15600,6 +16492,40 @@ class A {
 
 class B extends A {
   B(int x) : assert(x >= 0), super(x);
+}
+{% endprettify %}
+
+### super_in_enum_constructor
+
+_The enum constructor can't have a 'super' initializer._
+
+#### Description
+
+The analyzer produces this diagnostic when the initializer list in a
+constructor in an enum contains an invocation of a super constructor.
+
+#### Example
+
+The following code produces this diagnostic because the constructor in
+the enum `E` has a super constructor invocation in the initializer list:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  e;
+
+  const E() : [!super!]();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the super constructor invocation:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  e;
+
+  const E();
 }
 {% endprettify %}
 
@@ -16542,6 +17468,95 @@ an existing constant:
 enum E {a, b}
 
 var e = E.b;
+{% endprettify %}
+
+### undefined_enum_constructor
+
+_The enum doesn't have a constructor named '{0}'._
+
+_The enum doesn't have an unnamed constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when the constructor invoked to
+initialize an enum constant doesn't exist.
+
+#### Examples
+
+The following code produces this diagnostic because the enum constant `c`
+is being initialized by the unnamed constructor, but there's no unnamed
+constructor defined in `E`:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  [!c!]();
+
+  const E.x();
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the enum constant `c`
+is being initialized by the constructor named `x`, but there's no
+constructor named `x` defined in `E`:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  c.[!x!]();
+
+  const E.y();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the enum constant is being initialized by the unnamed constructor and
+one of the named constructors should have been used, then add the name of
+the constructor:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  c.x();
+
+  const E.x();
+}
+{% endprettify %}
+
+If the enum constant is being initialized by the unnamed constructor and
+none of the named constructors are appropriate, then define the unnamed
+constructor:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  c();
+
+  const E();
+}
+{% endprettify %}
+
+If the enum constant is being initialized by a named constructor and one
+of the existing constructors should have been used, then change the name
+of the constructor being invoked (or remove it if the unnamed constructor
+should be used):
+
+{% prettify dart tag=pre+code %}
+enum E {
+  c.y();
+
+  const E();
+  const E.y();
+}
+{% endprettify %}
+
+If the enum constant is being initialized by a named constructor and none
+of the existing constructors should have been used, then define a
+constructor with the name that was used:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  c.x();
+
+  const E.x();
+}
 {% endprettify %}
 
 ### undefined_extension_getter
@@ -18283,6 +19298,43 @@ void g() {
 Either rewrite the code so that the expression has a value or rewrite the
 code so that it doesn't depend on the value.
 
+### values_declaration_in_enum
+
+_A member named 'values' can't be declared in an enum._
+
+#### Description
+
+The analyzer produces this diagnostic when an enum declaration defines a
+member named `values`, whether the member is an enum constant, an instance
+member, or a static member.
+
+Any such member conflicts with the implicit declaration of the static
+getter named `values` that returns a list containing all the enum
+constants.
+
+#### Example
+
+The following code produces this diagnostic because the enum `E` defines
+an instance member named `values`:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  v;
+  void [!values!]() {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the name of the conflicting member:
+
+{% prettify dart tag=pre+code %}
+enum E {
+  v;
+  void getValues() {}
+}
+{% endprettify %}
+
 ### variable_type_mismatch
 
 _A value of type '{0}' can't be assigned to a const variable of type '{1}'._
@@ -18484,6 +19536,50 @@ class C<T> {
   C.named();
 }
 C f() => C.named();
+{% endprettify %}
+
+### wrong_number_of_type_arguments_enum
+
+_The enum is declared with {0} type parameters, but {1} type arguments were
+given._
+
+#### Description
+
+The analyzer produces this diagnostic when an enum constant in an enum
+that has type parameters is instantiated and type arguments are provided,
+but the number of type arguments isn't the same as the number of type
+parameters.
+
+#### Example
+
+The following code produces this diagnostic because the enum constant `c`
+provides one type argument even though the enum `E` is declared to have
+two type parameters:
+
+{% prettify dart tag=pre+code %}
+enum E<T, U> {
+  c[!<int>!]()
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the number of type parameters is correct, then change the number of
+type arguments to match the number of type parameters:
+
+{% prettify dart tag=pre+code %}
+enum E<T, U> {
+  c<int, String>()
+}
+{% endprettify %}
+
+If the number of type arguments is correct, then change the number of type
+parameters to match the number of type arguments:
+
+{% prettify dart tag=pre+code %}
+enum E<T> {
+  c<int>()
+}
 {% endprettify %}
 
 ### wrong_number_of_type_arguments_extension
