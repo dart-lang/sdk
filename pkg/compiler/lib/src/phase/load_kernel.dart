@@ -17,6 +17,8 @@ import '../commandline_options.dart';
 import '../common.dart';
 import '../kernel/front_end_adapter.dart';
 import '../kernel/dart2js_target.dart' show Dart2jsTarget;
+import '../kernel/transformations/clone_mixin_methods_with_super.dart'
+    as transformMixins show transformLibraries;
 import '../options.dart';
 
 class Input {
@@ -121,6 +123,10 @@ class _LoadFromKernelResult {
       this.component, this.entryLibrary, this.moduleLibraries);
 }
 
+void _doGlobalTransforms(Component component) {
+  transformMixins.transformLibraries(component.libraries);
+}
+
 Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
     api.CompilerInput compilerInput, String targetName) async {
   Library entryLibrary;
@@ -178,6 +184,11 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
     var mainMethod = _findMainMethod(entryLibrary);
     component.setMainMethodAndMode(mainMethod, true, component.mode);
   }
+
+  // We apply global transforms when running phase 0.
+  if (options.cfeOnly) {
+    _doGlobalTransforms(component);
+  }
   return _LoadFromKernelResult(component, entryLibrary, moduleLibraries);
 }
 
@@ -195,7 +206,8 @@ Future<_LoadFromSourceResult> _loadFromSource(
     fe.InitializedCompilerState initializedCompilerState,
     String targetName) async {
   bool verbose = false;
-  Target target = Dart2jsTarget(targetName, TargetFlags(), options: options);
+  Target target = Dart2jsTarget(targetName, TargetFlags(),
+      options: options, canPerformGlobalTransforms: true);
   fe.FileSystem fileSystem = CompilerFileSystem(compilerInput);
   fe.Verbosity verbosity = options.verbosity;
   fe.DiagnosticMessageHandler onDiagnostic = (fe.DiagnosticMessage message) {

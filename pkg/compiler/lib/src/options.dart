@@ -170,9 +170,7 @@ class CompilerOptions implements DiagnosticOptions {
 
   bool get fromDill {
     var targetPath = compilationTarget!.path;
-    return targetPath.endsWith('.dill') ||
-        targetPath.endsWith('.gdill') ||
-        targetPath.endsWith('.mdill');
+    return targetPath.endsWith('.dill');
   }
 
   /// Location of the package configuration file.

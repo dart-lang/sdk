@@ -25,13 +25,14 @@ Options _options;
 String _dart2jsScript;
 String _kernelWorkerScript;
 
-const dillSummaryId = DataId("sdill");
-const dillId = DataId("dill");
-const modularUpdatedDillId = DataId("mdill");
-const modularDataId = DataId("mdata");
+const dillSummaryId = DataId("summary.dill");
+const dillId = DataId("full.dill");
+const fullDillId = DataId("concatenate.dill");
+const modularUpdatedDillId = DataId("modular.dill");
+const modularDataId = DataId("modular.data");
 const closedWorldId = DataId("world");
-const globalUpdatedDillId = DataId("gdill");
-const globalDataId = DataId("gdata");
+const globalUpdatedDillId = DataId("global.dill");
+const globalDataId = DataId("global.data");
 const codeId = ShardsDataId("code", 2);
 const codeId0 = ShardDataId(codeId, 0);
 const codeId1 = ShardDataId(codeId, 1);
@@ -305,44 +306,36 @@ class ModularAnalysisStep implements IOModularStep {
   }
 }
 
-DataId idForDill({bool useModularAnalysis}) =>
-    useModularAnalysis ? modularUpdatedDillId : dillId;
-
-List<DataId> inputFromAnalysis({bool useModularAnalysis = false}) => [
-      idForDill(useModularAnalysis: useModularAnalysis),
-      if (useModularAnalysis) modularDataId,
-    ];
-
-// Step that invokes the dart2js closed world computation.
-class ComputeClosedWorldStep implements IOModularStep {
+class ConcatenateDillsStep implements IOModularStep {
   final bool useModularAnalysis;
 
-  ComputeClosedWorldStep({this.useModularAnalysis});
+  DataId get idForDill => useModularAnalysis ? modularUpdatedDillId : dillId;
+
+  List<DataId> get dependencies => [idForDill];
 
   @override
-  List<DataId> get resultData => const [closedWorldId, globalUpdatedDillId];
+  List<DataId> get resultData => const [fullDillId];
 
   @override
   bool get needsSources => false;
 
   @override
-  List<DataId> get dependencyDataNeeded =>
-      inputFromAnalysis(useModularAnalysis: useModularAnalysis);
+  List<DataId> get dependencyDataNeeded => dependencies;
 
   @override
-  List<DataId> get moduleDataNeeded =>
-      inputFromAnalysis(useModularAnalysis: useModularAnalysis);
+  List<DataId> get moduleDataNeeded => dependencies;
 
   @override
   bool get onlyOnMain => true;
 
+  ConcatenateDillsStep({this.useModularAnalysis});
+
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose)
-      print("\nstep: dart2js compute closed world on $module");
+    if (_options.verbose) print("\nstep: dart2js concatenate dills on $module");
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
-    DataId dillId = idForDill(useModularAnalysis: useModularAnalysis);
+    DataId dillId = idForDill;
     Iterable<String> dillDependencies =
         transitiveDependencies.map((m) => '${toUri(m, dillId)}');
     List<String> dataDependencies = transitiveDependencies
@@ -358,8 +351,66 @@ class ComputeClosedWorldStep implements IOModularStep {
       '${Flags.inputDill}=${toUri(module, dillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.dillDependencies}=${dillDependencies.join(',')}',
-      if (useModularAnalysis)
-        '${Flags.readModularAnalysis}=${dataDependencies.join(',')}',
+      '${Flags.cfeOnly}',
+      '--out=${toUri(module, fullDillId)}',
+    ];
+    var result =
+        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+
+    _checkExitCode(result, this, module);
+  }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose)
+      print("\ncached step: dart2js concatenate dills on $module");
+  }
+}
+
+// Step that invokes the dart2js closed world computation.
+class ComputeClosedWorldStep implements IOModularStep {
+  final bool useModularAnalysis;
+
+  ComputeClosedWorldStep({this.useModularAnalysis});
+
+  List<DataId> get dependencies => [
+        fullDillId,
+        if (useModularAnalysis) modularDataId,
+      ];
+
+  @override
+  List<DataId> get resultData => const [closedWorldId, globalUpdatedDillId];
+
+  @override
+  bool get needsSources => false;
+
+  @override
+  List<DataId> get dependencyDataNeeded => dependencies;
+
+  @override
+  List<DataId> get moduleDataNeeded => dependencies;
+
+  @override
+  bool get onlyOnMain => true;
+
+  @override
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
+    if (_options.verbose)
+      print("\nstep: dart2js compute closed world on $module");
+    Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
+    List<String> dataDependencies = transitiveDependencies
+        .map((m) => '${toUri(m, modularDataId)}')
+        .toList();
+    dataDependencies.add('${toUri(module, modularDataId)}');
+    List<String> args = [
+      '--packages=${sdkRoot.toFilePath()}/.packages',
+      _dart2jsScript,
+      // TODO(sigmund): remove this dependency on libraries.json
+      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${Flags.inputDill}=${toUri(module, fullDillId)}',
+      for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.writeClosedWorld}=${toUri(module, closedWorldId)}',
       Flags.noClosedWorldInData,
       '--out=${toUri(module, globalUpdatedDillId)}',
