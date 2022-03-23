@@ -5140,7 +5140,7 @@ class WeakPropertyDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(property, kWeakPropertyCid,
                                      WeakProperty::InstanceSize());
       ReadFromTo(property);
-      property->untag()->next_ = WeakProperty::null();
+      property->untag()->next_seen_by_gc_ = WeakProperty::null();
     }
   }
 };

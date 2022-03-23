@@ -3265,7 +3265,7 @@ class UntaggedRegExp : public UntaggedInstance {
 class UntaggedWeakProperty : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakProperty);
 
-  COMPRESSED_POINTER_FIELD(ObjectPtr, key)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, key)  // Weak reference.
   VISIT_FROM(key)
   COMPRESSED_POINTER_FIELD(ObjectPtr, value)
   VISIT_TO(value)
@@ -3273,8 +3273,10 @@ class UntaggedWeakProperty : public UntaggedInstance {
 
   // Linked list is chaining all pending weak properties. Not visited by
   // pointer visitors.
-  CompressedWeakPropertyPtr next_;
+  COMPRESSED_POINTER_FIELD(WeakPropertyPtr, next_seen_by_gc)
 
+  template <typename Type, typename PtrType>
+  friend class GCLinkedList;
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3288,7 +3290,7 @@ class UntaggedWeakProperty : public UntaggedInstance {
 class UntaggedWeakReference : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakReference);
 
-  COMPRESSED_POINTER_FIELD(ObjectPtr, target)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, target)  // Weak reference.
   VISIT_FROM(target)
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_TO(type_arguments)
@@ -3296,8 +3298,10 @@ class UntaggedWeakReference : public UntaggedInstance {
 
   // Linked list is chaining all pending weak properties. Not visited by
   // pointer visitors.
-  CompressedWeakReferencePtr next_;
+  COMPRESSED_POINTER_FIELD(WeakReferencePtr, next_seen_by_gc)
 
+  template <typename Type, typename PtrType>
+  friend class GCLinkedList;
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
