@@ -253,7 +253,7 @@ class OSThread : public BaseThread {
   static void Cleanup();
 #ifdef SUPPORT_TIMELINE
   static ThreadId GetCurrentThreadTraceId();
-#endif  // PRODUCT
+#endif  // SUPPORT_TIMELINE
   static OSThread* GetOSThreadFromThread(ThreadState* thread);
   static void AddThreadToListLocked(OSThread* thread);
   static void RemoveThreadFromList(OSThread* thread);

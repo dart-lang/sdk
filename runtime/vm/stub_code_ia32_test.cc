@@ -80,16 +80,20 @@ static void GenerateCallToCallLeafRuntimeStub(compiler::Assembler* assembler,
   const Smi& rhs_index = Smi::ZoneHandle(Smi::New(rhs_index_value));
   const Smi& length = Smi::ZoneHandle(Smi::New(length_value));
   __ enter(compiler::Immediate(0));
-  __ ReserveAlignedFrameSpace(4 * kWordSize);
-  __ LoadObject(EAX, str);
-  __ movl(compiler::Address(ESP, 0), EAX);  // Push argument 1.
-  __ LoadObject(EAX, lhs_index);
-  __ movl(compiler::Address(ESP, kWordSize), EAX);  // Push argument 2.
-  __ LoadObject(EAX, rhs_index);
-  __ movl(compiler::Address(ESP, 2 * kWordSize), EAX);  // Push argument 3.
-  __ LoadObject(EAX, length);
-  __ movl(compiler::Address(ESP, 3 * kWordSize), EAX);  // Push argument 4.
-  __ CallRuntime(kCaseInsensitiveCompareUCS2RuntimeEntry, 4);
+  {
+    compiler::LeafRuntimeScope rt(assembler,
+                                  /*frame_size=*/4 * kWordSize,
+                                  /*preserve_registers=*/false);
+    __ LoadObject(EAX, str);
+    __ movl(compiler::Address(ESP, 0), EAX);  // Push argument 1.
+    __ LoadObject(EAX, lhs_index);
+    __ movl(compiler::Address(ESP, kWordSize), EAX);  // Push argument 2.
+    __ LoadObject(EAX, rhs_index);
+    __ movl(compiler::Address(ESP, 2 * kWordSize), EAX);  // Push argument 3.
+    __ LoadObject(EAX, length);
+    __ movl(compiler::Address(ESP, 3 * kWordSize), EAX);  // Push argument 4.
+    rt.Call(kCaseInsensitiveCompareUCS2RuntimeEntry, 4);
+  }
   __ leave();
   __ ret();  // Return value is in EAX.
 }
@@ -109,6 +113,10 @@ ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       *CreateFunction("Test_CallLeafRuntimeStubCode"), nullptr, &assembler,
       Code::PoolAttachment::kAttachPool));
+  if (FLAG_disassemble) {
+    OS::PrintErr("Disassemble:\n");
+    code.Disassemble();
+  }
   const Function& function = RegisterFakeFunction(kName, code);
   Instance& result = Instance::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());

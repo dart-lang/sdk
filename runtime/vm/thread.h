@@ -92,9 +92,6 @@ class Thread;
   V(TypeParameter)
 
 #define CACHED_VM_STUBS_LIST(V)                                                \
-  V(CodePtr, write_barrier_code_, StubCode::WriteBarrier().ptr(), nullptr)     \
-  V(CodePtr, array_write_barrier_code_, StubCode::ArrayWriteBarrier().ptr(),   \
-    nullptr)                                                                   \
   V(CodePtr, fix_callers_target_code_, StubCode::FixCallersTarget().ptr(),     \
     nullptr)                                                                   \
   V(CodePtr, fix_allocation_stub_code_,                                        \

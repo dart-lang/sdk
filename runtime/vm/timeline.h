@@ -547,7 +547,7 @@ class TimelineEvent {
 #define TIMELINE_DURATION(thread, stream, name)
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)
-#endif  // !PRODUCT
+#endif  // SUPPORT_TIMELINE
 
 // See |TimelineBeginEndScope|.
 class TimelineEventScope : public StackResource {

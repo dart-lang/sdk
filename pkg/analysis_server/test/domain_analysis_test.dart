@@ -884,6 +884,62 @@ void f(A a) {}
     assertNoErrorsNotification(a_path);
   }
 
+  /// This test ensures that when an `addOverlay` cancels any pending
+  /// `removeOverlay` timer, it also removes it, so that a subsequent watch
+  /// event does not still try to process it.
+  Future<void>
+      test_fileSystem_removeOverlay_addOverlay_changeFile_changeOverlay() async {
+    // Use long delay, so that it does not happen.
+    server.pendingFilesRemoveOverlayDelay = const Duration(seconds: 300);
+
+    newFile2(testFilePath, '');
+
+    // Add an overlay without errors.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFilePathPlatform: AddContentOverlay(''),
+      }).toRequest('0'),
+    );
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+
+    // The test file (overlay) is analyzed, no errors.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      noErrors: [testFilePathPlatform],
+      notAnalyzed: [],
+    );
+
+    // Ask to remove the overlay, still active, start a timer.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFilePathPlatform: RemoveContentOverlay(),
+      }).toRequest('0'),
+    );
+
+    // Re-add an overlay. Should cancel the timer and replace the overlay.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFilePathPlatform: AddContentOverlay(''),
+      }).toRequest('0'),
+    );
+
+    // Change the file to trigger the watcher. Since the request above should
+    // have cancelled (and removed) the timer, this should not do anything
+    // (specifically, it should not remove the new overlay).
+    modifyFile(testFilePath, 'error');
+
+    // The overlay should still be present, so we should be able to change it.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFilePathPlatform: ChangeContentOverlay(
+          [SourceEdit(0, 0, '//')],
+        ),
+      }).toRequest('0'),
+    );
+  }
+
   Future<void> test_setPriorityFiles() async {
     var a = getFile('$workspaceRootPath/foo/lib/a.dart');
     var b = getFile('$workspaceRootPath/foo/lib/b.dart');

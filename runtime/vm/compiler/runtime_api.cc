@@ -320,6 +320,10 @@ bool RuntimeEntry::is_leaf() const {
   return runtime_entry_->is_leaf();
 }
 
+intptr_t RuntimeEntry::argument_count() const {
+  return runtime_entry_->argument_count();
+}
+
 namespace target {
 
 const word kOldPageSize = dart::kOldPageSize;

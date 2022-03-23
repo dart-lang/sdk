@@ -129,7 +129,7 @@ const char* CanonicalFunction(const char* func);
 #define API_TIMELINE_BEGIN_END(thread)                                         \
   do {                                                                         \
   } while (false)
-#endif  // !PRODUCT
+#endif  // SUPPORT_TIMELINE
 
 class Api : AllStatic {
  public:

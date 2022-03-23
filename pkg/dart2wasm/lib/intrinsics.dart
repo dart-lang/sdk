@@ -602,6 +602,16 @@ class Intrinsifier {
           b.i32_wrap_i64();
           b.struct_set(translator.objectInfo.struct, FieldIndex.identityHash);
           return codeGen.voidMarker;
+        case "_throwObjectWithStackTrace":
+          Expression object = node.arguments.positional[0];
+          Expression stackTrace = node.arguments.positional[1];
+          w.ValueType objectType = translator.topInfo.nonNullableType;
+          w.ValueType stackTraceType =
+              translator.stackTraceInfo.nonNullableType;
+          codeGen.wrap(object, objectType);
+          codeGen.wrap(stackTrace, stackTraceType);
+          b.throw_(translator.exceptionTag);
+          return codeGen.voidMarker;
       }
     }
 

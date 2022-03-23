@@ -90,9 +90,11 @@ class Translator {
   late final Class typedListClass;
   late final Class typedListViewClass;
   late final Class byteDataViewClass;
+  late final Class typeErrorClass;
   late final Procedure stackTraceCurrent;
   late final Procedure stringEquals;
   late final Procedure stringInterpolate;
+  late final Procedure throwNullCheckError;
   late final Procedure mapFactory;
   late final Procedure mapPut;
   late final Procedure immutableMapIndexNullable;
@@ -177,6 +179,7 @@ class Translator {
     stackTraceClass = lookupCore("StackTrace");
     ffiCompoundClass = lookupFfi("_Compound");
     ffiPointerClass = lookupFfi("Pointer");
+    typeErrorClass = lookupCore("_TypeError");
     typedListBaseClass = lookupTypedData("_TypedListBase");
     typedListClass = lookupTypedData("_TypedList");
     typedListViewClass = lookupTypedData("_TypedListView");
@@ -187,6 +190,8 @@ class Translator {
         stringBaseClass.procedures.firstWhere((p) => p.name.text == "==");
     stringInterpolate = stringBaseClass.procedures
         .firstWhere((p) => p.name.text == "_interpolate");
+    throwNullCheckError = typeErrorClass.procedures
+        .firstWhere((p) => p.name.text == "_throwNullCheckError");
     mapFactory = lookupCollection("LinkedHashMap").procedures.firstWhere(
         (p) => p.kind == ProcedureKind.Factory && p.name.text == "_default");
     mapPut = lookupCollection("_CompactLinkedCustomHashMap")

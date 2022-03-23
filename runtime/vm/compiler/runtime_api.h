@@ -211,10 +211,6 @@ word LookupFieldOffsetInBytes(const Field& field);
 uword SymbolsPredefinedAddress();
 #endif
 
-typedef void (*RuntimeEntryCallInternal)(const dart::RuntimeEntry*,
-                                         Assembler*,
-                                         intptr_t);
-
 const Code& StubCodeAllocateArray();
 const Code& StubCodeSubtype3TestCache();
 const Code& StubCodeSubtype7TestCache();
@@ -223,43 +219,17 @@ class RuntimeEntry : public ValueObject {
  public:
   virtual ~RuntimeEntry() {}
 
-  void Call(Assembler* assembler, intptr_t argument_count) const {
-    ASSERT(call_ != NULL);
-    ASSERT(runtime_entry_ != NULL);
-
-    // We call a manually set function pointer which points to the
-    // implementation of call for the subclass. We do this instead of just
-    // defining Call in this class as a pure virtual method and providing an
-    // implementation in the subclass as RuntimeEntry objects are declared as
-    // globals which causes problems on Windows.
-    //
-    // When exit() is called on Windows, global objects start to be destroyed.
-    // As part of an object's destruction, the vtable is reset to that of the
-    // base class. Since some threads may still be running and accessing these
-    // now destroyed globals, an invocation to dart::RuntimeEntry::Call would
-    // instead invoke dart::compiler::RuntimeEntry::Call. If
-    // dart::compiler::RuntimeEntry::Call were a pure virtual method, _purecall
-    // would be invoked to handle the invalid call and attempt to call exit(),
-    // causing the process to hang on a lock.
-    //
-    // By removing the need to rely on a potentially invalid vtable at exit,
-    // we should be able to avoid hanging or crashing the process at shutdown,
-    // even as global objects start to be destroyed. See issue #35855.
-    call_(runtime_entry_, assembler, argument_count);
-  }
-
   word OffsetFromThread() const;
 
   bool is_leaf() const;
+  intptr_t argument_count() const;
 
  protected:
-  RuntimeEntry(const dart::RuntimeEntry* runtime_entry,
-               RuntimeEntryCallInternal call)
-      : runtime_entry_(runtime_entry), call_(call) {}
+  explicit RuntimeEntry(const dart::RuntimeEntry* runtime_entry)
+      : runtime_entry_(runtime_entry) {}
 
  private:
   const dart::RuntimeEntry* runtime_entry_;
-  RuntimeEntryCallInternal call_;
 };
 
 #define DECLARE_RUNTIME_ENTRY(name)                                            \

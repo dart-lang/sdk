@@ -67,8 +67,8 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "1aa59ff2f789776ebfa2d4b315fd3ea589652b4a",
-  "gn_revision": "b79031308cc878488202beb99883ec1f2efd9a6d",
+  "clang_revision": "c2592c374e469f343ecea82d6728609650924259",
+  "gn_revision": "d7c2209cebcfe37f46dba7be4e1a7000ffc342fb",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "bb994c6f067340c1135eb43eed84f4b33cfa7397",
@@ -130,7 +130,7 @@ vars = {
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "7479783f0493f6717e1d7ae31cb37d39a91026b2",
   "matcher_rev": "07595a7739d47a8315caba5a8e58fb9ae3d81261",
-  "mime_rev": "7f4252d469de032aa4df9f90e827dbac4b8efa48",
+  "mime_rev": "c2c5ffd594674f32dc277521369da1557a1622d3",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
   "package_config_rev": "8731bf10b5375542792a32a0f7c8a6f370583d96",

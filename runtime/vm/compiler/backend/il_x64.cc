@@ -5031,18 +5031,11 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
 }
 
 void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Save RSP. R13 is chosen because it is callee saved so we do not need to
-  // back it up before calling into the runtime.
-  static const Register kSavedSPReg = R13;
-  __ movq(kSavedSPReg, RSP);
-  __ ReserveAlignedFrameSpace(0);
-
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
   // Call the function. Parameters are already in their correct spots.
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
-
-  // Restore RSP.
-  __ movq(RSP, kSavedSPReg);
+  rt.Call(TargetFunction(), TargetFunction().argument_count());
 }
 
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary(Zone* zone,
@@ -5524,18 +5517,15 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ jmp(&skip_call);
 
   __ Bind(&do_pow);
-
-  // Save RSP.
-  __ movq(locs->temp(InvokeMathCFunctionInstr::kSavedSpTempIndex).reg(), RSP);
-  __ ReserveAlignedFrameSpace(0);
-  __ movaps(XMM0, locs->in(0).fpu_reg());
-  ASSERT(locs->in(1).fpu_reg() == XMM1);
-
-  ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(instr->TargetFunction(), kInputCount);
-  __ movaps(locs->out(0).fpu_reg(), XMM0);
-  // Restore RSP.
-  __ movq(RSP, locs->temp(InvokeMathCFunctionInstr::kSavedSpTempIndex).reg());
+  {
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
+    __ movaps(XMM0, locs->in(0).fpu_reg());
+    ASSERT(locs->in(1).fpu_reg() == XMM1);
+    rt.Call(instr->TargetFunction(), kInputCount);
+    __ movaps(locs->out(0).fpu_reg(), XMM0);
+  }
   __ Bind(&skip_call);
 }
 
@@ -5545,21 +5535,15 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
   ASSERT(locs()->in(0).fpu_reg() == XMM0);
   if (InputCount() == 2) {
     ASSERT(locs()->in(1).fpu_reg() == XMM1);
   }
-
-  // Save RSP.
-  __ movq(locs()->temp(kSavedSpTempIndex).reg(), RSP);
-  __ ReserveAlignedFrameSpace(0);
-
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), InputCount());
+  rt.Call(TargetFunction(), InputCount());
   ASSERT(locs()->out(0).fpu_reg() == XMM0);
-
-  // Restore RSP.
-  __ movq(RSP, locs()->temp(kSavedSpTempIndex).reg());
 }
 
 LocationSummary* ExtractNthOutputInstr::MakeLocationSummary(Zone* zone,

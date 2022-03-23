@@ -12,6 +12,7 @@
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/simulator.h"
+#include "vm/tags.h"
 
 namespace dart {
 
@@ -255,17 +256,15 @@ void Assembler::Bind(Label* label) {
 
 #if defined(USING_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Register addr) {
-  EnterCallRuntimeFrame(/*frame_size=*/0, /*is_leaf=*/true);
-  ASSERT(kTsanLoadAcquireRuntimeEntry.is_leaf());
-  CallRuntime(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
-  LeaveCallRuntimeFrame(/*is_leaf=*/true);
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(R0, addr);
+  rt.Call(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
 }
 
 void Assembler::TsanStoreRelease(Register addr) {
-  EnterCallRuntimeFrame(/*frame_size=*/0, /*is_leaf=*/true);
-  ASSERT(kTsanStoreReleaseRuntimeEntry.is_leaf());
-  CallRuntime(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
-  LeaveCallRuntimeFrame(/*is_leaf=*/true);
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(R0, addr);
+  rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
 }
 #endif
 
@@ -704,10 +703,6 @@ void Assembler::BranchLink(const Code& target,
       object_pool_builder().FindObject(ToObject(target), patchable);
   LoadWordFromPoolIndex(CODE_REG, index);
   Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
-}
-
-void Assembler::BranchLinkToRuntime() {
-  Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
 
 void Assembler::BranchLinkWithEquivalence(const Code& target,
@@ -1820,109 +1815,82 @@ void Assembler::TransitionNativeToGenerated(Register state,
   StoreToOffset(state, THR, target::Thread::exit_through_ffi_offset());
 }
 
-void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
-  Comment("EnterCallRuntimeFrame");
-  EnterFrame(0);
-  if (!FLAG_precompiled_mode) {
-    TagAndPushPPAndPcMarker();  // Save PP and PC marker.
-  }
-
-  // Store fpu registers with the lowest register number at the lowest
-  // address.
-  for (int i = kNumberOfVRegisters - 1; i >= 0; i--) {
-    if ((i >= kAbiFirstPreservedFpuReg) && (i <= kAbiLastPreservedFpuReg)) {
-      // TODO(zra): When SIMD is added, we must also preserve the top
-      // 64-bits of the callee-saved registers.
-      continue;
-    }
-    // TODO(zra): Save the whole V register.
-    VRegister reg = static_cast<VRegister>(i);
-    PushDouble(reg);
-  }
-
-  for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
-    const Register reg = static_cast<Register>(i);
-    Push(reg);
-  }
-
-  if (!is_leaf) {  // Leaf calling sequence aligns the stack itself.
-    ReserveAlignedFrameSpace(frame_size);
-  } else {
-    PushPair(kCallLeafRuntimeCalleeSaveScratch1,
-             kCallLeafRuntimeCalleeSaveScratch2);
-  }
-}
-
-void Assembler::LeaveCallRuntimeFrame(bool is_leaf) {
-  // SP might have been modified to reserve space for arguments
-  // and ensure proper alignment of the stack frame.
-  // We need to restore it before restoring registers.
-  const intptr_t fixed_frame_words_without_pc_and_fp =
-      target::frame_layout.dart_fixed_frame_size - 2;
-  const intptr_t kPushedRegistersSize =
-      kDartVolatileFpuRegCount * sizeof(double) +
-      (kDartVolatileCpuRegCount + (is_leaf ? 2 : 0) +
-       fixed_frame_words_without_pc_and_fp) *
-          target::kWordSize;
-  AddImmediate(SP, FP, -kPushedRegistersSize);
-  if (is_leaf) {
-    PopPair(kCallLeafRuntimeCalleeSaveScratch1,
-            kCallLeafRuntimeCalleeSaveScratch2);
-  }
-  for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
-    const Register reg = static_cast<Register>(i);
-    Pop(reg);
-  }
-
-  for (int i = 0; i < kNumberOfVRegisters; i++) {
-    if ((i >= kAbiFirstPreservedFpuReg) && (i <= kAbiLastPreservedFpuReg)) {
-      // TODO(zra): When SIMD is added, we must also restore the top
-      // 64-bits of the callee-saved registers.
-      continue;
-    }
-    // TODO(zra): Restore the whole V register.
-    VRegister reg = static_cast<VRegister>(i);
-    PopDouble(reg);
-  }
-
-  LeaveStubFrame();
-}
-
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
-  entry.Call(this, argument_count);
+  ASSERT(!entry.is_leaf());
+  // Argument count is not checked here, but in the runtime entry for a more
+  // informative error message.
+  ldr(R5, compiler::Address(THR, entry.OffsetFromThread()));
+  LoadImmediate(R4, argument_count);
+  Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
 
-void Assembler::CallRuntimeScope::Call(intptr_t argument_count) {
-  assembler_->CallRuntime(entry_, argument_count);
-}
+// FPU: Only the bottom 64-bits of v8-v15 are preserved by the caller. The upper
+// bits might be in use by Dart, so we save the whole register.
+static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
+                                                    kAllFpuRegistersList);
 
-Assembler::CallRuntimeScope::~CallRuntimeScope() {
-  if (preserve_registers_) {
-    assembler_->LeaveCallRuntimeFrame(entry_.is_leaf());
-    if (restore_code_reg_) {
-      assembler_->Pop(CODE_REG);
-    }
+#undef __
+#define __ assembler_->
+
+LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
+                                   intptr_t frame_size,
+                                   bool preserve_registers)
+    : assembler_(assembler), preserve_registers_(preserve_registers) {
+  __ Comment("EnterCallRuntimeFrame");
+  __ EnterFrame(0);
+
+  if (preserve_registers) {
+    __ PushRegisters(kRuntimeCallSavedRegisters);
+  } else {
+    // These registers must always be preserved.
+    COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+    COMPILE_ASSERT(IsCalleeSavedRegister(PP));
+    COMPILE_ASSERT(IsCalleeSavedRegister(CODE_REG));
+    COMPILE_ASSERT(IsCalleeSavedRegister(NULL_REG));
+    COMPILE_ASSERT(IsCalleeSavedRegister(HEAP_BITS));
+    COMPILE_ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
   }
+
+  __ ReserveAlignedFrameSpace(frame_size);
 }
 
-Assembler::CallRuntimeScope::CallRuntimeScope(Assembler* assembler,
-                                              const RuntimeEntry& entry,
-                                              intptr_t frame_size,
-                                              bool preserve_registers,
-                                              const Address* caller)
-    : assembler_(assembler),
-      entry_(entry),
-      preserve_registers_(preserve_registers),
-      restore_code_reg_(caller != nullptr) {
-  if (preserve_registers_) {
-    if (caller != nullptr) {
-      assembler_->Push(CODE_REG);
-      assembler_->ldr(CODE_REG, *caller);
-    }
-    assembler_->EnterCallRuntimeFrame(frame_size, entry.is_leaf());
-  }
+void LeafRuntimeScope::Call(const RuntimeEntry& entry,
+                            intptr_t argument_count) {
+  ASSERT(argument_count == entry.argument_count());
+  // Since we are entering C++ code, we must restore the C stack pointer from
+  // the stack limit to an aligned value nearer to the top of the stack.
+  // We cache the stack limit in callee-saved registers, then align and call,
+  // restoring CSP and SP on return from the call.
+  // This sequence may occur in an intrinsic, so don't use registers an
+  // intrinsic must preserve.
+  __ mov(CSP, SP);
+  __ ldr(TMP, compiler::Address(THR, entry.OffsetFromThread()));
+  __ str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  __ blr(TMP);
+  __ LoadImmediate(TMP, VMTag::kDartTagId);
+  __ str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  __ SetupCSPFromThread(THR);
 }
+
+LeafRuntimeScope::~LeafRuntimeScope() {
+  if (preserve_registers_) {
+    // SP might have been modified to reserve space for arguments
+    // and ensure proper alignment of the stack frame.
+    // We need to restore it before restoring registers.
+    const intptr_t kPushedRegistersSize =
+        kRuntimeCallSavedRegisters.CpuRegisterCount() * target::kWordSize +
+        kRuntimeCallSavedRegisters.FpuRegisterCount() * kFpuRegisterSize;
+    __ AddImmediate(SP, FP, -kPushedRegistersSize);
+    __ PopRegisters(kRuntimeCallSavedRegisters);
+  }
+
+  __ LeaveFrame();
+}
+
+// For use by LR related macros (e.g. CLOBBERS_LR).
+#undef __
+#define __ this->
 
 void Assembler::EnterStubFrame() {
   EnterDartFrame(0);

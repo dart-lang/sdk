@@ -12,6 +12,7 @@
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/simulator.h"
+#include "vm/tags.h"
 
 namespace dart {
 
@@ -2323,10 +2324,14 @@ void Assembler::LoadField(Register dst, const FieldAddress& address) {
 
 #if defined(USING_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Register addr) {
-  UNIMPLEMENTED();
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(A0, addr);
+  rt.Call(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
 }
 void Assembler::TsanStoreRelease(Register addr) {
-  UNIMPLEMENTED();
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(A0, addr);
+  rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
 }
 #endif
 
@@ -2672,10 +2677,6 @@ void Assembler::JumpAndLink(const Code& target,
       object_pool_builder().FindObject(ToObject(target), patchable);
   LoadWordFromPoolIndex(CODE_REG, index);
   Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
-}
-
-void Assembler::JumpAndLinkToRuntime() {
-  Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
 
 void Assembler::JumpAndLinkWithEquivalence(const Code& target,
@@ -3721,8 +3722,79 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
-  entry.Call(this, argument_count);
+  ASSERT(!entry.is_leaf());
+  // Argument count is not checked here, but in the runtime entry for a more
+  // informative error message.
+  lx(T5, compiler::Address(THR, entry.OffsetFromThread()));
+  li(T4, argument_count);
+  Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
+
+static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
+                                                    kAbiVolatileFpuRegs);
+
+#define __ assembler_->
+
+LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
+                                   intptr_t frame_size,
+                                   bool preserve_registers)
+    : assembler_(assembler), preserve_registers_(preserve_registers) {
+  // N.B. The ordering here is important. We must never write beyond SP or
+  // it can be clobbered by a signal handler.
+  __ subi(SP, SP, 4 * target::kWordSize);
+  __ sx(RA, Address(SP, 3 * target::kWordSize));
+  __ sx(FP, Address(SP, 2 * target::kWordSize));
+  __ sx(CODE_REG, Address(SP, 1 * target::kWordSize));
+  __ sx(PP, Address(SP, 0 * target::kWordSize));
+  __ addi(FP, SP, 4 * target::kWordSize);
+
+  if (preserve_registers) {
+    __ PushRegisters(kRuntimeCallSavedRegisters);
+  } else {
+    // Or no reason to save above.
+    COMPILE_ASSERT(!IsAbiPreservedRegister(CODE_REG));
+    COMPILE_ASSERT(!IsAbiPreservedRegister(PP));
+    // Or would need to save above.
+    COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+    COMPILE_ASSERT(IsCalleeSavedRegister(NULL_REG));
+    COMPILE_ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_MASK));
+    COMPILE_ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+  }
+
+  __ ReserveAlignedFrameSpace(frame_size);
+}
+
+void LeafRuntimeScope::Call(const RuntimeEntry& entry,
+                            intptr_t argument_count) {
+  ASSERT(argument_count == entry.argument_count());
+  __ lx(TMP2, compiler::Address(THR, entry.OffsetFromThread()));
+  __ sx(TMP2, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  __ jalr(TMP2);
+  __ LoadImmediate(TMP2, VMTag::kDartTagId);
+  __ sx(TMP2, compiler::Address(THR, target::Thread::vm_tag_offset()));
+}
+
+LeafRuntimeScope::~LeafRuntimeScope() {
+  if (preserve_registers_) {
+    const intptr_t kSavedRegistersSize =
+        kRuntimeCallSavedRegisters.CpuRegisterCount() * target::kWordSize +
+        kRuntimeCallSavedRegisters.FpuRegisterCount() * kFpuRegisterSize +
+        4 * target::kWordSize;
+
+    __ subi(SP, FP, kSavedRegistersSize);
+
+    __ PopRegisters(kRuntimeCallSavedRegisters);
+  }
+
+  __ subi(SP, FP, 4 * target::kWordSize);
+  __ lx(PP, Address(SP, 0 * target::kWordSize));
+  __ lx(CODE_REG, Address(SP, 1 * target::kWordSize));
+  __ lx(FP, Address(SP, 2 * target::kWordSize));
+  __ lx(RA, Address(SP, 3 * target::kWordSize));
+  __ addi(SP, SP, 4 * target::kWordSize);
+}
+
+#undef __
 
 void Assembler::EnterCFrame(intptr_t frame_space) {
   // N.B. The ordering here is important. We must never read beyond SP or
@@ -4164,81 +4236,6 @@ void Assembler::LoadObjectHelper(Register dst,
   }
   ASSERT(target::IsSmi(object));
   LoadImmediate(dst, target::ToRawSmi(object));
-}
-
-static const RegisterSet kRuntimeCallSavedRegisters(
-    kAbiVolatileCpuRegs | (1 << CALLEE_SAVED_TEMP) | (1 << CALLEE_SAVED_TEMP2),
-    kAbiVolatileFpuRegs);
-
-// Note: leaf call sequence uses some abi callee save registers as scratch
-// so they should be manually preserved.
-void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
-  // N.B. The ordering here is important. We must never write beyond SP or
-  // it can be clobbered by a signal handler.
-  if (FLAG_precompiled_mode) {
-    subi(SP, SP, 2 * target::kWordSize + frame_size);
-    sx(RA, Address(SP, 1 * target::kWordSize + frame_size));
-    sx(FP, Address(SP, 0 * target::kWordSize + frame_size));
-    addi(FP, SP, 2 * target::kWordSize + frame_size);
-  } else {
-    subi(SP, SP, 4 * target::kWordSize + frame_size);
-    sx(RA, Address(SP, 3 * target::kWordSize + frame_size));
-    sx(FP, Address(SP, 2 * target::kWordSize + frame_size));
-    sx(CODE_REG, Address(SP, 1 * target::kWordSize + frame_size));
-    addi(PP, PP, kHeapObjectTag);
-    sx(PP, Address(SP, 0 * target::kWordSize + frame_size));
-    addi(FP, SP, 4 * target::kWordSize + frame_size);
-  }
-
-  PushRegisters(kRuntimeCallSavedRegisters);
-
-  if (!is_leaf) {  // Leaf calling sequence aligns the stack itself.
-    ReserveAlignedFrameSpace(0);
-  }
-}
-
-void Assembler::LeaveCallRuntimeFrame(bool is_leaf) {
-  const intptr_t kPushedRegistersSize =
-      kRuntimeCallSavedRegisters.CpuRegisterCount() * target::kWordSize +
-      kRuntimeCallSavedRegisters.FpuRegisterCount() * kFpuRegisterSize +
-      (target::frame_layout.dart_fixed_frame_size * target::kWordSize);
-
-  subi(SP, FP, kPushedRegistersSize);
-
-  PopRegisters(kRuntimeCallSavedRegisters);
-
-  LeaveStubFrame();
-}
-
-void Assembler::CallRuntimeScope::Call(intptr_t argument_count) {
-  assembler_->CallRuntime(entry_, argument_count);
-}
-
-Assembler::CallRuntimeScope::~CallRuntimeScope() {
-  if (preserve_registers_) {
-    assembler_->LeaveCallRuntimeFrame(entry_.is_leaf());
-    if (restore_code_reg_) {
-      assembler_->PopRegister(CODE_REG);
-    }
-  }
-}
-
-Assembler::CallRuntimeScope::CallRuntimeScope(Assembler* assembler,
-                                              const RuntimeEntry& entry,
-                                              intptr_t frame_size,
-                                              bool preserve_registers,
-                                              const Address* caller)
-    : assembler_(assembler),
-      entry_(entry),
-      preserve_registers_(preserve_registers),
-      restore_code_reg_(caller != nullptr) {
-  if (preserve_registers_) {
-    if (caller != nullptr) {
-      assembler_->PushRegister(CODE_REG);
-      assembler_->lx(CODE_REG, *caller);
-    }
-    assembler_->EnterCallRuntimeFrame(frame_size, entry.is_leaf());
-  }
 }
 
 void Assembler::AddImmediateBranchOverflow(Register rd,

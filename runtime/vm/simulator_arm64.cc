@@ -966,6 +966,19 @@ void Simulator::set_register(Instr* instr,
     if ((instr != NULL) && (reg == R31) && !Utils::IsAligned(value, 16)) {
       UnalignedAccess("CSP set", value, instr);
     }
+
+#if defined(DEBUG)
+    if (reg == SP) {
+      // Memory below CSP can be written to at any instruction boundary by a
+      // signal handler. Simulate this to ensure we're keeping CSP far enough
+      // ahead of SP to prevent Dart frames from being trashed.
+      uword csp = registers_[R31];
+      WriteX(csp - 1 * kWordSize, icount_, NULL);
+      WriteX(csp - 2 * kWordSize, icount_, NULL);
+      WriteX(csp - 3 * kWordSize, icount_, NULL);
+      WriteX(csp - 4 * kWordSize, icount_, NULL);
+    }
+#endif
   }
 }
 

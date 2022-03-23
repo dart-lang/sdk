@@ -4708,9 +4708,11 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
 }
 
 void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Call the function.
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
+  // Call the function. Parameters are already in their correct spots.
+  rt.Call(TargetFunction(), TargetFunction().argument_count());
 }
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
@@ -5163,9 +5165,15 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
 
   __ Bind(&do_pow);
   __ fmovdd(base, saved_base);  // Restore base.
-
-  ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(instr->TargetFunction(), kInputCount);
+  {
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
+    ASSERT(base == V0);
+    ASSERT(exp == V1);
+    rt.Call(instr->TargetFunction(), kInputCount);
+    ASSERT(result == V0);
+  }
   __ Bind(&skip_call);
 }
 
@@ -5174,8 +5182,16 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     InvokeDoublePow(compiler, this);
     return;
   }
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), InputCount());
+
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
+  ASSERT(locs()->in(0).fpu_reg() == V0);
+  if (InputCount() == 2) {
+    ASSERT(locs()->in(1).fpu_reg() == V1);
+  }
+  rt.Call(TargetFunction(), InputCount());
+  ASSERT(locs()->out(0).fpu_reg() == V0);
 }
 
 LocationSummary* ExtractNthOutputInstr::MakeLocationSummary(Zone* zone,

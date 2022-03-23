@@ -11,6 +11,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/instructions.h"
+#include "vm/tags.h"
 
 namespace dart {
 
@@ -85,10 +86,6 @@ void Assembler::Call(const Code& target) {
       ToObject(target), ObjectPoolBuilderEntry::kNotPatchable);
   LoadWordFromPoolIndex(CODE_REG, idx);
   call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-}
-
-void Assembler::CallToRuntime() {
-  call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
 
 void Assembler::pushq(Register reg) {
@@ -1882,42 +1879,6 @@ static const RegisterSet kVolatileRegisterSet(
     CallingConventions::kVolatileCpuRegisters,
     CallingConventions::kVolatileXmmRegisters);
 
-void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
-  Comment("EnterCallRuntimeFrame");
-  EnterFrame(0);
-  if (!FLAG_precompiled_mode) {
-    pushq(CODE_REG);
-    pushq(PP);
-  }
-
-  // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
-  PushRegisters(kVolatileRegisterSet);
-
-  ReserveAlignedFrameSpace(frame_space);
-}
-
-void Assembler::LeaveCallRuntimeFrame() {
-  // RSP might have been modified to reserve space for arguments
-  // and ensure proper alignment of the stack frame.
-  // We need to restore it before restoring registers.
-  const intptr_t kPushedCpuRegistersCount =
-      RegisterSet::RegisterCount(CallingConventions::kVolatileCpuRegisters);
-  const intptr_t kPushedXmmRegistersCount =
-      RegisterSet::RegisterCount(CallingConventions::kVolatileXmmRegisters);
-  const intptr_t kPushedRegistersSize =
-      kPushedCpuRegistersCount * target::kWordSize +
-      kPushedXmmRegistersCount * kFpuRegisterSize +
-      (target::frame_layout.dart_fixed_frame_size - 2) *
-          target::kWordSize;  // From EnterStubFrame (excluding PC / FP)
-
-  leaq(RSP, Address(RBP, -kPushedRegistersSize));
-
-  // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
-  PopRegisters(kVolatileRegisterSet);
-
-  LeaveStubFrame();
-}
-
 void Assembler::CallCFunction(Register reg, bool restore_rsp) {
   // Reserve shadow space for outgoing arguments.
   if (CallingConventions::kShadowSpaceBytes != 0) {
@@ -1943,24 +1904,86 @@ void Assembler::CallCFunction(Address address, bool restore_rsp) {
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
-  entry.Call(this, argument_count);
+  ASSERT(!entry.is_leaf());
+  // Argument count is not checked here, but in the runtime entry for a more
+  // informative error message.
+  movq(RBX, compiler::Address(THR, entry.OffsetFromThread()));
+  LoadImmediate(R10, compiler::Immediate(argument_count));
+  call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+}
+
+#define __ assembler_->
+
+LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
+                                   intptr_t frame_size,
+                                   bool preserve_registers)
+    : assembler_(assembler), preserve_registers_(preserve_registers) {
+  __ Comment("EnterCallRuntimeFrame");
+  __ EnterFrame(0);
+
+  if (preserve_registers_) {
+    // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
+    __ PushRegisters(kVolatileRegisterSet);
+  } else {
+    // These registers must always be preserved.
+    ASSERT(IsCalleeSavedRegister(THR));
+    ASSERT(IsCalleeSavedRegister(PP));
+    ASSERT(IsCalleeSavedRegister(CODE_REG));
+  }
+
+  __ ReserveAlignedFrameSpace(frame_size);
+}
+
+void LeafRuntimeScope::Call(const RuntimeEntry& entry,
+                            intptr_t argument_count) {
+  ASSERT(entry.is_leaf());
+  ASSERT(entry.argument_count() == argument_count);
+  COMPILE_ASSERT(CallingConventions::kVolatileCpuRegisters & (1 << RAX));
+  __ movq(RAX, compiler::Address(THR, entry.OffsetFromThread()));
+  __ movq(compiler::Assembler::VMTagAddress(), RAX);
+  __ CallCFunction(RAX);
+  __ movq(compiler::Assembler::VMTagAddress(),
+          compiler::Immediate(VMTag::kDartTagId));
+}
+
+LeafRuntimeScope::~LeafRuntimeScope() {
+  if (preserve_registers_) {
+    // RSP might have been modified to reserve space for arguments
+    // and ensure proper alignment of the stack frame.
+    // We need to restore it before restoring registers.
+    const intptr_t kPushedCpuRegistersCount =
+        RegisterSet::RegisterCount(CallingConventions::kVolatileCpuRegisters);
+    const intptr_t kPushedXmmRegistersCount =
+        RegisterSet::RegisterCount(CallingConventions::kVolatileXmmRegisters);
+    const intptr_t kPushedRegistersSize =
+        kPushedCpuRegistersCount * target::kWordSize +
+        kPushedXmmRegistersCount * kFpuRegisterSize;
+
+    __ leaq(RSP, Address(RBP, -kPushedRegistersSize));
+
+    // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
+    __ PopRegisters(kVolatileRegisterSet);
+  } else {
+    const intptr_t kPushedRegistersSize =
+        (target::frame_layout.dart_fixed_frame_size - 2) *
+        target::kWordSize;  // From EnterStubFrame (excluding PC / FP)
+    __ leaq(RSP, Address(RBP, -kPushedRegistersSize));
+  }
+
+  __ LeaveFrame();
 }
 
 #if defined(USING_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Address addr) {
-  PushRegisters(kVolatileRegisterSet);
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   leaq(CallingConventions::kArg1Reg, addr);
-  ASSERT(kTsanLoadAcquireRuntimeEntry.is_leaf());
-  CallRuntime(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
-  PopRegisters(kVolatileRegisterSet);
+  rt.Call(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
 }
 
 void Assembler::TsanStoreRelease(Address addr) {
-  PushRegisters(kVolatileRegisterSet);
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   leaq(CallingConventions::kArg1Reg, addr);
-  ASSERT(kTsanStoreReleaseRuntimeEntry.is_leaf());
-  CallRuntime(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
-  PopRegisters(kVolatileRegisterSet);
+  rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
 }
 #endif
 

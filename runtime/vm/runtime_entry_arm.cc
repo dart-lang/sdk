@@ -39,41 +39,6 @@ uword RuntimeEntry::GetEntryPoint() const {
   return entry;
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-// Generate code to call into the stub which will call the runtime
-// function. Input for the stub is as follows:
-//   SP : points to the arguments and return value array.
-//   R9 : address of the runtime function to call.
-//   R4 : number of arguments to the call.
-void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
-                                compiler::Assembler* assembler,
-                                intptr_t argument_count) {
-  if (runtime_entry->is_leaf()) {
-    ASSERT(argument_count == runtime_entry->argument_count());
-    __ LoadFromOffset(
-        TMP, THR, compiler::target::Thread::OffsetFromThread(runtime_entry));
-    __ str(TMP,
-           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
-    __ blx(TMP);
-    __ LoadImmediate(TMP, VMTag::kDartTagId);
-    __ str(TMP,
-           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
-    // These registers must be preserved by runtime functions, otherwise
-    // we'd need to restore them here.
-    COMPILE_ASSERT(IsCalleeSavedRegister(THR));
-    COMPILE_ASSERT(IsCalleeSavedRegister(PP));
-    COMPILE_ASSERT(IsCalleeSavedRegister(CODE_REG));
-  } else {
-    // Argument count is not checked here, but in the runtime entry for a more
-    // informative error message.
-    __ LoadFromOffset(
-        R9, THR, compiler::target::Thread::OffsetFromThread(runtime_entry));
-    __ LoadImmediate(R4, argument_count);
-    __ BranchLinkToRuntime();
-  }
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

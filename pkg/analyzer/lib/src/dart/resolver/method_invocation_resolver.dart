@@ -327,14 +327,14 @@ class MethodInvocationResolver {
   void _resolveArguments_finishInference(
       MethodInvocationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
-    var methodInvocationInferrer = MethodInvocationInferrer.forNode(node);
     var rawType = node.methodName.staticType;
-    DartType staticStaticType = methodInvocationInferrer.resolveInvocation(
-        resolver: _resolver,
-        node: node,
-        rawType: rawType is FunctionType ? rawType : null,
-        contextType: contextType,
-        whyNotPromotedList: whyNotPromotedList);
+    DartType staticStaticType = const MethodInvocationInferrer()
+        .resolveInvocation(
+            resolver: _resolver,
+            node: node,
+            rawType: rawType is FunctionType ? rawType : null,
+            contextType: contextType,
+            whyNotPromotedList: whyNotPromotedList);
     _inferenceHelper.recordStaticType(node, staticStaticType,
         contextType: contextType);
   }
@@ -473,7 +473,7 @@ class MethodInvocationResolver {
     }
 
     _setExplicitTypeArgumentTypes();
-    MethodInvocationInferrer.forNode(node).resolveInvocation(
+    const MethodInvocationInferrer().resolveInvocation(
         resolver: _resolver,
         node: node,
         rawType: rawType,
@@ -546,7 +546,7 @@ class MethodInvocationResolver {
       node.staticInvokeType = _dynamicType;
       node.staticType = NeverTypeImpl.instance;
 
-      MethodInvocationInferrer.forNode(node).resolveInvocation(
+      const MethodInvocationInferrer().resolveInvocation(
           resolver: _resolver,
           node: node,
           rawType: null,
@@ -565,7 +565,7 @@ class MethodInvocationResolver {
       node.staticInvokeType = _dynamicType;
       node.staticType = _dynamicType;
 
-      MethodInvocationInferrer.forNode(node).resolveInvocation(
+      const MethodInvocationInferrer().resolveInvocation(
           resolver: _resolver,
           node: node,
           rawType: null,

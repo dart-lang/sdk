@@ -132,16 +132,3 @@ int hexDigitValue(int hexDigit) {
   if (hexDigit <= $9) return hexDigit - $0;
   return (hexDigit | ($a ^ $A)) - ($a - 10);
 }
-
-bool isUnicodeScalarValue(int value) {
-  return value < $FIRST_SURROGATE ||
-      (value > $LAST_SURROGATE && value <= $LAST_CODE_POINT);
-}
-
-bool isUtf16LeadSurrogate(int value) {
-  return value >= 0xd800 && value <= 0xdbff;
-}
-
-bool isUtf16TrailSurrogate(int value) {
-  return value >= 0xdc00 && value <= 0xdfff;
-}

@@ -81,12 +81,16 @@ static void GenerateCallToCallLeafRuntimeStub(compiler::Assembler* assembler,
   const Smi& rhs_index = Smi::ZoneHandle(Smi::New(rhs_index_value));
   const Smi& length = Smi::ZoneHandle(Smi::New(length_value));
   __ EnterStubFrame();
-  __ ReserveAlignedFrameSpace(0);
-  __ LoadObject(CallingConventions::kArg1Reg, str);
-  __ LoadObject(CallingConventions::kArg2Reg, lhs_index);
-  __ LoadObject(CallingConventions::kArg3Reg, rhs_index);
-  __ LoadObject(CallingConventions::kArg4Reg, length);
-  __ CallRuntime(kCaseInsensitiveCompareUCS2RuntimeEntry, 4);
+  {
+    compiler::LeafRuntimeScope rt(assembler,
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
+    __ LoadObject(CallingConventions::kArg1Reg, str);
+    __ LoadObject(CallingConventions::kArg2Reg, lhs_index);
+    __ LoadObject(CallingConventions::kArg3Reg, rhs_index);
+    __ LoadObject(CallingConventions::kArg4Reg, length);
+    rt.Call(kCaseInsensitiveCompareUCS2RuntimeEntry, 4);
+  }
   __ LeaveStubFrame();
   __ ret();  // Return value is in RAX.
 }
@@ -107,6 +111,10 @@ ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       *CreateFunction("Test_CallLeafRuntimeStubCode"), nullptr, &assembler,
       Code::PoolAttachment::kAttachPool));
+  if (FLAG_disassemble) {
+    OS::PrintErr("Disassemble:\n");
+    code.Disassemble();
+  }
   const Function& function = RegisterFakeFunction(kName, code);
   Instance& result = Instance::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());

@@ -12,6 +12,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
+#include "vm/tags.h"
 
 // An extra check since we are assuming the existence of /proc/cpuinfo below.
 #if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) &&   \
@@ -2727,11 +2728,6 @@ void Assembler::BranchLinkPatchable(const Code& target,
   BranchLink(target, ObjectPoolBuilderEntry::kPatchable, entry_kind);
 }
 
-void Assembler::BranchLinkToRuntime() {
-  ldr(IP, Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
-  blx(IP);
-}
-
 void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           const Object& equivalence,
                                           CodeEntryKind entry_kind) {
@@ -3269,62 +3265,103 @@ void Assembler::EmitEntryFrameVerification(Register scratch) {
 #endif
 }
 
-void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
-  Comment("EnterCallRuntimeFrame");
-  // Preserve volatile CPU registers and PP.
-  SPILLS_LR_TO_FRAME(
-      EnterFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR), 0));
-  COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
-
-  // Preserve all volatile FPU registers.
-    DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
-    DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-    if ((lastv - firstv + 1) >= 16) {
-      DRegister mid = static_cast<DRegister>(firstv + 16);
-      vstmd(DB_W, SP, mid, lastv - mid + 1);
-      vstmd(DB_W, SP, firstv, 16);
-    } else {
-      vstmd(DB_W, SP, firstv, lastv - firstv + 1);
-    }
-
-  ReserveAlignedFrameSpace(frame_space);
-}
-
-void Assembler::LeaveCallRuntimeFrame() {
-  // SP might have been modified to reserve space for arguments
-  // and ensure proper alignment of the stack frame.
-  // We need to restore it before restoring registers.
-  const intptr_t kPushedFpuRegisterSize =
-      kDartVolatileFpuRegCount * kFpuRegisterSize;
-
-  COMPILE_ASSERT(PP < FP);
-  COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
-  // kVolatileCpuRegCount +1 for PP, -1 because even though LR is volatile,
-  // it is pushed ahead of FP.
-  const intptr_t kPushedRegistersSize =
-      kDartVolatileCpuRegCount * target::kWordSize + kPushedFpuRegisterSize;
-  AddImmediate(SP, FP, -kPushedRegistersSize);
-
-  // Restore all volatile FPU registers.
-    DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
-    DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-    if ((lastv - firstv + 1) >= 16) {
-      DRegister mid = static_cast<DRegister>(firstv + 16);
-      vldmd(IA_W, SP, firstv, 16);
-      vldmd(IA_W, SP, mid, lastv - mid + 1);
-    } else {
-      vldmd(IA_W, SP, firstv, lastv - firstv + 1);
-    }
-
-  // Restore volatile CPU registers.
-  RESTORES_LR_FROM_FRAME(
-      LeaveFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR)));
-}
-
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
-  entry.Call(this, argument_count);
+  ASSERT(!entry.is_leaf());
+  // Argument count is not checked here, but in the runtime entry for a more
+  // informative error message.
+  LoadFromOffset(R9, THR, entry.OffsetFromThread());
+  LoadImmediate(R4, argument_count);
+  ldr(IP, Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+  blx(IP);
 }
+
+// For use by LR related macros (e.g. CLOBBERS_LR).
+#undef __
+#define __ assembler_->
+
+LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
+                                   intptr_t frame_size,
+                                   bool preserve_registers)
+    : assembler_(assembler), preserve_registers_(preserve_registers) {
+  __ Comment("EnterCallRuntimeFrame");
+  if (preserve_registers) {
+    // Preserve volatile CPU registers and PP.
+    SPILLS_LR_TO_FRAME(__ EnterFrame(
+        kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR), 0));
+    COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
+
+    // Preserve all volatile FPU registers.
+    DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
+    DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
+    if ((lastv - firstv + 1) >= 16) {
+      DRegister mid = static_cast<DRegister>(firstv + 16);
+      __ vstmd(DB_W, SP, mid, lastv - mid + 1);
+      __ vstmd(DB_W, SP, firstv, 16);
+    } else {
+      __ vstmd(DB_W, SP, firstv, lastv - firstv + 1);
+    }
+  } else {
+    SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
+    // These registers must always be preserved.
+    COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+    COMPILE_ASSERT(IsCalleeSavedRegister(PP));
+    COMPILE_ASSERT(IsCalleeSavedRegister(CODE_REG));
+  }
+
+  __ ReserveAlignedFrameSpace(frame_size);
+}
+
+void LeafRuntimeScope::Call(const RuntimeEntry& entry,
+                            intptr_t argument_count) {
+  ASSERT(argument_count == entry.argument_count());
+  __ LoadFromOffset(TMP, THR, entry.OffsetFromThread());
+  __ str(TMP,
+         compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ blx(TMP);
+  __ LoadImmediate(TMP, VMTag::kDartTagId);
+  __ str(TMP,
+         compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+}
+
+LeafRuntimeScope::~LeafRuntimeScope() {
+  if (preserve_registers_) {
+    // SP might have been modified to reserve space for arguments
+    // and ensure proper alignment of the stack frame.
+    // We need to restore it before restoring registers.
+    const intptr_t kPushedFpuRegisterSize =
+        kDartVolatileFpuRegCount * kFpuRegisterSize;
+
+    COMPILE_ASSERT(PP < FP);
+    COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
+    // kVolatileCpuRegCount +1 for PP, -1 because even though LR is volatile,
+    // it is pushed ahead of FP.
+    const intptr_t kPushedRegistersSize =
+        kDartVolatileCpuRegCount * target::kWordSize + kPushedFpuRegisterSize;
+    __ AddImmediate(SP, FP, -kPushedRegistersSize);
+
+    // Restore all volatile FPU registers.
+    DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
+    DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
+    if ((lastv - firstv + 1) >= 16) {
+      DRegister mid = static_cast<DRegister>(firstv + 16);
+      __ vldmd(IA_W, SP, firstv, 16);
+      __ vldmd(IA_W, SP, mid, lastv - mid + 1);
+    } else {
+      __ vldmd(IA_W, SP, firstv, lastv - firstv + 1);
+    }
+
+    // Restore volatile CPU registers.
+    RESTORES_LR_FROM_FRAME(__ LeaveFrame(kDartVolatileCpuRegs | (1 << PP) |
+                                         (1 << FP) | (1 << LR)));
+  } else {
+    RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR)));
+  }
+}
+
+// For use by LR related macros (e.g. CLOBBERS_LR).
+#undef __
+#define __ this->
 
 void Assembler::EnterDartFrame(intptr_t frame_size, bool load_pool_pointer) {
   ASSERT(!constant_pool_allowed());

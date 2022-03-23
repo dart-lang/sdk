@@ -191,7 +191,6 @@
   FIELD(Thread, AllocateArray_entry_point_offset)                              \
   FIELD(Thread, active_exception_offset)                                       \
   FIELD(Thread, active_stacktrace_offset)                                      \
-  FIELD(Thread, array_write_barrier_code_offset)                               \
   FIELD(Thread, array_write_barrier_entry_point_offset)                        \
   FIELD(Thread, allocate_mint_with_fpu_regs_entry_point_offset)                \
   FIELD(Thread, allocate_mint_with_fpu_regs_stub_offset)                       \
@@ -279,7 +278,6 @@
   FIELD(Thread, unboxed_int64_runtime_arg_offset)                              \
   FIELD(Thread, unboxed_double_runtime_arg_offset)                             \
   FIELD(Thread, vm_tag_offset)                                                 \
-  FIELD(Thread, write_barrier_code_offset)                                     \
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
   FIELD(Thread, heap_base_offset)                                              \

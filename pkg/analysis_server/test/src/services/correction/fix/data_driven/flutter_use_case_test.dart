@@ -706,7 +706,6 @@ void f() {
 ''');
   }
 
-  @failingTest
   Future<void> test_material_FlatButton_deprecated() async {
     setPackageContent('''
 @deprecated

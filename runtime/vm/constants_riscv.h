@@ -425,16 +425,6 @@ constexpr int kAbiPreservedFpuRegCount = 12;
 constexpr intptr_t kReservedFpuRegisters = 0;
 constexpr intptr_t kNumberOfReservedFpuRegisters = 0;
 
-// Two callee save scratch registers used by leaf runtime call sequence.
-constexpr Register kCallLeafRuntimeCalleeSaveScratch1 = CALLEE_SAVED_TEMP;
-constexpr Register kCallLeafRuntimeCalleeSaveScratch2 = CALLEE_SAVED_TEMP2;
-static_assert((R(kCallLeafRuntimeCalleeSaveScratch1) & kAbiPreservedCpuRegs) !=
-                  0,
-              "Need callee save scratch register for leaf runtime calls.");
-static_assert((R(kCallLeafRuntimeCalleeSaveScratch2) & kAbiPreservedCpuRegs) !=
-                  0,
-              "Need callee save scratch register for leaf runtime calls.");
-
 constexpr int kStoreBufferWrapperSize = 26;
 
 class CallingConventions {

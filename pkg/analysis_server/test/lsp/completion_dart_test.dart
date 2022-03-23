@@ -33,7 +33,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
   Future<void> checkCompleteFunctionCallInsertText(
       String content, String completion,
-      {required String insertText, InsertTextFormat? insertTextFormat}) async {
+      {required String? insertText, InsertTextFormat? insertTextFormat}) async {
     await provideConfig(
       () => initialize(
         textDocumentCapabilities: withCompletionItemSnippetSupport(
@@ -55,7 +55,9 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     expect(item.insertText, equals(insertText));
 
     final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
+    // newText in the edit will always be set, so if insertText is null we need
+    // fall back to item.label for the expected value.
+    expect(textEdit.newText, equals(item.insertText ?? item.label));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 
@@ -380,7 +382,27 @@ class _MyWidgetState extends State<MyWidget> {
         insertText: r'foo(${0:a})',
       );
 
-  Future<void> test_completeFunctionCalls_noRequiredParameters() async {
+  Future<void> test_completeFunctionCalls_noParameters() async {
+    final content = '''
+    void myFunction() {}
+
+    void f() {
+      [[myFu^]]
+    }
+    ''';
+
+    await checkCompleteFunctionCallInsertText(
+      content,
+      'myFunction()',
+      // With no params, we don't put a tab stop inside the parens. This results
+      // in the insertText being the same as the label, which means it will be
+      // set to null so that it falls back without needing to repeat the value.
+      insertText: null,
+      insertTextFormat: InsertTextFormat.Snippet,
+    );
+  }
+
+  Future<void> test_completeFunctionCalls_optionalParameters() async {
     final content = '''
     void myFunction({int a}) {}
 
@@ -389,24 +411,13 @@ class _MyWidgetState extends State<MyWidget> {
     }
     ''';
 
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'completeFunctionCalls': true},
+    await checkCompleteFunctionCallInsertText(
+      content,
+      'myFunction(…)',
+      // With optional params, there should still be parens/tab stop inside.
+      insertText: r'myFunction($0)',
+      insertTextFormat: InsertTextFormat.Snippet,
     );
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
-    // With no required params, there should still be parens/tab stop inside.
-    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction($0)'));
-    final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
-    expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 
   Future<void> test_completeFunctionCalls_show() async {
