@@ -346,8 +346,9 @@ lsp.CompletionItem declarationToCompletionItem(
     // we can assume if an item is callable it's probably being used in a context
     // that can invoke it.
     isInvocation: isCallable,
-    defaultArgumentListString: declaration.defaultArgumentListString,
-    defaultArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
+    requiredArgumentListString: declaration.defaultArgumentListString,
+    requiredArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
+    hasOptionalParameters: declaration.parameterNames?.isNotEmpty ?? false,
     completion: completion,
     selectionOffset: 0,
     selectionLength: 0,
@@ -1179,8 +1180,9 @@ lsp.CompletionItem toCompletionItem(
     completeFunctionCalls: completeFunctionCalls,
     isCallable: isCallable,
     isInvocation: isInvocation,
-    defaultArgumentListString: suggestion.defaultArgumentListString,
-    defaultArgumentListTextRanges: suggestion.defaultArgumentListTextRanges,
+    requiredArgumentListString: suggestion.defaultArgumentListString,
+    requiredArgumentListTextRanges: suggestion.defaultArgumentListTextRanges,
+    hasOptionalParameters: suggestion.parameterNames?.isNotEmpty ?? false,
     completion: suggestion.completion,
     selectionOffset: suggestion.selectionOffset,
     selectionLength: suggestion.selectionLength,
@@ -1664,8 +1666,9 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
   required bool completeFunctionCalls,
   required bool isCallable,
   required bool isInvocation,
-  required String? defaultArgumentListString,
-  required List<int>? defaultArgumentListTextRanges,
+  required String? requiredArgumentListString,
+  required List<int>? requiredArgumentListTextRanges,
+  required bool hasOptionalParameters,
   required String completion,
   required int selectionOffset,
   required int selectionLength,
@@ -1692,13 +1695,16 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
         isInvocation) {
       insertTextFormat = lsp.InsertTextFormat.Snippet;
       final hasRequiredParameters =
-          (defaultArgumentListTextRanges?.length ?? 0) > 0;
+          requiredArgumentListTextRanges?.isNotEmpty ?? false;
       final functionCallSuffix =
-          hasRequiredParameters && defaultArgumentListString != null
+          hasRequiredParameters && requiredArgumentListString != null
               ? buildSnippetStringWithTabStops(
-                  defaultArgumentListString, defaultArgumentListTextRanges)
-              // No required params still gets a final tab stop in the parens.
-              : SnippetBuilder.finalTabStop;
+                  requiredArgumentListString, requiredArgumentListTextRanges)
+              // Optional params still gets a final tab stop in the parens.
+              : hasOptionalParameters
+                  ? SnippetBuilder.finalTabStop
+                  // And no parameters at all we skip the tabstop in the parens.
+                  : '';
       insertText =
           '${SnippetBuilder.escapeSnippetPlainText(insertText)}($functionCallSuffix)';
     } else if (selectionOffset != 0 &&
