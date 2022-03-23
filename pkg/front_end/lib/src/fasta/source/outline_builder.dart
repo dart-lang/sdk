@@ -1031,14 +1031,27 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleRecoverClassHeader() {
     debugEvent("handleRecoverClassHeader");
+    assert(checkState(null, [
+      /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+      /* mixins */ unionOfKinds([
+        ValueKinds.MixinApplicationBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
     // TODO(jensj): Possibly use these instead... E.g. "class A extend B {}"
     // will get here (because it's 'extends' with an 's') and discard the B...
     // Also Analyzer actually merges the information meaning that the two could
     // give different errors (if, say, one later assigns
     // A to a variable of type B).
     pop(NullValue.TypeBuilderList); // Interfaces.
+    pop(NullValue.MixinApplicationBuilder); // Mixin applications.
     pop(); // Supertype offset.
-    pop(); // Supertype.
+    pop(NullValue.TypeBuilder); // Supertype.
   }
 
   @override
@@ -1073,6 +1086,10 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endClassDeclaration");
     assert(checkState(beginToken, [
       /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+      /* mixins */ unionOfKinds([
+        ValueKinds.MixinApplicationBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
       /* supertype offset */ ValueKinds.Integer,
       /* supertype */ unionOfKinds([
         ValueKinds.TypeBuilderOrNull,
@@ -1089,6 +1106,9 @@ class OutlineBuilder extends StackListenerImpl {
 
     List<TypeBuilder>? interfaces =
         pop(NullValue.TypeBuilderList) as List<TypeBuilder>?;
+    MixinApplicationBuilder? mixinApplication =
+        nullIfParserRecovery(pop(NullValue.MixinApplicationBuilder))
+            as MixinApplicationBuilder?;
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Token? augmentToken = pop(NullValue.Token) as Token?;
@@ -1098,8 +1118,8 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as List<TypeVariableBuilder>?;
     int nameOffset = popCharOffset();
     Object? name = pop();
-    if (typeVariables != null && supertype is MixinApplicationBuilder) {
-      supertype.typeVariables = typeVariables;
+    if (typeVariables != null && mixinApplication != null) {
+      mixinApplication.typeVariables = typeVariables;
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     inAbstractClass = false;
@@ -1115,23 +1135,19 @@ class OutlineBuilder extends StackListenerImpl {
 
       if (libraryBuilder.isNonNullableByDefault) {
         String classNameForErrors = "${name}";
-        TypeBuilder? supertypeForErrors = supertype is MixinApplicationBuilder
-            ? supertype.supertype
-            : supertype;
-        List<TypeBuilder>? mixins =
-            supertype is MixinApplicationBuilder ? supertype.mixins : null;
-        if (supertypeForErrors != null) {
-          if (supertypeForErrors.nullabilityBuilder.build(libraryBuilder) ==
+        if (supertype != null) {
+          if (supertype.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
             libraryBuilder.addProblem(
                 templateNullableSuperclassError
-                    .withArguments(supertypeForErrors.fullNameForErrors),
+                    .withArguments(supertype.fullNameForErrors),
                 nameOffset,
                 classNameForErrors.length,
                 uri);
           }
         }
-        if (mixins != null) {
+        if (mixinApplication != null) {
+          List<TypeBuilder>? mixins = mixinApplication.mixins;
           for (TypeBuilder mixin in mixins) {
             if (mixin.nullabilityBuilder.build(libraryBuilder) ==
                 Nullability.nullable) {
@@ -1165,6 +1181,7 @@ class OutlineBuilder extends StackListenerImpl {
           name as String,
           typeVariables,
           supertype,
+          mixinApplication,
           interfaces,
           startCharOffset,
           nameOffset,
@@ -1217,19 +1234,6 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       int startOffset =
           metadata == null ? mixinToken.charOffset : metadata.first.charOffset;
-      TypeBuilder? supertype;
-      if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
-        if (supertypeConstraints.length == 1) {
-          supertype = supertypeConstraints.first;
-        } else {
-          supertype = new MixinApplicationBuilder(
-              supertypeConstraints.first,
-              supertypeConstraints.skip(1).toList(),
-              supertypeConstraints.first.fileUri!,
-              supertypeConstraints.first.charOffset!);
-        }
-      }
-
       if (libraryBuilder.isNonNullableByDefault) {
         String classNameForErrors = "${name}";
         if (supertypeConstraints != null) {
@@ -1265,7 +1269,7 @@ class OutlineBuilder extends StackListenerImpl {
           mixinDeclarationMask,
           name as String,
           typeVariables,
-          supertype,
+          supertypeConstraints,
           interfaces,
           startOffset,
           nameOffset,
@@ -1943,16 +1947,33 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     debugEvent("NamedMixinApplicationWithClause");
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.TypeBuilderListOrNull,
+      ]),
+      /* supertype */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.TypeBuilder,
+      ]),
+    ]));
     Object? mixins = pop();
-    Object? supertype = pop();
     if (mixins is ParserRecovery) {
       push(mixins);
-    } else if (supertype is ParserRecovery) {
-      push(supertype);
     } else {
-      push(libraryBuilder.addMixinApplication(supertype as TypeBuilder?,
+      push(libraryBuilder.addMixinApplication(
           mixins as List<TypeBuilder>, withKeyword.charOffset));
     }
+    assert(checkState(withKeyword, [
+      /* mixin application */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.MixinApplicationBuilder,
+      ]),
+      /* supertype */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.TypeBuilder,
+      ]),
+    ]));
   }
 
   @override
@@ -1968,8 +1989,15 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endNamedMixinApplication");
     assert(checkState(beginToken, [
       if (implementsKeyword != null)
-        /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+        /* interfaces */ unionOfKinds([
+          ValueKinds.ParserRecovery,
+          ValueKinds.TypeBuilderListOrNull,
+        ]),
       /* mixin application */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.MixinApplicationBuilder,
+      ]),
+      /* supertype */ unionOfKinds([
         ValueKinds.ParserRecovery,
         ValueKinds.TypeBuilder,
       ]),
@@ -1983,8 +2011,10 @@ class OutlineBuilder extends StackListenerImpl {
     ]));
 
     List<TypeBuilder>? interfaces =
-        popIfNotNull(implementsKeyword) as List<TypeBuilder>?;
+        nullIfParserRecovery(popIfNotNull(implementsKeyword))
+            as List<TypeBuilder>?;
     Object? mixinApplication = pop();
+    Object? supertype = pop();
     Token? augmentToken = pop(NullValue.Token) as Token?;
     Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
@@ -1994,7 +2024,9 @@ class OutlineBuilder extends StackListenerImpl {
     Object? name = pop();
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
-    if (name is ParserRecovery || mixinApplication is ParserRecovery) {
+    if (name is ParserRecovery ||
+        supertype is ParserRecovery ||
+        mixinApplication is ParserRecovery) {
       libraryBuilder
           .endNestedDeclaration(
               TypeParameterScopeKind.namedMixinApplication, "<syntax-error>")
@@ -2004,9 +2036,8 @@ class OutlineBuilder extends StackListenerImpl {
         String classNameForErrors = "${name}";
         MixinApplicationBuilder mixinApplicationBuilder =
             mixinApplication as MixinApplicationBuilder;
-        TypeBuilder? supertype = mixinApplicationBuilder.supertype;
         List<TypeBuilder> mixins = mixinApplicationBuilder.mixins;
-        if (supertype != null && supertype is! MixinApplicationBuilder) {
+        if (supertype is TypeBuilder && supertype is! MixinApplicationBuilder) {
           if (supertype.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
             libraryBuilder.addProblem(
@@ -2050,7 +2081,8 @@ class OutlineBuilder extends StackListenerImpl {
           name as String,
           typeVariables,
           modifiers,
-          mixinApplication as TypeBuilder?,
+          supertype as TypeBuilder?,
+          mixinApplication as MixinApplicationBuilder,
           interfaces,
           startCharOffset,
           charOffset,
@@ -2451,8 +2483,10 @@ class OutlineBuilder extends StackListenerImpl {
 
     int endCharOffset = popCharOffset();
     int startCharOffset = popCharOffset();
-    List<TypeBuilder>? interfaces = pop() as List<TypeBuilder>?;
-    MixinApplicationBuilder? mixinBuilder = pop() as MixinApplicationBuilder?;
+    List<TypeBuilder>? interfaces =
+        nullIfParserRecovery(pop()) as List<TypeBuilder>?;
+    MixinApplicationBuilder? mixinBuilder =
+        nullIfParserRecovery(pop()) as MixinApplicationBuilder?;
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     int charOffset = popCharOffset(); // identifier char offset.
@@ -3289,27 +3323,71 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleClassWithClause(Token withKeyword) {
     debugEvent("ClassWithClause");
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.TypeBuilderList,
+        ValueKinds.ParserRecovery,
+      ]),
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
 
     Object? mixins = pop();
     int extendsOffset = popCharOffset();
-    Object? supertype = pop();
+    Object? supertype = peek();
+    push(extendsOffset);
     if (supertype is ParserRecovery || mixins is ParserRecovery) {
       push(new ParserRecovery(withKeyword.charOffset));
     } else {
-      push(libraryBuilder.addMixinApplication(supertype as TypeBuilder?,
+      push(libraryBuilder.addMixinApplication(
           mixins as List<TypeBuilder>, withKeyword.charOffset));
     }
-    push(extendsOffset);
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.MixinApplicationBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
   }
 
   @override
   void handleClassNoWithClause() {
     debugEvent("ClassNoWithClause");
+    assert(checkState(null, [
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
+    push(NullValue.MixinApplicationBuilder);
+    assert(checkState(null, [
+      /* mixins */ ValueKinds.MixinApplicationBuilderOrNull,
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
   }
 
   @override
   void handleEnumWithClause(Token withKeyword) {
     debugEvent("EnumWithClause");
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.TypeBuilderListOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
 
     if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
       addProblem(
@@ -3324,16 +3402,20 @@ class OutlineBuilder extends StackListenerImpl {
       push(new ParserRecovery(withKeyword.charOffset));
     } else {
       push(libraryBuilder.addMixinApplication(
-          libraryBuilder.loader.target.underscoreEnumType,
-          mixins as List<TypeBuilder>,
-          withKeyword.charOffset));
+          mixins as List<TypeBuilder>, withKeyword.charOffset));
     }
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.MixinApplicationBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
   }
 
   @override
   void handleEnumNoWithClause() {
     debugEvent("EnumNoWithClause");
-    push(NullValue.TypeBuilder);
+    push(NullValue.MixinApplicationBuilder);
   }
 
   @override
