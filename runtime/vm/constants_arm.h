@@ -571,9 +571,6 @@ const int kDartVolatileCpuRegCount = 6;
 #else
 const int kDartVolatileCpuRegCount = 5;
 #endif
-const QRegister kDartFirstVolatileFpuReg = Q0;
-const QRegister kDartLastVolatileFpuReg = Q3;
-const int kDartVolatileFpuRegCount = 4;
 
 #define R(reg) (static_cast<RegList>(1) << (reg))
 

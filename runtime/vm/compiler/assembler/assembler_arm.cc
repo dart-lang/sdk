@@ -3280,6 +3280,12 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 #undef __
 #define __ assembler_->
 
+#if defined(VFPv3_D32)
+static const RegisterSet kVolatileFpuRegisters(0, 0xFF0F);  // Q0-Q3, Q8-Q15
+#else
+static const RegisterSet kVolatileFpuRegisters(0, 0x000F);  // Q0-Q3
+#endif
+
 LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
                                    intptr_t frame_size,
                                    bool preserve_registers)
@@ -3291,16 +3297,7 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
         kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR), 0));
     COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
 
-    // Preserve all volatile FPU registers.
-    DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
-    DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-    if ((lastv - firstv + 1) >= 16) {
-      DRegister mid = static_cast<DRegister>(firstv + 16);
-      __ vstmd(DB_W, SP, mid, lastv - mid + 1);
-      __ vstmd(DB_W, SP, firstv, 16);
-    } else {
-      __ vstmd(DB_W, SP, firstv, lastv - firstv + 1);
-    }
+    __ PushRegisters(kVolatileFpuRegisters);
   } else {
     SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
     // These registers must always be preserved.
@@ -3330,7 +3327,7 @@ LeafRuntimeScope::~LeafRuntimeScope() {
     // and ensure proper alignment of the stack frame.
     // We need to restore it before restoring registers.
     const intptr_t kPushedFpuRegisterSize =
-        kDartVolatileFpuRegCount * kFpuRegisterSize;
+        kVolatileFpuRegisters.FpuRegisterCount() * kFpuRegisterSize;
 
     COMPILE_ASSERT(PP < FP);
     COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
@@ -3340,16 +3337,7 @@ LeafRuntimeScope::~LeafRuntimeScope() {
         kDartVolatileCpuRegCount * target::kWordSize + kPushedFpuRegisterSize;
     __ AddImmediate(SP, FP, -kPushedRegistersSize);
 
-    // Restore all volatile FPU registers.
-    DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
-    DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-    if ((lastv - firstv + 1) >= 16) {
-      DRegister mid = static_cast<DRegister>(firstv + 16);
-      __ vldmd(IA_W, SP, firstv, 16);
-      __ vldmd(IA_W, SP, mid, lastv - mid + 1);
-    } else {
-      __ vldmd(IA_W, SP, firstv, lastv - firstv + 1);
-    }
+    __ PopRegisters(kVolatileFpuRegisters);
 
     // Restore volatile CPU registers.
     RESTORES_LR_FROM_FRAME(__ LeaveFrame(kDartVolatileCpuRegs | (1 << PP) |
