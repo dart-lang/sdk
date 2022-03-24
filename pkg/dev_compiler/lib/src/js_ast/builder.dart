@@ -1618,7 +1618,7 @@ class MiniJsParser {
     return Try(body, catchPart, finallyPart);
   }
 
-  SwitchCase parseSwitchClause() {
+  SwitchClause parseSwitchClause() {
     Expression expression;
     if (acceptString('case')) {
       expression = parseExpression();
@@ -1635,7 +1635,9 @@ class MiniJsParser {
         lastToken != 'default') {
       statements.add(parseStatement());
     }
-    return SwitchCase(expression, Block(statements));
+    return expression == null
+        ? Default(Block(statements))
+        : Case(expression, Block(statements));
   }
 
   Statement parseWhile() {
@@ -1662,7 +1664,7 @@ class MiniJsParser {
     Expression key = parseExpression();
     expectCategory(RPAREN);
     expectCategory(LBRACE);
-    var clauses = <SwitchCase>[];
+    var clauses = <SwitchClause>[];
     while (lastCategory != RBRACE) {
       clauses.add(parseSwitchClause());
     }

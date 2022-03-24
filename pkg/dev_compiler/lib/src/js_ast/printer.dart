@@ -11,6 +11,7 @@
 // ignore_for_file: prefer_final_fields
 // ignore_for_file: prefer_initializing_formals
 // ignore_for_file: prefer_interpolation_to_compose_strings
+// ignore_for_file: prefer_is_not_empty
 // ignore_for_file: prefer_single_quotes
 // ignore_for_file: unnecessary_const
 // ignore_for_file: use_function_type_syntax_for_parameters
@@ -563,18 +564,26 @@ class Printer implements NodeVisitor {
   }
 
   @override
-  visitSwitchCase(SwitchCase node) {
-    if (node.isDefault) {
-      outIndentLn("default:");
-    } else {
-      outIndent("case");
-      pendingSpace = true;
-      visitNestedExpression(node.expression, EXPRESSION,
-          newInForInit: false, newAtStatementBegin: false);
-      outLn(":");
+  visitCase(Case node) {
+    outIndent("case");
+    pendingSpace = true;
+    visitNestedExpression(node.expression, EXPRESSION,
+        newInForInit: false, newAtStatementBegin: false);
+    outLn(":");
+    if (!node.body.statements.isEmpty) {
+      indentMore();
+      blockOutWithoutBraces(node.body);
+      indentLess();
     }
-    if (node.body.statements.isNotEmpty) {
-      blockOut(node.body, true, true);
+  }
+
+  @override
+  visitDefault(Default node) {
+    outIndentLn("default:");
+    if (!node.body.statements.isEmpty) {
+      indentMore();
+      blockOutWithoutBraces(node.body);
+      indentLess();
     }
   }
 
@@ -1589,7 +1598,9 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   @override
   bool visitSwitch(Switch node) => false;
   @override
-  bool visitSwitchCase(SwitchCase node) => false;
+  bool visitCase(Case node) => false;
+  @override
+  bool visitDefault(Default node) => false;
   @override
   bool visitFunctionDeclaration(FunctionDeclaration node) => false;
   @override

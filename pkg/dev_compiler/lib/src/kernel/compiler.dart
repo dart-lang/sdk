@@ -4279,7 +4279,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var previous = _inLabeledContinueSwitch;
     _inLabeledContinueSwitch = hasLabeledContinue(node);
 
-    var cases = <js_ast.SwitchCase>[];
+    var cases = <js_ast.SwitchClause>[];
 
     if (_inLabeledContinueSwitch) {
       var labelState = _emitTemporaryId('labelState');
@@ -4320,13 +4320,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Helper for visiting a SwitchCase statement.
   ///
-  /// lastSwitchCase is only used when the current switch statement contains
+  /// [lastSwitchCase] is only used when the current switch statement contains
   /// labeled continues. Dart permits the final case to implicitly break, but
   /// switch statements with labeled continues must explicitly break/continue
   /// to escape the surrounding infinite loop.
-  List<js_ast.SwitchCase> _visitSwitchCase(SwitchCase node,
+  List<js_ast.SwitchClause> _visitSwitchCase(SwitchCase node,
       {bool lastSwitchCase = false}) {
-    var cases = <js_ast.SwitchCase>[];
+    var cases = <js_ast.SwitchClause>[];
     var emptyBlock = js_ast.Block.empty();
     // TODO(jmesserly): make sure we are statically checking fall through
     var body = _visitStatement(node.body).toBlock();
@@ -4335,10 +4335,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         expressions.isNotEmpty && !node.isDefault ? expressions.last : null;
     for (var e in expressions) {
       var jsExpr = _visitExpression(e);
-      cases.add(js_ast.SwitchCase(jsExpr, e == lastExpr ? body : emptyBlock));
+      cases.add(js_ast.Case(jsExpr, e == lastExpr ? body : emptyBlock));
     }
     if (node.isDefault) {
-      cases.add(js_ast.SwitchCase.defaultCase(body));
+      cases.add(js_ast.Default(body));
     }
     // Switch statements with continue labels must explicitly break from their
     // last case to escape the additional loop around the switch.
@@ -4347,7 +4347,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       assert(_switchLabelStates.containsKey(node.parent));
       var breakStmt = js_ast.Break(_switchLabelStates[node.parent].label);
       var switchBody = js_ast.Block(cases.last.body.statements..add(breakStmt));
-      var updatedSwitch = js_ast.SwitchCase(cases.last.expression, switchBody);
+      var lastCase = cases.last;
+      var updatedSwitch = lastCase is js_ast.Case
+          ? js_ast.Case(lastCase.expression, switchBody)
+          : js_ast.Default(switchBody);
       cases.removeLast();
       cases.add(updatedSwitch);
     }
