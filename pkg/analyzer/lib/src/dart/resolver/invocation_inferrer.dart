@@ -85,20 +85,19 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     var typeArgumentList = _getTypeArguments(node);
 
     List<DartType>? typeArgumentTypes;
-    FunctionType? invokeType;
     GenericInferrer? inferrer;
+    Substitution? substitution;
     if (_isGenericInferenceDisabled(resolver)) {
       if (rawType != null && rawType.typeFormals.isNotEmpty) {
         typeArgumentTypes = List.filled(
           rawType.typeFormals.length,
           DynamicTypeImpl.instance,
         );
+        substitution =
+            Substitution.fromPairs(rawType.typeFormals, typeArgumentTypes);
       } else {
         typeArgumentTypes = const <DartType>[];
-        invokeType = rawType;
       }
-
-      invokeType = rawType?.instantiate(typeArgumentTypes);
     } else if (typeArgumentList != null) {
       if (rawType != null &&
           typeArgumentList.arguments.length != rawType.typeFormals.length) {
@@ -138,10 +137,12 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         }
       }
 
-      invokeType = rawType?.instantiate(typeArgumentTypes);
+      if (rawType != null) {
+        substitution =
+            Substitution.fromPairs(rawType.typeFormals, typeArgumentTypes);
+      }
     } else if (rawType == null || rawType.typeFormals.isEmpty) {
       typeArgumentTypes = const <DartType>[];
-      invokeType = rawType;
     } else {
       rawType = getFreshTypeParameters(rawType.typeFormals)
           .applyToFunctionType(rawType);
@@ -156,7 +157,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
       );
 
-      invokeType = rawType.instantiate(inferrer.downwardsInfer());
+      substitution = Substitution.fromPairs(
+          rawType.typeFormals, inferrer.downwardsInfer());
     }
 
     List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo =
@@ -165,10 +167,11 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         resolver: resolver,
         node: node,
         argumentList: argumentList,
-        rawType: invokeType,
+        rawType: rawType,
         contextType: contextType,
         whyNotPromotedList: whyNotPromotedList,
-        identicalInfo: identicalInfo);
+        identicalInfo: identicalInfo,
+        substitution: substitution);
 
     if (inferrer != null) {
       // Get the parameters that correspond to the uninstantiated generic.
@@ -189,8 +192,10 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       }
       inferrer.constrainArguments(parameters: params, argumentTypes: argTypes);
       typeArgumentTypes = inferrer.upwardsInfer();
-      invokeType = rawType.instantiate(typeArgumentTypes);
     }
+    FunctionType? invokeType = typeArgumentTypes != null
+        ? rawType?.instantiate(typeArgumentTypes)
+        : rawType;
 
     var parameters = _storeResult(node, typeArgumentTypes, invokeType);
     if (parameters != null) {
@@ -400,8 +405,8 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       required FunctionType? rawType,
       required DartType? contextType,
       required List<WhyNotPromotedGetter> whyNotPromotedList,
-      required List<EqualityInfo<PromotableElement, DartType>?>?
-          identicalInfo}) {
+      required List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
+      Substitution? substitution}) {
     assert(whyNotPromotedList.isEmpty);
     var parameters = rawType?.parameters;
     var namedParameters = <String, ParameterElement>{};
@@ -434,6 +439,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       DartType? parameterContextType;
       if (parameter != null) {
         var parameterType = parameter.type;
+        if (substitution != null) {
+          parameterType = substitution.substituteType(parameterType);
+        }
         parameterContextType = _computeContextForArgument(
             resolver, node, parameterType, contextType);
       }
