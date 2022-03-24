@@ -22,8 +22,8 @@ import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 
-part 'abstract_sink.dart';
-part 'abstract_source.dart';
+part 'sink.dart';
+part 'source.dart';
 part 'binary_sink.dart';
 part 'binary_source.dart';
 part 'helpers.dart';
