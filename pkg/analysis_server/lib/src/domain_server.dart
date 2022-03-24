@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
 import 'package:analysis_server/src/utilities/progress.dart';
 
 /// Instances of the class [ServerDomainHandler] implement a [RequestHandler]
@@ -42,7 +43,7 @@ class ServerDomainHandler implements RequestHandler {
       } else if (requestName == SERVER_REQUEST_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
       } else if (requestName == SERVER_REQUEST_SHUTDOWN) {
-        shutdown(request);
+        ServerShutdownHandler(server, request, cancellationToken).handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == SERVER_REQUEST_CANCEL_REQUEST) {
         return cancelRequest(request);
@@ -64,12 +65,5 @@ class ServerDomainHandler implements RequestHandler {
         server.serverServices.contains(ServerService.LOG);
 
     return ServerSetSubscriptionsResult().toResponse(request.id);
-  }
-
-  /// Cleanly shutdown the analysis server.
-  Future<void> shutdown(Request request) async {
-    await server.shutdown();
-    var response = ServerShutdownResult().toResponse(request.id);
-    server.sendResponse(response);
   }
 }

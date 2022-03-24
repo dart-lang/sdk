@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/handler/legacy/diagnostic_get_server_port.dart';
 import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 
@@ -33,18 +34,6 @@ class DiagnosticDomainHandler implements RequestHandler {
         knownFileCount - explicitFileCount, driver.numberOfFilesToAnalyze, []);
   }
 
-  /// Answer the `diagnostic.getServerPort` request.
-  Future handleGetServerPort(Request request) async {
-    try {
-      // Open a port (or return the existing one).
-      var port = await server.diagnosticServer!.getServerPort();
-      server.sendResponse(
-          DiagnosticGetServerPortResult(port).toResponse(request.id));
-    } catch (error) {
-      server.sendResponse(Response.debugPortCouldNotBeOpened(request, error));
-    }
-  }
-
   @override
   Response? handleRequest(
       Request request, CancellationToken cancellationToken) {
@@ -53,7 +42,8 @@ class DiagnosticDomainHandler implements RequestHandler {
       if (requestName == DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS) {
         return computeDiagnostics(request);
       } else if (requestName == DIAGNOSTIC_REQUEST_GET_SERVER_PORT) {
-        handleGetServerPort(request);
+        DiagnosticGetServerPortHandler(server, request, cancellationToken)
+            .handle();
         return Response.DELAYED_RESPONSE;
       }
     } on RequestFailure catch (exception) {
