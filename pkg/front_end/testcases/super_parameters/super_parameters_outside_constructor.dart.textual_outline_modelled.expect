@@ -1,0 +1,15 @@
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B() : super(42);
+  factory B.foo(super.x) => new B();
+}
+
+class C {
+  void set foo(super.value) {}
+}
+
+foo(super.x) {}
+main() {}

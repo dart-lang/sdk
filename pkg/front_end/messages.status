@@ -809,6 +809,8 @@ StrongWithWeakDillLibrary/spelling: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/example: Fail
 SuperNullAware/example: Fail
+SuperParameterInitializerOutsideConstructor/analyzerCode: Fail
+SuperParameterInitializerOutsideConstructor/example: Fail
 SuperclassHasNoDefaultConstructor/example: Fail
 SuperclassHasNoGetter/example: Fail
 SuperclassHasNoMember/example: Fail

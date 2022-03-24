@@ -9772,6 +9772,17 @@ const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
     correctionMessage: r"""Try replacing '?.' with '.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSuperParameterInitializerOutsideConstructor =
+    messageSuperParameterInitializerOutsideConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSuperParameterInitializerOutsideConstructor =
+    const MessageCode("SuperParameterInitializerOutsideConstructor",
+        problemMessage:
+            r"""Super-initializer formal parameters can only be used in generative constructors.""",
+        correctionMessage: r"""Try removing 'super.'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateSuperclassHasNoConstructor =
     const Template<Message Function(String name)>(

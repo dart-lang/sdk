@@ -4352,6 +4352,15 @@ class BodyBuilder extends StackListenerImpl
         thisKeyword = null;
       }
     }
+    if (superKeyword != null) {
+      if (!inConstructor) {
+        handleRecoverableError(
+            fasta.messageSuperParameterInitializerOutsideConstructor,
+            superKeyword,
+            superKeyword);
+        superKeyword = null;
+      }
+    }
     Object? nameNode = pop();
     TypeBuilder? type = pop() as TypeBuilder?;
     if (functionNestingLevel == 0 && type != null) {

@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •(core::int x) → self::A
+    ;
+}
+class B extends self::A {
+  constructor •() → self::B
+    ;
+  static factory foo(dynamic x) → self::B
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  set foo(dynamic value) → void
+    ;
+}
+static method foo(dynamic x) → dynamic
+  ;
+static method main() → dynamic
+  ;
