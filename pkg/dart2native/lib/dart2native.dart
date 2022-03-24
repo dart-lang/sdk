@@ -5,8 +5,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dart2native/dart2native_macho.dart'
-    show writeAppendedMachOExecutable;
+import 'dart2native_macho.dart' show writeAppendedMachOExecutable;
+import 'dart2native_pe.dart' show writeAppendedPortableExecutable;
 
 // Maximum page size across all supported architectures (arm64 macOS has 16K
 // pages, some arm64 Linux distributions have 64K pages).
@@ -19,6 +19,9 @@ Future writeAppendedExecutable(
     String dartaotruntimePath, String payloadPath, String outputPath) async {
   if (Platform.isMacOS) {
     return await writeAppendedMachOExecutable(
+        dartaotruntimePath, payloadPath, outputPath);
+  } else if (Platform.isWindows) {
+    return await writeAppendedPortableExecutable(
         dartaotruntimePath, payloadPath, outputPath);
   }
 
