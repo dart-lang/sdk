@@ -29,12 +29,10 @@ import '../ir/impact.dart';
 import '../ir/impact_data.dart';
 import '../ir/static_type.dart';
 import '../ir/static_type_cache.dart';
-import '../ir/scope.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
-import '../js_backend/annotations.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_model/locals.dart';
@@ -1445,49 +1443,27 @@ class KernelToElementMap implements IrToElementMap {
       _nativeBehaviorBuilder ??= BehaviorBuilder(elementEnvironment,
           commonElements, nativeBasicData, reporter, options);
 
-  ResolutionImpact computeWorldImpact(KMember member,
-      VariableScopeModel variableScopeModel, Set<PragmaAnnotation> annotations,
-      {ImpactBuilderData impactBuilderData}) {
+  ResolutionImpact computeWorldImpact(
+      KMember member, ImpactBuilderData impactBuilderData) {
     KMemberData memberData = members.getData(member);
     ir.Member node = memberData.node;
 
-    if (impactBuilderData != null) {
-      if (impactBuilderData.typeMapsForTesting != null) {
-        typeMapsForTesting ??= {};
-        typeMapsForTesting[member] = impactBuilderData.typeMapsForTesting;
-      }
-      ImpactData impactData = impactBuilderData.impactData;
-      memberData.staticTypes = impactBuilderData.cachedStaticTypes;
-      KernelImpactConverter converter = KernelImpactConverter(
-          this,
-          member,
-          reporter,
-          options,
-          _constantValuefier,
-          // TODO(johnniwinther): Pull the static type context from the cached
-          // static types.
-          ir.StaticTypeContext(node, typeEnvironment));
-      return converter.convert(impactData);
-    } else {
-      StaticTypeCacheImpl staticTypeCache = StaticTypeCacheImpl();
-      KernelImpactBuilder builder = KernelImpactBuilder(
-          this,
-          member,
-          reporter,
-          options,
-          ir.StaticTypeContext(node, typeEnvironment, cache: staticTypeCache),
-          staticTypeCache,
-          variableScopeModel,
-          annotations,
-          _constantValuefier);
-      if (retainDataForTesting) {
-        typeMapsForTesting ??= {};
-        typeMapsForTesting[member] = builder.typeMapsForTesting = {};
-      }
-      node.accept(builder);
-      memberData.staticTypes = builder.getStaticTypeCache();
-      return builder.impactBuilder;
+    if (impactBuilderData.typeMapsForTesting != null) {
+      typeMapsForTesting ??= {};
+      typeMapsForTesting[member] = impactBuilderData.typeMapsForTesting;
     }
+    ImpactData impactData = impactBuilderData.impactData;
+    memberData.staticTypes = impactBuilderData.cachedStaticTypes;
+    KernelImpactConverter converter = KernelImpactConverter(
+        this,
+        member,
+        reporter,
+        options,
+        _constantValuefier,
+        // TODO(johnniwinther): Pull the static type context from the cached
+        // static types.
+        ir.StaticTypeContext(node, typeEnvironment));
+    return converter.convert(impactData);
   }
 
   StaticTypeCache getCachedStaticTypes(KMember member) {

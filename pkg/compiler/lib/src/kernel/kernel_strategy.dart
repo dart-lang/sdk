@@ -382,12 +382,8 @@ class KernelWorkItem implements WorkItem {
       }
       ImpactBuilderData impactBuilderData = modularMemberData.impactBuilderData;
       return _compilerTask.measureSubtask('worldImpact', () {
-        ResolutionImpact impact = _elementMap.computeWorldImpact(
-            element,
-            scopeModel.variableScopeModel,
-            Set<PragmaAnnotation>.from(
-                annotations.iterable(PragmaAnnotation.values)),
-            impactBuilderData: impactBuilderData);
+        ResolutionImpact impact =
+            _elementMap.computeWorldImpact(element, impactBuilderData);
         WorldImpact worldImpact =
             _impactTransformer.transformResolutionImpact(impact);
         if (_impactCache != null) {
@@ -401,11 +397,6 @@ class KernelWorkItem implements WorkItem {
   @override
   String toString() => 'KernelWorkItem($element)';
 }
-
-/// If `true` kernel impacts are computed as [ImpactData] directly on kernel
-/// and converted to the K model afterwards. This is a pre-step to modularizing
-/// the world impact computation.
-bool useImpactDataForTesting = false;
 
 class KernelModularStrategy extends ModularStrategy {
   final CompilerTask _compilerTask;
@@ -423,19 +414,14 @@ class KernelModularStrategy extends ModularStrategy {
       ir.Member node, EnumSet<PragmaAnnotation> annotations) {
     ScopeModel scopeModel = _compilerTask.measureSubtask(
         'closures', () => ScopeModel.from(node, _elementMap.constantEvaluator));
-    if (useImpactDataForTesting) {
-      return _compilerTask.measureSubtask('worldImpact', () {
-        return computeModularMemberData(node,
-            options: _elementMap.options,
-            typeEnvironment: _elementMap.typeEnvironment,
-            classHierarchy: _elementMap.classHierarchy,
-            scopeModel: scopeModel,
-            annotations: annotations);
-      });
-    } else {
-      ImpactBuilderData impactBuilderData;
-      return ModularMemberData(scopeModel, impactBuilderData);
-    }
+    return _compilerTask.measureSubtask('worldImpact', () {
+      return computeModularMemberData(node,
+          options: _elementMap.options,
+          typeEnvironment: _elementMap.typeEnvironment,
+          classHierarchy: _elementMap.classHierarchy,
+          scopeModel: scopeModel,
+          annotations: annotations);
+    });
   }
 }
 

@@ -21,15 +21,8 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    print('Testing direct computation of ResolutionImpact');
-    print('==================================================================');
-    useImpactDataForTesting = false;
-    await checkTests(dataDir, const ImpactDataComputer(),
-        args: args, testedConfigs: allSpecConfigs);
-
     print('Testing computation of ResolutionImpact through ImpactData');
     print('==================================================================');
-    useImpactDataForTesting = true;
     await checkTests(dataDir, const ImpactDataComputer(),
         args: args, testedConfigs: allSpecConfigs);
   });
