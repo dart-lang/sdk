@@ -159,13 +159,16 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       invokeType = rawType.instantiate(inferrer.downwardsInfer());
     }
 
-    super.resolveInvocation(
+    List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo =
+        _isIdentical(node) ? [] : null;
+    _visitArguments(
         resolver: resolver,
         node: node,
         argumentList: argumentList,
         rawType: invokeType,
         contextType: contextType,
-        whyNotPromotedList: whyNotPromotedList);
+        whyNotPromotedList: whyNotPromotedList,
+        identicalInfo: identicalInfo);
 
     if (inferrer != null) {
       // Get the parameters that correspond to the uninstantiated generic.
@@ -198,8 +201,14 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         errorReporter: resolver.errorReporter,
       );
     }
-    var returnType = InvocationInferrer.computeInvokeReturnType(invokeType);
-    return _refineReturnType(resolver, node, returnType);
+    var returnType = _refineReturnType(
+        resolver, node, InvocationInferrer.computeInvokeReturnType(invokeType));
+    _recordIdenticalInfo(
+        resolver: resolver,
+        node: node,
+        argumentList: argumentList,
+        identicalInfo: identicalInfo);
+    return returnType;
   }
 
   AstNode _getErrorNode(Node node) => node;
@@ -337,6 +346,63 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     required DartType? contextType,
     required List<WhyNotPromotedGetter> whyNotPromotedList,
   }) {
+    List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo =
+        _isIdentical(node) ? [] : null;
+    _visitArguments(
+        resolver: resolver,
+        node: node,
+        argumentList: argumentList,
+        rawType: rawType,
+        contextType: contextType,
+        whyNotPromotedList: whyNotPromotedList,
+        identicalInfo: identicalInfo);
+    _recordIdenticalInfo(
+        resolver: resolver,
+        node: node,
+        argumentList: argumentList,
+        identicalInfo: identicalInfo);
+  }
+
+  /// Computes the type context that should be used when evaluating a particular
+  /// argument of the invocation.  Usually this is just the type of the
+  /// corresponding parameter, but it can be different for certain primitive
+  /// numeric operations.
+  DartType? _computeContextForArgument(ResolverVisitor resolver, Node node,
+          DartType parameterType, DartType? methodInvocationContext) =>
+      parameterType;
+
+  /// Determines whether [node] is an invocation of the core function
+  /// `identical` (which needs special flow analysis treatment).
+  bool _isIdentical(Node node) => false;
+
+  /// If the invocation being processed is a call to `identical`, informs flow
+  /// analysis about it, so that it can do appropriate promotions.
+  void _recordIdenticalInfo(
+      {required ResolverVisitor resolver,
+      required Node node,
+      required ArgumentListImpl argumentList,
+      required List<EqualityInfo<PromotableElement, DartType>?>?
+          identicalInfo}) {
+    var flow = resolver.flowAnalysis.flow;
+    if (identicalInfo != null) {
+      flow?.equalityOperation_end(argumentList.parent as Expression,
+          identicalInfo[0], identicalInfo[1]);
+    }
+  }
+
+  /// Visits [argumentList], resolving each argument.  If any arguments need to
+  /// be deferred due to the `inference-update-1` feature, a list of them is
+  /// returned.
+  void _visitArguments(
+      {required ResolverVisitor resolver,
+      required Node node,
+      required ArgumentListImpl argumentList,
+      required FunctionType? rawType,
+      required DartType? contextType,
+      required List<WhyNotPromotedGetter> whyNotPromotedList,
+      required List<EqualityInfo<PromotableElement, DartType>?>?
+          identicalInfo}) {
+    assert(whyNotPromotedList.isEmpty);
     var parameters = rawType?.parameters;
     var namedParameters = <String, ParameterElement>{};
     if (parameters != null) {
@@ -350,8 +416,6 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     resolver.checkUnreachableNode(argumentList);
     var flow = resolver.flowAnalysis.flow;
     var positionalParameterIndex = 0;
-    List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo =
-        _isIdentical(node) ? [] : null;
     var arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
@@ -382,23 +446,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         whyNotPromotedList.add(flow.whyNotPromoted(argument));
       }
     }
-    if (identicalInfo != null) {
-      flow?.equalityOperation_end(argumentList.parent as Expression,
-          identicalInfo[0], identicalInfo[1]);
-    }
   }
-
-  /// Computes the type context that should be used when evaluating a particular
-  /// argument of the invocation.  Usually this is just the type of the
-  /// corresponding parameter, but it can be different for certain primitive
-  /// numeric operations.
-  DartType? _computeContextForArgument(ResolverVisitor resolver, Node node,
-          DartType parameterType, DartType? methodInvocationContext) =>
-      parameterType;
-
-  /// Determines whether [node] is an invocation of the core function
-  /// `identical` (which needs special flow analysis treatment).
-  bool _isIdentical(Node node) => false;
 
   /// Computes the return type of the method or function represented by the
   /// given type that is being invoked.
