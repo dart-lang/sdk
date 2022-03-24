@@ -2946,37 +2946,6 @@ void Assembler::StoreDToOffset(FRegister src, Register base, int32_t offset) {
   fsd(src, Address(base, offset));
 }
 
-void Assembler::LoadUnboxedDouble(FpuRegister dst,
-                                  Register base,
-                                  int32_t offset) {
-  fld(dst, Address(base, offset));
-}
-void Assembler::StoreUnboxedDouble(FpuRegister src,
-                                   Register base,
-                                   int32_t offset) {
-  fsd(src, Address(base, offset));
-}
-void Assembler::MoveUnboxedDouble(FpuRegister dst, FpuRegister src) {
-  fmvd(dst, src);
-}
-
-void Assembler::LoadCompressed(Register dest, const Address& slot) {
-  lx(dest, slot);
-}
-void Assembler::LoadCompressedFromOffset(Register dest,
-                                         Register base,
-                                         int32_t offset) {
-  lx(dest, Address(base, offset));
-}
-void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
-  lx(dest, slot);
-}
-void Assembler::LoadCompressedSmiFromOffset(Register dest,
-                                            Register base,
-                                            int32_t offset) {
-  lx(dest, Address(base, offset));
-}
-
 // Store into a heap object and apply the generational and incremental write
 // barriers. All stores into heap objects must pass through this function or,
 // if the value can be proven either Smi or old-and-premarked, its NoBarrier

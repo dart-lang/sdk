@@ -1022,16 +1022,30 @@ class Assembler : public MicroAssembler {
     StoreDToOffset(src, base, offset - kHeapObjectTag);
   }
 
-  void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset);
-  void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset);
-  void MoveUnboxedDouble(FpuRegister dst, FpuRegister src);
+  void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
+    LoadDFromOffset(dst, base, offset);
+  }
+  void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset) {
+    StoreDToOffset(src, base, offset);
+  }
+  void MoveUnboxedDouble(FpuRegister dst, FpuRegister src) {
+    fmvd(dst, src);
+  }
 
-  void LoadCompressed(Register dest, const Address& slot);
-  void LoadCompressedFromOffset(Register dest, Register base, int32_t offset);
-  void LoadCompressedSmi(Register dest, const Address& slot);
+  void LoadCompressed(Register dest, const Address& slot) {
+    lx(dest, slot);
+  }
+  void LoadCompressedFromOffset(Register dest, Register base, int32_t offset) {
+    LoadFromOffset(dest, base, offset);
+  }
+  void LoadCompressedSmi(Register dest, const Address& slot) {
+    lx(dest, slot);
+  }
   void LoadCompressedSmiFromOffset(Register dest,
                                    Register base,
-                                   int32_t offset);
+                                   int32_t offset) {
+    LoadFromOffset(dest, base, offset);
+  }
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
