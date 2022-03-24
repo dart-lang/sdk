@@ -82,12 +82,13 @@ class ConstructorFieldsVerifier {
     }
 
     // Prepare lists of not initialized fields.
-    List<FieldElement> notInitFinalFields = <FieldElement>[];
-    List<FieldElement> notInitNonNullableFields = <FieldElement>[];
+    var notInitFinalFields = <FieldElement>[];
+    var notInitNonNullableFields = <FieldElement>[];
     _fieldMap.forEach((FieldElement field, _InitState state) {
       if (state != _InitState.notInit) return;
       if (field.isLate) return;
       if (field.isAbstract || field.isExternal) return;
+      if (field.isStatic) return;
 
       if (field.isFinal) {
         notInitFinalFields.add(field);
