@@ -2386,7 +2386,7 @@ class DartSnippetCompletionTest extends SnippetCompletionTest {
 clas^
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartClassSnippetProducer.prefix,
@@ -2400,6 +2400,8 @@ class ${1:ClassName} {
 ''');
   }
 
+  /// Checks that the `enableSnippets` setting can disable snippets even if the
+  /// client supports them.
   Future<void> test_snippets_disabled() async {
     final content = '^';
 
@@ -2412,13 +2414,10 @@ class ${1:ClassName} {
         workspaceCapabilities:
             withConfigurationSupport(emptyWorkspaceClientCapabilities),
       ),
-      {'enableSnippets': true},
+      {'enableSnippets': false},
     );
 
-    await expectNoSnippet(
-      content,
-      FlutterStatelessWidgetSnippetProducer.prefix,
-    );
+    await expectNoSnippets(content);
   }
 
   Future<void> test_snippets_doWhile() async {
@@ -2428,7 +2427,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartDoWhileLoopSnippetProducer.prefix,
@@ -2454,7 +2453,7 @@ stle^
 class B {}
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     await expectNoSnippet(
       content,
       FlutterStatelessWidgetSnippetProducer.prefix,
@@ -2468,7 +2467,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartForLoopSnippetProducer.prefix,
@@ -2491,7 +2490,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartForInLoopSnippetProducer.prefix,
@@ -2514,7 +2513,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartIfSnippetProducer.prefix,
@@ -2537,7 +2536,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartIfElseSnippetProducer.prefix,
@@ -2564,7 +2563,7 @@ main^
 class B {}
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartMainFunctionSnippetProducer.prefix,
@@ -2600,7 +2599,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartSwitchSnippetProducer.prefix,
@@ -2628,7 +2627,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartTestBlockSnippetProducer.prefix,
@@ -2653,7 +2652,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartTestGroupBlockSnippetProducer.prefix,
@@ -2676,7 +2675,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartTryCatchSnippetProducer.prefix,
@@ -2701,7 +2700,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DartWhileLoopSnippetProducer.prefix,
@@ -2747,7 +2746,7 @@ stful^
 class B {}
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FlutterStatefulWidgetSnippetProducer.prefix,
@@ -2788,7 +2787,7 @@ stanim^
 class B {}
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix:
@@ -2845,7 +2844,7 @@ stle^
 class B {}
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FlutterStatelessWidgetSnippetProducer.prefix,
@@ -2879,7 +2878,7 @@ stle^
 class B {}
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FlutterStatelessWidgetSnippetProducer.prefix,
@@ -2910,7 +2909,7 @@ class B {}
 stless^
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FlutterStatelessWidgetSnippetProducer.prefix,
@@ -2937,7 +2936,7 @@ class \${1:MyWidget} extends StatelessWidget {
 ^
 '''; // Deliberate trailing newline to ensure imports aren't inserted at "end".
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FlutterStatelessWidgetSnippetProducer.prefix,
@@ -2968,7 +2967,7 @@ class A {
 }
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     await expectNoSnippet(
       content,
       FlutterStatelessWidgetSnippetProducer.prefix,
@@ -2980,7 +2979,7 @@ class A {
 stle^
 ''';
 
-    await initializeWithSnippetSupportAndPreviewFlag();
+    await initializeWithSnippetSupport();
     final otherFileUri = Uri.file(convertPath('/other/file.dart'));
     await openFile(otherFileUri, withoutMarkers(content));
     final res = await getCompletion(otherFileUri, positionFromMarker(content));
@@ -3040,6 +3039,14 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     expect(hasSnippet, isFalse);
   }
 
+  /// Expect that there are no snippets at the position of `^` within [content].
+  Future<void> expectNoSnippets(String content) async {
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final hasAnySnippet = res.any((c) => c.kind == CompletionItemKind.Snippet);
+    expect(hasAnySnippet, isFalse);
+  }
+
   /// Expect that there is a snippet for [prefix] with the label [label] at
   /// [position] in [content].
   Future<CompletionItem> expectSnippet(
@@ -3061,15 +3068,5 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
   Future<void> initializeWithSnippetSupport() => initialize(
         textDocumentCapabilities: withCompletionItemSnippetSupport(
             emptyTextDocumentClientCapabilities),
-      );
-
-  Future<void> initializeWithSnippetSupportAndPreviewFlag() => provideConfig(
-        () => initialize(
-          textDocumentCapabilities: withCompletionItemSnippetSupport(
-              emptyTextDocumentClientCapabilities),
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities),
-        ),
-        {'previewEnableSnippets': true},
       );
 }

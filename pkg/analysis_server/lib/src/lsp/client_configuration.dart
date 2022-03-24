@@ -166,16 +166,20 @@ class LspResourceClientConfiguration {
       true;
 
   /// Whether to include Snippets in code completion results.
-  bool get enableSnippets =>
-      // TODO(dantup): Change this setting to `enableSnippets`
-      //    and default to `true`
-      //    and remove `initializeWithSnippetSupportAndPreviewFlag` from tests
-      //    once all snippets are implemented and VS Code has shipped a
-      //    version that maps `enableServerSnippets` to `enableSnippets` in
-      //    middleware to avoid dupes.
-      _settings['previewEnableSnippets'] as bool? ??
-      _fallback?.enableSnippets ??
-      false;
+  bool get enableSnippets {
+    // Versions of Dart-Code earlier than v3.36 (1 Mar 2022) send
+    // enableServerSnippets=false to opt-out of snippets. Later versions map
+    // this version to the documented 'enableSnippets' setting in middleware.
+    // Once the number of users on < 3.36 is insignificant, this check can be
+    // removed. At 24 Mar 2022, approx 9% of users are on < 3.36.
+    if (_settings['enableServerSnippets'] == false /* explicit false */) {
+      return false;
+    }
+
+    return _settings['enableSnippets'] as bool? ??
+        _fallback?.enableSnippets ??
+        true;
+  }
 
   /// The line length used when formatting documents.
   ///
