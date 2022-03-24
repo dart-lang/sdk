@@ -3437,6 +3437,12 @@ void FlowGraphCompiler::EmitNativeMove(
   // If the location, payload, and container are equal, we're done.
   if (source.Equals(destination) && src_payload_type.Equals(dst_payload_type) &&
       src_container_type.Equals(dst_container_type)) {
+#if defined(TARGET_ARCH_RISCV64)
+    // Except we might still need to adjust for the difference between C's
+    // representation of uint32 (sign-extended to 64 bits) and Dart's
+    // (zero-extended).
+    EmitNativeMoveArchitecture(destination, source);
+#endif
     return;
   }
 

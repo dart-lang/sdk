@@ -6681,7 +6681,8 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
     if (is_leaf_) {
       __ LoadMemoryValue(temp0, FPREG, typed_data_loc.ToStackSlotOffset());
     } else {
-      __ LoadMemoryValue(temp0, FPREG, 0);
+      __ LoadMemoryValue(
+          temp0, FPREG, kSavedCallerFpSlotFromFp * compiler::target::kWordSize);
       __ LoadMemoryValue(temp0, temp0, typed_data_loc.ToStackSlotOffset());
     }
     __ LoadField(temp0,

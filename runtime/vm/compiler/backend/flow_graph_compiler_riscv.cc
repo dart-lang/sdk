@@ -931,7 +931,16 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(dst.num_regs() == 1);
       const auto dst_reg = WithIntermediateMarshalling(dst.reg_at(0));
       if (!sign_or_zero_extend) {
-        __ mv(dst_reg, src_reg);
+#if XLEN == 32
+        __ MoveRegister(dst_reg, src_reg);
+#else
+        if (src_size <= 4) {
+          // Signed-extended to XLEN, even unsigned types.
+          __ addiw(dst_reg, src_reg, 0);
+        } else {
+          __ MoveRegister(dst_reg, src_reg);
+        }
+#endif
       } else {
         switch (src_type.AsPrimitive().representation()) {
           // Calling convention: scalars are extended according to the sign of

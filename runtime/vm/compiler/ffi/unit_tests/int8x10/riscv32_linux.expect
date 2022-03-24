@@ -7,6 +7,6 @@ a5 int32[int8]
 a6 int32[int8]
 a7 int32[int8]
 S+0 int8
-S+1 int8
+S+4 int8
 =>
 a0 int32[int8]

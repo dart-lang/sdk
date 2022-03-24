@@ -15,8 +15,8 @@ a5 int64[float]
 a6 int64[float]
 a7 int64[float]
 S+0 float
-S+4 float
 S+8 float
-S+12 float
+S+16 float
+S+24 float
 =>
 fa0 float

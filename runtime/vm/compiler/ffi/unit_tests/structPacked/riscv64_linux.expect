@@ -10,6 +10,6 @@ M(S+0 int64, S+8 int64) Struct(size: 9)
 M(S+16 int64, S+24 int64) Struct(size: 9)
 S+32 double
 S+40 int32
-S+44 int32
+S+48 int32
 =>
 fa0 double
