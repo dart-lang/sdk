@@ -8,7 +8,7 @@ part of 'serialization.dart';
 /// inconsistencies between serialization and deserialization.
 ///
 /// This data sink works together with [ObjectSource].
-class ObjectSink extends AbstractDataSink {
+class ObjectSink extends DataSink {
   List<dynamic> _data;
 
   ObjectSink(this._data,

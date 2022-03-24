@@ -6,7 +6,7 @@ part of 'serialization.dart';
 
 /// Base implementation of [DataSink] using [DataSinkMixin] to implement
 /// convenience methods.
-abstract class AbstractDataSink implements DataSink {
+abstract class DataSink {
   /// If `true`, serialization of every data kind is preceded by a [DataKind]
   /// value.
   ///
@@ -50,7 +50,7 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  AbstractDataSink(
+  DataSink(
       {this.useDataKinds = false, this.tagFrequencyMap, this.importedIndices}) {
     _dartTypeNodeWriter = DartTypeNodeWriter(this);
     _stringIndex = _createSink<String>();
@@ -60,7 +60,6 @@ abstract class AbstractDataSink implements DataSink {
     _constantIndex = _createSink<ConstantValue>();
   }
 
-  @override
   void begin(String tag) {
     if (tagFrequencyMap != null) {
       tagFrequencyMap[tag] ??= 0;
@@ -73,7 +72,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void end(Object tag) {
     if (useDataKinds) {
       _end(tag);
@@ -84,7 +82,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void inMemberContext(ir.Member context, void f()) {
     ir.Member oldMemberContext = _currentMemberContext;
     _MemberData oldMemberData = _currentMemberData;
@@ -102,13 +99,11 @@ abstract class AbstractDataSink implements DataSink {
         _MemberData(_currentMemberContext);
   }
 
-  @override
   void writeCached<E>(E value, void f(E value)) {
     IndexedSink sink = _generalCaches[E] ??= _createSink<E>();
     sink.write(value, (v) => f(v));
   }
 
-  @override
   void writeSourceSpan(SourceSpan value) {
     _writeDataKind(DataKind.sourceSpan);
     _writeUri(value.uri);
@@ -116,7 +111,6 @@ abstract class AbstractDataSink implements DataSink {
     _writeIntInternal(value.end);
   }
 
-  @override
   void writeDartType(DartType value, {bool allowNull = false}) {
     _writeDataKind(DataKind.dartType);
     _writeDartType(value, [], allowNull: allowNull);
@@ -135,7 +129,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeDartTypeNode(ir.DartType value, {bool allowNull = false}) {
     _writeDataKind(DataKind.dartTypeNode);
     _writeDartTypeNode(value, [], allowNull: allowNull);
@@ -154,7 +147,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeMemberNode(ir.Member value) {
     _writeDataKind(DataKind.memberNode);
     _writeMemberNode(value);
@@ -177,7 +169,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeClassNode(ir.Class value) {
     _writeDataKind(DataKind.classNode);
     _writeClassNode(value);
@@ -188,7 +179,6 @@ abstract class AbstractDataSink implements DataSink {
     _writeString(value.name);
   }
 
-  @override
   void writeTypedefNode(ir.Typedef value) {
     _writeDataKind(DataKind.typedefNode);
     _writeTypedefNode(value);
@@ -199,7 +189,6 @@ abstract class AbstractDataSink implements DataSink {
     _writeString(value.name);
   }
 
-  @override
   void writeLibraryNode(ir.Library value) {
     _writeDataKind(DataKind.libraryNode);
     _writeLibraryNode(value);
@@ -209,13 +198,11 @@ abstract class AbstractDataSink implements DataSink {
     _writeUri(value.importUri);
   }
 
-  @override
   void writeEnum(dynamic value) {
     _writeDataKind(DataKind.enumValue);
     _writeEnumInternal(value);
   }
 
-  @override
   void writeBool(bool value) {
     assert(value != null);
     _writeDataKind(DataKind.bool);
@@ -226,21 +213,18 @@ abstract class AbstractDataSink implements DataSink {
     _writeIntInternal(value ? 1 : 0);
   }
 
-  @override
   void writeUri(Uri value) {
     assert(value != null);
     _writeDataKind(DataKind.uri);
     _writeUri(value);
   }
 
-  @override
   void writeString(String value) {
     assert(value != null);
     _writeDataKind(DataKind.string);
     _writeString(value);
   }
 
-  @override
   void writeInt(int value) {
     assert(value != null);
     assert(value >= 0 && value >> 30 == 0);
@@ -248,13 +232,11 @@ abstract class AbstractDataSink implements DataSink {
     _writeIntInternal(value);
   }
 
-  @override
   void writeTreeNode(ir.TreeNode value) {
     _writeDataKind(DataKind.treeNode);
     _writeTreeNode(value, null);
   }
 
-  @override
   void writeTreeNodeInContext(ir.TreeNode value) {
     writeTreeNodeInContextInternal(value, currentMemberData);
   }
@@ -265,7 +247,6 @@ abstract class AbstractDataSink implements DataSink {
     _writeTreeNode(value, memberData);
   }
 
-  @override
   void writeTreeNodeOrNullInContext(ir.TreeNode value) {
     writeBool(value != null);
     if (value != null) {
@@ -273,7 +254,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeTreeNodesInContext(Iterable<ir.TreeNode> values,
       {bool allowNull = false}) {
     if (values == null) {
@@ -287,7 +267,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -371,7 +350,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeTypeParameterNode(ir.TypeParameter value) {
     _writeDataKind(DataKind.typeParameterNode);
     _writeTypeParameter(value, null);
@@ -397,27 +375,22 @@ abstract class AbstractDataSink implements DataSink {
     if (useDataKinds) _writeEnumInternal(kind);
   }
 
-  @override
   void writeLibrary(IndexedLibrary value) {
     _entityWriter.writeLibraryToDataSink(this, value);
   }
 
-  @override
   void writeClass(IndexedClass value) {
     _entityWriter.writeClassToDataSink(this, value);
   }
 
-  @override
   void writeMember(IndexedMember value) {
     _entityWriter.writeMemberToDataSink(this, value);
   }
 
-  @override
   void writeTypeVariable(IndexedTypeVariable value) {
     _entityWriter.writeTypeVariableToDataSink(this, value);
   }
 
-  @override
   void writeLocal(Local local) {
     if (local is JLocal) {
       writeEnum(LocalKind.jLocal);
@@ -440,13 +413,11 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeConstant(ConstantValue value) {
     _writeDataKind(DataKind.constant);
     _writeConstant(value);
   }
 
-  @override
   void writeDoubleValue(double value) {
     _writeDataKind(DataKind.double);
     _writeDoubleValue(value);
@@ -461,7 +432,6 @@ abstract class AbstractDataSink implements DataSink {
     writeInt(data.getUint16(6));
   }
 
-  @override
   void writeIntegerValue(int value) {
     _writeDataKind(DataKind.int);
     _writeBigInt(BigInt.from(value));
@@ -567,7 +537,6 @@ abstract class AbstractDataSink implements DataSink {
     _uriIndex.write(value, _writeUriInternal);
   }
 
-  @override
   void writeImport(ImportEntity value) {
     _writeDataKind(DataKind.import);
     _writeImport(value);
@@ -585,20 +554,17 @@ abstract class AbstractDataSink implements DataSink {
     _writeBool(value.isDeferred);
   }
 
-  @override
   void registerEntityWriter(EntityWriter writer) {
     assert(writer != null);
     _entityWriter = writer;
   }
 
-  @override
   void registerCodegenWriter(CodegenWriter writer) {
     assert(writer != null);
     assert(_codegenWriter == null);
     _codegenWriter = writer;
   }
 
-  @override
   void writeOutputUnitReference(OutputUnit value) {
     assert(
         _codegenWriter != null,
@@ -607,21 +573,18 @@ abstract class AbstractDataSink implements DataSink {
     _codegenWriter.writeOutputUnitReference(this, value);
   }
 
-  @override
   void writeAbstractValue(AbstractValue value) {
     assert(_codegenWriter != null,
         "Can not serialize an AbstractValue without a registered codegen writer.");
     _codegenWriter.writeAbstractValue(this, value);
   }
 
-  @override
   void writeJsNode(js.Node value) {
     assert(_codegenWriter != null,
         "Can not serialize a JS node without a registered codegen writer.");
     _codegenWriter.writeJsNode(this, value);
   }
 
-  @override
   void writeTypeRecipe(TypeRecipe value) {
     assert(_codegenWriter != null,
         "Can not serialize a TypeRecipe without a registered codegen writer.");
@@ -647,7 +610,16 @@ abstract class AbstractDataSink implements DataSink {
   /// Actual serialization of an enum value, implemented by subclasses.
   void _writeEnumInternal(dynamic value);
 
-  @override
+  /// The amount of data written to this data sink.
+  ///
+  /// The units is based on the underlying data structure for this data sink.
+  int get length;
+
+  /// Flushes any pending data and closes this data sink.
+  ///
+  /// The data sink can no longer be written to after closing.
+  void close();
+
   void writeIntOrNull(int value) {
     writeBool(value != null);
     if (value != null) {
@@ -655,7 +627,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeStringOrNull(String value) {
     writeBool(value != null);
     if (value != null) {
@@ -663,7 +634,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeClassOrNull(IndexedClass value) {
     writeBool(value != null);
     if (value != null) {
@@ -671,7 +641,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeLocalOrNull(Local value) {
     writeBool(value != null);
     if (value != null) {
@@ -679,7 +648,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeClasses(Iterable<ClassEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -692,7 +660,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeTreeNodes(Iterable<ir.TreeNode> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -705,7 +672,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeStrings(Iterable<String> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -718,7 +684,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeMemberNodes(Iterable<ir.Member> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -731,7 +696,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeDartTypes(Iterable<DartType> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -744,7 +708,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeLibraryMap<V>(Map<LibraryEntity, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -759,7 +722,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeClassMap<V>(Map<ClassEntity, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -774,7 +736,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeMemberMap<V>(
       Map<MemberEntity, V> map, void f(MemberEntity member, V value),
       {bool allowNull = false}) {
@@ -790,7 +751,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeStringMap<V>(Map<String, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -805,7 +765,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeLocals(Iterable<Local> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -818,7 +777,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeLocalMap<V>(Map<Local, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -833,7 +791,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeMemberNodeMap<V>(Map<ir.Member, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -848,7 +805,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -863,7 +819,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeTypeVariableMap<V>(Map<IndexedTypeVariable, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -878,7 +833,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeList<E>(Iterable<E> values, void f(E value),
       {bool allowNull = false}) {
     if (values == null) {
@@ -890,7 +844,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeTreeNodeOrNull(ir.TreeNode value) {
     writeBool(value != null);
     if (value != null) {
@@ -898,7 +851,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeValueOrNull<E>(E value, void f(E value)) {
     writeBool(value != null);
     if (value != null) {
@@ -906,7 +858,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeMemberOrNull(IndexedMember value) {
     writeBool(value != null);
     if (value != null) {
@@ -914,7 +865,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeMembers(Iterable<MemberEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -927,7 +877,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeTypeParameterNodes(Iterable<ir.TypeParameter> values,
       {bool allowNull = false}) {
     if (values == null) {
@@ -941,7 +890,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeConstantOrNull(ConstantValue value) {
     writeBool(value != null);
     if (value != null) {
@@ -949,7 +897,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeConstants(Iterable<ConstantValue> values,
       {bool allowNull = false}) {
     if (values == null) {
@@ -963,7 +910,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeConstantMap<V>(Map<ConstantValue, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -978,7 +924,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeLibraryOrNull(IndexedLibrary value) {
     writeBool(value != null);
     if (value != null) {
@@ -986,7 +931,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeImportOrNull(ImportEntity value) {
     writeBool(value != null);
     if (value != null) {
@@ -994,7 +938,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeImports(Iterable<ImportEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -1007,7 +950,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeImportMap<V>(Map<ImportEntity, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -1022,7 +964,6 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeDartTypeNodes(Iterable<ir.DartType> values,
       {bool allowNull = false}) {
     if (values == null) {
@@ -1036,25 +977,21 @@ abstract class AbstractDataSink implements DataSink {
     }
   }
 
-  @override
   void writeName(ir.Name value) {
     writeString(value.text);
     writeValueOrNull(value.library, writeLibraryNode);
   }
 
-  @override
   void writeLibraryDependencyNode(ir.LibraryDependency value) {
     ir.Library library = value.parent;
     writeLibraryNode(library);
     writeInt(library.dependencies.indexOf(value));
   }
 
-  @override
   void writeLibraryDependencyNodeOrNull(ir.LibraryDependency value) {
     writeValueOrNull(value, writeLibraryDependencyNode);
   }
 
-  @override
   void writeJsNodeOrNull(js.Node value) {
     writeBool(value != null);
     if (value != null) {

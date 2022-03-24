@@ -7,7 +7,7 @@ part of 'serialization.dart';
 /// [DataSource] that reads data from a sequence of bytes.
 ///
 /// This data source works together with [BinarySink].
-class BinarySourceImpl extends AbstractDataSource {
+class BinarySourceImpl extends DataSource {
   int _byteOffset = 0;
   final List<int> _bytes;
   final StringInterner _stringInterner;

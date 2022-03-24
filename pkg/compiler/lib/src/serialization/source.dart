@@ -6,7 +6,7 @@ part of 'serialization.dart';
 
 /// Base implementation of [DataSource] using [DataSourceMixin] to implement
 /// convenience methods.
-abstract class AbstractDataSource implements DataSource {
+abstract class DataSource {
   static final List<ir.DartType> emptyListOfDartTypes =
       List<ir.DartType>.filled(0, null, growable: false);
 
@@ -38,7 +38,7 @@ abstract class AbstractDataSource implements DataSource {
     }
   }
 
-  AbstractDataSource({this.useDataKinds = false, this.importedIndices}) {
+  DataSource({this.useDataKinds = false, this.importedIndices}) {
     _stringIndex = _createSource<String>();
     _uriIndex = _createSource<Uri>();
     _memberNodeIndex = _createSource<_MemberData>();
@@ -46,7 +46,6 @@ abstract class AbstractDataSource implements DataSource {
     _constantIndex = _createSource<ConstantValue>();
   }
 
-  @override
   DataSourceIndices exportIndices() {
     var indices = DataSourceIndices();
     indices.caches[String] = DataSourceTypeIndices(_stringIndex.cache);
@@ -64,17 +63,14 @@ abstract class AbstractDataSource implements DataSource {
     return indices;
   }
 
-  @override
   void begin(String tag) {
     if (useDataKinds) _begin(tag);
   }
 
-  @override
   void end(String tag) {
     if (useDataKinds) _end(tag);
   }
 
-  @override
   void registerComponentLookup(ComponentLookup componentLookup) {
     assert(_componentLookup == null);
     _componentLookup = componentLookup;
@@ -85,7 +81,6 @@ abstract class AbstractDataSource implements DataSource {
     return _componentLookup;
   }
 
-  @override
   void registerEntityLookup(EntityLookup entityLookup) {
     assert(_entityLookup == null);
     _entityLookup = entityLookup;
@@ -96,13 +91,11 @@ abstract class AbstractDataSource implements DataSource {
     return _entityLookup;
   }
 
-  @override
   void registerLocalLookup(LocalLookup localLookup) {
     assert(_localLookup == null);
     _localLookup = localLookup;
   }
 
-  @override
   void registerEntityReader(EntityReader reader) {
     assert(reader != null);
     _entityReader = reader;
@@ -113,20 +106,17 @@ abstract class AbstractDataSource implements DataSource {
     return _localLookup;
   }
 
-  @override
   void registerCodegenReader(CodegenReader reader) {
     assert(reader != null);
     assert(_codegenReader == null);
     _codegenReader = reader;
   }
 
-  @override
   void deregisterCodegenReader(CodegenReader reader) {
     assert(_codegenReader == reader);
     _codegenReader = null;
   }
 
-  @override
   T inMemberContext<T>(ir.Member context, T f()) {
     ir.Member oldMemberContext = _currentMemberContext;
     _MemberData oldMemberData = _currentMemberData;
@@ -144,28 +134,23 @@ abstract class AbstractDataSource implements DataSource {
     return _currentMemberData ??= _getMemberData(_currentMemberContext);
   }
 
-  @override
   E readCached<E>(E f()) {
     IndexedSource source = _generalCaches[E] ??= _createSource<E>();
     return source.read(f);
   }
 
-  @override
   IndexedLibrary readLibrary() {
     return _entityReader.readLibraryFromDataSource(this, entityLookup);
   }
 
-  @override
   IndexedClass readClass() {
     return _entityReader.readClassFromDataSource(this, entityLookup);
   }
 
-  @override
   IndexedMember readMember() {
     return _entityReader.readMemberFromDataSource(this, entityLookup);
   }
 
-  @override
   IndexedTypeVariable readTypeVariable() {
     return _entityReader.readTypeVariableFromDataSource(this, entityLookup);
   }
@@ -181,7 +166,6 @@ abstract class AbstractDataSource implements DataSource {
     return types;
   }
 
-  @override
   SourceSpan readSourceSpan() {
     _checkDataKind(DataKind.sourceSpan);
     Uri uri = _readUri();
@@ -190,7 +174,6 @@ abstract class AbstractDataSource implements DataSource {
     return SourceSpan(uri, begin, end);
   }
 
-  @override
   DartType readDartType({bool allowNull = false}) {
     _checkDataKind(DataKind.dartType);
     DartType type = DartType.readFromDataSource(this, []);
@@ -198,7 +181,6 @@ abstract class AbstractDataSource implements DataSource {
     return type;
   }
 
-  @override
   ir.DartType readDartTypeNode({bool allowNull = false}) {
     _checkDataKind(DataKind.dartTypeNode);
     ir.DartType type = _readDartTypeNode([]);
@@ -328,7 +310,6 @@ abstract class AbstractDataSource implements DataSource {
     throw UnsupportedError("Unsupported _MemberKind $kind");
   }
 
-  @override
   ir.Member readMemberNode() {
     _checkDataKind(DataKind.memberNode);
     return _readMemberData().node;
@@ -340,7 +321,6 @@ abstract class AbstractDataSource implements DataSource {
     return library.lookupClassByName(name);
   }
 
-  @override
   ir.Class readClassNode() {
     _checkDataKind(DataKind.classNode);
     return _readClassData().node;
@@ -352,7 +332,6 @@ abstract class AbstractDataSource implements DataSource {
     return library.lookupTypedef(name);
   }
 
-  @override
   ir.Typedef readTypedefNode() {
     _checkDataKind(DataKind.typedefNode);
     return _readTypedefNode();
@@ -363,19 +342,16 @@ abstract class AbstractDataSource implements DataSource {
     return componentLookup.getLibraryDataByUri(canonicalUri);
   }
 
-  @override
   ir.Library readLibraryNode() {
     _checkDataKind(DataKind.libraryNode);
     return _readLibraryData().node;
   }
 
-  @override
   E readEnum<E>(List<E> values) {
     _checkDataKind(DataKind.enumValue);
     return _readEnumInternal(values);
   }
 
-  @override
   Uri readUri() {
     _checkDataKind(DataKind.uri);
     return _readUri();
@@ -385,7 +361,6 @@ abstract class AbstractDataSource implements DataSource {
     return _uriIndex.read(_readUriInternal);
   }
 
-  @override
   bool readBool() {
     _checkDataKind(DataKind.bool);
     return _readBool();
@@ -397,7 +372,6 @@ abstract class AbstractDataSource implements DataSource {
     return value == 1;
   }
 
-  @override
   String readString() {
     _checkDataKind(DataKind.string);
     return _readString();
@@ -407,13 +381,11 @@ abstract class AbstractDataSource implements DataSource {
     return _stringIndex.read(_readStringInternal);
   }
 
-  @override
   int readInt() {
     _checkDataKind(DataKind.uint30);
     return _readIntInternal();
   }
 
-  @override
   ir.TreeNode readTreeNode() {
     _checkDataKind(DataKind.treeNode);
     return _readTreeNode(null);
@@ -430,7 +402,6 @@ abstract class AbstractDataSource implements DataSource {
     }
   }
 
-  @override
   ir.TreeNode readTreeNodeInContext() {
     return readTreeNodeInContextInternal(currentMemberData);
   }
@@ -440,7 +411,6 @@ abstract class AbstractDataSource implements DataSource {
     return _readTreeNode(memberData);
   }
 
-  @override
   ir.TreeNode readTreeNodeOrNullInContext() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -449,7 +419,6 @@ abstract class AbstractDataSource implements DataSource {
     return null;
   }
 
-  @override
   List<E> readTreeNodesInContext<E extends ir.TreeNode>(
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -462,7 +431,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -476,13 +444,11 @@ abstract class AbstractDataSource implements DataSource {
     return map;
   }
 
-  @override
   ConstantValue readConstant() {
     _checkDataKind(DataKind.constant);
     return _readConstant();
   }
 
-  @override
   double readDoubleValue() {
     _checkDataKind(DataKind.double);
     return _readDoubleValue();
@@ -497,7 +463,6 @@ abstract class AbstractDataSource implements DataSource {
     return data.getFloat64(0);
   }
 
-  @override
   int readIntegerValue() {
     _checkDataKind(DataKind.int);
     return _readBigInt().toInt();
@@ -635,7 +600,6 @@ abstract class AbstractDataSource implements DataSource {
     throw UnsupportedError("Unexpected _FunctionNodeKind $kind");
   }
 
-  @override
   ir.TypeParameter readTypeParameterNode() {
     _checkDataKind(DataKind.typeParameterNode);
     return _readTypeParameter(null);
@@ -663,7 +627,6 @@ abstract class AbstractDataSource implements DataSource {
         "Expected $expectedKind, found $actualKind.$_errorContext");
   }
 
-  @override
   Local readLocal() {
     LocalKind kind = readEnum(LocalKind.values);
     switch (kind) {
@@ -687,7 +650,6 @@ abstract class AbstractDataSource implements DataSource {
     throw UnsupportedError("Unexpected local kind $kind");
   }
 
-  @override
   ImportEntity readImport() {
     _checkDataKind(DataKind.import);
     return _readImport();
@@ -705,7 +667,6 @@ abstract class AbstractDataSource implements DataSource {
     return ImportEntity(isDeferred, name, uri, enclosingLibraryUri);
   }
 
-  @override
   OutputUnit readOutputUnitReference() {
     assert(
         _codegenReader != null,
@@ -714,7 +675,6 @@ abstract class AbstractDataSource implements DataSource {
     return _codegenReader.readOutputUnitReference(this);
   }
 
-  @override
   AbstractValue readAbstractValue() {
     assert(
         _codegenReader != null,
@@ -723,14 +683,12 @@ abstract class AbstractDataSource implements DataSource {
     return _codegenReader.readAbstractValue(this);
   }
 
-  @override
   js.Node readJsNode() {
     assert(_codegenReader != null,
         "Can not deserialize a JS node without a registered codegen reader.");
     return _codegenReader.readJsNode(this);
   }
 
-  @override
   TypeRecipe readTypeRecipe() {
     assert(_codegenReader != null,
         "Can not deserialize a TypeRecipe without a registered codegen reader.");
@@ -762,7 +720,6 @@ abstract class AbstractDataSource implements DataSource {
   /// deserialization.
   String get _errorContext;
 
-  @override
   E readValueOrNull<E>(E f()) {
     bool hasValue = readBool();
     if (hasValue) {
@@ -771,7 +728,6 @@ abstract class AbstractDataSource implements DataSource {
     return null;
   }
 
-  @override
   List<E> readList<E>(E f(), {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -782,7 +738,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   int readIntOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -791,7 +746,6 @@ abstract class AbstractDataSource implements DataSource {
     return null;
   }
 
-  @override
   String readStringOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -800,7 +754,6 @@ abstract class AbstractDataSource implements DataSource {
     return null;
   }
 
-  @override
   List<String> readStrings({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -811,7 +764,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   List<DartType> readDartTypes({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -822,7 +774,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   List<ir.TypeParameter> readTypeParameterNodes({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -833,7 +784,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   List<E> readMembers<E extends MemberEntity>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -845,7 +795,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   List<E> readMemberNodes<E extends ir.Member>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -857,7 +806,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   List<E> readClasses<E extends ClassEntity>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -869,7 +817,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   Map<K, V> readLibraryMap<K extends LibraryEntity, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -883,7 +830,6 @@ abstract class AbstractDataSource implements DataSource {
     return map;
   }
 
-  @override
   Map<K, V> readClassMap<K extends ClassEntity, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -897,7 +843,6 @@ abstract class AbstractDataSource implements DataSource {
     return map;
   }
 
-  @override
   Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -911,7 +856,6 @@ abstract class AbstractDataSource implements DataSource {
     return map;
   }
 
-  @override
   Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -925,7 +869,6 @@ abstract class AbstractDataSource implements DataSource {
     return map;
   }
 
-  @override
   Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -939,7 +882,6 @@ abstract class AbstractDataSource implements DataSource {
     return map;
   }
 
-  @override
   Map<K, V> readTypeVariableMap<K extends IndexedTypeVariable, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -953,7 +895,6 @@ abstract class AbstractDataSource implements DataSource {
     return map;
   }
 
-  @override
   List<E> readLocals<E extends Local>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -965,7 +906,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   Map<K, V> readLocalMap<K extends Local, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -979,7 +919,6 @@ abstract class AbstractDataSource implements DataSource {
     return map;
   }
 
-  @override
   List<E> readTreeNodes<E extends ir.TreeNode>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -991,7 +930,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   Map<String, V> readStringMap<V>(V f(), {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -1004,7 +942,6 @@ abstract class AbstractDataSource implements DataSource {
     return map;
   }
 
-  @override
   IndexedClass readClassOrNull() {
     bool hasClass = readBool();
     if (hasClass) {
@@ -1013,7 +950,6 @@ abstract class AbstractDataSource implements DataSource {
     return null;
   }
 
-  @override
   ir.TreeNode readTreeNodeOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -1022,7 +958,6 @@ abstract class AbstractDataSource implements DataSource {
     return null;
   }
 
-  @override
   IndexedMember readMemberOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -1031,7 +966,6 @@ abstract class AbstractDataSource implements DataSource {
     return null;
   }
 
-  @override
   Local readLocalOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -1040,7 +974,6 @@ abstract class AbstractDataSource implements DataSource {
     return null;
   }
 
-  @override
   ConstantValue readConstantOrNull() {
     bool hasClass = readBool();
     if (hasClass) {
@@ -1049,7 +982,6 @@ abstract class AbstractDataSource implements DataSource {
     return null;
   }
 
-  @override
   List<E> readConstants<E extends ConstantValue>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -1061,7 +993,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   Map<K, V> readConstantMap<K extends ConstantValue, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -1075,7 +1006,6 @@ abstract class AbstractDataSource implements DataSource {
     return map;
   }
 
-  @override
   IndexedLibrary readLibraryOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -1084,7 +1014,6 @@ abstract class AbstractDataSource implements DataSource {
     return null;
   }
 
-  @override
   ImportEntity readImportOrNull() {
     bool hasClass = readBool();
     if (hasClass) {
@@ -1093,7 +1022,6 @@ abstract class AbstractDataSource implements DataSource {
     return null;
   }
 
-  @override
   List<ImportEntity> readImports({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -1104,7 +1032,6 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   Map<ImportEntity, V> readImportMap<V>(V f(), {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -1117,7 +1044,6 @@ abstract class AbstractDataSource implements DataSource {
     return map;
   }
 
-  @override
   List<ir.DartType> readDartTypeNodes({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -1128,26 +1054,22 @@ abstract class AbstractDataSource implements DataSource {
     return list;
   }
 
-  @override
   ir.Name readName() {
     String text = readString();
     ir.Library library = readValueOrNull(readLibraryNode);
     return ir.Name(text, library);
   }
 
-  @override
   ir.LibraryDependency readLibraryDependencyNode() {
     ir.Library library = readLibraryNode();
     int index = readInt();
     return library.dependencies[index];
   }
 
-  @override
   ir.LibraryDependency readLibraryDependencyNodeOrNull() {
     return readValueOrNull(readLibraryDependencyNode);
   }
 
-  @override
   js.Node readJsNodeOrNull() {
     bool hasValue = readBool();
     if (hasValue) {

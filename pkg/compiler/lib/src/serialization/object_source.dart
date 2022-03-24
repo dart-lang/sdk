@@ -8,7 +8,7 @@ part of 'serialization.dart';
 /// inconsistencies between serialization and deserialization.
 ///
 /// This data source works together with [ObjectSink].
-class ObjectSource extends AbstractDataSource {
+class ObjectSource extends DataSource {
   int _index = 0;
   final List<dynamic> _data;
 

@@ -126,7 +126,7 @@ const String functionTypeNodeTag = 'function-type-node';
 
 class DartTypeNodeWriter
     extends ir.DartTypeVisitor1<void, List<ir.TypeParameter>> {
-  final AbstractDataSink _sink;
+  final DataSink _sink;
 
   DartTypeNodeWriter(this._sink);
 
@@ -262,7 +262,7 @@ class DartTypeNodeWriter
 
 /// Data sink helper that canonicalizes [E] values using indices.
 class IndexedSink<E> {
-  final AbstractDataSink _sink;
+  final DataSink _sink;
   Map<E, int> cache;
 
   IndexedSink(this._sink, {this.cache}) {
@@ -293,7 +293,7 @@ class IndexedSink<E> {
 
 /// Data source helper reads canonicalized [E] values through indices.
 class IndexedSource<E> {
-  final AbstractDataSource _source;
+  final DataSource _source;
   List<E> cache;
 
   IndexedSource(this._source, {this.cache}) {

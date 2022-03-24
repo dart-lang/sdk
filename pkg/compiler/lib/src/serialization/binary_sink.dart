@@ -7,7 +7,7 @@ part of 'serialization.dart';
 /// [DataSink] that writes data as a sequence of bytes.
 ///
 /// This data sink works together with [BinarySource].
-class BinarySink extends AbstractDataSink {
+class BinarySink extends DataSink {
   final Sink<List<int>> sink;
   BufferedSink _bufferedSink;
   int _length = 0;
