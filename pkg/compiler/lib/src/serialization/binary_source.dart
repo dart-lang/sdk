@@ -4,31 +4,28 @@
 
 part of 'serialization.dart';
 
-/// [DataSource] that reads data from a sequence of bytes.
+/// [SourceReader] that reads data from a sequence of bytes.
 ///
-/// This data source works together with [BinarySink].
-class BinarySourceImpl extends DataSource {
+/// This data source works together with [BinarySinkWriter].
+class BinarySourceReader implements SourceReader {
   int _byteOffset = 0;
   final List<int> _bytes;
   final StringInterner _stringInterner;
 
-  BinarySourceImpl(this._bytes,
-      {bool useDataKinds = false,
-      StringInterner stringInterner,
-      DataSourceIndices importedIndices})
-      : _stringInterner = stringInterner,
-        super(useDataKinds: useDataKinds, importedIndices: importedIndices);
+  BinarySourceReader(this._bytes, {StringInterner stringInterner})
+      : _stringInterner = stringInterner;
 
   @override
-  void _begin(String tag) {}
+  void begin(String tag) {}
+
   @override
-  void _end(String tag) {}
+  void end(String tag) {}
 
   int _readByte() => _bytes[_byteOffset++];
 
   @override
-  String _readStringInternal() {
-    int length = _readIntInternal();
+  String readString() {
+    int length = readInt();
     List<int> bytes = Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
@@ -38,7 +35,7 @@ class BinarySourceImpl extends DataSource {
   }
 
   @override
-  int _readIntInternal() {
+  int readInt() {
     var byte = _readByte();
     if (byte & 0x80 == 0) {
       // 0xxxxxxx
@@ -56,14 +53,8 @@ class BinarySourceImpl extends DataSource {
   }
 
   @override
-  Uri _readUriInternal() {
-    String text = _readString();
-    return Uri.parse(text);
-  }
-
-  @override
-  E _readEnumInternal<E>(List<E> values) {
-    int index = _readIntInternal();
+  E readEnum<E>(List<E> values) {
+    int index = readInt();
     assert(
         0 <= index && index < values.length,
         "Invalid data kind index. "
@@ -72,5 +63,5 @@ class BinarySourceImpl extends DataSource {
   }
 
   @override
-  String get _errorContext => ' Offset $_byteOffset in ${_bytes.length}.';
+  String get errorContext => ' Offset $_byteOffset in ${_bytes.length}.';
 }

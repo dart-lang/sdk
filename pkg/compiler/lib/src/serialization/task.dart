@@ -177,7 +177,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing data to ${_options.writeModularAnalysisUri}');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(_options.writeModularAnalysisUri);
-      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput));
+      DataSink sink =
+          DataSink(BinarySinkWriter(BinaryOutputSinkAdapter(dataOutput)));
       data.toDataSink(sink);
       sink.close();
     });
@@ -196,11 +197,12 @@ class SerializationTask extends CompilerTask {
       //   ModuleData.fromDataSource(source);
 
       BytesSink bytes = BytesSink();
-      BinarySink binarySink = BinarySink(bytes, useDataKinds: true);
+      DataSink binarySink =
+          DataSink(BinarySinkWriter(bytes), useDataKinds: true);
       data.toDataSink(binarySink);
       binarySink.close();
-      var source =
-          BinarySourceImpl(bytes.builder.toBytes(), useDataKinds: true);
+      var source = DataSource(BinarySourceReader(bytes.builder.toBytes()),
+          useDataKinds: true);
       source.registerComponentLookup(ComponentLookup(component));
       ModuleData.fromDataSource(source);
     }
@@ -213,7 +215,7 @@ class SerializationTask extends CompilerTask {
       for (Uri uri in _options.modularAnalysisInputs) {
         api.Input<List<int>> dataInput =
             await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
-        DataSource source = BinarySourceImpl(dataInput.data);
+        DataSource source = DataSource(BinarySourceReader(dataInput.data));
         source.registerComponentLookup(ComponentLookup(component));
         results.add(ModuleData.fromDataSource(source));
       }
@@ -226,7 +228,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing closed world to ${_options.writeClosedWorldUri}');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(_options.writeClosedWorldUri);
-      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput));
+      DataSink sink =
+          DataSink(BinarySinkWriter(BinaryOutputSinkAdapter(dataOutput)));
       serializeClosedWorldToSink(closedWorld, sink);
     });
   }
@@ -240,8 +243,8 @@ class SerializationTask extends CompilerTask {
       api.Input<List<int>> dataInput = await _provider.readFromUri(
           _options.readClosedWorldUri,
           inputKind: api.InputKind.binary);
-      DataSource source =
-          BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
+      DataSource source = DataSource(
+          BinarySourceReader(dataInput.data, stringInterner: _stringInterner));
       var closedWorld = deserializeClosedWorldFromSource(_options, _reporter,
           environment, abstractValueStrategy, component, source);
       return ClosedWorldAndIndices(closedWorld, source.exportIndices());
@@ -258,7 +261,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing data to ${_options.writeDataUri}');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(_options.writeDataUri);
-      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput),
+      DataSink sink = DataSink(
+          BinarySinkWriter(BinaryOutputSinkAdapter(dataOutput)),
           importedIndices: indices);
       serializeGlobalTypeInferenceResultsToSink(results, sink);
     });
@@ -273,8 +277,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Reading data from ${_options.readDataUri}');
       api.Input<List<int>> dataInput = await _provider
           .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
-      DataSource source = BinarySourceImpl(dataInput.data,
-          stringInterner: _stringInterner,
+      DataSource source = DataSource(
+          BinarySourceReader(dataInput.data, stringInterner: _stringInterner),
           importedIndices: closedWorldAndIndices.indices);
       return deserializeGlobalTypeInferenceResultsFromSource(
           _options,
@@ -307,7 +311,8 @@ class SerializationTask extends CompilerTask {
     measureSubtask('serialize codegen', () {
       Uri uri = Uri.parse('${_options.writeCodegenUri}$shard');
       api.BinaryOutputSink dataOutput = _outputProvider.createBinarySink(uri);
-      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput),
+      DataSink sink = DataSink(
+          BinarySinkWriter(BinaryOutputSinkAdapter(dataOutput)),
           importedIndices: indices);
       _reporter.log('Writing data to ${uri}');
       sink.registerEntityWriter(entityWriter);
@@ -352,8 +357,9 @@ class SerializationTask extends CompilerTask {
       api.Input<List<int>> dataInput,
       DataSourceIndices importedIndices,
       Map<MemberEntity, CodegenResult> results) {
-    DataSource source = BinarySourceImpl(dataInput.data,
-        stringInterner: _stringInterner, importedIndices: importedIndices);
+    DataSource source = DataSource(
+        BinarySourceReader(dataInput.data, stringInterner: _stringInterner),
+        importedIndices: importedIndices);
     backendStrategy.prepareCodegenReader(source);
     Map<MemberEntity, CodegenResult> codegenResults =
         source.readMemberMap((MemberEntity member) {

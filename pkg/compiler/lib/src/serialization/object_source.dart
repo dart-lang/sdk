@@ -4,58 +4,53 @@
 
 part of 'serialization.dart';
 
-/// [DataSource] that read from a list of objects, useful for debugging
+/// [SourceReader] that read from a list of objects, useful for debugging
 /// inconsistencies between serialization and deserialization.
 ///
-/// This data source works together with [ObjectSink].
-class ObjectSource extends DataSource {
+/// This data source works together with [ObjectSinkWriter].
+class ObjectSourceReader implements SourceReader {
   int _index = 0;
   final List<dynamic> _data;
 
-  ObjectSource(this._data,
-      {bool useDataKinds, DataSourceIndices importedIndices})
-      : super(useDataKinds: useDataKinds, importedIndices: importedIndices);
+  ObjectSourceReader(this._data);
 
   T _read<T>() {
     dynamic value = _data[_index++];
-    assert(value is T, "Expected $T value, found $value.$_errorContext");
+    assert(value is T, "Expected $T value, found $value.$errorContext");
     return value;
   }
 
   @override
-  void _begin(String tag) {
+  void begin(String tag) {
     Tag expectedTag = Tag('begin:$tag');
     Tag actualTag = _read();
     assert(
         expectedTag == actualTag,
         "Unexpected begin tag. "
-        "Expected $expectedTag, found $actualTag.$_errorContext");
+        "Expected $expectedTag, found $actualTag.$errorContext");
   }
 
   @override
-  void _end(String tag) {
+  void end(String tag) {
     Tag expectedTag = Tag('end:$tag');
     Tag actualTag = _read();
     assert(
         expectedTag == actualTag,
         "Unexpected end tag. "
-        "Expected $expectedTag, found $actualTag.$_errorContext");
+        "Expected $expectedTag, found $actualTag.$errorContext");
   }
 
   @override
-  String _readStringInternal() => _read();
+  String readString() => _read();
 
   @override
-  E _readEnumInternal<E>(List<E> values) => _read();
+  E readEnum<E>(List<E> values) => _read();
 
   @override
-  Uri _readUriInternal() => _read();
+  int readInt() => _read();
 
   @override
-  int _readIntInternal() => _read();
-
-  @override
-  String get _errorContext {
+  String get errorContext {
     StringBuffer sb = StringBuffer();
     for (int i = _index - 50; i < _index + 10; i++) {
       if (i >= 0 && i < _data.length) {

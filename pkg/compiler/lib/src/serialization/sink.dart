@@ -4,9 +4,39 @@
 
 part of 'serialization.dart';
 
-/// Base implementation of [DataSink] using [DataSinkMixin] to implement
-/// convenience methods.
-abstract class DataSink {
+/// Interface handling [DataSink] low-level data serialization.
+///
+/// Each implementation of [SinkWriter] should have a corresponding
+/// [SourceReader] that deserializes data serialized by that implementation.
+abstract class SinkWriter {
+  int get length;
+
+  /// Serialization of a non-negative integer value.
+  void writeInt(int value);
+
+  /// Serialization of an enum value.
+  void writeEnum(dynamic value);
+
+  /// Serialization of a String value.
+  void writeString(String value);
+
+  /// Serialization of a section begin tag. May be omitted by some writers.
+  void beginTag(String tag);
+
+  /// Serialization of a section end tag. May be omitted by some writers.
+  void endTag(String tag);
+
+  /// Closes any underlying data sinks.
+  void close();
+}
+
+/// Serialization writer
+///
+/// To be used with [DataSource] to read and write serialized data.
+/// Serialization format is deferred to provided [SinkWriter].
+class DataSink {
+  final SinkWriter _sinkWriter;
+
   /// If `true`, serialization of every data kind is preceded by a [DataKind]
   /// value.
   ///
@@ -43,14 +73,14 @@ abstract class DataSink {
 
   IndexedSink<T> _createSink<T>() {
     if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
-      return IndexedSink<T>(this);
+      return IndexedSink<T>(this._sinkWriter);
     } else {
       Map<T, int> cacheCopy = Map.from(importedIndices.caches[T].cache);
-      return IndexedSink<T>(this, cache: cacheCopy);
+      return IndexedSink<T>(this._sinkWriter, cache: cacheCopy);
     }
   }
 
-  DataSink(
+  DataSink(this._sinkWriter,
       {this.useDataKinds = false, this.tagFrequencyMap, this.importedIndices}) {
     _dartTypeNodeWriter = DartTypeNodeWriter(this);
     _stringIndex = _createSink<String>();
@@ -58,6 +88,18 @@ abstract class DataSink {
     _memberNodeIndex = _createSink<ir.Member>();
     _importIndex = _createSink<ImportEntity>();
     _constantIndex = _createSink<ConstantValue>();
+  }
+
+  /// The amount of data written to this data sink.
+  ///
+  /// The units is based on the underlying data structure for this data sink.
+  int get length => _sinkWriter.length;
+
+  /// Flushes any pending data and closes this data sink.
+  ///
+  /// The data sink can no longer be written to after closing.
+  void close() {
+    _sinkWriter.close();
   }
 
   void begin(String tag) {
@@ -68,13 +110,13 @@ abstract class DataSink {
     if (useDataKinds) {
       _tags ??= <String>[];
       _tags.add(tag);
-      _begin(tag);
+      _sinkWriter.beginTag(tag);
     }
   }
 
   void end(Object tag) {
     if (useDataKinds) {
-      _end(tag);
+      _sinkWriter.endTag(tag);
 
       String existingTag = _tags.removeLast();
       assert(existingTag == tag,
@@ -107,8 +149,8 @@ abstract class DataSink {
   void writeSourceSpan(SourceSpan value) {
     _writeDataKind(DataKind.sourceSpan);
     _writeUri(value.uri);
-    _writeIntInternal(value.begin);
-    _writeIntInternal(value.end);
+    _sinkWriter.writeInt(value.begin);
+    _sinkWriter.writeInt(value.end);
   }
 
   void writeDartType(DartType value, {bool allowNull = false}) {
@@ -159,11 +201,11 @@ abstract class DataSink {
   void _writeMemberNodeInternal(ir.Member value) {
     ir.Class cls = value.enclosingClass;
     if (cls != null) {
-      _writeEnumInternal(MemberContextKind.cls);
+      _sinkWriter.writeEnum(MemberContextKind.cls);
       _writeClassNode(cls);
       _writeString(_computeMemberName(value));
     } else {
-      _writeEnumInternal(MemberContextKind.library);
+      _sinkWriter.writeEnum(MemberContextKind.library);
       _writeLibraryNode(value.enclosingLibrary);
       _writeString(_computeMemberName(value));
     }
@@ -200,7 +242,7 @@ abstract class DataSink {
 
   void writeEnum(dynamic value) {
     _writeDataKind(DataKind.enumValue);
-    _writeEnumInternal(value);
+    _sinkWriter.writeEnum(value);
   }
 
   void writeBool(bool value) {
@@ -210,7 +252,7 @@ abstract class DataSink {
   }
 
   void _writeBool(bool value) {
-    _writeIntInternal(value ? 1 : 0);
+    _sinkWriter.writeInt(value ? 1 : 0);
   }
 
   void writeUri(Uri value) {
@@ -229,7 +271,7 @@ abstract class DataSink {
     assert(value != null);
     assert(value >= 0 && value >> 30 == 0);
     _writeDataKind(DataKind.uint30);
-    _writeIntInternal(value);
+    _sinkWriter.writeInt(value);
   }
 
   void writeTreeNode(ir.TreeNode value) {
@@ -296,53 +338,53 @@ abstract class DataSink {
 
   void _writeTreeNode(ir.TreeNode value, _MemberData memberData) {
     if (value is ir.Class) {
-      _writeEnumInternal(_TreeNodeKind.cls);
+      _sinkWriter.writeEnum(_TreeNodeKind.cls);
       _writeClassNode(value);
     } else if (value is ir.Member) {
-      _writeEnumInternal(_TreeNodeKind.member);
+      _sinkWriter.writeEnum(_TreeNodeKind.member);
       _writeMemberNode(value);
     } else if (value is ir.VariableDeclaration &&
         value.parent is ir.FunctionDeclaration) {
-      _writeEnumInternal(_TreeNodeKind.functionDeclarationVariable);
+      _sinkWriter.writeEnum(_TreeNodeKind.functionDeclarationVariable);
       _writeTreeNode(value.parent, memberData);
     } else if (value is ir.FunctionNode) {
-      _writeEnumInternal(_TreeNodeKind.functionNode);
+      _sinkWriter.writeEnum(_TreeNodeKind.functionNode);
       _writeFunctionNode(value, memberData);
     } else if (value is ir.TypeParameter) {
-      _writeEnumInternal(_TreeNodeKind.typeParameter);
+      _sinkWriter.writeEnum(_TreeNodeKind.typeParameter);
       _writeTypeParameter(value, memberData);
     } else if (value is ConstantReference) {
-      _writeEnumInternal(_TreeNodeKind.constant);
+      _sinkWriter.writeEnum(_TreeNodeKind.constant);
       memberData ??= _getMemberData(value.expression);
       _writeTreeNode(value.expression, memberData);
       int index =
           memberData.getIndexByConstant(value.expression, value.constant);
-      _writeIntInternal(index);
+      _sinkWriter.writeInt(index);
     } else {
-      _writeEnumInternal(_TreeNodeKind.node);
+      _sinkWriter.writeEnum(_TreeNodeKind.node);
       memberData ??= _getMemberData(value);
       int index = memberData.getIndexByTreeNode(value);
       assert(
           index != null,
           "No TreeNode index found for ${value.runtimeType} "
           "found in ${memberData}.");
-      _writeIntInternal(index);
+      _sinkWriter.writeInt(index);
     }
   }
 
   void _writeFunctionNode(ir.FunctionNode value, _MemberData memberData) {
     ir.TreeNode parent = value.parent;
     if (parent is ir.Procedure) {
-      _writeEnumInternal(_FunctionNodeKind.procedure);
+      _sinkWriter.writeEnum(_FunctionNodeKind.procedure);
       _writeMemberNode(parent);
     } else if (parent is ir.Constructor) {
-      _writeEnumInternal(_FunctionNodeKind.constructor);
+      _sinkWriter.writeEnum(_FunctionNodeKind.constructor);
       _writeMemberNode(parent);
     } else if (parent is ir.FunctionExpression) {
-      _writeEnumInternal(_FunctionNodeKind.functionExpression);
+      _sinkWriter.writeEnum(_FunctionNodeKind.functionExpression);
       _writeTreeNode(parent, memberData);
     } else if (parent is ir.FunctionDeclaration) {
-      _writeEnumInternal(_FunctionNodeKind.functionDeclaration);
+      _sinkWriter.writeEnum(_FunctionNodeKind.functionDeclaration);
       _writeTreeNode(parent, memberData);
     } else {
       throw UnsupportedError(
@@ -358,13 +400,13 @@ abstract class DataSink {
   void _writeTypeParameter(ir.TypeParameter value, _MemberData memberData) {
     ir.TreeNode parent = value.parent;
     if (parent is ir.Class) {
-      _writeEnumInternal(_TypeParameterKind.cls);
+      _sinkWriter.writeEnum(_TypeParameterKind.cls);
       _writeClassNode(parent);
-      _writeIntInternal(parent.typeParameters.indexOf(value));
+      _sinkWriter.writeInt(parent.typeParameters.indexOf(value));
     } else if (parent is ir.FunctionNode) {
-      _writeEnumInternal(_TypeParameterKind.functionNode);
+      _sinkWriter.writeEnum(_TypeParameterKind.functionNode);
       _writeFunctionNode(parent, memberData);
-      _writeIntInternal(parent.typeParameters.indexOf(value));
+      _sinkWriter.writeInt(parent.typeParameters.indexOf(value));
     } else {
       throw UnsupportedError(
           "Unsupported TypeParameter parent ${parent.runtimeType}");
@@ -372,7 +414,7 @@ abstract class DataSink {
   }
 
   void _writeDataKind(DataKind kind) {
-    if (useDataKinds) _writeEnumInternal(kind);
+    if (useDataKinds) _sinkWriter.writeEnum(kind);
   }
 
   void writeLibrary(IndexedLibrary value) {
@@ -446,7 +488,7 @@ abstract class DataSink {
   }
 
   void _writeConstantInternal(ConstantValue value) {
-    _writeEnumInternal(value.kind);
+    _sinkWriter.writeEnum(value.kind);
     switch (value.kind) {
       case ConstantValueKind.BOOL:
         BoolConstantValue constant = value;
@@ -530,11 +572,15 @@ abstract class DataSink {
   }
 
   void _writeString(String value) {
-    _stringIndex.write(value, _writeStringInternal);
+    _stringIndex.write(value, _sinkWriter.writeString);
   }
 
   void _writeUri(Uri value) {
-    _uriIndex.write(value, _writeUriInternal);
+    _uriIndex.write(value, _doWriteUri);
+  }
+
+  void _doWriteUri(Uri value) {
+    _writeString(value.toString());
   }
 
   void writeImport(ImportEntity value) {
@@ -590,35 +636,6 @@ abstract class DataSink {
         "Can not serialize a TypeRecipe without a registered codegen writer.");
     _codegenWriter.writeTypeRecipe(this, value);
   }
-
-  /// Actual serialization of a section begin tag, implemented by subclasses.
-  void _begin(String tag);
-
-  /// Actual serialization of a section end tag, implemented by subclasses.
-  void _end(String tag);
-
-  /// Actual serialization of a URI value, implemented by subclasses.
-  void _writeUriInternal(Uri value);
-
-  /// Actual serialization of a String value, implemented by subclasses.
-  void _writeStringInternal(String value);
-
-  /// Actual serialization of a non-negative integer value, implemented by
-  /// subclasses.
-  void _writeIntInternal(int value);
-
-  /// Actual serialization of an enum value, implemented by subclasses.
-  void _writeEnumInternal(dynamic value);
-
-  /// The amount of data written to this data sink.
-  ///
-  /// The units is based on the underlying data structure for this data sink.
-  int get length;
-
-  /// Flushes any pending data and closes this data sink.
-  ///
-  /// The data sink can no longer be written to after closing.
-  void close();
 
   void writeIntOrNull(int value) {
     writeBool(value != null);

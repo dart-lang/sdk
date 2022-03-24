@@ -318,10 +318,12 @@ class JsBackendStrategy {
     if (_compiler.options.testMode) {
       bool useDataKinds = true;
       List<Object> data = [];
-      DataSink sink = ObjectSink(data, useDataKinds: useDataKinds);
+      DataSink sink =
+          DataSink(ObjectSinkWriter(data), useDataKinds: useDataKinds);
       sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
       result.writeToDataSink(sink);
-      DataSource source = ObjectSource(data, useDataKinds: useDataKinds);
+      DataSource source =
+          DataSource(ObjectSourceReader(data), useDataKinds: useDataKinds);
       List<ModularName> modularNames = [];
       List<ModularExpression> modularExpression = [];
       source.registerCodegenReader(

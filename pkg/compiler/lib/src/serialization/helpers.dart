@@ -66,7 +66,7 @@ enum _TypeParameterKind {
   functionNode,
 }
 
-/// Class used for encoding tags in [ObjectSink] and [ObjectSource].
+/// Class used for encoding tags in [ObjectSinkWriter] and [ObjectSourceReader].
 class Tag {
   final String value;
 
@@ -262,7 +262,7 @@ class DartTypeNodeWriter
 
 /// Data sink helper that canonicalizes [E] values using indices.
 class IndexedSink<E> {
-  final DataSink _sink;
+  final SinkWriter _sink;
   Map<E, int> cache;
 
   IndexedSink(this._sink, {this.cache}) {
@@ -279,24 +279,24 @@ class IndexedSink<E> {
     int index = cache[value];
     if (index == null) {
       index = cache.length;
-      _sink._writeIntInternal(index);
+      _sink.writeInt(index);
       cache[value] = pending; // Increments length to allocate slot.
       writeValue(value);
       cache[value] = index;
     } else if (index == pending) {
       throw ArgumentError("Cyclic dependency on cached value: $value");
     } else {
-      _sink._writeIntInternal(index);
+      _sink.writeInt(index);
     }
   }
 }
 
 /// Data source helper reads canonicalized [E] values through indices.
 class IndexedSource<E> {
-  final DataSource _source;
+  final SourceReader _sourceReader;
   List<E> cache;
 
-  IndexedSource(this._source, {this.cache}) {
+  IndexedSource(this._sourceReader, {this.cache}) {
     // [cache] slot 0 is pre-allocated to `null`.
     this.cache ??= [null];
   }
@@ -306,7 +306,7 @@ class IndexedSource<E> {
   /// If the value hasn't yet been read, [readValue] is called to deserialize
   /// the value itself.
   E read(E readValue()) {
-    int index = _source._readIntInternal();
+    int index = _sourceReader.readInt();
     if (index >= cache.length) {
       assert(index == cache.length);
       cache.add(null); // placeholder.

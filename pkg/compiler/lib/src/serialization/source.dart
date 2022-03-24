@@ -4,9 +4,39 @@
 
 part of 'serialization.dart';
 
-/// Base implementation of [DataSource] using [DataSourceMixin] to implement
-/// convenience methods.
-abstract class DataSource {
+/// Interface handling [DataSource] low-level data deserialization.
+///
+/// Each implementation of [SourceReader] should have a corresponding
+/// [SinkWriter] for which it deserializes data.
+abstract class SourceReader {
+  /// Deserialization of a section begin tag.
+  void begin(String tag);
+
+  /// Deserialization of a section end tag.
+  void end(String tag);
+
+  /// Deserialization of a string value.
+  String readString();
+
+  /// Deserialization of a non-negative integer value.
+  int readInt();
+
+  /// Deserialization of an enum value in [values].
+  E readEnum<E>(List<E> values);
+
+  /// Returns a string representation of the current state of the data source
+  /// useful for debugging in consistencies between serialization and
+  /// deserialization.
+  String get errorContext;
+}
+
+/// Deserialization reader
+///
+/// To be used with [DataSink] to read and write serialized data.
+/// Deserialization format is deferred to provided [SourceReader].
+class DataSource {
+  final SourceReader _sourceReader;
+
   static final List<ir.DartType> emptyListOfDartTypes =
       List<ir.DartType>.filled(0, null, growable: false);
 
@@ -31,14 +61,15 @@ abstract class DataSource {
 
   IndexedSource<T> _createSource<T>() {
     if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
-      return IndexedSource<T>(this);
+      return IndexedSource<T>(this._sourceReader);
     } else {
       List<T> cacheCopy = importedIndices.caches[T].cacheAsList.toList();
-      return IndexedSource<T>(this, cache: cacheCopy);
+      return IndexedSource<T>(this._sourceReader, cache: cacheCopy);
     }
   }
 
-  DataSource({this.useDataKinds = false, this.importedIndices}) {
+  DataSource(this._sourceReader,
+      {this.useDataKinds = false, this.importedIndices}) {
     _stringIndex = _createSource<String>();
     _uriIndex = _createSource<Uri>();
     _memberNodeIndex = _createSource<_MemberData>();
@@ -64,11 +95,11 @@ abstract class DataSource {
   }
 
   void begin(String tag) {
-    if (useDataKinds) _begin(tag);
+    if (useDataKinds) _sourceReader.begin(tag);
   }
 
   void end(String tag) {
-    if (useDataKinds) _end(tag);
+    if (useDataKinds) _sourceReader.end(tag);
   }
 
   void registerComponentLookup(ComponentLookup componentLookup) {
@@ -169,8 +200,8 @@ abstract class DataSource {
   SourceSpan readSourceSpan() {
     _checkDataKind(DataKind.sourceSpan);
     Uri uri = _readUri();
-    int begin = _readIntInternal();
-    int end = _readIntInternal();
+    int begin = _sourceReader.readInt();
+    int end = _sourceReader.readInt();
     return SourceSpan(uri, begin, end);
   }
 
@@ -296,7 +327,7 @@ abstract class DataSource {
   }
 
   _MemberData _readMemberDataInternal() {
-    MemberContextKind kind = _readEnumInternal(MemberContextKind.values);
+    MemberContextKind kind = _sourceReader.readEnum(MemberContextKind.values);
     switch (kind) {
       case MemberContextKind.cls:
         _ClassData cls = _readClassData();
@@ -349,7 +380,7 @@ abstract class DataSource {
 
   E readEnum<E>(List<E> values) {
     _checkDataKind(DataKind.enumValue);
-    return _readEnumInternal(values);
+    return _sourceReader.readEnum(values);
   }
 
   Uri readUri() {
@@ -358,7 +389,11 @@ abstract class DataSource {
   }
 
   Uri _readUri() {
-    return _uriIndex.read(_readUriInternal);
+    return _uriIndex.read(_doReadUri);
+  }
+
+  Uri _doReadUri() {
+    return Uri.parse(_readString());
   }
 
   bool readBool() {
@@ -367,7 +402,7 @@ abstract class DataSource {
   }
 
   bool _readBool() {
-    int value = _readIntInternal();
+    int value = _sourceReader.readInt();
     assert(value == 0 || value == 1);
     return value == 1;
   }
@@ -378,12 +413,12 @@ abstract class DataSource {
   }
 
   String _readString() {
-    return _stringIndex.read(_readStringInternal);
+    return _stringIndex.read(_sourceReader.readString);
   }
 
   int readInt() {
     _checkDataKind(DataKind.uint30);
-    return _readIntInternal();
+    return _sourceReader.readInt();
   }
 
   ir.TreeNode readTreeNode() {
@@ -477,7 +512,7 @@ abstract class DataSource {
   }
 
   ConstantValue _readConstantInternal() {
-    ConstantValueKind kind = _readEnumInternal(ConstantValueKind.values);
+    ConstantValueKind kind = _sourceReader.readEnum(ConstantValueKind.values);
     switch (kind) {
       case ConstantValueKind.BOOL:
         bool value = readBool();
@@ -545,11 +580,11 @@ abstract class DataSource {
         js.LiteralString name = readJsNode();
         return JsNameConstantValue(name);
     }
-    throw UnsupportedError("Unexpexted constant value kind ${kind}.");
+    throw UnsupportedError("Unexpected constant value kind ${kind}.");
   }
 
   ir.TreeNode _readTreeNode(_MemberData memberData) {
-    _TreeNodeKind kind = _readEnumInternal(_TreeNodeKind.values);
+    _TreeNodeKind kind = _sourceReader.readEnum(_TreeNodeKind.values);
     switch (kind) {
       case _TreeNodeKind.cls:
         return _readClassData().node;
@@ -566,23 +601,23 @@ abstract class DataSource {
         memberData ??= _readMemberData();
         ir.ConstantExpression expression = _readTreeNode(memberData);
         ir.Constant constant =
-            memberData.getConstantByIndex(expression, _readIntInternal());
+            memberData.getConstantByIndex(expression, _sourceReader.readInt());
         return ConstantReference(expression, constant);
       case _TreeNodeKind.node:
         memberData ??= _readMemberData();
-        int index = _readIntInternal();
+        int index = _sourceReader.readInt();
         ir.TreeNode treeNode = memberData.getTreeNodeByIndex(index);
         assert(
             treeNode != null,
             "No TreeNode found for index $index in "
-            "${memberData.node}.$_errorContext");
+            "${memberData.node}.${_sourceReader.errorContext}");
         return treeNode;
     }
     throw UnsupportedError("Unexpected _TreeNodeKind $kind");
   }
 
   ir.FunctionNode _readFunctionNode(_MemberData memberData) {
-    _FunctionNodeKind kind = _readEnumInternal(_FunctionNodeKind.values);
+    _FunctionNodeKind kind = _sourceReader.readEnum(_FunctionNodeKind.values);
     switch (kind) {
       case _FunctionNodeKind.procedure:
         ir.Procedure procedure = _readMemberData().node;
@@ -606,25 +641,26 @@ abstract class DataSource {
   }
 
   ir.TypeParameter _readTypeParameter(_MemberData memberData) {
-    _TypeParameterKind kind = _readEnumInternal(_TypeParameterKind.values);
+    _TypeParameterKind kind = _sourceReader.readEnum(_TypeParameterKind.values);
     switch (kind) {
       case _TypeParameterKind.cls:
         ir.Class cls = _readClassData().node;
-        return cls.typeParameters[_readIntInternal()];
+        return cls.typeParameters[_sourceReader.readInt()];
       case _TypeParameterKind.functionNode:
         ir.FunctionNode functionNode = _readFunctionNode(memberData);
-        return functionNode.typeParameters[_readIntInternal()];
+        return functionNode.typeParameters[_sourceReader.readInt()];
     }
     throw UnsupportedError("Unexpected _TypeParameterKind kind $kind");
   }
 
   void _checkDataKind(DataKind expectedKind) {
     if (!useDataKinds) return;
-    DataKind actualKind = _readEnumInternal(DataKind.values);
+    DataKind actualKind = _sourceReader.readEnum(DataKind.values);
     assert(
         actualKind == expectedKind,
         "Invalid data kind. "
-        "Expected $expectedKind, found $actualKind.$_errorContext");
+        "Expected $expectedKind, "
+        "found $actualKind.${_sourceReader.errorContext}");
   }
 
   Local readLocal() {
@@ -694,31 +730,6 @@ abstract class DataSource {
         "Can not deserialize a TypeRecipe without a registered codegen reader.");
     return _codegenReader.readTypeRecipe(this);
   }
-
-  /// Actual deserialization of a section begin tag, implemented by subclasses.
-  void _begin(String tag);
-
-  /// Actual deserialization of a section end tag, implemented by subclasses.
-  void _end(String tag);
-
-  /// Actual deserialization of a string value, implemented by subclasses.
-  String _readStringInternal();
-
-  /// Actual deserialization of a non-negative integer value, implemented by
-  /// subclasses.
-  int _readIntInternal();
-
-  /// Actual deserialization of a URI value, implemented by subclasses.
-  Uri _readUriInternal();
-
-  /// Actual deserialization of an enum value in [values], implemented by
-  /// subclasses.
-  E _readEnumInternal<E>(List<E> values);
-
-  /// Returns a string representation of the current state of the data source
-  /// useful for debugging in consistencies between serialization and
-  /// deserialization.
-  String get _errorContext;
 
   E readValueOrNull<E>(E f()) {
     bool hasValue = readBool();
