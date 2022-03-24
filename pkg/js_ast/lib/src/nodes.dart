@@ -796,17 +796,17 @@ class For extends Loop {
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
-    if (init != null) init.accept(visitor);
-    if (condition != null) condition.accept(visitor);
-    if (update != null) update.accept(visitor);
+    init?.accept(visitor);
+    condition?.accept(visitor);
+    update?.accept(visitor);
     body.accept(visitor);
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    if (init != null) init.accept1(visitor, arg);
-    if (condition != null) condition.accept1(visitor, arg);
-    if (update != null) update.accept1(visitor, arg);
+    init?.accept1(visitor, arg);
+    condition?.accept1(visitor, arg);
+    update?.accept1(visitor, arg);
     body.accept1(visitor, arg);
   }
 
@@ -961,12 +961,12 @@ class Return extends Statement {
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
-    if (value != null) value.accept(visitor);
+    value?.accept(visitor);
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    if (value != null) value.accept1(visitor, arg);
+    value?.accept1(visitor, arg);
   }
 
   @override
@@ -1018,15 +1018,15 @@ class Try extends Statement {
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     body.accept(visitor);
-    if (catchPart != null) catchPart.accept(visitor);
-    if (finallyPart != null) finallyPart.accept(visitor);
+    catchPart?.accept(visitor);
+    finallyPart?.accept(visitor);
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     body.accept1(visitor, arg);
-    if (catchPart != null) catchPart.accept1(visitor, arg);
-    if (finallyPart != null) finallyPart.accept1(visitor, arg);
+    catchPart?.accept1(visitor, arg);
+    finallyPart?.accept1(visitor, arg);
   }
 
   @override

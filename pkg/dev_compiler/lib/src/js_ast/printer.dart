@@ -1495,7 +1495,7 @@ class VarCollector extends BaseVisitorVoid {
   @override
   void visitClassExpression(ClassExpression node) {
     // Note that we don't bother collecting the name of the class.
-    if (node.heritage != null) node.heritage.accept(this);
+    node.heritage?.accept(this);
     for (Method method in node.methods) {
       method.accept(this);
     }
@@ -1779,7 +1779,7 @@ abstract class VariableDeclarationVisitor extends BaseVisitorVoid {
   @override
   visitVariableInitialization(VariableInitialization node) {
     _scanVariableBinding(node.declaration);
-    if (node.value != null) node.value.accept(this);
+    node.value?.accept(this);
   }
 
   @override
@@ -1803,7 +1803,7 @@ abstract class VariableDeclarationVisitor extends BaseVisitorVoid {
   @override
   visitClassExpression(ClassExpression node) {
     declare(node.name);
-    if (node.heritage != null) node.heritage.accept(this);
+    node.heritage?.accept(this);
     for (Method element in node.methods) {
       element.accept(this);
     }

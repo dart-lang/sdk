@@ -525,7 +525,7 @@ class If extends Statement {
   void visitChildren(NodeVisitor visitor) {
     condition.accept(visitor);
     then.accept(visitor);
-    if (otherwise != null) otherwise.accept(visitor);
+    otherwise?.accept(visitor);
   }
 
   @override
@@ -549,9 +549,9 @@ class For extends Loop {
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    if (init != null) init.accept(visitor);
-    if (condition != null) condition.accept(visitor);
-    if (update != null) update.accept(visitor);
+    init?.accept(visitor);
+    condition?.accept(visitor);
+    update?.accept(visitor);
     body.accept(visitor);
   }
 
@@ -683,7 +683,7 @@ class Return extends Statement {
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    if (value != null) value.accept(visitor);
+    value?.accept(visitor);
   }
 
   @override
@@ -743,8 +743,8 @@ class Try extends Statement {
   @override
   void visitChildren(NodeVisitor visitor) {
     body.accept(visitor);
-    if (catchPart != null) catchPart.accept(visitor);
-    if (finallyPart != null) finallyPart.accept(visitor);
+    catchPart?.accept(visitor);
+    finallyPart?.accept(visitor);
   }
 
   @override
@@ -994,7 +994,7 @@ class Assignment extends Expression {
   @override
   void visitChildren(NodeVisitor visitor) {
     leftHandSide.accept(visitor);
-    if (value != null) value.accept(visitor);
+    value?.accept(visitor);
   }
 
   @override
@@ -1021,7 +1021,7 @@ class VariableInitialization extends Expression {
   @override
   void visitChildren(NodeVisitor visitor) {
     declaration.accept(visitor);
-    if (value != null) value.accept(visitor);
+    value?.accept(visitor);
   }
 }
 
@@ -1840,7 +1840,7 @@ class Yield extends Expression {
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    if (value != null) value.accept(visitor);
+    value?.accept(visitor);
   }
 
   @override
@@ -1876,7 +1876,7 @@ class ClassExpression extends Expression {
   @override
   void visitChildren(NodeVisitor visitor) {
     name.accept(visitor);
-    if (heritage != null) heritage.accept(visitor);
+    heritage?.accept(visitor);
     for (Method element in methods) {
       element.accept(visitor);
     }
@@ -2305,7 +2305,7 @@ class ExportClause extends Node {
     for (NameSpecifier name in exports) {
       name.accept(visitor);
     }
-    if (from != null) from.accept(visitor);
+    from?.accept(visitor);
   }
 
   @override

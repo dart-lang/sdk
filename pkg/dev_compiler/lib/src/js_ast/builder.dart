@@ -479,16 +479,12 @@ class MiniJsParserError {
 /// allowed in string and regexp literals because the machinery for checking
 /// their correctness is rather involved.
 class MiniJsParser {
-  MiniJsParser(this.src)
-      : lastCategory = NONE,
-        lastToken = null,
-        lastPosition = 0,
-        position = 0 {
+  MiniJsParser(this.src) {
     getToken();
   }
 
   int lastCategory = NONE;
-  String lastToken;
+  String lastToken = '';
   int lastPosition = 0;
   int position = 0;
   bool skippedNewline = false; // skipped newline in last getToken?
@@ -724,7 +720,7 @@ class MiniJsParser {
 
     if (position == src.length) {
       lastCategory = NONE;
-      lastToken = null;
+      lastToken = '';
       lastPosition = position;
       return;
     }
