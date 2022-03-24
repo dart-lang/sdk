@@ -269,7 +269,7 @@ abstract class KernelToLocalsMap {
   JumpTarget getJumpTargetForWhile(ir.WhileStatement node);
 
   /// Serializes this [KernelToLocalsMap] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 }
 
 /// Returns the [ir.FunctionNode] that defines [member] or `null` if [member]
@@ -338,7 +338,7 @@ abstract class MemberDefinition {
   SourceSpan get location;
 
   /// Deserializes a [MemberDefinition] object from [source].
-  factory MemberDefinition.readFromDataSource(DataSource source) {
+  factory MemberDefinition.readFromDataSource(DataSourceReader source) {
     MemberKind kind = source.readEnum(MemberKind.values);
     switch (kind) {
       case MemberKind.regular:
@@ -356,7 +356,7 @@ abstract class MemberDefinition {
   }
 
   /// Serializes this [MemberDefinition] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 }
 
 enum ClassKind {
@@ -378,7 +378,7 @@ class RegularMemberDefinition implements MemberDefinition {
 
   RegularMemberDefinition(this.node);
 
-  factory RegularMemberDefinition.readFromDataSource(DataSource source) {
+  factory RegularMemberDefinition.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member node = source.readMemberNode();
     source.end(tag);
@@ -386,7 +386,7 @@ class RegularMemberDefinition implements MemberDefinition {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(MemberKind.regular);
     sink.begin(tag);
     sink.writeMemberNode(node);
@@ -418,7 +418,7 @@ class SpecialMemberDefinition implements MemberDefinition {
   SpecialMemberDefinition(this.node, this.kind);
 
   factory SpecialMemberDefinition.readFromDataSource(
-      DataSource source, MemberKind kind) {
+      DataSourceReader source, MemberKind kind) {
     source.begin(tag);
     ir.TreeNode node = source.readTreeNode();
     source.end(tag);
@@ -426,7 +426,7 @@ class SpecialMemberDefinition implements MemberDefinition {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(kind);
     sink.begin(tag);
     sink.writeTreeNode(node);
@@ -454,7 +454,7 @@ abstract class ClassDefinition {
   SourceSpan get location;
 
   /// Deserializes a [ClassDefinition] object from [source].
-  factory ClassDefinition.readFromDataSource(DataSource source) {
+  factory ClassDefinition.readFromDataSource(DataSourceReader source) {
     ClassKind kind = source.readEnum(ClassKind.values);
     switch (kind) {
       case ClassKind.regular:
@@ -468,7 +468,7 @@ abstract class ClassDefinition {
   }
 
   /// Serializes this [ClassDefinition] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 }
 
 /// A class directly defined by its [ir.Class] node.
@@ -482,7 +482,7 @@ class RegularClassDefinition implements ClassDefinition {
 
   RegularClassDefinition(this.node);
 
-  factory RegularClassDefinition.readFromDataSource(DataSource source) {
+  factory RegularClassDefinition.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Class node = source.readClassNode();
     source.end(tag);
@@ -490,7 +490,7 @@ class RegularClassDefinition implements ClassDefinition {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(kind);
     sink.begin(tag);
     sink.writeClassNode(node);

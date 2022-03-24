@@ -213,7 +213,7 @@ class ClassHierarchyNode {
 
   /// Deserializes a [ClassHierarchyNode] object from [source].
   factory ClassHierarchyNode.readFromDataSource(
-      DataSource source, Map<ClassEntity, ClassHierarchyNode> nodeMap) {
+      DataSourceReader source, Map<ClassEntity, ClassHierarchyNode> nodeMap) {
     source.begin(tag);
     IndexedClass cls = source.readClass();
     ClassHierarchyNode parentNode;
@@ -233,7 +233,7 @@ class ClassHierarchyNode {
   }
 
   /// Serializes this [ClassHierarchyNode] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeClass(cls);
     sink.writeClassOrNull(parentNode?.cls);
@@ -541,7 +541,7 @@ class ClassSet {
 
   /// Deserializes a [ClassSet] object from [source].
   factory ClassSet.readFromDataSource(
-      DataSource source, Map<ClassEntity, ClassHierarchyNode> nodeMap) {
+      DataSourceReader source, Map<ClassEntity, ClassHierarchyNode> nodeMap) {
     source.begin(tag);
     ClassHierarchyNode node = nodeMap[source.readClass()];
     List<ClassHierarchyNode> subtypes = source.readList(() {
@@ -557,7 +557,7 @@ class ClassSet {
   }
 
   /// Serializes this [ClassSet] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeClass(node.cls);
     sink.writeList(_subtypes, (ClassHierarchyNode node) {

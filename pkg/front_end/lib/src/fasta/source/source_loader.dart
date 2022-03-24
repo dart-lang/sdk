@@ -2109,12 +2109,12 @@ severity: $severity
     ticker.logMs("Computed core types");
   }
 
-  void checkSupertypes(
-      List<SourceClassBuilder> sourceClasses, Class enumClass) {
+  void checkSupertypes(List<SourceClassBuilder> sourceClasses, Class enumClass,
+      Class underscoreEnumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.libraryBuilder.loader == this && !builder.isPatch) {
-        builder.checkSupertypes(
-            coreTypes, hierarchyBuilder, enumClass, _macroClassBuilder?.cls);
+        builder.checkSupertypes(coreTypes, hierarchyBuilder, enumClass,
+            underscoreEnumClass, _macroClassBuilder?.cls);
       }
     }
     ticker.logMs("Checked supertypes");
@@ -2133,6 +2133,45 @@ severity: $severity
       overrideChecks[i].check(membersBuilder);
     }
     ticker.logMs("Checked ${overrideChecks.length} overrides");
+
+    List<Name> restrictedMemberNames = <Name>[
+      new Name("index"),
+      new Name("hashCode"),
+      new Name("=="),
+      new Name("values")
+    ];
+    List<Class?> restrictedMemberDeclarers = <Class?>[
+      (target.underscoreEnumType.declaration as ClassBuilder).cls,
+      coreTypes.objectClass,
+      coreTypes.objectClass,
+      null
+    ];
+    for (SourceClassBuilder classBuilder in sourceClasses) {
+      if (classBuilder.isEnum) {
+        for (int i = 0; i < restrictedMemberNames.length; ++i) {
+          Name name = restrictedMemberNames[i];
+          Class? declarer = restrictedMemberDeclarers[i];
+
+          Member? member = hierarchy.getDispatchTarget(classBuilder.cls, name);
+          if (member?.enclosingClass != declarer &&
+              member?.enclosingClass != classBuilder.cls &&
+              member?.isAbstract == false) {
+            classBuilder.libraryBuilder.addProblem(
+                templateEnumInheritsRestricted.withArguments(name.text),
+                classBuilder.charOffset,
+                classBuilder.name.length,
+                classBuilder.fileUri,
+                context: <LocatedMessage>[
+                  messageEnumInheritsRestrictedMember.withLocation(
+                      member!.fileUri,
+                      member.fileOffset,
+                      member.name.text.length)
+                ]);
+          }
+        }
+      }
+    }
+    ticker.logMs("Checked for restricted members inheritance in enums.");
 
     typeInferenceEngine.finishTopLevelInitializingFormals();
     ticker.logMs("Finished initializing formals");

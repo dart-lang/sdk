@@ -4,14 +4,22 @@
 
 // @dart = 2.9
 
-// ignore_for_file: always_declare_return_types, prefer_single_quotes, prefer_interpolation_to_compose_strings
-// ignore_for_file: prefer_collection_literals, omit_local_variable_types
+// ignore_for_file: always_declare_return_types
+// ignore_for_file: library_prefixes
+// ignore_for_file: omit_local_variable_types
+// ignore_for_file: prefer_collection_literals
 // ignore_for_file: prefer_final_fields
 // ignore_for_file: prefer_initializing_formals
-// ignore_for_file: slash_for_doc_comments, unnecessary_const
+// ignore_for_file: prefer_interpolation_to_compose_strings
+// ignore_for_file: prefer_single_quotes
+// ignore_for_file: unnecessary_const
 // ignore_for_file: use_function_type_syntax_for_parameters
 
-part of js_ast;
+library js_ast.printer;
+
+import 'characters.dart' as charCodes;
+import 'nodes.dart';
+import 'precedence.dart';
 
 class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
@@ -974,20 +982,21 @@ class Printer implements NodeVisitor {
 
   @override
   visitAccess(PropertyAccess access) {
-    // Normally we can omit parens on the receiver if it is a Call, even though
-    // Call expressions have lower precedence. However this optimization doesn't
-    // work inside New expressions:
-    //
-    //     new obj.foo().bar()
-    //
-    // This will be parsed as:
-    //
-    //     (new obj.foo()).bar()
-    //
-    // Which is incorrect. So we must have parenthesis in this case:
-    //
-    //     new (obj.foo()).bar()
-    //
+    /// Normally we can omit parens on the receiver if it is a Call, even though
+    /// Call expressions have lower precedence.
+    ///
+    /// However this optimization doesn't work inside New expressions:
+    ///
+    ///     new obj.foo().bar()
+    ///
+    /// This will be parsed as:
+    ///
+    ///     (new obj.foo()).bar()
+    ///
+    /// Which is incorrect. So we must have parenthesis in this case:
+    ///
+    ///     new (obj.foo()).bar()
+    ///
     int precedence = inNewTarget ? ACCESS : CALL;
 
     visitNestedExpression(access.receiver, precedence,
@@ -1025,7 +1034,7 @@ class Printer implements NodeVisitor {
     var body = fun.body;
     if (body is Expression) {
       spaceOut();
-      // Object initializers require parenthesis to disambiguate
+      // Object initializers require parentheses to disambiguate
       // AssignmentExpression from FunctionBody. See:
       // https://tc39.github.io/ecma262/#sec-arrow-function-definitions
       var needsParen = fun.body is ObjectInitializer;
@@ -1433,7 +1442,7 @@ class Printer implements NodeVisitor {
 
 // Collects all the var declarations in the function.  We need to do this in a
 // separate pass because JS vars are lifted to the top of the function.
-class VarCollector extends BaseVisitor {
+class VarCollector extends BaseVisitorVoid {
   bool nested;
   final Set<String> vars;
   final Set<String> params;
@@ -1491,7 +1500,7 @@ class VarCollector extends BaseVisitor {
   @override
   void visitClassExpression(ClassExpression node) {
     // Note that we don't bother collecting the name of the class.
-    if (node.heritage != null) node.heritage.accept(this);
+    node.heritage?.accept(this);
     for (Method method in node.methods) {
       method.accept(this);
     }
@@ -1516,10 +1525,8 @@ class VarCollector extends BaseVisitor {
   }
 }
 
-/**
- * Returns true, if the given node must be wrapped into braces when used
- * as then-statement in an [If] that has an else branch.
- */
+/// Returns true, if the given node must be wrapped into braces when used
+/// as then-statement in an [If] that has an else branch.
 class DanglingElseVisitor extends BaseVisitor<bool> {
   JavaScriptPrintingContext context;
 
@@ -1531,11 +1538,15 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   @override
   bool visitNode(Node node) {
     context.error("Forgot node: $node");
-    return null;
+    return true;
   }
 
   @override
   bool visitBlock(Block node) => false;
+  @override
+  bool visitComment(Comment node) => true;
+  @override
+  bool visitCommentExpression(CommentExpression node) => true;
   @override
   bool visitExpressionStatement(ExpressionStatement node) => false;
   @override
@@ -1734,7 +1745,7 @@ class MinifyRenamer implements LocalNamer {
 
 /// Like [BaseVisitor], but calls [declare] for [Identifier] declarations, and
 /// [visitIdentifier] otherwise.
-abstract class VariableDeclarationVisitor extends BaseVisitor<void> {
+abstract class VariableDeclarationVisitor extends BaseVisitorVoid {
   declare(Identifier node);
 
   @override
@@ -1773,7 +1784,7 @@ abstract class VariableDeclarationVisitor extends BaseVisitor<void> {
   @override
   visitVariableInitialization(VariableInitialization node) {
     _scanVariableBinding(node.declaration);
-    if (node.value != null) node.value.accept(this);
+    node.value?.accept(this);
   }
 
   @override
@@ -1797,7 +1808,7 @@ abstract class VariableDeclarationVisitor extends BaseVisitor<void> {
   @override
   visitClassExpression(ClassExpression node) {
     declare(node.name);
-    if (node.heritage != null) node.heritage.accept(this);
+    node.heritage?.accept(this);
     for (Method element in node.methods) {
       element.accept(this);
     }

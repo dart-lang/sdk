@@ -1,5 +1,5 @@
 // Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
-// for detail_s. All rights reserved. Use of this source code is governed by a
+// for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // Logic shared between the Scavenger and Marker.

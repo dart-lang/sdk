@@ -241,7 +241,7 @@ class GenericInstantiation {
 
   GenericInstantiation(this.functionType, this.typeArguments);
 
-  factory GenericInstantiation.readFromDataSource(DataSource source) {
+  factory GenericInstantiation.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     DartType functionType = source.readDartType();
     List<DartType> typeArguments = source.readDartTypes();
@@ -249,7 +249,7 @@ class GenericInstantiation {
     return GenericInstantiation(functionType, typeArguments);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartType(functionType);
     sink.writeDartTypes(typeArguments);

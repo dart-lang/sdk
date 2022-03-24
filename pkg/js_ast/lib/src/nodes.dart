@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_ast;
+library js_ast.nodes;
+
+import 'precedence.dart';
+import 'printer.dart';
 
 abstract class NodeVisitor<T> {
   T visitProgram(Program node);
@@ -568,8 +571,10 @@ abstract class Node {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg);
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg);
 
-  /// Shallow clone of node.  Does not clone positions since the only use of
-  /// this private method is create a copy with a new position.
+  /// Shallow clone of node.
+  ///
+  /// Does not clone positions since the only use of this private method is
+  /// create a copy with a new position.
   Node _clone();
 
   /// Returns a node equivalent to [this], but with new source position and end
@@ -794,17 +799,17 @@ class For extends Loop {
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
-    if (init != null) init.accept(visitor);
-    if (condition != null) condition.accept(visitor);
-    if (update != null) update.accept(visitor);
+    init?.accept(visitor);
+    condition?.accept(visitor);
+    update?.accept(visitor);
     body.accept(visitor);
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    if (init != null) init.accept1(visitor, arg);
-    if (condition != null) condition.accept1(visitor, arg);
-    if (update != null) update.accept1(visitor, arg);
+    init?.accept1(visitor, arg);
+    condition?.accept1(visitor, arg);
+    update?.accept1(visitor, arg);
     body.accept1(visitor, arg);
   }
 
@@ -959,12 +964,12 @@ class Return extends Statement {
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
-    if (value != null) value.accept(visitor);
+    value?.accept(visitor);
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    if (value != null) value.accept1(visitor, arg);
+    value?.accept1(visitor, arg);
   }
 
   @override
@@ -1016,15 +1021,15 @@ class Try extends Statement {
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     body.accept(visitor);
-    if (catchPart != null) catchPart.accept(visitor);
-    if (finallyPart != null) finallyPart.accept(visitor);
+    catchPart?.accept(visitor);
+    finallyPart?.accept(visitor);
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     body.accept1(visitor, arg);
-    if (catchPart != null) catchPart.accept1(visitor, arg);
-    if (finallyPart != null) finallyPart.accept1(visitor, arg);
+    catchPart?.accept1(visitor, arg);
+    finallyPart?.accept1(visitor, arg);
   }
 
   @override
@@ -1225,8 +1230,8 @@ class LiteralStatement extends Statement {
   LiteralStatement _clone() => LiteralStatement(code);
 }
 
-// Not a real JavaScript node, but represents the yield statement from a dart
-// program translated to JavaScript.
+/// Not a real JavaScript node, but represents the yield statement from a dart
+/// program translated to JavaScript.
 class DartYield extends Statement {
   final Expression expression;
 
@@ -1352,8 +1357,7 @@ class LiteralExpression extends Expression {
   int get precedenceLevel => PRIMARY;
 }
 
-/// [VariableDeclarationList] is a subclass of [Expression] to simplify the
-/// AST.
+/// [VariableDeclarationList] is a subclass of [Expression] to simplify the AST.
 class VariableDeclarationList extends Expression {
   final List<VariableInitialization> declarations;
 
@@ -2517,8 +2521,10 @@ class InterpolatedDeclaration extends Expression
 }
 
 /// [RegExpLiteral]s, despite being called "Literal", do not inherit from
-/// [Literal]. Indeed, regular expressions in JavaScript have a side-effect and
-/// are thus not in the same category as numbers or strings.
+/// [Literal].
+///
+/// Indeed, regular expressions in JavaScript have a side-effect and are thus
+/// not in the same category as numbers or strings.
 class RegExpLiteral extends Expression {
   /// Contains the pattern and the flags.
   final String pattern;
@@ -2602,8 +2608,9 @@ class Comment extends Statement {
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 }
 
-/// Returns the value of [node] if it is a [DeferredExpression]. Otherwise
-/// returns the [node] itself.
+/// Returns the value of [node] if it is a [DeferredExpression].
+///
+/// Otherwise returns the [node] itself.
 Node undefer(Node node) {
   return node is DeferredExpression ? undefer(node.value) : node;
 }

@@ -530,7 +530,7 @@ class ImpactData {
 
   ImpactData();
 
-  ImpactData.fromDataSource(DataSource source) {
+  ImpactData.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     _superInitializers = source.readList(
         () => _SuperInitializer.fromDataSource(source),
@@ -628,7 +628,7 @@ class ImpactData {
     source.end(tag);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
 
     sink.writeList(
@@ -1065,7 +1065,7 @@ class _CallStructure {
         typeArguments, positionalArguments, namedArguments);
   }
 
-  factory _CallStructure.fromDataSource(DataSource source) {
+  factory _CallStructure.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     List<ir.DartType> typeArguments = source.readDartTypeNodes();
     int positionalArguments = source.readInt();
@@ -1075,7 +1075,7 @@ class _CallStructure {
         typeArguments, positionalArguments, namedArguments);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNodes(typeArguments);
     sink.writeInt(positionalArguments);
@@ -1093,7 +1093,7 @@ class _SuperInitializer {
 
   _SuperInitializer(this.source, this.target, this.callStructure);
 
-  factory _SuperInitializer.fromDataSource(DataSource source) {
+  factory _SuperInitializer.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Constructor sourceConstructor = source.readMemberNode();
     ir.Constructor targetConstructor = source.readMemberNode();
@@ -1103,7 +1103,7 @@ class _SuperInitializer {
         sourceConstructor, targetConstructor, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(source);
     sink.writeMemberNode(target);
@@ -1120,7 +1120,7 @@ class _SuperInvocation {
 
   _SuperInvocation(this.target, this.callStructure);
 
-  factory _SuperInvocation.fromDataSource(DataSource source) {
+  factory _SuperInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member member = source.readMemberNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
@@ -1128,7 +1128,7 @@ class _SuperInvocation {
     return _SuperInvocation(member, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(target);
     callStructure.toDataSink(sink);
@@ -1145,7 +1145,7 @@ class _InstanceAccess {
 
   _InstanceAccess(this.receiverType, this.classRelation, this.target);
 
-  factory _InstanceAccess.fromDataSource(DataSource source) {
+  factory _InstanceAccess.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
@@ -1154,7 +1154,7 @@ class _InstanceAccess {
     return _InstanceAccess(receiverType, classRelation, target);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
     sink.writeEnum(classRelation);
@@ -1172,7 +1172,7 @@ class _DynamicAccess {
 
   _DynamicAccess(this.receiverType, this.classRelation, this.name);
 
-  factory _DynamicAccess.fromDataSource(DataSource source) {
+  factory _DynamicAccess.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
@@ -1181,7 +1181,7 @@ class _DynamicAccess {
     return _DynamicAccess(receiverType, classRelation, name);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
     sink.writeEnum(classRelation);
@@ -1198,7 +1198,7 @@ class _FunctionInvocation {
 
   _FunctionInvocation(this.receiverType, this.callStructure);
 
-  factory _FunctionInvocation.fromDataSource(DataSource source) {
+  factory _FunctionInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
@@ -1206,7 +1206,7 @@ class _FunctionInvocation {
     return _FunctionInvocation(receiverType, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
     callStructure.toDataSink(sink);
@@ -1225,7 +1225,7 @@ class _InstanceInvocation {
   _InstanceInvocation(
       this.receiverType, this.classRelation, this.target, this.callStructure);
 
-  factory _InstanceInvocation.fromDataSource(DataSource source) {
+  factory _InstanceInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
@@ -1236,7 +1236,7 @@ class _InstanceInvocation {
         receiverType, classRelation, target, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
     sink.writeEnum(classRelation);
@@ -1257,7 +1257,7 @@ class _DynamicInvocation {
   _DynamicInvocation(
       this.receiverType, this.classRelation, this.name, this.callStructure);
 
-  factory _DynamicInvocation.fromDataSource(DataSource source) {
+  factory _DynamicInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
@@ -1267,7 +1267,7 @@ class _DynamicInvocation {
     return _DynamicInvocation(receiverType, classRelation, name, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
     sink.writeEnum(classRelation);
@@ -1285,7 +1285,7 @@ class _LocalFunctionInvocation {
 
   _LocalFunctionInvocation(this.localFunction, this.callStructure);
 
-  factory _LocalFunctionInvocation.fromDataSource(DataSource source) {
+  factory _LocalFunctionInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.FunctionDeclaration localFunction = source.readTreeNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
@@ -1293,7 +1293,7 @@ class _LocalFunctionInvocation {
     return _LocalFunctionInvocation(localFunction, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeTreeNode(localFunction);
     callStructure.toDataSink(sink);
@@ -1310,7 +1310,7 @@ class _StaticInvocation {
 
   _StaticInvocation(this.target, this.callStructure, this.import);
 
-  factory _StaticInvocation.fromDataSource(DataSource source) {
+  factory _StaticInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Procedure target = source.readMemberNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
@@ -1319,7 +1319,7 @@ class _StaticInvocation {
     return _StaticInvocation(target, callStructure, import);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(target);
     callStructure.toDataSink(sink);
@@ -1341,7 +1341,7 @@ class _ConstructorInvocation {
       this.constructor, this.type, this.callStructure, this.import,
       {this.isConst});
 
-  factory _ConstructorInvocation.fromDataSource(DataSource source) {
+  factory _ConstructorInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member constructor = source.readMemberNode();
     ir.InterfaceType type = source.readDartTypeNode();
@@ -1353,7 +1353,7 @@ class _ConstructorInvocation {
         isConst: isConst);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(constructor);
     sink.writeDartTypeNode(type);
@@ -1393,7 +1393,7 @@ class _TypeUse {
 
   _TypeUse(this.type, this.kind);
 
-  factory _TypeUse.fromDataSource(DataSource source) {
+  factory _TypeUse.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType type = source.readDartTypeNode();
     _TypeUseKind kind = source.readEnum(_TypeUseKind.values);
@@ -1401,7 +1401,7 @@ class _TypeUse {
     return _TypeUse(type, kind);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(type);
     sink.writeEnum(kind);
@@ -1428,7 +1428,7 @@ class _RedirectingInitializer {
 
   _RedirectingInitializer(this.constructor, this.callStructure);
 
-  factory _RedirectingInitializer.fromDataSource(DataSource source) {
+  factory _RedirectingInitializer.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Constructor constructor = source.readMemberNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
@@ -1436,7 +1436,7 @@ class _RedirectingInitializer {
     return _RedirectingInitializer(constructor, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(constructor);
     callStructure.toDataSink(sink);
@@ -1452,7 +1452,7 @@ class _TypeLiteral {
 
   _TypeLiteral(this.type, this.import);
 
-  factory _TypeLiteral.fromDataSource(DataSource source) {
+  factory _TypeLiteral.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType type = source.readDartTypeNode();
     ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
@@ -1460,7 +1460,7 @@ class _TypeLiteral {
     return _TypeLiteral(type, import);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(type);
     sink.writeLibraryDependencyNodeOrNull(import);
@@ -1476,7 +1476,7 @@ class _GenericInstantiation {
 
   _GenericInstantiation(this.expressionType, this.typeArguments);
 
-  factory _GenericInstantiation.fromDataSource(DataSource source) {
+  factory _GenericInstantiation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.FunctionType expressionType = source.readDartTypeNode();
     List<ir.DartType> typeArguments = source.readDartTypeNodes();
@@ -1484,7 +1484,7 @@ class _GenericInstantiation {
     return _GenericInstantiation(expressionType, typeArguments);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(expressionType);
     sink.writeDartTypeNodes(typeArguments);
@@ -1500,7 +1500,7 @@ class _StaticAccess {
 
   _StaticAccess(this.target, this.import);
 
-  factory _StaticAccess.fromDataSource(DataSource source) {
+  factory _StaticAccess.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member target = source.readMemberNode();
     ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
@@ -1508,7 +1508,7 @@ class _StaticAccess {
     return _StaticAccess(target, import);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(target);
     sink.writeLibraryDependencyNodeOrNull(import);
@@ -1526,7 +1526,7 @@ class _MapLiteral {
 
   _MapLiteral(this.keyType, this.valueType, {this.isConst, this.isEmpty});
 
-  factory _MapLiteral.fromDataSource(DataSource source) {
+  factory _MapLiteral.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType keyType = source.readDartTypeNode();
     ir.DartType valueType = source.readDartTypeNode();
@@ -1536,7 +1536,7 @@ class _MapLiteral {
     return _MapLiteral(keyType, valueType, isConst: isConst, isEmpty: isEmpty);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(keyType);
     sink.writeDartTypeNode(valueType);
@@ -1555,7 +1555,7 @@ class _ContainerLiteral {
 
   _ContainerLiteral(this.elementType, {this.isConst, this.isEmpty});
 
-  factory _ContainerLiteral.fromDataSource(DataSource source) {
+  factory _ContainerLiteral.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType elementType = source.readDartTypeNode();
     bool isConst = source.readBool();
@@ -1564,7 +1564,7 @@ class _ContainerLiteral {
     return _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(elementType);
     sink.writeBool(isConst);
@@ -1585,7 +1585,7 @@ class _RuntimeTypeUse {
 
   _RuntimeTypeUse(this.node, this.kind, this.receiverType, this.argumentType);
 
-  factory _RuntimeTypeUse.fromDataSource(DataSource source) {
+  factory _RuntimeTypeUse.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.TreeNode node = source.readTreeNode();
     RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
@@ -1595,7 +1595,7 @@ class _RuntimeTypeUse {
     return _RuntimeTypeUse(node, kind, receiverType, argumentType);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeTreeNode(node);
     sink.writeEnum(kind);

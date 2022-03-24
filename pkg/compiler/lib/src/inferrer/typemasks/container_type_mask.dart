@@ -32,7 +32,7 @@ class ContainerTypeMask extends AllocationTypeMask {
 
   /// Deserializes a [ContainerTypeMask] object from [source].
   factory ContainerTypeMask.readFromDataSource(
-      DataSource source, CommonMasks domain) {
+      DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
     ir.TreeNode allocationNode = source.readTreeNodeOrNull();
@@ -46,7 +46,7 @@ class ContainerTypeMask extends AllocationTypeMask {
 
   /// Serializes this [ContainerTypeMask] to [sink].
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(TypeMaskKind.container);
     sink.begin(tag);
     forwardTo.writeToDataSink(sink);

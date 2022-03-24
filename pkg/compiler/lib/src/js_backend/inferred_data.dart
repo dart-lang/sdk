@@ -16,7 +16,7 @@ import 'annotations.dart';
 abstract class InferredData {
   /// Deserializes a [InferredData] object from [source].
   factory InferredData.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld) {
+      DataSourceReader source, JClosedWorld closedWorld) {
     bool isTrivial = source.readBool();
     if (isTrivial) {
       return TrivialInferredData();
@@ -26,7 +26,7 @@ abstract class InferredData {
   }
 
   /// Serializes this [InferredData] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   /// Returns the side effects of executing [element].
   SideEffects getSideEffectsOfElement(FunctionEntity element);
@@ -100,7 +100,7 @@ class InferredDataImpl implements InferredData {
       this._functionsThatMightBePassedToApply);
 
   factory InferredDataImpl.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld) {
+      DataSourceReader source, JClosedWorld closedWorld) {
     source.begin(tag);
     Set<MemberEntity> functionsCalledInLoop = source.readMembers().toSet();
     Map<FunctionEntity, SideEffects> sideEffects = source.readMemberMap(
@@ -122,7 +122,7 @@ class InferredDataImpl implements InferredData {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeBool(false); // Is _not_ trivial.
     sink.begin(tag);
     sink.writeMembers(_functionsCalledInLoop);
@@ -302,7 +302,7 @@ class TrivialInferredData implements InferredData {
   final SideEffects _allSideEffects = SideEffects();
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeBool(true); // Is trivial.
   }
 

@@ -15,11 +15,11 @@ import 'backend_impact.dart';
 
 abstract class BackendUsage {
   /// Deserializes a [BackendUsage] object from [source].
-  factory BackendUsage.readFromDataSource(DataSource source) =
+  factory BackendUsage.readFromDataSource(DataSourceReader source) =
       BackendUsageImpl.readFromDataSource;
 
   /// Serializes this [BackendUsage] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   bool needToInitializeIsolateAffinityTag;
   bool needToInitializeDispatchProperty;
@@ -356,7 +356,7 @@ class BackendUsageImpl implements BackendUsage {
         this._helperClassesUsed = helperClassesUsed,
         this._runtimeTypeUses = runtimeTypeUses;
 
-  factory BackendUsageImpl.readFromDataSource(DataSource source) {
+  factory BackendUsageImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Set<FunctionEntity> globalFunctionDependencies =
         source.readMembers<FunctionEntity>().toSet();
@@ -396,7 +396,7 @@ class BackendUsageImpl implements BackendUsage {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMembers(_globalFunctionDependencies);
     sink.writeClasses(_globalClassDependencies);

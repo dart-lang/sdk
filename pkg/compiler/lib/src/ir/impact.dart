@@ -699,7 +699,7 @@ class ImpactBuilderData {
   ImpactBuilderData(this.node, this.impactData, this.typeMapsForTesting,
       this.cachedStaticTypes);
 
-  factory ImpactBuilderData.fromDataSource(DataSource source) {
+  factory ImpactBuilderData.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     var node = source.readMemberNode();
     var data = ImpactData.fromDataSource(source);
@@ -708,7 +708,7 @@ class ImpactBuilderData {
     return ImpactBuilderData(node, data, const {}, cache);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(node);
     impactData.toDataSink(sink);

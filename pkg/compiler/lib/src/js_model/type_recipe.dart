@@ -147,7 +147,7 @@ abstract class TypeRecipe {
 
   int _computeHashCode();
 
-  factory TypeRecipe.readFromDataSource(DataSource source) {
+  factory TypeRecipe.readFromDataSource(DataSourceReader source) {
     TypeRecipe recipe;
     source.begin(tag);
     _TypeRecipeKind kind = source.readEnum(_TypeRecipeKind.values);
@@ -166,7 +166,7 @@ abstract class TypeRecipe {
     return recipe;
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeEnum(_kind);
     _writeToDataSink(sink);
@@ -174,7 +174,7 @@ abstract class TypeRecipe {
   }
 
   _TypeRecipeKind get _kind;
-  void _writeToDataSink(DataSink sink);
+  void _writeToDataSink(DataSinkWriter sink);
 
   /// Returns `true` is [recipeB] evaluated in an environment described by
   /// [structureB] gives the same type as [recipeA] evaluated in environment
@@ -203,7 +203,7 @@ class TypeExpressionRecipe extends TypeRecipe {
 
   TypeExpressionRecipe(this.type);
 
-  static TypeExpressionRecipe _readFromDataSource(DataSource source) {
+  static TypeExpressionRecipe _readFromDataSource(DataSourceReader source) {
     return TypeExpressionRecipe(source.readDartType());
   }
 
@@ -211,7 +211,7 @@ class TypeExpressionRecipe extends TypeRecipe {
   _TypeRecipeKind get _kind => _TypeRecipeKind.expression;
 
   @override
-  void _writeToDataSink(DataSink sink) {
+  void _writeToDataSink(DataSinkWriter sink) {
     sink.writeDartType(type);
   }
 
@@ -237,7 +237,8 @@ class SingletonTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
 
   SingletonTypeEnvironmentRecipe(this.type);
 
-  static SingletonTypeEnvironmentRecipe _readFromDataSource(DataSource source) {
+  static SingletonTypeEnvironmentRecipe _readFromDataSource(
+      DataSourceReader source) {
     return SingletonTypeEnvironmentRecipe(source.readDartType());
   }
 
@@ -245,7 +246,7 @@ class SingletonTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
   _TypeRecipeKind get _kind => _TypeRecipeKind.singletonEnvironment;
 
   @override
-  void _writeToDataSink(DataSink sink) {
+  void _writeToDataSink(DataSinkWriter sink) {
     sink.writeDartType(type);
   }
 
@@ -277,7 +278,8 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
 
   FullTypeEnvironmentRecipe({this.classType, this.types = const []});
 
-  static FullTypeEnvironmentRecipe _readFromDataSource(DataSource source) {
+  static FullTypeEnvironmentRecipe _readFromDataSource(
+      DataSourceReader source) {
     InterfaceType classType =
         source.readDartType(allowNull: true) as InterfaceType;
     List<DartType> types = source.readDartTypes(emptyAsNull: true) ?? const [];
@@ -288,7 +290,7 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
   _TypeRecipeKind get _kind => _TypeRecipeKind.fullEnvironment;
 
   @override
-  void _writeToDataSink(DataSink sink) {
+  void _writeToDataSink(DataSinkWriter sink) {
     sink.writeDartType(classType, allowNull: true);
     sink.writeDartTypes(types, allowNull: false);
   }

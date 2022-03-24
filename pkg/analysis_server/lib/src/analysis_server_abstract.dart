@@ -487,11 +487,11 @@ abstract class AbstractAnalysisServer {
     await contextManager.refresh();
   }
 
-  ResolvedForCompletionResultImpl? resolveForCompletion({
+  Future<ResolvedForCompletionResultImpl?> resolveForCompletion({
     required String path,
     required int offset,
     required OperationPerformanceImpl performance,
-  }) {
+  }) async {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
@@ -502,6 +502,7 @@ abstract class AbstractAnalysisServer {
     }
 
     try {
+      await driver.applyPendingFileChanges();
       return driver.resolveForCompletion(
         path: path,
         offset: offset,

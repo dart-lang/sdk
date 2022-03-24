@@ -18,7 +18,7 @@ import 'position_information.dart';
 abstract class SourceInformation extends JavaScriptNodeSourceInformation {
   const SourceInformation();
 
-  static SourceInformation readFromDataSource(DataSource source) {
+  static SourceInformation readFromDataSource(DataSourceReader source) {
     int hasSourceInformation = source.readInt();
     if (hasSourceInformation == 0) {
       return null;
@@ -31,7 +31,7 @@ abstract class SourceInformation extends JavaScriptNodeSourceInformation {
   }
 
   static void writeToDataSink(
-      DataSink sink, SourceInformation sourceInformation) {
+      DataSinkWriter sink, SourceInformation sourceInformation) {
     if (sourceInformation == null) {
       sink.writeInt(0);
     } else if (sourceInformation is SourceMappedMarker) {
@@ -82,7 +82,7 @@ class FrameContext {
 
   FrameContext(this.callInformation, this.inlinedMethodName);
 
-  factory FrameContext.readFromDataSource(DataSource source) {
+  factory FrameContext.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     SourceInformation callInformation = source.readCached<SourceInformation>(
         () => SourceInformation.readFromDataSource(source));
@@ -91,7 +91,7 @@ class FrameContext {
     return FrameContext(callInformation, inlinedMethodName);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeCached<SourceInformation>(
         callInformation,
@@ -273,7 +273,7 @@ abstract class SourceLocation {
   /// The name associated with this source location, if any.
   String get sourceName;
 
-  static SourceLocation readFromDataSource(DataSource source) {
+  static SourceLocation readFromDataSource(DataSourceReader source) {
     int hasSourceLocation = source.readInt();
     if (hasSourceLocation == 0) {
       return null;
@@ -292,7 +292,8 @@ abstract class SourceLocation {
     }
   }
 
-  static void writeToDataSink(DataSink sink, SourceLocation sourceLocation) {
+  static void writeToDataSink(
+      DataSinkWriter sink, SourceLocation sourceLocation) {
     if (sourceLocation == null) {
       sink.writeInt(0);
     } else if (sourceLocation is NoSourceLocationMarker) {

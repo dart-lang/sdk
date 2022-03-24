@@ -1,3 +1,6 @@
+## 3.4.1
+* Remove checks for consistency after operations in `AnalysisSession`.
+
 ## 3.4.0
 * Deprecated `Resource.parent2`, use `parent` instead.
 * Deprecated `astFactory`, clients should not create AST nodes manually.

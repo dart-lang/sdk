@@ -3810,6 +3810,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   set_register(NULL, SP, static_cast<int64_t>(sp));
   set_register(NULL, FP, static_cast<int64_t>(fp));
   set_register(NULL, THR, reinterpret_cast<int64_t>(thread));
+  set_register(NULL, R31, thread->saved_stack_limit() - 4096);
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.

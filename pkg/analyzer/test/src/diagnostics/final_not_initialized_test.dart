@@ -185,6 +185,14 @@ f() {
 external final int x;
 ''');
   }
+
+  test_topLevel_final() async {
+    await assertErrorsInCode('''
+final int x;
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 10, 1),
+    ]);
+  }
 }
 
 @reflectiveTest

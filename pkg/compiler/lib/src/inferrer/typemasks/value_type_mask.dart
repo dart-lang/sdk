@@ -17,7 +17,7 @@ class ValueTypeMask extends ForwardingTypeMask {
 
   /// Deserializes a [ValueTypeMask] object from [source].
   factory ValueTypeMask.readFromDataSource(
-      DataSource source, CommonMasks domain) {
+      DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
     ConstantValue constant = source.readConstant();
@@ -27,7 +27,7 @@ class ValueTypeMask extends ForwardingTypeMask {
 
   /// Serializes this [ValueTypeMask] to [sink].
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(TypeMaskKind.value);
     sink.begin(tag);
     forwardTo.writeToDataSink(sink);

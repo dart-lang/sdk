@@ -344,6 +344,23 @@ class CompletionDomainHandlerGetSuggestions2Test
       ..suggestions.isEmpty;
   }
 
+  Future<void> test_applyPendingFileChanges() async {
+    await _configureWithWorkspaceRoot();
+
+    // Request with the empty content.
+    await _getTestCodeSuggestions('^');
+
+    // Change the file, and request again.
+    // Should apply pending file changes before resolving.
+    var response = await _getTestCodeSuggestions('Str^');
+
+    check(response).suggestions.includesAll([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('String')
+        ..isClass,
+    ]);
+  }
+
   Future<void> test_isNotImportedFeature_prefixed_classInstanceMethod() async {
     newFile2('$testPackageLibPath/a.dart', '''
 class A {

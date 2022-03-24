@@ -1354,7 +1354,7 @@ class KernelGlobalTypeInferenceElementData
 
   /// Deserializes a [GlobalTypeInferenceElementData] object from [source].
   factory KernelGlobalTypeInferenceElementData.readFromDataSource(
-      DataSource source,
+      DataSourceReader source,
       ir.Member context,
       AbstractValueDomain abstractValueDomain) {
     return source.inMemberContext(context, () {
@@ -1381,7 +1381,7 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  void writeToDataSink(DataSink sink, ir.Member context,
+  void writeToDataSink(DataSinkWriter sink, ir.Member context,
       AbstractValueDomain abstractValueDomain) {
     sink.inMemberContext(context, () {
       sink.begin(tag);

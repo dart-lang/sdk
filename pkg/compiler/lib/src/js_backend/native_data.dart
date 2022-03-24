@@ -200,7 +200,7 @@ class NativeBasicData {
 
   /// Deserializes a [NativeBasicData] object from [source].
   factory NativeBasicData.readFromDataSource(
-      DataSource source, ElementEnvironment elementEnvironment) {
+      DataSourceReader source, ElementEnvironment elementEnvironment) {
     source.begin(tag);
     bool isAllowInteropUsed = source.readBool();
     Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
@@ -228,7 +228,7 @@ class NativeBasicData {
   }
 
   /// Serializes this [NativeBasicData] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeBool(isAllowInteropUsed);
     sink.writeClassMap(_nativeClassTagInfo, (NativeClassTag tag) {
@@ -484,7 +484,7 @@ class NativeData implements NativeBasicData {
 
   /// Deserializes a [NativeData] object from [source].
   factory NativeData.readFromDataSource(
-      DataSource source, ElementEnvironment elementEnvironment) {
+      DataSourceReader source, ElementEnvironment elementEnvironment) {
     source.begin(tag);
     NativeBasicData nativeBasicData =
         NativeBasicData.readFromDataSource(source, elementEnvironment);
@@ -506,7 +506,7 @@ class NativeData implements NativeBasicData {
 
   /// Serializes this [NativeData] to [sink].
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     _nativeBasicData.writeToDataSink(sink);
 

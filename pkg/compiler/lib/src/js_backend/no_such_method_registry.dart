@@ -190,7 +190,7 @@ class NoSuchMethodData {
       this._throwingImpls, this._otherImpls, this._forwardingSyntaxImpls);
 
   /// Deserializes a [NoSuchMethodData] object from [source].
-  factory NoSuchMethodData.readFromDataSource(DataSource source) {
+  factory NoSuchMethodData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Set<FunctionEntity> throwingImpls =
         source.readMembers<FunctionEntity>().toSet();
@@ -209,7 +209,7 @@ class NoSuchMethodData {
   }
 
   /// Serializes this [NoSuchMethodData] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMembers(_throwingImpls);
     sink.writeMembers(_otherImpls);

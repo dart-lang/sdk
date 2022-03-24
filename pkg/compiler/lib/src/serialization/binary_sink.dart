@@ -6,46 +6,37 @@ part of 'serialization.dart';
 
 /// [DataSink] that writes data as a sequence of bytes.
 ///
-/// This data sink works together with [BinarySource].
-class BinarySink extends AbstractDataSink {
+/// This data sink works together with [BinarySourceWriter].
+class BinaryDataSink implements DataSink {
   final Sink<List<int>> sink;
   BufferedSink _bufferedSink;
   int _length = 0;
 
-  BinarySink(this.sink,
-      {bool useDataKinds = false,
-      Map<String, int> tagFrequencyMap,
-      DataSourceIndices importedIndices})
-      : _bufferedSink = BufferedSink(sink),
-        super(
-            useDataKinds: useDataKinds,
-            tagFrequencyMap: tagFrequencyMap,
-            importedIndices: importedIndices);
+  BinaryDataSink(this.sink) : _bufferedSink = BufferedSink(sink);
 
   @override
-  void _begin(String tag) {
-    // TODO(johnniwinther): Support tags in binary serialization?
-  }
+  int get length => _length;
+
   @override
-  void _end(String tag) {
+  void beginTag(String tag) {
     // TODO(johnniwinther): Support tags in binary serialization?
   }
 
   @override
-  void _writeUriInternal(Uri value) {
-    _writeString(value.toString());
+  void endTag(String tag) {
+    // TODO(johnniwinther): Support tags in binary serialization?
   }
 
   @override
-  void _writeStringInternal(String value) {
+  void writeString(String value) {
     List<int> bytes = utf8.encode(value);
-    _writeIntInternal(bytes.length);
+    writeInt(bytes.length);
     _bufferedSink.addBytes(bytes);
     _length += bytes.length;
   }
 
   @override
-  void _writeIntInternal(int value) {
+  void writeInt(int value) {
     assert(value >= 0 && value >> 30 == 0);
     if (value < 0x80) {
       _bufferedSink.addByte(value);
@@ -61,8 +52,8 @@ class BinarySink extends AbstractDataSink {
   }
 
   @override
-  void _writeEnumInternal(dynamic value) {
-    _writeIntInternal(value.index);
+  void writeEnum(dynamic value) {
+    writeInt(value.index);
   }
 
   @override
@@ -71,8 +62,4 @@ class BinarySink extends AbstractDataSink {
     _bufferedSink = null;
     sink.close();
   }
-
-  /// Returns the number of bytes written to this data sink.
-  @override
-  int get length => _length;
 }
