@@ -1433,7 +1433,7 @@ class Printer implements NodeVisitor {
 
 // Collects all the var declarations in the function.  We need to do this in a
 // separate pass because JS vars are lifted to the top of the function.
-class VarCollector extends BaseVisitor {
+class VarCollector extends BaseVisitorVoid {
   bool nested;
   final Set<String> vars;
   final Set<String> params;
@@ -1531,11 +1531,15 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   @override
   bool visitNode(Node node) {
     context.error("Forgot node: $node");
-    return null;
+    return true;
   }
 
   @override
   bool visitBlock(Block node) => false;
+  @override
+  bool visitComment(Comment node) => true;
+  @override
+  bool visitCommentExpression(CommentExpression node) => true;
   @override
   bool visitExpressionStatement(ExpressionStatement node) => false;
   @override
@@ -1734,7 +1738,7 @@ class MinifyRenamer implements LocalNamer {
 
 /// Like [BaseVisitor], but calls [declare] for [Identifier] declarations, and
 /// [visitIdentifier] otherwise.
-abstract class VariableDeclarationVisitor extends BaseVisitor<void> {
+abstract class VariableDeclarationVisitor extends BaseVisitorVoid {
   declare(Identifier node);
 
   @override

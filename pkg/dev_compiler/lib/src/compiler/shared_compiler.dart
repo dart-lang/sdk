@@ -813,7 +813,7 @@ bool variableIsReferenced(String name, js_ast.Node node) {
   return finder.found;
 }
 
-class _IdentifierFinder extends js_ast.BaseVisitor<void> {
+class _IdentifierFinder extends js_ast.BaseVisitorVoid {
   String nameToFind;
   bool found = false;
 
@@ -830,7 +830,7 @@ class _IdentifierFinder extends js_ast.BaseVisitor<void> {
   }
 }
 
-class YieldFinder extends js_ast.BaseVisitor<void> {
+class YieldFinder extends js_ast.BaseVisitorVoid {
   bool hasYield = false;
   bool hasThis = false;
   bool _nestedFunction = false;
@@ -880,7 +880,7 @@ bool usesThisOrSuper(js_ast.Expression node) {
   return finder.found;
 }
 
-class _ThisOrSuperFinder extends js_ast.BaseVisitor<void> {
+class _ThisOrSuperFinder extends js_ast.BaseVisitorVoid {
   bool found = false;
 
   static final instance = _ThisOrSuperFinder();

@@ -103,12 +103,8 @@ abstract class NodeVisitor<T> {
   T visitSimpleBindingPattern(SimpleBindingPattern node);
 }
 
-class BaseVisitor<T> implements NodeVisitor<T> {
-  T visitNode(Node node) {
-    node.visitChildren(this);
-    return null;
-  }
-
+abstract class BaseVisitor<T> implements NodeVisitor<T> {
+  T visitNode(Node node);
   @override
   T visitProgram(Program node) => visitNode(node);
 
@@ -279,11 +275,10 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitInterpolatedIdentifier(InterpolatedIdentifier node) =>
       visitInterpolatedNode(node);
 
-  // Ignore comments by default.
   @override
-  T visitComment(Comment node) => null;
+  T visitComment(Comment node);
   @override
-  T visitCommentExpression(CommentExpression node) => null;
+  T visitCommentExpression(CommentExpression node);
 
   @override
   T visitAwait(Await node) => visitExpression(node);
@@ -301,6 +296,19 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitDestructuredVariable(DestructuredVariable node) => visitNode(node);
   @override
   T visitSimpleBindingPattern(SimpleBindingPattern node) => visitNode(node);
+}
+
+class BaseVisitorVoid extends BaseVisitor<void> {
+  @override
+  void visitNode(Node node) {
+    node.visitChildren(this);
+  }
+
+  // Ignore comments by default.
+  @override
+  void visitComment(Comment node) {}
+  @override
+  void visitCommentExpression(CommentExpression node) {}
 }
 
 abstract class Node {
@@ -686,7 +694,7 @@ class Return extends Statement {
 
 final _returnFinder = _ReturnFinder();
 
-class _ReturnFinder extends BaseVisitor {
+class _ReturnFinder extends BaseVisitorVoid {
   bool found = false;
   @override
   visitReturn(Return node) {
