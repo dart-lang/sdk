@@ -95,7 +95,6 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   }
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
-    ..useFastaParser = true
     ..contextFeatures = FeatureSet.latestLanguageVersion();
 
   int findOffset(String search) {
