@@ -209,7 +209,7 @@ class CoffHeaders {
   int get size => optionalHeader.headersSize;
 
   void addSnapshotSectionHeader(int length) {
-    final oldSize = size;
+    final oldHeadersSize = optionalHeader.headersSize;
     final address =
         align(sectionTable.addressEnd, optionalHeader.sectionAlignment);
     final offset = align(sectionTable.offsetEnd, optionalHeader.fileAlignment);
@@ -227,30 +227,35 @@ class CoffHeaders {
     // Increment the number of sections in the file header.
     fileHeader.sectionCount += 1;
 
-    // Adjust the sizes stored in the optional header.
+    // Adjust the header size stored in the optional header, which must be
+    // a multiple of fileAlignment.
     optionalHeader.headersSize = align(
         _coffOffset + fileHeader.size + optionalHeader.size + sectionTable.size,
         optionalHeader.fileAlignment);
-    optionalHeader.imageSize += align(length, optionalHeader.fileAlignment);
 
     // If the size of the headers changed, we'll need to adjust the section
-    // offsets and image size accordingly.
-    final headersSizeDiff = size - oldSize;
+    // offsets.
+    final headersSizeDiff = optionalHeader.headersSize - oldHeadersSize;
     if (headersSizeDiff > 0) {
       // Safety check that section virtual addresses need not be adjusted, as
       // that requires rewriting much more of the fields and section contents.
       // (Generally, the size of the headers is much smaller than the section
       // alignment and so this is not expected to happen.)
       if (size ~/ optionalHeader.sectionAlignment !=
-          oldSize ~/ optionalHeader.sectionAlignment) {
+          oldHeadersSize ~/ optionalHeader.sectionAlignment) {
         throw 'Adding the snapshot would require adjusting virtual addresses';
       }
       assert(headersSizeDiff % optionalHeader.fileAlignment == 0);
       for (final entry in sectionTable.entries) {
         entry.fileOffset += headersSizeDiff;
       }
-      optionalHeader.imageSize += headersSizeDiff;
     }
+
+    // Adjust the image size stored in the optional header, which must be a
+    // multiple of section alignment (as it is the size in memory, not on disk).
+    optionalHeader.imageSize = align(
+        newHeader.virtualAddress + newHeader.virtualSize,
+        optionalHeader.sectionAlignment);
   }
 
   Future<void> write(RandomAccessFile output) async {
