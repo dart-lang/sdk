@@ -140,7 +140,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   DartType get _dynamicType => _typeProvider.dynamicType;
 
   @override
-  void visitAnnotation(Annotation node) {
+  void visitAnnotation(covariant AnnotationImpl node) {
+    if (_elementWalker == null) {
+      _createElementAnnotation(node);
+    }
     _withElementWalker(null, () {
       super.visitAnnotation(node);
     });
@@ -220,8 +223,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.name.staticElement = element;
     _namedTypeResolver.enclosingClass = element;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     _withElementWalker(ElementWalker.forClass(element), () {
       _withNameScope(() {
@@ -256,8 +258,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.name.staticElement = element;
     _namedTypeResolver.enclosingClass = element;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     _withElementWalker(ElementWalker.forClass(element), () {
       _withNameScope(() {
@@ -284,8 +285,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     (node as ConstructorDeclarationImpl).declaredElement = element;
     node.name?.staticElement = element;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     _withElementHolder(ElementHolder(element), () {
       _withElementWalker(null, () {
@@ -392,8 +392,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = _elementWalker!.getVariable();
     node.name.staticElement = element;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     var arguments = node.arguments;
     if (arguments != null) {
@@ -411,8 +410,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.name.staticElement = element;
     _namedTypeResolver.enclosingClass = element;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     _withElementWalker(ElementWalker.forClass(element), () {
       _withNameScope(() {
@@ -434,11 +432,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
+    var element = node.element;
+    if (element is ExportElementImpl) {
+      _setOrCreateMetadataElements(element, node.metadata);
+    }
+
     _withElementWalker(null, () {
       super.visitExportDirective(node);
-      if (node.element != null) {
-        _setElementAnnotations(node.metadata, node.element!.metadata);
-      }
     });
   }
 
@@ -448,8 +448,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     (node as ExtensionDeclarationImpl).declaredElement = element;
     node.name?.staticElement = element;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     _withElementWalker(ElementWalker.forExtension(element), () {
       _withNameScope(() {
@@ -462,14 +461,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         node.members.accept(this);
       });
     });
-  }
-
-  @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    super.visitFieldDeclaration(node);
-    var firstFieldElement =
-        node.fields.variables[0].declaredElement as FieldElement;
-    _setElementAnnotations(node.metadata, firstFieldElement.metadata);
   }
 
   @override
@@ -639,8 +630,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = _elementWalker!.getTypedef();
     node.name.staticElement = element;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     _withElementWalker(ElementWalker.forTypedef(element), () {
       _withNameScope(() {
@@ -754,8 +744,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = _elementWalker!.getTypedef();
     node.name.staticElement = element;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     _withElementWalker(ElementWalker.forGenericTypeAlias(element), () {
       _withNameScope(() {
@@ -768,11 +757,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
+    var element = node.element;
+    if (element is ImportElementImpl) {
+      _setOrCreateMetadataElements(element, node.metadata);
+    }
+
     _withElementWalker(null, () {
       super.visitImportDirective(node);
-      if (node.element != null) {
-        _setElementAnnotations(node.metadata, node.element!.metadata);
-      }
     });
   }
 
@@ -825,18 +816,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    super.visitLibraryDirective(node);
     ++_libraryDirectiveIndex;
-    if (node.element != null && _libraryDirectiveIndex == 1) {
-      _setElementAnnotations(node.metadata, node.element!.metadata);
-    } else {
-      for (var annotation in node.metadata) {
-        annotation as AnnotationImpl;
-        var elementAnnotation = ElementAnnotationImpl(_unitElement);
-        elementAnnotation.annotationAst = annotation;
-        annotation.elementAnnotation = elementAnnotation;
-      }
+    var element = node.element;
+    if (element is LibraryElementImpl && _libraryDirectiveIndex == 1) {
+      _setOrCreateMetadataElements(element, node.metadata);
     }
+
+    _withElementWalker(null, () {
+      super.visitLibraryDirective(node);
+    });
   }
 
   @override
@@ -846,8 +834,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         : _elementWalker!.getFunction();
     node.name.staticElement = element;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     _withElementWalker(ElementWalker.forExecutable(element), () {
       node.metadata.accept(this);
@@ -882,8 +869,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = _elementWalker!.getMixin();
     node.name.staticElement = element;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     _withElementWalker(ElementWalker.forClass(element), () {
       _withNameScope(() {
@@ -914,18 +900,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
+    var element = node.element;
+    if (element is CompilationUnitElementImpl) {
+      _setOrCreateMetadataElements(element, node.metadata);
+    }
+
     _withElementWalker(null, () {
       super.visitPartDirective(node);
-      if (node.element != null) {
-        _setElementAnnotations(node.metadata, node.element!.metadata);
-      }
     });
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    _createElementAnnotations(node.metadata);
-    super.visitPartOfDirective(node);
+    _withElementWalker(null, () {
+      super.visitPartOfDirective(node);
+    });
   }
 
   @override
@@ -1073,8 +1062,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitTypeParameter(TypeParameter node) {
     var element = node.declaredElement as TypeParameterElementImpl;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     var boundNode = node.bound;
     if (boundNode != null) {
@@ -1137,7 +1125,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     for (var i = 0; i < variables.length; i++) {
       var variable = variables[i];
       var element = variable.declaredElement as ElementImpl;
-      _setOrCreateMetadataElements(element, annotations);
+      _setOrCreateMetadataElements(element, annotations, visitNodes: false);
 
       var offset = (i == 0 ? node.parent! : variable).offset;
       var length = variable.end - offset;
@@ -1238,20 +1226,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// For each [Annotation] found in [annotations], create a new
-  /// [ElementAnnotation] object and set the [Annotation] to point to it.
-  List<ElementAnnotation> _createElementAnnotations(
-      List<Annotation> annotations) {
-    if (annotations.isEmpty) {
-      return const <ElementAnnotation>[];
-    }
-    return annotations.map((annotation) {
-      annotation as AnnotationImpl;
-      var elementAnnotation = ElementAnnotationImpl(_unitElement);
-      elementAnnotation.annotationAst = annotation;
-      annotation.elementAnnotation = elementAnnotation;
-      return elementAnnotation;
-    }).toList();
+  /// Create a new [ElementAnnotation] for the [node].
+  void _createElementAnnotation(AnnotationImpl node) {
+    var element = ElementAnnotationImpl(_unitElement);
+    element.annotationAst = node;
+    node.elementAnnotation = element;
   }
 
   void _define(Element element) {
@@ -1388,13 +1367,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   void _setOrCreateMetadataElements(
     ElementImpl element,
-    NodeList<Annotation> annotations,
-  ) {
-    annotations.accept(this);
+    NodeList<Annotation> annotations, {
+    bool visitNodes = true,
+  }) {
+    if (visitNodes) {
+      annotations.accept(this);
+    }
     if (_elementWalker != null) {
       _setElementAnnotations(annotations, element.metadata);
-    } else {
-      element.metadata = _createElementAnnotations(annotations);
+    } else if (annotations.isNotEmpty) {
+      element.metadata = annotations.map((annotation) {
+        return annotation.elementAnnotation!;
+      }).toList();
     }
   }
 
