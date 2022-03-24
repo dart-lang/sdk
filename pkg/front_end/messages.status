@@ -233,6 +233,8 @@ EnumImplementerContainsRestrictedInstanceDeclaration/analyzerCode: Fail
 EnumImplementerContainsRestrictedInstanceDeclaration/example: Fail
 EnumImplementerContainsValuesDeclaration/analyzerCode: Fail
 EnumImplementerContainsValuesDeclaration/example: Fail
+EnumInheritsRestricted/analyzerCode: Fail
+EnumInheritsRestricted/example: Fail
 EnumInstantiation/example: Fail
 EnumNonConstConstructor/analyzerCode: Fail
 EnumNonConstConstructor/example: Fail

@@ -744,6 +744,8 @@ declaration's
 declarations
 declare
 declared
+declarer
+declarers
 declares
 declaring
 decode

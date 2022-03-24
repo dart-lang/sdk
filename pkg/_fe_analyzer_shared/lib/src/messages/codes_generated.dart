@@ -2950,6 +2950,38 @@ const MessageCode messageEnumInClass = const MessageCode("EnumInClass",
     correctionMessage: r"""Try moving the enum to the top-level.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateEnumInheritsRestricted =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""An enum can't inherit a member named '#name'.""",
+        withArguments: _withArgumentsEnumInheritsRestricted);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeEnumInheritsRestricted =
+    const Code<Message Function(String name)>(
+  "EnumInheritsRestricted",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumInheritsRestricted(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeEnumInheritsRestricted,
+      problemMessage: """An enum can't inherit a member named '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumInheritsRestrictedMember =
+    messageEnumInheritsRestrictedMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumInheritsRestrictedMember = const MessageCode(
+    "EnumInheritsRestrictedMember",
+    severity: Severity.context,
+    problemMessage: r"""This is the inherited member""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumInstantiation = messageEnumInstantiation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
