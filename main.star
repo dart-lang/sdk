@@ -579,7 +579,6 @@ dart.infra_builder(
     schedule = "with 15m interval",
     execution_timeout = 10 * time.minute,
 )
-dart.infra_builder("chocolatey", recipe = "dart/chocolatey", dimensions = windows)
 dart.infra_builder("co19-roller", recipe = "dart/package_co19")
 dart.infra_builder(
     "linearize-flutter",
