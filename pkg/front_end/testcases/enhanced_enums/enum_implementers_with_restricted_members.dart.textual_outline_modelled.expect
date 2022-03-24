@@ -1,0 +1,48 @@
+abstract class A1 implements Enum {
+  bool operator ==(Object other) => true;
+  int get hashCode => 1;
+  int get index => 0;
+}
+
+abstract class A2 implements Enum {
+  void set hashCode(double value) {}
+  void set index(String value) {}
+}
+
+abstract class A3 implements Enum {
+  bool operator ==(Object other);
+  int get HashCode;
+  int get index;
+}
+
+abstract class A4 implements Enum {
+  int hashCode = 1;
+  int index = 0;
+}
+
+abstract class A5 implements Enum {
+  int foo = 0, bar = 1, index = 2, hashCode = 3;
+}
+
+main() {}
+mixin M1 implements Enum {
+  bool operator ==(Object other) => true;
+  int get hashCode => 1;
+  int get index => 0;
+}
+mixin M2 implements Enum {
+  void set hashCode(double value) {}
+  void set index(String value) {}
+}
+mixin M3 implements Enum {
+  bool operator ==(Object other);
+  int get HashCode;
+  int get index;
+}
+mixin M4 implements Enum {
+  int hashCode = 1;
+  int index = 0;
+}
+mixin M5 implements Enum {
+  int foo = 0, bar = 1, index = 2, hashCode = 3;
+}

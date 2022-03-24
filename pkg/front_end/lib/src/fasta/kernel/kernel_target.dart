@@ -539,7 +539,8 @@ class KernelTarget extends TargetImplementation {
       loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
-      loader.checkSupertypes(sourceClassBuilders, enumClass);
+      loader.checkSupertypes(
+          sourceClassBuilders, enumClass, underscoreEnumClass);
 
       if (macroApplications != null) {
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
@@ -883,6 +884,11 @@ class KernelTarget extends TargetImplementation {
   ClassBuilder get enumClassBuilder => enumType.declaration as ClassBuilder;
 
   Class get enumClass => enumClassBuilder.cls;
+
+  ClassBuilder get underscoreEnumBuilder =>
+      underscoreEnumType.declaration as ClassBuilder;
+
+  Class get underscoreEnumClass => underscoreEnumBuilder.cls;
 
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {

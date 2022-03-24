@@ -13,7 +13,7 @@ class B implements Enum { // Error.
 abstract class EnumInterface implements Enum {}
 
 class EnumClass extends EnumInterface { // Error.
-  int get index => 0;
+  int get index => 0; // Error
 }
 
 abstract class AbstractEnumClass extends EnumInterface {}

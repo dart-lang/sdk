@@ -2109,12 +2109,12 @@ severity: $severity
     ticker.logMs("Computed core types");
   }
 
-  void checkSupertypes(
-      List<SourceClassBuilder> sourceClasses, Class enumClass) {
+  void checkSupertypes(List<SourceClassBuilder> sourceClasses, Class enumClass,
+      Class underscoreEnumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.libraryBuilder.loader == this && !builder.isPatch) {
-        builder.checkSupertypes(
-            coreTypes, hierarchyBuilder, enumClass, _macroClassBuilder?.cls);
+        builder.checkSupertypes(coreTypes, hierarchyBuilder, enumClass,
+            underscoreEnumClass, _macroClassBuilder?.cls);
       }
     }
     ticker.logMs("Checked supertypes");

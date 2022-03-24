@@ -2887,6 +2887,35 @@ const MessageCode messageEnumFactoryRedirectsToConstructor = const MessageCode(
         r"""Enum factory constructors can't redirect to generative constructors.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateEnumImplementerContainsRestrictedInstanceDeclaration =
+    const Template<Message Function(String name, String name2)>(
+        problemMessageTemplate:
+            r"""'#name' has 'Enum' as a superinterface and can't contain non-static members with name '#name2'.""",
+        withArguments:
+            _withArgumentsEnumImplementerContainsRestrictedInstanceDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeEnumImplementerContainsRestrictedInstanceDeclaration =
+    const Code<Message Function(String name, String name2)>(
+  "EnumImplementerContainsRestrictedInstanceDeclaration",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumImplementerContainsRestrictedInstanceDeclaration(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeEnumImplementerContainsRestrictedInstanceDeclaration,
+      problemMessage:
+          """'${name}' has 'Enum' as a superinterface and can't contain non-static members with name '${name2}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateEnumImplementerContainsValuesDeclaration =
     const Template<Message Function(String name)>(

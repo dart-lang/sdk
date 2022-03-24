@@ -229,8 +229,8 @@ EnumDeclaresFactory/analyzerCode: Fail
 EnumDeclaresFactory/example: Fail
 EnumFactoryRedirectsToConstructor/analyzerCode: Fail
 EnumFactoryRedirectsToConstructor/example: Fail
-EnumImplementerContainsForbiddedInstanceDeclaration/analyzerCode: Fail
-EnumImplementerContainsForbiddedInstanceDeclaration/example: Fail
+EnumImplementerContainsRestrictedInstanceDeclaration/analyzerCode: Fail
+EnumImplementerContainsRestrictedInstanceDeclaration/example: Fail
 EnumImplementerContainsValuesDeclaration/analyzerCode: Fail
 EnumImplementerContainsValuesDeclaration/example: Fail
 EnumInstantiation/example: Fail

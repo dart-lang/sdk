@@ -720,6 +720,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       CoreTypes coreTypes,
       ClassHierarchyBuilder hierarchyBuilder,
       Class enumClass,
+      Class underscoreEnumClass,
       Class? macroClass) {
     // This method determines whether the class (that's being built) its super
     // class appears both in 'extends' and 'implements' clauses and whether any
@@ -727,7 +728,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Moreover, it checks that `FutureOr` and `void` are not among the
     // supertypes and that `Enum` is not implemented by non-abstract classes.
 
-    if (libraryBuilder.enableEnhancedEnumsInLibrary) {
+    if (libraryBuilder.enableEnhancedEnumsInLibrary && !isEnum) {
       bool hasEnumSuperinterface = false;
       List<Supertype> interfaces =
           hierarchyBuilder.getNodeFromClass(cls).superclasses;
@@ -747,7 +748,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             charOffset, noLength);
       }
 
-      if (hasEnumSuperinterface) {
+      if (hasEnumSuperinterface && cls != underscoreEnumClass) {
+        // Instance members named `values` are restricted.
         Builder? customValuesDeclaration =
             scope.lookupLocalMember("values", setter: false);
         if (customValuesDeclaration != null &&
@@ -777,6 +779,21 @@ class SourceClassBuilder extends ClassBuilderImpl
               customValuesDeclaration!.charOffset,
               customValuesDeclaration.fullNameForErrors.length,
               fileUri);
+        }
+
+        // Non-setter concrete instance members named `index` and hashCode and
+        // operator == are restricted.
+        for (String restrictedMemberName in const ["index", "hashCode", "=="]) {
+          Builder? member =
+              scope.lookupLocalMember(restrictedMemberName, setter: false);
+          if (member is MemberBuilder && !member.isAbstract) {
+            libraryBuilder.addProblem(
+                templateEnumImplementerContainsRestrictedInstanceDeclaration
+                    .withArguments(this.name, restrictedMemberName),
+                member.charOffset,
+                member.fullNameForErrors.length,
+                fileUri);
+          }
         }
       }
     }
