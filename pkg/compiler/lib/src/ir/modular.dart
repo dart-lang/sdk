@@ -54,7 +54,7 @@ class ModuleData {
 
   ModuleData(this.impactData);
 
-  factory ModuleData.fromDataSource(DataSource source) {
+  factory ModuleData.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     var impactData = source
         .readMemberNodeMap(() => ImpactBuilderData.fromDataSource(source));
@@ -62,7 +62,7 @@ class ModuleData {
     return ModuleData(impactData);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNodeMap<ImpactBuilderData>(
         impactData, (e) => e.toDataSink(sink));

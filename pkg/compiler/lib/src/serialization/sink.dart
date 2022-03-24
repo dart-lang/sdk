@@ -4,11 +4,11 @@
 
 part of 'serialization.dart';
 
-/// Interface handling [DataSink] low-level data serialization.
+/// Interface handling [DataSinkWriter] low-level data serialization.
 ///
-/// Each implementation of [SinkWriter] should have a corresponding
-/// [SourceReader] that deserializes data serialized by that implementation.
-abstract class SinkWriter {
+/// Each implementation of [DataSink] should have a corresponding
+/// [DataSource] that deserializes data serialized by that implementation.
+abstract class DataSink {
   int get length;
 
   /// Serialization of a non-negative integer value.
@@ -32,10 +32,10 @@ abstract class SinkWriter {
 
 /// Serialization writer
 ///
-/// To be used with [DataSource] to read and write serialized data.
-/// Serialization format is deferred to provided [SinkWriter].
-class DataSink {
-  final SinkWriter _sinkWriter;
+/// To be used with [DataSourceReader] to read and write serialized data.
+/// Serialization format is deferred to provided [DataSink].
+class DataSinkWriter {
+  final DataSink _sinkWriter;
 
   /// If `true`, serialization of every data kind is preceded by a [DataKind]
   /// value.
@@ -80,7 +80,7 @@ class DataSink {
     }
   }
 
-  DataSink(this._sinkWriter,
+  DataSinkWriter(this._sinkWriter,
       {this.useDataKinds = false, this.tagFrequencyMap, this.importedIndices}) {
     _dartTypeNodeWriter = DartTypeNodeWriter(this);
     _stringIndex = _createSink<String>();
@@ -143,7 +143,7 @@ class DataSink {
   /// non-null [f] is called to write the non-null value to the data sink.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readValueOrNull].
+  /// [DataSourceReader.readValueOrNull].
   void writeValueOrNull<E>(E value, void f(E value)) {
     writeBool(value != null);
     if (value != null) {
@@ -155,7 +155,7 @@ class DataSink {
   /// the data sink. If [allowNull] is `true`, [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readList].
+  /// [DataSourceReader.readList].
   void writeList<E>(Iterable<E> values, void f(E value),
       {bool allowNull = false}) {
     if (values == null) {
@@ -189,7 +189,7 @@ class DataSink {
   /// Writes the potentially `null` non-negative [value] to this data sink.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readIntOrNull].
+  /// [DataSourceReader.readIntOrNull].
   void writeIntOrNull(int value) {
     writeBool(value != null);
     if (value != null) {
@@ -211,7 +211,7 @@ class DataSink {
   /// Writes the potentially `null` string [value] to this data sink.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readStringOrNull].
+  /// [DataSourceReader.readStringOrNull].
   void writeStringOrNull(String value) {
     writeBool(value != null);
     if (value != null) {
@@ -224,7 +224,7 @@ class DataSink {
   /// allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readStringMap].
+  /// [DataSourceReader.readStringMap].
   void writeStringMap<V>(Map<String, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -243,7 +243,7 @@ class DataSink {
   /// [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readStrings].
+  /// [DataSourceReader.readStrings].
   void writeStrings(Iterable<String> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -339,7 +339,7 @@ class DataSink {
   /// If [allowNull] is `true`, [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readMemberNodes].
+  /// [DataSourceReader.readMemberNodes].
   void writeMemberNodes(Iterable<ir.Member> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -357,7 +357,7 @@ class DataSink {
   /// [allowNull] is `true`, [map] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readMemberNodeMap].
+  /// [DataSourceReader.readMemberNodeMap].
   void writeMemberNodeMap<V>(Map<ir.Member, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -437,7 +437,7 @@ class DataSink {
   /// to this data sink.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readTreeNodeOrNull].
+  /// [DataSourceReader.readTreeNodeOrNull].
   void writeTreeNodeOrNull(ir.TreeNode value) {
     writeBool(value != null);
     if (value != null) {
@@ -449,7 +449,7 @@ class DataSink {
   /// If [allowNull] is `true`, [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readTreeNodes].
+  /// [DataSourceReader.readTreeNodes].
   void writeTreeNodes(Iterable<ir.TreeNode> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -467,7 +467,7 @@ class DataSink {
   /// [allowNull] is `true`, [map] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readTreeNodeMap].
+  /// [DataSourceReader.readTreeNodeMap].
   void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -498,7 +498,7 @@ class DataSink {
   /// the known [context] to this data sink.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readTreeNodeOrNullInContext].
+  /// [DataSourceReader.readTreeNodeOrNullInContext].
   void writeTreeNodeOrNullInContext(ir.TreeNode value) {
     writeBool(value != null);
     if (value != null) {
@@ -511,7 +511,7 @@ class DataSink {
   /// `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readTreeNodesInContext].
+  /// [DataSourceReader.readTreeNodesInContext].
   void writeTreeNodesInContext(Iterable<ir.TreeNode> values,
       {bool allowNull = false}) {
     if (values == null) {
@@ -530,7 +530,7 @@ class DataSink {
   /// data sink. If [allowNull] is `true`, [map] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readTreeNodeMapInContext].
+  /// [DataSourceReader.readTreeNodeMapInContext].
   void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -573,7 +573,7 @@ class DataSink {
   /// If [allowNull] is `true`, [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readTypeParameterNodes].
+  /// [DataSourceReader.readTypeParameterNodes].
   void writeTypeParameterNodes(Iterable<ir.TypeParameter> values,
       {bool allowNull = false}) {
     if (values == null) {
@@ -611,7 +611,7 @@ class DataSink {
   /// [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readDartTypes].
+  /// [DataSourceReader.readDartTypes].
   void writeDartTypes(Iterable<DartType> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -648,7 +648,7 @@ class DataSink {
   /// `true`, [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readDartTypeNodes].
+  /// [DataSourceReader.readDartTypeNodes].
   void writeDartTypeNodes(Iterable<ir.DartType> values,
       {bool allowNull = false}) {
     if (values == null) {
@@ -679,7 +679,7 @@ class DataSink {
   /// to this data sink.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readLibraryOrNull].
+  /// [DataSourceReader.readLibraryOrNull].
   void writeLibraryOrNull(IndexedLibrary value) {
     writeBool(value != null);
     if (value != null) {
@@ -692,7 +692,7 @@ class DataSink {
   /// [allowNull] is `true`, [map] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readLibraryMap].
+  /// [DataSourceReader.readLibraryMap].
   void writeLibraryMap<V>(Map<LibraryEntity, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -716,7 +716,7 @@ class DataSink {
   /// to this data sink.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readClassOrNull].
+  /// [DataSourceReader.readClassOrNull].
   void writeClassOrNull(IndexedClass value) {
     writeBool(value != null);
     if (value != null) {
@@ -728,7 +728,7 @@ class DataSink {
   /// [allowNull] is `true`, [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readClasses].
+  /// [DataSourceReader.readClasses].
   void writeClasses(Iterable<ClassEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -746,7 +746,7 @@ class DataSink {
   /// [allowNull] is `true`, [map] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readClassMap].
+  /// [DataSourceReader.readClassMap].
   void writeClassMap<V>(Map<ClassEntity, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -770,7 +770,7 @@ class DataSink {
   /// to this data sink.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readMemberOrNull].
+  /// [DataSourceReader.readMemberOrNull].
   void writeMemberOrNull(IndexedMember value) {
     writeBool(value != null);
     if (value != null) {
@@ -782,7 +782,7 @@ class DataSink {
   /// [allowNull] is `true`, [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readMembers].
+  /// [DataSourceReader.readMembers].
   void writeMembers(Iterable<MemberEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -800,7 +800,7 @@ class DataSink {
   /// [allowNull] is `true`, [map] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readMemberMap].
+  /// [DataSourceReader.readMemberMap].
   void writeMemberMap<V>(
       Map<MemberEntity, V> map, void f(MemberEntity member, V value),
       {bool allowNull = false}) {
@@ -826,7 +826,7 @@ class DataSink {
   /// [allowNull] is `true`, [map] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readTypeVariableMap].
+  /// [DataSourceReader.readTypeVariableMap].
   void writeTypeVariableMap<V>(Map<IndexedTypeVariable, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -868,7 +868,7 @@ class DataSink {
   /// to this data sink.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readLocalOrNull].
+  /// [DataSourceReader.readLocalOrNull].
   void writeLocalOrNull(Local value) {
     writeBool(value != null);
     if (value != null) {
@@ -880,7 +880,7 @@ class DataSink {
   /// is `true`, [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readLocals].
+  /// [DataSourceReader.readLocals].
   void writeLocals(Iterable<Local> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -898,7 +898,7 @@ class DataSink {
   /// `true`, [map] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readLocalMap].
+  /// [DataSourceReader.readLocalMap].
   void writeLocalMap<V>(Map<Local, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -1019,7 +1019,7 @@ class DataSink {
   /// [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readConstants].
+  /// [DataSourceReader.readConstants].
   void writeConstants(Iterable<ConstantValue> values,
       {bool allowNull = false}) {
     if (values == null) {
@@ -1038,7 +1038,7 @@ class DataSink {
   /// `true`, [map] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readConstantMap].
+  /// [DataSourceReader.readConstantMap].
   void writeConstantMap<V>(Map<ConstantValue, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -1111,7 +1111,7 @@ class DataSink {
   /// [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readImports].
+  /// [DataSourceReader.readImports].
   void writeImports(Iterable<ImportEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -1129,7 +1129,7 @@ class DataSink {
   /// `true`, [map] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSource.readImportMap].
+  /// [DataSourceReader.readImportMap].
   void writeImportMap<V>(Map<ImportEntity, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {

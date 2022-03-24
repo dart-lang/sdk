@@ -195,7 +195,7 @@ class NativeBehavior {
   NativeBehavior.internal(this.sideEffects);
 
   /// Deserializes a [NativeBehavior] object from [source].
-  factory NativeBehavior.readFromDataSource(DataSource source) {
+  factory NativeBehavior.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
 
     List<Object> readTypes() {
@@ -233,7 +233,7 @@ class NativeBehavior {
   }
 
   /// Serializes this [NativeBehavior] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
 
     void writeTypes(List<Object> types) {

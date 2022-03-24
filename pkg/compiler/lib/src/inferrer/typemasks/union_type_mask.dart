@@ -39,7 +39,7 @@ class UnionTypeMask extends TypeMask {
 
   /// Deserializes a [UnionTypeMask] object from [source].
   factory UnionTypeMask.readFromDataSource(
-      DataSource source, CommonMasks domain) {
+      DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     List<FlatTypeMask> disjointMasks =
         source.readList(() => TypeMask.readFromDataSource(source, domain));
@@ -52,7 +52,7 @@ class UnionTypeMask extends TypeMask {
 
   /// Serializes this [UnionTypeMask] to [sink].
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(TypeMaskKind.union);
     sink.begin(tag);
     sink.writeList(

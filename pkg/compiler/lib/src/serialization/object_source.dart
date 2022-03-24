@@ -4,15 +4,15 @@
 
 part of 'serialization.dart';
 
-/// [SourceReader] that read from a list of objects, useful for debugging
+/// [DataSource] that read from a list of objects, useful for debugging
 /// inconsistencies between serialization and deserialization.
 ///
-/// This data source works together with [ObjectSinkWriter].
-class ObjectSourceReader implements SourceReader {
+/// This data source works together with [ObjectDataSink].
+class ObjectDataSource implements DataSource {
   int _index = 0;
   final List<dynamic> _data;
 
-  ObjectSourceReader(this._data);
+  ObjectDataSource(this._data);
 
   T _read<T>() {
     dynamic value = _data[_index++];

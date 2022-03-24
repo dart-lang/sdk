@@ -56,7 +56,7 @@ class DeferredHolderExpression extends js.DeferredExpression
         DeferredHolderExpressionKind.globalObjectForStaticState, null);
   }
 
-  factory DeferredHolderExpression.readFromDataSource(DataSource source) {
+  factory DeferredHolderExpression.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     var kind = source.readEnum(DeferredHolderExpressionKind.values);
     Object data;
@@ -79,7 +79,7 @@ class DeferredHolderExpression extends js.DeferredExpression
     return DeferredHolderExpression(kind, data);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeEnum(kind);
     switch (kind) {

@@ -67,7 +67,7 @@ class JLibraryEnv {
   JLibraryEnv(this.library, this._memberMap, this._setterMap);
 
   /// Deserializes a [JLibraryEnv] object from [source].
-  factory JLibraryEnv.readFromDataSource(DataSource source) {
+  factory JLibraryEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Library library = source.readLibraryNode();
     Map<String, ir.Member> memberMap =
@@ -79,7 +79,7 @@ class JLibraryEnv {
   }
 
   /// Serializes this [JLibraryEnv] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeLibraryNode(library);
     sink.writeStringMap(_memberMap, sink.writeMemberNode);
@@ -130,7 +130,7 @@ class JLibraryData {
 
   JLibraryData(this.library, this.imports);
 
-  factory JLibraryData.readFromDataSource(DataSource source) {
+  factory JLibraryData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Library library = source.readLibraryNode();
     int importCount = source.readInt();
@@ -147,7 +147,7 @@ class JLibraryData {
     return JLibraryData(library, imports);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeLibraryNode(library);
     if (imports == null) {
@@ -174,7 +174,7 @@ enum JClassEnvKind { node, closure, record }
 /// Member data for a class.
 abstract class JClassEnv {
   /// Deserializes a [JClassEnv] object from [source].
-  factory JClassEnv.readFromDataSource(DataSource source) {
+  factory JClassEnv.readFromDataSource(DataSourceReader source) {
     JClassEnvKind kind = source.readEnum(JClassEnvKind.values);
     switch (kind) {
       case JClassEnvKind.node:
@@ -188,7 +188,7 @@ abstract class JClassEnv {
   }
 
   /// Serializes this [JClassEnv] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   /// The [ir.Class] that defined the class, if any.
   ir.Class get cls;
@@ -244,7 +244,7 @@ class JClassEnvImpl implements JClassEnv {
   JClassEnvImpl(this.cls, this._constructorMap, this._memberMap,
       this._setterMap, this._members, this.isMixinApplicationWithMembers);
 
-  factory JClassEnvImpl.readFromDataSource(DataSource source) {
+  factory JClassEnvImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Class cls = source.readClassNode();
     Map<String, ir.Member> constructorMap =
@@ -261,7 +261,7 @@ class JClassEnvImpl implements JClassEnv {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassEnvKind.node);
     sink.begin(tag);
     sink.writeClassNode(cls);
@@ -324,7 +324,7 @@ class RecordEnv implements JClassEnv {
 
   RecordEnv(this._memberMap);
 
-  factory RecordEnv.readFromDataSource(DataSource source) {
+  factory RecordEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Map<String, IndexedMember> _memberMap =
         source.readStringMap(() => source.readMember());
@@ -333,7 +333,7 @@ class RecordEnv implements JClassEnv {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassEnvKind.record);
     sink.begin(tag);
     sink.writeStringMap(
@@ -386,7 +386,7 @@ class ClosureClassEnv extends RecordEnv {
 
   ClosureClassEnv(Map<String, MemberEntity> memberMap) : super(memberMap);
 
-  factory ClosureClassEnv.readFromDataSource(DataSource source) {
+  factory ClosureClassEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Map<String, IndexedMember> _memberMap =
         source.readStringMap(() => source.readMember());
@@ -395,7 +395,7 @@ class ClosureClassEnv extends RecordEnv {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassEnvKind.closure);
     sink.begin(tag);
     sink.writeStringMap(
@@ -419,7 +419,7 @@ enum JClassDataKind { node, closure, record }
 
 abstract class JClassData {
   /// Deserializes a [JClassData] object from [source].
-  factory JClassData.readFromDataSource(DataSource source) {
+  factory JClassData.readFromDataSource(DataSourceReader source) {
     JClassDataKind kind = source.readEnum(JClassDataKind.values);
     switch (kind) {
       case JClassDataKind.node:
@@ -433,7 +433,7 @@ abstract class JClassData {
   }
 
   /// Serializes this [JClassData] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   ClassDefinition get definition;
 
@@ -485,7 +485,7 @@ class JClassDataImpl implements JClassData {
 
   JClassDataImpl(this.cls, this.definition);
 
-  factory JClassDataImpl.readFromDataSource(DataSource source) {
+  factory JClassDataImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Class cls = source.readClassNode();
     ClassDefinition definition = ClassDefinition.readFromDataSource(source);
@@ -494,7 +494,7 @@ class JClassDataImpl implements JClassData {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassDataKind.node);
     sink.begin(tag);
     sink.writeClassNode(cls);
@@ -538,7 +538,7 @@ abstract class JMemberData {
   JMemberData();
 
   /// Deserializes a [JMemberData] object from [source].
-  factory JMemberData.readFromDataSource(DataSource source) {
+  factory JMemberData.readFromDataSource(DataSourceReader source) {
     JMemberDataKind kind = source.readEnum(JMemberDataKind.values);
     switch (kind) {
       case JMemberDataKind.function:
@@ -562,7 +562,7 @@ abstract class JMemberData {
   }
 
   /// Serializes this [JMemberData] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 }
 
 abstract class JMemberDataImpl implements JMemberData {
@@ -689,7 +689,7 @@ class FunctionDataImpl extends JMemberDataImpl
       MemberDefinition definition, StaticTypeCache staticTypes)
       : super(node, definition, staticTypes);
 
-  factory FunctionDataImpl.readFromDataSource(DataSource source) {
+  factory FunctionDataImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member node = source.readMemberNode();
     ir.FunctionNode functionNode;
@@ -709,7 +709,7 @@ class FunctionDataImpl extends JMemberDataImpl
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberDataKind.function);
     sink.begin(tag);
     sink.writeMemberNode(node);
@@ -748,7 +748,7 @@ class SignatureFunctionData implements FunctionData {
   SignatureFunctionData(this.definition, this.memberThisType,
       this.typeParameters, this.classTypeVariableAccess);
 
-  factory SignatureFunctionData.readFromDataSource(DataSource source) {
+  factory SignatureFunctionData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
     InterfaceType memberThisType = source.readDartType(allowNull: true);
@@ -761,7 +761,7 @@ class SignatureFunctionData implements FunctionData {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberDataKind.signature);
     sink.begin(tag);
     definition.writeToDataSink(sink);
@@ -851,7 +851,8 @@ class GeneratorBodyFunctionData extends DelegatedFunctionData {
   GeneratorBodyFunctionData(FunctionData baseData, this.definition)
       : super(baseData);
 
-  factory GeneratorBodyFunctionData.readFromDataSource(DataSource source) {
+  factory GeneratorBodyFunctionData.readFromDataSource(
+      DataSourceReader source) {
     source.begin(tag);
     // TODO(johnniwinther): Share the original base data on deserialization.
     FunctionData baseData = JMemberData.readFromDataSource(source);
@@ -861,7 +862,7 @@ class GeneratorBodyFunctionData extends DelegatedFunctionData {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberDataKind.generatorBody);
     sink.begin(tag);
     baseData.writeToDataSink(sink);
@@ -887,7 +888,7 @@ class JConstructorDataImpl extends FunctionDataImpl
       MemberDefinition definition, StaticTypeCache staticTypes)
       : super(node, functionNode, definition, staticTypes);
 
-  factory JConstructorDataImpl.readFromDataSource(DataSource source) {
+  factory JConstructorDataImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member node = source.readMemberNode();
     ir.FunctionNode functionNode;
@@ -907,7 +908,7 @@ class JConstructorDataImpl extends FunctionDataImpl
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberDataKind.constructor);
     sink.begin(tag);
     sink.writeMemberNode(node);
@@ -931,7 +932,7 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
       MemberDefinition definition, StaticTypeCache staticTypes)
       : super(node, functionNode, definition, staticTypes);
 
-  factory ConstructorBodyDataImpl.readFromDataSource(DataSource source) {
+  factory ConstructorBodyDataImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member node = source.readMemberNode();
     ir.FunctionNode functionNode;
@@ -951,7 +952,7 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberDataKind.constructorBody);
     sink.begin(tag);
     sink.writeMemberNode(node);
@@ -982,7 +983,7 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
       ir.Field node, MemberDefinition definition, StaticTypeCache staticTypes)
       : super(node, definition, staticTypes);
 
-  factory JFieldDataImpl.readFromDataSource(DataSource source) {
+  factory JFieldDataImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member node = source.readMemberNode();
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
@@ -993,7 +994,7 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberDataKind.field);
     sink.begin(tag);
     sink.writeMemberNode(node);
@@ -1028,14 +1029,14 @@ class JTypeVariableData {
 
   JTypeVariableData(this.node);
 
-  factory JTypeVariableData.readFromDataSource(DataSource source) {
+  factory JTypeVariableData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.TypeParameter node = source.readTypeParameterNode();
     source.end(tag);
     return JTypeVariableData(node);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeTypeParameterNode(node);
     sink.end(tag);

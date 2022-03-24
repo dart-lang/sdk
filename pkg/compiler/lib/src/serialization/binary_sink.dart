@@ -4,15 +4,15 @@
 
 part of 'serialization.dart';
 
-/// [SinkWriter] that writes data as a sequence of bytes.
+/// [DataSink] that writes data as a sequence of bytes.
 ///
 /// This data sink works together with [BinarySourceWriter].
-class BinarySinkWriter implements SinkWriter {
+class BinaryDataSink implements DataSink {
   final Sink<List<int>> sink;
   BufferedSink _bufferedSink;
   int _length = 0;
 
-  BinarySinkWriter(this.sink) : _bufferedSink = BufferedSink(sink);
+  BinaryDataSink(this.sink) : _bufferedSink = BufferedSink(sink);
 
   @override
   int get length => _length;

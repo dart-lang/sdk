@@ -318,12 +318,12 @@ class JsBackendStrategy {
     if (_compiler.options.testMode) {
       bool useDataKinds = true;
       List<Object> data = [];
-      DataSink sink =
-          DataSink(ObjectSinkWriter(data), useDataKinds: useDataKinds);
+      DataSinkWriter sink =
+          DataSinkWriter(ObjectDataSink(data), useDataKinds: useDataKinds);
       sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
       result.writeToDataSink(sink);
-      DataSource source =
-          DataSource(ObjectSourceReader(data), useDataKinds: useDataKinds);
+      DataSourceReader source =
+          DataSourceReader(ObjectDataSource(data), useDataKinds: useDataKinds);
       List<ModularName> modularNames = [];
       List<ModularExpression> modularExpression = [];
       source.registerCodegenReader(
@@ -390,7 +390,7 @@ class JsBackendStrategy {
   }
 
   /// Prepare [source] to deserialize modular code generation data.
-  void prepareCodegenReader(DataSource source) {
+  void prepareCodegenReader(DataSourceReader source) {
     source.registerEntityReader(ClosedEntityReader(_elementMap));
     source.registerEntityLookup(ClosedEntityLookup(_elementMap));
     source.registerComponentLookup(

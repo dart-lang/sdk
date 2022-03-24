@@ -74,14 +74,14 @@ class PowersetDomain implements AbstractValueDomain {
   //TODO(coam)
   @override
   void writeAbstractValueToDataSink(
-      DataSink sink, covariant PowersetValue value) {
+      DataSinkWriter sink, covariant PowersetValue value) {
     _abstractValueDomain.writeAbstractValueToDataSink(
         sink, value._abstractValue);
   }
 
   //TODO(coam)
   @override
-  AbstractValue readAbstractValueFromDataSource(DataSource source) {
+  AbstractValue readAbstractValueFromDataSource(DataSourceReader source) {
     int powersetBits = _powersetBitsDomain.powersetTop;
     AbstractValue abstractValue =
         _abstractValueDomain.readAbstractValueFromDataSource(source);

@@ -66,7 +66,7 @@ enum _TypeParameterKind {
   functionNode,
 }
 
-/// Class used for encoding tags in [ObjectSinkWriter] and [ObjectSourceReader].
+/// Class used for encoding tags in [ObjectDataSink] and [ObjectDataSource].
 class Tag {
   final String value;
 
@@ -126,7 +126,7 @@ const String functionTypeNodeTag = 'function-type-node';
 
 class DartTypeNodeWriter
     extends ir.DartTypeVisitor1<void, List<ir.TypeParameter>> {
-  final DataSink _sink;
+  final DataSinkWriter _sink;
 
   DartTypeNodeWriter(this._sink);
 
@@ -262,7 +262,7 @@ class DartTypeNodeWriter
 
 /// Data sink helper that canonicalizes [E] values using indices.
 class IndexedSink<E> {
-  final SinkWriter _sink;
+  final DataSink _sink;
   Map<E, int> cache;
 
   IndexedSink(this._sink, {this.cache}) {
@@ -293,7 +293,7 @@ class IndexedSink<E> {
 
 /// Data source helper reads canonicalized [E] values through indices.
 class IndexedSource<E> {
-  final SourceReader _sourceReader;
+  final DataSource _sourceReader;
   List<E> cache;
 
   IndexedSource(this._sourceReader, {this.cache}) {

@@ -7,11 +7,11 @@ part of 'serialization.dart';
 /// [DataSinkWriter] that writes to a list of objects, useful for debugging
 /// inconsistencies between serialization and deserialization.
 ///
-/// This data sink writer works together with [ObjectSourceReader].
-class ObjectSinkWriter implements SinkWriter {
+/// This data sink writer works together with [ObjectDataSource].
+class ObjectDataSink implements DataSink {
   List<dynamic> _data;
 
-  ObjectSinkWriter(this._data);
+  ObjectDataSink(this._data);
 
   @override
   void beginTag(String tag) {

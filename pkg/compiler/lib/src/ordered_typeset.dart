@@ -38,7 +38,7 @@ class OrderedTypeSet {
   OrderedTypeSet.internal(this._levels, this.types);
 
   /// Deserializes a [OrderedTypeSet] object from [source].
-  factory OrderedTypeSet.readFromDataSource(DataSource source) {
+  factory OrderedTypeSet.readFromDataSource(DataSourceReader source) {
     // TODO(johnniwinther): Make the deserialized type sets share their
     // internal links like the original type sets do?
     source.begin(tag);
@@ -63,7 +63,7 @@ class OrderedTypeSet {
   }
 
   /// Serializes this [OrderedTypeSet] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     List<InterfaceType> typeList = types.toList();
     sink.writeInt(typeList.length);

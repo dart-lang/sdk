@@ -660,7 +660,7 @@ class _DependencyVisitor extends DartTypeStructuralPredicateVisitor {
 abstract class RuntimeTypesNeed {
   /// Deserializes a [RuntimeTypesNeed] object from [source].
   factory RuntimeTypesNeed.readFromDataSource(
-      DataSource source, ElementEnvironment elementEnvironment) {
+      DataSourceReader source, ElementEnvironment elementEnvironment) {
     bool isTrivial = source.readBool();
     if (isTrivial) {
       return TrivialRuntimeTypesNeed(elementEnvironment);
@@ -669,7 +669,7 @@ abstract class RuntimeTypesNeed {
   }
 
   /// Serializes this [RuntimeTypesNeed] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   /// Returns `true` if [cls] needs type arguments at runtime.
   ///
@@ -742,7 +742,7 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
   const TrivialRuntimeTypesNeed(this._elementEnvironment);
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeBool(true); // Is trivial.
   }
 
@@ -797,7 +797,7 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
       this.instantiationsNeedingTypeArguments);
 
   factory RuntimeTypesNeedImpl.readFromDataSource(
-      DataSource source, ElementEnvironment elementEnvironment) {
+      DataSourceReader source, ElementEnvironment elementEnvironment) {
     source.begin(tag);
     Set<ClassEntity> classesNeedingTypeArguments =
         source.readClasses<ClassEntity>().toSet();
@@ -822,7 +822,7 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeBool(false); // Is _not_ trivial.
     sink.begin(tag);
     sink.writeClasses(classesNeedingTypeArguments);

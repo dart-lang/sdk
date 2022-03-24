@@ -117,7 +117,7 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
   TypeReference(this.typeRecipe) : sourceInformation = null;
   TypeReference._(this.typeRecipe, this._value, this.sourceInformation);
 
-  factory TypeReference.readFromDataSource(DataSource source) {
+  factory TypeReference.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     TypeRecipe recipe = source.readTypeRecipe();
     bool forLazyInitializer = source.readBool();
@@ -125,7 +125,7 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
     return TypeReference(recipe)..forLazyInitializer = forLazyInitializer;
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeTypeRecipe(typeRecipe);
     sink.writeBool(forLazyInitializer);

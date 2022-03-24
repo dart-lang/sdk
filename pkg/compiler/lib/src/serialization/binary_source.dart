@@ -4,15 +4,15 @@
 
 part of 'serialization.dart';
 
-/// [SourceReader] that reads data from a sequence of bytes.
+/// [DataSource] that reads data from a sequence of bytes.
 ///
-/// This data source works together with [BinarySinkWriter].
-class BinarySourceReader implements SourceReader {
+/// This data source works together with [BinaryDataSink].
+class BinaryDataSource implements DataSource {
   int _byteOffset = 0;
   final List<int> _bytes;
   final StringInterner _stringInterner;
 
-  BinarySourceReader(this._bytes, {StringInterner stringInterner})
+  BinaryDataSource(this._bytes, {StringInterner stringInterner})
       : _stringInterner = stringInterner;
 
   @override

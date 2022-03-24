@@ -30,7 +30,7 @@ class JLibrary extends IndexedLibrary {
   JLibrary(this.name, this.canonicalUri, this.isNonNullableByDefault);
 
   /// Deserializes a [JLibrary] object from [source].
-  factory JLibrary.readFromDataSource(DataSource source) {
+  factory JLibrary.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     String name = source.readString();
     Uri canonicalUri = source.readUri();
@@ -40,7 +40,7 @@ class JLibrary extends IndexedLibrary {
   }
 
   /// Serializes this [JLibrary] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeString(name);
     sink.writeUri(canonicalUri);
@@ -71,7 +71,7 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
   JClass(this.library, this.name, {this.isAbstract});
 
   /// Deserializes a [JClass] object from [source].
-  factory JClass.readFromDataSource(DataSource source) {
+  factory JClass.readFromDataSource(DataSourceReader source) {
     JClassKind kind = source.readEnum(JClassKind.values);
     switch (kind) {
       case JClassKind.node:
@@ -90,7 +90,7 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
   }
 
   /// Serializes this [JClass] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassKind.node);
     sink.begin(tag);
     sink.writeLibrary(library);
@@ -135,7 +135,7 @@ abstract class JMember extends IndexedMember {
       : _isStatic = isStatic;
 
   /// Deserializes a [JMember] object from [source].
-  factory JMember.readFromDataSource(DataSource source) {
+  factory JMember.readFromDataSource(DataSourceReader source) {
     JMemberKind kind = source.readEnum(JMemberKind.values);
     switch (kind) {
       case JMemberKind.generativeConstructor:
@@ -167,7 +167,7 @@ abstract class JMember extends IndexedMember {
   }
 
   /// Serializes this [JMember] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   @override
   String get name => _name.text;
@@ -272,7 +272,7 @@ class JGenerativeConstructor extends JConstructor {
       : super(enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 
-  factory JGenerativeConstructor.readFromDataSource(DataSource source) {
+  factory JGenerativeConstructor.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JClass enclosingClass = source.readClass();
     String name = source.readString();
@@ -287,7 +287,7 @@ class JGenerativeConstructor extends JConstructor {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.generativeConstructor);
     sink.begin(tag);
     sink.writeClass(enclosingClass);
@@ -319,7 +319,7 @@ class JFactoryConstructor extends JConstructor {
       : super(enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 
-  factory JFactoryConstructor.readFromDataSource(DataSource source) {
+  factory JFactoryConstructor.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JClass enclosingClass = source.readClass();
     String name = source.readString();
@@ -337,7 +337,7 @@ class JFactoryConstructor extends JConstructor {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.factoryConstructor);
     sink.begin(tag);
     sink.writeClass(enclosingClass);
@@ -369,7 +369,7 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
             constructor.memberName, parameterStructure, AsyncMarker.SYNC,
             isStatic: false, isExternal: false);
 
-  factory JConstructorBody.readFromDataSource(DataSource source) {
+  factory JConstructorBody.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JConstructor constructor = source.readMember();
     ParameterStructure parameterStructure =
@@ -379,7 +379,7 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.constructorBody);
     sink.begin(tag);
     sink.writeMember(constructor);
@@ -405,7 +405,7 @@ class JMethod extends JFunction {
       : super(library, enclosingClass, name, parameterStructure, asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
-  factory JMethod.readFromDataSource(DataSource source) {
+  factory JMethod.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberContextKind kind = source.readEnum(MemberContextKind.values);
     JLibrary library;
@@ -433,7 +433,7 @@ class JMethod extends JFunction {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.method);
     sink.begin(tag);
     if (enclosingClass != null) {
@@ -475,7 +475,7 @@ class JGeneratorBody extends JFunction {
             function.parameterStructure, function.asyncMarker,
             isStatic: function.isStatic, isExternal: false);
 
-  factory JGeneratorBody.readFromDataSource(DataSource source) {
+  factory JGeneratorBody.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JFunction function = source.readMember();
     DartType elementType = source.readDartType();
@@ -484,7 +484,7 @@ class JGeneratorBody extends JFunction {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.generatorBody);
     sink.begin(tag);
     sink.writeMember(function);
@@ -511,7 +511,7 @@ class JGetter extends JFunction {
             asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
-  factory JGetter.readFromDataSource(DataSource source) {
+  factory JGetter.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberContextKind kind = source.readEnum(MemberContextKind.values);
     JLibrary library;
@@ -536,7 +536,7 @@ class JGetter extends JFunction {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.getter);
     sink.begin(tag);
     if (enclosingClass != null) {
@@ -575,7 +575,7 @@ class JSetter extends JFunction {
             AsyncMarker.SYNC,
             isStatic: isStatic, isExternal: isExternal);
 
-  factory JSetter.readFromDataSource(DataSource source) {
+  factory JSetter.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberContextKind kind = source.readEnum(MemberContextKind.values);
     JLibrary library;
@@ -599,7 +599,7 @@ class JSetter extends JFunction {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.setter);
     sink.begin(tag);
     if (enclosingClass != null) {
@@ -640,7 +640,7 @@ class JField extends JMember implements FieldEntity, IndexedField {
       {bool isStatic, this.isAssignable, this.isConst})
       : super(library, enclosingClass, name, isStatic: isStatic);
 
-  factory JField.readFromDataSource(DataSource source) {
+  factory JField.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberContextKind kind = source.readEnum(MemberContextKind.values);
     JLibrary library;
@@ -664,7 +664,7 @@ class JField extends JMember implements FieldEntity, IndexedField {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.field);
     sink.begin(tag);
     if (enclosingClass != null) {
@@ -699,7 +699,7 @@ class JClosureCallMethod extends JMethod {
             parameterStructure, asyncMarker,
             isStatic: false, isExternal: false, isAbstract: false);
 
-  factory JClosureCallMethod.readFromDataSource(DataSource source) {
+  factory JClosureCallMethod.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JClass enclosingClass = source.readClass();
     ParameterStructure parameterStructure =
@@ -710,7 +710,7 @@ class JClosureCallMethod extends JMethod {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.closureCallMethod);
     sink.begin(tag);
     sink.writeClass(enclosingClass);
@@ -735,7 +735,7 @@ class JSignatureMethod extends JMethod {
             ParameterStructure.zeroArguments, AsyncMarker.SYNC,
             isStatic: false, isExternal: false, isAbstract: false);
 
-  factory JSignatureMethod.readFromDataSource(DataSource source) {
+  factory JSignatureMethod.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JClass cls = source.readClass();
     source.end(tag);
@@ -743,7 +743,7 @@ class JSignatureMethod extends JMethod {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.signatureMethod);
     sink.begin(tag);
     sink.writeClass(enclosingClass);
@@ -772,7 +772,7 @@ class JTypeVariable extends IndexedTypeVariable {
   JTypeVariable(this.typeDeclaration, this.name, this.index);
 
   /// Deserializes a [JTypeVariable] object from [source].
-  factory JTypeVariable.readFromDataSource(DataSource source) {
+  factory JTypeVariable.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JTypeVariableKind kind = source.readEnum(JTypeVariableKind.values);
     Entity typeDeclaration;
@@ -797,7 +797,7 @@ class JTypeVariable extends IndexedTypeVariable {
   }
 
   /// Serializes this [JTypeVariable] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     if (typeDeclaration is IndexedClass) {
       IndexedClass cls = typeDeclaration;

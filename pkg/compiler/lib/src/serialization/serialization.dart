@@ -37,7 +37,7 @@ abstract class StringInterner {
 }
 
 /// Data class representing cache information for a given [T] which can be
-/// passed from a [DataSource] to other [DataSource]s and [DataSink]s.
+/// passed from a [DataSourceReader] to other [DataSourceReader]s and [DataSinkWriter]s.
 class DataSourceTypeIndices<E, T> {
   /// Reshapes a [List<T>] to a [Map<E, int>] using [_getValue].
   Map<E, int> _reshape() {
@@ -57,9 +57,9 @@ class DataSourceTypeIndices<E, T> {
   Map<E, int> _cache;
 
   /// Though [DataSourceTypeIndices] supports two types of caches. If the
-  /// exported indices are imported into a [DataSource] then the [cacheAsList]
+  /// exported indices are imported into a [DataSourceReader] then the [cacheAsList]
   /// will be used as is. If, however, the exported indices are imported into a
-  /// [DataSink] then we need to reshape the [List<T>] into a [Map<E, int>]
+  /// [DataSinkWriter] then we need to reshape the [List<T>] into a [Map<E, int>]
   /// where [E] is either [T] or some value which can be derived from [T] by
   /// [_getValue].
   DataSourceTypeIndices(this.cacheAsList, [this._getValue]) {
@@ -69,7 +69,7 @@ class DataSourceTypeIndices<E, T> {
 }
 
 /// Data class representing the sum of all cache information for a given
-/// [DataSource].
+/// [DataSourceReader].
 class DataSourceIndices {
   final Map<Type, DataSourceTypeIndices> caches = {};
 }
@@ -94,22 +94,22 @@ class EntityReader {
   const EntityReader();
 
   IndexedLibrary readLibraryFromDataSource(
-      DataSource source, EntityLookup entityLookup) {
+      DataSourceReader source, EntityLookup entityLookup) {
     return entityLookup.getLibraryByIndex(source.readInt());
   }
 
   IndexedClass readClassFromDataSource(
-      DataSource source, EntityLookup entityLookup) {
+      DataSourceReader source, EntityLookup entityLookup) {
     return entityLookup.getClassByIndex(source.readInt());
   }
 
   IndexedMember readMemberFromDataSource(
-      DataSource source, EntityLookup entityLookup) {
+      DataSourceReader source, EntityLookup entityLookup) {
     return entityLookup.getMemberByIndex(source.readInt());
   }
 
   IndexedTypeVariable readTypeVariableFromDataSource(
-      DataSource source, EntityLookup entityLookup) {
+      DataSourceReader source, EntityLookup entityLookup) {
     return entityLookup.getTypeVariableByIndex(source.readInt());
   }
 }
@@ -118,19 +118,20 @@ class EntityReader {
 class EntityWriter {
   const EntityWriter();
 
-  void writeLibraryToDataSink(DataSink sink, IndexedLibrary value) {
+  void writeLibraryToDataSink(DataSinkWriter sink, IndexedLibrary value) {
     sink.writeInt(value.libraryIndex);
   }
 
-  void writeClassToDataSink(DataSink sink, IndexedClass value) {
+  void writeClassToDataSink(DataSinkWriter sink, IndexedClass value) {
     sink.writeInt(value.classIndex);
   }
 
-  void writeMemberToDataSink(DataSink sink, IndexedMember value) {
+  void writeMemberToDataSink(DataSinkWriter sink, IndexedMember value) {
     sink.writeInt(value.memberIndex);
   }
 
-  void writeTypeVariableToDataSink(DataSink sink, IndexedTypeVariable value) {
+  void writeTypeVariableToDataSink(
+      DataSinkWriter sink, IndexedTypeVariable value) {
     sink.writeInt(value.typeVariableIndex);
   }
 }
@@ -142,16 +143,16 @@ abstract class LocalLookup {
 
 /// Interface used for reading codegen only data during deserialization.
 abstract class CodegenReader {
-  AbstractValue readAbstractValue(DataSource source);
-  OutputUnit readOutputUnitReference(DataSource source);
-  js.Node readJsNode(DataSource source);
-  TypeRecipe readTypeRecipe(DataSource source);
+  AbstractValue readAbstractValue(DataSourceReader source);
+  OutputUnit readOutputUnitReference(DataSourceReader source);
+  js.Node readJsNode(DataSourceReader source);
+  TypeRecipe readTypeRecipe(DataSourceReader source);
 }
 
 /// Interface used for writing codegen only data during serialization.
 abstract class CodegenWriter {
-  void writeAbstractValue(DataSink sink, AbstractValue value);
-  void writeOutputUnitReference(DataSink sink, OutputUnit value);
-  void writeJsNode(DataSink sink, js.Node node);
-  void writeTypeRecipe(DataSink sink, TypeRecipe recipe);
+  void writeAbstractValue(DataSinkWriter sink, AbstractValue value);
+  void writeOutputUnitReference(DataSinkWriter sink, OutputUnit value);
+  void writeJsNode(DataSinkWriter sink, js.Node node);
+  void writeTypeRecipe(DataSinkWriter sink, TypeRecipe recipe);
 }

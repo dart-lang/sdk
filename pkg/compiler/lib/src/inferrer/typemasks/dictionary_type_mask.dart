@@ -29,7 +29,7 @@ class DictionaryTypeMask extends MapTypeMask {
 
   /// Deserializes a [DictionaryTypeMask] object from [source].
   factory DictionaryTypeMask.readFromDataSource(
-      DataSource source, CommonMasks domain) {
+      DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
     ir.TreeNode allocationNode = source.readTreeNodeOrNull();
@@ -45,7 +45,7 @@ class DictionaryTypeMask extends MapTypeMask {
 
   /// Serializes this [DictionaryTypeMask] to [sink].
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(TypeMaskKind.dictionary);
     sink.begin(tag);
     forwardTo.writeToDataSink(sink);

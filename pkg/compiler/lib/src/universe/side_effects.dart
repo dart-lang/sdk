@@ -43,7 +43,7 @@ class SideEffects {
   SideEffects.fromFlags(this._flags);
 
   /// Deserializes a [SideEffects] object from [source].
-  factory SideEffects.readFromDataSource(DataSource source) {
+  factory SideEffects.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     int flags = source.readInt();
     source.end(tag);
@@ -51,7 +51,7 @@ class SideEffects {
   }
 
   /// Serializes this [SideEffects] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeInt(_flags);
     sink.end(tag);

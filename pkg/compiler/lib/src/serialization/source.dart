@@ -4,11 +4,11 @@
 
 part of 'serialization.dart';
 
-/// Interface handling [DataSource] low-level data deserialization.
+/// Interface handling [DataSourceReader] low-level data deserialization.
 ///
-/// Each implementation of [SourceReader] should have a corresponding
-/// [SinkWriter] for which it deserializes data.
-abstract class SourceReader {
+/// Each implementation of [DataSource] should have a corresponding
+/// [DataSink] for which it deserializes data.
+abstract class DataSource {
   /// Deserialization of a section begin tag.
   void begin(String tag);
 
@@ -32,10 +32,10 @@ abstract class SourceReader {
 
 /// Deserialization reader
 ///
-/// To be used with [DataSink] to read and write serialized data.
-/// Deserialization format is deferred to provided [SourceReader].
-class DataSource {
-  final SourceReader _sourceReader;
+/// To be used with [DataSinkWriter] to read and write serialized data.
+/// Deserialization format is deferred to provided [DataSource].
+class DataSourceReader {
+  final DataSource _sourceReader;
 
   static final List<ir.DartType> emptyListOfDartTypes =
       List<ir.DartType>.filled(0, null, growable: false);
@@ -68,7 +68,7 @@ class DataSource {
     }
   }
 
-  DataSource(this._sourceReader,
+  DataSourceReader(this._sourceReader,
       {this.useDataKinds = false, this.importedIndices}) {
     _stringIndex = _createSource<String>();
     _uriIndex = _createSource<Uri>();
@@ -77,8 +77,8 @@ class DataSource {
     _constantIndex = _createSource<ConstantValue>();
   }
 
-  /// Exports [DataSourceIndices] for use in other [DataSource]s and
-  /// [DataSink]s.
+  /// Exports [DataSourceIndices] for use in other [DataSourceReader]s and
+  /// [DataSinkWriter]s.
   DataSourceIndices exportIndices() {
     var indices = DataSourceIndices();
     indices.caches[String] = DataSourceTypeIndices(_stringIndex.cache);
@@ -200,7 +200,7 @@ class DataSource {
   /// read the non-null value from the data source.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeValueOrNull].
+  /// [DataSinkWriter.writeValueOrNull].
   E readValueOrNull<E>(E f()) {
     bool hasValue = readBool();
     if (hasValue) {
@@ -213,7 +213,7 @@ class DataSource {
   /// `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeList].
+  /// [DataSinkWriter.writeList].
   List<E> readList<E>(E f(), {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -246,7 +246,7 @@ class DataSource {
   /// source.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeIntOrNull].
+  /// [DataSinkWriter.writeIntOrNull].
   int readIntOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -268,7 +268,7 @@ class DataSource {
   /// Reads a potentially `null` string value from this data source.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeStringOrNull].
+  /// [DataSinkWriter.writeStringOrNull].
   String readStringOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -281,7 +281,7 @@ class DataSource {
   /// `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeStrings].
+  /// [DataSinkWriter.writeStrings].
   List<String> readStrings({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -297,7 +297,7 @@ class DataSource {
   /// `true`, `null` is returned instead of an empty map.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeStringMap].
+  /// [DataSinkWriter.writeStringMap].
   Map<String, V> readStringMap<V>(V f(), {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -402,7 +402,7 @@ class DataSource {
   /// If [emptyAsNull] is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeMemberNodes].
+  /// [DataSinkWriter.writeMemberNodes].
   List<E> readMemberNodes<E extends ir.Member>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -419,7 +419,7 @@ class DataSource {
   /// `true`, `null` is returned instead of an empty map.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeMemberNodeMap].
+  /// [DataSinkWriter.writeMemberNodeMap].
   Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -506,7 +506,7 @@ class DataSource {
   /// If [emptyAsNull] is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeTreeNodes].
+  /// [DataSinkWriter.writeTreeNodes].
   List<E> readTreeNodes<E extends ir.TreeNode>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -523,7 +523,7 @@ class DataSource {
   /// `true`, `null` is returned instead of an empty map.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeTreeNodeMap].
+  /// [DataSinkWriter.writeTreeNodeMap].
   Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -563,7 +563,7 @@ class DataSource {
   /// instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeTreeNodesInContext].
+  /// [DataSinkWriter.writeTreeNodesInContext].
   List<E> readTreeNodesInContext<E extends ir.TreeNode>(
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -582,7 +582,7 @@ class DataSource {
   /// map.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeTreeNodeMapInContext].
+  /// [DataSinkWriter.writeTreeNodeMapInContext].
   Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -620,7 +620,7 @@ class DataSource {
   /// list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeTypeParameterNodes].
+  /// [DataSinkWriter.writeTypeParameterNodes].
   List<ir.TypeParameter> readTypeParameterNodes({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -644,7 +644,7 @@ class DataSource {
   /// `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeDartTypes].
+  /// [DataSinkWriter.writeDartTypes].
   List<DartType> readDartTypes({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -771,7 +771,7 @@ class DataSource {
   /// is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeDartTypeNodes].
+  /// [DataSinkWriter.writeDartTypeNodes].
   List<ir.DartType> readDartTypeNodes({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -823,7 +823,7 @@ class DataSource {
   /// map.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeLibraryMap].
+  /// [DataSinkWriter.writeLibraryMap].
   Map<K, V> readLibraryMap<K extends LibraryEntity, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -856,7 +856,7 @@ class DataSource {
   /// If [emptyAsNull] is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeClasses].
+  /// [DataSinkWriter.writeClasses].
   List<E> readClasses<E extends ClassEntity>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -873,7 +873,7 @@ class DataSource {
   /// `true`, `null` is returned instead of an empty map.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeClassMap].
+  /// [DataSinkWriter.writeClassMap].
   Map<K, V> readClassMap<K extends ClassEntity, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -906,7 +906,7 @@ class DataSource {
   /// If [emptyAsNull] is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeMembers].
+  /// [DataSinkWriter.writeMembers].
   List<E> readMembers<E extends MemberEntity>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -923,7 +923,7 @@ class DataSource {
   /// `true`, `null` is returned instead of an empty map.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeMemberMap].
+  /// [DataSinkWriter.writeMemberMap].
   Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -947,7 +947,7 @@ class DataSource {
   /// [emptyAsNull] is `true`, `null` is returned instead of an empty map.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeTypeVariableMap].
+  /// [DataSinkWriter.writeTypeVariableMap].
   Map<K, V> readTypeVariableMap<K extends IndexedTypeVariable, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -998,7 +998,7 @@ class DataSource {
   /// [emptyAsNull] is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeLocals].
+  /// [DataSinkWriter.writeLocals].
   List<E> readLocals<E extends Local>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -1015,7 +1015,7 @@ class DataSource {
   /// `null` is returned instead of an empty map.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeLocalMap].
+  /// [DataSinkWriter.writeLocalMap].
   Map<K, V> readLocalMap<K extends Local, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -1124,7 +1124,7 @@ class DataSource {
   /// `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeConstants].
+  /// [DataSinkWriter.writeConstants].
   List<E> readConstants<E extends ConstantValue>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -1141,7 +1141,7 @@ class DataSource {
   /// `true`, `null` is returned instead of an empty map.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeConstantMap].
+  /// [DataSinkWriter.writeConstantMap].
   Map<K, V> readConstantMap<K extends ConstantValue, V>(V f(),
       {bool emptyAsNull = false}) {
     int count = readInt();
@@ -1214,7 +1214,7 @@ class DataSource {
   /// `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeImports].
+  /// [DataSinkWriter.writeImports].
   List<ImportEntity> readImports({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -1230,7 +1230,7 @@ class DataSource {
   /// `true`, `null` is returned instead of an empty map.
   ///
   /// This is a convenience method to be used together with
-  /// [DataSink.writeImportMap].
+  /// [DataSinkWriter.writeImportMap].
   Map<ImportEntity, V> readImportMap<V>(V f(), {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;

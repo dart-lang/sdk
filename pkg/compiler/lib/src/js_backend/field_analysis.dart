@@ -252,7 +252,7 @@ class JFieldAnalysis {
 
   /// Deserializes a [JFieldAnalysis] object from [source].
   factory JFieldAnalysis.readFromDataSource(
-      DataSource source, CompilerOptions options) {
+      DataSourceReader source, CompilerOptions options) {
     source.begin(tag);
     Map<FieldEntity, FieldAnalysisData> fieldData = source.readMemberMap(
         (MemberEntity member) => FieldAnalysisData.fromDataSource(source));
@@ -261,7 +261,7 @@ class JFieldAnalysis {
   }
 
   /// Serializes this [JFieldAnalysis] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberMap(
         _fieldData,
@@ -602,7 +602,7 @@ class FieldAnalysisData {
       this.eagerCreationIndex = null,
       this.eagerFieldDependenciesForTesting = null});
 
-  factory FieldAnalysisData.fromDataSource(DataSource source) {
+  factory FieldAnalysisData.fromDataSource(DataSourceReader source) {
     source.begin(tag);
 
     ConstantValue initialValue = source.readConstantOrNull();
@@ -624,7 +624,7 @@ class FieldAnalysisData {
         eagerFieldDependenciesForTesting: eagerFieldDependencies);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeConstantOrNull(initialValue);
     sink.writeBool(isInitializedInAllocator);
