@@ -192,6 +192,9 @@ static void AppendSubString(BaseTextBuffer* buffer,
   buffer->Printf("%.*s", static_cast<int>(len), &name[start_pos]);
 }
 
+// Used to define setters and getters for untagged object fields that are
+// defined with the WSR_COMPRESSED_POINTER_FIELD macro. See
+// PRECOMPILER_WSR_FIELD_DECLARATION in object.h for more information.
 #if defined(DART_PRECOMPILER)
 #define PRECOMPILER_WSR_FIELD_DEFINITION(Class, Type, Name)                    \
   Type##Ptr Class::Name() const {                                              \

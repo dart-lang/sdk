@@ -1754,6 +1754,10 @@ FieldInitializerOutsideConstructor:
   script:
     - "class C { void m(this.x); }"
 
+SuperParameterInitializerOutsideConstructor:
+  problemMessage: "Super-initializer formal parameters can only be used in generative constructors."
+  correctionMessage: "Try removing 'super.'."
+
 RedirectionTargetNotFound:
   problemMessage: "Redirection constructor target not found: '#name'"
   analyzerCode: REDIRECT_TO_MISSING_CONSTRUCTOR
