@@ -16,6 +16,29 @@ main() {
 
 @reflectiveTest
 class LocalVariableResolutionTest extends PubPackageResolutionTest {
+  test_annotation_twoVariables() async {
+    await assertNoErrorsInCode(r'''
+const a = 0;
+
+void f() {
+  // ignore:unused_local_variable
+  @a var x = 0, y = 0;
+}
+''');
+
+    var x = findElement.localVar('x');
+    assertElement2(
+      x.metadata.single.element,
+      declaration: findElement.topGet('a'),
+    );
+
+    var y = findElement.localVar('y');
+    assertElement2(
+      y.metadata.single.element,
+      declaration: findElement.topGet('a'),
+    );
+  }
+
   test_demoteTypeParameterType() async {
     await assertNoErrorsInCode('''
 void f<T>(T a, T b) {
