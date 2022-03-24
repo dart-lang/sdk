@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Utilities for building JS ASTs at runtime. Contains a builder class and a
-// parser that parses part of the language.
+/// Utilities for building JS ASTs at runtime. Contains a builder class and a
+/// parser that parses part of the language.
+library js_ast.builder;
 
-part of js_ast;
+import 'characters.dart' as charCodes;
+import 'nodes.dart';
+import 'template.dart';
 
 /// Global template manager.
 ///

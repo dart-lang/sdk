@@ -5,6 +5,7 @@
 // @dart = 2.9
 
 // ignore_for_file: always_declare_return_types
+// ignore_for_file: library_prefixes
 // ignore_for_file: omit_local_variable_types
 // ignore_for_file: prefer_collection_literals
 // ignore_for_file: prefer_final_fields
@@ -14,7 +15,11 @@
 // ignore_for_file: unnecessary_const
 // ignore_for_file: use_function_type_syntax_for_parameters
 
-part of js_ast;
+library js_ast.printer;
+
+import 'characters.dart' as charCodes;
+import 'nodes.dart';
+import 'precedence.dart';
 
 class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;

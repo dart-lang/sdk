@@ -12,7 +12,10 @@
 // ignore_for_file: prefer_single_quotes
 // ignore_for_file: unnecessary_this
 
-part of js_ast;
+library js_ast.nodes;
+
+import 'precedence.dart';
+import 'printer.dart';
 
 abstract class NodeVisitor<T> {
   T visitProgram(Program node);

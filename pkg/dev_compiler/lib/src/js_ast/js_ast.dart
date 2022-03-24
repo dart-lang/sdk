@@ -9,10 +9,7 @@
 
 library js_ast;
 
-import 'precedence.dart';
-import 'characters.dart' as charCodes;
-
-part 'nodes.dart';
-part 'builder.dart';
-part 'printer.dart';
-part 'template.dart';
+export 'nodes.dart';
+export 'builder.dart';
+export 'printer.dart';
+export 'template.dart';

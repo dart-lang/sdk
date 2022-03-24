@@ -12,7 +12,9 @@
 // ignore_for_file: prefer_single_quotes
 // ignore_for_file: unnecessary_this
 
-part of js_ast;
+library js_ast.template;
+
+import 'nodes.dart';
 
 class TemplateManager {
   Map<String, Template> expressionTemplates = Map<String, Template>();

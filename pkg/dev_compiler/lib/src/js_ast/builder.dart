@@ -5,6 +5,7 @@
 // @dart = 2.9
 
 // ignore_for_file: always_declare_return_types
+// ignore_for_file: library_prefixes
 // ignore_for_file: non_constant_identifier_names
 // ignore_for_file: omit_local_variable_types
 // ignore_for_file: prefer_collection_literals
@@ -12,10 +13,13 @@
 // ignore_for_file: unnecessary_brace_in_string_interps
 // ignore_for_file: unnecessary_new
 
-// Utilities for building JS ASTs at runtime. Contains a builder class and a
-// parser that parses part of the language.
+/// Utilities for building JS ASTs at runtime. Contains a builder class and a
+/// parser that parses part of the language.
+library js_ast.builder;
 
-part of js_ast;
+import 'characters.dart' as charCodes;
+import 'nodes.dart';
+import 'template.dart';
 
 /// Global template manager.
 ///
