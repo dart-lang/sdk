@@ -175,7 +175,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     performance.runAsync(
       'request',
       (performance) async {
-        var resolvedUnit = performance.run(
+        var resolvedUnit = await performance.runAsync(
           'resolveForCompletion',
           (performance) {
             return server.resolveForCompletion(
