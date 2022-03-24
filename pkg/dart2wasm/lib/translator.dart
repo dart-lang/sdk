@@ -32,12 +32,12 @@ class TranslatorOptions {
   bool lazyConstants = false;
   bool localNullability = false;
   bool nameSection = true;
-  bool nominalTypes = false;
+  bool nominalTypes = true;
   bool parameterNullability = true;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
-  bool runtimeTypes = true;
+  bool runtimeTypes = false;
   bool stringDataSegments = false;
   List<int>? watchPoints = null;
 
