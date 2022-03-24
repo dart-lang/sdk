@@ -28,7 +28,6 @@ part 'binary_sink.dart';
 part 'binary_source.dart';
 part 'helpers.dart';
 part 'member_data.dart';
-part 'mixins.dart';
 part 'node_indexer.dart';
 part 'object_sink.dart';
 part 'object_source.dart';

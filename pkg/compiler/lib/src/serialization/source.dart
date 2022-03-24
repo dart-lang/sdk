@@ -6,8 +6,7 @@ part of 'serialization.dart';
 
 /// Base implementation of [DataSource] using [DataSourceMixin] to implement
 /// convenience methods.
-abstract class AbstractDataSource extends DataSourceMixin
-    implements DataSource {
+abstract class AbstractDataSource implements DataSource {
   static final List<ir.DartType> emptyListOfDartTypes =
       List<ir.DartType>.filled(0, null, growable: false);
 
@@ -762,4 +761,398 @@ abstract class AbstractDataSource extends DataSourceMixin
   /// useful for debugging in consistencies between serialization and
   /// deserialization.
   String get _errorContext;
+
+  @override
+  E readValueOrNull<E>(E f()) {
+    bool hasValue = readBool();
+    if (hasValue) {
+      return f();
+    }
+    return null;
+  }
+
+  @override
+  List<E> readList<E>(E f(), {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<E> list = List<E>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      list[i] = f();
+    }
+    return list;
+  }
+
+  @override
+  int readIntOrNull() {
+    bool hasValue = readBool();
+    if (hasValue) {
+      return readInt();
+    }
+    return null;
+  }
+
+  @override
+  String readStringOrNull() {
+    bool hasValue = readBool();
+    if (hasValue) {
+      return readString();
+    }
+    return null;
+  }
+
+  @override
+  List<String> readStrings({bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<String> list = List<String>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      list[i] = readString();
+    }
+    return list;
+  }
+
+  @override
+  List<DartType> readDartTypes({bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<DartType> list = List<DartType>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      list[i] = readDartType();
+    }
+    return list;
+  }
+
+  @override
+  List<ir.TypeParameter> readTypeParameterNodes({bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<ir.TypeParameter> list = List<ir.TypeParameter>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      list[i] = readTypeParameterNode();
+    }
+    return list;
+  }
+
+  @override
+  List<E> readMembers<E extends MemberEntity>({bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<E> list = List<E>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      MemberEntity member = readMember();
+      list[i] = member;
+    }
+    return list;
+  }
+
+  @override
+  List<E> readMemberNodes<E extends ir.Member>({bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<E> list = List<E>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      ir.Member value = readMemberNode();
+      list[i] = value;
+    }
+    return list;
+  }
+
+  @override
+  List<E> readClasses<E extends ClassEntity>({bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<E> list = List<E>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      ClassEntity cls = readClass();
+      list[i] = cls;
+    }
+    return list;
+  }
+
+  @override
+  Map<K, V> readLibraryMap<K extends LibraryEntity, V>(V f(),
+      {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<K, V> map = {};
+    for (int i = 0; i < count; i++) {
+      LibraryEntity library = readLibrary();
+      V value = f();
+      map[library] = value;
+    }
+    return map;
+  }
+
+  @override
+  Map<K, V> readClassMap<K extends ClassEntity, V>(V f(),
+      {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<K, V> map = {};
+    for (int i = 0; i < count; i++) {
+      ClassEntity cls = readClass();
+      V value = f();
+      map[cls] = value;
+    }
+    return map;
+  }
+
+  @override
+  Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member),
+      {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<K, V> map = {};
+    for (int i = 0; i < count; i++) {
+      MemberEntity member = readMember();
+      V value = f(member);
+      map[member] = value;
+    }
+    return map;
+  }
+
+  @override
+  Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V f(),
+      {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<K, V> map = {};
+    for (int i = 0; i < count; i++) {
+      ir.Member node = readMemberNode();
+      V value = f();
+      map[node] = value;
+    }
+    return map;
+  }
+
+  @override
+  Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V f(),
+      {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<K, V> map = {};
+    for (int i = 0; i < count; i++) {
+      ir.TreeNode node = readTreeNode();
+      V value = f();
+      map[node] = value;
+    }
+    return map;
+  }
+
+  @override
+  Map<K, V> readTypeVariableMap<K extends IndexedTypeVariable, V>(V f(),
+      {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<K, V> map = {};
+    for (int i = 0; i < count; i++) {
+      IndexedTypeVariable node = readTypeVariable();
+      V value = f();
+      map[node] = value;
+    }
+    return map;
+  }
+
+  @override
+  List<E> readLocals<E extends Local>({bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<E> list = List<E>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      Local local = readLocal();
+      list[i] = local;
+    }
+    return list;
+  }
+
+  @override
+  Map<K, V> readLocalMap<K extends Local, V>(V f(),
+      {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<K, V> map = {};
+    for (int i = 0; i < count; i++) {
+      Local local = readLocal();
+      V value = f();
+      map[local] = value;
+    }
+    return map;
+  }
+
+  @override
+  List<E> readTreeNodes<E extends ir.TreeNode>({bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<E> list = List<E>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      ir.TreeNode node = readTreeNode();
+      list[i] = node;
+    }
+    return list;
+  }
+
+  @override
+  Map<String, V> readStringMap<V>(V f(), {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<String, V> map = {};
+    for (int i = 0; i < count; i++) {
+      String key = readString();
+      V value = f();
+      map[key] = value;
+    }
+    return map;
+  }
+
+  @override
+  IndexedClass readClassOrNull() {
+    bool hasClass = readBool();
+    if (hasClass) {
+      return readClass();
+    }
+    return null;
+  }
+
+  @override
+  ir.TreeNode readTreeNodeOrNull() {
+    bool hasValue = readBool();
+    if (hasValue) {
+      return readTreeNode();
+    }
+    return null;
+  }
+
+  @override
+  IndexedMember readMemberOrNull() {
+    bool hasValue = readBool();
+    if (hasValue) {
+      return readMember();
+    }
+    return null;
+  }
+
+  @override
+  Local readLocalOrNull() {
+    bool hasValue = readBool();
+    if (hasValue) {
+      return readLocal();
+    }
+    return null;
+  }
+
+  @override
+  ConstantValue readConstantOrNull() {
+    bool hasClass = readBool();
+    if (hasClass) {
+      return readConstant();
+    }
+    return null;
+  }
+
+  @override
+  List<E> readConstants<E extends ConstantValue>({bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<E> list = List<E>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      ConstantValue value = readConstant();
+      list[i] = value;
+    }
+    return list;
+  }
+
+  @override
+  Map<K, V> readConstantMap<K extends ConstantValue, V>(V f(),
+      {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<K, V> map = {};
+    for (int i = 0; i < count; i++) {
+      ConstantValue key = readConstant();
+      V value = f();
+      map[key] = value;
+    }
+    return map;
+  }
+
+  @override
+  IndexedLibrary readLibraryOrNull() {
+    bool hasValue = readBool();
+    if (hasValue) {
+      return readLibrary();
+    }
+    return null;
+  }
+
+  @override
+  ImportEntity readImportOrNull() {
+    bool hasClass = readBool();
+    if (hasClass) {
+      return readImport();
+    }
+    return null;
+  }
+
+  @override
+  List<ImportEntity> readImports({bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<ImportEntity> list = List<ImportEntity>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      list[i] = readImport();
+    }
+    return list;
+  }
+
+  @override
+  Map<ImportEntity, V> readImportMap<V>(V f(), {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<ImportEntity, V> map = {};
+    for (int i = 0; i < count; i++) {
+      ImportEntity key = readImport();
+      V value = f();
+      map[key] = value;
+    }
+    return map;
+  }
+
+  @override
+  List<ir.DartType> readDartTypeNodes({bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<ir.DartType> list = List<ir.DartType>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      list[i] = readDartTypeNode();
+    }
+    return list;
+  }
+
+  @override
+  ir.Name readName() {
+    String text = readString();
+    ir.Library library = readValueOrNull(readLibraryNode);
+    return ir.Name(text, library);
+  }
+
+  @override
+  ir.LibraryDependency readLibraryDependencyNode() {
+    ir.Library library = readLibraryNode();
+    int index = readInt();
+    return library.dependencies[index];
+  }
+
+  @override
+  ir.LibraryDependency readLibraryDependencyNodeOrNull() {
+    return readValueOrNull(readLibraryDependencyNode);
+  }
+
+  @override
+  js.Node readJsNodeOrNull() {
+    bool hasValue = readBool();
+    if (hasValue) {
+      return readJsNode();
+    }
+    return null;
+  }
 }

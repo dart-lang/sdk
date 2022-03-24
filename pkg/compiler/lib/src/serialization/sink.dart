@@ -6,7 +6,7 @@ part of 'serialization.dart';
 
 /// Base implementation of [DataSink] using [DataSinkMixin] to implement
 /// convenience methods.
-abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
+abstract class AbstractDataSink implements DataSink {
   /// If `true`, serialization of every data kind is preceded by a [DataKind]
   /// value.
   ///
@@ -646,4 +646,419 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   /// Actual serialization of an enum value, implemented by subclasses.
   void _writeEnumInternal(dynamic value);
+
+  @override
+  void writeIntOrNull(int value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeInt(value);
+    }
+  }
+
+  @override
+  void writeStringOrNull(String value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeString(value);
+    }
+  }
+
+  @override
+  void writeClassOrNull(IndexedClass value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeClass(value);
+    }
+  }
+
+  @override
+  void writeLocalOrNull(Local value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeLocal(value);
+    }
+  }
+
+  @override
+  void writeClasses(Iterable<ClassEntity> values, {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (IndexedClass value in values) {
+        writeClass(value);
+      }
+    }
+  }
+
+  @override
+  void writeTreeNodes(Iterable<ir.TreeNode> values, {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (ir.TreeNode value in values) {
+        writeTreeNode(value);
+      }
+    }
+  }
+
+  @override
+  void writeStrings(Iterable<String> values, {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (String value in values) {
+        writeString(value);
+      }
+    }
+  }
+
+  @override
+  void writeMemberNodes(Iterable<ir.Member> values, {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (ir.Member value in values) {
+        writeMemberNode(value);
+      }
+    }
+  }
+
+  @override
+  void writeDartTypes(Iterable<DartType> values, {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (DartType value in values) {
+        writeDartType(value);
+      }
+    }
+  }
+
+  @override
+  void writeLibraryMap<V>(Map<LibraryEntity, V> map, void f(V value),
+      {bool allowNull = false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((LibraryEntity library, V value) {
+        writeLibrary(library);
+        f(value);
+      });
+    }
+  }
+
+  @override
+  void writeClassMap<V>(Map<ClassEntity, V> map, void f(V value),
+      {bool allowNull = false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((ClassEntity cls, V value) {
+        writeClass(cls);
+        f(value);
+      });
+    }
+  }
+
+  @override
+  void writeMemberMap<V>(
+      Map<MemberEntity, V> map, void f(MemberEntity member, V value),
+      {bool allowNull = false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((MemberEntity member, V value) {
+        writeMember(member);
+        f(member, value);
+      });
+    }
+  }
+
+  @override
+  void writeStringMap<V>(Map<String, V> map, void f(V value),
+      {bool allowNull = false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((String key, V value) {
+        writeString(key);
+        f(value);
+      });
+    }
+  }
+
+  @override
+  void writeLocals(Iterable<Local> values, {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (Local value in values) {
+        writeLocal(value);
+      }
+    }
+  }
+
+  @override
+  void writeLocalMap<V>(Map<Local, V> map, void f(V value),
+      {bool allowNull = false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((Local key, V value) {
+        writeLocal(key);
+        f(value);
+      });
+    }
+  }
+
+  @override
+  void writeMemberNodeMap<V>(Map<ir.Member, V> map, void f(V value),
+      {bool allowNull = false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((ir.Member key, V value) {
+        writeMemberNode(key);
+        f(value);
+      });
+    }
+  }
+
+  @override
+  void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void f(V value),
+      {bool allowNull = false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((ir.TreeNode key, V value) {
+        writeTreeNode(key);
+        f(value);
+      });
+    }
+  }
+
+  @override
+  void writeTypeVariableMap<V>(Map<IndexedTypeVariable, V> map, void f(V value),
+      {bool allowNull = false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((IndexedTypeVariable key, V value) {
+        writeTypeVariable(key);
+        f(value);
+      });
+    }
+  }
+
+  @override
+  void writeList<E>(Iterable<E> values, void f(E value),
+      {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      values.forEach(f);
+    }
+  }
+
+  @override
+  void writeTreeNodeOrNull(ir.TreeNode value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeTreeNode(value);
+    }
+  }
+
+  @override
+  void writeValueOrNull<E>(E value, void f(E value)) {
+    writeBool(value != null);
+    if (value != null) {
+      f(value);
+    }
+  }
+
+  @override
+  void writeMemberOrNull(IndexedMember value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeMember(value);
+    }
+  }
+
+  @override
+  void writeMembers(Iterable<MemberEntity> values, {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (IndexedMember value in values) {
+        writeMember(value);
+      }
+    }
+  }
+
+  @override
+  void writeTypeParameterNodes(Iterable<ir.TypeParameter> values,
+      {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (ir.TypeParameter value in values) {
+        writeTypeParameterNode(value);
+      }
+    }
+  }
+
+  @override
+  void writeConstantOrNull(ConstantValue value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeConstant(value);
+    }
+  }
+
+  @override
+  void writeConstants(Iterable<ConstantValue> values,
+      {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (ConstantValue value in values) {
+        writeConstant(value);
+      }
+    }
+  }
+
+  @override
+  void writeConstantMap<V>(Map<ConstantValue, V> map, void f(V value),
+      {bool allowNull = false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((ConstantValue key, V value) {
+        writeConstant(key);
+        f(value);
+      });
+    }
+  }
+
+  @override
+  void writeLibraryOrNull(IndexedLibrary value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeLibrary(value);
+    }
+  }
+
+  @override
+  void writeImportOrNull(ImportEntity value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeImport(value);
+    }
+  }
+
+  @override
+  void writeImports(Iterable<ImportEntity> values, {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (ImportEntity value in values) {
+        writeImport(value);
+      }
+    }
+  }
+
+  @override
+  void writeImportMap<V>(Map<ImportEntity, V> map, void f(V value),
+      {bool allowNull = false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((ImportEntity key, V value) {
+        writeImport(key);
+        f(value);
+      });
+    }
+  }
+
+  @override
+  void writeDartTypeNodes(Iterable<ir.DartType> values,
+      {bool allowNull = false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (ir.DartType value in values) {
+        writeDartTypeNode(value);
+      }
+    }
+  }
+
+  @override
+  void writeName(ir.Name value) {
+    writeString(value.text);
+    writeValueOrNull(value.library, writeLibraryNode);
+  }
+
+  @override
+  void writeLibraryDependencyNode(ir.LibraryDependency value) {
+    ir.Library library = value.parent;
+    writeLibraryNode(library);
+    writeInt(library.dependencies.indexOf(value));
+  }
+
+  @override
+  void writeLibraryDependencyNodeOrNull(ir.LibraryDependency value) {
+    writeValueOrNull(value, writeLibraryDependencyNode);
+  }
+
+  @override
+  void writeJsNodeOrNull(js.Node value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeJsNode(value);
+    }
+  }
 }
