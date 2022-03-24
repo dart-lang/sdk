@@ -41,6 +41,9 @@ class Snapshot {
 #if defined(DART_TARGET_OS_MACOS)
   static bool IsMachOFormattedBinary(const char* container_path);
 #endif
+#if defined(DART_TARGET_OS_WINDOWS)
+  static bool IsPEFormattedBinary(const char* container_path);
+#endif
 
   static AppSnapshot* TryReadAppendedAppSnapshotElf(const char* container_path);
   static AppSnapshot* TryReadAppSnapshot(
@@ -60,6 +63,10 @@ class Snapshot {
  private:
 #if defined(DART_TARGET_OS_MACOS)
   static AppSnapshot* TryReadAppendedAppSnapshotElfFromMachO(
+      const char* container_path);
+#endif
+#if defined(DART_TARGET_OS_WINDOWS)
+  static AppSnapshot* TryReadAppendedAppSnapshotElfFromPE(
       const char* container_path);
 #endif
 
