@@ -887,6 +887,18 @@ class Object {
   DISALLOW_COPY_AND_ASSIGN(Object);
 };
 
+// Used to declare setters and getters for untagged object fields that are
+// defined with the WSR_COMPRESSED_POINTER_FIELD macro.
+//
+// In the precompiler, the getter transparently unwraps the
+// WeakSerializationReference, if present, to get the wrapped value of the
+// appropriate type, since a WeakSerializationReference object should be
+// transparent to the parts of the precompiler that are not the serializer.
+// Meanwhile, the setter takes an Object to allow the precompiler to set the
+// field to a WeakSerializationReference.
+//
+// Since WeakSerializationReferences are only used during precompilation,
+// this macro creates the normally expected getter and setter otherwise.
 #if defined(DART_PRECOMPILER)
 #define PRECOMPILER_WSR_FIELD_DECLARATION(Type, Name)                          \
   Type##Ptr Name() const;                                                      \

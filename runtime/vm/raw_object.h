@@ -911,6 +911,15 @@ inline intptr_t ObjectPtr::GetClassId() const {
  protected:                                                                    \
   Compressed##type name##_;
 
+// Used to define untagged object fields that can have values wrapped in
+// WeakSerializationReferences. Since WeakSerializationReferences are only used
+// during precompilation, these fields have type CompressedObjectPtr in the
+// precompiler and the normally expected type otherwise.
+//
+// Fields that are defined with WSR_COMPRESSED_POINTER_FIELD should have
+// getters and setters that are declared in object.h with
+// PRECOMPILER_WSR_FIELD_DECLARATION and defined in object.cc with
+// PRECOMPILER_WSR_FIELD_DEFINITION.
 #if defined(DART_PRECOMPILER)
 #define WSR_COMPRESSED_POINTER_FIELD(Type, Name)                               \
   COMPRESSED_POINTER_FIELD(ObjectPtr, Name)
