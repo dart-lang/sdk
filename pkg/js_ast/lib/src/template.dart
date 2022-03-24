@@ -34,9 +34,10 @@ class TemplateManager {
 }
 
 /// A Template is created with JavaScript AST containing placeholders (interface
-/// InterpolatedNode).  The [instantiate] method creates an AST that looks like
-/// the original with the placeholders replaced by the arguments to
-/// [instantiate].
+/// InterpolatedNode).
+///
+/// The [instantiate] method creates an AST that looks like the original with
+/// the placeholders replaced by the arguments to [instantiate].
 class Template {
   final String source;
   final bool isExpression;
@@ -124,13 +125,14 @@ class Template {
 }
 
 /// An Instantiator is a Function that generates a JS AST tree or List of
-/// trees. [arguments] is a List for positional templates, or Map for named
-/// templates.
+/// trees.
+///
+/// [arguments] is a List for positional templates, or Map for named templates.
 typedef Instantiator = /*Node|Iterable<Node>*/ Function(dynamic arguments);
 
-/// InstantiatorGeneratorVisitor compiles a template.  This class compiles a tree
-/// containing [InterpolatedNode]s into a function that will create a copy of the
-/// tree with the interpolated nodes substituted with provided values.
+/// InstantiatorGeneratorVisitor compiles a template.  This class compiles a
+/// tree containing [InterpolatedNode]s into a function that will create a copy
+/// of the tree with the interpolated nodes substituted with provided values.
 class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   final bool forceCopy;
 

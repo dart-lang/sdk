@@ -568,8 +568,10 @@ abstract class Node {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg);
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg);
 
-  /// Shallow clone of node.  Does not clone positions since the only use of
-  /// this private method is create a copy with a new position.
+  /// Shallow clone of node.
+  ///
+  /// Does not clone positions since the only use of this private method is
+  /// create a copy with a new position.
   Node _clone();
 
   /// Returns a node equivalent to [this], but with new source position and end
@@ -1225,8 +1227,8 @@ class LiteralStatement extends Statement {
   LiteralStatement _clone() => LiteralStatement(code);
 }
 
-// Not a real JavaScript node, but represents the yield statement from a dart
-// program translated to JavaScript.
+/// Not a real JavaScript node, but represents the yield statement from a dart
+/// program translated to JavaScript.
 class DartYield extends Statement {
   final Expression expression;
 
@@ -1352,8 +1354,7 @@ class LiteralExpression extends Expression {
   int get precedenceLevel => PRIMARY;
 }
 
-/// [VariableDeclarationList] is a subclass of [Expression] to simplify the
-/// AST.
+/// [VariableDeclarationList] is a subclass of [Expression] to simplify the AST.
 class VariableDeclarationList extends Expression {
   final List<VariableInitialization> declarations;
 
@@ -2517,8 +2518,10 @@ class InterpolatedDeclaration extends Expression
 }
 
 /// [RegExpLiteral]s, despite being called "Literal", do not inherit from
-/// [Literal]. Indeed, regular expressions in JavaScript have a side-effect and
-/// are thus not in the same category as numbers or strings.
+/// [Literal].
+///
+/// Indeed, regular expressions in JavaScript have a side-effect and are thus
+/// not in the same category as numbers or strings.
 class RegExpLiteral extends Expression {
   /// Contains the pattern and the flags.
   final String pattern;
@@ -2602,8 +2605,9 @@ class Comment extends Statement {
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 }
 
-/// Returns the value of [node] if it is a [DeferredExpression]. Otherwise
-/// returns the [node] itself.
+/// Returns the value of [node] if it is a [DeferredExpression].
+///
+/// Otherwise returns the [node] itself.
 Node undefer(Node node) {
   return node is DeferredExpression ? undefer(node.value) : node;
 }

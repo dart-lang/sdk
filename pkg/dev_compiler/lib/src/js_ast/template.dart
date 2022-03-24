@@ -4,10 +4,12 @@
 
 // @dart = 2.9
 
-// ignore_for_file: always_declare_return_types, prefer_collection_literals
+// ignore_for_file: always_declare_return_types
 // ignore_for_file: avoid_returning_null_for_void
-// ignore_for_file: prefer_single_quotes, prefer_generic_function_type_aliases
-// ignore_for_file: slash_for_doc_comments, omit_local_variable_types
+// ignore_for_file: omit_local_variable_types
+// ignore_for_file: prefer_collection_literals
+// ignore_for_file: prefer_generic_function_type_aliases
+// ignore_for_file: prefer_single_quotes
 // ignore_for_file: unnecessary_this
 
 part of js_ast;
@@ -41,12 +43,11 @@ class TemplateManager {
   }
 }
 
-/**
- * A Template is created with JavaScript AST containing placeholders (interface
- * InterpolatedNode).  The [instantiate] method creates an AST that looks like
- * the original with the placeholders replaced by the arguments to
- * [instantiate].
- */
+/// A Template is created with JavaScript AST containing placeholders (interface
+/// InterpolatedNode).
+///
+/// The [instantiate] method creates an AST that looks like the original with
+/// the placeholders replaced by the arguments to [instantiate].
 class Template {
   final String source;
   final bool isExpression;
@@ -114,8 +115,8 @@ class Template {
     }
     if (arguments is Map) {
       if (holeNames.length < arguments.length) {
-        // This search is in O(n), but we only do it in case of an new StateError, and the
-        // number of holes should be quite limited.
+        // This search is in O(n), but we only do it in case of a new
+        // StateError, and the number of holes should be quite limited.
         String unusedNames = arguments.keys
             .where((name) => !holeNames.contains(name))
             .join(", ");
@@ -132,26 +133,21 @@ class Template {
   }
 }
 
-/**
- * An Instantiator is a Function that generates a JS AST tree or List of
- * trees. [arguments] is a List for positional templates, or Map for
- * named templates.
- */
+/// An Instantiator is a Function that generates a JS AST tree or List of
+/// trees.
+///
+/// [arguments] is a List for positional templates, or Map for named templates.
 typedef T Instantiator<T>(arguments);
 
-/**
- * InstantiatorGeneratorVisitor compiles a template.  This class compiles a tree
- * containing [InterpolatedNode]s into a function that will create a copy of the
- * tree with the interpolated nodes substituted with provided values.
- */
+/// InstantiatorGeneratorVisitor compiles a template.  This class compiles a tree
+/// containing [InterpolatedNode]s into a function that will create a copy of the
+/// tree with the interpolated nodes substituted with provided values.
 class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   final bool forceCopy;
 
   final analysis = InterpolatedNodeAnalysis();
 
-  /**
-   * The entire tree is cloned if [forceCopy] is true.
-   */
+  /// The entire tree is cloned if [forceCopy] is true.
   InstantiatorGeneratorVisitor(this.forceCopy);
 
   Instantiator compile(Node node) {
@@ -396,7 +392,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var makeThen = visit(node.then) as Instantiator<Statement>;
     var makeOtherwise = visit(node.otherwise) as Instantiator<Statement>;
     return (arguments) {
-      // Allow bools to be used for conditional compliation.
+      // Allow booleans to be used for conditional compilation.
       var nameOrPosition = condition.nameOrPosition;
       var value = arguments[nameOrPosition];
       if (value is bool) {
@@ -821,10 +817,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       (a) => SimpleBindingPattern(Identifier(node.name.name));
 }
 
-/**
- * InterpolatedNodeAnalysis determines which AST trees contain
- * [InterpolatedNode]s, and the names of the named interpolated nodes.
- */
+/// InterpolatedNodeAnalysis determines which AST trees contain
+/// [InterpolatedNode]s, and the names of the named interpolated nodes.
 class InterpolatedNodeAnalysis extends BaseVisitorVoid {
   final Set<Node> containsInterpolatedNode = Set<Node>();
   final Set<String> holeNames = Set<String>();

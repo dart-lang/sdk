@@ -5,11 +5,11 @@
 // @dart = 2.9
 
 // ignore_for_file: directives_ordering
+// ignore_for_file: library_prefixes
 
 library js_ast;
 
 import 'precedence.dart';
-// ignore: library_prefixes
 import 'characters.dart' as charCodes;
 
 part 'nodes.dart';

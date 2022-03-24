@@ -4,11 +4,14 @@
 
 // @dart = 2.9
 
-// ignore_for_file: always_declare_return_types, prefer_single_quotes, prefer_interpolation_to_compose_strings
-// ignore_for_file: prefer_collection_literals, omit_local_variable_types
+// ignore_for_file: always_declare_return_types
+// ignore_for_file: omit_local_variable_types
+// ignore_for_file: prefer_collection_literals
 // ignore_for_file: prefer_final_fields
 // ignore_for_file: prefer_initializing_formals
-// ignore_for_file: slash_for_doc_comments, unnecessary_const
+// ignore_for_file: prefer_interpolation_to_compose_strings
+// ignore_for_file: prefer_single_quotes
+// ignore_for_file: unnecessary_const
 // ignore_for_file: use_function_type_syntax_for_parameters
 
 part of js_ast;
@@ -974,20 +977,21 @@ class Printer implements NodeVisitor {
 
   @override
   visitAccess(PropertyAccess access) {
-    // Normally we can omit parens on the receiver if it is a Call, even though
-    // Call expressions have lower precedence. However this optimization doesn't
-    // work inside New expressions:
-    //
-    //     new obj.foo().bar()
-    //
-    // This will be parsed as:
-    //
-    //     (new obj.foo()).bar()
-    //
-    // Which is incorrect. So we must have parenthesis in this case:
-    //
-    //     new (obj.foo()).bar()
-    //
+    /// Normally we can omit parens on the receiver if it is a Call, even though
+    /// Call expressions have lower precedence.
+    ///
+    /// However this optimization doesn't work inside New expressions:
+    ///
+    ///     new obj.foo().bar()
+    ///
+    /// This will be parsed as:
+    ///
+    ///     (new obj.foo()).bar()
+    ///
+    /// Which is incorrect. So we must have parenthesis in this case:
+    ///
+    ///     new (obj.foo()).bar()
+    ///
     int precedence = inNewTarget ? ACCESS : CALL;
 
     visitNestedExpression(access.receiver, precedence,
@@ -1025,7 +1029,7 @@ class Printer implements NodeVisitor {
     var body = fun.body;
     if (body is Expression) {
       spaceOut();
-      // Object initializers require parenthesis to disambiguate
+      // Object initializers require parentheses to disambiguate
       // AssignmentExpression from FunctionBody. See:
       // https://tc39.github.io/ecma262/#sec-arrow-function-definitions
       var needsParen = fun.body is ObjectInitializer;
@@ -1516,10 +1520,8 @@ class VarCollector extends BaseVisitorVoid {
   }
 }
 
-/**
- * Returns true, if the given node must be wrapped into braces when used
- * as then-statement in an [If] that has an else branch.
- */
+/// Returns true, if the given node must be wrapped into braces when used
+/// as then-statement in an [If] that has an else branch.
 class DanglingElseVisitor extends BaseVisitor<bool> {
   JavaScriptPrintingContext context;
 
