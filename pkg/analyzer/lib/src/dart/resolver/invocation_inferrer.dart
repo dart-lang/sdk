@@ -351,21 +351,13 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     required DartType? contextType,
     required List<WhyNotPromotedGetter> whyNotPromotedList,
   }) {
-    List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo =
-        _isIdentical(node) ? [] : null;
     _visitArguments(
         resolver: resolver,
         node: node,
         argumentList: argumentList,
         rawType: rawType,
         contextType: contextType,
-        whyNotPromotedList: whyNotPromotedList,
-        identicalInfo: identicalInfo);
-    _recordIdenticalInfo(
-        resolver: resolver,
-        node: node,
-        argumentList: argumentList,
-        identicalInfo: identicalInfo);
+        whyNotPromotedList: whyNotPromotedList);
   }
 
   /// Computes the type context that should be used when evaluating a particular
@@ -405,7 +397,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       required FunctionType? rawType,
       required DartType? contextType,
       required List<WhyNotPromotedGetter> whyNotPromotedList,
-      required List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
+      List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
       Substitution? substitution}) {
     assert(whyNotPromotedList.isEmpty);
     var parameters = rawType?.parameters;
