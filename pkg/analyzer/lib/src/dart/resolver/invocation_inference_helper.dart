@@ -173,6 +173,7 @@ class InvocationInferenceHelper {
     var returnType = const MethodInvocationInferrer().resolveInvocation(
       resolver: _resolver,
       node: node,
+      argumentList: node.argumentList,
       rawType: rawType,
       contextType: contextType,
       whyNotPromotedList: whyNotPromotedList,

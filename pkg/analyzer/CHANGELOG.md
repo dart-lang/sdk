@@ -1,4 +1,4 @@
-## 3.4.0-dev
+## 3.4.0
 * Deprecated `Resource.parent2`, use `parent` instead.
 * Deprecated `astFactory`, clients should not create AST nodes manually.
 * Changed `CompilationUnit.lineInfo` to be non-nullable.

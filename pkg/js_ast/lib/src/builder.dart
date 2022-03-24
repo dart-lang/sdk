@@ -356,6 +356,7 @@ class MiniJsParserError {
   final MiniJsParser parser;
   final String message;
 
+  @override
   String toString() {
     int pos = parser.lastPosition;
 

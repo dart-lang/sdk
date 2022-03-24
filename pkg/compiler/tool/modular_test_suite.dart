@@ -23,6 +23,7 @@ main(List<String> args) async {
           OutlineDillCompilationStep(),
           FullDillCompilationStep(),
           ModularAnalysisStep(),
+          ConcatenateDillsStep(useModularAnalysis: true),
           ComputeClosedWorldStep(useModularAnalysis: true),
           GlobalAnalysisStep(),
           Dart2jsCodegenStep(codeId0),

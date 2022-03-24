@@ -31,7 +31,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     ClassElement classElement,
     SimpleIdentifierImpl? constructorName,
-    ArgumentList argumentList,
+    ArgumentListImpl argumentList,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     ConstructorElement? constructorElement;
@@ -98,7 +98,7 @@ class AnnotationResolver {
     SimpleIdentifierImpl? constructorName,
     List<TypeParameterElement> typeParameters,
     ConstructorElement? constructorElement,
-    ArgumentList argumentList,
+    ArgumentListImpl argumentList,
     InterfaceType Function(List<DartType> typeArguments) instantiateElement,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
@@ -116,6 +116,7 @@ class AnnotationResolver {
       annotationInferrer.resolveInvocation(
           resolver: _resolver,
           node: node,
+          argumentList: argumentList,
           rawType: null,
           contextType: null,
           whyNotPromotedList: whyNotPromotedList);
@@ -131,6 +132,7 @@ class AnnotationResolver {
     annotationInferrer.resolveInvocation(
         resolver: _resolver,
         node: node,
+        argumentList: argumentList,
         rawType: constructorRawType,
         contextType: null,
         whyNotPromotedList: whyNotPromotedList);
@@ -338,7 +340,7 @@ class AnnotationResolver {
     TypeAliasElement typeAliasElement,
     SimpleIdentifierImpl? constructorName,
     InterfaceType aliasedType,
-    ArgumentList argumentList,
+    ArgumentListImpl argumentList,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     var constructorElement = aliasedType.lookUpConstructor(
@@ -402,6 +404,7 @@ class AnnotationResolver {
       AnnotationInferrer(constructorName: null).resolveInvocation(
           resolver: _resolver,
           node: node,
+          argumentList: arguments,
           rawType: null,
           contextType: null,
           whyNotPromotedList: whyNotPromotedList);

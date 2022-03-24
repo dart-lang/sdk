@@ -874,6 +874,7 @@ class FixProcessor extends BaseProcessor {
       ChangeTo.classOrMixin,
     ],
     CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
+      ConvertToListLiteral.newInstance,
       ReplaceWithFilled.newInstance,
     ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [

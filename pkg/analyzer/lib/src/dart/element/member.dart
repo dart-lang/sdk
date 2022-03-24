@@ -419,6 +419,9 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   Element get enclosingElement => declaration.enclosingElement;
 
   @override
+  bool get isDartCoreIdentical => declaration.isDartCoreIdentical;
+
+  @override
   bool get isEntryPoint => declaration.isEntryPoint;
 
   @override

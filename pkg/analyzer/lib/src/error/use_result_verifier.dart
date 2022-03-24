@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -157,23 +158,56 @@ class UseResultVerifier {
       }
     }
 
-    if (parent is ParenthesizedExpression ||
+    if (parent is PostfixExpression) {
+      if (parent.operator.type == TokenType.BANG) {
+        // Null-checking a result is not a "use."
+        return _isUsed(parent);
+      } else {
+        // Other uses, like `++`, count as a "use."
+        return true;
+      }
+    }
+
+    if (parent is AwaitExpression ||
         parent is ConditionalExpression ||
-        parent is AwaitExpression) {
+        parent is ForElement ||
+        parent is IfElement ||
+        parent is ParenthesizedExpression ||
+        parent is SpreadElement) {
       return _isUsed(parent);
     }
 
+    if (parent is ForParts) {
+      // If [node] is the condition of a for-loop, it is used; if it is one of
+      // the updaters, it is not.
+      return parent.condition == node;
+    }
+
     return parent is ArgumentList ||
-        // Node should always be RHS so no need to check for a property assignment.
+        parent is AssertInitializer ||
+        parent is AssertStatement ||
+        // Node should always be RHS so no need to check for a property
+        // assignment.
         parent is AssignmentExpression ||
-        parent is VariableDeclaration ||
+        parent is BinaryExpression ||
+        parent is ConstructorFieldInitializer ||
+        parent is DoStatement ||
+        parent is ExpressionFunctionBody ||
+        parent is ForEachParts ||
+        parent is ForLoopParts ||
+        parent is FunctionExpressionInvocation ||
+        parent is IfStatement ||
+        parent is IndexExpression ||
+        parent is ListLiteral ||
+        parent is MapLiteralEntry ||
         parent is MethodInvocation ||
         parent is PropertyAccess ||
-        parent is ExpressionFunctionBody ||
         parent is ReturnStatement ||
-        parent is FunctionExpressionInvocation ||
-        parent is ListLiteral ||
         parent is SetOrMapLiteral ||
-        parent is MapLiteralEntry;
+        parent is SwitchStatement ||
+        parent is ThrowExpression ||
+        parent is VariableDeclaration ||
+        parent is WhileStatement ||
+        parent is YieldStatement;
   }
 }

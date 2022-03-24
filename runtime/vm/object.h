@@ -5919,9 +5919,7 @@ class CompressedStackMaps : public Object {
   static intptr_t UnroundedSize(intptr_t length) {
     return HeaderSize() + length;
   }
-  static intptr_t InstanceSize() {
-    return 0;
-  }
+  static intptr_t InstanceSize() { return 0; }
   static intptr_t InstanceSize(intptr_t length) {
     return RoundedAllocationSize(UnroundedSize(length));
   }
@@ -11979,7 +11977,7 @@ class WeakProperty : public Instance {
   }
 
   static void Clear(WeakPropertyPtr raw_weak) {
-    ASSERT(raw_weak->untag()->next_ ==
+    ASSERT(raw_weak->untag()->next_seen_by_gc_ ==
            CompressedWeakPropertyPtr(WeakProperty::null()));
     // This action is performed by the GC. No barrier.
     raw_weak->untag()->key_ = Object::null();
@@ -12012,7 +12010,7 @@ class WeakReference : public Instance {
   }
 
   static void Clear(WeakReferencePtr raw_weak) {
-    ASSERT(raw_weak->untag()->next_ ==
+    ASSERT(raw_weak->untag()->next_seen_by_gc_ ==
            CompressedWeakReferencePtr(WeakReference::null()));
     // This action is performed by the GC. No barrier.
     raw_weak->untag()->target_ = Object::null();

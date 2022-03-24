@@ -332,6 +332,7 @@ class MethodInvocationResolver {
         .resolveInvocation(
             resolver: _resolver,
             node: node,
+            argumentList: node.argumentList,
             rawType: rawType is FunctionType ? rawType : null,
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList);
@@ -476,6 +477,7 @@ class MethodInvocationResolver {
     const MethodInvocationInferrer().resolveInvocation(
         resolver: _resolver,
         node: node,
+        argumentList: node.argumentList,
         rawType: rawType,
         whyNotPromotedList: whyNotPromotedList,
         contextType: contextType);
@@ -549,6 +551,7 @@ class MethodInvocationResolver {
       const MethodInvocationInferrer().resolveInvocation(
           resolver: _resolver,
           node: node,
+          argumentList: node.argumentList,
           rawType: null,
           contextType: contextType,
           whyNotPromotedList: whyNotPromotedList);
@@ -568,6 +571,7 @@ class MethodInvocationResolver {
       const MethodInvocationInferrer().resolveInvocation(
           resolver: _resolver,
           node: node,
+          argumentList: node.argumentList,
           rawType: null,
           contextType: contextType,
           whyNotPromotedList: whyNotPromotedList);

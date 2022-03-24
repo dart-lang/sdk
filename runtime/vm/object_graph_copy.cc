@@ -1362,8 +1362,8 @@ class ObjectCopy : public Base {
         Object::null());
     // To satisfy some ASSERT()s in GC we'll use Object:null() explicitly here.
     Base::StoreCompressedPointerNoBarrier(
-        Types::GetWeakPropertyPtr(to), OFFSET_OF(UntaggedWeakProperty, next_),
-        Object::null());
+        Types::GetWeakPropertyPtr(to),
+        OFFSET_OF(UntaggedWeakProperty, next_seen_by_gc_), Object::null());
     Base::EnqueueWeakProperty(from);
   }
 
@@ -1380,8 +1380,8 @@ class ObjectCopy : public Base {
         from, to, OFFSET_OF(UntaggedWeakReference, type_arguments_));
     // To satisfy some ASSERT()s in GC we'll use Object:null() explicitly here.
     Base::StoreCompressedPointerNoBarrier(
-        Types::GetWeakReferencePtr(to), OFFSET_OF(UntaggedWeakReference, next_),
-        Object::null());
+        Types::GetWeakReferencePtr(to),
+        OFFSET_OF(UntaggedWeakReference, next_seen_by_gc_), Object::null());
     Base::EnqueueWeakReference(from);
   }
 

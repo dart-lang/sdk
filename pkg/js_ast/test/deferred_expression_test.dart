@@ -112,6 +112,7 @@ void test(Map<Expression, DeferredExpression> map, String template,
 }
 
 class _DeferredExpression extends DeferredExpression {
+  @override
   final Expression value;
 
   _DeferredExpression(this.value);
@@ -162,11 +163,13 @@ class _Position {
 
   _Position(this.startPosition, this.endPosition, this.closingPosition);
 
+  @override
   int get hashCode =>
       13 * startPosition.hashCode +
       17 * endPosition.hashCode +
       19 * closingPosition.hashCode;
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is _Position &&
@@ -175,6 +178,7 @@ class _Position {
         closingPosition == other.closingPosition;
   }
 
+  @override
   String toString() {
     return '_Position(start=$startPosition,'
         'end=$endPosition,closing=$closingPosition)';

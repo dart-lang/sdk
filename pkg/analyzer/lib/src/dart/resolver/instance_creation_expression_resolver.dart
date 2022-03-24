@@ -65,6 +65,7 @@ class InstanceCreationExpressionResolver {
     const InstanceCreationInferrer().resolveInvocation(
         resolver: _resolver,
         node: node,
+        argumentList: node.argumentList,
         rawType: elementToInfer?.asType,
         contextType: contextType,
         whyNotPromotedList: whyNotPromotedList);

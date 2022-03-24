@@ -6,6 +6,7 @@ import 'package:expect/expect.dart';
 import 'package:js_ast/js_ast.dart';
 
 class _DeferredStatement extends DeferredStatement {
+  @override
   final Statement statement;
 
   _DeferredStatement(this.statement);

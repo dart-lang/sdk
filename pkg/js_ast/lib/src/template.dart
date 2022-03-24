@@ -185,6 +185,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return VariableDeclaration(value);
   }
 
+  @override
   Instantiator visitInterpolatedExpression(InterpolatedExpression node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
@@ -196,6 +197,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitInterpolatedDeclaration(InterpolatedDeclaration node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
@@ -226,6 +228,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return visit(node);
   }
 
+  @override
   Instantiator visitInterpolatedLiteral(InterpolatedLiteral node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
@@ -235,6 +238,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitInterpolatedParameter(InterpolatedParameter node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
@@ -252,6 +256,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitInterpolatedSelector(InterpolatedSelector node) {
     // A selector is an expression, as in `a[selector]`.
     // A String argument converted into a LiteralString, so `a.#` with argument
@@ -266,6 +271,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitInterpolatedStatement(InterpolatedStatement node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
@@ -295,6 +301,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return visit(node);
   }
 
+  @override
   Instantiator visitProgram(Program node) {
     List<Instantiator> instantiators =
         node.body.map(visitSplayableStatement).toList();
@@ -316,6 +323,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitBlock(Block node) {
     List<Instantiator> instantiators =
         node.statements.map(visitSplayableStatement).toList();
@@ -339,6 +347,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitExpressionStatement(ExpressionStatement node) {
     Instantiator buildExpression = visit(node.expression);
     return (arguments) {
@@ -346,9 +355,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitEmptyStatement(EmptyStatement node) =>
       (arguments) => EmptyStatement();
 
+  @override
   Instantiator visitIf(If node) {
     if (node.condition is InterpolatedExpression) {
       return visitIfConditionalCompilation(node);
@@ -397,6 +408,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitFor(For node) {
     Instantiator makeInit = visitNullable(node.init);
     Instantiator makeCondition = visitNullable(node.condition);
@@ -408,6 +420,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitForIn(ForIn node) {
     Instantiator makeLeftHandSide = visit(node.leftHandSide);
     Instantiator makeObject = visit(node.object);
@@ -422,6 +435,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     throw UnimplementedError('$this.$name');
   }
 
+  @override
   Instantiator visitWhile(While node) {
     Instantiator makeCondition = visit(node.condition);
     Instantiator makeBody = visit(node.body);
@@ -430,6 +444,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitDo(Do node) {
     Instantiator makeBody = visit(node.body);
     Instantiator makeCondition = visit(node.condition);
@@ -438,26 +453,32 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitContinue(Continue node) =>
       (arguments) => Continue(node.targetLabel);
 
+  @override
   Instantiator visitBreak(Break node) => (arguments) => Break(node.targetLabel);
 
+  @override
   Instantiator visitReturn(Return node) {
     Instantiator makeExpression = visitNullable(node.value);
     return (arguments) => Return(makeExpression(arguments));
   }
 
+  @override
   Instantiator visitDartYield(DartYield node) {
     Instantiator makeExpression = visit(node.expression);
     return (arguments) => DartYield(makeExpression(arguments), node.hasStar);
   }
 
+  @override
   Instantiator visitThrow(Throw node) {
     Instantiator makeExpression = visit(node.expression);
     return (arguments) => Throw(makeExpression(arguments));
   }
 
+  @override
   Instantiator visitTry(Try node) {
     Instantiator makeBody = visit(node.body);
     Instantiator makeCatch = visitNullable(node.catchPart);
@@ -466,6 +487,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Try(makeBody(arguments), makeCatch(arguments), makeFinally(arguments));
   }
 
+  @override
   Instantiator visitCatch(Catch node) {
     Instantiator makeDeclaration = visit(node.declaration);
     Instantiator makeBody = visit(node.body);
@@ -473,6 +495,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Catch(makeDeclaration(arguments), makeBody(arguments));
   }
 
+  @override
   Instantiator visitSwitch(Switch node) {
     Instantiator makeKey = visit(node.key);
     Iterable<Instantiator> makeCases = node.cases.map(visit);
@@ -485,6 +508,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitCase(Case node) {
     Instantiator makeExpression = visit(node.expression);
     Instantiator makeBody = visit(node.body);
@@ -493,6 +517,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitDefault(Default node) {
     Instantiator makeBody = visit(node.body);
     return (arguments) {
@@ -500,6 +525,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitFunctionDeclaration(FunctionDeclaration node) {
     Instantiator makeName = visit(node.name);
     Instantiator makeFunction = visit(node.function);
@@ -507,16 +533,20 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         FunctionDeclaration(makeName(arguments), makeFunction(arguments));
   }
 
+  @override
   Instantiator visitLabeledStatement(LabeledStatement node) {
     Instantiator makeBody = visit(node.body);
     return (arguments) => LabeledStatement(node.label, makeBody(arguments));
   }
 
+  @override
   Instantiator visitLiteralStatement(LiteralStatement node) =>
       TODO('visitLiteralStatement');
+  @override
   Instantiator visitLiteralExpression(LiteralExpression node) =>
       TODO('visitLiteralExpression');
 
+  @override
   Instantiator visitVariableDeclarationList(VariableDeclarationList node) {
     List<Instantiator> declarationMakers =
         node.declarations.map(visit).toList();
@@ -530,6 +560,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitAssignment(Assignment node) {
     Instantiator makeLeftHandSide = visit(node.leftHandSide);
     String op = node.op;
@@ -540,6 +571,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitVariableInitialization(VariableInitialization node) {
     Instantiator makeDeclaration = visit(node.declaration);
     Instantiator makeValue = visitNullable(node.value);
@@ -549,6 +581,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitConditional(Conditional cond) {
     Instantiator makeCondition = visit(cond.condition);
     Instantiator makeThen = visit(cond.then);
@@ -557,9 +590,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         makeThen(arguments), makeOtherwise(arguments));
   }
 
+  @override
   Instantiator visitNew(New node) =>
       handleCallOrNew(node, (target, arguments) => New(target, arguments));
 
+  @override
   Instantiator visitCall(Call node) =>
       handleCallOrNew(node, (target, arguments) => Call(target, arguments));
 
@@ -585,6 +620,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitBinary(Binary node) {
     Instantiator makeLeft = visit(node.left);
     Instantiator makeRight = visit(node.right);
@@ -592,29 +628,36 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (arguments) => Binary(op, makeLeft(arguments), makeRight(arguments));
   }
 
+  @override
   Instantiator visitPrefix(Prefix node) {
     Instantiator makeOperand = visit(node.argument);
     String op = node.op;
     return (arguments) => Prefix(op, makeOperand(arguments));
   }
 
+  @override
   Instantiator visitPostfix(Postfix node) {
     Instantiator makeOperand = visit(node.argument);
     String op = node.op;
     return (arguments) => Postfix(op, makeOperand(arguments));
   }
 
+  @override
   Instantiator visitVariableUse(VariableUse node) =>
       (arguments) => VariableUse(node.name);
 
+  @override
   Instantiator visitThis(This node) => (arguments) => This();
 
+  @override
   Instantiator visitVariableDeclaration(VariableDeclaration node) =>
       (arguments) => VariableDeclaration(node.name);
 
+  @override
   Instantiator visitParameter(Parameter node) =>
       (arguments) => Parameter(node.name);
 
+  @override
   Instantiator visitAccess(PropertyAccess node) {
     Instantiator makeReceiver = visit(node.receiver);
     Instantiator makeSelector = visit(node.selector);
@@ -622,6 +665,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         PropertyAccess(makeReceiver(arguments), makeSelector(arguments));
   }
 
+  @override
   Instantiator visitNamedFunction(NamedFunction node) {
     Instantiator makeDeclaration = visit(node.name);
     Instantiator makeFunction = visit(node.function);
@@ -629,6 +673,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         NamedFunction(makeDeclaration(arguments), makeFunction(arguments));
   }
 
+  @override
   Instantiator visitFun(Fun node) {
     List<Instantiator> paramMakers = node.params.map(visitSplayable).toList();
     Instantiator makeBody = visit(node.body);
@@ -648,6 +693,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitArrowFunction(ArrowFunction node) {
     List<Instantiator> paramMakers = node.params.map(visitSplayable).toList();
     Instantiator makeBody = visit(node.body);
@@ -668,26 +714,35 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitDeferredExpression(DeferredExpression node) => same(node);
 
+  @override
   Instantiator visitDeferredStatement(DeferredStatement node) => same(node);
 
+  @override
   Instantiator visitDeferredNumber(DeferredNumber node) => same(node);
 
+  @override
   Instantiator visitDeferredString(DeferredString node) => (arguments) => node;
 
+  @override
   Instantiator visitLiteralBool(LiteralBool node) =>
       (arguments) => LiteralBool(node.value);
 
+  @override
   Instantiator visitLiteralString(LiteralString node) =>
       (arguments) => LiteralString(node.value);
 
+  @override
   Instantiator visitLiteralNumber(LiteralNumber node) =>
       (arguments) => LiteralNumber(node.value);
 
+  @override
   Instantiator visitLiteralNull(LiteralNull node) =>
       (arguments) => LiteralNull();
 
+  @override
   Instantiator visitStringConcatenation(StringConcatenation node) {
     List<Instantiator> partMakers =
         node.parts.map(visit).toList(growable: false);
@@ -699,8 +754,10 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitName(Name node) => same(node);
 
+  @override
   Instantiator visitParentheses(Parentheses node) {
     Instantiator makeEnclosed = visit(node.enclosed);
     return (arguments) {
@@ -709,6 +766,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitArrayInitializer(ArrayInitializer node) {
     // TODO(sra): Implement splicing?
     List<Instantiator> elementMakers =
@@ -722,10 +780,12 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitArrayHole(ArrayHole node) {
     return (arguments) => ArrayHole();
   }
 
+  @override
   Instantiator visitObjectInitializer(ObjectInitializer node) {
     List<Instantiator> propertyMakers =
         node.properties.map(visitSplayable).toList();
@@ -744,6 +804,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitProperty(Property node) {
     Instantiator makeName = visit(node.name);
     Instantiator makeValue = visit(node.value);
@@ -752,6 +813,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitMethodDefinition(MethodDefinition node) {
     Instantiator makeName = visit(node.name);
     Instantiator makeFunction = visit(node.function);
@@ -760,11 +822,14 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  @override
   Instantiator visitRegExpLiteral(RegExpLiteral node) =>
       (arguments) => RegExpLiteral(node.pattern);
 
+  @override
   Instantiator visitComment(Comment node) => TODO('visitComment');
 
+  @override
   Instantiator visitAwait(Await node) {
     Instantiator makeExpression = visit(node.expression);
     return (arguments) {
@@ -789,12 +854,14 @@ class InterpolatedNodeAnalysis extends BaseVisitorVoid {
     node.accept(this);
   }
 
+  @override
   void visitNode(Node node) {
     int before = count;
     node.visitChildren(this);
     if (count != before) containsInterpolatedNode.add(node);
   }
 
+  @override
   visitInterpolatedNode(InterpolatedNode node) {
     containsInterpolatedNode.add(node);
     if (node.isNamed) holeNames.add(node.nameOrPosition);

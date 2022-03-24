@@ -3349,6 +3349,11 @@ class FunctionElementImpl extends ExecutableElementImpl
   }
 
   @override
+  bool get isDartCoreIdentical {
+    return isStatic && name == 'identical' && library.isDartCore;
+  }
+
+  @override
   bool get isEntryPoint {
     return isStatic && displayName == FunctionElement.MAIN_FUNCTION_NAME;
   }
