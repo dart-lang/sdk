@@ -11,6 +11,7 @@ import 'equality_expressions_test.dart' as equality_expressions;
 import 'extension_methods_test.dart' as extension_methods;
 import 'function_expression_test.dart' as function_expression;
 import 'function_test.dart' as function;
+import 'inference_update_1_test.dart' as inference_update_1;
 import 'list_literal_test.dart' as list_literal;
 import 'local_variable_test.dart' as local_variable;
 import 'logical_boolean_expressions_test.dart' as logical_boolean_expressions;
@@ -29,6 +30,7 @@ main() {
     extension_methods.main();
     function.main();
     function_expression.main();
+    inference_update_1.main();
     list_literal.main();
     local_variable.main();
     logical_boolean_expressions.main();

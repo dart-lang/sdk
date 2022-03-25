@@ -163,7 +163,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
     List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo =
         _isIdentical(node) ? [] : null;
-    _visitArguments(
+    var deferredClosures = _visitArguments(
         resolver: resolver,
         node: node,
         argumentList: argumentList,
@@ -173,6 +173,18 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         identicalInfo: identicalInfo,
         substitution: substitution,
         inferrer: inferrer);
+    if (deferredClosures != null) {
+      _resolveDeferredClosures(
+          resolver: resolver,
+          node: node,
+          argumentList: argumentList,
+          rawType: rawType,
+          contextType: contextType,
+          deferredClosures: deferredClosures,
+          identicalInfo: identicalInfo,
+          substitution: substitution,
+          inferrer: inferrer);
+    }
 
     if (inferrer != null) {
       typeArgumentTypes = inferrer.upwardsInfer();
@@ -335,13 +347,22 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     required DartType? contextType,
     required List<WhyNotPromotedGetter> whyNotPromotedList,
   }) {
-    _visitArguments(
+    var deferredClosures = _visitArguments(
         resolver: resolver,
         node: node,
         argumentList: argumentList,
         rawType: rawType,
         contextType: contextType,
         whyNotPromotedList: whyNotPromotedList);
+    if (deferredClosures != null) {
+      _resolveDeferredClosures(
+          resolver: resolver,
+          node: node,
+          argumentList: argumentList,
+          rawType: rawType,
+          contextType: contextType,
+          deferredClosures: deferredClosures);
+    }
   }
 
   /// Computes the type context that should be used when evaluating a particular
@@ -371,10 +392,49 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     }
   }
 
+  /// Resolves any closures that were deferred by [_visitArguments].
+  void _resolveDeferredClosures(
+      {required ResolverVisitor resolver,
+      required Node node,
+      required ArgumentListImpl argumentList,
+      required FunctionType? rawType,
+      required DartType? contextType,
+      required List<_DeferredClosure> deferredClosures,
+      List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
+      Substitution? substitution,
+      GenericInferrer? inferrer}) {
+    var flow = resolver.flowAnalysis.flow;
+    var arguments = argumentList.arguments;
+    for (var deferredArgument in deferredClosures) {
+      var parameter = deferredArgument.parameter;
+      DartType? parameterContextType;
+      if (parameter != null) {
+        var parameterType = parameter.type;
+        if (substitution != null) {
+          parameterType = substitution.substituteType(parameterType);
+        }
+        parameterContextType = _computeContextForArgument(
+            resolver, node, parameterType, contextType);
+      }
+      var argument = arguments[deferredArgument.index];
+      resolver.analyzeExpression(argument, parameterContextType);
+      // In case of rewrites, we need to grab the argument again.
+      argument = arguments[deferredArgument.index];
+      if (flow != null) {
+        identicalInfo?[deferredArgument.index] =
+            flow.equalityOperand_end(argument, argument.typeOrThrow);
+      }
+      if (parameter != null) {
+        inferrer?.constrainArgument(
+            argument.typeOrThrow, parameter.type, parameter.name);
+      }
+    }
+  }
+
   /// Visits [argumentList], resolving each argument.  If any arguments need to
   /// be deferred due to the `inference-update-1` feature, a list of them is
   /// returned.
-  void _visitArguments(
+  List<_DeferredClosure>? _visitArguments(
       {required ResolverVisitor resolver,
       required Node node,
       required ArgumentListImpl argumentList,
@@ -385,6 +445,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       Substitution? substitution,
       GenericInferrer? inferrer}) {
     assert(whyNotPromotedList.isEmpty);
+    List<_DeferredClosure>? deferredClosures;
     var parameters = rawType?.parameters;
     var namedParameters = <String, ParameterElement>{};
     if (parameters != null) {
@@ -401,40 +462,56 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     var arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
+      Expression value;
       ParameterElement? parameter;
       if (argument is NamedExpression) {
+        value = argument.expression;
         parameter = namedParameters[argument.name.label.name];
-      } else if (parameters != null) {
-        while (positionalParameterIndex < parameters.length) {
-          var candidate = parameters[positionalParameterIndex++];
-          if (!candidate.isNamed) {
-            parameter = candidate;
-            break;
+      } else {
+        value = argument;
+        if (parameters != null) {
+          while (positionalParameterIndex < parameters.length) {
+            var candidate = parameters[positionalParameterIndex++];
+            if (!candidate.isNamed) {
+              parameter = candidate;
+              break;
+            }
           }
         }
       }
-      DartType? parameterContextType;
-      if (parameter != null) {
-        var parameterType = parameter.type;
-        if (substitution != null) {
-          parameterType = substitution.substituteType(parameterType);
+      if (resolver.isInferenceUpdate1Enabled &&
+          value is FunctionExpressionImpl) {
+        (deferredClosures ??= []).add(_DeferredClosure(parameter, value, i));
+        identicalInfo?.add(null);
+        // The "why not promoted" list isn't really relevant for closures
+        // because promoting a closure doesn't even make sense.  So we store an
+        // innocuous value in the list.
+        whyNotPromotedList.add(() => const {});
+      } else {
+        DartType? parameterContextType;
+        if (parameter != null) {
+          var parameterType = parameter.type;
+          if (substitution != null) {
+            parameterType = substitution.substituteType(parameterType);
+          }
+          parameterContextType = _computeContextForArgument(
+              resolver, node, parameterType, contextType);
         }
-        parameterContextType = _computeContextForArgument(
-            resolver, node, parameterType, contextType);
-      }
-      resolver.analyzeExpression(argument, parameterContextType);
-      // In case of rewrites, we need to grab the argument again.
-      argument = arguments[i];
-      if (flow != null) {
-        identicalInfo
-            ?.add(flow.equalityOperand_end(argument, argument.typeOrThrow));
-        whyNotPromotedList.add(flow.whyNotPromoted(argument));
-      }
-      if (parameter != null) {
-        inferrer?.constrainArgument(
-            argument.typeOrThrow, parameter.type, parameter.name);
+        resolver.analyzeExpression(argument, parameterContextType);
+        // In case of rewrites, we need to grab the argument again.
+        argument = arguments[i];
+        if (flow != null) {
+          identicalInfo
+              ?.add(flow.equalityOperand_end(argument, argument.typeOrThrow));
+          whyNotPromotedList.add(flow.whyNotPromoted(argument));
+        }
+        if (parameter != null) {
+          inferrer?.constrainArgument(
+              argument.typeOrThrow, parameter.type, parameter.name);
+        }
       }
     }
+    return deferredClosures;
   }
 
   /// Computes the return type of the method or function represented by the
@@ -497,4 +574,20 @@ class MethodInvocationInferrer
     }
     return returnType;
   }
+}
+
+/// Information about an invocation argument that needs to be resolved later due
+/// to the fact that it's a closure and the `inference-update-1` feature is
+/// enabled.
+class _DeferredClosure {
+  /// The [ParameterElement] the closure is being passed to.
+  final ParameterElement? parameter;
+
+  /// The closure expression.
+  final FunctionExpression value;
+
+  /// The index into the argument list of the closure expression.
+  final int index;
+
+  _DeferredClosure(this.parameter, this.value, this.index);
 }
