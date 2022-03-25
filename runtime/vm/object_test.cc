@@ -7167,6 +7167,23 @@ ISOLATE_UNIT_TEST_CASE(FunctionType_IsSubtypeOfNonNullableObject) {
 #undef EXPECT_NOT_SUBTYPE
 #undef EXPECT_SUBTYPE
 
+static void ExpectTypesEquivalent(const Expect& expect,
+                                  const AbstractType& expected,
+                                  const AbstractType& got,
+                                  TypeEquality kind) {
+  if (got.IsEquivalent(expected, kind)) return;
+  TextBuffer buffer(128);
+  buffer.AddString("Expected type ");
+  expected.PrintName(Object::kScrubbedName, &buffer);
+  buffer.AddString(", got ");
+  got.PrintName(Object::kScrubbedName, &buffer);
+  expect.Fail("%s", buffer.buffer());
+}
+
+#define EXPECT_TYPES_EQUAL(expected, got)                                      \
+  ExpectTypesEquivalent(Expect(__FILE__, __LINE__), expected, got,             \
+                        TypeEquality::kCanonical);
+
 TEST_CASE(Class_GetInstantiationOf) {
   const char* kScript = R"(
     class B<T> {}
@@ -7187,17 +7204,6 @@ TEST_CASE(Class_GetInstantiationOf) {
 
   const auto& core_lib = Library::Handle(zone, Library::CoreLibrary());
   const auto& class_list = Class::Handle(zone, GetClass(core_lib, "List"));
-
-  auto expect_type_equal = [](const AbstractType& expected,
-                              const AbstractType& got) {
-    if (got.Equals(expected)) return;
-    TextBuffer buffer(128);
-    buffer.AddString("Expected type ");
-    expected.PrintName(Object::kScrubbedName, &buffer);
-    buffer.AddString(", got ");
-    got.PrintName(Object::kScrubbedName, &buffer);
-    dart::Expect(__FILE__, __LINE__).Fail("%s", buffer.buffer());
-  };
 
   const auto& decl_type_b = Type::Handle(zone, class_b.DeclarationType());
   const auto& decl_type_list = Type::Handle(zone, class_list.DeclarationType());
@@ -7228,7 +7234,7 @@ TEST_CASE(Class_GetInstantiationOf) {
     const auto& inst_b_a1 =
         Type::Handle(zone, class_a1.GetInstantiationOf(zone, class_b));
     EXPECT(!inst_b_a1.IsNull());
-    expect_type_equal(type_b_list_a1_y, inst_b_a1);
+    EXPECT_TYPES_EQUAL(type_b_list_a1_y, inst_b_a1);
   }
 
   // Test that A2.GetInstantiationOf(B) returns B<List<A2::X>>.
@@ -7256,8 +7262,342 @@ TEST_CASE(Class_GetInstantiationOf) {
     const auto& inst_b_a2 =
         Type::Handle(zone, class_a2.GetInstantiationOf(zone, class_b));
     EXPECT(!inst_b_a2.IsNull());
-    expect_type_equal(type_b_list_a2_x, inst_b_a2);
+    EXPECT_TYPES_EQUAL(type_b_list_a2_x, inst_b_a2);
   }
 }
+
+#undef EXPECT_TYPES_EQUAL
+
+#define EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got)                   \
+  ExpectTypesEquivalent(Expect(__FILE__, __LINE__), expected, got,             \
+                        TypeEquality::kSyntactical);
+
+static TypePtr CreateFutureOrType(const AbstractType& param,
+                                  Nullability nullability) {
+  const auto& async_lib = Library::Handle(Library::AsyncLibrary());
+  const auto& future_or_class =
+      Class::Handle(async_lib.LookupClass(Symbols::FutureOr()));
+  const auto& tav = TypeArguments::Handle(TypeArguments::New(1));
+  tav.SetTypeAt(0, param);
+  const auto& type =
+      AbstractType::Handle(Type::New(future_or_class, tav, nullability));
+  return Type::RawCast(
+      ClassFinalizer::FinalizeType(type, ClassFinalizer::kFinalize));
+}
+
+static TypePtr CreateFutureType(const AbstractType& param,
+                                Nullability nullability) {
+  ObjectStore* const object_store = IsolateGroup::Current()->object_store();
+  const auto& future_class = Class::Handle(object_store->future_class());
+  const auto& tav = TypeArguments::Handle(TypeArguments::New(1));
+  tav.SetTypeAt(0, param);
+  const auto& type = Type::Handle(Type::New(future_class, tav, nullability));
+  return Type::RawCast(
+      ClassFinalizer::FinalizeType(type, ClassFinalizer::kFinalize));
+}
+
+ISOLATE_UNIT_TEST_CASE(AbstractType_NormalizeFutureOrType) {
+  // This should be kept up to date with any changes in
+  // https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
+
+  ObjectStore* const object_store = IsolateGroup::Current()->object_store();
+
+  auto normalized_future_or = [&](const AbstractType& param,
+                                  Nullability nullability) -> AbstractTypePtr {
+    const auto& type = Type::Handle(CreateFutureOrType(param, nullability));
+    return type.NormalizeFutureOrType(Heap::kNew);
+  };
+
+  // NORM(FutureOr<T>) =
+  //   let S be NORM(T)
+  //   if S is a top type then S
+  {
+    const auto& type = AbstractType::Handle(normalized_future_or(
+        Object::dynamic_type(), Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::dynamic_type(), type);
+  }
+
+  {
+    const auto& type = AbstractType::Handle(
+        normalized_future_or(Object::void_type(), Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::void_type(), type);
+  }
+
+  {
+    const auto& type_nullable_object =
+        Type::Handle(object_store->nullable_object_type());
+    const auto& type = AbstractType::Handle(
+        normalized_future_or(type_nullable_object, Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, type);
+  }
+
+  //   if S is Object then S
+
+  {
+    const auto& type_non_nullable_object =
+        Type::Handle(object_store->non_nullable_object_type());
+    const auto& type = AbstractType::Handle(normalized_future_or(
+        type_non_nullable_object, Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_non_nullable_object, type);
+  }
+
+  //   if S is Object* then S
+
+  {
+    const auto& type_legacy_object =
+        Type::Handle(object_store->legacy_object_type());
+    const auto& type = AbstractType::Handle(
+        normalized_future_or(type_legacy_object, Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_legacy_object, type);
+  }
+
+  //   if S is Never then Future<Never>
+
+  {
+    const auto& type_never = Type::Handle(object_store->never_type());
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_never, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(
+        normalized_future_or(type_never, Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  //   if S is Null then Future<Null>?
+
+  {
+    const auto& type_null = Type::Handle(object_store->null_type());
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_null, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        normalized_future_or(type_null, Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  //   else FutureOr<S>
+
+  // NORM(T?) =
+  //   let S be NORM(T)
+  //   ...
+  //   if S is FutureOr<R> and R is nullable then S
+
+  {
+    const auto& type_nullable_int =
+        Type::Handle(object_store->nullable_int_type());
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_nullable_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(
+        normalized_future_or(type_nullable_int, Nullability::kNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+}
+
+TEST_CASE(AbstractType_InstantiatedFutureOrIsNormalized) {
+  const char* kScript = R"(
+import 'dart:async';
+
+FutureOr<T>? foo<T>() { return null; }
+FutureOr<T?> bar<T>() { return null; }
+)";
+
+  Dart_Handle api_lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(api_lib);
+  TransitionNativeToVM transition(thread);
+  Zone* const zone = thread->zone();
+  ObjectStore* const object_store = IsolateGroup::Current()->object_store();
+
+  const auto& null_tav = Object::null_type_arguments();
+  auto instantiate_future_or =
+      [&](const AbstractType& generic,
+          const AbstractType& param) -> AbstractTypePtr {
+    const auto& tav = TypeArguments::Handle(TypeArguments::New(1));
+    tav.SetTypeAt(0, param);
+    return generic.InstantiateFrom(null_tav, tav, kCurrentAndEnclosingFree,
+                                   Heap::kNew);
+  };
+
+  const auto& root_lib =
+      Library::CheckedHandle(zone, Api::UnwrapHandle(api_lib));
+  EXPECT(!root_lib.IsNull());
+  const auto& foo = Function::Handle(zone, GetFunction(root_lib, "foo"));
+  const auto& bar = Function::Handle(zone, GetFunction(root_lib, "bar"));
+  const auto& foo_sig = FunctionType::Handle(zone, foo.signature());
+  const auto& bar_sig = FunctionType::Handle(zone, bar.signature());
+
+  const auto& nullable_future_or_T =
+      AbstractType::Handle(zone, foo_sig.result_type());
+  const auto& future_or_nullable_T =
+      AbstractType::Handle(zone, bar_sig.result_type());
+
+  const auto& type_nullable_object =
+      Type::Handle(object_store->nullable_object_type());
+  const auto& type_non_nullable_object =
+      Type::Handle(object_store->non_nullable_object_type());
+  const auto& type_legacy_object =
+      Type::Handle(object_store->legacy_object_type());
+
+  // Testing same cases as AbstractType_NormalizeFutureOrType.
+
+  // FutureOr<T>?[top type] = top type
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, Object::dynamic_type()));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::dynamic_type(), got);
+  }
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, Object::void_type()));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::void_type(), got);
+  }
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_nullable_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  // FutureOr<T?>[top type] = top type
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, Object::dynamic_type()));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::dynamic_type(), got);
+  }
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, Object::void_type()));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::void_type(), got);
+  }
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_nullable_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  // FutureOr<T?>[Object] = Object?
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_non_nullable_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  // FutureOr<T?>[Object*] = Object?
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_legacy_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  // FutureOr<T>?[Object] = Object?
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_non_nullable_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  // FutureOr<T>?[Object*] = Object?
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_legacy_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  const auto& type_never = Type::Handle(object_store->never_type());
+  const auto& type_null = Type::Handle(object_store->null_type());
+
+  // FutureOr<T?>[Never] = Future<Null>?
+
+  {
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_null, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_never));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T>?[Never] = Future<Never>?
+
+  {
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_never, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_never));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T?>[Null] = Future<Null>?
+
+  {
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_null, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_null));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T>?[Null] = Future<Null>?
+
+  {
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_null, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_null));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  const auto& type_nullable_int =
+      Type::Handle(object_store->nullable_int_type());
+  const auto& type_non_nullable_int =
+      Type::Handle(object_store->non_nullable_int_type());
+
+  // FutureOr<T?>[int] = FutureOr<int?>
+
+  {
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_nullable_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_non_nullable_int));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T?>[int?] = FutureOr<int?>
+
+  {
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_nullable_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_nullable_int));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T>?[int?] = FutureOr<int?>
+
+  {
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_nullable_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_nullable_int));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T>?[int] = FutureOr<int>?
+
+  {
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_non_nullable_int, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_non_nullable_int));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+}
+
+#undef EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT
 
 }  // namespace dart
