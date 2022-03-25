@@ -4,13 +4,12 @@
 //
 // SharedOptions=--enable-experiment=enhanced-enums
 
-// ignore_for_file: experiment_not_enabled
 // @dart=2.17
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const int LINE_A = 24;
+const int LINE_A = 23;
 const int LINE_B = LINE_A + 11;
 const int LINE_C = LINE_B + 4;
 const int LINE_D = LINE_C + 4;
