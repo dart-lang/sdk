@@ -1559,6 +1559,7 @@ CompileTimeErrorCode:
   NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
     problemMessage: Generative enum constructors must be 'const'.
     correctionMessage: Try adding the keyword 'const'.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
       
@@ -1673,6 +1674,7 @@ CompileTimeErrorCode:
   CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
     problemMessage: "Concrete classes can't have 'Enum' as a superinterface."
     correctionMessage: Try specifying a different interface, or remove it from the list.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
       
@@ -3535,6 +3537,7 @@ CompileTimeErrorCode:
   ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
     problemMessage: The invoked constructor isn't a 'const' constructor.
     correctionMessage: Try invoking a 'const' generative constructor.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
       
@@ -3574,6 +3577,7 @@ CompileTimeErrorCode:
   ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
     problemMessage: Mixins applied to enums can't have instance variables.
     correctionMessage: Try replacing the instance variables with getters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
       
@@ -3622,6 +3626,7 @@ CompileTimeErrorCode:
   ENUM_WITH_ABSTRACT_MEMBER:
     problemMessage: "'{0}' must have a method body because '{1}' is an enum."
     correctionMessage: "Try adding a body to '{0}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the abstract method
@@ -3660,6 +3665,7 @@ CompileTimeErrorCode:
   ENUM_WITH_NAME_VALUES:
     problemMessage: The name 'values' is not a valid name for an enum.
     correctionMessage: Try using a different name.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
       
@@ -5422,6 +5428,7 @@ CompileTimeErrorCode:
     sharedName: ILLEGAL_ENUM_VALUES
     problemMessage: An instance member named 'values' can't be declared in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
       
@@ -5464,6 +5471,7 @@ CompileTimeErrorCode:
     sharedName: ILLEGAL_ENUM_VALUES
     problemMessage: An instance member named 'values' can't be inherited from '{0}' in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the class that declares 'values'
@@ -5474,6 +5482,7 @@ CompileTimeErrorCode:
     sharedName: ILLEGAL_CONCRETE_ENUM_MEMBER
     problemMessage: A concrete instance member named '{0}' can't be declared in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of member that cannot be declared
@@ -5543,6 +5552,7 @@ CompileTimeErrorCode:
     sharedName: ILLEGAL_CONCRETE_ENUM_MEMBER
     problemMessage: A concrete instance member named '{0}' can't be inherited from '{1}' in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of member that cannot be inherited
@@ -5753,6 +5763,7 @@ CompileTimeErrorCode:
   IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
     problemMessage: The implicitly invoked unnamed constructor from '{0}' has required parameters.
     correctionMessage: Try adding an explicit super parameter with the required arguments.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the superclass
@@ -7208,6 +7219,7 @@ CompileTimeErrorCode:
   INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
     problemMessage: Generative enum constructors can only be used as targets of redirection.
     correctionMessage: Try using an enum constant, or a factory constructor.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
       
@@ -7296,6 +7308,7 @@ CompileTimeErrorCode:
   INVALID_SUPER_FORMAL_PARAMETER_LOCATION:
     problemMessage: Super parameters can only be used in non-redirecting generative constructors.
     correctionMessage: Try removing the 'super' modifier, or changing the constructor to be non-redirecting and generative.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the super modifier
@@ -9600,6 +9613,7 @@ CompileTimeErrorCode:
   NON_FINAL_FIELD_IN_ENUM:
     problemMessage: Enums can only declare final fields.
     correctionMessage: Try making the field final.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -10913,6 +10927,7 @@ CompileTimeErrorCode:
   POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
     problemMessage: Positional super parameters can't be used when the super constructor invocation has a positional argument.
     correctionMessage: Try making all the positional parameters passed to the super constructor be either all super parameters or all normal parameters.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -12414,6 +12429,7 @@ CompileTimeErrorCode:
   SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
     problemMessage: The type '{0}' of this parameter isn't a subtype of the type '{1}' of the associated super constructor parameter.
     correctionMessage: Try removing the explicit type annotation from the parameter.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the type of super-parameter
@@ -12485,6 +12501,7 @@ CompileTimeErrorCode:
   SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
     problemMessage: No associated named super constructor parameter.
     correctionMessage: Try changing the name to the name of an existing named super constructor parameter, or creating such named parameter.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -12555,6 +12572,7 @@ CompileTimeErrorCode:
   SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL:
     problemMessage: No associated positional super constructor parameter.
     correctionMessage: Try using a normal parameter, or adding more positional parameters to the super constructor.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -12872,6 +12890,7 @@ CompileTimeErrorCode:
   SUPER_IN_ENUM_CONSTRUCTOR:
     problemMessage: The enum constructor can't have a 'super' initializer.
     correctionMessage: Try removing the 'super' invocation.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -13801,6 +13820,7 @@ CompileTimeErrorCode:
     sharedName: UNDEFINED_ENUM_CONSTRUCTOR
     problemMessage: The enum doesn't have a constructor named '{0}'.
     correctionMessage: Try correcting the name to the name of an existing constructor, or defining constructor with the name '{0}'.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the constructor that is undefined
@@ -13891,6 +13911,7 @@ CompileTimeErrorCode:
     sharedName: UNDEFINED_ENUM_CONSTRUCTOR
     problemMessage: The enum doesn't have an unnamed constructor.
     correctionMessage: Try adding the name of an existing constructor, or defining an unnamed constructor.
+    hasPublishedDocs: true
   UNDEFINED_EXTENSION_GETTER:
     problemMessage: "The getter '{0}' isn't defined for the extension '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter named '{0}'."
@@ -14967,6 +14988,7 @@ CompileTimeErrorCode:
   VALUES_DECLARATION_IN_ENUM:
     problemMessage: A member named 'values' can't be declared in an enum.
     correctionMessage: Try using a different name.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
       
@@ -15258,6 +15280,7 @@ CompileTimeErrorCode:
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
     problemMessage: The enum is declared with {0} type parameters, but {1} type arguments were given.
     correctionMessage: Try adjusting the number of type arguments.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the number of type parameters that were declared
