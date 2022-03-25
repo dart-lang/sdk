@@ -6,10 +6,12 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -243,17 +245,23 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool chromeOsManifestChecks = false;
 
+  @override
+  late CodeStyleOptions codeStyleOptions;
+
   /// The set of "un-ignorable" error names, as parsed in [AnalyzerOptions] from
   /// an analysis options file.
   Set<String> unignorableNames = {};
 
   /// Initialize a newly created set of analysis options to have their default
   /// values.
-  AnalysisOptionsImpl();
+  AnalysisOptionsImpl() {
+    codeStyleOptions = CodeStyleOptionsImpl(this, useFormatter: false);
+  }
 
   /// Initialize a newly created set of analysis options to have the same values
   /// as those in the given set of analysis [options].
   AnalysisOptionsImpl.from(AnalysisOptions options) {
+    codeStyleOptions = options.codeStyleOptions;
     contextFeatures = options.contextFeatures;
     enabledPluginNames = options.enabledPluginNames;
     errorProcessors = options.errorProcessors;

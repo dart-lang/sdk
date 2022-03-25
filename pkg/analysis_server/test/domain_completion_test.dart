@@ -1901,6 +1901,9 @@ void f() {
         ..completion.isEqualTo('analyzer: ')
         ..kind.isIdentifier,
       (suggestion) => suggestion
+        ..completion.isEqualTo('code-style: ')
+        ..kind.isIdentifier,
+      (suggestion) => suggestion
         ..completion.isEqualTo('include: ')
         ..kind.isIdentifier,
       (suggestion) => suggestion

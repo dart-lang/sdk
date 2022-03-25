@@ -43,7 +43,7 @@ class ContextConfigurationTest {
   YamlMap parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
 
-  test_configure_cannotIgnore() {
+  test_analyzer_cannotIgnore() {
     configureContext('''
 analyzer:
   cannot-ignore:
@@ -55,7 +55,7 @@ analyzer:
     expect(unignorableNames, unorderedEquals(['ONE_ERROR_CODE', 'ANOTHER']));
   }
 
-  test_configure_cannotIgnore_severity() {
+  test_analyzer_cannotIgnore_severity() {
     configureContext('''
 analyzer:
   cannot-ignore:
@@ -67,7 +67,7 @@ analyzer:
     expect(unignorableNames.length, greaterThan(500));
   }
 
-  test_configure_cannotIgnore_severity_withProcessor() {
+  test_analyzer_cannotIgnore_severity_withProcessor() {
     configureContext('''
 analyzer:
   errors:
@@ -80,7 +80,7 @@ analyzer:
     expect(unignorableNames, contains('UNUSED_IMPORT'));
   }
 
-  test_configure_chromeos_checks() {
+  test_analyzer_chromeos_checks() {
     configureContext('''
 analyzer:
   optional-checks:
@@ -89,7 +89,7 @@ analyzer:
     expect(true, analysisOptions.chromeOsManifestChecks);
   }
 
-  test_configure_chromeos_checks_map() {
+  test_analyzer_chromeos_checks_map() {
     configureContext('''
 analyzer:
   optional-checks:
@@ -98,7 +98,7 @@ analyzer:
     expect(true, analysisOptions.chromeOsManifestChecks);
   }
 
-  test_configure_error_processors() {
+  test_analyzer_errors_processors() {
     configureContext('''
 analyzer:
   errors:
@@ -106,7 +106,7 @@ analyzer:
     unused_local_variable: error
 ''');
 
-    List<ErrorProcessor> processors = analysisOptions.errorProcessors;
+    var processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(2));
 
     var unused_local =
@@ -129,7 +129,7 @@ analyzer:
     expect(unusedLocal.severity, ErrorSeverity.ERROR);
   }
 
-  test_configure_excludes() {
+  test_analyzer_exclude() {
     configureContext('''
 analyzer:
   exclude:
@@ -137,11 +137,11 @@ analyzer:
     - 'test/**'
 ''');
 
-    List<String> excludes = analysisOptions.excludePatterns;
+    var excludes = analysisOptions.excludePatterns;
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 
-  test_configure_excludes_withNonStrings() {
+  test_analyzer_exclude_withNonStrings() {
     configureContext('''
 analyzer:
   exclude:
@@ -150,11 +150,11 @@ analyzer:
     - a: b
 ''');
 
-    List<String> excludes = analysisOptions.excludePatterns;
+    var excludes = analysisOptions.excludePatterns;
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 
-  test_configure_plugins_list() {
+  test_analyzer_plugins_list() {
     configureContext('''
 analyzer:
   plugins:
@@ -162,11 +162,11 @@ analyzer:
     - intl
 ''');
 
-    List<String> names = analysisOptions.enabledPluginNames;
+    var names = analysisOptions.enabledPluginNames;
     expect(names, ['angular2', 'intl']);
   }
 
-  test_configure_plugins_map() {
+  test_analyzer_plugins_map() {
     configureContext('''
 analyzer:
   plugins:
@@ -174,19 +174,35 @@ analyzer:
       enabled: true
 ''');
 
-    List<String> names = analysisOptions.enabledPluginNames;
+    var names = analysisOptions.enabledPluginNames;
     expect(names, ['angular2']);
   }
 
-  test_configure_plugins_string() {
+  test_analyzer_plugins_string() {
     configureContext('''
 analyzer:
   plugins:
     angular2
 ''');
 
-    List<String> names = analysisOptions.enabledPluginNames;
+    var names = analysisOptions.enabledPluginNames;
     expect(names, ['angular2']);
+  }
+
+  test_codeStyle_format_false() {
+    configureContext('''
+code-style:
+  format: false
+''');
+    expect(analysisOptions.codeStyleOptions.useFormatter, false);
+  }
+
+  test_codeStyle_format_true() {
+    configureContext('''
+code-style:
+  format: true
+''');
+    expect(analysisOptions.codeStyleOptions.useFormatter, true);
   }
 }
 
@@ -527,6 +543,47 @@ analyzer:
   optional-checks:
     - chrome-os-manifest-checks
 ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
+
+  test_codeStyle_format_false() {
+    validate('''
+code-style:
+  format: false
+''', []);
+  }
+
+  test_codeStyle_format_invalid() {
+    validate('''
+code-style:
+  format: 80
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
+  }
+
+  test_codeStyle_format_true() {
+    validate('''
+code-style:
+  format: true
+''', []);
+  }
+
+  test_codeStyle_unsupported_list() {
+    validate('''
+code-style:
+  - format
+''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
+
+  test_codeStyle_unsupported_scalar() {
+    validate('''
+code-style: format
+''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
+
+  test_codeStyle_unsupportedOption() {
+    validate('''
+code-style:
+  not_supported: true
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
   }
 
   test_linter_supported_rules() {

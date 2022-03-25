@@ -38,6 +38,9 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
         AnalyzerOptions.implicitDynamic: EmptyProducer(),
       }),
     }),
+    AnalyzerOptions.codeStyle: MapProducer({
+      AnalyzerOptions.format: BooleanProducer(),
+    }),
     // TODO(brianwilkerson) Create a producer to produce `package:` URIs.
     AnalyzerOptions.include: EmptyProducer(),
     // TODO(brianwilkerson) Create constants for 'linter' and 'rules'.
