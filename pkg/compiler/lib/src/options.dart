@@ -81,6 +81,10 @@ class FeatureOptions {
   /// Whether to emit JavaScript encoded as UTF-8.
   FeatureOption writeUtf8 = FeatureOption('utf8');
 
+  /// Experimental instrumentation to add tree shaking information to
+  /// dump-info's output.
+  FeatureOption newDumpInfo = FeatureOption('new-dump-info');
+
   /// [FeatureOption]s which are shipped and cannot be toggled.
   late final List<FeatureOption> shipped = [
     newHolders,
@@ -93,9 +97,7 @@ class FeatureOptions {
   ];
 
   /// [FeatureOption]s which default to disabled.
-  late final List<FeatureOption> canary = [
-    writeUtf8,
-  ];
+  late final List<FeatureOption> canary = [writeUtf8, newDumpInfo];
 
   /// Forces canary feature on. This must run after [Option].parse.
   void forceCanary() {
