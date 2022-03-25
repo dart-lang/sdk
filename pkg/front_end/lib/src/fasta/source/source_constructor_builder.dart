@@ -242,7 +242,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           BodyBuilder bodyBuilder = libraryBuilder.loader
               .createBodyBuilderForOutlineExpression(libraryBuilder,
                   classBuilder, this, classBuilder.scope, fileUri);
-          bodyBuilder.constantContext = ConstantContext.required;
+          if (isConst) {
+            bodyBuilder.constantContext = ConstantContext.required;
+          }
           initializers = bodyBuilder.parseInitializers(beginInitializers!,
               doFinishConstructor: false);
         }
@@ -459,7 +461,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           .createBodyBuilderForOutlineExpression(
               libraryBuilder, classBuilder, this, classBuilder.scope, fileUri,
               formalParameterScope: formalParameterScope);
-      bodyBuilder.constantContext = ConstantContext.required;
+      if (isConst) {
+        bodyBuilder.constantContext = ConstantContext.required;
+      }
       bodyBuilder.parseInitializers(beginInitializers!,
           doFinishConstructor: isConst);
       bodyBuilder.performBacklogComputations(delayedActionPerformers);
