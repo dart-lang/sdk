@@ -256,31 +256,14 @@ class FunctionInlineCache {
   }
 }
 
-/// Interface for resources only used during code generation.
-abstract class CodegenInputs {
-  CheckedModeHelpers get checkedModeHelpers;
-  RuntimeTypesSubstitutions get rtiSubstitutions;
-  RecipeEncoder get rtiRecipeEncoder;
-  Tracer get tracer;
-  FixedNames get fixedNames;
-}
-
-class CodegenInputsImpl implements CodegenInputs {
-  @override
+/// Holds resources only used during code generation.
+class CodegenInputs {
   final CheckedModeHelpers checkedModeHelpers = CheckedModeHelpers();
-
-  @override
   final RuntimeTypesSubstitutions rtiSubstitutions;
-
-  @override
   final RecipeEncoder rtiRecipeEncoder;
-
-  @override
   final Tracer tracer;
-
-  @override
   final FixedNames fixedNames;
 
-  CodegenInputsImpl(this.rtiSubstitutions, this.rtiRecipeEncoder, this.tracer,
+  CodegenInputs(this.rtiSubstitutions, this.rtiRecipeEncoder, this.tracer,
       this.fixedNames);
 }

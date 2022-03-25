@@ -213,8 +213,8 @@ class JsBackendStrategy {
     RecipeEncoder rtiRecipeEncoder = RecipeEncoderImpl(closedWorld,
         rtiSubstitutions, closedWorld.nativeData, closedWorld.commonElements);
 
-    CodegenInputs codegen = CodegenInputsImpl(
-        rtiSubstitutions, rtiRecipeEncoder, tracer, fixedNames);
+    CodegenInputs codegen =
+        CodegenInputs(rtiSubstitutions, rtiRecipeEncoder, tracer, fixedNames);
 
     functionCompiler.initialize(globalTypeInferenceResults, codegen);
     return codegen;

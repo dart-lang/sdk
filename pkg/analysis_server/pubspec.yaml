@@ -29,6 +29,7 @@ dependencies:
   path: any
   watcher: any
   yaml: any
+  yaml_edit: any
 
 dev_dependencies:
   analyzer_utilities:
