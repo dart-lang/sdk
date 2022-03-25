@@ -32,9 +32,27 @@ analyzer:
     assertSuggestion('${AnalyzerOptions.enableExperiment}: ');
   }
 
+  void test_codeStyle() {
+    getCompletions('''
+code-style:
+  ^
+''');
+    assertSuggestion('${AnalyzerOptions.format}: ');
+  }
+
+  void test_codeStyle_format() {
+    getCompletions('''
+code-style:
+  format: ^
+''');
+    assertSuggestion('false');
+    assertSuggestion('true');
+  }
+
   void test_empty() {
     getCompletions('^');
     assertSuggestion('${AnalyzerOptions.analyzer}: ');
+    assertSuggestion('${AnalyzerOptions.codeStyle}: ');
     assertSuggestion('${AnalyzerOptions.include}: ');
     // TODO(brianwilkerson) Replace this with a constant.
     assertSuggestion('linter: ');

@@ -41,7 +41,7 @@ class ConstantFinderTest {
   /// represents a reference to a compile-time constant variable).
   void test_visitAnnotation_constantVariable() {
     var compilationUnitElement =
-        ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
+        ElementFactory.compilationUnit(source: _source);
     ElementFactory.library(_AnalysisContextMock(), 'L')
         .definingCompilationUnit = compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
@@ -56,7 +56,7 @@ class ConstantFinderTest {
   /// constructor.
   void test_visitAnnotation_invocation() {
     var compilationUnitElement =
-        ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
+        ElementFactory.compilationUnit(source: _source);
     ElementFactory.library(_AnalysisContextMock(), 'L')
         .definingCompilationUnit = compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =

@@ -861,20 +861,12 @@ class _MockSdkElementsBuilder {
   }
 
   LibraryElementImpl _buildAsync() {
-    var asyncLibrary = LibraryElementImpl(
-      analysisContext,
-      analysisSession,
-      'dart.async',
-      0,
-      0,
-      FeatureSet.latestLanguageVersion(),
-    );
-
-    var asyncUnit = CompilationUnitElementImpl();
     var asyncSource = analysisContext.sourceFactory.forUri('dart:async')!;
-    asyncUnit.librarySource = asyncUnit.source = asyncSource;
-    asyncUnit.lineInfo = LineInfo([0]);
-    asyncLibrary.definingCompilationUnit = asyncUnit;
+    var asyncUnit = CompilationUnitElementImpl(
+      source: asyncSource,
+      librarySource: asyncSource,
+      lineInfo: LineInfo([0]),
+    );
 
     asyncUnit.classes = <ClassElement>[
       completerElement,
@@ -884,15 +876,26 @@ class _MockSdkElementsBuilder {
       streamSubscriptionElement
     ];
 
+    var asyncLibrary = LibraryElementImpl(
+      analysisContext,
+      analysisSession,
+      'dart.async',
+      0,
+      0,
+      FeatureSet.latestLanguageVersion(),
+    );
+    asyncLibrary.definingCompilationUnit = asyncUnit;
+
     return asyncLibrary;
   }
 
   LibraryElementImpl _buildCore() {
-    var coreUnit = CompilationUnitElementImpl();
-
     var coreSource = analysisContext.sourceFactory.forUri('dart:core')!;
-    coreUnit.librarySource = coreUnit.source = coreSource;
-    coreUnit.lineInfo = LineInfo([0]);
+    var coreUnit = CompilationUnitElementImpl(
+      source: coreSource,
+      librarySource: coreSource,
+      lineInfo: LineInfo([0]),
+    );
 
     coreUnit.classes = <ClassElement>[
       boolElement,

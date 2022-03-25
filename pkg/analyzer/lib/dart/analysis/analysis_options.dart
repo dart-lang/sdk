@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -17,6 +18,9 @@ abstract class AnalysisOptions {
   /// A flag indicating whether to run checks on AndroidManifest.xml file to
   /// see if it is complaint with Chrome OS.
   bool get chromeOsManifestChecks;
+
+  /// Return the options used to control the code that is generated.
+  CodeStyleOptions get codeStyleOptions;
 
   /// The set of features that are globally enabled for this context.
   FeatureSet get contextFeatures;
