@@ -171,26 +171,10 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         contextType: contextType,
         whyNotPromotedList: whyNotPromotedList,
         identicalInfo: identicalInfo,
-        substitution: substitution);
+        substitution: substitution,
+        inferrer: inferrer);
 
     if (inferrer != null) {
-      // Get the parameters that correspond to the uninstantiated generic.
-      List<ParameterElement?> rawParameters =
-          ResolverVisitor.resolveArgumentsToParameters(
-        argumentList: argumentList,
-        parameters: rawType!.parameters,
-      );
-
-      List<ParameterElement> params = <ParameterElement>[];
-      List<DartType> argTypes = <DartType>[];
-      for (int i = 0, length = rawParameters.length; i < length; i++) {
-        ParameterElement? parameter = rawParameters[i];
-        if (parameter != null) {
-          params.add(parameter);
-          argTypes.add(argumentList.arguments[i].typeOrThrow);
-        }
-      }
-      inferrer.constrainArguments(parameters: params, argumentTypes: argTypes);
       typeArgumentTypes = inferrer.upwardsInfer();
     }
     FunctionType? invokeType = typeArgumentTypes != null
@@ -398,7 +382,8 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       required DartType? contextType,
       required List<WhyNotPromotedGetter> whyNotPromotedList,
       List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
-      Substitution? substitution}) {
+      Substitution? substitution,
+      GenericInferrer? inferrer}) {
     assert(whyNotPromotedList.isEmpty);
     var parameters = rawType?.parameters;
     var namedParameters = <String, ParameterElement>{};
@@ -444,6 +429,10 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         identicalInfo
             ?.add(flow.equalityOperand_end(argument, argument.typeOrThrow));
         whyNotPromotedList.add(flow.whyNotPromoted(argument));
+      }
+      if (parameter != null) {
+        inferrer?.constrainArgument(
+            argument.typeOrThrow, parameter.type, parameter.name);
       }
     }
   }

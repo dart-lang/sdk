@@ -37,7 +37,8 @@ abstract class NodeVisitor<T> {
   T visitTry(Try node);
   T visitCatch(Catch node);
   T visitSwitch(Switch node);
-  T visitSwitchCase(SwitchCase node);
+  T visitCase(Case node);
+  T visitDefault(Default node);
   T visitFunctionDeclaration(FunctionDeclaration node);
   T visitLabeledStatement(LabeledStatement node);
   T visitLiteralStatement(LiteralStatement node);
@@ -159,7 +160,9 @@ abstract class BaseVisitor<T> implements NodeVisitor<T> {
   @override
   T visitCatch(Catch node) => visitNode(node);
   @override
-  T visitSwitchCase(SwitchCase node) => visitNode(node);
+  T visitCase(Case node) => visitNode(node);
+  @override
+  T visitDefault(Default node) => visitNode(node);
 
   T visitExpression(Expression node) => visitNode(node);
 
@@ -775,7 +778,7 @@ class Catch extends Node {
 
 class Switch extends Statement {
   final Expression key;
-  final List<SwitchCase> cases;
+  final List<SwitchClause> cases;
 
   Switch(this.key, this.cases);
 
@@ -794,26 +797,43 @@ class Switch extends Statement {
   Switch _clone() => Switch(key, cases);
 }
 
-class SwitchCase extends Node {
-  final Expression expression;
+abstract class SwitchClause extends Node {
   final Block body;
 
-  SwitchCase(this.expression, this.body);
-  SwitchCase.defaultCase(this.body) : expression = null;
+  SwitchClause(this.body);
+}
 
-  bool get isDefault => expression == null;
+class Case extends SwitchClause {
+  final Expression expression;
+
+  Case(this.expression, Block body) : super(body);
 
   @override
-  T accept<T>(NodeVisitor<T> visitor) => visitor.visitSwitchCase(this);
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitCase(this);
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    expression?.accept(visitor);
+    expression.accept(visitor);
     body.accept(visitor);
   }
 
   @override
-  SwitchCase _clone() => SwitchCase(expression, body);
+  Case _clone() => Case(expression, body);
+}
+
+class Default extends SwitchClause {
+  Default(Block body) : super(body);
+
+  @override
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitDefault(this);
+
+  @override
+  void visitChildren(NodeVisitor visitor) {
+    body.accept(visitor);
+  }
+
+  @override
+  Default _clone() => Default(body);
 }
 
 class FunctionDeclaration extends Statement {

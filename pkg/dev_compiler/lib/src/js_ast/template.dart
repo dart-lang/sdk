@@ -497,17 +497,25 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<Switch> visitSwitch(Switch node) {
     var makeKey = visit(node.key) as Instantiator<Expression>;
-    var makeCases = node.cases.map(visitSwitchCase).toList();
+    var makeCases =
+        node.cases.map((c) => visit(c) as Instantiator<SwitchClause>);
     return (a) => Switch(makeKey(a), makeCases.map((m) => m(a)).toList());
   }
 
   @override
-  Instantiator<SwitchCase> visitSwitchCase(SwitchCase node) {
-    var makeExpression =
-        visitNullable(node.expression) as Instantiator<Expression>;
+  Instantiator visitCase(Case node) {
+    var makeExpression = visit(node.expression) as Instantiator<Expression>;
     var makeBody = visit(node.body) as Instantiator<Block>;
     return (arguments) {
-      return SwitchCase(makeExpression(arguments), makeBody(arguments));
+      return Case(makeExpression(arguments), makeBody(arguments));
+    };
+  }
+
+  @override
+  Instantiator visitDefault(Default node) {
+    var makeBody = visit(node.body) as Instantiator<Block>;
+    return (arguments) {
+      return Default(makeBody(arguments));
     };
   }
 

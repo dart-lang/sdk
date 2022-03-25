@@ -4519,13 +4519,13 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else if (!CanDeoptimize()) {
     compiler::Label done;
     __ SmiUntag(out, value);
-    __ BranchIfSmi(value, &done);
+    __ BranchIfSmi(value, &done, compiler::Assembler::kNearJump);
     LoadInt32FromMint(compiler, value, out, NULL);
     __ Bind(&done);
   } else {
     compiler::Label done;
     __ SmiUntag(out, value);
-    __ BranchIfSmi(value, &done);
+    __ BranchIfSmi(value, &done, compiler::Assembler::kNearJump);
     __ CompareClassId(value, kMintCid, TMP);
     __ BranchIf(NE, deopt);
     LoadInt32FromMint(compiler, value, out, out_of_range);
@@ -4551,13 +4551,13 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(is_truncating());
     compiler::Label done;
     __ SmiUntag(out, value);
-    __ BranchIfSmi(value, &done);
+    __ BranchIfSmi(value, &done, compiler::Assembler::kNearJump);
     __ LoadFieldFromOffset(out, value, Mint::value_offset());
     __ Bind(&done);
   } else {
     compiler::Label done;
     __ SmiUntag(out, value);
-    __ BranchIfSmi(value, &done);
+    __ BranchIfSmi(value, &done, compiler::Assembler::kNearJump);
     __ CompareClassId(value, kMintCid, TMP);
     __ BranchIf(NE, deopt);
     __ LoadFieldFromOffset(out, value, Mint::value_offset());
