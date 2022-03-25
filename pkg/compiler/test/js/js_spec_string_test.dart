@@ -18,6 +18,8 @@ const OBJECT = 'Object';
 const NULL = 'Null';
 
 class Listener extends DiagnosticReporter {
+  Listener() : super(null);
+
   String errorMessage;
   @override
   internalError(spannable, message) {
