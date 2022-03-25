@@ -979,10 +979,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     implements CompilationUnitElement {
   /// The source that corresponds to this compilation unit.
   @override
-  late Source source;
+  final Source source;
 
   @override
-  late LineInfo lineInfo;
+  LineInfo lineInfo;
 
   /// The source of the library containing this compilation unit.
   ///
@@ -990,7 +990,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// except that it does not require the containing [LibraryElement] to be
   /// computed.
   @override
-  late Source librarySource;
+  final Source librarySource;
 
   /// A list containing all of the top-level accessors (getters and setters)
   /// contained in this compilation unit.
@@ -1024,7 +1024,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// Initialize a newly created compilation unit element to have the given
   /// [name].
-  CompilationUnitElementImpl() : super(null, -1);
+  CompilationUnitElementImpl({
+    required this.source,
+    required this.librarySource,
+    required this.lineInfo,
+  }) : super(null, -1);
 
   @override
   List<PropertyAccessorElement> get accessors {

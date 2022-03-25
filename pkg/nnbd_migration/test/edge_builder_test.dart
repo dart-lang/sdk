@@ -471,6 +471,14 @@ class AssignmentCheckerTest extends Object
     var typeSystem = coreLibrary.typeSystem;
 
     var uriStr = 'package:test/test.dart';
+    var uri = Uri.parse(uriStr);
+    var source = _MockSource(uri);
+
+    var definingUnit = CompilationUnitElementImpl(
+      source: source,
+      librarySource: source,
+      lineInfo: LineInfo([0]),
+    );
 
     _myLibrary = LibraryElementImpl(
       analysisContext,
@@ -482,19 +490,10 @@ class AssignmentCheckerTest extends Object
         sdkLanguageVersion: Version.parse('2.10.0'),
         flags: [EnableString.non_nullable],
       ),
-    );
-    _myLibrary!.typeSystem = typeSystem;
-    _myLibrary!.typeProvider = coreLibrary.typeProvider;
-
-    var uri = Uri.parse(uriStr);
-    var source = _MockSource(uri);
-
-    var definingUnit = CompilationUnitElementImpl();
-    definingUnit.source = source;
-    definingUnit.librarySource = source;
-
-    definingUnit.enclosingElement = _myLibrary;
-    _myLibrary!.definingCompilationUnit = definingUnit;
+    )
+      ..definingCompilationUnit = definingUnit
+      ..typeProvider = coreLibrary.typeProvider
+      ..typeSystem = typeSystem;
   }
 
   static void _setCoreLibrariesTypeSystem(TypeProviderImpl typeProvider) {

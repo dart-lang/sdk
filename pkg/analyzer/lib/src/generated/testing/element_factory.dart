@@ -90,14 +90,16 @@ class ElementFactory {
           [List<String>? parameterNames]) =>
       classTypeAlias(typeName, objectType, parameterNames);
 
-  static CompilationUnitElementImpl compilationUnit(String fileName,
-      [Source? librarySource, LineInfo? lineInfo]) {
-    Source source = NonExistingSource(fileName, toUri(fileName));
-    CompilationUnitElementImpl unit = CompilationUnitElementImpl();
-    unit.source = source;
-    unit.librarySource = librarySource ?? source;
-    unit.lineInfo = lineInfo ?? LineInfo([0]);
-    return unit;
+  static CompilationUnitElementImpl compilationUnit({
+    required Source source,
+    Source? librarySource,
+    LineInfo? lineInfo,
+  }) {
+    return CompilationUnitElementImpl(
+      source: source,
+      librarySource: librarySource ?? source,
+      lineInfo: lineInfo ?? LineInfo([0]),
+    );
   }
 
   static ConstLocalVariableElementImpl constLocalVariableElement(String name) =>
@@ -206,7 +208,9 @@ class ElementFactory {
   static LibraryElementImpl library(
       AnalysisContext context, String libraryName) {
     String fileName = "/$libraryName.dart";
-    CompilationUnitElementImpl unit = compilationUnit(fileName);
+    CompilationUnitElementImpl unit = compilationUnit(
+      source: NonExistingSource(fileName, toUri(fileName)),
+    );
     LibraryElementImpl library = LibraryElementImpl(
       context,
       _MockAnalysisSession(),
