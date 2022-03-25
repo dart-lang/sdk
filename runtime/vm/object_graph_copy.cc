@@ -35,6 +35,9 @@
   V(ExceptionHandlers)                                                         \
   V(FfiTrampolineData)                                                         \
   V(Field)                                                                     \
+  V(Finalizer)                                                                 \
+  V(FinalizerBase)                                                             \
+  V(FinalizerEntry)                                                            \
   V(Function)                                                                  \
   V(FunctionType)                                                              \
   V(FutureOr)                                                                  \
@@ -600,6 +603,7 @@ class ObjectCopyBase {
       // those are the only non-abstract classes (so we avoid checking more cids
       // here that cannot happen in reality)
       HANDLE_ILLEGAL_CASE(DynamicLibrary)
+      HANDLE_ILLEGAL_CASE(Finalizer)
       HANDLE_ILLEGAL_CASE(MirrorReference)
       HANDLE_ILLEGAL_CASE(Pointer)
       HANDLE_ILLEGAL_CASE(ReceivePort)
@@ -1815,7 +1819,7 @@ class ObjectGraphCopier {
         // We force the GC to compact, which is more likely to discover
         // untracked pointers (and other issues, like incorrect class table).
         thread_->heap()->CollectAllGarbage(GCReason::kDebugging,
-                                           /*compact=*/ true);
+                                           /*compact=*/true);
       }
 
       // Fast copy failed due to

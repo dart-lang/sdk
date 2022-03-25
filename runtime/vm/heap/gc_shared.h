@@ -30,7 +30,8 @@ namespace dart {
 // - variable name
 #define GC_LINKED_LIST(V)                                                      \
   V(WeakProperty, weak_properties)                                             \
-  V(WeakReference, weak_references)
+  V(WeakReference, weak_references)                                            \
+  V(FinalizerEntry, finalizer_entries)
 
 template <typename Type, typename PtrType>
 class GCLinkedList {
@@ -80,6 +81,115 @@ struct GCLinkedLists {
   GC_LINKED_LIST(FOREACH)
 #undef FOREACH
 };
+
+#ifdef DEBUG
+#define TRACE_FINALIZER(format, ...)                                           \
+  if (FLAG_trace_finalizers) {                                                 \
+    THR_Print("%s %p " format "\n", GCVisitorType::kName, visitor,             \
+              __VA_ARGS__);                                                    \
+  }
+#else
+#define TRACE_FINALIZER(format, ...)
+#endif
+
+// This function processes all finalizer entries discovered by a scavenger or
+// marker. If an entry is referencing an object that is going to die, such entry
+// is cleared and enqueued in the respective finalizer.
+//
+// Finalizer entries belonging to unreachable finalizer entries do not get
+// processed, so the callback will not be called for these finalizers.
+//
+// For more documentation see runtime/docs/gc.md.
+//
+// |GCVisitorType| is a concrete type implementing either marker or scavenger.
+// It is expected to provide |SetNullIfCollected| method for clearing fields
+// referring to dead objects and |kName| field which contains visitor name for
+// tracing output.
+template <typename GCVisitorType>
+void MournFinalized(GCVisitorType* visitor) {
+  FinalizerEntryPtr current_entry =
+      visitor->delayed_.finalizer_entries.Release();
+  while (current_entry != FinalizerEntry::null()) {
+    TRACE_FINALIZER("Processing Entry %p", current_entry->untag());
+    FinalizerEntryPtr next_entry =
+        current_entry->untag()->next_seen_by_gc_.Decompress(
+            current_entry->heap_base());
+    current_entry->untag()->next_seen_by_gc_ = FinalizerEntry::null();
+
+    uword heap_base = current_entry->heap_base();
+    const bool value_collected_this_gc = GCVisitorType::SetNullIfCollected(
+        heap_base, &current_entry->untag()->value_);
+    GCVisitorType::SetNullIfCollected(heap_base,
+                                      &current_entry->untag()->detach_);
+    GCVisitorType::SetNullIfCollected(heap_base,
+                                      &current_entry->untag()->finalizer_);
+
+    ObjectPtr token_object = current_entry->untag()->token();
+    // See sdk/lib/_internal/vm/lib/internal_patch.dart FinalizerBase.detach.
+    const bool is_detached = token_object == current_entry;
+
+    if (value_collected_this_gc && !is_detached) {
+      FinalizerBasePtr finalizer = current_entry->untag()->finalizer();
+
+      if (finalizer.IsRawNull()) {
+        TRACE_FINALIZER("Value collected entry %p finalizer null",
+                        current_entry->untag());
+
+        // Do nothing, the finalizer has been GCed.
+      } else if (finalizer.IsFinalizer()) {
+        TRACE_FINALIZER("Value collected entry %p finalizer %p",
+                        current_entry->untag(), finalizer->untag());
+
+        FinalizerPtr finalizer_dart = static_cast<FinalizerPtr>(finalizer);
+        // Move entry to entries collected and current head of that list as
+        // the next element. Using a atomic exchange satisfies concurrency
+        // between the parallel GC tasks.
+        // We rely on the fact that the mutator thread is not running to avoid
+        // races between GC and mutator modifying Finalizer.entries_collected.
+        //
+        // We only run in serial marker or in the finalize step in the marker,
+        // both are in safepoint.
+        // The main scavenger worker is at safepoint, the other scavenger
+        // workers are are not, but they bypass safepoint because the main
+        // worker is at a safepoint already.
+        ASSERT(Thread::Current()->IsAtSafepoint() ||
+               Thread::Current()->BypassSafepoints());
+
+        FinalizerEntryPtr previous_head =
+            finalizer_dart->untag()->exchange_entries_collected(current_entry);
+        current_entry->untag()->set_next(previous_head);
+        const bool first_entry = previous_head.IsRawNull();
+        // Schedule calling Dart finalizer.
+        if (first_entry) {
+          Isolate* isolate = finalizer->untag()->isolate_;
+          if (isolate == nullptr) {
+            TRACE_FINALIZER(
+                "Not scheduling finalizer %p callback on isolate null",
+                finalizer->untag());
+          } else {
+            TRACE_FINALIZER("Scheduling finalizer %p callback on isolate %p",
+                            finalizer->untag(), isolate);
+
+            PersistentHandle* handle =
+                isolate->group()->api_state()->AllocatePersistentHandle();
+            handle->set_ptr(finalizer);
+            MessageHandler* message_handler = isolate->message_handler();
+            message_handler->PostMessage(
+                Message::New(handle, Message::kNormalPriority),
+                /*before_events*/ false);
+          }
+        }
+      } else {
+        // TODO(http://dartbug.com/47777): Implement NativeFinalizer.
+        UNREACHABLE();
+      }
+    }
+
+    current_entry = next_entry;
+  }
+}
+
+#undef TRACE_FINALIZER
 
 }  // namespace dart
 

@@ -47,6 +47,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   int64_t marked_micros() const { return marked_micros_; }
   void AddMicros(int64_t micros) { marked_micros_ += micros; }
 
+#ifdef DEBUG
+  constexpr static const char* const kName = "Marker";
+#endif
+
   static bool IsMarked(ObjectPtr raw) {
     ASSERT(raw->IsHeapObject());
     ASSERT(raw->IsOldObject());
@@ -126,6 +130,9 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         } else if (class_id == kWeakReferenceCid) {
           WeakReferencePtr raw_weak = static_cast<WeakReferencePtr>(raw_obj);
           size = ProcessWeakReference(raw_weak);
+        } else if (class_id == kFinalizerEntryCid) {
+          FinalizerEntryPtr raw_weak = static_cast<FinalizerEntryPtr>(raw_obj);
+          size = ProcessFinalizerEntry(raw_weak);
         } else {
           size = raw_obj->untag()->VisitPointersNonvirtual(this);
         }
@@ -220,6 +227,17 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     return raw_weak->untag()->HeapSize();
   }
 
+  intptr_t ProcessFinalizerEntry(FinalizerEntryPtr raw_entry) {
+    ASSERT(IsMarked(raw_entry));
+    delayed_.finalizer_entries.Enqueue(raw_entry);
+    // Only visit token and next.
+    MarkObject(LoadCompressedPointerIgnoreRace(&raw_entry->untag()->token_)
+                   .Decompress(raw_entry->heap_base()));
+    MarkObject(LoadCompressedPointerIgnoreRace(&raw_entry->untag()->next_)
+                   .Decompress(raw_entry->heap_base()));
+    return raw_entry->untag()->HeapSize();
+  }
+
   void ProcessDeferredMarking() {
     ObjectPtr raw_obj;
     while ((raw_obj = deferred_work_list_.Pop()) != nullptr) {
@@ -254,6 +272,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   void FinalizeMarking() {
     work_list_.Finalize();
     deferred_work_list_.Finalize();
+    MournFinalized(this);
   }
 
   void MournWeakProperties() {
@@ -393,6 +412,9 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   GCLinkedLists delayed_;
   uintptr_t marked_bytes_;
   int64_t marked_micros_;
+
+  template <typename GCVisitorType>
+  friend void MournFinalized(GCVisitorType* visitor);
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitorBase);
 };
@@ -703,6 +725,8 @@ class ParallelMarkTask : public ThreadPool::Task {
       // Phase 3: Weak processing and statistics.
       visitor_->MournWeakProperties();
       visitor_->MournWeakReferences();
+      // Don't MournFinalized here, do it on main thread, so that we don't have
+      // to coordinate workers.
 
       marker_->IterateWeakRoots(thread);
       int64_t stop = OS::GetCurrentMonotonicMicros();
@@ -942,6 +966,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       visitor.FinalizeMarking();
       visitor.MournWeakProperties();
       visitor.MournWeakReferences();
+      MournFinalized(&visitor);
       IterateWeakRoots(thread);
       // All marking done; detach code, etc.
       int64_t stop = OS::GetCurrentMonotonicMicros();

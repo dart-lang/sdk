@@ -138,6 +138,10 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         promoted_list_(promotion_stack) {}
   ~ScavengerVisitorBase() { ASSERT(delayed_.IsEmpty()); }
 
+#ifdef DEBUG
+  constexpr static const char* const kName = "Scavenger";
+#endif
+
   virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
                                           CompressedObjectPtr* first,
                                           CompressedObjectPtr* last) {
@@ -298,6 +302,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
 
       MournWeakProperties();
       MournOrUpdateWeakReferences();
+      MournFinalized(this);
     }
     page_space_->ReleaseLock(freelist_);
     thread_ = nullptr;
@@ -535,6 +540,9 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   NewPage* head_ = nullptr;
   NewPage* tail_ = nullptr;  // Allocating from here.
   NewPage* scan_ = nullptr;  // Resolving from here.
+
+  template <typename GCVisitorType>
+  friend void MournFinalized(GCVisitorType* visitor);
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerVisitorBase);
 };
@@ -1418,6 +1426,21 @@ intptr_t ScavengerVisitorBase<parallel>::ProcessCopied(ObjectPtr raw_obj) {
         return raw_weak->untag()->HeapSize();
       }
     }
+  } else if (UNLIKELY(class_id == kFinalizerEntryCid)) {
+    FinalizerEntryPtr raw_entry = static_cast<FinalizerEntryPtr>(raw_obj);
+    ASSERT(IsNotForwarding(raw_entry));
+    delayed_.finalizer_entries.Enqueue(raw_entry);
+    // Only visit token and next.
+#if !defined(DART_COMPRESSED_POINTERS)
+    ScavengePointer(&raw_entry->untag()->token_);
+    ScavengePointer(&raw_entry->untag()->next_);
+#else
+    ScavengeCompressedPointer(raw_entry->heap_base(),
+                              &raw_entry->untag()->token_);
+    ScavengeCompressedPointer(raw_entry->heap_base(),
+                              &raw_entry->untag()->next_);
+#endif
+    return raw_entry->untag()->HeapSize();
   }
   return raw_obj->untag()->VisitPointersNonvirtual(this);
 }

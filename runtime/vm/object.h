@@ -3188,7 +3188,29 @@ class Function : public Object {
   bool ForceOptimize() const {
     return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
            IsFfiStore() || IsFfiTrampoline() || IsFfiAsExternalTypedData() ||
-           IsTypedDataViewFactory() || IsUtf8Scan() || IsGetNativeField();
+           IsTypedDataViewFactory() || IsUtf8Scan() || IsGetNativeField() ||
+           IsFinalizerForceOptimized();
+  }
+
+  bool IsFinalizerForceOptimized() const {
+    // Either because of unboxed/untagged data, or because we don't want the GC
+    // to trigger in between.
+    switch (recognized_kind()) {
+      case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
+      case MethodRecognizer::kFinalizerBase_setIsolate:
+      case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
+        // Unboxed/untagged representation not supported in unoptimized.
+        return true;
+      case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
+        // Prevent the GC from running so that the operation is atomic from
+        // a GC point of view. Always double check implementation in
+        // kernel_to_il.cc that no GC can happen in between the relevant IL
+        // instructions.
+        // TODO(https://dartbug.com/48527): Support inlining.
+        return true;
+      default:
+        return false;
+    }
   }
 
   bool CanBeInlined() const;
@@ -12021,15 +12043,109 @@ class WeakReference : public Instance {
     return RoundedAllocationSize(sizeof(UntaggedWeakReference));
   }
 
-  static void Clear(WeakReferencePtr raw_weak) {
-    ASSERT(raw_weak->untag()->next_seen_by_gc_ ==
-           CompressedWeakReferencePtr(WeakReference::null()));
-    // This action is performed by the GC. No barrier.
-    raw_weak->untag()->target_ = Object::null();
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakReference, Instance);
+  friend class Class;
+};
+
+class FinalizerEntry : public Instance {
+ public:
+  ObjectPtr value() const { return untag()->value(); }
+  void set_value(const Object& value) const { untag()->set_value(value.ptr()); }
+  static intptr_t value_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, value_);
+  }
+
+  ObjectPtr detach() const { return untag()->detach(); }
+  void set_detach(const Object& value) const {
+    untag()->set_detach(value.ptr());
+  }
+  static intptr_t detach_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, detach_);
+  }
+
+  ObjectPtr token() const { return untag()->token(); }
+  void set_token(const Object& value) const { untag()->set_token(value.ptr()); }
+  static intptr_t token_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, token_);
+  }
+
+  FinalizerBasePtr finalizer() const { return untag()->finalizer(); }
+  void set_finalizer(const FinalizerBase& value) const;
+  static intptr_t finalizer_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, finalizer_);
+  }
+
+  FinalizerEntryPtr next() const { return untag()->next(); }
+  void set_next(const FinalizerEntry& value) const {
+    untag()->set_next(value.ptr());
+  }
+  static intptr_t next_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, next_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedFinalizerEntry));
+  }
+
+  static FinalizerEntryPtr New(Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(FinalizerEntry, Instance);
+  friend class Class;
+};
+
+class FinalizerBase : public Instance {
+ public:
+  static intptr_t isolate_offset() {
+    return OFFSET_OF(UntaggedFinalizerBase, isolate_);
+  }
+  Isolate* isolate() const { return untag()->isolate_; }
+  void set_isolate(Isolate* value) const { untag()->isolate_ = value; }
+
+  static intptr_t detachments_offset() {
+    return OFFSET_OF(UntaggedFinalizerBase, detachments_);
+  }
+
+  LinkedHashSetPtr all_entries() const { return untag()->all_entries(); }
+  static intptr_t all_entries_offset() {
+    return OFFSET_OF(UntaggedFinalizerBase, all_entries_);
+  }
+
+  FinalizerEntryPtr entries_collected() const {
+    return untag()->entries_collected();
+  }
+  void set_entries_collected(const FinalizerEntry& value) const {
+    untag()->set_entries_collected(value.ptr());
+  }
+  static intptr_t entries_collected_offset() {
+    return OFFSET_OF(UntaggedFinalizer, entries_collected_);
   }
 
  private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakReference, Instance);
+  HEAP_OBJECT_IMPLEMENTATION(FinalizerBase, Instance);
+  friend class Class;
+};
+
+class Finalizer : public FinalizerBase {
+ public:
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(UntaggedFinalizer, type_arguments_);
+  }
+
+  ObjectPtr callback() const { return untag()->callback(); }
+  static intptr_t callback_offset() {
+    return OFFSET_OF(UntaggedFinalizer, callback_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedFinalizer));
+  }
+
+  static FinalizerPtr New(Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Finalizer, FinalizerBase);
   friend class Class;
 };
 
