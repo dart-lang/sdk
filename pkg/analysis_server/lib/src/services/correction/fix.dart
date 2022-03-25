@@ -373,6 +373,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Convert the quotes and remove escapes everywhere in file',
   );
+  static const CONVERT_TO_CASCADE = FixKind(
+    'dart.fix.convert.toCascade',
+    DartFixKindPriority.DEFAULT,
+    'Convert to cascade notation',
+  );
   static const CONVERT_TO_CONTAINS = FixKind(
     'dart.fix.convert.toContains',
     DartFixKindPriority.DEFAULT,

@@ -341,7 +341,7 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
 /// corresponding to [object] at location [sourceSpan]. We also perform error
 /// checking to ensure that the same [id] isn't added twice.
 void _registerValue<T>(Id id, T value, Object object, SourceSpan sourceSpan,
-    Map<Id, ActualData<T>> actualMap, CompilerDiagnosticReporter reporter) {
+    Map<Id, ActualData<T>> actualMap, DiagnosticReporter reporter) {
   if (actualMap.containsKey(id)) {
     ActualData<T> existingData = actualMap[id];
     reportHere(reporter, sourceSpan,

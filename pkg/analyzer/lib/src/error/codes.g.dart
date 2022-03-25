@@ -1657,6 +1657,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Concrete classes can't have 'Enum' as a superinterface.",
     correctionMessage:
         "Try specifying a different interface, or remove it from the list.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -3850,6 +3851,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR',
     "The invoked constructor isn't a 'const' constructor.",
     correctionMessage: "Try invoking a 'const' generative constructor.",
+    hasPublishedDocs: true,
   );
 
   static const CompileTimeErrorCode
@@ -3908,6 +3910,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
     "Mixins applied to enums can't have instance variables.",
     correctionMessage: "Try replacing the instance variables with getters.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -3950,6 +3953,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'ENUM_WITH_ABSTRACT_MEMBER',
     "'{0}' must have a method body because '{1}' is an enum.",
     correctionMessage: "Try adding a body to '{0}'.",
+    hasPublishedDocs: true,
   );
 
   // #### Description
@@ -3977,6 +3981,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'ENUM_WITH_NAME_VALUES',
     "The name 'values' is not a valid name for an enum.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -6182,6 +6187,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "A concrete instance member named '{0}' can't be declared in a class that "
         "implements 'Enum'.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION',
   );
 
@@ -6196,6 +6202,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "A concrete instance member named '{0}' can't be inherited from '{1}' in a "
         "class that implements 'Enum'.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE',
   );
 
@@ -6242,6 +6249,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "An instance member named 'values' can't be declared in a class that "
         "implements 'Enum'.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_ENUM_VALUES_DECLARATION',
   );
 
@@ -6255,6 +6263,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "An instance member named 'values' can't be inherited from '{0}' in a "
         "class that implements 'Enum'.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_ENUM_VALUES_INHERITANCE',
   );
 
@@ -6565,6 +6574,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "parameters.",
     correctionMessage:
         "Try adding an explicit super parameter with the required arguments.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -8265,6 +8275,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
     "Generative enum constructors can only be used as targets of redirection.",
     correctionMessage: "Try using an enum constant, or a factory constructor.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -8396,6 +8407,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the 'super' modifier, or changing the constructor to be "
         "non-redirecting and generative.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -11195,6 +11207,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
     "Generative enum constructors must be 'const'.",
     correctionMessage: "Try adding the keyword 'const'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -11255,6 +11268,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'NON_FINAL_FIELD_IN_ENUM',
     "Enums can only declare final fields.",
     correctionMessage: "Try making the field final.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -12778,6 +12792,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try making all the positional parameters passed to the super "
         "constructor be either all super parameters or all normal parameters.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -14507,6 +14522,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "associated super constructor parameter.",
     correctionMessage:
         "Try removing the explicit type annotation from the parameter.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -14584,6 +14600,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try changing the name to the name of an existing named super "
         "constructor parameter, or creating such named parameter.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -14667,6 +14684,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try using a normal parameter, or adding more positional parameters to "
         "the super constructor.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -14763,6 +14781,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'SUPER_IN_ENUM_CONSTRUCTOR',
     "The enum constructor can't have a 'super' initializer.",
     correctionMessage: "Try removing the 'super' invocation.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -15915,6 +15934,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try correcting the name to the name of an existing constructor, or "
         "defining constructor with the name '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
   );
 
@@ -15925,6 +15945,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try adding the name of an existing constructor, or defining an "
         "unnamed constructor.",
+    hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED',
   );
 
@@ -17194,6 +17215,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'VALUES_DECLARATION_IN_ENUM',
     "A member named 'values' can't be declared in an enum.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -17555,6 +17577,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The enum is declared with {0} type parameters, but {1} type arguments "
         "were given.",
     correctionMessage: "Try adjusting the number of type arguments.",
+    hasPublishedDocs: true,
   );
 
   /**

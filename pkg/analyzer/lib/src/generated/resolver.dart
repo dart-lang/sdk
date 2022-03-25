@@ -382,6 +382,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   bool get isConstructorTearoffsEnabled =>
       _featureSet.isEnabled(Feature.constructor_tearoffs);
 
+  bool get isInferenceUpdate1Enabled =>
+      _featureSet.isEnabled(Feature.inference_update_1);
+
   /// Return the object providing promoted or declared types of variables.
   LocalVariableTypeProvider get localVariableTypeProvider {
     return flowAnalysis.localVariableTypeProvider;

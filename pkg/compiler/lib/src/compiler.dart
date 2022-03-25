@@ -24,7 +24,7 @@ import 'deferred_load/program_split_constraints/nodes.dart' as psc
     show ConstraintData;
 import 'deferred_load/program_split_constraints/parser.dart' as psc show Parser;
 import 'diagnostics/code_location.dart';
-import 'diagnostics/messages.dart' show Message, MessageTemplate;
+import 'diagnostics/messages.dart' show Message;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer, ResolutionEnqueuer;
@@ -36,7 +36,6 @@ import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
-import 'io/source_information.dart' show SourceInformation;
 import 'ir/modular.dart';
 import 'js_backend/backend.dart' show CodegenInputs;
 import 'js_backend/enqueuer.dart';
@@ -54,15 +53,11 @@ import 'phase/modular_analysis.dart' as modular_analysis;
 import 'serialization/task.dart';
 import 'serialization/serialization.dart';
 import 'serialization/strategies.dart';
-import 'ssa/nodes.dart' show HInstruction;
 import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import 'world.dart' show JClosedWorld;
-
-typedef MakeReporterFunction = CompilerDiagnosticReporter Function(
-    Compiler compiler, CompilerOptions options);
 
 /// Implementation of the compiler using  a [api.CompilerInput] for supplying
 /// the sources.
@@ -73,7 +68,7 @@ class Compiler {
 
   KernelFrontendStrategy frontendStrategy;
   JsBackendStrategy backendStrategy;
-  CompilerDiagnosticReporter _reporter;
+  DiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
   GenericTask userHandlerTask;
   GenericTask userProviderTask;
@@ -122,8 +117,6 @@ class Compiler {
   DumpInfoTask dumpInfoTask;
   SerializationTask serializationTask;
 
-  bool get hasCrashed => _reporter.hasCrashed;
-
   Progress progress = const Progress();
 
   static const int PHASE_SCANNING = 0;
@@ -142,8 +135,7 @@ class Compiler {
   // Callback function used for testing codegen enqueuing.
   void Function() onCodegenQueueEmptyForTesting;
 
-  Compiler(this.provider, this._outputProvider, this.handler, this.options,
-      {MakeReporterFunction makeReporter})
+  Compiler(this.provider, this._outputProvider, this.handler, this.options)
       // NOTE: allocating measurer is done upfront to ensure the wallclock is
       // started before other computations.
       : measurer = Measurer(enableTaskMeasurements: options.verbose),
@@ -164,11 +156,7 @@ class Compiler {
     CompilerTask kernelFrontEndTask;
     selfTask = GenericTask('self', measurer);
     _outputProvider = _CompilerOutput(this, outputProvider);
-    if (makeReporter != null) {
-      _reporter = makeReporter(this, options);
-    } else {
-      _reporter = CompilerDiagnosticReporter(this);
-    }
+    _reporter = DiagnosticReporter(this);
     kernelFrontEndTask = GenericTask('Front end', measurer);
     frontendStrategy = KernelFrontendStrategy(
         kernelFrontEndTask, options, reporter, environment);
@@ -947,293 +935,6 @@ class _CompilerOutput implements api.CompilerOutput {
   @override
   api.BinaryOutputSink createBinarySink(Uri uri) {
     return _userOutput.createBinarySink(uri);
-  }
-}
-
-/// Information about suppressed warnings and hints for a given library.
-class SuppressionInfo {
-  int warnings = 0;
-  int hints = 0;
-}
-
-class CompilerDiagnosticReporter extends DiagnosticReporter {
-  final Compiler compiler;
-  @override
-  CompilerOptions get options => compiler.options;
-
-  Entity _currentElement;
-  bool hasCrashed = false;
-
-  /// `true` if the last diagnostic was filtered, in which case the
-  /// accompanying info message should be filtered as well.
-  bool lastDiagnosticWasFiltered = false;
-
-  /// Map containing information about the warnings and hints that have been
-  /// suppressed for each library.
-  Map<Uri, SuppressionInfo> suppressedWarnings = <Uri, SuppressionInfo>{};
-
-  CompilerDiagnosticReporter(this.compiler);
-
-  Entity get currentElement => _currentElement;
-
-  @override
-  DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
-      [Map<String, String> arguments = const {}]) {
-    SourceSpan span = spanFromSpannable(spannable);
-    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-    Message message = template.message(arguments, options);
-    return DiagnosticMessage(span, spannable, message);
-  }
-
-  @override
-  void reportError(DiagnosticMessage message,
-      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    reportDiagnosticInternal(message, infos, api.Diagnostic.ERROR);
-  }
-
-  @override
-  void reportWarning(DiagnosticMessage message,
-      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    reportDiagnosticInternal(message, infos, api.Diagnostic.WARNING);
-  }
-
-  @override
-  void reportHint(DiagnosticMessage message,
-      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    reportDiagnosticInternal(message, infos, api.Diagnostic.HINT);
-  }
-
-  @override
-  void reportInfo(DiagnosticMessage message,
-      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    reportDiagnosticInternal(message, infos, api.Diagnostic.INFO);
-  }
-
-  void reportDiagnosticInternal(DiagnosticMessage message,
-      List<DiagnosticMessage> infos, api.Diagnostic kind) {
-    if (!options.showAllPackageWarnings &&
-        message.spannable != NO_LOCATION_SPANNABLE) {
-      switch (kind) {
-        case api.Diagnostic.WARNING:
-        case api.Diagnostic.HINT:
-          Entity element = elementFromSpannable(message.spannable);
-          if (!compiler.inUserCode(element, assumeInUserCode: true)) {
-            Uri uri = compiler.getCanonicalUri(element);
-            if (options.showPackageWarningsFor(uri)) {
-              reportDiagnostic(message, infos, kind);
-              return;
-            }
-            SuppressionInfo info =
-                suppressedWarnings.putIfAbsent(uri, () => SuppressionInfo());
-            if (kind == api.Diagnostic.WARNING) {
-              info.warnings++;
-            } else {
-              info.hints++;
-            }
-            lastDiagnosticWasFiltered = true;
-            return;
-          }
-          break;
-        case api.Diagnostic.INFO:
-          if (lastDiagnosticWasFiltered) {
-            return;
-          }
-          break;
-      }
-    }
-    lastDiagnosticWasFiltered = false;
-    reportDiagnostic(message, infos, kind);
-  }
-
-  void reportDiagnostic(DiagnosticMessage message,
-      List<DiagnosticMessage> infos, api.Diagnostic kind) {
-    compiler.reportDiagnostic(message, infos, kind);
-    if (kind == api.Diagnostic.ERROR ||
-        kind == api.Diagnostic.CRASH ||
-        (options.fatalWarnings && kind == api.Diagnostic.WARNING)) {
-      compiler.fatalDiagnosticReported(message, infos, kind);
-    }
-  }
-
-  @override
-  bool get hasReportedError => compiler.compilationFailed;
-
-  /// Perform an operation, [f], returning the return value from [f].  If an
-  /// error occurs then report it as having occurred during compilation of
-  /// [element].  Can be nested.
-  @override
-  withCurrentElement(Entity element, f()) {
-    Entity old = currentElement;
-    _currentElement = element;
-    try {
-      return f();
-    } on SpannableAssertionFailure catch (ex) {
-      if (!hasCrashed) {
-        reportAssertionFailure(ex);
-        pleaseReportCrash();
-      }
-      hasCrashed = true;
-      rethrow;
-    } on StackOverflowError {
-      // We cannot report anything useful in this case, because we
-      // do not have enough stack space.
-      rethrow;
-    } catch (ex) {
-      if (hasCrashed) rethrow;
-      try {
-        unhandledExceptionOnElement(element);
-      } catch (doubleFault) {
-        // Ignoring exceptions in exception handling.
-      }
-      rethrow;
-    } finally {
-      _currentElement = old;
-    }
-  }
-
-  void reportAssertionFailure(SpannableAssertionFailure ex) {
-    String message =
-        (ex.message != null) ? tryToString(ex.message) : tryToString(ex);
-    reportDiagnosticInternal(
-        createMessage(ex.node, MessageKind.GENERIC, {'text': message}),
-        const <DiagnosticMessage>[],
-        api.Diagnostic.CRASH);
-  }
-
-  /// Using [frontendStrategy] to compute a [SourceSpan] from spannable using
-  /// the [currentElement] as context.
-  SourceSpan _spanFromStrategy(Spannable spannable) {
-    SourceSpan span;
-    if (compiler.phase == Compiler.PHASE_COMPILING) {
-      span =
-          compiler.backendStrategy.spanFromSpannable(spannable, currentElement);
-    } else {
-      span = compiler.frontendStrategy
-          .spanFromSpannable(spannable, currentElement);
-    }
-    if (span != null) return span;
-    throw 'No error location.';
-  }
-
-  @override
-  SourceSpan spanFromSpannable(Spannable spannable) {
-    if (spannable == CURRENT_ELEMENT_SPANNABLE) {
-      spannable = currentElement;
-    } else if (spannable == NO_LOCATION_SPANNABLE) {
-      if (currentElement == null) return null;
-      spannable = currentElement;
-    }
-    if (spannable is SourceSpan) {
-      return spannable;
-    } else if (spannable is HInstruction) {
-      Entity element = spannable.sourceElement;
-      if (element == null) element = currentElement;
-      SourceInformation position = spannable.sourceInformation;
-      if (position != null) return position.sourceSpan;
-      return _spanFromStrategy(element);
-    } else {
-      return _spanFromStrategy(spannable);
-    }
-  }
-
-  @override
-  internalError(Spannable spannable, reason) {
-    String message = tryToString(reason);
-    reportDiagnosticInternal(
-        createMessage(spannable, MessageKind.GENERIC, {'text': message}),
-        const <DiagnosticMessage>[],
-        api.Diagnostic.CRASH);
-    throw 'Internal Error: $message';
-  }
-
-  void unhandledExceptionOnElement(Entity element) {
-    if (hasCrashed) return;
-    hasCrashed = true;
-    reportDiagnostic(createMessage(element, MessageKind.COMPILER_CRASHED),
-        const <DiagnosticMessage>[], api.Diagnostic.CRASH);
-    pleaseReportCrash();
-  }
-
-  void pleaseReportCrash() {
-    print(MessageTemplate.TEMPLATES[MessageKind.PLEASE_REPORT_THE_CRASH]
-        .message({'buildId': compiler.options.buildId}, options));
-  }
-
-  /// Finds the approximate [Element] for [node]. [currentElement] is used as
-  /// the default value.
-  Entity elementFromSpannable(Spannable node) {
-    Entity element;
-    if (node is Entity) {
-      element = node;
-    } else if (node is HInstruction) {
-      element = node.sourceElement;
-    }
-    return element ?? currentElement;
-  }
-
-  @override
-  void log(message) {
-    Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]
-        .message({'text': '$message'}, options);
-    reportDiagnostic(DiagnosticMessage(null, null, msg),
-        const <DiagnosticMessage>[], api.Diagnostic.VERBOSE_INFO);
-  }
-
-  String tryToString(object) {
-    try {
-      return object.toString();
-    } catch (_) {
-      return '<exception in toString()>';
-    }
-  }
-
-  onError(Uri uri, error, StackTrace stackTrace) {
-    try {
-      if (!hasCrashed) {
-        hasCrashed = true;
-        if (error is SpannableAssertionFailure) {
-          reportAssertionFailure(error);
-        } else {
-          reportDiagnostic(
-              createMessage(
-                  SourceSpan(uri, 0, 0), MessageKind.COMPILER_CRASHED),
-              const <DiagnosticMessage>[],
-              api.Diagnostic.CRASH);
-        }
-        pleaseReportCrash();
-      }
-    } catch (doubleFault) {
-      // Ignoring exceptions in exception handling.
-    }
-    return Future.error(error, stackTrace);
-  }
-
-  @override
-  void onCrashInUserCode(String message, exception, stackTrace) {
-    hasCrashed = true;
-    print('$message: ${tryToString(exception)}');
-    print(tryToString(stackTrace));
-  }
-
-  void reportSuppressedMessagesSummary() {
-    if (!options.showAllPackageWarnings && !options.suppressWarnings) {
-      suppressedWarnings.forEach((Uri uri, SuppressionInfo info) {
-        MessageKind kind = MessageKind.HIDDEN_WARNINGS_HINTS;
-        if (info.warnings == 0) {
-          kind = MessageKind.HIDDEN_HINTS;
-        } else if (info.hints == 0) {
-          kind = MessageKind.HIDDEN_WARNINGS;
-        }
-        MessageTemplate template = MessageTemplate.TEMPLATES[kind];
-        Message message = template.message({
-          'warnings': info.warnings.toString(),
-          'hints': info.hints.toString(),
-          'uri': uri.toString(),
-        }, options);
-        reportDiagnostic(DiagnosticMessage(null, null, message),
-            const <DiagnosticMessage>[], api.Diagnostic.HINT);
-      });
-    }
   }
 }
 

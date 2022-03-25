@@ -210,6 +210,7 @@ class DevToolsServerTestController {
         .where((e) => e.kind == EventKind.kServiceRegistered)
         .listen((e) => registeredServices[e.service!] = e.method!);
     await appFixture.serviceConnection.streamListen(EventStreams.kService);
+    await appFixture.onAppStarted;
   }
 
   int nextId = 0;

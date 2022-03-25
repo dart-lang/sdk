@@ -45,6 +45,7 @@ class LintNames {
       'avoid_unnecessary_containers';
   static const String avoid_void_async = 'avoid_void_async';
   static const String await_only_futures = 'await_only_futures';
+  static const String cascade_invocations = 'cascade_invocations';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
   static const String diagnostic_describe_all_properties =

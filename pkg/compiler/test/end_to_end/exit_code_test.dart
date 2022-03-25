@@ -28,7 +28,6 @@ import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
-import 'diagnostic_reporter_helper.dart';
 import '../helpers/memory_compiler.dart';
 
 class TestCompiler extends Compiler {
@@ -46,10 +45,8 @@ class TestCompiler extends Compiler {
       String this.testMarker,
       String this.testType,
       Function this.onTest)
-      : reporter = new TestDiagnosticReporter(),
-        super(inputProvider, outputProvider, handler, options) {
-    reporter.compiler = this;
-    reporter.reporter = super.reporter;
+      : super(inputProvider, outputProvider, handler, options) {
+    reporter = new TestDiagnosticReporter(this);
     test('Compiler');
   }
 
@@ -122,10 +119,10 @@ class TestBackendStrategy extends JsBackendStrategy {
   }
 }
 
-class TestDiagnosticReporter extends DiagnosticReporterWrapper {
+class TestDiagnosticReporter extends DiagnosticReporter {
   TestCompiler compiler;
-  @override
-  DiagnosticReporter reporter;
+
+  TestDiagnosticReporter(this.compiler) : super(compiler);
 
   @override
   withCurrentElement(Entity element, f()) {

@@ -1527,6 +1527,7 @@ enum ReadStrategy {
   fromCodegenAndData,
   fromCodegenAndClosedWorldAndData,
 }
+
 enum WriteStrategy {
   toKernel,
   toModularAnalysis,

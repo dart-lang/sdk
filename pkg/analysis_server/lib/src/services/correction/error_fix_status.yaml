@@ -1587,7 +1587,7 @@ LintCode.camel_case_types:
 LintCode.cancel_subscriptions:
   status: needsEvaluation
 LintCode.cascade_invocations:
-  status: needsEvaluation
+  status: hasFix
 LintCode.cast_nullable_to_non_nullable:
   status: needsEvaluation
 LintCode.close_sinks:
