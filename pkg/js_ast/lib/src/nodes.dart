@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.15
+
 library js_ast.nodes;
 
 import 'precedence.dart';
@@ -561,9 +563,9 @@ abstract class JavaScriptNodeSourceInformation {
 }
 
 abstract class Node {
-  JavaScriptNodeSourceInformation get sourceInformation => _sourceInformation;
+  JavaScriptNodeSourceInformation? get sourceInformation => _sourceInformation;
 
-  JavaScriptNodeSourceInformation _sourceInformation;
+  JavaScriptNodeSourceInformation? _sourceInformation;
 
   T accept<T>(NodeVisitor<T> visitor);
   void visitChildren<T>(NodeVisitor<T> visitor);
@@ -696,9 +698,7 @@ class Block extends Statement {
 class ExpressionStatement extends Statement {
   final Expression expression;
 
-  ExpressionStatement(this.expression) {
-    assert(this.expression != null);
-  }
+  ExpressionStatement(this.expression);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitExpressionStatement(this);
@@ -779,14 +779,13 @@ class If extends Statement {
 
 abstract class Loop extends Statement {
   final Statement body;
-
   Loop(this.body);
 }
 
 class For extends Loop {
-  final Expression init;
-  final Expression condition;
-  final Expression update;
+  final Expression? init;
+  final Expression? condition;
+  final Expression? update;
 
   For(this.init, this.condition, this.update, Statement body) : super(body);
 
@@ -851,7 +850,7 @@ class ForIn extends Loop {
 }
 
 class While extends Loop {
-  final Node condition;
+  final Expression condition;
 
   While(this.condition, Statement body) : super(body);
 
@@ -907,7 +906,8 @@ class Do extends Loop {
 }
 
 class Continue extends Statement {
-  final String targetLabel; // Can be null.
+  /// Name of the label L for `continue L;` or `null` for `continue;`.
+  final String? targetLabel;
 
   Continue(this.targetLabel);
 
@@ -929,7 +929,8 @@ class Continue extends Statement {
 }
 
 class Break extends Statement {
-  final String targetLabel; // Can be null.
+  /// Name of the label L for `break L;` or `null` for `break;`.
+  final String? targetLabel;
 
   Break(this.targetLabel);
 
@@ -951,7 +952,8 @@ class Break extends Statement {
 }
 
 class Return extends Statement {
-  final Expression value; // Can be null.
+  /// The expression for `return expression;`, or `null` for `return;`.
+  final Expression? value;
 
   Return([this.value = null]);
 
@@ -1004,8 +1006,8 @@ class Throw extends Statement {
 
 class Try extends Statement {
   final Block body;
-  final Catch catchPart; // Can be null if [finallyPart] is non-null.
-  final Block finallyPart; // Can be null if [catchPart] is non-null.
+  final Catch? catchPart; // Can be null if [finallyPart] is non-null.
+  final Block? finallyPart; // Can be null if [catchPart] is non-null.
 
   Try(this.body, this.catchPart, this.finallyPart) {
     assert(catchPart != null || finallyPart != null);
@@ -1310,7 +1312,7 @@ abstract class Name extends Literal implements Declaration, Parameter {
 class LiteralStringFromName extends LiteralString {
   final Name name;
 
-  LiteralStringFromName(this.name) : super(null) {
+  LiteralStringFromName(this.name) : super('') {
     ArgumentError.checkNotNull(name, 'name');
   }
 
@@ -1430,14 +1432,13 @@ class Parentheses extends Expression {
 
 class Assignment extends Expression {
   final Expression leftHandSide;
-  final String op; // Null, if the assignment is not compound.
+  final String? op; // `null` if the assignment is not compound.
   final Expression value;
 
-  Assignment(leftHandSide, value) : this.compound(leftHandSide, null, value);
+  Assignment(this.leftHandSide, this.value) : op = null;
 
   // If `this.op == null` this will be a non-compound assignment.
-  Assignment.compound(this.leftHandSide, this.op, this.value)
-      : assert(value != null);
+  Assignment.compound(this.leftHandSide, this.op, this.value);
 
   @override
   int get precedenceLevel => ASSIGNMENT;
@@ -1471,7 +1472,8 @@ class VariableInitialization extends Expression {
   // TODO(sra): Can [VariableInitialization] be a non-expression?
 
   final Declaration declaration;
-  final Expression value; // [value] may be null.
+  // The initializing value can be missing, e.g. for `a` in `var a, b=1;`.
+  final Expression? value;
 
   VariableInitialization(this.declaration, this.value);
 
@@ -1542,7 +1544,7 @@ class Call extends Expression {
   List<Expression> arguments;
 
   Call(this.target, this.arguments,
-      {JavaScriptNodeSourceInformation sourceInformation}) {
+      {JavaScriptNodeSourceInformation? sourceInformation}) {
     this._sourceInformation = sourceInformation;
   }
 
@@ -1843,9 +1845,9 @@ class NamedFunction extends Expression {
 }
 
 abstract class FunctionExpression extends Expression {
-  Node body;
-  List<Parameter> params;
-  AsyncModifier asyncModifier;
+  Node get body;
+  List<Parameter> get params;
+  AsyncModifier get asyncModifier;
 }
 
 class Fun extends FunctionExpression {
@@ -1935,7 +1937,7 @@ class AsyncModifier {
   final String description;
 
   const AsyncModifier(this.index, this.description,
-      {this.isAsync, this.isYielding});
+      {required this.isAsync, required this.isYielding});
 
   static const AsyncModifier sync =
       AsyncModifier(0, "sync", isAsync: false, isYielding: false);
