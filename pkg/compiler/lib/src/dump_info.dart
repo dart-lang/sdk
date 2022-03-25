@@ -26,7 +26,6 @@ import 'inferrer/types.dart'
 import 'js/js.dart' as jsAst;
 import 'js_model/js_strategy.dart';
 import 'js_backend/field_analysis.dart';
-import 'universe/codegen_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactVisitorImpl;
 import 'util/sink_adapter.dart';
 import 'world.dart' show JClosedWorld;
@@ -38,7 +37,6 @@ class ElementInfoCollector {
   final DumpInfoTask dumpInfoTask;
 
   JElementEnvironment get environment => closedWorld.elementEnvironment;
-  CodegenWorldBuilder get codegenWorldBuilder => compiler.codegenWorldBuilder;
 
   final AllInfo result = AllInfo();
   final Map<Entity, Info> _entityToInfo = <Entity, Info>{};
