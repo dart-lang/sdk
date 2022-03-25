@@ -157,8 +157,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
       );
 
-      substitution = Substitution.fromPairs(
-          rawType.typeFormals, inferrer.downwardsInfer());
+      substitution =
+          Substitution.fromPairs(rawType.typeFormals, inferrer.partialInfer());
     }
 
     List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo =
@@ -174,6 +174,10 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         substitution: substitution,
         inferrer: inferrer);
     if (deferredClosures != null) {
+      if (inferrer != null) {
+        substitution = Substitution.fromPairs(
+            rawType!.typeFormals, inferrer.partialInfer());
+      }
       _resolveDeferredClosures(
           resolver: resolver,
           node: node,

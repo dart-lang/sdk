@@ -178,15 +178,15 @@ class GenericInferrer {
     _tryMatchSubtypeOf(declaredType, contextType, origin, covariant: true);
   }
 
-  /// Performs downwards inference, producing a set of inferred types that may
-  /// contain references to the "unknown type".
-  List<DartType> downwardsInfer() => _chooseTypes(downwardsInferPhase: true);
+  /// Performs partial (either downwards or horizontal) inference, producing a
+  /// set of inferred types that may contain references to the "unknown type".
+  List<DartType> partialInfer() => _chooseTypes(partial: true);
 
   /// Same as [upwardsInfer], but if [failAtError] is `true` (the default) and
   /// inference fails, returns `null` rather than trying to perform error
   /// recovery.
   List<DartType>? tryUpwardsInfer({bool failAtError = true}) {
-    var inferredTypes = _chooseTypes(downwardsInferPhase: false);
+    var inferredTypes = _chooseTypes(partial: false);
     // Check the inferred types against all of the constraints.
     var knownTypes = <TypeParameterElement, DartType>{};
     var hasErrorReported = false;
@@ -424,7 +424,7 @@ class GenericInferrer {
 
   /// Computes (or recomputes) a set of [inferredTypes] based on the constraints
   /// that have been recorded so far.
-  List<DartType> _chooseTypes({required bool downwardsInferPhase}) {
+  List<DartType> _chooseTypes({required bool partial}) {
     var inferredTypes = List<DartType>.filled(
         _typeFormals.length, UnknownInferredType.instance);
     for (int i = 0; i < _typeFormals.length; i++) {
@@ -443,7 +443,7 @@ class GenericInferrer {
       }
 
       var constraints = _constraints[typeParam]!;
-      if (downwardsInferPhase) {
+      if (partial) {
         var inferredType = _inferTypeParameterFromContext(
             constraints, extendsClause,
             isContravariant: typeParam.variance.isContravariant);

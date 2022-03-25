@@ -112,7 +112,7 @@ class TypedLiteralResolver {
     } else {
       inferrer = _inferListTypeDownwards(node, contextType: contextType);
       if (contextType != null) {
-        var typeArguments = inferrer.downwardsInfer();
+        var typeArguments = inferrer.partialInfer();
         listType = _typeProvider.listElement.instantiate(
             typeArguments: typeArguments, nullabilitySuffix: _noneOrStarSuffix);
       }
@@ -146,7 +146,7 @@ class TypedLiteralResolver {
       } else {
         inferrer = _inferSetTypeDownwards(node, literalResolution.contextType);
         if (literalResolution.contextType != null) {
-          var typeArguments = inferrer.downwardsInfer();
+          var typeArguments = inferrer.partialInfer();
           literalType = _typeProvider.setElement.instantiate(
               typeArguments: typeArguments,
               nullabilitySuffix: _noneOrStarSuffix);
@@ -160,7 +160,7 @@ class TypedLiteralResolver {
       } else {
         inferrer = _inferMapTypeDownwards(node, literalResolution.contextType);
         if (literalResolution.contextType != null) {
-          var typeArguments = inferrer.downwardsInfer();
+          var typeArguments = inferrer.partialInfer();
           literalType = _typeProvider.mapElement.instantiate(
               typeArguments: typeArguments,
               nullabilitySuffix: _noneOrStarSuffix);
