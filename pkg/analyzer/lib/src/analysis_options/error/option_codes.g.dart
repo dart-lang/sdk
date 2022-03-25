@@ -135,6 +135,17 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   );
 
   /**
+   * An error code indicating that the given option is deprecated.
+   */
+  static const AnalysisOptionsWarningCode
+      ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT = AnalysisOptionsWarningCode(
+    'ANALYSIS_OPTION_DEPRECATED',
+    "The option '{0}' is no longer supported.",
+    correctionMessage: "Try using the new '{1}' option.",
+    uniqueName: 'ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT',
+  );
+
+  /**
    * An error code indicating a specified include file has a warning.
    *
    * Parameters:

@@ -43,8 +43,6 @@ void main() {
 /// TODO(scheglov) this is duplicate
 class AnalysisOptionsFileConfig {
   final List<String> experiments;
-  final bool implicitCasts;
-  final bool implicitDynamic;
   final List<String> lints;
   final bool strictCasts;
   final bool strictInference;
@@ -52,8 +50,6 @@ class AnalysisOptionsFileConfig {
 
   AnalysisOptionsFileConfig({
     this.experiments = const [],
-    this.implicitCasts = true,
-    this.implicitDynamic = true,
     this.lints = const [],
     this.strictCasts = false,
     this.strictInference = false,
@@ -72,9 +68,6 @@ class AnalysisOptionsFileConfig {
     buffer.writeln('    strict-casts: $strictCasts');
     buffer.writeln('    strict-inference: $strictInference');
     buffer.writeln('    strict-raw-types: $strictRawTypes');
-    buffer.writeln('  strong-mode:');
-    buffer.writeln('    implicit-casts: $implicitCasts');
-    buffer.writeln('    implicit-dynamic: $implicitDynamic');
 
     buffer.writeln('linter:');
     buffer.writeln('  rules:');

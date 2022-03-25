@@ -66,6 +66,10 @@ class AbstractContextTest with ResourceProviderMixin {
 
   Future<AnalysisSession> get session => sessionFor(testPackageRootPath);
 
+  /// The path for `analysis_options.yaml` in [testPackageRootPath].
+  String get testAnalysisOptionsPath =>
+      convertPath('$testPackageRootPath/analysis_options.yaml');
+
   String? get testPackageLanguageVersion => latestLanguageVersion;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';

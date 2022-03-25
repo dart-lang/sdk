@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/src/protocol_server.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    hide AnalysisError;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -16,8 +17,11 @@ import 'package:yaml/yaml.dart';
 /// errors in Dart files.
 class AnalysisOptionsFixTest with ResourceProviderMixin {
   Future<void> assertHasFix(
-      String initialContent, String expectedContent) async {
-    var fixes = await _getFixes(initialContent);
+    String initialContent,
+    String expectedContent, {
+    bool Function(AnalysisError)? errorFilter,
+  }) async {
+    var fixes = await _getFixes(initialContent, errorFilter: errorFilter);
     expect(fixes, hasLength(1));
     var fileEdits = fixes[0].change.edits;
     expect(fileEdits, hasLength(1));
@@ -32,8 +36,11 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
     expect(fixes, hasLength(0));
   }
 
-  Future<List<Fix>> _getFixes(String content) {
-    var optionsFile = getFile('/analysis_options.yaml');
+  Future<List<Fix>> _getFixes(
+    String content, {
+    bool Function(AnalysisError)? errorFilter,
+  }) {
+    var optionsFile = newFile2('/analysis_options.yaml', content);
     var sourceFactory = SourceFactory([]);
     var errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
@@ -41,6 +48,12 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
       sourceFactory,
       '/',
     );
+    if (errorFilter != null) {
+      if (errors.length == 1) {
+        fail('Unnecessary error filter');
+      }
+      errors = errors.where(errorFilter).toList();
+    }
     expect(errors, hasLength(1));
     var error = errors[0];
     var options = _parseYaml(content);
