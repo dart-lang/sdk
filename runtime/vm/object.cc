@@ -118,7 +118,7 @@ ArrayPtr SubtypeTestCache::cached_array_;
 
 cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = {};
 
-// These are initialized to a value that will force a illegal memory access if
+// These are initialized to a value that will force an illegal memory access if
 // they are being used.
 #if defined(RAW_NULL)
 #error RAW_NULL should not be defined.
@@ -2344,6 +2344,15 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiDynamicLibrary(), lib);
 
+    cls = Class::New<Finalizer, RTN::Finalizer>(isolate_group);
+    cls.set_type_arguments_field_offset(
+        Finalizer::type_arguments_offset(),
+        RTN::Finalizer::type_arguments_offset());
+    cls.set_num_type_arguments_unsafe(1);
+    object_store->set_finalizer_class(cls);
+    pending_classes.Add(cls);
+    RegisterPrivateClass(cls, Symbols::_FinalizerImpl(), core_lib);
+
     // Pre-register the internal library so we can place the vm class
     // FinalizerEntry there rather than the core library.
     lib = Library::LookupLibrary(thread, Symbols::DartInternal());
@@ -2355,6 +2364,11 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_bootstrap_library(ObjectStore::kInternal, lib);
     ASSERT(!lib.IsNull());
     ASSERT(lib.ptr() == Library::InternalLibrary());
+
+    cls = Class::New<FinalizerEntry, RTN::FinalizerEntry>(isolate_group);
+    object_store->set_finalizer_entry_class(cls);
+    pending_classes.Add(cls);
+    RegisterClass(cls, Symbols::FinalizerEntry(), lib);
 
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
@@ -2523,6 +2537,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_weak_property_class(cls);
     cls = Class::New<WeakReference, RTN::WeakReference>(isolate_group);
     object_store->set_weak_reference_class(cls);
+    cls = Class::New<Finalizer, RTN::Finalizer>(isolate_group);
+    object_store->set_finalizer_class(cls);
+    cls = Class::New<FinalizerEntry, RTN::FinalizerEntry>(isolate_group);
+    object_store->set_finalizer_entry_class(cls);
 
     cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
     cls = Class::New<UserTag, RTN::UserTag>(isolate_group);
@@ -11250,8 +11268,7 @@ class FieldGuardUpdater {
   FieldGuardUpdater(const Field* field, const Object& value);
 
   bool IsUpdateNeeded() {
-    return does_guarded_cid_need_update_ ||
-           does_is_nullable_need_update_ ||
+    return does_guarded_cid_need_update_ || does_is_nullable_need_update_ ||
            does_list_length_and_offset_need_update_ ||
            does_static_type_exactness_state_need_update_;
   }
@@ -11274,7 +11291,8 @@ class FieldGuardUpdater {
   }
 
   intptr_t guarded_list_length() { return list_length_; }
-  void set_guarded_list_length_and_offset(intptr_t list_length,
+  void set_guarded_list_length_and_offset(
+      intptr_t list_length,
       intptr_t list_length_in_object_offset) {
     list_length_ = list_length;
     list_length_in_object_offset_ = list_length_in_object_offset;
@@ -11678,15 +11696,15 @@ void FieldGuardUpdater::ReviewExactnessState() {
   return;
 }
 
-FieldGuardUpdater::FieldGuardUpdater(const Field* field, const Object& value):
-    field_(field),
-    value_(value),
-    guarded_cid_(field->guarded_cid()),
-    is_nullable_(field->is_nullable()),
-    list_length_(field->guarded_list_length()),
-    list_length_in_object_offset_(
-        field->guarded_list_length_in_object_offset()),
-    static_type_exactness_state_(field->static_type_exactness_state()) {
+FieldGuardUpdater::FieldGuardUpdater(const Field* field, const Object& value)
+    : field_(field),
+      value_(value),
+      guarded_cid_(field->guarded_cid()),
+      is_nullable_(field->is_nullable()),
+      list_length_(field->guarded_list_length()),
+      list_length_in_object_offset_(
+          field->guarded_list_length_in_object_offset()),
+      static_type_exactness_state_(field->static_type_exactness_state()) {
   ReviewGuards();
   ReviewExactnessState();
 }
@@ -26012,12 +26030,48 @@ WeakReferencePtr WeakReference::New(Heap::Space space) {
                        space, WeakReference::ContainsCompressedPointers());
   return static_cast<WeakReferencePtr>(raw);
 }
-
 const char* WeakReference::ToCString() const {
   TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
   String& type_args_name = String::Handle(type_args.UserVisibleName());
-  return OS::SCreate(Thread::Current()->zone(), "WeakReference%s",
+  return OS::SCreate(Thread::Current()->zone(), "_WeakReference%s",
                      type_args_name.ToCString());
+}
+
+const char* FinalizerBase::ToCString() const {
+  return "FinalizerBase";
+}
+
+FinalizerPtr Finalizer::New(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->finalizer_class() !=
+         Class::null());
+  ObjectPtr raw =
+      Object::Allocate(Finalizer::kClassId, Finalizer::InstanceSize(), space,
+                       Finalizer::ContainsCompressedPointers());
+  return static_cast<FinalizerPtr>(raw);
+}
+
+const char* Finalizer::ToCString() const {
+  TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
+  String& type_args_name = String::Handle(type_args.UserVisibleName());
+  return OS::SCreate(Thread::Current()->zone(), "_FinalizerImpl%s",
+                     type_args_name.ToCString());
+}
+
+FinalizerEntryPtr FinalizerEntry::New(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->finalizer_entry_class() !=
+         Class::null());
+  ObjectPtr raw =
+      Object::Allocate(FinalizerEntry::kClassId, FinalizerEntry::InstanceSize(),
+                       space, FinalizerEntry::ContainsCompressedPointers());
+  return static_cast<FinalizerEntryPtr>(raw);
+}
+
+void FinalizerEntry::set_finalizer(const FinalizerBase& value) const {
+  untag()->set_finalizer(value.ptr());
+}
+
+const char* FinalizerEntry::ToCString() const {
+  return "FinalizerEntry";
 }
 
 AbstractTypePtr MirrorReference::GetAbstractTypeReferent() const {

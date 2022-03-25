@@ -570,9 +570,10 @@ static void CommentSkippedClasses(compiler::Assembler* assembler,
 }
 
 // Builds a cid range check for the concrete subclasses and implementors of
-// type. Assumes cid to check is already in TTSInternalRegs::kScratchReg. Falls
-// through or jumps to check_succeeded if the range contains the cid, else
-// jumps to check_failed.
+// type. Falls through or jumps to check_succeeded if the range contains the
+// cid, else jumps to check_failed.
+//
+// Clobbers class_id_reg.
 void TypeTestingStubGenerator::BuildOptimizedSubtypeRangeCheck(
     compiler::Assembler* assembler,
     const CidRangeVector& ranges,
@@ -591,12 +592,9 @@ void TypeTestingStubGenerator::
         const Type& type,
         const Class& type_class) {
   ASSERT(hi->CanUseGenericSubtypeRangeCheckFor(type));
-  compiler::Label check_failed;
+  compiler::Label check_failed, load_succeeded;
   // a) First we perform subtype cid-range checks and load the instance type
   // arguments based on which check succeeded.
-  __ LoadClassIdMayBeSmi(TTSInternalRegs::kScratchReg,
-                         TypeTestABI::kInstanceReg);
-  compiler::Label load_succeeded;
   if (BuildLoadInstanceTypeArguments(assembler, hi, type, type_class,
                                      TTSInternalRegs::kScratchReg,
                                      TTSInternalRegs::kInstanceTypeArgumentsReg,
@@ -879,6 +877,7 @@ bool TypeTestingStubGenerator::BuildLoadInstanceTypeArguments(
     const intptr_t tav_offset =
         compiler::target::Class::TypeArgumentsFieldOffset(type_class);
     compiler::Label is_subtype;
+    __ LoadClassIdMayBeSmi(class_id_reg, TypeTestABI::kInstanceReg);
     BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
                                     &is_subtype, load_failed);
     __ Bind(&is_subtype);
@@ -902,6 +901,7 @@ bool TypeTestingStubGenerator::BuildLoadInstanceTypeArguments(
     compiler::Label is_subtype, keep_looking;
     compiler::Label* check_failed =
         type_argument_checks.is_empty() ? load_failed : &keep_looking;
+    __ LoadClassIdMayBeSmi(class_id_reg, TypeTestABI::kInstanceReg);
     BuildOptimizedSubtypeRangeCheck(assembler, cid_checks_only, class_id_reg,
                                     &is_subtype, check_failed);
     __ Bind(&is_subtype);
@@ -929,6 +929,7 @@ bool TypeTestingStubGenerator::BuildLoadInstanceTypeArguments(
       // and avoid emitting a jump to load_succeeded.
       compiler::Label* check_failed =
           i < vectors.length() - 1 ? &keep_looking : load_failed;
+      __ LoadClassIdMayBeSmi(class_id_reg, TypeTestABI::kInstanceReg);
       BuildOptimizedSubtypeRangeCheck(assembler, *vector, class_id_reg,
                                       &load_tav, check_failed);
       __ Bind(&load_tav);

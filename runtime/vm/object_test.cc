@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <limits>
+#include <memory>
 
 #include "include/dart_api.h"
 
@@ -16,12 +17,15 @@
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/debugger_api_impl_test.h"
+#include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/malloc_hooks.h"
+#include "vm/message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
@@ -4004,6 +4008,1037 @@ ISOLATE_UNIT_TEST_CASE(
     WeakReference_Preserve_ReachableThroughWeakProperty_OldSpace) {
   WeakReference_Preserve_ReachableThroughWeakProperty(thread, Heap::kOld);
 }
+
+static int NumEntries(const FinalizerEntry& entry, intptr_t acc = 0) {
+  if (entry.IsNull()) {
+    return acc;
+  }
+  return NumEntries(FinalizerEntry::Handle(entry.next()), acc + 1);
+}
+
+static void Finalizer_PreserveOne(Thread* thread,
+                                  Heap::Space space,
+                                  bool with_detach) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+
+  const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
+  finalizer.set_isolate(thread->isolate());
+  const auto& entry = FinalizerEntry::Handle(FinalizerEntry::New(space));
+  entry.set_finalizer(finalizer);
+  const auto& value = String::Handle(OneByteString::New("value", space));
+  entry.set_value(value);
+  auto& detach = Object::Handle();
+  if (with_detach) {
+    detach = OneByteString::New("detach", space);
+  } else {
+    detach = Object::null();
+  }
+  entry.set_detach(detach);
+  const auto& token = String::Handle(OneByteString::New("token", space));
+  entry.set_token(token);
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  // Nothing in the entry should have been collected.
+  EXPECT_NE(Object::null(), entry.value());
+  EXPECT((entry.detach() == Object::null()) ^ with_detach);
+  EXPECT_NE(Object::null(), entry.token());
+
+  // The entry should not have moved to the collected list.
+  EXPECT_EQ(0,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  // We should have no messages.
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveNoDetachOne_NewSpace) {
+  Finalizer_PreserveOne(thread, Heap::kNew, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveNoDetachOne_OldSpace) {
+  Finalizer_PreserveOne(thread, Heap::kOld, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveWithDetachOne_NewSpace) {
+  Finalizer_PreserveOne(thread, Heap::kNew, true);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveWithDetachOne_OldSpace) {
+  Finalizer_PreserveOne(thread, Heap::kOld, true);
+}
+
+static void Finalizer_ClearDetachOne(Thread* thread, Heap::Space space) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+
+  const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
+  finalizer.set_isolate(thread->isolate());
+  const auto& entry = FinalizerEntry::Handle(FinalizerEntry::New(space));
+  entry.set_finalizer(finalizer);
+  const auto& value = String::Handle(OneByteString::New("value", space));
+  entry.set_value(value);
+  const auto& token = String::Handle(OneByteString::New("token", space));
+  entry.set_token(token);
+
+  {
+    HANDLESCOPE(thread);
+    const auto& detach = String::Handle(OneByteString::New("detach", space));
+    entry.set_detach(detach);
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  // Detach should have been collected.
+  EXPECT_NE(Object::null(), entry.value());
+  EXPECT_EQ(Object::null(), entry.detach());
+  EXPECT_NE(Object::null(), entry.token());
+
+  // The entry should not have moved to the collected list.
+  EXPECT_EQ(0,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  // We should have no messages.
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearDetachOne_NewSpace) {
+  Finalizer_ClearDetachOne(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearDetachOne_OldSpace) {
+  Finalizer_ClearDetachOne(thread, Heap::kOld);
+}
+
+static void Finalizer_ClearValueOne(Thread* thread,
+                                    Heap::Space space,
+                                    bool null_token) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+
+  const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
+  finalizer.set_isolate(thread->isolate());
+  const auto& entry = FinalizerEntry::Handle(FinalizerEntry::New(space));
+  entry.set_finalizer(finalizer);
+  const auto& detach = String::Handle(OneByteString::New("detach", space));
+  auto& token = Object::Handle();
+  if (null_token) {
+    // Null is a valid token in Dart finalizers.
+    token = Object::null();
+  } else {
+    token = OneByteString::New("token", space);
+  }
+  entry.set_token(token);
+  entry.set_detach(detach);
+
+  {
+    HANDLESCOPE(thread);
+    const auto& value = String::Handle(OneByteString::New("value", space));
+    entry.set_value(value);
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  // Value should have been collected.
+  EXPECT_EQ(Object::null(), entry.value());
+  EXPECT_NE(Object::null(), entry.detach());
+
+  // The entry should have moved to the collected list.
+  EXPECT_EQ(1,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  // We should have 1 message.
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(1, aq.queue()->Length());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueOne_NewSpace) {
+  Finalizer_ClearValueOne(thread, Heap::kNew, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueOne_OldSpace) {
+  Finalizer_ClearValueOne(thread, Heap::kOld, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueNullTokenOne_NewSpace) {
+  Finalizer_ClearValueOne(thread, Heap::kNew, true);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueNullTokenOne_OldSpace) {
+  Finalizer_ClearValueOne(thread, Heap::kOld, true);
+}
+
+static void Finalizer_DetachOne(Thread* thread,
+                                Heap::Space space,
+                                bool clear_value) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+
+  const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
+  finalizer.set_isolate(thread->isolate());
+  const auto& entry = FinalizerEntry::Handle(FinalizerEntry::New(space));
+  entry.set_finalizer(finalizer);
+  const auto& detach = String::Handle(OneByteString::New("detach", space));
+  entry.set_detach(detach);
+
+  // Simulate calling detach, setting the token of the entry to the entry.
+  entry.set_token(entry);
+
+  auto& value = String::Handle();
+  {
+    HANDLESCOPE(thread);
+
+    const auto& object = String::Handle(OneByteString::New("value", space));
+    entry.set_value(object);
+    if (!clear_value) {
+      value = object.ptr();
+    }
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  EXPECT((entry.value() == Object::null()) ^ !clear_value);
+  EXPECT_NE(Object::null(), entry.detach());
+  EXPECT_EQ(entry.ptr(), entry.token());
+
+  // The entry should have been removed entirely
+  EXPECT_EQ(0,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  // We should have no message.
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_DetachOne_NewSpace) {
+  Finalizer_DetachOne(thread, Heap::kNew, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_DetachOne_OldSpace) {
+  Finalizer_DetachOne(thread, Heap::kOld, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_DetachAndClearValueOne_NewSpace) {
+  Finalizer_DetachOne(thread, Heap::kNew, true);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_DetachAndClearValueOne_OldSpace) {
+  Finalizer_DetachOne(thread, Heap::kOld, true);
+}
+
+static void Finalizer_GcFinalizer(Thread* thread, Heap::Space space) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+
+  const auto& detach = String::Handle(OneByteString::New("detach", space));
+  const auto& token = String::Handle(OneByteString::New("token", space));
+
+  {
+    HANDLESCOPE(thread);
+    const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
+    finalizer.set_isolate(thread->isolate());
+    const auto& entry = FinalizerEntry::Handle(FinalizerEntry::New(space));
+    entry.set_finalizer(finalizer);
+    entry.set_detach(detach);
+    entry.set_token(token);
+    const auto& value = String::Handle(OneByteString::New("value", space));
+    entry.set_value(value);
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  // We should have no message, the Finalizer itself has been GCed.
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_GcFinalizer_NewSpace) {
+  Finalizer_GcFinalizer(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_GcFinalizer_OldSpace) {
+  Finalizer_GcFinalizer(thread, Heap::kOld);
+}
+
+static void Finalizer_TwoEntriesCrossGen(
+    Thread* thread,
+    Heap::Space* spaces,
+    bool collect_old_space,
+    bool collect_new_space,
+    bool evacuate_new_space_and_collect_old_space,
+    bool clear_value_1,
+    bool clear_value_2,
+    bool clear_detach_1,
+    bool clear_detach_2) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  // We're reusing the isolate in a loop, so there are messages from previous
+  // runs of this test.
+  intptr_t queue_length_start = 0;
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    queue_length_start = aq.queue()->Length();
+  }
+
+  const auto& finalizer = Finalizer::Handle(Finalizer::New(spaces[0]));
+  finalizer.set_isolate(thread->isolate());
+  const auto& entry1 = FinalizerEntry::Handle(FinalizerEntry::New(spaces[1]));
+  entry1.set_finalizer(finalizer);
+  const auto& entry2 = FinalizerEntry::Handle(FinalizerEntry::New(spaces[2]));
+  entry2.set_finalizer(finalizer);
+
+  auto& value1 = String::Handle();
+  auto& detach1 = String::Handle();
+  const auto& token1 = String::Handle(OneByteString::New("token1", spaces[3]));
+  entry1.set_token(token1);
+
+  auto& value2 = String::Handle();
+  auto& detach2 = String::Handle();
+  const auto& token2 = String::Handle(OneByteString::New("token2", spaces[4]));
+  entry2.set_token(token2);
+  entry2.set_detach(detach2);
+
+  {
+    HANDLESCOPE(thread);
+    auto& object = String::Handle();
+
+    object ^= OneByteString::New("value1", spaces[5]);
+    entry1.set_value(object);
+    if (!clear_value_1) {
+      value1 = object.ptr();
+    }
+
+    object ^= OneByteString::New("detach", spaces[6]);
+    entry1.set_detach(object);
+    if (!clear_detach_1) {
+      detach1 = object.ptr();
+    }
+
+    object ^= OneByteString::New("value2", spaces[7]);
+    entry2.set_value(object);
+    if (!clear_value_2) {
+      value2 = object.ptr();
+    }
+
+    object ^= OneByteString::New("detach", spaces[8]);
+    entry2.set_detach(object);
+    if (!clear_detach_2) {
+      detach2 = object.ptr();
+    }
+  }
+
+  if (collect_old_space) {
+    GCTestHelper::CollectOldSpace();
+  }
+  if (collect_new_space) {
+    GCTestHelper::CollectNewSpace();
+  }
+  if (evacuate_new_space_and_collect_old_space) {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  EXPECT((entry1.value() == Object::null()) ^ !clear_value_1);
+  EXPECT((entry2.value() == Object::null()) ^ !clear_value_2);
+  EXPECT((entry1.detach() == Object::null()) ^ !clear_detach_1);
+  EXPECT((entry2.detach() == Object::null()) ^ !clear_detach_2);
+  EXPECT_NE(Object::null(), entry1.token());
+  EXPECT_NE(Object::null(), entry2.token());
+
+  const intptr_t expect_num_cleared =
+      (clear_value_1 ? 1 : 0) + (clear_value_2 ? 1 : 0);
+  EXPECT_EQ(expect_num_cleared,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  const intptr_t expect_num_messages = expect_num_cleared == 0 ? 0 : 1;
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(expect_num_messages + queue_length_start, aq.queue()->Length());
+  }
+}
+
+const intptr_t kFinalizerTwoEntriesNumObjects = 9;
+
+static void Finalizer_TwoEntries(Thread* thread,
+                                 Heap::Space space,
+                                 bool clear_value_1,
+                                 bool clear_value_2,
+                                 bool clear_detach_1,
+                                 bool clear_detach_2) {
+  const bool collect_old_space = true;
+  const bool collect_new_space = space == Heap::kNew;
+  const bool evacuate_new_space_and_collect_old_space = !collect_new_space;
+
+  Heap::Space spaces[kFinalizerTwoEntriesNumObjects];
+  for (intptr_t i = 0; i < kFinalizerTwoEntriesNumObjects; i++) {
+    spaces[i] = space;
+  }
+  Finalizer_TwoEntriesCrossGen(
+      thread, spaces, collect_old_space, collect_new_space,
+      evacuate_new_space_and_collect_old_space, clear_value_1, clear_value_2,
+      clear_detach_1, clear_detach_2);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueTwo_NewSpace) {
+  Finalizer_TwoEntries(thread, Heap::kNew, true, true, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueTwo_OldSpace) {
+  Finalizer_TwoEntries(thread, Heap::kOld, true, true, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearFirstValue_NewSpace) {
+  Finalizer_TwoEntries(thread, Heap::kNew, true, false, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearFirstValue_OldSpace) {
+  Finalizer_TwoEntries(thread, Heap::kOld, true, false, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearSecondValue_NewSpace) {
+  Finalizer_TwoEntries(thread, Heap::kNew, false, true, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearSecondValue_OldSpace) {
+  Finalizer_TwoEntries(thread, Heap::kOld, false, true, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveTwo_NewSpace) {
+  Finalizer_TwoEntries(thread, Heap::kNew, false, false, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveTwo_OldSpace) {
+  Finalizer_TwoEntries(thread, Heap::kOld, false, false, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearDetachTwo_NewSpace) {
+  Finalizer_TwoEntries(thread, Heap::kNew, false, false, true, true);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearDetachTwo_OldSpace) {
+  Finalizer_TwoEntries(thread, Heap::kOld, false, false, true, true);
+}
+
+static void Finalizer_TwoEntriesCrossGen(Thread* thread, intptr_t test_i) {
+  ASSERT(test_i < (1 << kFinalizerTwoEntriesNumObjects));
+  Heap::Space spaces[kFinalizerTwoEntriesNumObjects];
+  for (intptr_t i = 0; i < kFinalizerTwoEntriesNumObjects; i++) {
+    spaces[i] = ((test_i >> i) & 0x1) == 0x1 ? Heap::kOld : Heap::kNew;
+  }
+  // Either collect or evacuate new space.
+  for (const bool collect_new_space : {false, true}) {
+    // Always run old space collection first.
+    const bool collect_old_space = true;
+    // Always run old space collection after new space.
+    const bool evacuate_new_space_and_collect_old_space = true;
+    for (intptr_t test_j = 0; test_j < 16; test_j++) {
+      const bool clear_value_1 = (test_j >> 0 & 0x1) == 0x1;
+      const bool clear_value_2 = (test_j >> 1 & 0x1) == 0x1;
+      const bool clear_detach_1 = (test_j >> 2 & 0x1) == 0x1;
+      const bool clear_detach_2 = (test_j >> 3 & 0x1) == 0x1;
+      Finalizer_TwoEntriesCrossGen(
+          thread, spaces, collect_old_space, collect_new_space,
+          evacuate_new_space_and_collect_old_space, clear_value_1,
+          clear_value_2, clear_detach_1, clear_detach_2);
+    }
+  }
+}
+#define FINALIZER_CROSS_GEN_TEST_CASE(n)                                       \
+  ISOLATE_UNIT_TEST_CASE(Finalizer_CrossGen_##n) {                             \
+    Finalizer_TwoEntriesCrossGen(thread, n);                                   \
+  }
+
+#define REPEAT_512(V)                                                          \
+  V(0)                                                                         \
+  V(1)                                                                         \
+  V(2)                                                                         \
+  V(3)                                                                         \
+  V(4)                                                                         \
+  V(5)                                                                         \
+  V(6)                                                                         \
+  V(7)                                                                         \
+  V(8)                                                                         \
+  V(9)                                                                         \
+  V(10)                                                                        \
+  V(11)                                                                        \
+  V(12)                                                                        \
+  V(13)                                                                        \
+  V(14)                                                                        \
+  V(15)                                                                        \
+  V(16)                                                                        \
+  V(17)                                                                        \
+  V(18)                                                                        \
+  V(19)                                                                        \
+  V(20)                                                                        \
+  V(21)                                                                        \
+  V(22)                                                                        \
+  V(23)                                                                        \
+  V(24)                                                                        \
+  V(25)                                                                        \
+  V(26)                                                                        \
+  V(27)                                                                        \
+  V(28)                                                                        \
+  V(29)                                                                        \
+  V(30)                                                                        \
+  V(31)                                                                        \
+  V(32)                                                                        \
+  V(33)                                                                        \
+  V(34)                                                                        \
+  V(35)                                                                        \
+  V(36)                                                                        \
+  V(37)                                                                        \
+  V(38)                                                                        \
+  V(39)                                                                        \
+  V(40)                                                                        \
+  V(41)                                                                        \
+  V(42)                                                                        \
+  V(43)                                                                        \
+  V(44)                                                                        \
+  V(45)                                                                        \
+  V(46)                                                                        \
+  V(47)                                                                        \
+  V(48)                                                                        \
+  V(49)                                                                        \
+  V(50)                                                                        \
+  V(51)                                                                        \
+  V(52)                                                                        \
+  V(53)                                                                        \
+  V(54)                                                                        \
+  V(55)                                                                        \
+  V(56)                                                                        \
+  V(57)                                                                        \
+  V(58)                                                                        \
+  V(59)                                                                        \
+  V(60)                                                                        \
+  V(61)                                                                        \
+  V(62)                                                                        \
+  V(63)                                                                        \
+  V(64)                                                                        \
+  V(65)                                                                        \
+  V(66)                                                                        \
+  V(67)                                                                        \
+  V(68)                                                                        \
+  V(69)                                                                        \
+  V(70)                                                                        \
+  V(71)                                                                        \
+  V(72)                                                                        \
+  V(73)                                                                        \
+  V(74)                                                                        \
+  V(75)                                                                        \
+  V(76)                                                                        \
+  V(77)                                                                        \
+  V(78)                                                                        \
+  V(79)                                                                        \
+  V(80)                                                                        \
+  V(81)                                                                        \
+  V(82)                                                                        \
+  V(83)                                                                        \
+  V(84)                                                                        \
+  V(85)                                                                        \
+  V(86)                                                                        \
+  V(87)                                                                        \
+  V(88)                                                                        \
+  V(89)                                                                        \
+  V(90)                                                                        \
+  V(91)                                                                        \
+  V(92)                                                                        \
+  V(93)                                                                        \
+  V(94)                                                                        \
+  V(95)                                                                        \
+  V(96)                                                                        \
+  V(97)                                                                        \
+  V(98)                                                                        \
+  V(99)                                                                        \
+  V(100)                                                                       \
+  V(101)                                                                       \
+  V(102)                                                                       \
+  V(103)                                                                       \
+  V(104)                                                                       \
+  V(105)                                                                       \
+  V(106)                                                                       \
+  V(107)                                                                       \
+  V(108)                                                                       \
+  V(109)                                                                       \
+  V(110)                                                                       \
+  V(111)                                                                       \
+  V(112)                                                                       \
+  V(113)                                                                       \
+  V(114)                                                                       \
+  V(115)                                                                       \
+  V(116)                                                                       \
+  V(117)                                                                       \
+  V(118)                                                                       \
+  V(119)                                                                       \
+  V(120)                                                                       \
+  V(121)                                                                       \
+  V(122)                                                                       \
+  V(123)                                                                       \
+  V(124)                                                                       \
+  V(125)                                                                       \
+  V(126)                                                                       \
+  V(127)                                                                       \
+  V(128)                                                                       \
+  V(129)                                                                       \
+  V(130)                                                                       \
+  V(131)                                                                       \
+  V(132)                                                                       \
+  V(133)                                                                       \
+  V(134)                                                                       \
+  V(135)                                                                       \
+  V(136)                                                                       \
+  V(137)                                                                       \
+  V(138)                                                                       \
+  V(139)                                                                       \
+  V(140)                                                                       \
+  V(141)                                                                       \
+  V(142)                                                                       \
+  V(143)                                                                       \
+  V(144)                                                                       \
+  V(145)                                                                       \
+  V(146)                                                                       \
+  V(147)                                                                       \
+  V(148)                                                                       \
+  V(149)                                                                       \
+  V(150)                                                                       \
+  V(151)                                                                       \
+  V(152)                                                                       \
+  V(153)                                                                       \
+  V(154)                                                                       \
+  V(155)                                                                       \
+  V(156)                                                                       \
+  V(157)                                                                       \
+  V(158)                                                                       \
+  V(159)                                                                       \
+  V(160)                                                                       \
+  V(161)                                                                       \
+  V(162)                                                                       \
+  V(163)                                                                       \
+  V(164)                                                                       \
+  V(165)                                                                       \
+  V(166)                                                                       \
+  V(167)                                                                       \
+  V(168)                                                                       \
+  V(169)                                                                       \
+  V(170)                                                                       \
+  V(171)                                                                       \
+  V(172)                                                                       \
+  V(173)                                                                       \
+  V(174)                                                                       \
+  V(175)                                                                       \
+  V(176)                                                                       \
+  V(177)                                                                       \
+  V(178)                                                                       \
+  V(179)                                                                       \
+  V(180)                                                                       \
+  V(181)                                                                       \
+  V(182)                                                                       \
+  V(183)                                                                       \
+  V(184)                                                                       \
+  V(185)                                                                       \
+  V(186)                                                                       \
+  V(187)                                                                       \
+  V(188)                                                                       \
+  V(189)                                                                       \
+  V(190)                                                                       \
+  V(191)                                                                       \
+  V(192)                                                                       \
+  V(193)                                                                       \
+  V(194)                                                                       \
+  V(195)                                                                       \
+  V(196)                                                                       \
+  V(197)                                                                       \
+  V(198)                                                                       \
+  V(199)                                                                       \
+  V(200)                                                                       \
+  V(201)                                                                       \
+  V(202)                                                                       \
+  V(203)                                                                       \
+  V(204)                                                                       \
+  V(205)                                                                       \
+  V(206)                                                                       \
+  V(207)                                                                       \
+  V(208)                                                                       \
+  V(209)                                                                       \
+  V(210)                                                                       \
+  V(211)                                                                       \
+  V(212)                                                                       \
+  V(213)                                                                       \
+  V(214)                                                                       \
+  V(215)                                                                       \
+  V(216)                                                                       \
+  V(217)                                                                       \
+  V(218)                                                                       \
+  V(219)                                                                       \
+  V(220)                                                                       \
+  V(221)                                                                       \
+  V(222)                                                                       \
+  V(223)                                                                       \
+  V(224)                                                                       \
+  V(225)                                                                       \
+  V(226)                                                                       \
+  V(227)                                                                       \
+  V(228)                                                                       \
+  V(229)                                                                       \
+  V(230)                                                                       \
+  V(231)                                                                       \
+  V(232)                                                                       \
+  V(233)                                                                       \
+  V(234)                                                                       \
+  V(235)                                                                       \
+  V(236)                                                                       \
+  V(237)                                                                       \
+  V(238)                                                                       \
+  V(239)                                                                       \
+  V(240)                                                                       \
+  V(241)                                                                       \
+  V(242)                                                                       \
+  V(243)                                                                       \
+  V(244)                                                                       \
+  V(245)                                                                       \
+  V(246)                                                                       \
+  V(247)                                                                       \
+  V(248)                                                                       \
+  V(249)                                                                       \
+  V(250)                                                                       \
+  V(251)                                                                       \
+  V(252)                                                                       \
+  V(253)                                                                       \
+  V(254)                                                                       \
+  V(255)                                                                       \
+  V(256)                                                                       \
+  V(257)                                                                       \
+  V(258)                                                                       \
+  V(259)                                                                       \
+  V(260)                                                                       \
+  V(261)                                                                       \
+  V(262)                                                                       \
+  V(263)                                                                       \
+  V(264)                                                                       \
+  V(265)                                                                       \
+  V(266)                                                                       \
+  V(267)                                                                       \
+  V(268)                                                                       \
+  V(269)                                                                       \
+  V(270)                                                                       \
+  V(271)                                                                       \
+  V(272)                                                                       \
+  V(273)                                                                       \
+  V(274)                                                                       \
+  V(275)                                                                       \
+  V(276)                                                                       \
+  V(277)                                                                       \
+  V(278)                                                                       \
+  V(279)                                                                       \
+  V(280)                                                                       \
+  V(281)                                                                       \
+  V(282)                                                                       \
+  V(283)                                                                       \
+  V(284)                                                                       \
+  V(285)                                                                       \
+  V(286)                                                                       \
+  V(287)                                                                       \
+  V(288)                                                                       \
+  V(289)                                                                       \
+  V(290)                                                                       \
+  V(291)                                                                       \
+  V(292)                                                                       \
+  V(293)                                                                       \
+  V(294)                                                                       \
+  V(295)                                                                       \
+  V(296)                                                                       \
+  V(297)                                                                       \
+  V(298)                                                                       \
+  V(299)                                                                       \
+  V(300)                                                                       \
+  V(301)                                                                       \
+  V(302)                                                                       \
+  V(303)                                                                       \
+  V(304)                                                                       \
+  V(305)                                                                       \
+  V(306)                                                                       \
+  V(307)                                                                       \
+  V(308)                                                                       \
+  V(309)                                                                       \
+  V(310)                                                                       \
+  V(311)                                                                       \
+  V(312)                                                                       \
+  V(313)                                                                       \
+  V(314)                                                                       \
+  V(315)                                                                       \
+  V(316)                                                                       \
+  V(317)                                                                       \
+  V(318)                                                                       \
+  V(319)                                                                       \
+  V(320)                                                                       \
+  V(321)                                                                       \
+  V(322)                                                                       \
+  V(323)                                                                       \
+  V(324)                                                                       \
+  V(325)                                                                       \
+  V(326)                                                                       \
+  V(327)                                                                       \
+  V(328)                                                                       \
+  V(329)                                                                       \
+  V(330)                                                                       \
+  V(331)                                                                       \
+  V(332)                                                                       \
+  V(333)                                                                       \
+  V(334)                                                                       \
+  V(335)                                                                       \
+  V(336)                                                                       \
+  V(337)                                                                       \
+  V(338)                                                                       \
+  V(339)                                                                       \
+  V(340)                                                                       \
+  V(341)                                                                       \
+  V(342)                                                                       \
+  V(343)                                                                       \
+  V(344)                                                                       \
+  V(345)                                                                       \
+  V(346)                                                                       \
+  V(347)                                                                       \
+  V(348)                                                                       \
+  V(349)                                                                       \
+  V(350)                                                                       \
+  V(351)                                                                       \
+  V(352)                                                                       \
+  V(353)                                                                       \
+  V(354)                                                                       \
+  V(355)                                                                       \
+  V(356)                                                                       \
+  V(357)                                                                       \
+  V(358)                                                                       \
+  V(359)                                                                       \
+  V(360)                                                                       \
+  V(361)                                                                       \
+  V(362)                                                                       \
+  V(363)                                                                       \
+  V(364)                                                                       \
+  V(365)                                                                       \
+  V(366)                                                                       \
+  V(367)                                                                       \
+  V(368)                                                                       \
+  V(369)                                                                       \
+  V(370)                                                                       \
+  V(371)                                                                       \
+  V(372)                                                                       \
+  V(373)                                                                       \
+  V(374)                                                                       \
+  V(375)                                                                       \
+  V(376)                                                                       \
+  V(377)                                                                       \
+  V(378)                                                                       \
+  V(379)                                                                       \
+  V(380)                                                                       \
+  V(381)                                                                       \
+  V(382)                                                                       \
+  V(383)                                                                       \
+  V(384)                                                                       \
+  V(385)                                                                       \
+  V(386)                                                                       \
+  V(387)                                                                       \
+  V(388)                                                                       \
+  V(389)                                                                       \
+  V(390)                                                                       \
+  V(391)                                                                       \
+  V(392)                                                                       \
+  V(393)                                                                       \
+  V(394)                                                                       \
+  V(395)                                                                       \
+  V(396)                                                                       \
+  V(397)                                                                       \
+  V(398)                                                                       \
+  V(399)                                                                       \
+  V(400)                                                                       \
+  V(401)                                                                       \
+  V(402)                                                                       \
+  V(403)                                                                       \
+  V(404)                                                                       \
+  V(405)                                                                       \
+  V(406)                                                                       \
+  V(407)                                                                       \
+  V(408)                                                                       \
+  V(409)                                                                       \
+  V(410)                                                                       \
+  V(411)                                                                       \
+  V(412)                                                                       \
+  V(413)                                                                       \
+  V(414)                                                                       \
+  V(415)                                                                       \
+  V(416)                                                                       \
+  V(417)                                                                       \
+  V(418)                                                                       \
+  V(419)                                                                       \
+  V(420)                                                                       \
+  V(421)                                                                       \
+  V(422)                                                                       \
+  V(423)                                                                       \
+  V(424)                                                                       \
+  V(425)                                                                       \
+  V(426)                                                                       \
+  V(427)                                                                       \
+  V(428)                                                                       \
+  V(429)                                                                       \
+  V(430)                                                                       \
+  V(431)                                                                       \
+  V(432)                                                                       \
+  V(433)                                                                       \
+  V(434)                                                                       \
+  V(435)                                                                       \
+  V(436)                                                                       \
+  V(437)                                                                       \
+  V(438)                                                                       \
+  V(439)                                                                       \
+  V(440)                                                                       \
+  V(441)                                                                       \
+  V(442)                                                                       \
+  V(443)                                                                       \
+  V(444)                                                                       \
+  V(445)                                                                       \
+  V(446)                                                                       \
+  V(447)                                                                       \
+  V(448)                                                                       \
+  V(449)                                                                       \
+  V(450)                                                                       \
+  V(451)                                                                       \
+  V(452)                                                                       \
+  V(453)                                                                       \
+  V(454)                                                                       \
+  V(455)                                                                       \
+  V(456)                                                                       \
+  V(457)                                                                       \
+  V(458)                                                                       \
+  V(459)                                                                       \
+  V(460)                                                                       \
+  V(461)                                                                       \
+  V(462)                                                                       \
+  V(463)                                                                       \
+  V(464)                                                                       \
+  V(465)                                                                       \
+  V(466)                                                                       \
+  V(467)                                                                       \
+  V(468)                                                                       \
+  V(469)                                                                       \
+  V(470)                                                                       \
+  V(471)                                                                       \
+  V(472)                                                                       \
+  V(473)                                                                       \
+  V(474)                                                                       \
+  V(475)                                                                       \
+  V(476)                                                                       \
+  V(477)                                                                       \
+  V(478)                                                                       \
+  V(479)                                                                       \
+  V(480)                                                                       \
+  V(481)                                                                       \
+  V(482)                                                                       \
+  V(483)                                                                       \
+  V(484)                                                                       \
+  V(485)                                                                       \
+  V(486)                                                                       \
+  V(487)                                                                       \
+  V(488)                                                                       \
+  V(489)                                                                       \
+  V(490)                                                                       \
+  V(491)                                                                       \
+  V(492)                                                                       \
+  V(493)                                                                       \
+  V(494)                                                                       \
+  V(495)                                                                       \
+  V(496)                                                                       \
+  V(497)                                                                       \
+  V(498)                                                                       \
+  V(499)                                                                       \
+  V(500)                                                                       \
+  V(501)                                                                       \
+  V(502)                                                                       \
+  V(503)                                                                       \
+  V(504)                                                                       \
+  V(505)                                                                       \
+  V(506)                                                                       \
+  V(507)                                                                       \
+  V(508)                                                                       \
+  V(509)                                                                       \
+  V(510)                                                                       \
+  V(511)
+
+REPEAT_512(FINALIZER_CROSS_GEN_TEST_CASE)
 
 ISOLATE_UNIT_TEST_CASE(MirrorReference) {
   const MirrorReference& reference =

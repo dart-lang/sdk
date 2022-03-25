@@ -677,18 +677,14 @@ ObjectPtr DartLibraryCalls::Equals(const Instance& left,
 }
 
 ObjectPtr DartLibraryCalls::LookupHandler(Dart_Port port_id) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
   const auto& function = Function::Handle(
       zone, thread->isolate_group()->object_store()->lookup_port_handler());
-  const int kNumArguments = 1;
   ASSERT(!function.IsNull());
   Array& args = Array::Handle(
       zone, thread->isolate()->isolate_object_store()->dart_args_1());
-  if (args.IsNull()) {
-    args = Array::New(kNumArguments);
-    thread->isolate()->isolate_object_store()->set_dart_args_1(args);
-  }
+  ASSERT(!args.IsNull());
   args.SetAt(0, Integer::Handle(zone, Integer::New(port_id)));
   const Object& result =
       Object::Handle(zone, DartEntry::InvokeFunction(function, args));
@@ -706,24 +702,7 @@ ObjectPtr DartLibraryCalls::LookupOpenPorts() {
   return result.ptr();
 }
 
-ObjectPtr DartLibraryCalls::HandleMessage(Dart_Port port_id,
-                                          const Instance& message) {
-  auto thread = Thread::Current();
-  auto zone = thread->zone();
-  auto isolate = thread->isolate();
-  auto object_store = thread->isolate_group()->object_store();
-  const auto& function =
-      Function::Handle(zone, object_store->handle_message_function());
-  const int kNumArguments = 2;
-  ASSERT(!function.IsNull());
-  Array& args =
-      Array::Handle(zone, isolate->isolate_object_store()->dart_args_2());
-  if (args.IsNull()) {
-    args = Array::New(kNumArguments);
-    isolate->isolate_object_store()->set_dart_args_2(args);
-  }
-  args.SetAt(0, Integer::Handle(zone, Integer::New(port_id)));
-  args.SetAt(1, message);
+static void DebuggerSetResumeIfStepping(Isolate* isolate) {
 #if !defined(PRODUCT)
   if (isolate->debugger()->IsStepping()) {
     // If the isolate is being debugged and the debugger was stepping
@@ -732,6 +711,47 @@ ObjectPtr DartLibraryCalls::HandleMessage(Dart_Port port_id,
     isolate->debugger()->SetResumeAction(Debugger::kStepInto);
   }
 #endif
+}
+
+ObjectPtr DartLibraryCalls::HandleMessage(Dart_Port port_id,
+                                          const Instance& message) {
+  auto* const thread = Thread::Current();
+  auto* const zone = thread->zone();
+  auto* const isolate = thread->isolate();
+  auto* const object_store = thread->isolate_group()->object_store();
+  const auto& function =
+      Function::Handle(zone, object_store->handle_message_function());
+  ASSERT(!function.IsNull());
+  Array& args =
+      Array::Handle(zone, isolate->isolate_object_store()->dart_args_2());
+  ASSERT(!args.IsNull());
+  args.SetAt(0, Integer::Handle(zone, Integer::New(port_id)));
+  args.SetAt(1, message);
+  DebuggerSetResumeIfStepping(isolate);
+  const Object& handler =
+      Object::Handle(zone, DartEntry::InvokeFunction(function, args));
+  return handler.ptr();
+}
+
+ObjectPtr DartLibraryCalls::HandleFinalizerMessage(
+    const FinalizerBase& finalizer) {
+  if (FLAG_trace_finalizers) {
+    THR_Print("Running finalizer %p callback on isolate %p\n",
+              finalizer.ptr()->untag(), finalizer.isolate());
+  }
+
+  auto* const thread = Thread::Current();
+  auto* const zone = thread->zone();
+  auto* const isolate = thread->isolate();
+  auto* const object_store = thread->isolate_group()->object_store();
+  const auto& function =
+      Function::Handle(zone, object_store->handle_finalizer_message_function());
+  ASSERT(!function.IsNull());
+  Array& args =
+      Array::Handle(zone, isolate->isolate_object_store()->dart_args_1());
+  ASSERT(!args.IsNull());
+  args.SetAt(0, finalizer);
+  DebuggerSetResumeIfStepping(isolate);
   const Object& handler =
       Object::Handle(zone, DartEntry::InvokeFunction(function, args));
   return handler.ptr();

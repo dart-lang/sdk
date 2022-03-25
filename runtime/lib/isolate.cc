@@ -242,6 +242,8 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     break;
 
           MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+          // TODO(http://dartbug.com/47777): Send and exit support: remove this.
+          MESSAGE_SNAPSHOT_ILLEGAL(Finalizer);
           MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
           MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
           MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
@@ -284,6 +286,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   return obj.ptr();
 }
 
+// TODO(http://dartbug.com/47777): Add support for Finalizers.
 DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
   GET_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   if (!port.IsNull()) {
@@ -638,9 +641,10 @@ class SpawnIsolateTask : public ThreadPool::Task {
     // Make a copy of the state's isolate flags and hand it to the callback.
     Dart_IsolateFlags api_flags = *(state_->isolate_flags());
     api_flags.is_system_isolate = false;
-    Dart_Isolate isolate = (create_group_callback)(
-        state_->script_url(), name, nullptr, state_->package_config(),
-        &api_flags, parent_isolate_->init_callback_data(), &error);
+    Dart_Isolate isolate =
+        (create_group_callback)(state_->script_url(), name, nullptr,
+                                state_->package_config(), &api_flags,
+                                parent_isolate_->init_callback_data(), &error);
     parent_isolate_->DecrementSpawnCount();
     parent_isolate_ = nullptr;
 

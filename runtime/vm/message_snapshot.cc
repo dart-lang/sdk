@@ -26,7 +26,6 @@
 
 namespace dart {
 
-
 static Dart_CObject cobj_sentinel = {Dart_CObject_kUnsupported, {false}};
 static Dart_CObject cobj_transition_sentinel = {Dart_CObject_kUnsupported,
                                                 {false}};
@@ -46,8 +45,12 @@ class PredefinedCObjects {
   }
 
   static Dart_CObject* cobj_null() { return &getInstance().cobj_null_; }
-  static Dart_CObject* cobj_empty_array() { return &getInstance().cobj_empty_array_; }
-  static Dart_CObject* cobj_zero_array() { return &getInstance().cobj_zero_array_; }
+  static Dart_CObject* cobj_empty_array() {
+    return &getInstance().cobj_empty_array_;
+  }
+  static Dart_CObject* cobj_zero_array() {
+    return &getInstance().cobj_zero_array_;
+  }
 
  private:
   PredefinedCObjects() {
@@ -3938,6 +3941,11 @@ ObjectPtr ReadObjectGraphCopyMessage(Thread* thread, PersistentHandle* handle) {
 ObjectPtr ReadMessage(Thread* thread, Message* message) {
   if (message->IsRaw()) {
     return message->raw_obj();
+  } else if (message->IsFinalizerInvocationRequest()) {
+    PersistentHandle* handle = message->persistent_handle();
+    Object& msg_obj = Object::Handle(thread->zone(), handle->ptr());
+    ASSERT(msg_obj.IsFinalizer());
+    return msg_obj.ptr();
   } else if (message->IsPersistentHandle()) {
     return ReadObjectGraphCopyMessage(thread, message->persistent_handle());
   } else {

@@ -202,6 +202,7 @@ constexpr bool FLAG_support_il_printer = false;
     "Generate code for a generic CPU, unknown at compile time")                \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \
+  D(trace_finalizers, bool, false, "Traces finalizers.")                       \
   D(trace_ic, bool, false, "Trace IC handling")                                \
   D(trace_ic_miss_in_optimized, bool, false,                                   \
     "Trace IC miss in optimized code")                                         \
