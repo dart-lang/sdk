@@ -2264,6 +2264,92 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Reload) {
 }
 #endif  // !defined(PRODUCT)
 
+// This test checks for a failure due to not reloading the class id between
+// different uses of GenerateCidRangeChecks when loading the instance type
+// arguments vector in a TTS for an implemented class. GenerateCidRangeChecks
+// might clobber the register that holds the class ID to check, hence the need
+// to reload.
+//
+// To ensure that the register is clobbered on all architectures, we set things
+// up by generating the following classes:
+// * B<X>, an generic abstract class which is implemented by the others.
+// * I, implements B<String>, has a single int field x, and is
+//   used to create the checked instance.
+// * G<Y>, which implements B<Y> and has no fields (so its TAV field
+//   offset will correspond to that of the offset of x in I).
+// * C and D, consecutively defined non-generic classes which both implement
+//   B<int>.
+// * U0 - UN, unrelated concrete classes as needed for cid alignment.
+//
+// We'll carefully set things up so that the following equation between their
+// class ids holds:
+//
+//   G =  I - C.
+//
+// Thus, when we create a TTS for B<int> and check it against an instance V
+// of I. The cid for I will be loaded into a register R, and then two
+// check blocks will be generated:
+//
+//   * A check for the cid range [C-D], hich has the side effect of
+//     subtracting the cid of C from the contents of R (here, the cid of I).
+//
+//   * A check that R contains the cid for G.
+//
+// Thus, if the cid of I is not reloaded into R before the second check, and
+// the equation earlier holds,we'll get a false positive that V is an instance
+// of G, so the code will then try to load the instance type arguments from V
+// as if it was an instance of G. This means the contents of x will be loaded
+// and attempted to be used as a TypeArgumentsPtr, which will cause a crash
+// during the checks that the instantiation of Y is int.
+ISOLATE_UNIT_TEST_CASE(TTS_Regress_CidRangeChecks) {
+  // Bump this appropriately if the EXPECT_EQ below fails.
+  const intptr_t kNumUnrelated = 1183;
+  TextBuffer buffer(1024);
+  buffer.AddString(R"(
+      abstract class B<X> {}
+      class G<Y> implements B<Y> {}
+      class C implements B<int> {}
+      class D implements B<int> {}
+)");
+  for (intptr_t i = 0; i < kNumUnrelated; i++) {
+    buffer.Printf(R"(
+      class U%)" Pd R"( {}
+)",
+                  i);
+  }
+  buffer.AddString(R"(
+      class I implements B<String> {
+        final x = 1;
+      }
+
+      createI() => I();
+)");
+
+  const auto& root_library = Library::Handle(LoadTestScript(buffer.buffer()));
+  const auto& class_b = Class::Handle(GetClass(root_library, "B"));
+  const auto& class_g = Class::Handle(GetClass(root_library, "G"));
+  const auto& class_c = Class::Handle(GetClass(root_library, "C"));
+  const auto& class_i = Class::Handle(GetClass(root_library, "I"));
+  const auto& obj_i = Object::Handle(Invoke(root_library, "createI"));
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    ClassFinalizer::FinalizeClass(class_g);
+  }
+
+  EXPECT_EQ(class_g.id(), class_i.id() - class_c.id());
+
+  const auto& tav_null = Object::null_type_arguments();
+  auto& tav_int = TypeArguments::Handle(TypeArguments::New(1));
+  tav_int.SetTypeAt(0, Type::Handle(Type::IntType()));
+  CanonicalizeTAV(&tav_int);
+
+  auto& type_b_int = Type::Handle(Type::New(class_b, tav_int));
+  FinalizeAndCanonicalize(&type_b_int);
+
+  TTSTestState state(thread, type_b_int);
+  state.InvokeEagerlySpecializedStub(Failure({obj_i, tav_null, tav_null}));
+}
+
 }  // namespace dart
 
 #endif  // !defined(TARGET_ARCH_IA32)
