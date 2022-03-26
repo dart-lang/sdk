@@ -146,9 +146,25 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (inCompound && node.declaredElement!.typeParameters.isNotEmpty) {
-      _errorReporter.reportErrorForNode(
-          FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name.name]);
+    if (inCompound) {
+      if (node.declaredElement!.typeParameters.isNotEmpty) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name.name]);
+      }
+      final implementsClause = node.implementsClause;
+      if (implementsClause != null) {
+        final compoundType = node.declaredElement!.thisType;
+        final structType = compoundType.superclass!;
+        final ffiLibrary = structType.element.library;
+        final finalizableElement = ffiLibrary.getType(_finalizableClassName)!;
+        final finalizableType = finalizableElement.thisType;
+        if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE,
+              node.name,
+              [node.name.name]);
+        }
+      }
     }
     super.visitClassDeclaration(node);
   }

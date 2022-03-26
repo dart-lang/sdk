@@ -1955,6 +1955,10 @@ void Isolate::set_origin_id(Dart_Port id) {
   origin_id_ = id;
 }
 
+void Isolate::set_finalizers(const GrowableObjectArray& value) {
+  finalizers_ = value.ptr();
+}
+
 bool Isolate::IsPaused() const {
 #if defined(PRODUCT)
   return false;
@@ -2476,14 +2480,14 @@ void Isolate::LowLevelShutdown() {
   }
 
   // Set live finalizers isolate to null, before deleting the message handler.
-  // TODO(http://dartbug.com/47777): How to detect if the isolate field was ever
-  // initialized beyond RAW_NULL?
   const auto& finalizers =
       GrowableObjectArray::Handle(stack_zone.GetZone(), finalizers_);
   if (!finalizers.IsNull()) {
     const intptr_t num_finalizers = finalizers.Length();
     auto& weak_reference = WeakReference::Handle(stack_zone.GetZone());
     auto& finalizer = FinalizerBase::Handle(stack_zone.GetZone());
+    auto& current_entry = FinalizerEntry::Handle(stack_zone.GetZone());
+    auto& all_entries = LinkedHashSet::Handle(stack_zone.GetZone());
     for (int i = 0; i < num_finalizers; i++) {
       weak_reference ^= finalizers.At(i);
       finalizer ^= weak_reference.target();
@@ -2498,6 +2502,17 @@ void Isolate::LowLevelShutdown() {
         } else {
           // TODO(http://dartbug.com/47777): Send and exit support.
           UNREACHABLE();
+        }
+
+        if (finalizer.IsNativeFinalizer()) {
+          // Immediately call native callback.
+          const auto& native_finalizer = NativeFinalizer::Cast(finalizer);
+          all_entries = finalizer.all_entries();
+          LinkedHashSet::Iterator iterator(all_entries);
+          while (iterator.MoveNext()) {
+            current_entry ^= iterator.CurrentKey();
+            native_finalizer.RunCallback(current_entry, "Isolate shutdown");
+          }
         }
       }
     }

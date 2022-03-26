@@ -31,6 +31,15 @@ static const struct NativeEntries {
 #endif  // !DART_PRECOMPILED_RUNTIME
 };
 
+#define REGISTER_FFI_NATIVE_ENTRY(name, return_type, argument_types)           \
+  {"" #name, reinterpret_cast<void*>(BootstrapNatives::FN_##name)},
+
+static const struct FfiNativeEntries {
+  const char* name_;
+  void* function_;
+} BootStrapFfiEntries[] = {
+    BOOTSTRAP_FFI_NATIVE_LIST(REGISTER_FFI_NATIVE_ENTRY)};
+
 Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
                                              int argument_count,
                                              bool* auto_setup_scope) {
@@ -55,6 +64,19 @@ Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
   return NULL;
 }
 
+void* BootstrapNatives::LookupFfiNative(const char* name,
+                                        uintptr_t argument_count) {
+  int num_entries =
+      sizeof(BootStrapFfiEntries) / sizeof(struct FfiNativeEntries);
+  for (int i = 0; i < num_entries; i++) {
+    const struct FfiNativeEntries* entry = &(BootStrapFfiEntries[i]);
+    if (strcmp(name, entry->name_) == 0) {
+      return entry->function_;
+    }
+  }
+  return nullptr;
+}
+
 const uint8_t* BootstrapNatives::Symbol(Dart_NativeFunction nf) {
   int num_entries = sizeof(BootStrapEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
@@ -70,6 +92,9 @@ void Bootstrap::SetupNativeResolver() {
   Library& library = Library::Handle();
 
   Dart_NativeEntryResolver resolver = BootstrapNatives::Lookup;
+
+  Dart_FfiNativeResolver ffi_native_resolver =
+      BootstrapNatives::LookupFfiNative;
 
   Dart_NativeEntrySymbol symbol_resolver = BootstrapNatives::Symbol;
 
@@ -107,6 +132,7 @@ void Bootstrap::SetupNativeResolver() {
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
+  library.set_ffi_native_resolver(ffi_native_resolver);
 
   library = Library::IsolateLibrary();
   ASSERT(!library.IsNull());

@@ -70,6 +70,7 @@ typedef uint16_t ClassIdTagType;
   V(Type)                                                                      \
   V(FinalizerBase)                                                             \
   V(Finalizer)                                                                 \
+  V(NativeFinalizer)                                                           \
   V(FinalizerEntry)                                                            \
   V(FunctionType)                                                              \
   V(TypeRef)                                                                   \

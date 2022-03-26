@@ -4084,6 +4084,36 @@ const MessageCode messageFfiAbiSpecificIntegerMappingInvalid = const MessageCode
         r"""Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String name)>
+    templateFfiCompoundImplementsFinalizable =
+    const Template<Message Function(String string, String name)>(
+        problemMessageTemplate:
+            r"""#string '#name' can't implement Finalizable.""",
+        correctionMessageTemplate:
+            r"""Try removing the implements clause from '#name'.""",
+        withArguments: _withArgumentsFfiCompoundImplementsFinalizable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String name)>
+    codeFfiCompoundImplementsFinalizable =
+    const Code<Message Function(String string, String name)>(
+  "FfiCompoundImplementsFinalizable",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiCompoundImplementsFinalizable(
+    String string, String name) {
+  if (string.isEmpty) throw 'No string provided';
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiCompoundImplementsFinalizable,
+      problemMessage: """${string} '${name}' can't implement Finalizable.""",
+      correctionMessage:
+          """Try removing the implements clause from '${name}'.""",
+      arguments: {'string': string, 'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,

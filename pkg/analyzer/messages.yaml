@@ -15689,6 +15689,45 @@ FfiCode:
         return p.asFunction(isLeaf: true);
       }
       ```
+  COMPOUND_IMPLEMENTS_FINALIZABLE:
+    problemMessage: "The class '{0}' can't implement Finalizable."
+    correctionMessage: "Try removing the implements clause from '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the struct or union class
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a subclass of either `Struct`
+      or `Union` implements `Finalizable`.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the class `S`
+      implements `Finalizable`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class [!S!] extends Struct implements Finalizable {
+        external Pointer notEmpty;
+      }
+      ```
+
+      #### Common fixes
+
+      Try removing the implements clause from the class:
+
+      ```dart
+      import 'dart:ffi';
+
+      class S extends Struct {
+        external Pointer notEmpty;
+      }
+      ```
   CREATION_OF_STRUCT_OR_UNION:
     problemMessage: "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor."
     correctionMessage: "Try allocating it via allocation, or load from a 'Pointer'."

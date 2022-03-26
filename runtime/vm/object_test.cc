@@ -31,6 +31,7 @@
 #include "vm/resolver.h"
 #include "vm/simulator.h"
 #include "vm/symbols.h"
+#include "vm/tagged_pointer.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -4031,8 +4032,8 @@ static void Finalizer_PreserveOne(Thread* thread,
 
   const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
   finalizer.set_isolate(thread->isolate());
-  const auto& entry = FinalizerEntry::Handle(FinalizerEntry::New(space));
-  entry.set_finalizer(finalizer);
+  const auto& entry =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, space));
   const auto& value = String::Handle(OneByteString::New("value", space));
   entry.set_value(value);
   auto& detach = Object::Handle();
@@ -4097,8 +4098,8 @@ static void Finalizer_ClearDetachOne(Thread* thread, Heap::Space space) {
 
   const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
   finalizer.set_isolate(thread->isolate());
-  const auto& entry = FinalizerEntry::Handle(FinalizerEntry::New(space));
-  entry.set_finalizer(finalizer);
+  const auto& entry =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, space));
   const auto& value = String::Handle(OneByteString::New("value", space));
   entry.set_value(value);
   const auto& token = String::Handle(OneByteString::New("token", space));
@@ -4156,8 +4157,8 @@ static void Finalizer_ClearValueOne(Thread* thread,
 
   const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
   finalizer.set_isolate(thread->isolate());
-  const auto& entry = FinalizerEntry::Handle(FinalizerEntry::New(space));
-  entry.set_finalizer(finalizer);
+  const auto& entry =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, space));
   const auto& detach = String::Handle(OneByteString::New("detach", space));
   auto& token = Object::Handle();
   if (null_token) {
@@ -4228,8 +4229,8 @@ static void Finalizer_DetachOne(Thread* thread,
 
   const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
   finalizer.set_isolate(thread->isolate());
-  const auto& entry = FinalizerEntry::Handle(FinalizerEntry::New(space));
-  entry.set_finalizer(finalizer);
+  const auto& entry =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, space));
   const auto& detach = String::Handle(OneByteString::New("detach", space));
   entry.set_detach(detach);
 
@@ -4303,8 +4304,8 @@ static void Finalizer_GcFinalizer(Thread* thread, Heap::Space space) {
     HANDLESCOPE(thread);
     const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
     finalizer.set_isolate(thread->isolate());
-    const auto& entry = FinalizerEntry::Handle(FinalizerEntry::New(space));
-    entry.set_finalizer(finalizer);
+    const auto& entry =
+        FinalizerEntry::Handle(FinalizerEntry::New(finalizer, space));
     entry.set_detach(detach);
     entry.set_token(token);
     const auto& value = String::Handle(OneByteString::New("value", space));
@@ -4358,10 +4359,10 @@ static void Finalizer_TwoEntriesCrossGen(
 
   const auto& finalizer = Finalizer::Handle(Finalizer::New(spaces[0]));
   finalizer.set_isolate(thread->isolate());
-  const auto& entry1 = FinalizerEntry::Handle(FinalizerEntry::New(spaces[1]));
-  entry1.set_finalizer(finalizer);
-  const auto& entry2 = FinalizerEntry::Handle(FinalizerEntry::New(spaces[2]));
-  entry2.set_finalizer(finalizer);
+  const auto& entry1 =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, spaces[1]));
+  const auto& entry2 =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, spaces[2]));
 
   auto& value1 = String::Handle();
   auto& detach1 = String::Handle();
@@ -5040,6 +5041,241 @@ static void Finalizer_TwoEntriesCrossGen(Thread* thread, intptr_t test_i) {
 
 REPEAT_512(FINALIZER_CROSS_GEN_TEST_CASE)
 
+#undef FINALIZER_CROSS_GEN_TEST_CASE
+
+void NativeFinalizer_TwoEntriesCrossGen_Finalizer(intptr_t* token) {
+  (*token)++;
+}
+
+static void NativeFinalizer_TwoEntriesCrossGen(
+    Thread* thread,
+    Heap::Space* spaces,
+    bool collect_new_space,
+    bool evacuate_new_space_and_collect_old_space,
+    bool clear_value_1,
+    bool clear_value_2,
+    bool clear_detach_1,
+    bool clear_detach_2) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  intptr_t token1_memory = 0;
+  intptr_t token2_memory = 0;
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  // We're reusing the isolate in a loop, so there are messages from previous
+  // runs of this test.
+  intptr_t queue_length_start = 0;
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    queue_length_start = aq.queue()->Length();
+  }
+
+  ObjectStore* object_store = thread->isolate_group()->object_store();
+  const auto& void_type = Type::Handle(object_store->never_type());
+  const auto& callback = Pointer::Handle(Pointer::New(
+      void_type,
+      reinterpret_cast<uword>(&NativeFinalizer_TwoEntriesCrossGen_Finalizer),
+      spaces[3]));
+
+  const auto& finalizer =
+      NativeFinalizer::Handle(NativeFinalizer::New(spaces[0]));
+  finalizer.set_callback(callback);
+  finalizer.set_isolate(thread->isolate());
+
+  const auto& isolate_finalizers =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const auto& weak1 = WeakReference::Handle(WeakReference::New());
+  weak1.set_target(finalizer);
+  isolate_finalizers.Add(weak1);
+  thread->isolate()->set_finalizers(isolate_finalizers);
+
+  const auto& all_entries = LinkedHashSet::Handle(LinkedHashSet::NewDefault());
+  finalizer.set_all_entries(all_entries);
+  const auto& all_entries_data = Array::Handle(all_entries.data());
+  THR_Print("entry1 space: %s\n", spaces[1] == Heap::kNew ? "new" : "old");
+  const auto& entry1 =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, spaces[1]));
+  all_entries_data.SetAt(0, entry1);
+  THR_Print("entry2 space: %s\n", spaces[2] == Heap::kNew ? "new" : "old");
+  const auto& entry2 =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, spaces[2]));
+  all_entries_data.SetAt(1, entry2);
+  all_entries.set_used_data(2);  // Don't bother setting the index.
+
+  const intptr_t external_size1 = 1024;
+  const intptr_t external_size2 = 2048;
+  entry1.set_external_size(external_size1);
+  entry2.set_external_size(external_size2);
+  IsolateGroup::Current()->heap()->AllocatedExternal(external_size1, spaces[5]);
+  IsolateGroup::Current()->heap()->AllocatedExternal(external_size2, spaces[7]);
+
+  auto& value1 = String::Handle();
+  auto& detach1 = String::Handle();
+  const auto& token1 = Pointer::Handle(Pointer::New(
+      void_type, reinterpret_cast<uword>(&token1_memory), spaces[3]));
+  entry1.set_token(token1);
+
+  auto& value2 = String::Handle();
+  auto& detach2 = String::Handle();
+  const auto& token2 = Pointer::Handle(Pointer::New(
+      void_type, reinterpret_cast<uword>(&token2_memory), spaces[4]));
+  entry2.set_token(token2);
+  entry2.set_detach(detach2);
+
+  {
+    HANDLESCOPE(thread);
+    auto& object = String::Handle();
+
+    THR_Print("value1 space: %s\n", spaces[5] == Heap::kNew ? "new" : "old");
+    object ^= OneByteString::New("value1", spaces[5]);
+    entry1.set_value(object);
+    if (!clear_value_1) {
+      value1 = object.ptr();
+    }
+
+    object ^= OneByteString::New("detach", spaces[6]);
+    entry1.set_detach(object);
+    if (!clear_detach_1) {
+      detach1 = object.ptr();
+    }
+
+    THR_Print("value2 space: %s\n", spaces[7] == Heap::kNew ? "new" : "old");
+    object ^= OneByteString::New("value2", spaces[7]);
+    entry2.set_value(object);
+    if (!clear_value_2) {
+      value2 = object.ptr();
+    }
+
+    object ^= OneByteString::New("detach", spaces[8]);
+    entry2.set_detach(object);
+    if (!clear_detach_2) {
+      detach2 = object.ptr();
+    }
+  }
+
+  THR_Print("CollectOldSpace\n");
+  GCTestHelper::CollectOldSpace();
+  if (collect_new_space) {
+    THR_Print("CollectNewSpace\n");
+    GCTestHelper::CollectNewSpace();
+  }
+  if (evacuate_new_space_and_collect_old_space) {
+    THR_Print("CollectAllGarbage\n");
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  EXPECT((entry1.value() == Object::null()) ^ !clear_value_1);
+  EXPECT((entry2.value() == Object::null()) ^ !clear_value_2);
+  EXPECT((entry1.detach() == Object::null()) ^ !clear_detach_1);
+  EXPECT((entry2.detach() == Object::null()) ^ !clear_detach_2);
+  EXPECT_NE(Object::null(), entry1.token());
+  EXPECT_NE(Object::null(), entry2.token());
+
+  const intptr_t expect_num_cleared =
+      (clear_value_1 ? 1 : 0) + (clear_value_2 ? 1 : 0);
+  EXPECT_EQ(expect_num_cleared,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  EXPECT_EQ(clear_value_1 ? 1 : 0, token1_memory);
+  EXPECT_EQ(clear_value_2 ? 1 : 0, token2_memory);
+
+  const intptr_t expect_num_messages = expect_num_cleared == 0 ? 0 : 1;
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(expect_num_messages + queue_length_start, aq.queue()->Length());
+  }
+
+  // Simulate detachments.
+  entry1.set_token(entry1);
+  entry2.set_token(entry2);
+  all_entries_data.SetAt(0, Object::Handle(Object::null()));
+  all_entries_data.SetAt(1, Object::Handle(Object::null()));
+  all_entries.set_used_data(0);
+}
+
+static void NativeFinalizer_TwoEntriesCrossGen(Thread* thread,
+                                               intptr_t test_i) {
+  ASSERT(test_i < (1 << kFinalizerTwoEntriesNumObjects));
+  Heap::Space spaces[kFinalizerTwoEntriesNumObjects];
+  for (intptr_t i = 0; i < kFinalizerTwoEntriesNumObjects; i++) {
+    spaces[i] = ((test_i >> i) & 0x1) == 0x1 ? Heap::kOld : Heap::kNew;
+  }
+  // Either collect or evacuate new space.
+  for (const bool collect_new_space : {true, false}) {
+    // Always run old space collection after new space.
+    const bool evacuate_new_space_and_collect_old_space = true;
+    const bool clear_value_1 = true;
+    const bool clear_value_2 = true;
+    const bool clear_detach_1 = false;
+    const bool clear_detach_2 = false;
+    THR_Print(
+        "collect_new_space: %s evacuate_new_space_and_collect_old_space: %s\n",
+        collect_new_space ? "true" : "false",
+        evacuate_new_space_and_collect_old_space ? "true" : "false");
+    NativeFinalizer_TwoEntriesCrossGen(thread, spaces, collect_new_space,
+                                       evacuate_new_space_and_collect_old_space,
+                                       clear_value_1, clear_value_2,
+                                       clear_detach_1, clear_detach_2);
+  }
+}
+
+#define FINALIZER_NATIVE_CROSS_GEN_TEST_CASE(n)                                \
+  ISOLATE_UNIT_TEST_CASE(NativeFinalizer_CrossGen_##n) {                       \
+    NativeFinalizer_TwoEntriesCrossGen(thread, n);                             \
+  }
+
+REPEAT_512(FINALIZER_NATIVE_CROSS_GEN_TEST_CASE)
+
+#undef FINALIZER_NATIVE_CROSS_GEN_TEST_CASE
+
+#undef REPEAT_512
+
+static ClassPtr GetClass(const Library& lib, const char* name) {
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
+  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+  return cls.ptr();
+}
+
+TEST_CASE(ImplementsFinalizable) {
+  Zone* const zone = Thread::Current()->zone();
+
+  const char* kScript = R"(
+import 'dart:ffi';
+
+class AImpl implements A {}
+class ASub extends A {}
+// Wonky class order and non-alhpabetic naming on purpose.
+class C extends Z {}
+class E extends D {}
+class A implements Finalizable {}
+class Z implements A {}
+class D implements C {}
+class X extends E {}
+)";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(h_lib);
+
+  TransitionNativeToVM transition(thread);
+  const Library& lib = Library::CheckedHandle(zone, Api::UnwrapHandle(h_lib));
+  EXPECT(!lib.IsNull());
+
+  const auto& class_x = Class::Handle(zone, GetClass(lib, "X"));
+  ClassFinalizer::FinalizeTypesInClass(class_x);
+  EXPECT(class_x.implements_finalizable());
+
+  const auto& class_a_impl = Class::Handle(zone, GetClass(lib, "AImpl"));
+  ClassFinalizer::FinalizeTypesInClass(class_a_impl);
+  EXPECT(class_a_impl.implements_finalizable());
+
+  const auto& class_a_sub = Class::Handle(zone, GetClass(lib, "ASub"));
+  ClassFinalizer::FinalizeTypesInClass(class_a_sub);
+  EXPECT(class_a_sub.implements_finalizable());
+}
+
 ISOLATE_UNIT_TEST_CASE(MirrorReference) {
   const MirrorReference& reference =
       MirrorReference::Handle(MirrorReference::New(Object::Handle()));
@@ -5096,13 +5332,6 @@ static FieldPtr GetField(const Class& cls, const char* name) {
       Field::Handle(cls.LookupField(String::Handle(String::New(name))));
   EXPECT(!field.IsNull());
   return field.ptr();
-}
-
-static ClassPtr GetClass(const Library& lib, const char* name) {
-  const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
-  return cls.ptr();
 }
 
 ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {

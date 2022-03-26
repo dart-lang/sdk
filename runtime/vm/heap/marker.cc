@@ -296,15 +296,16 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
       // If we did not mark the target through a weak property in a later round,
       // then the target is dead and we should clear it.
-      SetNullIfCollected(cur_weak->heap_base(), &cur_weak->untag()->target_);
+      ForwardOrSetNullIfCollected(cur_weak->heap_base(),
+                                  &cur_weak->untag()->target_);
 
       cur_weak = next_weak;
     }
   }
 
   // Returns whether the object referred to in `ptr_address` was GCed this GC.
-  static bool SetNullIfCollected(uword heap_base,
-                                 CompressedObjectPtr* ptr_address) {
+  static bool ForwardOrSetNullIfCollected(uword heap_base,
+                                          CompressedObjectPtr* ptr_address) {
     ObjectPtr raw = ptr_address->Decompress(heap_base);
     if (raw.IsRawNull()) {
       // Object already null before this GC.

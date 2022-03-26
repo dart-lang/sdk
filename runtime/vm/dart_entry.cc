@@ -744,8 +744,13 @@ ObjectPtr DartLibraryCalls::HandleFinalizerMessage(
   auto* const zone = thread->zone();
   auto* const isolate = thread->isolate();
   auto* const object_store = thread->isolate_group()->object_store();
-  const auto& function =
-      Function::Handle(zone, object_store->handle_finalizer_message_function());
+  auto& function = Function::Handle(zone);
+  if (finalizer.IsFinalizer()) {
+    function ^= object_store->handle_finalizer_message_function();
+  } else {
+    ASSERT(finalizer.IsNativeFinalizer());
+    function ^= object_store->handle_native_finalizer_message_function();
+  }
   ASSERT(!function.IsNull());
   Array& args =
       Array::Handle(zone, isolate->isolate_object_store()->dart_args_1());

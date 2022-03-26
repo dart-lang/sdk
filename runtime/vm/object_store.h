@@ -56,6 +56,7 @@ class ObjectPointerVisitor;
   LAZY_INTERNAL(Class, symbol_class)                                           \
   LAZY_INTERNAL(Field, symbol_name_field)                                      \
   LAZY_FFI(Function, handle_finalizer_message_function)                        \
+  LAZY_FFI(Function, handle_native_finalizer_message_function)                 \
   LAZY_ASYNC(Type, non_nullable_future_rare_type)                              \
   LAZY_ASYNC(Type, non_nullable_future_never_type)                             \
   LAZY_ASYNC(Type, nullable_future_null_type)                                  \
@@ -129,7 +130,7 @@ class ObjectPointerVisitor;
   RW(Class, weak_reference_class)                                              \
   RW(Class, finalizer_class)                                                   \
   RW(Class, finalizer_entry_class)                                             \
-  RW(Class, finalizer_native_class)                                            \
+  RW(Class, native_finalizer_class)                                            \
   ARW_AR(Array, symbol_table)                                                  \
   RW(Array, canonical_types)                                                   \
   RW(Array, canonical_function_types)                                          \

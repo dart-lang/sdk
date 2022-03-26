@@ -1026,7 +1026,14 @@ class FinalizerBase : public AllStatic {
 
 class Finalizer : public AllStatic {
  public:
+  static word callback_offset();
   static word type_arguments_offset();
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
+class NativeFinalizer : public AllStatic {
+ public:
   static word callback_offset();
   static word InstanceSize();
   FINAL_CLASS();
@@ -1034,11 +1041,12 @@ class Finalizer : public AllStatic {
 
 class FinalizerEntry : public AllStatic {
  public:
-  static word value_offset();
   static word detach_offset();
-  static word token_offset();
-  static word next_offset();
+  static word external_size_offset();
   static word finalizer_offset();
+  static word next_offset();
+  static word token_offset();
+  static word value_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };

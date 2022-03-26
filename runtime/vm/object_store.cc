@@ -486,6 +486,15 @@ void ObjectStore::LazyInitFfiMembers() {
         cls.LookupFunctionAllowPrivate(Symbols::_handleFinalizerMessage());
     ASSERT(!function.IsNull());
     handle_finalizer_message_function_.store(function.ptr());
+
+    cls = native_finalizer_class();
+    ASSERT(!cls.IsNull());
+    error = cls.EnsureIsFinalized(thread);
+    ASSERT(error.IsNull());
+    function = cls.LookupFunctionAllowPrivate(
+        Symbols::_handleNativeFinalizerMessage());
+    ASSERT(!function.IsNull());
+    handle_native_finalizer_message_function_.store(function.ptr());
   }
 }
 

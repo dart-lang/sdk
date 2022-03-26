@@ -1992,6 +1992,42 @@ suitable value:
 var l = const [0];
 {% endprettify %}
 
+### compound_implements_finalizable
+
+_The class '{0}' can't implement Finalizable._
+
+#### Description
+
+The analyzer produces this diagnostic when a subclass of either `Struct`
+or `Union` implements `Finalizable`.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the class `S`
+implements `Finalizable`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class [!S!] extends Struct implements Finalizable {
+  external Pointer notEmpty;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Try removing the implements clause from the class:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class S extends Struct {
+  external Pointer notEmpty;
+}
+{% endprettify %}
+
 ### concrete_class_has_enum_superinterface
 
 _Concrete classes can't have 'Enum' as a superinterface._

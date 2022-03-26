@@ -45,6 +45,7 @@
 #include "vm/kernel_binary.h"
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
+#include "vm/log.h"
 #include "vm/native_symbol.h"
 #include "vm/object_graph.h"
 #include "vm/object_store.h"
@@ -2344,6 +2345,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiDynamicLibrary(), lib);
 
+    cls = Class::New<NativeFinalizer, RTN::NativeFinalizer>(isolate_group);
+    object_store->set_native_finalizer_class(cls);
+    RegisterPrivateClass(cls, Symbols::_NativeFinalizer(), lib);
+
     cls = Class::New<Finalizer, RTN::Finalizer>(isolate_group);
     cls.set_type_arguments_field_offset(
         Finalizer::type_arguments_offset(),
@@ -2539,6 +2544,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_weak_reference_class(cls);
     cls = Class::New<Finalizer, RTN::Finalizer>(isolate_group);
     object_store->set_finalizer_class(cls);
+    cls = Class::New<NativeFinalizer, RTN::NativeFinalizer>(isolate_group);
+    object_store->set_native_finalizer_class(cls);
     cls = Class::New<FinalizerEntry, RTN::FinalizerEntry>(isolate_group);
     object_store->set_finalizer_entry_class(cls);
 
@@ -2990,6 +2997,11 @@ void Class::set_num_type_arguments_unsafe(intptr_t value) const {
 
 void Class::set_has_pragma(bool value) const {
   set_state_bits(HasPragmaBit::update(value, state_bits()));
+}
+
+void Class::set_implements_finalizable(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(ImplementsFinalizableBit::update(value, state_bits()));
 }
 
 // Initialize class fields of type Array with empty array.
@@ -8075,6 +8087,38 @@ void Function::SetIsOptimizable(bool value) const {
   if (!value) {
     set_is_inlinable(false);
     set_usage_counter(INT32_MIN);
+  }
+}
+
+bool Function::ForceOptimize() const {
+  return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
+         IsFfiStore() || IsFfiTrampoline() || IsFfiAsExternalTypedData() ||
+         IsTypedDataViewFactory() || IsUtf8Scan() || IsGetNativeField() ||
+         IsFinalizerForceOptimized();
+}
+
+bool Function::IsFinalizerForceOptimized() const {
+  // Either because of unboxed/untagged data, or because we don't want the GC
+  // to trigger in between.
+  switch (recognized_kind()) {
+    case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
+    case MethodRecognizer::kFinalizerBase_setIsolate:
+    case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
+    case MethodRecognizer::kFinalizerEntry_getExternalSize:
+      // Unboxed/untagged representation not supported in unoptimized.
+      return true;
+    case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
+      // Prevent the GC from running so that the operation is atomic from
+      // a GC point of view. Always double check implementation in
+      // kernel_to_il.cc that no GC can happen in between the relevant IL
+      // instructions.
+      // TODO(https://dartbug.com/48527): Support inlining.
+      return true;
+    case MethodRecognizer::kFinalizerEntry_allocate:
+      // Both of the above reasons.
+      return true;
+    default:
+      return false;
   }
 }
 
@@ -26044,6 +26088,10 @@ const char* FinalizerBase::ToCString() const {
 FinalizerPtr Finalizer::New(Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->finalizer_class() !=
          Class::null());
+  ASSERT(
+      Class::Handle(IsolateGroup::Current()->object_store()->finalizer_class())
+          .EnsureIsAllocateFinalized(Thread::Current()) == Error::null());
+
   ObjectPtr raw =
       Object::Allocate(Finalizer::kClassId, Finalizer::InstanceSize(), space,
                        Finalizer::ContainsCompressedPointers());
@@ -26057,13 +26105,84 @@ const char* Finalizer::ToCString() const {
                      type_args_name.ToCString());
 }
 
-FinalizerEntryPtr FinalizerEntry::New(Heap::Space space) {
+NativeFinalizerPtr NativeFinalizer::New(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->native_finalizer_class() !=
+         Class::null());
+  ASSERT(Class::Handle(
+             IsolateGroup::Current()->object_store()->native_finalizer_class())
+             .EnsureIsAllocateFinalized(Thread::Current()) == Error::null());
+  ObjectPtr raw = Object::Allocate(
+      NativeFinalizer::kClassId, NativeFinalizer::InstanceSize(), space,
+      NativeFinalizer::ContainsCompressedPointers());
+  return static_cast<NativeFinalizerPtr>(raw);
+}
+
+// Runs the finalizer if not detached, detaches the value and set external size
+// to 0.
+// TODO(http://dartbug.com/47777): Can this be merged with
+// RunNativeFinalizerCallback?
+void NativeFinalizer::RunCallback(const FinalizerEntry& entry,
+                                  const char* trace_context) const {
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
+  IsolateGroup* const group = thread->isolate_group();
+  const intptr_t external_size = entry.external_size();
+  const auto& token_object = Object::Handle(zone, entry.token());
+  const auto& callback_pointer = Pointer::Handle(zone, this->callback());
+  const auto callback = reinterpret_cast<NativeFinalizer::Callback>(
+      callback_pointer.NativeAddress());
+  if (token_object.IsFinalizerEntry()) {
+    // Detached from Dart code.
+    ASSERT(token_object.ptr() == entry.ptr());
+    ASSERT(external_size == 0);
+    if (FLAG_trace_finalizers) {
+      THR_Print(
+          "%s: Not running native finalizer %p callback %p, "
+          "detached\n",
+          trace_context, ptr()->untag(), callback);
+    }
+  } else {
+    const auto& token = Pointer::Cast(token_object);
+    void* peer = reinterpret_cast<void*>(token.NativeAddress());
+    if (FLAG_trace_finalizers) {
+      THR_Print(
+          "%s: Running native finalizer %p callback %p "
+          "with token %p\n",
+          trace_context, ptr()->untag(), callback, peer);
+    }
+    entry.set_token(entry);
+    callback(peer);
+    if (external_size > 0) {
+      ASSERT(!entry.value()->IsSmi());
+      Heap::Space space =
+          entry.value()->IsOldObject() ? Heap::kOld : Heap::kNew;
+      if (FLAG_trace_finalizers) {
+        THR_Print("%s: Clearing external size %" Pd " bytes in %s space\n",
+                  trace_context, external_size, space == 0 ? "new" : "old");
+      }
+      group->heap()->FreedExternal(external_size, space);
+      entry.set_external_size(0);
+    }
+  }
+}
+
+const char* NativeFinalizer::ToCString() const {
+  const auto& pointer = Pointer::Handle(callback());
+  return OS::SCreate(Thread::Current()->zone(), "_NativeFinalizer %s",
+                     pointer.ToCString());
+}
+
+FinalizerEntryPtr FinalizerEntry::New(const FinalizerBase& finalizer,
+                                      Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->finalizer_entry_class() !=
          Class::null());
-  ObjectPtr raw =
+  auto& entry = FinalizerEntry::Handle();
+  entry ^=
       Object::Allocate(FinalizerEntry::kClassId, FinalizerEntry::InstanceSize(),
                        space, FinalizerEntry::ContainsCompressedPointers());
-  return static_cast<FinalizerEntryPtr>(raw);
+  entry.set_external_size(0);
+  entry.set_finalizer(finalizer);
+  return entry.ptr();
 }
 
 void FinalizerEntry::set_finalizer(const FinalizerBase& value) const {

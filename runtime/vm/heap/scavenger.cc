@@ -7,9 +7,11 @@
 #include "platform/assert.h"
 #include "platform/leak_sanitizer.h"
 #include "vm/class_id.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/flag_list.h"
+#include "vm/flags.h"
 #include "vm/heap/become.h"
 #include "vm/heap/gc_shared.h"
 #include "vm/heap/pages.h"
@@ -19,12 +21,14 @@
 #include "vm/heap/weak_table.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
+#include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_set.h"
 #include "vm/port.h"
 #include "vm/stack_frame.h"
+#include "vm/tagged_pointer.h"
 #include "vm/thread_barrier.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
@@ -318,8 +322,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   NewPage* head() const { return head_; }
   NewPage* tail() const { return tail_; }
 
-  static bool SetNullIfCollected(uword heap_base,
-                                 CompressedObjectPtr* ptr_address);
+  static bool ForwardOrSetNullIfCollected(uword heap_base,
+                                          CompressedObjectPtr* ptr_address);
 
  private:
   void UpdateStoreBuffer(ObjectPtr obj) {
@@ -1197,9 +1201,44 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
       ASSERT(raw_object->untag()->IsRemembered());
       raw_object->untag()->ClearRememberedBit();
       visitor->VisitingOldObject(raw_object);
-      // Note that this treats old-space WeakProperties as strong. A dead key
-      // won't be reclaimed until after the key is promoted.
-      raw_object->untag()->VisitPointersNonvirtual(visitor);
+      intptr_t class_id = raw_object->GetClassId();
+      // This treats old-space weak references in WeakProperty, WeakReference,
+      // and FinalizerEntry as strong references. This prevents us from having
+      // to enqueue them in `visitor->delayed_`. Enqueuing them in the delayed
+      // would require having two `next_seen_by_gc` fields. One for used during
+      // marking and one for the objects seen in the store buffers + new space.
+      // Treating the weak references as strong here means we can have a single
+      // `next_seen_by_gc` field.
+      if (UNLIKELY(class_id == kFinalizerEntryCid)) {
+        FinalizerEntryPtr raw_entry =
+            static_cast<FinalizerEntryPtr>(raw_object);
+        // Detect `FinalizerEntry::value` promotion to update external space.
+        //
+        // This treats old-space FinalizerEntry fields as strong. Values, deatch
+        // keys, and finalizers in new space won't be reclaimed until after they
+        // are promoted.
+        // This will only visit the strong references, end enqueue the entry.
+        // This enables us to update external space in MournFinalized.
+        const Heap::Space before_gc_space = SpaceForExternal(raw_entry);
+        UntaggedFinalizerEntry::VisitFinalizerEntryPointers(raw_entry, visitor);
+        if (before_gc_space == Heap::kNew) {
+          const Heap::Space after_gc_space = SpaceForExternal(raw_entry);
+          if (after_gc_space == Heap::kOld) {
+            const intptr_t external_size = raw_entry->untag()->external_size_;
+            if (FLAG_trace_finalizers) {
+              THR_Print(
+                  "Scavenger %p Store buffer, promoting external size %" Pd
+                  " bytes from new to old space\n",
+                  visitor, external_size);
+            }
+            visitor->isolate_group()->heap()->PromotedExternal(external_size);
+          }
+        }
+      } else {
+        // This treats old-space WeakProperties and WeakReferences as strong. A
+        // dead key or target won't be reclaimed until after it is promoted.
+        raw_object->untag()->VisitPointersNonvirtual(visitor);
+      }
     }
     pending->Reset();
     // Return the emptied block for recycling (no need to check threshold).
@@ -1542,7 +1581,8 @@ void ScavengerVisitorBase<parallel>::MournOrUpdateWeakReferences() {
 
     // If we did not mark the target through a weak property in a later round,
     // then the target is dead and we should clear it.
-    SetNullIfCollected(cur_weak->heap_base(), &cur_weak->untag()->target_);
+    ForwardOrSetNullIfCollected(cur_weak->heap_base(),
+                                &cur_weak->untag()->target_);
 
     // Advance to next weak reference in the queue.
     cur_weak = next_weak;
@@ -1551,7 +1591,7 @@ void ScavengerVisitorBase<parallel>::MournOrUpdateWeakReferences() {
 
 // Returns whether the object referred to in `ptr_address` was GCed this GC.
 template <bool parallel>
-bool ScavengerVisitorBase<parallel>::SetNullIfCollected(
+bool ScavengerVisitorBase<parallel>::ForwardOrSetNullIfCollected(
     uword heap_base,
     CompressedObjectPtr* ptr_address) {
   ObjectPtr raw = ptr_address->Decompress(heap_base);

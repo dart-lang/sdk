@@ -2846,6 +2846,9 @@ class UntaggedTwoByteString : public UntaggedString {
 // TypedData extends this with a length field, while Pointer extends this with
 // TypeArguments field.
 class UntaggedPointerBase : public UntaggedInstance {
+ public:
+  uint8_t* data() { return data_; }
+
  protected:
   // The contents of [data_] depends on what concrete subclass is used:
   //
@@ -3391,7 +3394,26 @@ class UntaggedFinalizer : public UntaggedFinalizerBase {
   friend class ScavengerVisitorBase;
 };
 
+class UntaggedNativeFinalizer : public UntaggedFinalizerBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(NativeFinalizer);
+
+  COMPRESSED_POINTER_FIELD(PointerPtr, callback)
+  VISIT_TO(callback)
+
+  friend class GCMarker;
+  template <bool>
+  friend class MarkingVisitorBase;
+  friend class Scavenger;
+  template <bool>
+  friend class ScavengerVisitorBase;
+};
+
 class UntaggedFinalizerEntry : public UntaggedInstance {
+ public:
+  intptr_t external_size() { return external_size_; }
+  void set_external_size(intptr_t value) { external_size_ = value; }
+
+ private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(FinalizerEntry);
 
   COMPRESSED_POINTER_FIELD(ObjectPtr, value)  // Weak reference.
@@ -3409,6 +3431,8 @@ class UntaggedFinalizerEntry : public UntaggedInstance {
   // Only populated during the GC, otherwise null.
   COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, next_seen_by_gc)
 
+  intptr_t external_size_;
+
   template <typename Type, typename PtrType>
   friend class GCLinkedList;
   template <typename GCVisitorType>
@@ -3419,6 +3443,7 @@ class UntaggedFinalizerEntry : public UntaggedInstance {
   friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
+  friend class ScavengerFinalizerVisitor;
 };
 
 // MirrorReferences are used by mirrors to hold reflectees that are VM

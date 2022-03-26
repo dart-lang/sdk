@@ -168,6 +168,48 @@ class FfiCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the name of the struct or union class
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a subclass of either `Struct`
+  // or `Union` implements `Finalizable`.
+  //
+  // For more information about FFI, see [C interop using dart:ffi][].
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the class `S`
+  // implements `Finalizable`:
+  //
+  // ```dart
+  // import 'dart:ffi';
+  //
+  // class [!S!] extends Struct implements Finalizable {
+  //   external Pointer notEmpty;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Try removing the implements clause from the class:
+  //
+  // ```dart
+  // import 'dart:ffi';
+  //
+  // class S extends Struct {
+  //   external Pointer notEmpty;
+  // }
+  // ```
+  static const FfiCode COMPOUND_IMPLEMENTS_FINALIZABLE = FfiCode(
+    'COMPOUND_IMPLEMENTS_FINALIZABLE',
+    "The class '{0}' can't implement Finalizable.",
+    correctionMessage: "Try removing the implements clause from '{0}'.",
+    hasPublishedDocs: true,
+  );
+
+  /**
    * No parameters.
    */
   // #### Description
