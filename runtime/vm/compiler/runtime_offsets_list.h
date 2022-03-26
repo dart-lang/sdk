@@ -305,11 +305,13 @@
   FIELD(FinalizerBase, detachments_offset)                                     \
   FIELD(FinalizerBase, entries_collected_offset)                               \
   FIELD(FinalizerBase, isolate_offset)                                         \
-  FIELD(FinalizerEntry, value_offset)                                          \
   FIELD(FinalizerEntry, detach_offset)                                         \
-  FIELD(FinalizerEntry, token_offset)                                          \
+  FIELD(FinalizerEntry, external_size_offset)                                  \
   FIELD(FinalizerEntry, finalizer_offset)                                      \
   FIELD(FinalizerEntry, next_offset)                                           \
+  FIELD(FinalizerEntry, token_offset)                                          \
+  FIELD(FinalizerEntry, value_offset)                                          \
+  FIELD(NativeFinalizer, callback_offset)                                      \
   FIELD(FunctionType, hash_offset)                                             \
   FIELD(FunctionType, named_parameter_names_offset)                            \
   FIELD(FunctionType, nullability_offset)                                      \
@@ -374,6 +376,7 @@
   SIZEOF(Field, InstanceSize, UntaggedField)                                   \
   SIZEOF(Finalizer, InstanceSize, UntaggedFinalizer)                           \
   SIZEOF(FinalizerEntry, InstanceSize, UntaggedFinalizerEntry)                 \
+  SIZEOF(NativeFinalizer, InstanceSize, UntaggedNativeFinalizer)               \
   SIZEOF(Float32x4, InstanceSize, UntaggedFloat32x4)                           \
   SIZEOF(Float64x2, InstanceSize, UntaggedFloat64x2)                           \
   SIZEOF(Function, InstanceSize, UntaggedFunction)                             \

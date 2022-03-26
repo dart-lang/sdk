@@ -20,6 +20,7 @@ regress_47594_test: Skip # Profiler is not available in Product.
 [ $system == android ]
 *: Pass, Slow # https://github.com/dart-lang/sdk/issues/38489
 regress_47594_test: Skip # DartDev is not available on Android.
+vmspecific_native_finalizer_isolate_groups_test: Skip # SpawnUri not available on Android tester.
 
 [ $system == windows ]
 regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.

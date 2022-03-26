@@ -1109,6 +1109,13 @@ DART_EXPORT void ReleaseClosureCallback() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// NativeFinalizer tests
+
+DART_EXPORT void SetArgumentTo42(intptr_t* token) {
+  *token = 42;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Functions for testing @FfiNative.
 
 DART_EXPORT Dart_Handle GetRootLibraryUrl() {

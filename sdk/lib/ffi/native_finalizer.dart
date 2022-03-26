@@ -221,3 +221,77 @@ part of dart.ffi;
 abstract class Finalizable {
   factory Finalizable._() => throw UnsupportedError("");
 }
+
+/// The native function type for [NativeFinalizer]s.
+///
+/// A [NativeFinalizer]'s `callback` should have the C
+/// `void nativeFinalizer(void* token)` type.
+typedef NativeFinalizerFunction
+    = NativeFunction<Void Function(Pointer<Void> token)>;
+
+/// A native finalizer which can be attached to Dart objects.
+///
+/// When [attach]ed to a Dart object, this finalizer's native callback is called
+/// after the Dart object is garbage collected or becomes inaccessible for other
+/// reasons.
+///
+/// Callbacks will happen as early as possible, when the object becomes
+/// inaccessible to the program, and may happen at any moment during execution
+/// of the program. At the latest, when an isolate group shuts down,
+/// this callback is guaranteed to be called for each object in that isolate
+/// group that the finalizer is still attached to.
+///
+/// Compared to the [Finalizer] from `dart:core`, which makes no promises to
+/// ever call an attached callback, this native finalizer promises that all
+/// attached finalizers are definitely called at least once before the program
+/// ends, and the callbacks are called as soon as possible after an object
+/// is recognized as inaccessible.
+abstract class NativeFinalizer {
+  /// Creates a finalizer with the given finalization callback.
+  ///
+  /// The [callback] must be a native function which can be executed outside of
+  /// a Dart isolate. This means that passing an FFI trampoline (a function
+  /// pointer obtained via [Pointer.fromFunction]) is not supported.
+  ///
+  /// The [callback] might be invoked on an arbitrary thread and not necessary
+  /// on the same thread that created [NativeFinalizer].
+  // TODO(https://dartbug.com/47778): Implement isolate independent code and
+  // update the above comment.
+  external factory NativeFinalizer(Pointer<NativeFinalizerFunction> callback);
+
+  /// Attaches this finalizer to [value].
+  ///
+  /// When [value] is no longer accessible to the program,
+  /// the finalizer will call its callback function with [token]
+  /// as argument.
+  ///
+  /// If a non-`null` [detach] value is provided, that object can be
+  /// passed to [Finalizer.detach] to remove the attachment again.
+  ///
+  /// The [value] and [detach] arguments do not count towards those
+  /// objects being accessible to the program. Both must be objects supported
+  /// as an [Expando] key. They may be the *same* object.
+  ///
+  /// Multiple objects may be using the same finalization token,
+  /// and the finalizer can be attached multiple times to the same object
+  /// with different, or the same, finalization token.
+  ///
+  /// The callback will be called exactly once per attachment, except for
+  /// registrations which have been detached since they were attached.
+  ///
+  /// The [externalSize] should represent the amount of native (non-Dart) memory
+  /// owned by the given [value]. This information is used for garbage
+  /// collection scheduling heuristics.
+  void attach(Finalizable value, Pointer<Void> token,
+      {Object? detach, int? externalSize});
+
+  /// Detaches this finalizer from values attached with [detach].
+  ///
+  /// If this finalizer was attached multiple times to the same object with
+  /// different detachment keys, only those attachments which used [detach]
+  /// are removed.
+  ///
+  /// After detaching, an attachment won't cause any callbacks to happen if the
+  /// object become inaccessible.
+  void detach(Object detach);
+}

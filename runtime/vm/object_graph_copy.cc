@@ -38,6 +38,7 @@
   V(Finalizer)                                                                 \
   V(FinalizerBase)                                                             \
   V(FinalizerEntry)                                                            \
+  V(NativeFinalizer)                                                           \
   V(Function)                                                                  \
   V(FunctionType)                                                              \
   V(FutureOr)                                                                  \
@@ -588,13 +589,23 @@ class ObjectCopyBase {
                         Class::Handle(class_table_->At(cid)).ToCString());
         return false;
       }
+      const bool implements_finalizable =
+          Class::ImplementsFinalizable(class_table_->At(cid));
+      if (implements_finalizable) {
+        exception_msg_ = OS::SCreate(
+            zone_,
+            "Illegal argument in isolate message: (object implements "
+            "Finalizable - %s)",
+            Class::Handle(class_table_->At(cid)).ToCString());
+        return false;
+      }
       return true;
     }
 #define HANDLE_ILLEGAL_CASE(Type)                                              \
   case k##Type##Cid: {                                                         \
     exception_msg_ =                                                           \
         "Illegal argument in isolate message: "                                \
-        "(object is a" #Type ")";                                              \
+        "(object is a " #Type ")";                                             \
     return false;                                                              \
   }
 
@@ -604,6 +615,7 @@ class ObjectCopyBase {
       // here that cannot happen in reality)
       HANDLE_ILLEGAL_CASE(DynamicLibrary)
       HANDLE_ILLEGAL_CASE(Finalizer)
+      HANDLE_ILLEGAL_CASE(NativeFinalizer)
       HANDLE_ILLEGAL_CASE(MirrorReference)
       HANDLE_ILLEGAL_CASE(Pointer)
       HANDLE_ILLEGAL_CASE(ReceivePort)

@@ -1034,6 +1034,10 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (FLAG_trace_class_finalization) {
     THR_Print("Finalize types in %s\n", cls.ToCString());
   }
+  bool implements_finalizable =
+      cls.Name() == Symbols::Finalizable().ptr() &&
+      Library::UrlOf(cls.library()) == Symbols::DartFfi().ptr();
+
   // Finalize super class.
   Class& super_class = Class::Handle(zone, cls.SuperClass());
   if (!super_class.IsNull()) {
@@ -1049,15 +1053,24 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (!super_type.IsNull()) {
     super_type = FinalizeType(super_type);
     cls.set_super_type(super_type);
+    implements_finalizable |=
+        Class::ImplementsFinalizable(super_type.type_class());
   }
   // Finalize interface types (but not necessarily interface classes).
-  Array& interface_types = Array::Handle(zone, cls.interfaces());
-  AbstractType& interface_type = AbstractType::Handle(zone);
+  const auto& interface_types = Array::Handle(zone, cls.interfaces());
+  auto& interface_type = AbstractType::Handle(zone);
+  auto& interface_class = Class::Handle(zone);
   for (intptr_t i = 0; i < interface_types.Length(); i++) {
     interface_type ^= interface_types.At(i);
     interface_type = FinalizeType(interface_type);
+    interface_class = interface_type.type_class();
+    ASSERT(!interface_class.IsNull());
+    FinalizeTypesInClass(interface_class);
     interface_types.SetAt(i, interface_type);
+    implements_finalizable |=
+        Class::ImplementsFinalizable(interface_type.type_class());
   }
+  cls.set_implements_finalizable(implements_finalizable);
   cls.set_is_type_finalized();
 
   RegisterClassInHierarchy(thread->zone(), cls);

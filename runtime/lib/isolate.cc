@@ -184,6 +184,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   bool error_found = false;
   Function& erroneous_closure_function = Function::Handle(zone);
   Class& erroneous_nativewrapper_class = Class::Handle(zone);
+  Class& erroneous_finalizable_class = Class::Handle(zone);
   const char* error_message = nullptr;
 
   {
@@ -244,6 +245,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
           MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
           // TODO(http://dartbug.com/47777): Send and exit support: remove this.
           MESSAGE_SNAPSHOT_ILLEGAL(Finalizer);
+          MESSAGE_SNAPSHOT_ILLEGAL(NativeFinalizer);
           MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
           MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
           MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
@@ -254,6 +256,11 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
             klass = class_table->At(cid);
             if (klass.num_native_fields() != 0) {
               erroneous_nativewrapper_class = klass.ptr();
+              error_found = true;
+              break;
+            }
+            if (klass.implements_finalizable()) {
+              erroneous_finalizable_class = klass.ptr();
               error_found = true;
               break;
             }
@@ -271,13 +278,18 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
                                       "Illegal argument in isolate message"
                                       " : (object is a closure - %s)",
                                       erroneous_closure_function.ToCString());
-    } else {
-      ASSERT(!erroneous_nativewrapper_class.IsNull());
+    } else if (!erroneous_nativewrapper_class.IsNull()) {
       exception_message =
           OS::SCreate(zone,
                       "Illegal argument in isolate message"
                       " : (object extends NativeWrapper - %s)",
                       erroneous_nativewrapper_class.ToCString());
+    } else {
+      ASSERT(!erroneous_finalizable_class.IsNull());
+      exception_message = OS::SCreate(zone,
+                                      "Illegal argument in isolate message"
+                                      " : (object implements Finalizable - %s)",
+                                      erroneous_finalizable_class.ToCString());
     }
     return Exceptions::CreateUnhandledException(
         zone, Exceptions::kArgumentValue, exception_message);

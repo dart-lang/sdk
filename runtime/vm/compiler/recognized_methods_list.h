@@ -123,15 +123,16 @@ namespace dart {
     0xb3e66928)                                                                \
   V(_FinalizerImpl, get:_callback, Finalizer_getCallback, 0x6f3d56bc)          \
   V(_FinalizerImpl, set:_callback, Finalizer_setCallback, 0xc6aa96f9)          \
+  V(_NativeFinalizer, get:_callback, NativeFinalizer_getCallback, 0x5cb374f5)  \
+  V(_NativeFinalizer, set:_callback, NativeFinalizer_setCallback, 0xb12268f2)  \
+  V(FinalizerEntry, allocate, FinalizerEntry_allocate, 0xe0bad878)             \
   V(FinalizerEntry, get:value, FinalizerEntry_getValue, 0xf5c9b9d7)            \
-  V(FinalizerEntry, set:value, FinalizerEntry_setValue, 0x5501cc54)            \
   V(FinalizerEntry, get:detach, FinalizerEntry_getDetach, 0x171cd968)          \
-  V(FinalizerEntry, set:detach, FinalizerEntry_setDetach, 0x7654ebe5)          \
-  V(FinalizerEntry, set:finalizer, FinalizerEntry_setFinalizer, 0x15cfefe9)    \
   V(FinalizerEntry, get:token, FinalizerEntry_getToken, 0x04915a72)            \
   V(FinalizerEntry, set:token, FinalizerEntry_setToken, 0x63c96cef)            \
   V(FinalizerEntry, get:next, FinalizerEntry_getNext, 0x7102d7a4)              \
-  V(FinalizerEntry, set:next, FinalizerEntry_setNext, 0xd0b2ee61)              \
+  V(FinalizerEntry, get:externalSize, FinalizerEntry_getExternalSize,          \
+    0x47df4d22)                                                                \
   V(Float32x4, _Float32x4FromDoubles, Float32x4FromDoubles, 0x1845792b)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 0xd3b64002)                      \
   V(Float32x4, _Float32x4Splat, Float32x4Splat, 0x13a552c3)                    \

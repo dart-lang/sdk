@@ -36,4 +36,9 @@ void GCLinkedLists::FlushInto(GCLinkedLists* to) {
 #undef FOREACH
 }
 
+Heap::Space SpaceForExternal(FinalizerEntryPtr raw_entry) {
+  ASSERT(!raw_entry->untag()->value().IsSmi());
+  return raw_entry->untag()->value()->IsOldObject() ? Heap::kOld : Heap::kNew;
+}
+
 }  // namespace dart

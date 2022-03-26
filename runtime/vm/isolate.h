@@ -1065,6 +1065,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
 
+  void set_finalizers(const GrowableObjectArray& value);
   static intptr_t finalizers_offset() {
     return OFFSET_OF(Isolate, finalizers_);
   }

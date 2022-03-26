@@ -237,6 +237,7 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kFinalizerEntry_next:
     case Slot::Kind::kFinalizerEntry_token:
     case Slot::Kind::kFinalizerEntry_value:
+    case Slot::Kind::kNativeFinalizer_callback:
     case Slot::Kind::kFunction_data:
     case Slot::Kind::kFunction_signature:
     case Slot::Kind::kFunctionType_named_parameter_names:

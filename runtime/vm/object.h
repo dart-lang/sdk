@@ -1608,6 +1608,10 @@ class Class : public Object {
   static uint16_t NumNativeFieldsOf(ClassPtr clazz) {
     return clazz->untag()->num_native_fields_;
   }
+  static bool ImplementsFinalizable(ClassPtr clazz) {
+    ASSERT(Class::Handle(clazz).is_type_finalized());
+    return ImplementsFinalizableBit::decode(clazz->untag()->state_bits_);
+  }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   CodePtr allocation_stub() const { return untag()->allocation_stub(); }
@@ -1831,6 +1835,7 @@ class Class : public Object {
     kIsAllocatedBit,
     kIsLoadedBit,
     kHasPragmaBit,
+    kImplementsFinalizableBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -1853,6 +1858,8 @@ class Class : public Object {
   class IsAllocatedBit : public BitField<uint32_t, bool, kIsAllocatedBit, 1> {};
   class IsLoadedBit : public BitField<uint32_t, bool, kIsLoadedBit, 1> {};
   class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
+  class ImplementsFinalizableBit
+      : public BitField<uint32_t, bool, kImplementsFinalizableBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -1890,6 +1897,12 @@ class Class : public Object {
 
   bool has_pragma() const { return HasPragmaBit::decode(state_bits()); }
   void set_has_pragma(bool has_pragma) const;
+
+  bool implements_finalizable() const {
+    ASSERT(is_type_finalized());
+    return ImplementsFinalizable(ptr());
+  }
+  void set_implements_finalizable(bool value) const;
 
  private:
   void set_functions(const Array& value) const;
@@ -3185,33 +3198,9 @@ class Function : public Object {
   // deoptimize, since we won't generate deoptimization info or register
   // dependencies. It will be compiled into optimized code immediately when it's
   // run.
-  bool ForceOptimize() const {
-    return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
-           IsFfiStore() || IsFfiTrampoline() || IsFfiAsExternalTypedData() ||
-           IsTypedDataViewFactory() || IsUtf8Scan() || IsGetNativeField() ||
-           IsFinalizerForceOptimized();
-  }
+  bool ForceOptimize() const;
 
-  bool IsFinalizerForceOptimized() const {
-    // Either because of unboxed/untagged data, or because we don't want the GC
-    // to trigger in between.
-    switch (recognized_kind()) {
-      case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
-      case MethodRecognizer::kFinalizerBase_setIsolate:
-      case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
-        // Unboxed/untagged representation not supported in unoptimized.
-        return true;
-      case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
-        // Prevent the GC from running so that the operation is atomic from
-        // a GC point of view. Always double check implementation in
-        // kernel_to_il.cc that no GC can happen in between the relevant IL
-        // instructions.
-        // TODO(https://dartbug.com/48527): Support inlining.
-        return true;
-      default:
-        return false;
-    }
-  }
+  bool IsFinalizerForceOptimized() const;
 
   bool CanBeInlined() const;
 
@@ -4743,6 +4732,7 @@ class Library : public Object {
   void SetName(const String& name) const;
 
   StringPtr url() const { return untag()->url(); }
+  static StringPtr UrlOf(LibraryPtr lib) { return lib->untag()->url(); }
   StringPtr private_key() const { return untag()->private_key(); }
   bool LoadNotStarted() const {
     return untag()->load_state_ == UntaggedLibrary::kAllocated;
@@ -5768,7 +5758,7 @@ class PcDescriptors : public Object {
   // pc descriptors table to visit objects if any in the table.
   // Note: never return a reference to a UntaggedPcDescriptors::PcDescriptorRec
   // as the object can move.
-  class Iterator : ValueObject {
+  class Iterator : public ValueObject {
    public:
     Iterator(const PcDescriptors& descriptors, intptr_t kind_mask)
         : descriptors_(descriptors),
@@ -9754,7 +9744,7 @@ class String : public Instance {
 };
 
 // Synchronize with implementation in compiler (intrinsifier).
-class StringHasher : ValueObject {
+class StringHasher : public ValueObject {
  public:
   StringHasher() : hash_(0) {}
   void Add(uint16_t code_unit) { hash_ = CombineHashes(hash_, code_unit); }
@@ -11326,7 +11316,7 @@ class LinkedHashMap : public LinkedHashBase {
   //  - There are no checks for concurrent modifications.
   //  - Accessing a key or value before the first call to MoveNext and after
   //    MoveNext returns false will result in crashes.
-  class Iterator : ValueObject {
+  class Iterator : public ValueObject {
    public:
     explicit Iterator(const LinkedHashMap& map)
         : data_(Array::Handle(map.data())),
@@ -11422,7 +11412,7 @@ class LinkedHashSet : public LinkedHashBase {
   //  - There are no checks for concurrent modifications.
   //  - Accessing a key or value before the first call to MoveNext and after
   //    MoveNext returns false will result in crashes.
-  class Iterator : ValueObject {
+  class Iterator : public ValueObject {
    public:
     explicit Iterator(const LinkedHashSet& set)
         : data_(Array::Handle(set.data())),
@@ -12048,6 +12038,7 @@ class WeakReference : public Instance {
   friend class Class;
 };
 
+class FinalizerBase;
 class FinalizerEntry : public Instance {
  public:
   ObjectPtr value() const { return untag()->value(); }
@@ -12084,11 +12075,31 @@ class FinalizerEntry : public Instance {
     return OFFSET_OF(UntaggedFinalizerEntry, next_);
   }
 
+  intptr_t external_size() const { return untag()->external_size(); }
+  void set_external_size(intptr_t value) const {
+    untag()->set_external_size(value);
+  }
+  static intptr_t external_size_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, external_size_);
+  }
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedFinalizerEntry));
   }
 
-  static FinalizerEntryPtr New(Heap::Space space = Heap::kNew);
+  // Allocates a new FinalizerEntry, initializing the external size (to 0) and
+  // finalizer.
+  //
+  // Should only be used for object tests.
+  //
+  // Does not initialize `value`, `token`, and `detach` to allow for flexible
+  // testing code setting those manually.
+  //
+  // Does _not_ add the entry to the finalizer. We could add the entry to
+  // finalizer.all_entries.data, but we have no way of initializing the hashset
+  // index.
+  static FinalizerEntryPtr New(const FinalizerBase& finalizer,
+                               Heap::Space space = Heap::kNew);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(FinalizerEntry, Instance);
@@ -12108,6 +12119,9 @@ class FinalizerBase : public Instance {
   }
 
   LinkedHashSetPtr all_entries() const { return untag()->all_entries(); }
+  void set_all_entries(const LinkedHashSet& value) const {
+    untag()->set_all_entries(value.ptr());
+  }
   static intptr_t all_entries_offset() {
     return OFFSET_OF(UntaggedFinalizerBase, all_entries_);
   }
@@ -12146,6 +12160,32 @@ class Finalizer : public FinalizerBase {
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Finalizer, FinalizerBase);
+  friend class Class;
+};
+
+class NativeFinalizer : public FinalizerBase {
+ public:
+  typedef void (*Callback)(void*);
+
+  PointerPtr callback() const { return untag()->callback(); }
+  void set_callback(const Pointer& value) const {
+    untag()->set_callback(value.ptr());
+  }
+  static intptr_t callback_offset() {
+    return OFFSET_OF(UntaggedNativeFinalizer, callback_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedNativeFinalizer));
+  }
+
+  static NativeFinalizerPtr New(Heap::Space space = Heap::kNew);
+
+  void RunCallback(const FinalizerEntry& entry,
+                   const char* trace_context) const;
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(NativeFinalizer, FinalizerBase);
   friend class Class;
 };
 

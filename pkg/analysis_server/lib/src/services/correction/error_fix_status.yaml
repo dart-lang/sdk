@@ -1087,6 +1087,8 @@ FfiCode.ANNOTATION_ON_POINTER_FIELD:
   status: needsEvaluation
 FfiCode.ARGUMENT_MUST_BE_A_CONSTANT:
   status: needsEvaluation
+FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE:
+  status: needsEvaluation
 FfiCode.CREATION_OF_STRUCT_OR_UNION:
   status: needsEvaluation
   since: ~2.15

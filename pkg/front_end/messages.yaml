@@ -4690,6 +4690,12 @@ FfiStructGeneric:
   problemMessage: "#string '#name' should not be generic."
   external: test/ffi_test.dart
 
+FfiCompoundImplementsFinalizable:
+  # Used by dart:ffi
+  problemMessage: "#string '#name' can't implement Finalizable."
+  correctionMessage: "Try removing the implements clause from '#name'."
+  external: test/ffi_test.dart
+
 FfiDartTypeMismatch:
   # Used by dart:ffi
   problemMessage: "Expected '#type' to be a subtype of '#type2'."

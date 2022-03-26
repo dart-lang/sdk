@@ -15,7 +15,6 @@
 #include "vm/native_function.h"
 #include "vm/runtime_entry.h"
 
-
 namespace dart {
 
 // Forward declarations.
@@ -50,6 +49,9 @@ typedef ObjectPtr (*BootstrapNativeFunction)(Thread* thread,
   }                                                                            \
   static ObjectPtr DN_Helper##name(Isolate* isolate, Thread* thread,           \
                                    Zone* zone, NativeArguments* arguments)
+
+#define DEFINE_FFI_NATIVE_ENTRY(name, return_type, argument_types)             \
+  return_type BootstrapNatives::FN_##name argument_types
 
 // Helpers that throw an argument exception.
 void DartNativeThrowTypeArgumentCountException(int num_type_args,

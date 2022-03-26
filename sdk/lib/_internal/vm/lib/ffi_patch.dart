@@ -4,9 +4,9 @@
 
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
-import "dart:_internal" show patch, has63BitSmis;
-import 'dart:typed_data';
+import 'dart:_internal';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 const Map<Type, int> _knownSizes = {
   Int8: 1,

@@ -447,6 +447,8 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return Finalizer::InstanceSize();
     case kFinalizerEntryCid:
       return FinalizerEntry::InstanceSize();
+    case kNativeFinalizerCid:
+      return NativeFinalizer::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
     case kPointerCid:

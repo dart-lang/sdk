@@ -3944,7 +3944,7 @@ ObjectPtr ReadMessage(Thread* thread, Message* message) {
   } else if (message->IsFinalizerInvocationRequest()) {
     PersistentHandle* handle = message->persistent_handle();
     Object& msg_obj = Object::Handle(thread->zone(), handle->ptr());
-    ASSERT(msg_obj.IsFinalizer());
+    ASSERT(msg_obj.IsFinalizer() || msg_obj.IsNativeFinalizer());
     return msg_obj.ptr();
   } else if (message->IsPersistentHandle()) {
     return ReadObjectGraphCopyMessage(thread, message->persistent_handle());

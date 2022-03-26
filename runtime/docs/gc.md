@@ -210,15 +210,17 @@ StoreInstanceField(container, value, NoBarrier)
 The GC is aware of two types of objects for the purposes of running finalizers.
 
 1) `FinalizerEntry`
-2) `Finalizer` (`FinalizerBase`, `_FinalizerImpl`)
+2) `Finalizer` (`FinalizerBase`, `_FinalizerImpl`, `_NativeFinalizer`)
 
-A `FinalizerEntry` contains the `value`, the optional `detach` key, and the `token`, and a reference to the `finalizer`.
+A `FinalizerEntry` contains the `value`, the optional `detach` key, and the `token`, a reference to the `finalizer`, and an `external_size`.
 An entry only holds on weakly to the value, detach key, and finalizer. (Similar to how `WeakReference` only holds on weakly to target).
 
 A `Finalizer` contains all entries, a list of entries of which the value is collected, and a reference to the isolate.
 
 When the value of an entry is GCed, the entry is added over to the collected list.
 If any entry is moved to the collected list, a message is sent that invokes the finalizer to call the callback on all entries in that list.
+For native finalizers, the native callback is immediately invoked in the GC.
+However, we still send a message to the native finalizer to clean up the entries from all entries and the detachments.
 
 When a finalizer is detached by the user, the entry token is set to the entry itself and is removed from the all entries set.
 This ensures that if the entry was already moved to the collected list, the finalizer is not executed.
@@ -236,3 +238,5 @@ An alternative design would be to pre-allocate a `WeakReference` in the finalize
 This would be at the cost of an extra object.
 
 If the finalizer object itself is GCed, the callback is not run for any of the attachments.
+
+On Isolate shutdown, native finalizers are run, but regular finalizers are not.

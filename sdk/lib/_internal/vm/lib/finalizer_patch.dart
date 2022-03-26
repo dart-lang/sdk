@@ -43,15 +43,7 @@ class _FinalizerImpl<T> extends FinalizerBase implements Finalizer<T> {
       checkValidWeakTarget(detach, 'detach');
     }
 
-    // Initializing the entry in a non-atomic way should be fine.
-    // The only interesting step in the GC is when value is collected.
-    // If the entry gets processed before initializing value, it will be null,
-    // and this is fine. We will not consider it as being collected that GC.
-    final entry = FinalizerEntry()
-      ..value = value
-      ..token = token
-      ..detach = detach
-      ..finalizer = this;
+    final entry = FinalizerEntry.allocate(value, token, detach, this);
     allEntries.add(entry);
     // Ensure value stays reachable until after having initialized the entry.
     // This ensures the token and finalizer are set.

@@ -723,7 +723,9 @@ abstract class SendPort implements Capability {
   ///     therefore not be sent.
   ///   - [ReceivePort]
   ///   - [DynamicLibrary]
+  ///   - [Finalizable]
   ///   - [Finalizer]
+  ///   - [NativeFinalizer]
   ///   - [Pointer]
   ///   - [UserTag]
   ///   - `MirrorReference`

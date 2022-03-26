@@ -9,7 +9,7 @@
 
 import "dart:async" show Timer;
 import "dart:core" hide Symbol;
-import "dart:ffi" show Pointer, Struct, Union;
+import "dart:ffi" show Pointer, Struct, Union, IntPtr, Handle, Void, FfiNative;
 import "dart:isolate" show SendPort;
 import "dart:typed_data" show Int32List, Uint8List;
 
@@ -384,15 +384,18 @@ extension FinalizerBaseMembers on FinalizerBase {
 /// linked list of pending entries while running the GC.
 @pragma("vm:entry-point")
 class FinalizerEntry {
+  @pragma('vm:never-inline')
+  @pragma("vm:recognized", "other")
+  @pragma("vm:external-name", "FinalizerEntry_allocate")
+  external static FinalizerEntry allocate(
+      Object value, Object? token, Object? detach, FinalizerBase finalizer);
+
   /// The [value] the [FinalizerBase] is attached to.
   ///
   /// Set to `null` by GC when unreachable.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   external Object? get value;
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  external set value(Object? value);
 
   /// The [detach] object can be passed to [FinalizerBase] to detach
   /// the finalizer.
@@ -401,9 +404,6 @@ class FinalizerEntry {
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   external Object? get detach;
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  external set detach(Object? value);
 
   /// The [token] is passed to [FinalizerBase] when the finalizer is run.
   @pragma("vm:recognized", "other")
@@ -413,13 +413,6 @@ class FinalizerEntry {
   @pragma("vm:prefer-inline")
   external set token(Object? value);
 
-  /// The [finalizer] this [FinalizerEntry] belongs to.
-  ///
-  /// Set to `null` by GC when unreachable.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  external set finalizer(FinalizerBase? finalizer);
-
   /// The [next] entry in a linked list.
   ///
   /// Used in for the linked list starting from
@@ -427,7 +420,12 @@ class FinalizerEntry {
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   external FinalizerEntry? get next;
+
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external set next(FinalizerEntry? value);
+  external int get externalSize;
+
+  /// Update the external size.
+  @FfiNative<Void Function(Handle, IntPtr)>('FinalizerEntry_SetExternalSize')
+  external void setExternalSize(int externalSize);
 }

@@ -825,6 +825,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(FinalizerEntry_getNext, FinalizerEntry_next)                               \
   V(FinalizerEntry_getToken, FinalizerEntry_token)                             \
   V(FinalizerEntry_getValue, FinalizerEntry_value)                             \
+  V(NativeFinalizer_getCallback, NativeFinalizer_callback)                     \
   V(GrowableArrayLength, GrowableObjectArray_length)                           \
   V(ImmutableLinkedHashBase_getData, ImmutableLinkedHashBase_data)             \
   V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)           \
@@ -845,11 +846,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(Finalizer_setCallback, Finalizer_callback)                                 \
   V(FinalizerBase_setAllEntries, FinalizerBase_all_entries)                    \
   V(FinalizerBase_setDetachments, FinalizerBase_detachments)                   \
-  V(FinalizerEntry_setDetach, FinalizerEntry_detach)                           \
-  V(FinalizerEntry_setFinalizer, FinalizerEntry_finalizer)                     \
-  V(FinalizerEntry_setNext, FinalizerEntry_next)                               \
   V(FinalizerEntry_setToken, FinalizerEntry_token)                             \
-  V(FinalizerEntry_setValue, FinalizerEntry_value)                             \
+  V(NativeFinalizer_setCallback, NativeFinalizer_callback)                     \
   V(LinkedHashBase_setData, LinkedHashBase_data)                               \
   V(LinkedHashBase_setIndex, LinkedHashBase_index)                             \
   V(WeakProperty_setKey, WeakProperty_key)                                     \
@@ -938,6 +936,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
     case MethodRecognizer::kFinalizerBase_setIsolate:
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
+    case MethodRecognizer::kFinalizerEntry_allocate:
+    case MethodRecognizer::kFinalizerEntry_getExternalSize:
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
@@ -1620,6 +1620,42 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += NullConstant();
       body += StoreNativeField(Slot::FinalizerBase_entries_collected());
+      break;
+    case MethodRecognizer::kFinalizerEntry_allocate: {
+      // Object value, Object token, Object detach, FinalizerBase finalizer
+      ASSERT_EQUAL(function.NumParameters(), 4);
+
+      const auto class_table = thread_->isolate_group()->class_table();
+      ASSERT(class_table->HasValidClassAt(kFinalizerEntryCid));
+      const auto& finalizer_entry_class =
+          Class::ZoneHandle(H.zone(), class_table->At(kFinalizerEntryCid));
+
+      body +=
+          AllocateObject(TokenPosition::kNoSource, finalizer_entry_class, 0);
+      LocalVariable* const entry = MakeTemporary("entry");
+      // No GC from here to the end.
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += StoreNativeField(Slot::FinalizerEntry_value());
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += StoreNativeField(Slot::FinalizerEntry_token());
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(2));
+      body += StoreNativeField(Slot::FinalizerEntry_detach());
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(3));
+      body += StoreNativeField(Slot::FinalizerEntry_finalizer());
+      body += LoadLocal(entry);
+      body += UnboxedIntConstant(0, kUnboxedIntPtr);
+      body += StoreNativeField(Slot::FinalizerEntry_external_size());
+      break;
+    }
+    case MethodRecognizer::kFinalizerEntry_getExternalSize:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::FinalizerEntry_external_size());
+      body += Box(kUnboxedInt64);
       break;
 #define IL_BODY(method, slot)                                                  \
   case MethodRecognizer::k##method:                                            \

@@ -101,6 +101,7 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, context, Context, FINAL)                         \
   V(Closure, UntaggedClosure, hash, Context, VAR)                              \
   V(Finalizer, UntaggedFinalizer, callback, Closure, FINAL)                    \
+  V(NativeFinalizer, UntaggedFinalizer, callback, Pointer, FINAL)              \
   V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
   V(FunctionType, UntaggedFunctionType, named_parameter_names, Array, FINAL)   \
   V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
@@ -170,6 +171,7 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
   V(ClosureData, UntaggedClosureData, default_type_arguments_kind, Uint8,      \
     FINAL)                                                                     \
   V(FinalizerBase, UntaggedFinalizerBase, isolate, IntPtr, VAR)                \
+  V(FinalizerEntry, UntaggedFinalizerEntry, external_size, IntPtr, VAR)        \
   V(Function, UntaggedFunction, entry_point, Uword, FINAL)                     \
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
   V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \

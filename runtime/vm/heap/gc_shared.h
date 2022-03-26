@@ -37,6 +37,7 @@ template <typename Type, typename PtrType>
 class GCLinkedList {
  public:
   void Enqueue(PtrType ptr) {
+    ASSERT(ptr->untag()->next_seen_by_gc().IsRawNull());
     ptr->untag()->next_seen_by_gc_ = head_;
     if (head_ == Type::null()) {
       tail_ = ptr;
@@ -92,6 +93,55 @@ struct GCLinkedLists {
 #define TRACE_FINALIZER(format, ...)
 #endif
 
+// The space in which `raw_entry`'s `value` is.
+Heap::Space SpaceForExternal(FinalizerEntryPtr raw_entry);
+
+// Runs the finalizer if not detached, detaches the value and set external size
+// to 0.
+// TODO(http://dartbug.com/47777): Can this be merged with
+// NativeFinalizer::RunCallback?
+template <typename GCVisitorType>
+void RunNativeFinalizerCallback(NativeFinalizerPtr raw_finalizer,
+                                FinalizerEntryPtr raw_entry,
+                                Heap::Space before_gc_space,
+                                GCVisitorType* visitor) {
+  PointerPtr callback_pointer = raw_finalizer->untag()->callback();
+  const auto callback = reinterpret_cast<NativeFinalizer::Callback>(
+      callback_pointer->untag()->data());
+  ObjectPtr token_object = raw_entry->untag()->token();
+  const bool is_detached = token_object == raw_entry;
+  const intptr_t external_size = raw_entry->untag()->external_size();
+  if (is_detached) {
+    // Detached from Dart code.
+    ASSERT(token_object == raw_entry);
+    ASSERT(external_size == 0);
+    if (FLAG_trace_finalizers) {
+      TRACE_FINALIZER("Not running native finalizer %p callback %p, detached",
+                      raw_finalizer->untag(), callback);
+    }
+  } else {
+    // TODO(http://dartbug.com/48615): Unbox pointer address in entry.
+    ASSERT(token_object.IsPointer());
+    PointerPtr token = static_cast<PointerPtr>(token_object);
+    void* peer = reinterpret_cast<void*>(token->untag()->data());
+    if (FLAG_trace_finalizers) {
+      TRACE_FINALIZER("Running native finalizer %p callback %p with token %p",
+                      raw_finalizer->untag(), callback, peer);
+    }
+    raw_entry.untag()->set_token(raw_entry);
+    callback(peer);
+    if (external_size > 0) {
+      if (FLAG_trace_finalizers) {
+        TRACE_FINALIZER("Clearing external size %" Pd " bytes in %s space",
+                        external_size, before_gc_space == 0 ? "new" : "old");
+      }
+      visitor->isolate_group()->heap()->FreedExternal(external_size,
+                                                      before_gc_space);
+      raw_entry->untag()->set_external_size(0);
+    }
+  }
+}
+
 // This function processes all finalizer entries discovered by a scavenger or
 // marker. If an entry is referencing an object that is going to die, such entry
 // is cleared and enqueued in the respective finalizer.
@@ -102,9 +152,9 @@ struct GCLinkedLists {
 // For more documentation see runtime/docs/gc.md.
 //
 // |GCVisitorType| is a concrete type implementing either marker or scavenger.
-// It is expected to provide |SetNullIfCollected| method for clearing fields
-// referring to dead objects and |kName| field which contains visitor name for
-// tracing output.
+// It is expected to provide |ForwardOrSetNullIfCollected| method for clearing
+// fields referring to dead objects and |kName| field which contains visitor
+// name for tracing output.
 template <typename GCVisitorType>
 void MournFinalized(GCVisitorType* visitor) {
   FinalizerEntryPtr current_entry =
@@ -117,12 +167,24 @@ void MournFinalized(GCVisitorType* visitor) {
     current_entry->untag()->next_seen_by_gc_ = FinalizerEntry::null();
 
     uword heap_base = current_entry->heap_base();
-    const bool value_collected_this_gc = GCVisitorType::SetNullIfCollected(
-        heap_base, &current_entry->untag()->value_);
-    GCVisitorType::SetNullIfCollected(heap_base,
-                                      &current_entry->untag()->detach_);
-    GCVisitorType::SetNullIfCollected(heap_base,
-                                      &current_entry->untag()->finalizer_);
+    const Heap::Space before_gc_space = SpaceForExternal(current_entry);
+    const bool value_collected_this_gc =
+        GCVisitorType::ForwardOrSetNullIfCollected(
+            heap_base, &current_entry->untag()->value_);
+    if (!value_collected_this_gc && before_gc_space == Heap::kNew) {
+      const Heap::Space after_gc_space = SpaceForExternal(current_entry);
+      if (after_gc_space == Heap::kOld) {
+        const intptr_t external_size = current_entry->untag()->external_size_;
+        TRACE_FINALIZER("Promoting external size %" Pd
+                        " bytes from new to old space",
+                        external_size);
+        visitor->isolate_group()->heap()->PromotedExternal(external_size);
+      }
+    }
+    GCVisitorType::ForwardOrSetNullIfCollected(
+        heap_base, &current_entry->untag()->detach_);
+    GCVisitorType::ForwardOrSetNullIfCollected(
+        heap_base, &current_entry->untag()->finalizer_);
 
     ObjectPtr token_object = current_entry->untag()->token();
     // See sdk/lib/_internal/vm/lib/internal_patch.dart FinalizerBase.detach.
@@ -136,7 +198,7 @@ void MournFinalized(GCVisitorType* visitor) {
                         current_entry->untag());
 
         // Do nothing, the finalizer has been GCed.
-      } else if (finalizer.IsFinalizer()) {
+      } else {
         TRACE_FINALIZER("Value collected entry %p finalizer %p",
                         current_entry->untag(), finalizer->untag());
 
@@ -154,6 +216,18 @@ void MournFinalized(GCVisitorType* visitor) {
         // worker is at a safepoint already.
         ASSERT(Thread::Current()->IsAtSafepoint() ||
                Thread::Current()->BypassSafepoints());
+
+        if (finalizer.IsNativeFinalizer()) {
+          NativeFinalizerPtr native_finalizer =
+              static_cast<NativeFinalizerPtr>(finalizer);
+
+          // Immediately call native callback.
+          RunNativeFinalizerCallback(native_finalizer, current_entry,
+                                     before_gc_space, visitor);
+
+          // Fall-through sending a message to clear the entries and remove
+          // from detachments.
+        }
 
         FinalizerEntryPtr previous_head =
             finalizer_dart->untag()->exchange_entries_collected(current_entry);
@@ -179,9 +253,6 @@ void MournFinalized(GCVisitorType* visitor) {
                 /*before_events*/ false);
           }
         }
-      } else {
-        // TODO(http://dartbug.com/47777): Implement NativeFinalizer.
-        UNREACHABLE();
       }
     }
 

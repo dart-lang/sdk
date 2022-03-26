@@ -452,11 +452,17 @@ namespace dart {
   V(ParameterMirror_type, 3)                                                   \
   V(VariableMirror_type, 2)
 
+#define BOOTSTRAP_FFI_NATIVE_LIST(V)                                           \
+  V(FinalizerEntry_SetExternalSize, void, (Dart_Handle, intptr_t))
+
 class BootstrapNatives : public AllStatic {
  public:
   static Dart_NativeFunction Lookup(Dart_Handle name,
                                     int argument_count,
                                     bool* auto_setup_scope);
+
+  // For use with @FfiNative.
+  static void* LookupFfiNative(const char* name, uintptr_t argument_count);
 
   static const uint8_t* Symbol(Dart_NativeFunction nf);
 
@@ -468,8 +474,12 @@ class BootstrapNatives : public AllStatic {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   MIRRORS_BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
 #endif
-
 #undef DECLARE_BOOTSTRAP_NATIVE
+
+#define DECLARE_BOOTSTRAP_FFI_NATIVE(name, return_type, argument_types)        \
+  static return_type FN_##name argument_types;
+  BOOTSTRAP_FFI_NATIVE_LIST(DECLARE_BOOTSTRAP_FFI_NATIVE)
+#undef DECLARE_BOOTSTRAP_FFI_NATIVE
 };
 
 }  // namespace dart

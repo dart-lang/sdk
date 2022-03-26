@@ -1719,6 +1719,21 @@ void Finalizer::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // Not exposing entries.
 }
 
+void NativeFinalizer::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "NativeFinalizer");
+  jsobj.AddServiceId(*this);
+  if (ref) {
+    return;
+  }
+
+  const Object& finalizer_callback = Object::Handle(callback());
+  jsobj.AddProperty("callback_address", finalizer_callback);
+
+  // Not exposing entries.
+}
+
 void FinalizerEntry::PrintJSONImpl(JSONStream* stream, bool ref) const {
   UNREACHABLE();
 }
