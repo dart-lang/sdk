@@ -7902,7 +7902,6 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
 ///
 ///    typeName ::=
 ///        [Identifier] typeArguments? '?'?
-/// ignore: deprecated_member_use_from_same_package
 class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   /// The name of the type.
   IdentifierImpl _name;

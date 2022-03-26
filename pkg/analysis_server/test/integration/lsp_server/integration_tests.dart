@@ -158,7 +158,6 @@ class LspServerClient {
         serverPath = normalize(join(dirname(Platform.resolvedExecutable),
             'dart-sdk', 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
       }
-      // ignore: dead_code
     } else {
       final rootDir =
           findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
