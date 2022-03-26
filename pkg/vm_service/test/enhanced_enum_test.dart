@@ -4,7 +4,6 @@
 //
 // SharedOptions=--enable-experiment=enhanced-enums
 
-// ignore_for_file: experiment_not_enabled
 // @dart=2.17
 
 import 'dart:developer';

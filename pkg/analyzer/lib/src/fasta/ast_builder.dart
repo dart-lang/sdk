@@ -84,11 +84,6 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-// Many of the super-types in this file come from 'package:_fe_analyzer_shared'
-// and we've chosen more specific / meaningful parameter names. Leaving these as
-// they are for now.
-// ignore_for_file: avoid_renaming_method_parameters
-
 const _invalidCollectionElement = _InvalidCollectionElement._();
 
 /// A parser listener that builds the analyzer's AST structure.

@@ -5,7 +5,6 @@
 // @dart = 2.9
 
 // ignore_for_file: directives_ordering
-// ignore_for_file: library_prefixes
 
 library js_ast;
 

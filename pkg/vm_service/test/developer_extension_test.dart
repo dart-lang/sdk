@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:expect/expect.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';

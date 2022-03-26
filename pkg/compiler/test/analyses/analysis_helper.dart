@@ -4,6 +4,7 @@
 
 // @dart = 2.7
 
+import 'dart:collection' show SplayTreeMap;
 import 'dart:convert' as json;
 import 'dart:io';
 
@@ -170,10 +171,10 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     }
     component.accept(this);
     if (generate && _allowedListPath != null) {
-      Map<String, Map<String, int>> actualJson = {};
+      Map<String, Map<String, int>> actualJson = SplayTreeMap();
       _actualMessages.forEach(
           (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
-        Map<String, int> map = {};
+        Map<String, int> map = SplayTreeMap();
         actualMessagesMap
             .forEach((String message, List<DiagnosticMessage> actualMessages) {
           map[message] = actualMessages.length;
@@ -181,8 +182,8 @@ class DynamicVisitor extends StaticTypeVisitorBase {
         actualJson[uri] = map;
       });
 
-      new File(_allowedListPath).writeAsStringSync(
-          new json.JsonEncoder.withIndent('  ').convert(actualJson));
+      File(_allowedListPath).writeAsStringSync(
+          json.JsonEncoder.withIndent('  ').convert(actualJson));
       return;
     }
 

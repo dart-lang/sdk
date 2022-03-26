@@ -4,7 +4,6 @@
 //
 // SharedOptions=--enable-experiment=super-parameters
 
-// ignore_for_file: experiment_not_enabled
 // @dart=2.17
 
 import 'dart:developer';
@@ -40,7 +39,6 @@ class R<T> {
 }
 
 class B<T> extends R<T> {
-  // ignore: no_default_super_constructor
   B(super.f1, super.v1, super.i1, super.t1) {
     debugger();
   }
