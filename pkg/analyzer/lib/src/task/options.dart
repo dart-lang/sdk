@@ -635,48 +635,43 @@ class StrongModeOptionValueValidator extends OptionsValidator {
   void validate(ErrorReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var strongModeNode = analyzer.valueAt(AnalyzerOptions.strong_mode);
-      if (strongModeNode is YamlScalar) {
-        return _validateStrongModeAsScalar(reporter, strongModeNode);
-      } else if (strongModeNode is YamlMap) {
-        return _validateStrongModeAsMap(reporter, strongModeNode);
-      } else if (strongModeNode != null) {
-        reporter.reportErrorForSpan(
-            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-            strongModeNode.span,
-            [AnalyzerOptions.enableExperiment]);
-      }
-    }
-  }
-
-  void _validateStrongModeAsMap(
-      ErrorReporter reporter, YamlMap strongModeNode) {
-    strongModeNode.nodes.forEach((k, v) {
-      if (k is YamlScalar) {
-        var key = k.value?.toString();
-        if (!AnalyzerOptions.strongModeOptions.contains(key)) {
-          _builder.reportError(reporter, AnalyzerOptions.strong_mode, k);
-        } else if (key == AnalyzerOptions.declarationCasts) {
+      var v = analyzer.valueAt(AnalyzerOptions.strong_mode);
+      if (v is YamlScalar) {
+        var value = toLowerCase(v.value);
+        if (!AnalyzerOptions.trueOrFalse.contains(value)) {
           reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
-              k.span,
-              [AnalyzerOptions.declarationCasts]);
-        } else if (key == AnalyzerOptions.implicitCasts) {
+              AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, v.span, [
+            AnalyzerOptions.strong_mode,
+            v.value,
+            AnalyzerOptions.trueOrFalseProposal
+          ]);
+        } else if (value == 'false') {
           reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode
-                  .ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
-              k.span,
-              [AnalyzerOptions.implicitCasts, 'strict-casts']);
-        } else if (key == AnalyzerOptions.implicitDynamic) {
+              AnalysisOptionsWarningCode.SPEC_MODE_REMOVED, v.span);
+        } else if (value == 'true') {
           reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode
-                  .ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
-              k.span,
-              [AnalyzerOptions.implicitDynamic, 'strict-raw-types']);
-        } else {
-          // The key is valid.
-          if (v is YamlScalar) {
-            var value = toLowerCase(v.value);
+              AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED, v.span);
+        }
+      } else if (v is YamlMap) {
+        v.nodes.forEach((k, v) {
+          String? key, value;
+          bool validKey = false;
+          if (k is YamlScalar) {
+            key = k.value?.toString();
+            if (!AnalyzerOptions.strongModeOptions.contains(key)) {
+              _builder.reportError(reporter, AnalyzerOptions.strong_mode, k);
+            } else if (key == AnalyzerOptions.declarationCasts) {
+              reporter.reportErrorForSpan(
+                  AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
+                  k.span,
+                  [AnalyzerOptions.declarationCasts]);
+            } else {
+              // If we have a valid key, go on and check the value.
+              validKey = true;
+            }
+          }
+          if (validKey && v is YamlScalar) {
+            value = toLowerCase(v.value);
             if (!AnalyzerOptions.trueOrFalse.contains(value)) {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
@@ -684,28 +679,13 @@ class StrongModeOptionValueValidator extends OptionsValidator {
                   [key!, v.value, AnalyzerOptions.trueOrFalseProposal]);
             }
           }
-        }
+        });
+      } else if (v != null) {
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+            v.span,
+            [AnalyzerOptions.enableExperiment]);
       }
-    });
-  }
-
-  void _validateStrongModeAsScalar(
-      ErrorReporter reporter, YamlScalar strongModeNode) {
-    var stringValue = toLowerCase(strongModeNode.value);
-    if (!AnalyzerOptions.trueOrFalse.contains(stringValue)) {
-      reporter.reportErrorForSpan(
-          AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, strongModeNode.span, [
-        AnalyzerOptions.strong_mode,
-        strongModeNode.value,
-        AnalyzerOptions.trueOrFalseProposal
-      ]);
-    } else if (stringValue == 'false') {
-      reporter.reportErrorForSpan(
-          AnalysisOptionsWarningCode.SPEC_MODE_REMOVED, strongModeNode.span);
-    } else if (stringValue == 'true') {
-      reporter.reportErrorForSpan(
-          AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED,
-          strongModeNode.span);
     }
   }
 }

@@ -6,15 +6,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'remove_lint_test.dart' as remove_lint;
 import 'remove_setting_test.dart' as remove_setting;
-import 'replace_with_strict_casts_test.dart' as replace_with_strict_casts;
-import 'replace_with_strict_raw_types_test.dart'
-    as replace_with_strict_raw_types;
 
 void main() {
   defineReflectiveSuite(() {
     remove_lint.main();
     remove_setting.main();
-    replace_with_strict_casts.main();
-    replace_with_strict_raw_types.main();
   });
 }

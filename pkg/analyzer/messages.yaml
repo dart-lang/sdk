@@ -74,11 +74,6 @@ AnalysisOptionsWarningCode:
   ANALYSIS_OPTION_DEPRECATED:
     problemMessage: "The option '{0}' is no longer supported."
     comment: An error code indicating that the given option is deprecated.
-  ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
-    sharedName: ANALYSIS_OPTION_DEPRECATED
-    problemMessage: "The option '{0}' is no longer supported."
-    correctionMessage: "Try using the new '{1}' option."
-    comment: An error code indicating that the given option is deprecated.
   INCLUDED_FILE_WARNING:
     problemMessage: "Warning in the included options file {0}({1}..{2}): {3}"
     comment: |-
