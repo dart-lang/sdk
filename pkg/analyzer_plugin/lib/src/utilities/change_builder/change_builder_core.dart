@@ -181,7 +181,11 @@ class ChangeBuilderImpl implements ChangeBuilder {
           this,
           path,
           loadYamlDocument(
-              workspace.resourceProvider.getFile(path).readAsStringSync(),
+              workspace
+                  .getSession(path)!
+                  .resourceProvider
+                  .getFile(path)
+                  .readAsStringSync(),
               recover: true),
           0);
       _yamlFileEditBuilders[path] = builder;

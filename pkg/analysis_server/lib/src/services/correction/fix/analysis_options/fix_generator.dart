@@ -16,12 +16,9 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:collection/collection.dart';
 import 'package:yaml/yaml.dart';
-import 'package:yaml_edit/yaml_edit.dart';
 
 /// The generator used to generate fixes in analysis options files.
 class AnalysisOptionsFixGenerator {
@@ -70,26 +67,7 @@ class AnalysisOptionsFixGenerator {
 //        AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED) {
 //    } else
 
-    if (errorCode ==
-        AnalysisOptionsWarningCode
-            .ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT) {
-      var analyzerMap = options['analyzer'];
-      if (analyzerMap is! YamlMap) {
-        return fixes;
-      }
-      var strongModeMap = analyzerMap['strong-mode'];
-
-      if (strongModeMap is! YamlMap) {
-        return fixes;
-      }
-      if (_isErrorAtMapKey(strongModeMap, 'implicit-casts')) {
-        await _addFix_replaceWithStrictCasts(
-            coveringNodePath, analyzerMap, strongModeMap);
-      } else if (_isErrorAtMapKey(strongModeMap, 'implicit-dynamic')) {
-        await _addFix_replaceWithStrictRawTypes(
-            coveringNodePath, analyzerMap, strongModeMap);
-      }
-    } else if (errorCode == DEPRECATED_LINT_HINT) {
+    if (errorCode == DEPRECATED_LINT_HINT) {
       await _addFix_removeLint(coveringNodePath);
     } else if (errorCode ==
         AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED) {
@@ -129,52 +107,6 @@ class AnalysisOptionsFixGenerator {
       _addFixFromBuilder(builder, AnalysisOptionsFixKind.REMOVE_SETTING,
           args: [coveringNodePath[0].toString()]);
     }
-  }
-
-  /// Replaces `analyzer: strong-mode: implicit-casts: false` with
-  /// `analyzer: language: strict-casts: true`.
-  Future<void> _addFix_replaceWithStrictCasts(List<YamlNode> coveringNodePath,
-      YamlMap analyzerMap, YamlMap strongModeMap) async {
-    var builder =
-        ChangeBuilder(workspace: _NonDartChangeWorkspace(resourceProvider));
-    await builder.addYamlFileEdit(file, (builder) {
-      _replaceStrongModeEntryWithLanguageEntry(
-        builder,
-        coveringNodePath,
-        analyzerMap,
-        strongModeMap,
-        strongModeKey: 'implicit-casts',
-        languageKey: 'strict-casts',
-        languageValue: true,
-      );
-    });
-    _addFixFromBuilder(
-        builder, AnalysisOptionsFixKind.REPLACE_WITH_STRICT_CASTS,
-        args: [coveringNodePath[0].toString()]);
-  }
-
-  /// Replaces `analyzer: strong-mode: implicit-dynamic: false` with
-  /// `analyzer: language: strict-raw-types: true`.
-  Future<void> _addFix_replaceWithStrictRawTypes(
-      List<YamlNode> coveringNodePath,
-      YamlMap analyzerMap,
-      YamlMap strongModeMap) async {
-    var builder =
-        ChangeBuilder(workspace: _NonDartChangeWorkspace(resourceProvider));
-    await builder.addYamlFileEdit(file, (builder) {
-      _replaceStrongModeEntryWithLanguageEntry(
-        builder,
-        coveringNodePath,
-        analyzerMap,
-        strongModeMap,
-        strongModeKey: 'implicit-dynamic',
-        languageKey: 'strict-raw-types',
-        languageValue: true,
-      );
-    });
-    _addFixFromBuilder(
-        builder, AnalysisOptionsFixKind.REPLACE_WITH_STRICT_RAW_TYPES,
-        args: [coveringNodePath[0].toString()]);
   }
 
   /// Add a fix whose edits were built by the [builder] that has the given
@@ -259,20 +191,6 @@ class AnalysisOptionsFixGenerator {
     return offset;
   }
 
-  /// Returns whether the error is located within [map], covering the
-  /// [YamlScalar] node for [key].
-  bool _isErrorAtMapKey(YamlMap map, String key) {
-    var keyNode = map.nodes.keys
-        .whereType<YamlScalar>()
-        .firstWhereOrNull((k) => k.value == key);
-    if (keyNode == null) {
-      return false;
-    }
-    var keyOffset = keyNode.span.start.offset;
-    var keyLength = keyNode.span.end.offset - keyOffset;
-    return keyOffset == errorOffset && keyLength == errorLength;
-  }
-
   SourceRange _lines(int start, int end) {
     var startLocation = lineInfo.getLocation(start);
     var startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
@@ -280,53 +198,6 @@ class AnalysisOptionsFixGenerator {
     var endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
     return SourceRange(startOffset, endOffset - startOffset);
-  }
-
-  /// Replaces a 'strong-mode' entry keyed to [strongModeKey] with a 'language'
-  /// entry with [languageKey] and [languageValue].
-  ///
-  /// 'strong-mode' and 'language' are each maps which can be found under the
-  /// top-level 'analyzer' map. 'strong-mode' (given as [strongModeMap]) must
-  /// already be present under the 'analyzer' map (given as [analyzerMap]).
-  void _replaceStrongModeEntryWithLanguageEntry(
-    YamlFileEditBuilder builder,
-    List<YamlNode> coveringNodePath,
-    YamlMap analyzerMap,
-    YamlMap strongModeMap, {
-    required String strongModeKey,
-    required String languageKey,
-    required Object? languageValue,
-  }) {
-    var yamlEditor = YamlEditor(content);
-    // If 'language' does not exist yet under 'analyzer', create it.
-    if (analyzerMap['language'] == null) {
-      yamlEditor.update(['analyzer', 'language'], {languageKey: languageValue});
-    } else {
-      yamlEditor.update(['analyzer', 'language', languageKey], languageValue);
-    }
-    var languageEdit = yamlEditor.edits.single;
-    builder.addSimpleReplacement(
-        SourceRange(languageEdit.offset, languageEdit.length),
-        languageEdit.replacement);
-
-    // If `strongModeKey` is the only entry under 'strong-mode', then remove
-    // the entire 'strong-mode' entry.
-    if (strongModeMap.length == 1) {
-      yamlEditor.remove(['analyzer', 'strong-mode']);
-    } else {
-      yamlEditor.remove(['analyzer', 'strong-mode', strongModeKey]);
-    }
-    var strongModeEdit = yamlEditor.edits[1];
-    int strongModeEditOffset;
-    if (strongModeEdit.offset > languageEdit.offset) {
-      strongModeEditOffset = strongModeEdit.offset -
-          (languageEdit.replacement.length - languageEdit.length);
-    } else {
-      strongModeEditOffset = strongModeEdit.offset;
-    }
-    builder.addSimpleReplacement(
-        SourceRange(strongModeEditOffset, strongModeEdit.length),
-        strongModeEdit.replacement);
   }
 }
 

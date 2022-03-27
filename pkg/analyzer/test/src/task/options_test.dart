@@ -460,22 +460,6 @@ analyzer:
 ''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED]);
   }
 
-  test_analyzer_strong_mode_deprecated_key_implicit_casts() {
-    validate('''
-analyzer:
-  strong-mode:
-    implicit-casts: false
-''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT]);
-  }
-
-  test_analyzer_strong_mode_deprecated_key_implicit_dynamic() {
-    validate('''
-analyzer:
-  strong-mode:
-    implicit-dynamic: false
-''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT]);
-  }
-
   test_analyzer_strong_mode_error_code_supported() {
     validate('''
 analyzer:
@@ -505,6 +489,14 @@ analyzer:
   strong-mode:
     unsupported: true
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+  }
+
+  test_analyzer_strong_mode_unsupported_value() {
+    validate('''
+analyzer:
+  strong-mode:
+    implicit-dynamic: foo
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_supported_exclude() {
