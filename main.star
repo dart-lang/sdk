@@ -181,20 +181,6 @@ luci.gitiles_poller(
     refs = ["refs/heads/ci-test-data"],
 )
 
-luci.gitiles_poller(
-    name = "dart-flutter-engine-trigger",
-    bucket = "ci",
-    repo = "https://dart.googlesource.com/external/github.com/flutter/engine",
-    refs = ["refs/heads/master"],
-)
-
-luci.gitiles_poller(
-    name = "dart-flutter-flutter-trigger",
-    bucket = "ci",
-    repo = "https://dart.googlesource.com/external/github.com/flutter/flutter",
-    refs = ["refs/heads/master"],
-)
-
 dart.poller("dart-gitiles-trigger", branches = dart.branches)
 
 luci.notifier(
@@ -580,20 +566,6 @@ dart.infra_builder(
     execution_timeout = 10 * time.minute,
 )
 dart.infra_builder("co19-roller", recipe = "dart/package_co19")
-dart.infra_builder(
-    "linearize-flutter",
-    recipe = "dart/linearize",
-    properties = {
-        "repo": "https://dart.googlesource.com/linear_sdk_flutter_engine.git",
-    },
-    notifies = "infra",
-    triggered_by = [
-        "dart-gitiles-trigger-main",
-        "dart-flutter-engine-trigger",
-        "dart-flutter-flutter-trigger",
-    ],
-    triggering_policy = scheduler.greedy_batching(max_batch_size = 1),
-)
 
 # Builder that tests the dev Linux image. When the image autoroller detects
 # successful builds of this builder with the dev image, it the current dev image
