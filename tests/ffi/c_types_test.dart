@@ -64,6 +64,11 @@ class CType {
   String toString() => cRepresentation;
 }
 
+final char = CType(
+  sizeOf<Char>(),
+  'char',
+  ffiLoad: (Pointer p) => p.cast<Char>().value,
+);
 final uchar = CType(
   sizeOf<UnsignedChar>(),
   'char',
@@ -137,6 +142,7 @@ final wchar_t = CType(
 );
 
 final cTypes = [
+  char,
   uchar,
   schar,
   short,

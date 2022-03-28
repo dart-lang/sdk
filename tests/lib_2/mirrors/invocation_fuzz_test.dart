@@ -40,6 +40,10 @@ var denylist = [
   // Don't call private methods in dart.async as they may circumvent the zoned
   // error handling below.
   new RegExp(r"^dart\.async\._.*$"),
+
+  // Don't try to invoke FFI Natives on simulator.
+  // TODO(http://dartbug.com/48365): Support FFI in simulators.
+  'dart._internal.FinalizerEntry.setExternalSize',
 ];
 
 bool isDenylisted(Symbol qualifiedSymbol) {
