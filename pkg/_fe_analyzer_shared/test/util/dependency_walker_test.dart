@@ -2,27 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/summary/link.dart';
+import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart';
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(DependencyWalkerTest);
+  late Map<String, TestNode> nodes;
+  setUp(() {
+    nodes = {};
   });
-}
-
-@reflectiveTest
-class DependencyWalkerTest {
-  final nodes = <String, TestNode>{};
-
-  void checkGraph(Map<String, List<String>> graph, String startingNodeName,
-      List<List<String>> expectedEvaluations, List<bool> expectedSccFlags) {
-    makeGraph(graph);
-    var walker = walk(startingNodeName);
-    expect(walker._evaluations, expectedEvaluations.map((x) => x.toSet()));
-    expect(walker._sccFlags, expectedSccFlags);
-  }
 
   TestNode getNode(String name) =>
       nodes.putIfAbsent(name, () => TestNode(name));
@@ -36,7 +23,18 @@ class DependencyWalkerTest {
     });
   }
 
-  void test_complex_graph() {
+  TestWalker walk(String startingNodeName) =>
+      TestWalker()..walk(getNode(startingNodeName));
+
+  void checkGraph(Map<String, List<String>> graph, String startingNodeName,
+      List<List<String>> expectedEvaluations, List<bool> expectedSccFlags) {
+    makeGraph(graph);
+    var walker = walk(startingNodeName);
+    expect(walker._evaluations, expectedEvaluations.map((x) => x.toSet()));
+    expect(walker._sccFlags, expectedSccFlags);
+  }
+
+  test('Complex graph', () {
     checkGraph(
         {
           'a': ['b', 'c'],
@@ -53,9 +51,9 @@ class DependencyWalkerTest {
           ['a']
         ],
         [false, true, false]);
-  }
+  });
 
-  void test_diamond() {
+  test('Diamond', () {
     checkGraph(
         {
           'a': ['b', 'c'],
@@ -71,9 +69,9 @@ class DependencyWalkerTest {
           ['a']
         ],
         [false, false, false, false]);
-  }
+  });
 
-  void test_singleNode() {
+  test('Single node', () {
     checkGraph(
         {'a': []},
         'a',
@@ -81,9 +79,9 @@ class DependencyWalkerTest {
           ['a']
         ],
         [false]);
-  }
+  });
 
-  void test_singleNodeWithTrivialCycle() {
+  test('Single node with trivial cycle', () {
     checkGraph(
         {
           'a': ['a']
@@ -93,9 +91,9 @@ class DependencyWalkerTest {
           ['a']
         ],
         [true]);
-  }
+  });
 
-  void test_threeNodesWithCircularDependency() {
+  test('Three nodes with circular dependency', () {
     checkGraph(
         {
           'a': ['b'],
@@ -107,43 +105,45 @@ class DependencyWalkerTest {
           ['a', 'b', 'c']
         ],
         [true]);
-  }
+  });
 
-  test_twoBacklinksEarlierFirst() {
-    // Test a graph A->B->C->D, where D points back to B and then C.
-    checkGraph(
-        {
-          'a': ['b'],
-          'b': ['c'],
-          'c': ['d'],
-          'd': ['b', 'c']
-        },
-        'a',
-        [
-          ['b', 'c', 'd'],
-          ['a']
-        ],
-        [true, false]);
-  }
+  group('Two backlinks:', () {
+    test('earlier first', () {
+      // Test a graph A->B->C->D, where D points back to B and then C.
+      checkGraph(
+          {
+            'a': ['b'],
+            'b': ['c'],
+            'c': ['d'],
+            'd': ['b', 'c']
+          },
+          'a',
+          [
+            ['b', 'c', 'd'],
+            ['a']
+          ],
+          [true, false]);
+    });
 
-  test_twoBacklinksLaterFirst() {
-    // Test a graph A->B->C->D, where D points back to C and then B.
-    checkGraph(
-        {
-          'a': ['b'],
-          'b': ['c'],
-          'c': ['d'],
-          'd': ['c', 'b']
-        },
-        'a',
-        [
-          ['b', 'c', 'd'],
-          ['a']
-        ],
-        [true, false]);
-  }
+    test('later first', () {
+      // Test a graph A->B->C->D, where D points back to C and then B.
+      checkGraph(
+          {
+            'a': ['b'],
+            'b': ['c'],
+            'c': ['d'],
+            'd': ['c', 'b']
+          },
+          'a',
+          [
+            ['b', 'c', 'd'],
+            ['a']
+          ],
+          [true, false]);
+    });
+  });
 
-  void test_twoNodesWithCircularDependency() {
+  test('Two nodes with circular dependency', () {
     checkGraph(
         {
           'a': ['b'],
@@ -154,9 +154,9 @@ class DependencyWalkerTest {
           ['a', 'b']
         ],
         [true]);
-  }
+  });
 
-  void test_twoNodesWithSimpleDependency() {
+  test('Two nodes with simple dependency', () {
     checkGraph(
         {
           'a': ['b'],
@@ -168,10 +168,7 @@ class DependencyWalkerTest {
           ['a']
         ],
         [false, false]);
-  }
-
-  TestWalker walk(String startingNodeName) =>
-      TestWalker()..walk(getNode(startingNodeName));
+  });
 }
 
 class TestNode extends Node<TestNode> {
