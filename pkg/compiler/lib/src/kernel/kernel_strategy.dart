@@ -38,6 +38,7 @@ import '../kernel/no_such_method_resolver.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
+import '../resolution/enqueuer.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/resolution_world_builder.dart';
 import '../universe/world_builder.dart';
