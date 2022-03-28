@@ -48,6 +48,19 @@ class B extends A {
     ]);
   }
 
+  Future<void> test_named_oneWithNameChange() async {
+    await assertDiagnostics('''
+class A {
+  A({int? x, int? y});
+}
+class B extends A {
+  B({int? x, int? z}) : super(x: x, y: z);
+}
+''', [
+      lint('use_super_parameters', 57, 1),
+    ]);
+  }
+
   test_named_someReferencedInBody() async {
     await assertDiagnostics(r'''
 class A {
@@ -101,6 +114,17 @@ class B extends A {
   B(int x) : super(x) {
     print(x);
   }
+}
+''');
+  }
+
+  Future<void> test_no_lint_named_nameChange() async {
+    await assertNoDiagnostics('''
+class A {
+  A({int? x});
+}
+class B extends A {
+  B({int? y}) : super(x: y);
 }
 ''');
   }
@@ -198,6 +222,18 @@ class B extends A {
 ''');
   }
 
+  test_no_lint_positionalThisParameter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int x, int y);
+}
+class B extends A {
+  int x;
+  B(this.x, int y) : super(x, y);
+}
+''');
+  }
+
   test_no_lint_referencedInBody() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -290,18 +326,6 @@ class A {
 }
 class B extends A {
   B(Object x) : super(x.toString());
-}
-''');
-  }
-
-  test_no_lint_positionalThisParameter() async {
-    await assertNoDiagnostics(r'''
-class A {
-  A(int x, int y);
-}
-class B extends A {
-  int x;
-  B(this.x, int y) : super(x, y);
 }
 ''');
   }
