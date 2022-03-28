@@ -2303,7 +2303,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Reload) {
 // during the checks that the instantiation of Y is int.
 ISOLATE_UNIT_TEST_CASE(TTS_Regress_CidRangeChecks) {
   // Bump this appropriately if the EXPECT_EQ below fails.
-  const intptr_t kNumUnrelated = 1185;
+  const intptr_t kNumUnrelated = 1186;
   TextBuffer buffer(1024);
   buffer.AddString(R"(
       abstract class B<X> {}

@@ -9,6 +9,44 @@
 /// these C types in this library.
 part of dart.ffi;
 
+/// The C `char` type.
+///
+/// Typically a signed or unsigned 8-bit integer.
+/// For a guaranteed 8-bit integer, use [Int8] with the C `int8_t` type
+/// or [Uint8] with the C `uint8_t` type.
+/// For a specifically `signed` or `unsigned` `char`, use [SignedChar] or
+/// [UnsignedChar].
+///
+/// The [Char] type is a native type, and should not be constructed in
+/// Dart code.
+/// It occurs only in native type signatures and as annotation on [Struct] and
+/// [Union] fields.
+@AbiSpecificIntegerMapping({
+  Abi.androidArm: Uint8(),
+  Abi.androidArm64: Uint8(),
+  Abi.androidIA32: Uint8(),
+  Abi.androidX64: Uint8(),
+  Abi.fuchsiaArm64: Int8(),
+  Abi.fuchsiaX64: Int8(),
+  Abi.iosArm: Uint8(),
+  Abi.iosArm64: Int8(),
+  Abi.iosX64: Int8(),
+  Abi.linuxArm: Uint8(),
+  Abi.linuxArm64: Int8(),
+  Abi.linuxIA32: Int8(),
+  Abi.linuxX64: Int8(),
+  Abi.linuxRiscv32: Int8(),
+  Abi.linuxRiscv64: Int8(),
+  Abi.macosArm64: Int8(),
+  Abi.macosX64: Int8(),
+  Abi.windowsArm64: Int8(),
+  Abi.windowsIA32: Int8(),
+  Abi.windowsX64: Int8(),
+})
+class Char extends AbiSpecificInteger {
+  const Char();
+}
+
 /// The C `signed char` type.
 ///
 /// Typically a signed 8-bit integer.
