@@ -46,6 +46,23 @@ class ConvertToIfNullTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_if_null_operators;
 
+  Future<void> test_conditional_expression() async {
+    await resolveTestCode('''
+void f(bool multiline, int? maxLines) {
+  var lines = maxLines != null
+      ? maxLines
+      : multiline ? 5 : 1;
+  print(lines);
+}
+''');
+    await assertHasFix('''
+void f(bool multiline, int? maxLines) {
+  var lines = maxLines ?? (multiline ? 5 : 1);
+  print(lines);
+}
+''');
+  }
+
   Future<void> test_equalEqual() async {
     await resolveTestCode('''
 void f(String? s) {

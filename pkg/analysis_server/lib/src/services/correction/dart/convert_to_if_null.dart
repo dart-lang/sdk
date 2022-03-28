@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -39,11 +40,21 @@ class ConvertToIfNull extends CorrectionProducer {
         nullableExpression = node.thenExpression;
         defaultExpression = node.elseExpression;
       }
+
+      var parentheses = defaultExpression.precedence <
+          Precedence.forTokenType(TokenType.QUESTION_QUESTION);
+
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(range.node(node), (builder) {
           builder.write(utils.getNodeText(nullableExpression));
           builder.write(' ?? ');
+          if (parentheses) {
+            builder.write('(');
+          }
           builder.write(utils.getNodeText(defaultExpression));
+          if (parentheses) {
+            builder.write(')');
+          }
         });
       });
     }
