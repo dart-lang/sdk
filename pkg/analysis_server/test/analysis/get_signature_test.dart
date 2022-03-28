@@ -6,7 +6,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../domain_completion_test.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {

@@ -13,8 +13,8 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:matcher/matcher.dart';
 import 'package:meta/meta.dart';
 
+import '../../analysis_server_base.dart';
 import '../../constants.dart';
-import '../../domain_completion_test.dart';
 import 'expect_mixin.dart';
 
 CompletionSuggestion _createCompletionSuggestionFromAvailableSuggestion(
