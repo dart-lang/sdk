@@ -1367,7 +1367,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   int get nameLength {
     final nameEnd = this.nameEnd;
-    if (nameEnd == null || periodOffset == null) {
+    if (nameEnd == null) {
       return 0;
     } else {
       return nameEnd - nameOffset;

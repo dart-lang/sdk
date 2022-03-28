@@ -187,7 +187,7 @@ class AnalyzerConverter {
           analyzer.ErrorSeverity severity) =>
       plugin.AnalysisErrorSeverity(severity.name);
 
-  ///Convert the error [type] from the 'analyzer' package to an analysis error
+  /// Convert the error [type] from the 'analyzer' package to an analysis error
   /// type defined by the plugin API.
   plugin.AnalysisErrorType convertErrorType(analyzer.ErrorType type) =>
       plugin.AnalysisErrorType(type.name);
