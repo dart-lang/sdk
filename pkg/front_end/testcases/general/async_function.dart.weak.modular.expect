@@ -6,10 +6,10 @@ import "dart:core" as core;
 import "dart:async";
 
 static field core::List<core::String> stringList = <core::String>["bar"];
-static method asyncString() → asy::Future<core::String> async {
+static method asyncString() → asy::Future<core::String> async /* futureValueType= core::String */ {
   return "foo";
 }
-static method asyncString2() → asy::Future<core::String> async {
+static method asyncString2() → asy::Future<core::String> async /* futureValueType= core::String */ {
   return self::asyncString();
 }
 static method syncStarString() → core::Iterable<core::String> sync* {
@@ -28,6 +28,6 @@ static method asyncStarString() → asy::Stream<core::String> async* {
 static method asyncStarString2() → asy::Stream<core::String> async* {
   yield "bar";
 }
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   core::String str = await self::asyncString();
 }

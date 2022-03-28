@@ -9,14 +9,14 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  method m() → asy::Future<core::List<core::int>> async 
+  method m() → asy::Future<core::List<core::int>> async /* futureValueType= core::List<core::int> */ 
     return let final core::List<core::int> #t1 = <core::int>[] in block {
       #t1.{core::List::add}(await this.{self::C::_m}(){() → asy::Future<core::int>}){(core::int) → void};
     } =>#t1;
-  method _m() → asy::Future<core::int> async 
+  method _m() → asy::Future<core::int> async /* futureValueType= core::int */ 
     return 42;
 }
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   self::expect(42, (await new self::C::•().{self::C::m}(){() → asy::Future<core::List<core::int>>}).{core::Iterable::first}{core::int});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {

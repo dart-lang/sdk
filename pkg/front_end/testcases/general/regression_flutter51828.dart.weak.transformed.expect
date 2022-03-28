@@ -8,7 +8,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  method foo(dynamic x) → asy::Future<void> /* originally async */ {
+  method foo(dynamic x) → asy::Future<void> /* futureValueType= void */ /* originally async */ {
     final asy::_Future<void> :async_future = new asy::_Future::•<void>();
     core::bool* :is_sync = false;
     void :return_value;
@@ -37,7 +37,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  method bar(dynamic x) → asy::Future<void> /* originally async */ {
+  method bar(dynamic x) → asy::Future<void> /* futureValueType= void */ /* originally async */ {
     final asy::_Future<void> :async_future = new asy::_Future::•<void>();
     core::bool* :is_sync = false;
     void :return_value;
@@ -62,7 +62,7 @@ class B extends core::Object {
     return :async_future;
   }
 }
-static method main() → dynamic /* originally async */ {
+static method main() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

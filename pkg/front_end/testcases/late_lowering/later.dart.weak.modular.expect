@@ -150,13 +150,13 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
       #t5.{core::List::add}{Invariant}(i){(core::int) → void};
   } =>#t5;
 }
-static method hest() → dynamic async {
+static method hest() → dynamic async /* futureValueType= dynamic */ {
   await for (core::String s in asy::Stream::fromIterable<core::String>(<core::String>["hest"])) {
     core::print(s);
   }
   return "hest";
 }
-static method fisk() → dynamic async {
+static method fisk() → dynamic async /* futureValueType= dynamic */ {
   lowered core::String? #s1;
   lowered core::bool #s1#isSet = false;
   function #s1#get() → core::String {
@@ -191,7 +191,7 @@ static method fisk() → dynamic async {
   lowered core::bool #f#isSet = false;
   function #f#get() → core::Function {
     if(!#f#isSet) {
-      #f = () → asy::Future<dynamic> async => await self::hest();
+      #f = () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest();
       #f#isSet = true;
     }
     return #f{core::Function};

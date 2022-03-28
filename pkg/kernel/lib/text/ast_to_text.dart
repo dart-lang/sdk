@@ -787,6 +787,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (function.asyncMarker != AsyncMarker.Sync) {
       writeSpaced(getAsyncMarkerKeyword(function.asyncMarker));
     }
+    if (function.futureValueType != null) {
+      writeSpaced("/* futureValueType=");
+      writeNode(function.futureValueType);
+      writeSpaced("*/");
+    }
     if (function.dartAsyncMarker != AsyncMarker.Sync &&
         function.dartAsyncMarker != function.asyncMarker) {
       writeSpaced("/* originally");

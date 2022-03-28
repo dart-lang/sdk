@@ -45,7 +45,7 @@ LoadingUnit(id=6, parent=5,
 
   import "#pkg/vm/testcases/transformations/deferred_loading/a.dart" as a;
 
-  static method j() → dynamic /* originally async */ {
+  static method j() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic> :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     dynamic :return_value;
@@ -76,7 +76,7 @@ library h from "#pkg/vm/testcases/transformations/deferred_loading/h.dart" as h 
 
   import "#pkg/vm/testcases/transformations/deferred_loading/g.dart" as g;
 
-  static method h() → dynamic /* originally async */ {
+  static method h() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic> :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     dynamic :return_value;
@@ -108,7 +108,7 @@ library i from "#pkg/vm/testcases/transformations/deferred_loading/i.dart" as i 
   import "#pkg/vm/testcases/transformations/deferred_loading/j.dart" deferred as j;
   import "#pkg/vm/testcases/transformations/deferred_loading/b.dart" as b;
 
-  static method i() → dynamic /* originally async */ {
+  static method i() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic> :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>? :return_value;
@@ -144,7 +144,7 @@ library g from "#pkg/vm/testcases/transformations/deferred_loading/g.dart" as g 
 
   import "#pkg/vm/testcases/transformations/deferred_loading/h.dart" as h;
 
-  static method g() → dynamic /* originally async */ {
+  static method g() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic> :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     dynamic :return_value;
@@ -176,7 +176,7 @@ library f from "#pkg/vm/testcases/transformations/deferred_loading/f.dart" as f 
   import "#pkg/vm/testcases/transformations/deferred_loading/g.dart" deferred as g;
   import "#pkg/vm/testcases/transformations/deferred_loading/i.dart" deferred as i;
 
-  static method f() → dynamic /* originally async */ {
+  static method f() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic> :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>? :return_value;
@@ -216,7 +216,7 @@ library e from "#pkg/vm/testcases/transformations/deferred_loading/e.dart" as e 
 
   import "#pkg/vm/testcases/transformations/deferred_loading/g.dart" deferred as g;
 
-  static method e() → dynamic /* originally async */ {
+  static method e() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic> :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>? :return_value;
@@ -253,7 +253,7 @@ library c from "#pkg/vm/testcases/transformations/deferred_loading/c.dart" as c 
   import "#pkg/vm/testcases/transformations/deferred_loading/b.dart" as b;
   import "#pkg/vm/testcases/transformations/deferred_loading/f.dart" deferred as f;
 
-  static method c() → dynamic /* originally async */ {
+  static method c() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic> :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>? :return_value;
@@ -289,7 +289,7 @@ library d from "#pkg/vm/testcases/transformations/deferred_loading/d.dart" as d 
 
   import "#pkg/vm/testcases/transformations/deferred_loading/e.dart" as e;
 
-  static method d() → dynamic /* originally async */ {
+  static method d() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic> :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>? :return_value;
@@ -322,7 +322,7 @@ library b from "#pkg/vm/testcases/transformations/deferred_loading/b.dart" as b 
 
   import "#pkg/vm/testcases/transformations/deferred_loading/c.dart" as c;
 
-  static method b() → dynamic /* originally async */ {
+  static method b() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic> :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>? :return_value;
@@ -355,7 +355,7 @@ library a from "#pkg/vm/testcases/transformations/deferred_loading/a.dart" as a 
 
   import "#pkg/vm/testcases/transformations/deferred_loading/d.dart" deferred as d;
 
-  static method a() → dynamic /* originally async */ {
+  static method a() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic> :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>? :return_value;
@@ -392,7 +392,7 @@ library #lib from "#lib" as #lib {
   import "#pkg/vm/testcases/transformations/deferred_loading/a.dart";
   import "#pkg/vm/testcases/transformations/deferred_loading/b.dart";
 
-  static method main() → dynamic /* originally async */ {
+  static method main() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic> :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     dynamic :return_value;

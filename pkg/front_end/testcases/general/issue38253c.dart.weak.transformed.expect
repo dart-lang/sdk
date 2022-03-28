@@ -24,7 +24,7 @@ import "dart:core" as core;
 
 static field () → Null a = () → Null {
   function f1() → invalid-type {}
-  function f2() → invalid-type /* originally async */ {
+  function f2() → invalid-type /* futureValueType= invalid-type */ /* originally async */ {
     final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
     core::bool* :is_sync = false;
     dynamic :return_value;
@@ -53,7 +53,7 @@ static field () → Null a = () → Null {
   int f3() {}
   ^" in null;
   }
-  function f4() → asy::Future<core::int> /* originally async */ {
+  function f4() → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ {
     final asy::_Future<core::int> :async_future = new asy::_Future::•<core::int>();
     core::bool* :is_sync = false;
     FutureOr<core::int>? :return_value;
@@ -83,7 +83,7 @@ static field () → Null a = () → Null {
     return :async_future;
   }
 };
-static field (dynamic) → asy::Future<dynamic> b = (dynamic f) → asy::Future<dynamic> /* originally async */ {
+static field (dynamic) → asy::Future<dynamic> b = (dynamic f) → asy::Future<dynamic> /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   FutureOr<dynamic>? :return_value;

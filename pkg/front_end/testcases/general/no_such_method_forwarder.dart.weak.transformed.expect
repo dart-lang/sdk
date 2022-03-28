@@ -8,7 +8,7 @@ class X extends core::Object {
   synthetic constructor •() → self::X
     : super core::Object::•()
     ;
-  method _foo() → void /* originally async */ {
+  method _foo() → void /* futureValueType= void */ /* originally async */ {
     final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
     core::bool* :is_sync = false;
     dynamic :return_value;

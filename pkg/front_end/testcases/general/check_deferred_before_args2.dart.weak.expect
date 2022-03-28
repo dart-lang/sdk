@@ -5,7 +5,7 @@ import "deferred_lib.dart" as def;
 import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
 
 static method main() → dynamic {}
-static method test() → dynamic async {
+static method test() → dynamic async /* futureValueType= dynamic */ {
   let final dynamic #t1 = CheckLibraryIsLoaded(lib) in def::m(await LoadLibrary(lib));
 }
 

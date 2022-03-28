@@ -24,18 +24,18 @@ import "dart:async" as asy;
 
 static field () → Null a = () → Null {
   function f1() → invalid-type {}
-  function f2() → invalid-type async {}
+  function f2() → invalid-type async /* futureValueType= invalid-type */ {}
   function f3() → core::int {
     return invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:8:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
   int f3() {}
   ^" in null;
   }
-  function f4() → asy::Future<core::int> async {
+  function f4() → asy::Future<core::int> async /* futureValueType= core::int */ {
     return invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:9:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
   Future<int> f4() async {}
   ^" in null;
   }
 };
-static field (dynamic) → asy::Future<dynamic> b = (dynamic f) → asy::Future<dynamic> async => await f;
+static field (dynamic) → asy::Future<dynamic> b = (dynamic f) → asy::Future<dynamic> async /* futureValueType= dynamic */ => await f;
 static field (dynamic) → dynamic c = (dynamic f) → dynamic => f;
 static method main() → dynamic {}

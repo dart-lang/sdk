@@ -84,7 +84,7 @@ static method useFinalizableAsyncStar(ffi::Finalizable finalizable) → asy::Str
   :controller_stream = :controller.{asy::_AsyncStarStreamController::stream}{asy::Stream<core::int>};
   return :controller_stream;
 }
-static method main() → void /* originally async */ {
+static method main() → void /* futureValueType= void */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

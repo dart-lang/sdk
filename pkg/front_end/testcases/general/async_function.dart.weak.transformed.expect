@@ -7,7 +7,7 @@ import "dart:_internal" as _in;
 import "dart:async";
 
 static field core::List<core::String> stringList = core::_GrowableList::_literal1<core::String>("bar");
-static method asyncString() → asy::Future<core::String> /* originally async */ {
+static method asyncString() → asy::Future<core::String> /* futureValueType= core::String */ /* originally async */ {
   final asy::_Future<core::String> :async_future = new asy::_Future::•<core::String>();
   core::bool* :is_sync = false;
   core::String? :return_value;
@@ -34,7 +34,7 @@ static method asyncString() → asy::Future<core::String> /* originally async */
   :is_sync = true;
   return :async_future;
 }
-static method asyncString2() → asy::Future<core::String> /* originally async */ {
+static method asyncString2() → asy::Future<core::String> /* futureValueType= core::String */ /* originally async */ {
   final asy::_Future<core::String> :async_future = new asy::_Future::•<core::String>();
   core::bool* :is_sync = false;
   FutureOr<core::String>? :return_value;
@@ -178,7 +178,7 @@ static method asyncStarString2() → asy::Stream<core::String> /* originally asy
   :controller_stream = :controller.{asy::_AsyncStarStreamController::stream}{asy::Stream<core::String>};
   return :controller_stream;
 }
-static method main() → dynamic /* originally async */ {
+static method main() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
