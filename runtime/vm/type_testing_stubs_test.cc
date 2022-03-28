@@ -2272,7 +2272,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Reload) {
 //
 // To ensure that the register is clobbered on all architectures, we set things
 // up by generating the following classes:
-// * B<X>, an generic abstract class which is implemented by the others.
+// * B<X>, a generic abstract class which is implemented by the others.
 // * I, implements B<String>, has a single int field x, and is
 //   used to create the checked instance.
 // * G<Y>, which implements B<Y> and has no fields (so its TAV field
@@ -2284,26 +2284,33 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Reload) {
 // We'll carefully set things up so that the following equation between their
 // class ids holds:
 //
-//   G =  I - C.
+//   G = I - C.
 //
 // Thus, when we create a TTS for B<int> and check it against an instance V
 // of I. The cid for I will be loaded into a register R, and then two
 // check blocks will be generated:
 //
-//   * A check for the cid range [C-D], hich has the side effect of
+//   * A check for the cid range [C-D], which has the side effect of
 //     subtracting the cid of C from the contents of R (here, the cid of I).
 //
 //   * A check that R contains the cid for G.
 //
 // Thus, if the cid of I is not reloaded into R before the second check, and
-// the equation earlier holds,we'll get a false positive that V is an instance
+// the equation earlier holds, we'll get a false positive that V is an instance
 // of G, so the code will then try to load the instance type arguments from V
 // as if it was an instance of G. This means the contents of x will be loaded
 // and attempted to be used as a TypeArgumentsPtr, which will cause a crash
 // during the checks that the instantiation of Y is int.
 ISOLATE_UNIT_TEST_CASE(TTS_Regress_CidRangeChecks) {
-  // Bump this appropriately if the EXPECT_EQ below fails.
-  const intptr_t kNumUnrelated = 1186;
+  // We create the classes in this order: B, G, C, D, U..., I. We need
+  // G = I - C => G + C = I
+  //           => G + C = D + N + 1 (where N is the number of U classes)
+  //           => (B + 1) + C = (C + 1) + N + 1
+  //           => B - 1 = N.
+  // The cid for B will be the next allocated cid, which is the number of
+  // non-top-level cids in the current class table.
+  ClassTable* const class_table = IsolateGroup::Current()->class_table();
+  const intptr_t kNumUnrelated = class_table->NumCids() - 1;
   TextBuffer buffer(1024);
   buffer.AddString(R"(
       abstract class B<X> {}
@@ -2329,6 +2336,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress_CidRangeChecks) {
   const auto& class_b = Class::Handle(GetClass(root_library, "B"));
   const auto& class_g = Class::Handle(GetClass(root_library, "G"));
   const auto& class_c = Class::Handle(GetClass(root_library, "C"));
+  const auto& class_d = Class::Handle(GetClass(root_library, "D"));
+  const auto& class_u0 = Class::Handle(GetClass(root_library, "U0"));
   const auto& class_i = Class::Handle(GetClass(root_library, "I"));
   const auto& obj_i = Object::Handle(Invoke(root_library, "createI"));
   {
@@ -2336,6 +2345,12 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress_CidRangeChecks) {
     ClassFinalizer::FinalizeClass(class_g);
   }
 
+  // Double-check assumptions from calculating kNumUnrelated.
+  EXPECT_EQ(kNumUnrelated, class_b.id() - 1);
+  EXPECT_EQ(class_b.id() + 1, class_g.id());
+  EXPECT_EQ(class_c.id() + 1, class_d.id());
+  EXPECT_EQ(class_d.id() + 1, class_u0.id());
+  EXPECT_EQ(class_u0.id() + kNumUnrelated, class_i.id());
   EXPECT_EQ(class_g.id(), class_i.id() - class_c.id());
 
   const auto& tav_null = Object::null_type_arguments();
