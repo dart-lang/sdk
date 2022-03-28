@@ -328,14 +328,14 @@ class MethodInvocationResolver {
       MethodInvocationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
     var rawType = node.methodName.staticType;
-    DartType staticStaticType = const MethodInvocationInferrer()
-        .resolveInvocation(
+    DartType staticStaticType = MethodInvocationInferrer(
             resolver: _resolver,
             node: node,
             argumentList: node.argumentList,
             rawType: rawType is FunctionType ? rawType : null,
             contextType: contextType,
-            whyNotPromotedList: whyNotPromotedList);
+            whyNotPromotedList: whyNotPromotedList)
+        .resolveInvocation();
     _inferenceHelper.recordStaticType(node, staticStaticType,
         contextType: contextType);
   }
@@ -474,13 +474,14 @@ class MethodInvocationResolver {
     }
 
     _setExplicitTypeArgumentTypes();
-    const MethodInvocationInferrer().resolveInvocation(
-        resolver: _resolver,
-        node: node,
-        argumentList: node.argumentList,
-        rawType: rawType,
-        whyNotPromotedList: whyNotPromotedList,
-        contextType: contextType);
+    MethodInvocationInferrer(
+            resolver: _resolver,
+            node: node,
+            argumentList: node.argumentList,
+            rawType: rawType,
+            whyNotPromotedList: whyNotPromotedList,
+            contextType: contextType)
+        .resolveInvocation();
   }
 
   void _resolveReceiverFunctionBounded(
@@ -548,13 +549,14 @@ class MethodInvocationResolver {
       node.staticInvokeType = _dynamicType;
       node.staticType = NeverTypeImpl.instance;
 
-      const MethodInvocationInferrer().resolveInvocation(
-          resolver: _resolver,
-          node: node,
-          argumentList: node.argumentList,
-          rawType: null,
-          contextType: contextType,
-          whyNotPromotedList: whyNotPromotedList);
+      MethodInvocationInferrer(
+              resolver: _resolver,
+              node: node,
+              argumentList: node.argumentList,
+              rawType: null,
+              contextType: contextType,
+              whyNotPromotedList: whyNotPromotedList)
+          .resolveInvocation();
 
       _resolver.errorReporter.reportErrorForNode(
         HintCode.RECEIVER_OF_TYPE_NEVER,
@@ -568,13 +570,14 @@ class MethodInvocationResolver {
       node.staticInvokeType = _dynamicType;
       node.staticType = _dynamicType;
 
-      const MethodInvocationInferrer().resolveInvocation(
-          resolver: _resolver,
-          node: node,
-          argumentList: node.argumentList,
-          rawType: null,
-          contextType: contextType,
-          whyNotPromotedList: whyNotPromotedList);
+      MethodInvocationInferrer(
+              resolver: _resolver,
+              node: node,
+              argumentList: node.argumentList,
+              rawType: null,
+              contextType: contextType,
+              whyNotPromotedList: whyNotPromotedList)
+          .resolveInvocation();
       return;
     }
   }

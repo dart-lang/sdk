@@ -170,14 +170,14 @@ class InvocationInferenceHelper {
     required List<WhyNotPromotedGetter> whyNotPromotedList,
     required DartType? contextType,
   }) {
-    var returnType = const MethodInvocationInferrer().resolveInvocation(
+    var returnType = MethodInvocationInferrer(
       resolver: _resolver,
       node: node,
       argumentList: node.argumentList,
       rawType: rawType,
       contextType: contextType,
       whyNotPromotedList: whyNotPromotedList,
-    );
+    ).resolveInvocation();
 
     recordStaticType(node, returnType, contextType: contextType);
   }
