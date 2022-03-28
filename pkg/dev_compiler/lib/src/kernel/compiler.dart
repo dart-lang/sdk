@@ -4379,8 +4379,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Statement visitIfStatement(IfStatement node) {
-    return js_ast.If(_visitTest(node.condition), _visitScope(node.then),
-        _visitScope(node.otherwise));
+    var condition = _visitTest(node.condition);
+    var then = _visitScope(node.then);
+    if (node.otherwise != null) {
+      return js_ast.If(condition, then, _visitScope(node.otherwise));
+    }
+    return js_ast.If.noElse(condition, then);
   }
 
   /// Visits a statement, and ensures the resulting AST handles block scope

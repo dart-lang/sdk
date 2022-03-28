@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 const EXPRESSION = 0;
 // TODO(nshahan) No longer used for the spread operator.
 // All precedence levels need to be updated to be more accurate.

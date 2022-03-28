@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // ignore_for_file: always_declare_return_types
 // ignore_for_file: always_require_non_null_named_parameters
 // ignore_for_file: omit_local_variable_types
@@ -90,7 +88,6 @@ abstract class NodeVisitor<T> {
   T visitExportDeclaration(ExportDeclaration node);
   T visitExportClause(ExportClause node);
   T visitNameSpecifier(NameSpecifier node);
-  T visitModule(Module node);
 
   T visitComment(Comment node);
   T visitCommentExpression(CommentExpression node);
@@ -256,8 +253,6 @@ abstract class BaseVisitor<T> implements NodeVisitor<T> {
   T visitExportClause(ExportClause node) => visitNode(node);
   @override
   T visitNameSpecifier(NameSpecifier node) => visitNode(node);
-  @override
-  T visitModule(Module node) => visitNode(node);
 
   T visitInterpolatedNode(InterpolatedNode node) => visitNode(node);
 
@@ -322,7 +317,7 @@ class BaseVisitorVoid extends BaseVisitor<void> {
 abstract class Node {
   /// Sets the source location of this node. For performance reasons, we allow
   /// setting this after construction.
-  Object sourceInformation;
+  Object? sourceInformation;
 
   T accept<T>(NodeVisitor<T> visitor);
   void visitChildren(NodeVisitor visitor);
@@ -371,7 +366,7 @@ abstract class Node {
 // TODO(jmesserly): rename to Module.
 class Program extends Node {
   /// Script tag hash-bang, e.g. `#!/usr/bin/env node`.
-  final String scriptTag;
+  final String? scriptTag;
 
   /// Top-level statements in the program.
   final List<ModuleItem> body;
@@ -379,7 +374,7 @@ class Program extends Node {
   /// The module's own name.
   ///
   /// This is not used in ES6, but is provided to allow module lowering.
-  final String name;
+  final String? name;
 
   Program(this.body, {this.scriptTag, this.name});
 
@@ -439,9 +434,8 @@ class Block extends Statement {
   /// True to preserve this [Block] for scoping reasons.
   final bool isScope;
 
-  Block(this.statements, {this.isScope = false}) {
-    assert(statements.every((s) => s is Statement));
-  }
+  Block(this.statements, {this.isScope = false});
+
   Block.empty()
       : statements = <Statement>[],
         isScope = false;
@@ -516,13 +510,13 @@ class If extends Statement {
   final Statement otherwise;
 
   If(this.condition, this.then, this.otherwise);
-  If.noElse(this.condition, this.then) : this.otherwise = null;
+  If.noElse(this.condition, this.then) : this.otherwise = EmptyStatement();
 
   @override
   bool get alwaysReturns =>
       hasElse && then.alwaysReturns && otherwise.alwaysReturns;
 
-  bool get hasElse => otherwise != null;
+  bool get hasElse => otherwise is! EmptyStatement;
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitIf(this);
@@ -531,7 +525,7 @@ class If extends Statement {
   void visitChildren(NodeVisitor visitor) {
     condition.accept(visitor);
     then.accept(visitor);
-    otherwise?.accept(visitor);
+    otherwise.accept(visitor);
   }
 
   @override
@@ -544,9 +538,9 @@ abstract class Loop extends Statement {
 }
 
 class For extends Loop {
-  final Expression init;
-  final Expression condition;
-  final Expression update;
+  final Expression? init;
+  final Expression? condition;
+  final Expression? update;
 
   For(this.init, this.condition, this.update, Statement body) : super(body);
 
@@ -646,7 +640,8 @@ class Do extends Loop {
 }
 
 class Continue extends Statement {
-  final String targetLabel; // Can be null.
+  /// Name of the label L for `continue L;` or `null` for `continue;`.
+  final String? targetLabel;
 
   Continue(this.targetLabel);
 
@@ -660,7 +655,8 @@ class Continue extends Statement {
 }
 
 class Break extends Statement {
-  final String targetLabel; // Can be null.
+  /// Name of the label L for `break L;` or `null` for `break;`.
+  final String? targetLabel;
 
   Break(this.targetLabel);
 
@@ -674,7 +670,7 @@ class Break extends Statement {
 }
 
 class Return extends Statement {
-  final Expression value; // Can be null.
+  final Expression? value;
 
   Return([this.value]);
 
@@ -736,8 +732,8 @@ class Throw extends Statement {
 
 class Try extends Statement {
   final Block body;
-  final Catch catchPart; // Can be null if [finallyPart] is non-null.
-  final Block finallyPart; // Can be null if [catchPart] is non-null.
+  final Catch? catchPart; // Can be null if [finallyPart] is non-null.
+  final Block? finallyPart; // Can be null if [catchPart] is non-null.
 
   Try(this.body, this.catchPart, this.finallyPart) {
     assert(catchPart != null || finallyPart != null);
@@ -912,11 +908,11 @@ abstract class Expression extends Node {
   Expression();
 
   factory Expression.binary(List<Expression> exprs, String op) {
-    Expression comma;
+    Expression? comma;
     for (var node in exprs) {
       comma = (comma == null) ? node : Binary(op, comma, node);
     }
-    return comma;
+    return comma!;
   }
 
   int get precedenceLevel;
@@ -931,7 +927,7 @@ abstract class Expression extends Node {
       ExpressionStatement(Yield(this, star: star));
 
   Expression toVoidExpression() => this;
-  Expression toAssignExpression(Expression left, [String op]) =>
+  Expression toAssignExpression(Expression left, [String? op]) =>
       Assignment.compound(left, op, this);
 
   // TODO(jmesserly): make this work for more cases?
@@ -963,7 +959,9 @@ class LiteralExpression extends Expression {
 class VariableDeclarationList extends Expression {
   /// The `var` or `let` or `const` keyword used for this variable declaration
   /// list.
-  final String keyword;
+  ///
+  /// Can be null in the case of non-static field declarations.
+  final String? keyword;
   final List<VariableInitialization> declarations;
 
   VariableDeclarationList(this.keyword, this.declarations);
@@ -1000,10 +998,12 @@ class VariableDeclarationList extends Expression {
 
 class Assignment extends Expression {
   final Expression leftHandSide;
-  final String op; // Null, if the assignment is not compound.
+  final String? op; // `null` if the assignment is not compound.
   final Expression value;
 
   Assignment(this.leftHandSide, this.value) : op = null;
+
+  // If `this.op == null` this will be a non-compound assignment.
   Assignment.compound(this.leftHandSide, this.op, this.value);
 
   @override
@@ -1017,7 +1017,7 @@ class Assignment extends Expression {
   @override
   void visitChildren(NodeVisitor visitor) {
     leftHandSide.accept(visitor);
-    value?.accept(visitor);
+    value.accept(visitor);
   }
 
   @override
@@ -1026,9 +1026,9 @@ class Assignment extends Expression {
 
 class VariableInitialization extends Expression {
   final VariableBinding declaration;
-  final Expression value; // May be null.
+  // The initializing value can be missing, e.g. for `a` in `var a, b=1;`.
+  final Expression? value;
 
-  /// [value] may be null.
   VariableInitialization(this.declaration, this.value);
 
   @override
@@ -1067,20 +1067,16 @@ class DestructuredVariable extends Expression implements Parameter {
   ///     console.log(foo); // "bar"
   ///
   // TODO(jmesserly): parser does not support this feature.
-  final Expression property;
-
-  final BindingPattern structure;
-  final Expression defaultValue;
+  final Expression? property;
+  final BindingPattern? structure;
+  final Expression? defaultValue;
 
   DestructuredVariable(
-      {this.name, this.property, this.structure, this.defaultValue}) {
-    assert(name != null || structure != null);
-  }
+      {required this.name, this.property, this.structure, this.defaultValue});
 
   @override
   bool shadows(Set<String> names) {
-    return (name?.shadows(names) ?? false) ||
-        (structure?.shadows(names) ?? false);
+    return name.shadows(names) || (structure?.shadows(names) ?? false);
   }
 
   @override
@@ -1088,7 +1084,7 @@ class DestructuredVariable extends Expression implements Parameter {
       visitor.visitDestructuredVariable(this);
   @override
   void visitChildren(NodeVisitor visitor) {
-    name?.accept(visitor);
+    name.accept(visitor);
     structure?.accept(visitor);
     defaultValue?.accept(visitor);
   }
@@ -1850,7 +1846,7 @@ class TaggedTemplate extends Expression {
 
 // TODO(jmesserly): parser does not support this yet.
 class Yield extends Expression {
-  final Expression value; // Can be null.
+  final Expression? value;
 
   /// Whether this yield expression is a `yield*` that iterates each item in
   /// [value].
@@ -1888,7 +1884,7 @@ class ClassDeclaration extends Statement {
 
 class ClassExpression extends Expression {
   final Identifier name;
-  final Expression heritage; // Can be null.
+  final Expression? heritage;
   final List<Method> methods;
 
   ClassExpression(this.name, this.heritage, this.methods);
@@ -2215,26 +2211,24 @@ class DebuggerStatement extends Statement {
 abstract class ModuleItem extends Node {}
 
 class ImportDeclaration extends ModuleItem {
-  final Identifier defaultBinding; // Can be null.
+  final Identifier? defaultBinding;
 
-  // Can be null, a single specifier of `* as name`, or a list.
-  final List<NameSpecifier> namedImports;
+  // Can be `null`, a single specifier of `* as name`, or a list.
+  final List<NameSpecifier>? namedImports;
 
   final LiteralString from;
 
-  ImportDeclaration({this.defaultBinding, this.namedImports, this.from}) {
-    assert(from != null);
-  }
+  ImportDeclaration(
+      {this.defaultBinding, this.namedImports, required this.from});
 
   /// The `import "name.js"` form of import.
   ImportDeclaration.all(LiteralString module) : this(from: module);
 
   /// If this import has `* as name` returns the name, otherwise null.
-  Identifier get importStarAs {
-    if (namedImports != null &&
-        namedImports.length == 1 &&
-        namedImports[0].isStar) {
-      return namedImports[0].asName;
+  Identifier? get importStarAs {
+    var imports = namedImports;
+    if (imports != null && imports.length == 1 && imports[0].isStar) {
+      return imports[0].asName;
     }
     return null;
   }
@@ -2243,8 +2237,9 @@ class ImportDeclaration extends ModuleItem {
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitImportDeclaration(this);
   @override
   void visitChildren(NodeVisitor visitor) {
-    if (namedImports != null) {
-      for (NameSpecifier name in namedImports) {
+    var imports = namedImports;
+    if (imports != null) {
+      for (NameSpecifier name in imports) {
         name.accept(visitor);
       }
     }
@@ -2279,7 +2274,7 @@ class ExportDeclaration extends ModuleItem {
   /// if this is an `export *`.
   ///
   /// This can be useful for lowering to other module formats.
-  List<NameSpecifier> get exportedNames {
+  List<NameSpecifier>? get exportedNames {
     if (isDefault) return [NameSpecifier(Identifier('default'))];
 
     var exported = this.exported;
@@ -2310,7 +2305,7 @@ class ExportDeclaration extends ModuleItem {
 
 class ExportClause extends Node {
   final List<NameSpecifier> exports;
-  final LiteralString from; // Can be null.
+  final LiteralString? from;
 
   ExportClause(this.exports, {this.from});
 
@@ -2337,8 +2332,8 @@ class ExportClause extends Node {
 
 /// An import or export specifier.
 class NameSpecifier extends Node {
-  final Identifier name;
-  final Identifier asName; // Can be null.
+  final Identifier? name;
+  final Identifier? asName;
 
   NameSpecifier(this.name, {this.asName});
   NameSpecifier.star() : this(null);
@@ -2352,27 +2347,4 @@ class NameSpecifier extends Node {
   void visitChildren(NodeVisitor visitor) {}
   @override
   NameSpecifier _clone() => NameSpecifier(name, asName: asName);
-}
-
-// TODO(jmesserly): should this be related to [Program]?
-class Module extends Node {
-  /// The module's name.
-  // TODO(jmesserly): this is not declared in ES6, but is known by the loader.
-  // We use this because some ES5 desugarings require it.
-  final String name;
-
-  final List<ModuleItem> body;
-  Module(this.body, {this.name});
-
-  @override
-  T accept<T>(NodeVisitor<T> visitor) => visitor.visitModule(this);
-  @override
-  void visitChildren(NodeVisitor visitor) {
-    for (ModuleItem item in body) {
-      item.accept(visitor);
-    }
-  }
-
-  @override
-  Module _clone() => Module(body);
 }
