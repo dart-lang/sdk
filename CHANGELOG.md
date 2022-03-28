@@ -114,8 +114,9 @@
 
 #### Linter
 
-Updated the Linter to `1.21.2`, which includes changes that
+Updated the Linter to `1.22.0`, which includes changes that
 
+- fixes null-safe variance exceptions in `invariant_booleans`
 - updates `depend_on_referenced_packages` to treat `flutter_gen` as a virtual
   package, not needing an explicit dependency.
 - updates `unnecessary_null_checks` and
