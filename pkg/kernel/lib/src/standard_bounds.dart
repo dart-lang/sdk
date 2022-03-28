@@ -1223,12 +1223,12 @@ mixin StandardBounds {
       //     where B1a is the greatest closure of B1 with respect to X1,
       //     as defined in [inference.md].
       if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
-        return type2.withDeclaredNullability(uniteNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
+        return type2.withDeclaredNullability(
+            uniteNullabilities(type1.declaredNullability, type2.nullability));
       }
       if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
-        return type1.withDeclaredNullability(uniteNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
+        return type1.withDeclaredNullability(
+            uniteNullabilities(type1.declaredNullability, type2.nullability));
       }
       NullabilityAwareTypeVariableEliminator eliminator =
           new NullabilityAwareTypeVariableEliminator(
@@ -1244,7 +1244,7 @@ mixin StandardBounds {
           .withDeclaredNullability(uniteNullabilities(
               type1.declaredNullability,
               uniteNullabilities(type1.parameter.bound.declaredNullability,
-                  type2.declaredNullability)));
+                  type2.nullability)));
     } else {
       // UP(X1 & B1, T2) =
       //   T2 if X1 <: T2
