@@ -558,9 +558,6 @@ dart.ci_sandbox_builder(
     triggered_by = None,
 )
 
-# infra
-dart.infra_builder("co19-roller", recipe = "dart/package_co19")
-
 # Builder that tests the dev Linux image. When the image autoroller detects
 # successful builds of this builder with the dev image, it the current dev image
 # becomes the new prod image. Newly created bots will than use the updated
