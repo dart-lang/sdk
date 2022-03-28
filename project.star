@@ -19,7 +19,11 @@ ROLL_TRIGGERERS = {
         accounts.ci_builder,
     ],
 }
-CI_SANDBOX_TRIGGERERS = [accounts.ci_builder, accounts.try_builder]
+CI_SANDBOX_TRIGGERERS = [
+    accounts.ci_builder,
+    accounts.try_builder,
+    "dart-internal-cbuild@dart-ci-internal.iam.gserviceaccount.com",
+]
 
 lucicfg.config(
     tracked_files = ["*"],

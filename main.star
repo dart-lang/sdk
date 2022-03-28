@@ -559,12 +559,6 @@ dart.ci_sandbox_builder(
 )
 
 # infra
-dart.infra_builder(
-    "cbuild",
-    recipe = "dart/cbuild",
-    schedule = "with 15m interval",
-    execution_timeout = 10 * time.minute,
-)
 dart.infra_builder("co19-roller", recipe = "dart/package_co19")
 
 # Builder that tests the dev Linux image. When the image autoroller detects
