@@ -2958,7 +2958,9 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
         EnableString.super_parameters,
       ];
 
-  String get testFileContent => getFile(testFilePath).readAsStringSync();
+  File get testFile => getFile(testFilePath);
+
+  String get testFileContent => testFile.readAsStringSync();
 
   String get testFilePath => '$testPackageLibPath/test.dart';
 
@@ -2974,12 +2976,32 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   String get workspaceRootPath => '/home';
 
+  void assertResponseFailure(
+    Response response, {
+    required String requestId,
+    required RequestErrorCode errorCode,
+  }) {
+    expect(
+      response,
+      isResponseFailure(requestId, errorCode),
+    );
+  }
+
   void deleteTestPackageAnalysisOptionsFile() {
     deleteAnalysisOptionsYamlFile(testPackageRootPath);
   }
 
   void deleteTestPackageConfigJsonFile() {
     deletePackageConfigJsonFile(testPackageRootPath);
+  }
+
+  /// Returns the offset of [search] in [testFileContent].
+  /// Fails if not found.
+  /// TODO(scheglov) Rename it.
+  int findOffset(String search) {
+    var offset = testFileContent.indexOf(search);
+    expect(offset, isNot(-1));
+    return offset;
   }
 
   Future<Response> handleRequest(Request request) async {
