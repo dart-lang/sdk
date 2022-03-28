@@ -1748,7 +1748,7 @@ static method testForElement(dynamic dynVar, core::List<core::int> listInt, core
       #t235.{core::Map::[]=}{Invariant}(i, i){(core::int, core::int) → void};
   } =>#t235;
 }
-static method testForElementErrors(core::Map<core::int, core::int> map, core::List<core::int> list) → dynamic async {
+static method testForElementErrors(core::Map<core::int, core::int> map, core::List<core::int> list) → dynamic async /* futureValueType= dynamic */ {
   block {
     final core::List<core::int> #t236 = <core::int>[];
     for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})

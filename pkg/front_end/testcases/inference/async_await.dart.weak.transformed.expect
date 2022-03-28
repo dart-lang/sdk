@@ -26,7 +26,7 @@ abstract class MyFuture extends core::Object implements asy::Future<core::int*> 
   abstract member-signature method asStream() → asy::Stream<core::int*>*; -> asy::Future::asStream
   abstract member-signature method timeout(core::Duration* timeLimit, {covariant-by-class () →* FutureOr<core::int*>* onTimeout = #C1}) → asy::Future<core::int*>*; -> asy::Future::timeout
 }
-static method test() → void /* originally async */ {
+static method test() → void /* futureValueType= void */ /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -49,7 +49,7 @@ static method test() → void /* originally async */ {
         FutureOr<FutureOr<core::int*>*>* x7;
         FutureOr<self::MyFuture*>* x8;
         self::MyFuture* x9;
-        function test0() → asy::Future<core::int*>* /* originally async */ {
+        function test0() → asy::Future<core::int*>* /* futureValueType= core::int* */ /* originally async */ {
           final asy::_Future<core::int*>* :async_future = new asy::_Future::•<core::int*>();
           core::bool* :is_sync = false;
           core::int? :return_value;
@@ -76,7 +76,7 @@ static method test() → void /* originally async */ {
           :is_sync = true;
           return :async_future;
         }
-        function test1() → asy::Future<core::int*>* /* originally async */ {
+        function test1() → asy::Future<core::int*>* /* futureValueType= core::int* */ /* originally async */ {
           final asy::_Future<core::int*>* :async_future = new asy::_Future::•<core::int*>();
           core::bool* :is_sync = false;
           FutureOr<core::int*>* :return_value;
@@ -103,7 +103,7 @@ static method test() → void /* originally async */ {
           :is_sync = true;
           return :async_future;
         }
-        function test2() → asy::Future<asy::Future<core::int*>*>* /* originally async */ {
+        function test2() → asy::Future<asy::Future<core::int*>*>* /* futureValueType= asy::Future<core::int*>* */ /* originally async */ {
           final asy::_Future<asy::Future<core::int*>*>* :async_future = new asy::_Future::•<asy::Future<core::int*>*>();
           core::bool* :is_sync = false;
           FutureOr<asy::Future<core::int*>*>* :return_value;
@@ -130,7 +130,7 @@ static method test() → void /* originally async */ {
           :is_sync = true;
           return :async_future;
         }
-        function test3() → asy::Future<FutureOr<core::int*>*>* /* originally async */ {
+        function test3() → asy::Future<FutureOr<core::int*>*>* /* futureValueType= FutureOr<core::int*>* */ /* originally async */ {
           final asy::_Future<FutureOr<core::int*>*>* :async_future = new asy::_Future::•<FutureOr<core::int*>*>();
           core::bool* :is_sync = false;
           FutureOr<FutureOr<core::int*>*>* :return_value;
@@ -157,7 +157,7 @@ static method test() → void /* originally async */ {
           :is_sync = true;
           return :async_future;
         }
-        function test4() → asy::Future<self::MyFuture*>* /* originally async */ {
+        function test4() → asy::Future<self::MyFuture*>* /* futureValueType= self::MyFuture* */ /* originally async */ {
           final asy::_Future<self::MyFuture*>* :async_future = new asy::_Future::•<self::MyFuture*>();
           core::bool* :is_sync = false;
           FutureOr<self::MyFuture*>* :return_value;
@@ -184,7 +184,7 @@ static method test() → void /* originally async */ {
           :is_sync = true;
           return :async_future;
         }
-        function test5() → asy::Future<core::int*>* /* originally async */ {
+        function test5() → asy::Future<core::int*>* /* futureValueType= core::int* */ /* originally async */ {
           final asy::_Future<core::int*>* :async_future = new asy::_Future::•<core::int*>();
           core::bool* :is_sync = false;
           FutureOr<core::int*>* :return_value;
@@ -211,7 +211,7 @@ static method test() → void /* originally async */ {
           :is_sync = true;
           return :async_future;
         }
-        function test6() → asy::Future<asy::Future<core::int*>*>* /* originally async */ {
+        function test6() → asy::Future<asy::Future<core::int*>*>* /* futureValueType= asy::Future<core::int*>* */ /* originally async */ {
           final asy::_Future<asy::Future<core::int*>*>* :async_future = new asy::_Future::•<asy::Future<core::int*>*>();
           core::bool* :is_sync = false;
           FutureOr<asy::Future<core::int*>*>* :return_value;
@@ -238,7 +238,7 @@ static method test() → void /* originally async */ {
           :is_sync = true;
           return :async_future;
         }
-        function test7() → asy::Future<FutureOr<core::int*>*>* /* originally async */ {
+        function test7() → asy::Future<FutureOr<core::int*>*>* /* futureValueType= FutureOr<core::int*>* */ /* originally async */ {
           final asy::_Future<FutureOr<core::int*>*>* :async_future = new asy::_Future::•<FutureOr<core::int*>*>();
           core::bool* :is_sync = false;
           FutureOr<FutureOr<core::int*>*>* :return_value;
@@ -265,7 +265,7 @@ static method test() → void /* originally async */ {
           :is_sync = true;
           return :async_future;
         }
-        function test8() → asy::Future<self::MyFuture*>* /* originally async */ {
+        function test8() → asy::Future<self::MyFuture*>* /* futureValueType= self::MyFuture* */ /* originally async */ {
           final asy::_Future<self::MyFuture*>* :async_future = new asy::_Future::•<self::MyFuture*>();
           core::bool* :is_sync = false;
           FutureOr<self::MyFuture*>* :return_value;
@@ -292,7 +292,7 @@ static method test() → void /* originally async */ {
           :is_sync = true;
           return :async_future;
         }
-        function test9() → asy::Future<core::int*>* /* originally async */ {
+        function test9() → asy::Future<core::int*>* /* futureValueType= core::int* */ /* originally async */ {
           final asy::_Future<core::int*>* :async_future = new asy::_Future::•<core::int*>();
           core::bool* :is_sync = false;
           FutureOr<core::int*>* :return_value;

@@ -91,7 +91,7 @@ static method returnMixed(core::bool b) → core::String {
 String returnMixed(bool b) /*error*/ {
        ^" in null;
 }
-static method returnAsync1() → asy::Future<dynamic> /* originally async */ {
+static method returnAsync1() → asy::Future<dynamic> /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -115,7 +115,7 @@ static method returnAsync1() → asy::Future<dynamic> /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method returnAsync2() → FutureOr<dynamic> /* originally async */ {
+static method returnAsync2() → FutureOr<dynamic> /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -139,7 +139,7 @@ static method returnAsync2() → FutureOr<dynamic> /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method returnAsync3() → FutureOr<core::int> /* originally async */ {
+static method returnAsync3() → FutureOr<core::int> /* futureValueType= core::int */ /* originally async */ {
   final asy::_Future<core::int> :async_future = new asy::_Future::•<core::int>();
   core::bool* :is_sync = false;
   FutureOr<core::int>? :return_value;
@@ -168,7 +168,7 @@ FutureOr<int> returnAsync3() async {} // error
   :is_sync = true;
   return :async_future;
 }
-static method returnAsync4() → FutureOr<core::int?> /* originally async */ {
+static method returnAsync4() → FutureOr<core::int?> /* futureValueType= core::int? */ /* originally async */ {
   final asy::_Future<core::int?> :async_future = new asy::_Future::•<core::int?>();
   core::bool* :is_sync = false;
   core::int? :return_value;
@@ -192,7 +192,7 @@ static method returnAsync4() → FutureOr<core::int?> /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method returnAsync5() → dynamic /* originally async */ {
+static method returnAsync5() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -216,7 +216,7 @@ static method returnAsync5() → dynamic /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method returnAsync6() → asy::Future<core::int?> /* originally async */ {
+static method returnAsync6() → asy::Future<core::int?> /* futureValueType= core::int? */ /* originally async */ {
   final asy::_Future<core::int?> :async_future = new asy::_Future::•<core::int?>();
   core::bool* :is_sync = false;
   FutureOr<core::int?>? :return_value;
@@ -243,7 +243,7 @@ static method returnAsync6() → asy::Future<core::int?> /* originally async */ 
   :is_sync = true;
   return :async_future;
 }
-static method returnAsync7() → asy::Future<core::int?> /* originally async */ {
+static method returnAsync7() → asy::Future<core::int?> /* futureValueType= core::int? */ /* originally async */ {
   final asy::_Future<core::int?> :async_future = new asy::_Future::•<core::int?>();
   core::bool* :is_sync = false;
   core::int? :return_value;
@@ -359,7 +359,7 @@ static method localFunctions() → dynamic {
   String returnMixed(bool b) /* error */ {
   ^" in null;
   }
-  function returnAsync1() → asy::Future<dynamic> /* originally async */ {
+  function returnAsync1() → asy::Future<dynamic> /* futureValueType= dynamic */ /* originally async */ {
     final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
     core::bool* :is_sync = false;
     dynamic :return_value;
@@ -383,7 +383,7 @@ static method localFunctions() → dynamic {
     :is_sync = true;
     return :async_future;
   }
-  function returnAsync2() → FutureOr<dynamic> /* originally async */ {
+  function returnAsync2() → FutureOr<dynamic> /* futureValueType= dynamic */ /* originally async */ {
     final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
     core::bool* :is_sync = false;
     dynamic :return_value;
@@ -407,7 +407,7 @@ static method localFunctions() → dynamic {
     :is_sync = true;
     return :async_future;
   }
-  function returnAsync3() → FutureOr<core::int> /* originally async */ {
+  function returnAsync3() → FutureOr<core::int> /* futureValueType= core::int */ /* originally async */ {
     final asy::_Future<core::int> :async_future = new asy::_Future::•<core::int>();
     core::bool* :is_sync = false;
     FutureOr<core::int>? :return_value;
@@ -436,7 +436,7 @@ static method localFunctions() → dynamic {
     :is_sync = true;
     return :async_future;
   }
-  function returnAsync4() → FutureOr<core::int?> /* originally async */ {
+  function returnAsync4() → FutureOr<core::int?> /* futureValueType= core::int? */ /* originally async */ {
     final asy::_Future<core::int?> :async_future = new asy::_Future::•<core::int?>();
     core::bool* :is_sync = false;
     core::int? :return_value;
@@ -460,7 +460,7 @@ static method localFunctions() → dynamic {
     :is_sync = true;
     return :async_future;
   }
-  function returnAsync5() → asy::Future<Null> /* originally async */ {
+  function returnAsync5() → asy::Future<Null> /* futureValueType= Null */ /* originally async */ {
     final asy::_Future<Null> :async_future = new asy::_Future::•<Null>();
     core::bool* :is_sync = false;
     Null :return_value;
@@ -484,7 +484,7 @@ static method localFunctions() → dynamic {
     :is_sync = true;
     return :async_future;
   }
-  function returnAsync6() → asy::Future<core::int?> /* originally async */ {
+  function returnAsync6() → asy::Future<core::int?> /* futureValueType= core::int? */ /* originally async */ {
     final asy::_Future<core::int?> :async_future = new asy::_Future::•<core::int?>();
     core::bool* :is_sync = false;
     FutureOr<core::int?>? :return_value;
@@ -511,7 +511,7 @@ static method localFunctions() → dynamic {
     :is_sync = true;
     return :async_future;
   }
-  function returnAsync7() → asy::Future<core::int?> /* originally async */ {
+  function returnAsync7() → asy::Future<core::int?> /* futureValueType= core::int? */ /* originally async */ {
     final asy::_Future<core::int?> :async_future = new asy::_Future::•<core::int?>();
     core::bool* :is_sync = false;
     core::int? :return_value;

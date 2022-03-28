@@ -4,10 +4,10 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
+    show DependencyWalker, Node;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:analyzer/src/summary/link.dart' as graph
-    show DependencyWalker, Node;
 import 'package:collection/collection.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it

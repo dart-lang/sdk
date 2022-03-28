@@ -7,7 +7,7 @@ import "deferred_lib.dart" as def;
 import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
 
 static method main() → dynamic {}
-static method test() → dynamic /* originally async */ {
+static method test() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

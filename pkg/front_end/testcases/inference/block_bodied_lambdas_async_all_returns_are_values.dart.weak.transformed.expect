@@ -8,7 +8,7 @@ import "dart:async";
 import "dart:math" show Random;
 
 static method test() → dynamic {
-  () →* asy::Future<core::num*>* f = () → asy::Future<core::num*>* /* originally async */ {
+  () →* asy::Future<core::num*>* f = () → asy::Future<core::num*>* /* futureValueType= core::num* */ /* originally async */ {
     final asy::_Future<core::num*>* :async_future = new asy::_Future::•<core::num*>();
     core::bool* :is_sync = false;
     core::num? :return_value;

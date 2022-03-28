@@ -25,7 +25,7 @@ abstract class MyFuture extends core::Object implements asy::Future<core::int*> 
   abstract member-signature method asStream() → asy::Stream<core::int*>*; -> asy::Future::asStream
   abstract member-signature method timeout(core::Duration* timeLimit, {covariant-by-class () →* FutureOr<core::int*>* onTimeout = #C1}) → asy::Future<core::int*>*; -> asy::Future::timeout
 }
-static method test() → void async {
+static method test() → void async /* futureValueType= void */ {
   core::int* x0;
   asy::Future<core::int*>* x1;
   asy::Future<asy::Future<core::int*>*>* x2;
@@ -36,25 +36,25 @@ static method test() → void async {
   FutureOr<FutureOr<core::int*>*>* x7;
   FutureOr<self::MyFuture*>* x8;
   self::MyFuture* x9;
-  function test0() → asy::Future<core::int*>* async 
+  function test0() → asy::Future<core::int*>* async /* futureValueType= core::int* */ 
     return x0;
-  function test1() → asy::Future<core::int*>* async 
+  function test1() → asy::Future<core::int*>* async /* futureValueType= core::int* */ 
     return x1;
-  function test2() → asy::Future<asy::Future<core::int*>*>* async 
+  function test2() → asy::Future<asy::Future<core::int*>*>* async /* futureValueType= asy::Future<core::int*>* */ 
     return x2;
-  function test3() → asy::Future<FutureOr<core::int*>*>* async 
+  function test3() → asy::Future<FutureOr<core::int*>*>* async /* futureValueType= FutureOr<core::int*>* */ 
     return x3;
-  function test4() → asy::Future<self::MyFuture*>* async 
+  function test4() → asy::Future<self::MyFuture*>* async /* futureValueType= self::MyFuture* */ 
     return x4;
-  function test5() → asy::Future<core::int*>* async 
+  function test5() → asy::Future<core::int*>* async /* futureValueType= core::int* */ 
     return x5;
-  function test6() → asy::Future<asy::Future<core::int*>*>* async 
+  function test6() → asy::Future<asy::Future<core::int*>*>* async /* futureValueType= asy::Future<core::int*>* */ 
     return x6;
-  function test7() → asy::Future<FutureOr<core::int*>*>* async 
+  function test7() → asy::Future<FutureOr<core::int*>*>* async /* futureValueType= FutureOr<core::int*>* */ 
     return x7;
-  function test8() → asy::Future<self::MyFuture*>* async 
+  function test8() → asy::Future<self::MyFuture*>* async /* futureValueType= self::MyFuture* */ 
     return x8;
-  function test9() → asy::Future<core::int*>* async 
+  function test9() → asy::Future<core::int*>* async /* futureValueType= core::int* */ 
     return x9;
   core::int* y0 = await x0;
   core::int* y1 = await x1;

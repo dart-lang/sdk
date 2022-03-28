@@ -3673,6 +3673,10 @@ class FunctionNode extends TreeNode {
   /// here the return types are `Future<Foo>` and `FutureOr<Foo>` for `method1`
   /// and `method2`, respectively, but the future value type is in both cases
   /// `Foo`.
+  ///
+  /// For pre-nnbd libraries, this is set to `flatten(T)` of the return type
+  /// `T`, which can be seen as the pre-nnbd equivalent of the future value
+  /// type.
   DartType? futureValueType;
 
   void Function()? lazyBuilder;

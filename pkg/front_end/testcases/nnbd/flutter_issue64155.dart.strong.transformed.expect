@@ -5,7 +5,7 @@ import "dart:async" as asy;
 import "dart:_internal" as _in;
 
 abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
-  method test(covariant-by-class asy::Future<self::TestMixin::R%> fetch) → asy::Future<self::TestMixin::T%> /* originally async */ {
+  method test(covariant-by-class asy::Future<self::TestMixin::R%> fetch) → asy::Future<self::TestMixin::T%> /* futureValueType= self::TestMixin::T% */ /* originally async */ {
     final asy::_Future<self::TestMixin::T%> :async_future = new asy::_Future::•<self::TestMixin::T%>();
     core::bool* :is_sync = false;
     FutureOr<self::TestMixin::T%>? :return_value;

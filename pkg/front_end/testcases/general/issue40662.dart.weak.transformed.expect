@@ -8,7 +8,7 @@ static method bar(core::int* a, core::List<core::int*>* b) → dynamic {
   self::expect(1.{core::int::unary-}(){() →* core::int*}, a);
   self::expect(1.{core::int::unary-}(){() →* core::int*}, b.{core::List::[]}(0){(core::int*) →* core::int*}.{core::num::-}(2){(core::num*) →* core::int*});
 }
-static method foo(core::int* x) → dynamic /* originally async */ {
+static method foo(core::int* x) → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   FutureOr<dynamic>* :return_value;
@@ -50,7 +50,7 @@ static method foo(core::int* x) → dynamic /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method main() → void /* originally async */ {
+static method main() → void /* futureValueType= void */ /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   FutureOr<dynamic>* :return_value;

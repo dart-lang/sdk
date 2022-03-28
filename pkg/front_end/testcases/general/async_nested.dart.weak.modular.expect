@@ -17,7 +17,7 @@ class Node extends core::Object {
     return "${this.{self::Node::name}{core::String}} ${let final core::Iterable<dynamic>? #t3 = tmp in #t3 == null ?{core::String?} null : #t3{core::Iterable<dynamic>}.{core::Iterable::join}(" "){([core::String]) → core::String}}".{core::String::trim}(){() → core::String};
   }
 }
-static method main() → void async {
+static method main() → void async /* futureValueType= void */ {
   core::String expected = "1 2 3 4 5 6 7 8 9 10";
   self::Node node = new self::Node::•("1", <self::Node>[new self::Node::•("2", <self::Node>[]), await asy::Future::value<self::Node>(new self::Node::•("3", <self::Node>[await asy::Future::value<self::Node>(new self::Node::•("4", <self::Node>[new self::Node::•("5", <self::Node>[await asy::Future::value<self::Node>(new self::Node::•("6", <self::Node>[await asy::Future::value<self::Node>(new self::Node::•("7", <self::Node>[]))])), await asy::Future::value<self::Node>(new self::Node::•("8", <self::Node>[])), await asy::Future::value<self::Node>(new self::Node::•("9", <self::Node>[]))])]))])), await asy::Future::value<self::Node>(new self::Node::•("10", <self::Node>[]))]);
   core::String actual = node.{self::Node::toSimpleString}(){() → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;

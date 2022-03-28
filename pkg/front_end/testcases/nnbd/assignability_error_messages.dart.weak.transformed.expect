@@ -272,7 +272,7 @@ Try changing the type of the variable.
         break #L1;
       }
   }
-  function local() → FutureOr<self::A> /* originally async */ {
+  function local() → FutureOr<self::A> /* futureValueType= self::A */ /* originally async */ {
     final asy::_Future<self::A> :async_future = new asy::_Future::•<self::A>();
     core::bool* :is_sync = false;
     FutureOr<self::A>? :return_value;
@@ -406,7 +406,7 @@ static method boz(Null x) → self::A {
     return null; // Error.
            ^" in null;
   }
-  function local() → FutureOr<self::A> /* originally async */ {
+  function local() → FutureOr<self::A> /* futureValueType= self::A */ /* originally async */ {
     final asy::_Future<self::A> :async_future = new asy::_Future::•<self::A>();
     core::bool* :is_sync = false;
     FutureOr<self::A>? :return_value;

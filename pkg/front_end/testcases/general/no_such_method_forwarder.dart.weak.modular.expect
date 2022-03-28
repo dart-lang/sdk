@@ -6,7 +6,7 @@ class X extends core::Object {
   synthetic constructor •() → self::X
     : super core::Object::•()
     ;
-  method _foo() → void async {
+  method _foo() → void async /* futureValueType= void */ {
     await null;
     core::print("hello");
   }

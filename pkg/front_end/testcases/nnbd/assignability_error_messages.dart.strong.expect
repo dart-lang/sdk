@@ -261,7 +261,7 @@ Try changing the type of the variable.
         break #L1;
       }
   }
-  function local() → FutureOr<self::A> async {
+  function local() → FutureOr<self::A> async /* futureValueType= self::A */ {
     if(true) {
       return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:43:14: Error: A value of type 'B?' can't be returned from an async function with return type 'FutureOr<A>' because 'B?' is nullable and 'FutureOr<A>' isn't.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
@@ -364,7 +364,7 @@ static method boz(Null x) → self::A {
     return null; // Error.
            ^" in null as{TypeError,ForNonNullableByDefault} self::A;
   }
-  function local() → FutureOr<self::A> async {
+  function local() → FutureOr<self::A> async /* futureValueType= self::A */ {
     if(true) {
       return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:77:14: Error: The value 'null' can't be returned from an async function with return type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.

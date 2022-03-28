@@ -123,7 +123,7 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
       #t1.{core::List::add}{Invariant}(i){(core::int) → void};
   } =>#t1;
 }
-static method hest() → dynamic /* originally async */ {
+static method hest() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -177,7 +177,7 @@ static method hest() → dynamic /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method fisk() → dynamic /* originally async */ {
+static method fisk() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -200,7 +200,7 @@ static method fisk() → dynamic /* originally async */ {
                              ^^^^^"}${#C1}";
         late core::String s2 = #s2#initializer(){() → core::String};
         function #f#initializer() → core::Function
-          return () → asy::Future<dynamic> /* originally async */ {
+          return () → asy::Future<dynamic> /* futureValueType= dynamic */ /* originally async */ {
             final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
             core::bool* :is_sync = false;
             FutureOr<dynamic>? :return_value;

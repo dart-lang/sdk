@@ -7,7 +7,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///typedef_from_opt_in_lib.dart";
 
 static method method1() → (typ::Request*) →* FutureOr<typ::Response*>*
-  return (typ::Request* r) → asy::Future<typ::Response*>* async => new typ::Response::•();
+  return (typ::Request* r) → asy::Future<typ::Response*>* async /* futureValueType= typ::Response* */ => new typ::Response::•();
 static method method2() → (core::int*) →* core::int*
   return (core::int* r) → core::int* => 0;
 static method main() → dynamic {}

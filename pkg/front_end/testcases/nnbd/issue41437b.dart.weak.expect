@@ -71,7 +71,7 @@ static method test6() → core::Iterable<core::bool>
 static method test7() → core::Iterable<core::bool> sync* {
   yield* self::getIterableBool();
 }
-static method test() → dynamic async {
+static method test() → dynamic async /* futureValueType= dynamic */ {
   function test1() → core::Iterable<core::bool> sync* {
     yield self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
   }

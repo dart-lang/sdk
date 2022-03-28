@@ -33,7 +33,7 @@ import "dart:core" as core;
 
 static method getNull() → dynamic
   return null;
-static method getFutureNull() → asy::Future<dynamic> /* originally async */ {
+static method getFutureNull() → asy::Future<dynamic> /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   FutureOr<dynamic>? :return_value;
@@ -60,7 +60,7 @@ static method getFutureNull() → asy::Future<dynamic> /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method getFutureBool() → asy::Future<core::bool> /* originally async */ {
+static method getFutureBool() → asy::Future<core::bool> /* futureValueType= core::bool */ /* originally async */ {
   final asy::_Future<core::bool> :async_future = new asy::_Future::•<core::bool>();
   core::bool* :is_sync = false;
   core::bool? :return_value;
@@ -87,7 +87,7 @@ static method getFutureBool() → asy::Future<core::bool> /* originally async */
   :is_sync = true;
   return :async_future;
 }
-static method test1() → asy::Future<core::bool> /* originally async */ {
+static method test1() → asy::Future<core::bool> /* futureValueType= core::bool */ /* originally async */ {
   final asy::_Future<core::bool> :async_future = new asy::_Future::•<core::bool>();
   core::bool* :is_sync = false;
   FutureOr<core::bool>? :return_value;
@@ -120,7 +120,7 @@ static method test2() → asy::Future<core::bool>
   return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<core::bool>;
 static method test3() → core::bool
   return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
-static method test4() → asy::Future<core::bool> /* originally async */ {
+static method test4() → asy::Future<core::bool> /* futureValueType= core::bool */ /* originally async */ {
   final asy::_Future<core::bool> :async_future = new asy::_Future::•<core::bool>();
   core::bool* :is_sync = false;
   FutureOr<core::bool>? :return_value;
@@ -156,7 +156,7 @@ Future<bool> test5() => getFutureNull(); // error
                         ^" in self::getFutureNull() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
 static method test6() → asy::Future<core::bool>
   return self::getFutureBool();
-static method test7() → asy::Future<core::bool> /* originally async */ {
+static method test7() → asy::Future<core::bool> /* futureValueType= core::bool */ /* originally async */ {
   final asy::_Future<core::bool> :async_future = new asy::_Future::•<core::bool>();
   core::bool* :is_sync = false;
   FutureOr<core::bool>? :return_value;
@@ -183,7 +183,7 @@ static method test7() → asy::Future<core::bool> /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method test() → dynamic /* originally async */ {
+static method test() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -195,7 +195,7 @@ static method test() → dynamic /* originally async */ {
     try {
       #L6:
       {
-        function test1() → asy::Future<core::bool> /* originally async */ {
+        function test1() → asy::Future<core::bool> /* futureValueType= core::bool */ /* originally async */ {
           final asy::_Future<core::bool> :async_future = new asy::_Future::•<core::bool>();
           core::bool* :is_sync = false;
           FutureOr<core::bool>? :return_value;
@@ -228,7 +228,7 @@ static method test() → dynamic /* originally async */ {
           return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<core::bool>;
         function test3() → core::bool
           return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
-        function test4() → asy::Future<core::bool> /* originally async */ {
+        function test4() → asy::Future<core::bool> /* futureValueType= core::bool */ /* originally async */ {
           final asy::_Future<core::bool> :async_future = new asy::_Future::•<core::bool>();
           core::bool* :is_sync = false;
           FutureOr<core::bool>? :return_value;
@@ -264,7 +264,7 @@ static method test() → dynamic /* originally async */ {
                           ^" in self::getFutureNull() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
         function test6() → asy::Future<core::bool>
           return self::getFutureBool();
-        function test7() → asy::Future<core::bool> /* originally async */ {
+        function test7() → asy::Future<core::bool> /* futureValueType= core::bool */ /* originally async */ {
           final asy::_Future<core::bool> :async_future = new asy::_Future::•<core::bool>();
           core::bool* :is_sync = false;
           FutureOr<core::bool>? :return_value;
@@ -294,7 +294,7 @@ static method test() → dynamic /* originally async */ {
         asy::Future<core::bool> var1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:31:52: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
  - 'Future' is from 'dart:async'.
   Future<bool> var1 = (() async => await getNull())(); // error
-                                                   ^" in (() → asy::Future<dynamic> /* originally async */ {
+                                                   ^" in (() → asy::Future<dynamic> /* futureValueType= dynamic */ /* originally async */ {
           final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
           core::bool* :is_sync = false;
           FutureOr<dynamic>? :return_value;
@@ -328,7 +328,7 @@ static method test() → dynamic /* originally async */ {
         asy::Future<core::bool> var4 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:34:58: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
  - 'Future' is from 'dart:async'.
   Future<bool> var4 = (() async => await getFutureNull())(); // error
-                                                         ^" in (() → asy::Future<dynamic> /* originally async */ {
+                                                         ^" in (() → asy::Future<dynamic> /* futureValueType= dynamic */ /* originally async */ {
           final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
           core::bool* :is_sync = false;
           FutureOr<dynamic>? :return_value;
@@ -362,7 +362,7 @@ static method test() → dynamic /* originally async */ {
   Future<bool> var5 = (() => getFutureNull())(); // error
                                              ^" in (() → asy::Future<dynamic> => self::getFutureNull())(){() → asy::Future<dynamic>} as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
         asy::Future<core::bool> var6 = (() → asy::Future<core::bool> => self::getFutureBool())(){() → asy::Future<core::bool>};
-        asy::Future<core::bool> var7 = (() → asy::Future<core::bool> /* originally async */ {
+        asy::Future<core::bool> var7 = (() → asy::Future<core::bool> /* futureValueType= core::bool */ /* originally async */ {
           final asy::_Future<core::bool> :async_future = new asy::_Future::•<core::bool>();
           core::bool* :is_sync = false;
           FutureOr<core::bool>? :return_value;

@@ -18,7 +18,7 @@ class Node extends core::Object {
     return "${this.{self::Node::name}{core::String}} ${let final core::Iterable<dynamic>? #t3 = tmp in #t3 == null ?{core::String?} null : #t3{core::Iterable<dynamic>}.{core::Iterable::join}(" "){([core::String]) → core::String}}".{core::String::trim}(){() → core::String};
   }
 }
-static method main() → void /* originally async */ {
+static method main() → void /* futureValueType= void */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

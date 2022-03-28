@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
+    show DependencyWalker, Node;
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -22,8 +24,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart' as idl;
 import 'package:analyzer/src/summary/idl.dart' as idl;
-import 'package:analyzer/src/summary/link.dart' as graph
-    show DependencyWalker, Node;
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart';

@@ -34,7 +34,7 @@ static method test1(self::C<core::num> c) → dynamic {
   <S extends core::num>(S) → core::num f1 = c.{self::C::field1} = <S extends core::num>(S s) → core::num {
     return s.{core::num::+}(1){(core::num) → core::num};
   };
-  <S extends FutureOr<core::num>>(S, FutureOr<core::num>) → asy::Future<core::num> f2 = c.{self::C::field2} = <S extends FutureOr<core::num>>(S s, FutureOr<core::num>t) → asy::Future<core::num> /* originally async */ {
+  <S extends FutureOr<core::num>>(S, FutureOr<core::num>) → asy::Future<core::num> f2 = c.{self::C::field2} = <S extends FutureOr<core::num>>(S s, FutureOr<core::num>t) → asy::Future<core::num> /* futureValueType= core::num */ /* originally async */ {
     final asy::_Future<core::num> :async_future = new asy::_Future::•<core::num>();
     core::bool* :is_sync = false;
     core::num? :return_value;
@@ -70,7 +70,7 @@ static method test2(self::C<core::num?> c) → dynamic {
     return s + 1; // error
              ^" in s.{core::num::+}(1){(core::num) → core::num};
   };
-  <S extends FutureOr<core::num?>>(S%, FutureOr<core::num?>) → asy::Future<core::num> f2 = c.{self::C::field2} = <S extends FutureOr<core::num?>>(S% s, FutureOr<core::num?>t) → asy::Future<core::num> /* originally async */ {
+  <S extends FutureOr<core::num?>>(S%, FutureOr<core::num?>) → asy::Future<core::num> f2 = c.{self::C::field2} = <S extends FutureOr<core::num?>>(S% s, FutureOr<core::num?>t) → asy::Future<core::num> /* futureValueType= core::num */ /* originally async */ {
     final asy::_Future<core::num> :async_future = new asy::_Future::•<core::num>();
     core::bool* :is_sync = false;
     FutureOr<core::num>? :return_value;

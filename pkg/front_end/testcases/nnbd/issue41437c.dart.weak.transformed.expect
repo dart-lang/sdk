@@ -222,7 +222,7 @@ static method test7() → asy::Stream<core::bool> /* originally async* */ {
   :controller_stream = :controller.{asy::_AsyncStarStreamController::stream}{asy::Stream<core::bool>};
   return :controller_stream;
 }
-static method test() → dynamic /* originally async */ {
+static method test() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

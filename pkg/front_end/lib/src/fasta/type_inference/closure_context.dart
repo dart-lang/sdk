@@ -65,8 +65,12 @@ abstract class ClosureContext {
               computeFutureValueType(inferrer.coreTypes, declaredReturnType);
         }
       } else {
-        returnContext = inferrer.wrapFutureOrType(
-            inferrer.typeSchemaEnvironment.flatten(returnContext));
+        DartType flattenedType =
+            inferrer.typeSchemaEnvironment.flatten(returnContext);
+        returnContext = inferrer.wrapFutureOrType(flattenedType);
+        if (!needToInferReturnType) {
+          futureValueType = flattenedType;
+        }
       }
       return new _AsyncClosureContext(returnContext, declaredReturnType,
           needToInferReturnType, futureValueType);
@@ -815,6 +819,8 @@ class _AsyncClosureContext implements ClosureContext {
     if (inferrer.isNonNullableByDefault) {
       futureValueType =
           computeFutureValueType(inferrer.coreTypes, inferredType);
+    } else {
+      futureValueType = inferrer.typeSchemaEnvironment.flatten(inferredType);
     }
     if (!inferrer.isTopLevel) {
       for (int i = 0; i < _returnStatements!.length; ++i) {

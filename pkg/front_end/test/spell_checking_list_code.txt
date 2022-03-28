@@ -27,6 +27,7 @@ adequate
 adi
 advantage
 affecting
+affords
 afterwards
 agree
 agreeing
@@ -143,6 +144,7 @@ breadcrumbs
 brevity
 brianwilkerson
 bridge
+bridges
 bs
 bsd
 bslash
@@ -278,6 +280,7 @@ customizable
 customized
 cut
 cwd
+cyclical
 cyclically
 d
 dace
@@ -317,6 +320,7 @@ demands
 demangle
 demangled
 dep
+dependency's
 deps
 dereferencing
 deregister
@@ -338,6 +342,7 @@ device
 dictates
 diff
 differs
+difficult
 diffs
 digest
 digests
@@ -432,6 +437,7 @@ expando
 expense
 experimentation
 explaining
+explore
 exportable
 exportee
 exportees
@@ -494,6 +500,7 @@ fortunately
 fourth
 framework
 freely
+freshly
 frontend
 frontends
 fs
@@ -671,6 +678,7 @@ k
 kallentu
 kb
 kernel's
+kick
 kill
 klass
 kmillikin
@@ -808,6 +816,7 @@ node's
 nominality
 nonexistent
 nonimplementation
+nonzero
 norm
 normalization
 notifier
@@ -1110,6 +1119,7 @@ saw
 say
 sb
 sc
+scc
 scheglov
 scoped
 scoping
@@ -1280,6 +1290,8 @@ tailor
 taking
 talk
 talks
+tarjan
+tarjan's
 tb
 team
 tearoff
@@ -1452,6 +1464,8 @@ vs
 vtab
 w
 waiting
+walker
+walking
 wanting
 wants
 waste

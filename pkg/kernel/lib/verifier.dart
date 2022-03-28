@@ -440,7 +440,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     AsyncMarker savedAsyncMarker = currentAsyncMarker;
     currentAsyncMarker = node.asyncMarker;
     if (!isOutline &&
-        currentMember!.isNonNullableByDefault &&
         node.asyncMarker == AsyncMarker.Async &&
         node.futureValueType == null) {
       problem(node,

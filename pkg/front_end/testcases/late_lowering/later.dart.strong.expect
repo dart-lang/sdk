@@ -130,13 +130,13 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
       #t5.{core::List::add}{Invariant}(i){(core::int) → void};
   } =>#t5;
 }
-static method hest() → dynamic async {
+static method hest() → dynamic async /* futureValueType= dynamic */ {
   await for (core::String s in asy::Stream::fromIterable<core::String>(<core::String>["hest"])) {
     core::print(s);
   }
   return "hest";
 }
-static method fisk() → dynamic async {
+static method fisk() → dynamic async /* futureValueType= dynamic */ {
   lowered core::String? #s1;
   function #s1#get() → core::String
     return let final core::String? #t6 = #s1 in #t6 == null ?{core::String} #s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
@@ -153,7 +153,7 @@ static method fisk() → dynamic async {
     return #s2 = s2#param;
   lowered core::Function? #f;
   function #f#get() → core::Function
-    return let final core::Function? #t8 = #f in #t8 == null ?{core::Function} #f = () → asy::Future<dynamic> async => await self::hest() : #t8{core::Function};
+    return let final core::Function? #t8 = #f in #t8 == null ?{core::Function} #f = () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest() : #t8{core::Function};
   function #f#set(core::Function f#param) → dynamic
     return #f = f#param;
 }

@@ -5,7 +5,7 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   await self::returnsString();
   await self::returnsFutureOrString();
   await self::returnsAwaitFutureOrString();
@@ -17,27 +17,27 @@ static method main() → dynamic async {
   await self::returnsFutureObject();
   await self::returnsAwaitFutureObject();
 }
-static method returnsString() → asy::Future<core::String> async 
+static method returnsString() → asy::Future<core::String> async /* futureValueType= core::String */ 
   return "a";
-static method returnsFutureOrString() → asy::Future<core::String> async 
+static method returnsFutureOrString() → asy::Future<core::String> async /* futureValueType= core::String */ 
   return self::getFutureOr<core::String>("a");
-static method returnsAwaitFutureOrString() → asy::Future<core::String> async 
+static method returnsAwaitFutureOrString() → asy::Future<core::String> async /* futureValueType= core::String */ 
   return await self::getFutureOr<core::String>("a");
-static method returnsFutureString() → asy::Future<core::String> async 
+static method returnsFutureString() → asy::Future<core::String> async /* futureValueType= core::String */ 
   return self::getFuture<core::String>("a");
-static method returnsAwaitFutureString() → FutureOr<core::String> async 
+static method returnsAwaitFutureString() → FutureOr<core::String> async /* futureValueType= core::String */ 
   return await self::getFuture<core::String>("a");
-static method returnsObject() → asy::Future<core::Object> async 
+static method returnsObject() → asy::Future<core::Object> async /* futureValueType= core::Object */ 
   return new core::Object::•();
-static method returnsFutureOrObject() → asy::Future<core::Object> async 
+static method returnsFutureOrObject() → asy::Future<core::Object> async /* futureValueType= core::Object */ 
   return self::getFutureOr<core::Object>(new core::Object::•());
-static method returnsAwaitFutureOrObject() → asy::Future<core::Object> async 
+static method returnsAwaitFutureOrObject() → asy::Future<core::Object> async /* futureValueType= core::Object */ 
   return await self::getFutureOr<core::Object>(new core::Object::•());
-static method returnsFutureObject() → asy::Future<core::Object> async 
+static method returnsFutureObject() → asy::Future<core::Object> async /* futureValueType= core::Object */ 
   return self::getFuture<core::Object>(new core::Object::•());
-static method returnsAwaitFutureObject() → FutureOr<core::Object> async 
+static method returnsAwaitFutureObject() → FutureOr<core::Object> async /* futureValueType= core::Object */ 
   return await self::getFuture<core::Object>(new core::Object::•());
-static method getFutureOr<T extends core::Object? = dynamic>(self::getFutureOr::T% v) → FutureOr<self::getFutureOr::T%> async 
+static method getFutureOr<T extends core::Object? = dynamic>(self::getFutureOr::T% v) → FutureOr<self::getFutureOr::T%> async /* futureValueType= self::getFutureOr::T% */ 
   return v;
-static method getFuture<T extends core::Object? = dynamic>(self::getFuture::T% v) → asy::Future<self::getFuture::T%> async 
+static method getFuture<T extends core::Object? = dynamic>(self::getFuture::T% v) → asy::Future<self::getFuture::T%> async /* futureValueType= self::getFuture::T% */ 
   return v;

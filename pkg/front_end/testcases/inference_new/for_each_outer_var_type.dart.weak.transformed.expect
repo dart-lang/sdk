@@ -43,7 +43,7 @@ class B extends self::A {
 }
 static method f<T extends core::Object* = dynamic>() → self::f::T*
   return null;
-static method test() → dynamic /* originally async */ {
+static method test() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

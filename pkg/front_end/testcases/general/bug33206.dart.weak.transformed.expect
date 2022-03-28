@@ -21,7 +21,7 @@ class Y extends core::Object {
     ;
   method f(dynamic _) → dynamic {}
 }
-static method f1() → asy::Future<core::List<core::Object>> /* originally async */ {
+static method f1() → asy::Future<core::List<core::Object>> /* futureValueType= core::List<core::Object> */ /* originally async */ {
   final asy::_Future<core::List<core::Object>> :async_future = new asy::_Future::•<core::List<core::Object>>();
   core::bool* :is_sync = false;
   core::List<core::Object>? :return_value;
@@ -50,7 +50,7 @@ static method f1() → asy::Future<core::List<core::Object>> /* originally async
 }
 static method f2() → core::List<core::Object>
   return core::_GrowableList::_literal1<core::Object>(2);
-static method f3() → asy::Future<core::Object> /* originally async */ {
+static method f3() → asy::Future<core::Object> /* futureValueType= core::Object */ /* originally async */ {
   final asy::_Future<core::Object> :async_future = new asy::_Future::•<core::Object>();
   core::bool* :is_sync = false;
   core::Object? :return_value;
@@ -77,7 +77,7 @@ static method f3() → asy::Future<core::Object> /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method foo() → asy::Future<self::X> /* originally async */ {
+static method foo() → asy::Future<self::X> /* futureValueType= self::X */ /* originally async */ {
   final asy::_Future<self::X> :async_future = new asy::_Future::•<self::X>();
   core::bool* :is_sync = false;
   self::X? :return_value;
@@ -113,7 +113,7 @@ static method foo() → asy::Future<self::X> /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method main() → asy::Future<void> /* originally async */ {
+static method main() → asy::Future<void> /* futureValueType= void */ /* originally async */ {
   final asy::_Future<void> :async_future = new asy::_Future::•<void>();
   core::bool* :is_sync = false;
   void :return_value;

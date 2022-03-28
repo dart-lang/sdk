@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
+    show DependencyWalker, Node;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/summary/link.dart' as graph
-    show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/link.dart';
 
 /// Compute simple-boundedness for all classes and generic types aliases in

@@ -8,7 +8,7 @@ import "dart:async";
 
 static method id<T extends core::Object* = dynamic>(self::id::T* x) → self::id::T*
   return x;
-static method test() → dynamic /* originally async */ {
+static method test() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

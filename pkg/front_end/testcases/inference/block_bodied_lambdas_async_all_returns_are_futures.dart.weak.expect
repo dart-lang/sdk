@@ -8,7 +8,7 @@ import "dart:async";
 import "dart:math" show Random;
 
 static method test() → dynamic {
-  () →* asy::Future<core::num*>* f = () → asy::Future<core::num*>* async {
+  () →* asy::Future<core::num*>* f = () → asy::Future<core::num*>* async /* futureValueType= core::num* */ {
     if(math::Random::•().{math::Random::nextBool}(){() →* core::bool*}) {
       return asy::Future::value<core::int*>(1);
     }

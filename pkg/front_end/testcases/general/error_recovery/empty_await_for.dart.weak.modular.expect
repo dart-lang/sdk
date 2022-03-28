@@ -13,7 +13,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   await for (final dynamic #t1 in invalid-expression "pkg/front_end/testcases/general/error_recovery/empty_await_for.dart:2:14: Error: This couldn't be parsed.
   await for () {}
              ^") {

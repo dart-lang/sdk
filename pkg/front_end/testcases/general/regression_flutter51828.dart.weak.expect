@@ -7,13 +7,13 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  method foo(dynamic x) → asy::Future<void> async {}
+  method foo(dynamic x) → asy::Future<void> async /* futureValueType= void */ {}
 }
 class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  method bar(dynamic x) → asy::Future<void> async {}
+  method bar(dynamic x) → asy::Future<void> async /* futureValueType= void */ {}
 }
-static method main() → dynamic async 
+static method main() → dynamic async /* futureValueType= dynamic */ 
   return <asy::Future<void>>[new self::A::•().{self::A::foo}(await null){(dynamic) → asy::Future<void>}, new self::B::•().{self::B::bar}(await null){(dynamic) → asy::Future<void>}];

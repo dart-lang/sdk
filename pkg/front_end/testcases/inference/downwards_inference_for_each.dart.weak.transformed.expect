@@ -59,7 +59,7 @@ abstract class MyStream<T extends core::Object* = dynamic> extends asy::Stream<s
 }
 static method F<T extends core::Object* = dynamic>() → self::F::T*
   return null;
-static method f() → asy::Future<dynamic>* /* originally async */ {
+static method f() → asy::Future<dynamic>* /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -238,7 +238,7 @@ static method f() → asy::Future<dynamic>* /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method main() → asy::Future<dynamic>* /* originally async */ {
+static method main() → asy::Future<dynamic>* /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

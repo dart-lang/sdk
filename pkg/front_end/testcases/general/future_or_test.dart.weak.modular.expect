@@ -27,7 +27,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
-  method bar() → asy::Future<dynamic>* async 
+  method bar() → asy::Future<dynamic>* async /* futureValueType= dynamic */ 
     return this.{self::B::a}{self::A*}.{self::A::foo}(){() →* dynamic};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -45,7 +45,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-  method baz() → asy::Future<core::int*>* async 
+  method baz() → asy::Future<core::int*>* async /* futureValueType= core::int* */ 
     return this.{self::C::b}{self::B*}.{self::B::bar}(){() →* asy::Future<dynamic>*} as{TypeError} FutureOr<core::int*>*;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
