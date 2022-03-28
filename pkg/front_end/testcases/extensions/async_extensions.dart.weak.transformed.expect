@@ -25,7 +25,7 @@ static method Extension|syncStarMethod(lowered final core::int* #this) → dynam
 }
 static method Extension|get#syncStarMethod(lowered final core::int* #this) → () →* dynamic
   return () → dynamic => self::Extension|syncStarMethod(#this);
-static method Extension|asyncMethod(lowered final core::int* #this) → dynamic /* originally async */ {
+static method Extension|asyncMethod(lowered final core::int* #this) → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

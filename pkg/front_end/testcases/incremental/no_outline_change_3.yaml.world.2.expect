@@ -1,7 +1,7 @@
 main = main::main;
 library from "org-dartlang-test:///libA.dart" as libA {
 
-  static method whatever() → dynamic /* originally async */ {
+  static method whatever() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     dynamic :return_value;
@@ -53,7 +53,7 @@ library from "org-dartlang-test:///main.dart" as main {
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
     abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
-  static method main() → dynamic /* originally async */ {
+  static method main() → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     dynamic :return_value;

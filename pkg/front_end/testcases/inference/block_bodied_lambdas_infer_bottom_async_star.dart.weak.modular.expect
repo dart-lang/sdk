@@ -5,7 +5,7 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   () →* asy::Stream<Null>* f = () → asy::Stream<Null>* async* {
     yield null;
   };

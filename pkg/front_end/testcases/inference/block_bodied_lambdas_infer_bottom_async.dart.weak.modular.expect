@@ -5,8 +5,8 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static method main() → dynamic async {
-  () →* asy::Future<Null>* f = () → asy::Future<Null>* async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
+  () →* asy::Future<Null>* f = () → asy::Future<Null>* async /* futureValueType= Null */ {
     return null;
   };
   asy::Future<dynamic>* y = f(){() →* asy::Future<Null>*};

@@ -2105,10 +2105,7 @@ class TypeInferrerImpl implements TypeInferrer {
     result =
         closureContext!.handleImplicitReturn(this, body, result, fileOffset);
     DartType? futureValueType = closureContext!.futureValueType;
-    assert(
-        !(isNonNullableByDefault &&
-            asyncMarker == AsyncMarker.Async &&
-            futureValueType == null),
+    assert(!(asyncMarker == AsyncMarker.Async && futureValueType == null),
         "No future value type computed.");
     closureContext = null;
     this.helper = null;
@@ -2863,8 +2860,7 @@ class TypeInferrerImpl implements TypeInferrer {
         this, function.body!, bodyResult, fileOffset);
     function.futureValueType = closureContext.futureValueType;
     assert(
-        !(isNonNullableByDefault &&
-            function.asyncMarker == AsyncMarker.Async &&
+        !(function.asyncMarker == AsyncMarker.Async &&
             function.futureValueType == null),
         "No future value type computed.");
 

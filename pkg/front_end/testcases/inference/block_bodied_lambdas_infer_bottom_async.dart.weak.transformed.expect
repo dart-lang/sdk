@@ -6,7 +6,7 @@ import "dart:_internal" as _in;
 
 import "dart:async";
 
-static method main() → dynamic /* originally async */ {
+static method main() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -19,7 +19,7 @@ static method main() → dynamic /* originally async */ {
     try {
       #L1:
       {
-        () →* asy::Future<Null>* f = () → asy::Future<Null>* /* originally async */ {
+        () →* asy::Future<Null>* f = () → asy::Future<Null>* /* futureValueType= Null */ /* originally async */ {
           final asy::_Future<Null>* :async_future = new asy::_Future::•<Null>();
           core::bool* :is_sync = false;
           FutureOr<Null>* :return_value;

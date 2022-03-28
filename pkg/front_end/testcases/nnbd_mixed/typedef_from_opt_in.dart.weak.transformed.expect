@@ -7,7 +7,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///typedef_from_opt_in_lib.dart";
 
 static method method1() → (typ::Request*) →* FutureOr<typ::Response*>*
-  return (typ::Request* r) → asy::Future<typ::Response*>* /* originally async */ {
+  return (typ::Request* r) → asy::Future<typ::Response*>* /* futureValueType= typ::Response* */ /* originally async */ {
     final asy::_Future<typ::Response*>* :async_future = new asy::_Future::•<typ::Response*>();
     core::bool* :is_sync = false;
     typ::Response? :return_value;

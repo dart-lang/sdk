@@ -18,7 +18,7 @@ static method main() → dynamic {
   function a() → (core::int*) →* core::int* {
     return (core::int* x) → core::int* => x;
   }
-  function b() → asy::Future<(core::int*) →* core::int*>* /* originally async */ {
+  function b() → asy::Future<(core::int*) →* core::int*>* /* futureValueType= (core::int*) →* core::int* */ /* originally async */ {
     final asy::_Future<(core::int*) →* core::int*>* :async_future = new asy::_Future::•<(core::int*) →* core::int*>();
     core::bool* :is_sync = false;
     FutureOr<(core::int*) →* core::int*>* :return_value;

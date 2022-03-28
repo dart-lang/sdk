@@ -57,12 +57,12 @@ static method f1() → invalid-type {
   return null;
 }
 static method Future<List extends core::Object* = dynamic>() → invalid-type {}
-static method f2() → dynamic async 
+static method f2() → dynamic async /* futureValueType= dynamic */ 
   return null;
-static method f3() → invalid-type async {
+static method f3() → invalid-type async /* futureValueType= invalid-type */ {
   return null;
 }
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   core::print(self::f1());
   core::print(await self::f2());
   core::print(await self::f3());

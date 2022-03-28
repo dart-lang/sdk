@@ -1294,6 +1294,10 @@ class BodyBuilder extends StackListenerImpl
           body);
       body = inferredFunctionBody.body;
       builder.function.futureValueType = inferredFunctionBody.futureValueType;
+      assert(
+          !(builder.function.asyncMarker == AsyncMarker.Async &&
+              builder.function.futureValueType == null),
+          "No future value type computed.");
       libraryBuilder.loader.transformPostInference(body, transformSetLiterals,
           transformCollections, libraryBuilder.library);
     }

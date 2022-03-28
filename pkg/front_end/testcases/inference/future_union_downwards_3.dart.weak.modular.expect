@@ -44,10 +44,10 @@ static field asy::Future<core::int*>* t1 = self::f.{asy::Future::then}<core::int
         new /*@ typeArgs=int* */ Future.value('hi'));
                                               ^" in "hi" as{TypeError} FutureOr<core::int*>?)){((dynamic) →* FutureOr<core::int*>*, {onError: core::Function*}) →* asy::Future<core::int*>*};
 static field asy::Future<core::List<core::int*>*>* t2 = self::f.{asy::Future::then}<core::List<core::int*>*>((dynamic _) → core::List<core::int*>* => <core::int*>[3]){((dynamic) →* FutureOr<core::List<core::int*>*>*, {onError: core::Function*}) →* asy::Future<core::List<core::int*>*>*};
-static method g2() → asy::Future<core::List<core::int*>*>* async {
+static method g2() → asy::Future<core::List<core::int*>*>* async /* futureValueType= core::List<core::int*>* */ {
   return <core::int*>[3];
 }
-static method g3() → asy::Future<core::List<core::int*>*>* async {
+static method g3() → asy::Future<core::List<core::int*>*>* async /* futureValueType= core::List<core::int*>* */ {
   return asy::Future::value<core::List<core::int*>*>(<core::int*>[3]);
 }
 static method main() → dynamic {}

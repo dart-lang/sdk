@@ -9,50 +9,53 @@
 import 'dart:async';
 
 /*cfe:nnbd.member: declaredFutureInt:futureValueType=int!*/
+/*cfe.member: declaredFutureInt:futureValueType=int*/
 Future<int> declaredFutureInt() async {
   return
       /*cfe.int*/ /*cfe:nnbd.int!*/ 0;
 }
 
 /*cfe:nnbd.member: declaredFutureOrInt:futureValueType=int!*/
+/*cfe.member: declaredFutureOrInt:futureValueType=int*/
 FutureOr<int> declaredFutureOrInt() async {
   return
       /*cfe.int*/ /*cfe:nnbd.int!*/ 0;
 }
 
 /*cfe:nnbd.member: declaredObject:futureValueType=Object?*/
+/*cfe.member: declaredObject:futureValueType=Object*/
 Object declaredObject() async {
   return
       /*cfe.int*/ /*cfe:nnbd.int!*/ 0;
 }
 
-/*cfe:nnbd.member: omitted:futureValueType=dynamic*/
+/*member: omitted:futureValueType=dynamic*/
 omitted() async {}
 
-/*cfe:nnbd.member: method:futureValueType=dynamic*/
+/*member: method:futureValueType=dynamic*/
 method() async {
   /*cfe:nnbd.futureValueType=int!*/
-  Future<int> declaredLocalFutureInt() async {
+  /*cfe.futureValueType=int*/Future<int> declaredLocalFutureInt() async {
     return
         /*cfe.int*/ /*cfe:nnbd.int!*/ 0;
   }
 
   /*cfe:nnbd.futureValueType=int!*/
-  FutureOr<int> declaredLocalFutureOrInt() async {
+  /*cfe.futureValueType=int*/FutureOr<int> declaredLocalFutureOrInt() async {
     return
         /*cfe.int*/ /*cfe:nnbd.int!*/ 0;
   }
 
   /*cfe:nnbd.futureValueType=Object?*/
-  Object declaredLocalObject() async {
+  /*cfe.futureValueType=Object*/Object declaredLocalObject() async {
     return
         /*cfe.int*/ /*cfe:nnbd.int!*/ 0;
   }
 
-  /*cfe:nnbd.futureValueType=Null*/ omittedLocal() async {}
+  /*futureValueType=Null*/omittedLocal() async {}
 
   Future<int> inferredCalledFutureInt =
-      /*cfe.Future<int> Function()*/
+      /*cfe.Future<int> Function(),futureValueType=int*/
       /*cfe:nnbd.Future<int!>! Function()!,futureValueType=int!*/
       () async {
     return
@@ -63,7 +66,7 @@ method() async {
           ();
 
   FutureOr<int> inferredCalledFutureOrInt =
-      /*cfe.Future<int> Function()*/
+      /*cfe.Future<int> Function(),futureValueType=int*/
       /*cfe:nnbd.Future<int!>! Function()!,futureValueType=int!*/
       () async {
     return
@@ -74,7 +77,7 @@ method() async {
           ();
 
   Future<int> Function() inferredFutureInt =
-      /*cfe.Future<int> Function()*/
+      /*cfe.Future<int> Function(),futureValueType=int*/
       /*cfe:nnbd.Future<int!>! Function()!,futureValueType=int!*/
       () async {
     return
@@ -82,7 +85,7 @@ method() async {
   };
 
   FutureOr<int> Function() inferredFutureOrInt =
-      /*cfe.Future<int> Function()*/
+      /*cfe.Future<int> Function(),futureValueType=int*/
       /*cfe:nnbd.Future<int!>! Function()!,futureValueType=int!*/
       () async {
     return
@@ -90,7 +93,7 @@ method() async {
   };
 
   Object Function() inferredInt =
-      /*cfe.Future<int> Function()*/
+      /*cfe.Future<int> Function(),futureValueType=int*/
       /*cfe:nnbd.Future<int!>! Function()!,futureValueType=int!*/
       () async {
     return
@@ -98,7 +101,7 @@ method() async {
   };
 
   Object Function() inferredNull =
-      /*cfe.Future<Null> Function()*/
+      /*cfe.Future<Null> Function(),futureValueType=Null*/
       /*cfe:nnbd.Future<Null>! Function()!,futureValueType=Null*/
       () async {
     return
@@ -106,7 +109,7 @@ method() async {
   };
 
   Object Function() inferredEmpty =
-      /*cfe.Future<Null> Function()*/
+      /*cfe.Future<Null> Function(),futureValueType=Null*/
       /*cfe:nnbd.Future<Null>! Function()!,futureValueType=Null*/
       () async {};
 }

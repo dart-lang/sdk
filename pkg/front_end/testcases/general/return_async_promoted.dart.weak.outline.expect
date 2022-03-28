@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///return_async_promoted_lib.dart";
+
+static method main() → void
+  ;
+static method nullable() → core::int?
+  ;
+static method nonNullable() → core::int?
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///return_async_promoted.dart";
+
+static method legacy() → core::int*
+  ;

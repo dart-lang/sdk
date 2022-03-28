@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method test() → dynamic async {
+static method test() → dynamic async /* futureValueType= dynamic */ {
   core::Object* o;
   for (dynamic x in o as{TypeError} core::Iterable<dynamic>*) {
   }
