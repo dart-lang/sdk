@@ -5043,7 +5043,8 @@ REPEAT_512(FINALIZER_CROSS_GEN_TEST_CASE)
 
 #undef FINALIZER_CROSS_GEN_TEST_CASE
 
-void NativeFinalizer_TwoEntriesCrossGen_Finalizer(intptr_t* token) {
+void NativeFinalizer_TwoEntriesCrossGen_Finalizer(void* peer) {
+  intptr_t* token = reinterpret_cast<intptr_t*>(peer);
   (*token)++;
 }
 
