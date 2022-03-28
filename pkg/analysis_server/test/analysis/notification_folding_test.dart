@@ -56,8 +56,8 @@ main async() {}
     await createProject();
   }
 
-  void subscribeForFolding() {
-    addAnalysisSubscription(AnalysisService.FOLDING, testFile);
+  Future<void> subscribeForFolding() async {
+    await addAnalysisSubscription(AnalysisService.FOLDING, testFile);
   }
 
   Future<void> test_afterAnalysis() async {
@@ -65,7 +65,7 @@ main async() {}
     await waitForTasksFinished();
     expect(lastRegions, isNull);
 
-    await waitForFolding(() => subscribeForFolding());
+    await waitForFolding(() async => await subscribeForFolding());
 
     expect(lastRegions, expectedResults);
   }
@@ -80,18 +80,18 @@ main async() {}
     expect(lastRegions, isNull);
 
     // With no content, there should be zero regions.
-    await waitForFolding(() => subscribeForFolding());
+    await waitForFolding(() async => await subscribeForFolding());
     expect(lastRegions, hasLength(0));
 
     // With sample code there will be folding regions.
-    await waitForFolding(() => modifyTestFile(sampleCode));
+    await waitForFolding(() async => modifyTestFile(sampleCode));
 
     expect(lastRegions, expectedResults);
   }
 
-  Future waitForFolding(void Function() action) {
+  Future<void> waitForFolding(Future<void> Function() action) async {
     _regionsReceived = Completer();
-    action();
+    await action();
     return _regionsReceived.future;
   }
 }

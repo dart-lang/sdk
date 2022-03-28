@@ -12,8 +12,9 @@ import 'package:analysis_server/src/handler/legacy/analysis_get_navigation.dart'
 import 'package:analysis_server/src/handler/legacy/analysis_get_signature.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_reanalyze.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_set_analysis_roots.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
@@ -24,43 +25,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   /// Initialize a newly created handler to handle requests for the given
   /// [server].
   AnalysisDomainHandler(AnalysisServer server) : super(server);
-
-  /// Implement the `analysis.getLibraryDependencies` request.
-  Response getLibraryDependencies(Request request) {
-    return Response.unsupportedFeature(request.id,
-        'Please contact the Dart analyzer team if you need this request.');
-//    server.onAnalysisComplete.then((_) {
-//      LibraryDependencyCollector collector =
-//          new LibraryDependencyCollector(server.analysisContexts);
-//      Set<String> libraries = collector.collectLibraryDependencies();
-//      Map<String, Map<String, List<String>>> packageMap =
-//          collector.calculatePackageMap(server.folderMap);
-//      server.sendResponse(new AnalysisGetLibraryDependenciesResult(
-//              libraries.toList(growable: false), packageMap)
-//          .toResponse(request.id));
-//    }).catchError((error, st) {
-//      server.sendResponse(new Response.serverError(request, error, st));
-//    });
-//    // delay response
-//    return Response.DELAYED_RESPONSE;
-  }
-
-  /// Implement the `analysis.getReachableSources` request.
-  Response getReachableSources(Request request) {
-    return Response.unsupportedFeature(request.id,
-        'Please contact the Dart analyzer team if you need this request.');
-//    AnalysisGetReachableSourcesParams params =
-//        new AnalysisGetReachableSourcesParams.fromRequest(request);
-//    ContextSourcePair pair = server.getContextSourcePair(params.file);
-//    if (pair.context == null || pair.source == null) {
-//      return new Response.getReachableSourcesInvalidFile(request);
-//    }
-//    Map<String, List<String>> sources =
-//        new ReachableSourceCollector(pair.source, pair.context)
-//            .collectSources();
-//    return new AnalysisGetReachableSourcesResult(sources)
-//        .toResponse(request.id);
-  }
 
   @override
   Response? handleRequest(
@@ -78,13 +42,15 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
             .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_GET_LIBRARY_DEPENDENCIES) {
-        return getLibraryDependencies(request);
+        UnsupportedRequestHandler(server, request, cancellationToken).handle();
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_GET_NAVIGATION) {
         AnalysisGetNavigationHandler(server, request, cancellationToken)
             .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_GET_REACHABLE_SOURCES) {
-        return getReachableSources(request);
+        UnsupportedRequestHandler(server, request, cancellationToken).handle();
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_GET_SIGNATURE) {
         AnalysisGetSignatureHandler(server, request, cancellationToken)
             .handle();
@@ -101,7 +67,9 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       } else if (requestName == ANALYSIS_REQUEST_SET_PRIORITY_FILES) {
         return setPriorityFiles(request);
       } else if (requestName == ANALYSIS_REQUEST_SET_SUBSCRIPTIONS) {
-        return setSubscriptions(request);
+        AnalysisSetSubscriptionsHandler(server, request, cancellationToken)
+            .handle();
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_UPDATE_CONTENT) {
         return updateContent(request);
       } else if (requestName == ANALYSIS_REQUEST_UPDATE_OPTIONS) {
@@ -141,37 +109,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // Send the response.
     //
     return AnalysisSetPriorityFilesResult().toResponse(request.id);
-  }
-
-  /// Implement the 'analysis.setSubscriptions' request.
-  Response setSubscriptions(Request request) {
-    var params = AnalysisSetSubscriptionsParams.fromRequest(request);
-
-    for (var fileList in params.subscriptions.values) {
-      for (var file in fileList) {
-        if (!server.isAbsoluteAndNormalized(file)) {
-          return Response.invalidFilePathFormat(request, file);
-        }
-      }
-    }
-
-    // parse subscriptions
-    var subMap =
-        mapMap<AnalysisService, List<String>, AnalysisService, Set<String>>(
-            params.subscriptions,
-            valueCallback: (List<String> subscriptions) =>
-                subscriptions.toSet());
-    server.setAnalysisSubscriptions(subMap);
-    //
-    // Forward the request to the plugins.
-    //
-    var converter = RequestConverter();
-    server.pluginManager.setAnalysisSetSubscriptionsParams(
-        converter.convertAnalysisSetSubscriptionsParams(params));
-    //
-    // Send the response.
-    //
-    return AnalysisSetSubscriptionsResult().toResponse(request.id);
   }
 
   /// Implement the 'analysis.updateContent' request.

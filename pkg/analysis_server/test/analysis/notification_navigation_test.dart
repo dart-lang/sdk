@@ -178,8 +178,8 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
 class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   final Completer<void> _resultsAvailable = Completer();
 
-  Future prepareNavigation() async {
-    addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
+  Future<void> prepareNavigation() async {
+    await addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
     await _resultsAvailable.future;
     assertRegionsSorted();
   }

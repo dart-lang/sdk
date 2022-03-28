@@ -1649,8 +1649,8 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
     return length;
   }
 
-  Future prepareHighlights() {
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+  Future<void> prepareHighlights() async {
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     return _resultsAvailable.future;
   }
 

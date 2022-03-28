@@ -104,8 +104,8 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
     }
   }
 
-  Future prepareOverrides() {
-    addAnalysisSubscription(AnalysisService.OVERRIDES, testFile);
+  Future<void> prepareOverrides() async {
+    await addAnalysisSubscription(AnalysisService.OVERRIDES, testFile);
     return _resultsAvailable.future;
   }
 

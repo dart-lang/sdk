@@ -85,8 +85,8 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   }
 
   /// Subscribe for `IMPLEMENTED` and wait for the notification.
-  Future prepareImplementedElements() {
-    subscribeForImplemented();
+  Future<void> prepareImplementedElements() async {
+    await subscribeForImplemented();
     return waitForImplementedElements();
   }
 
@@ -107,9 +107,9 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     await createProject();
   }
 
-  void subscribeForImplemented() {
+  Future<void> subscribeForImplemented() async {
     setPriorityFiles([testFile]);
-    addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
+    await addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
   }
 
   Future<void> test_afterAnalysis() async {
@@ -123,7 +123,7 @@ class B extends A {}
   }
 
   Future<void> test_afterIncrementalResolution() async {
-    subscribeForImplemented();
+    await subscribeForImplemented();
     addTestFile('''
 class A {}
 class B extends A {}
