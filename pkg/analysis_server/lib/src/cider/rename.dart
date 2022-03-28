@@ -81,8 +81,7 @@ class CheckNameResponse {
 
   String get oldName => canRename.refactoringElement.element.displayName;
 
-  @Deprecated('Use computeRenameRanges2() instead')
-  RenameResponse? computeRenameRanges() {
+  Future<RenameResponse?> computeRenameRanges2() async {
     var elements = <Element>[];
     var element = canRename.refactoringElement.element;
     if (element is PropertyInducingElement && element.isSynthetic) {
@@ -94,22 +93,18 @@ class CheckNameResponse {
     } else {
       elements.add(element);
     }
+    var fileResolver = canRename._fileResolver;
     var matches = <CiderSearchMatch>[];
     for (var element in elements) {
-      matches.addAll(canRename._fileResolver.findReferences(element));
+      matches.addAll(await fileResolver.findReferences2(element));
     }
     FlutterWidgetRename? flutterRename;
     if (canRename._flutterWidgetState != null) {
       var stateWidget = canRename._flutterWidgetState!;
-      var match = canRename._fileResolver.findReferences(stateWidget.state);
+      var match = await fileResolver.findReferences2(stateWidget.state);
       flutterRename = FlutterWidgetRename(stateWidget.newName, match);
     }
     return RenameResponse(matches, this, flutterWidgetRename: flutterRename);
-  }
-
-  Future<RenameResponse?> computeRenameRanges2() async {
-    // ignore: deprecated_member_use_from_same_package
-    return computeRenameRanges();
   }
 }
 
@@ -120,9 +115,9 @@ class CiderRenameComputer {
 
   /// Check if the identifier at the [line], [column] for the file at the
   /// [filePath] can be renamed.
-  @Deprecated('Use canRename2() instead')
-  CanRenameResponse? canRename(String filePath, int line, int column) {
-    var resolvedUnit = _fileResolver.resolve(path: filePath);
+  Future<CanRenameResponse?> canRename2(
+      String filePath, int line, int column) async {
+    var resolvedUnit = await _fileResolver.resolve2(path: filePath);
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(line) + column;
 
@@ -149,14 +144,6 @@ class CiderRenameComputer {
       return CanRenameResponse(lineInfo, refactoring, _fileResolver, filePath);
     }
     return null;
-  }
-
-  /// Check if the identifier at the [line], [column] for the file at the
-  /// [filePath] can be renamed.
-  Future<CanRenameResponse?> canRename2(
-      String filePath, int line, int column) async {
-    // ignore: deprecated_member_use_from_same_package
-    return canRename(filePath, line, column);
   }
 
   bool _canRenameElement(Element element) {

@@ -180,16 +180,15 @@ class FileResolver {
 
   /// Looks for references to the given Element. All the files currently
   ///  cached by the resolver are searched, generated files are ignored.
-  @Deprecated('Use findReferences2() instead')
-  List<CiderSearchMatch> findReferences(Element element,
-      {OperationPerformanceImpl? performance}) {
-    return logger.run('findReferences for ${element.name}', () {
+  Future<List<CiderSearchMatch>> findReferences2(Element element,
+      {OperationPerformanceImpl? performance}) async {
+    return logger.runAsync('findReferences for ${element.name}', () async {
       var references = <CiderSearchMatch>[];
 
-      void collectReferences(
-          String path, OperationPerformanceImpl performance) {
-        performance.run('collectReferences', (_) {
-          var resolved = resolve(path: path);
+      Future<void> collectReferences2(
+          String path, OperationPerformanceImpl performance) async {
+        await performance.runAsync('collectReferences', (_) async {
+          var resolved = await resolve2(path: path);
           var collector = ReferencesCollector(element);
           resolved.unit.accept(collector);
           var offsets = collector.offsets;
@@ -208,40 +207,28 @@ class FileResolver {
       // TODO(keertip): check if element is named constructor.
       if (element is LocalVariableElement ||
           (element is ParameterElement && !element.isNamed)) {
-        collectReferences(element.source!.fullName, performance!);
+        await collectReferences2(element.source!.fullName, performance!);
       } else {
         var result = performance!.run('getFilesContaining', (performance) {
           return fsState!.getFilesContaining(element.displayName);
         });
         for (var filePath in result) {
-          collectReferences(filePath, performance!);
+          await collectReferences2(filePath, performance!);
         }
       }
       return references;
     });
   }
 
-  /// Looks for references to the given Element. All the files currently
-  ///  cached by the resolver are searched, generated files are ignored.
-  Future<List<CiderSearchMatch>> findReferences2(Element element,
-      {OperationPerformanceImpl? performance}) async {
-    // ignore: deprecated_member_use_from_same_package
-    return findReferences(
-      element,
-      performance: performance,
-    );
-  }
-
-  @Deprecated('Use getErrors2() instead')
-  ErrorsResult getErrors({
+  Future<ErrorsResult> getErrors2({
     required String path,
     OperationPerformanceImpl? performance,
-  }) {
+  }) async {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     performance ??= OperationPerformanceImpl('<default>');
 
-    return logger.run('Get errors for $path', () {
+    return logger.runAsync('Get errors for $path', () async {
       var fileContext = getFileContext(
         path: path,
         performance: performance!,
@@ -264,7 +251,7 @@ class FileResolver {
       }
 
       if (errors == null) {
-        var unitResult = resolve(
+        var unitResult = await resolve2(
           path: path,
           performance: performance,
         );
@@ -286,17 +273,6 @@ class FileResolver {
         errors,
       );
     });
-  }
-
-  Future<ErrorsResult> getErrors2({
-    required String path,
-    OperationPerformanceImpl? performance,
-  }) async {
-    // ignore: deprecated_member_use_from_same_package
-    return getErrors(
-      path: path,
-      performance: performance,
-    );
   }
 
   FileContext getFileContext({
@@ -335,11 +311,10 @@ class FileResolver {
     return fsState.getFilesWithTopLevelDeclarations(name);
   }
 
-  @Deprecated('Use getLibraryByUri2() instead')
-  LibraryElement getLibraryByUri({
+  Future<LibraryElement> getLibraryByUri2({
     required String uriStr,
     OperationPerformanceImpl? performance,
-  }) {
+  }) async {
     performance ??= OperationPerformanceImpl('<default>');
 
     var uri = Uri.parse(uriStr);
@@ -359,25 +334,14 @@ class FileResolver {
       throw ArgumentError('$uri is not a library.');
     }
 
-    performance.run('libraryContext', (performance) {
-      libraryContext!.load2(
+    await performance.runAsync('libraryContext', (performance) async {
+      await libraryContext!.load(
         targetLibrary: file,
         performance: performance,
       );
     });
 
     return libraryContext!.elementFactory.libraryOfUri2(uriStr);
-  }
-
-  Future<LibraryElement> getLibraryByUri2({
-    required String uriStr,
-    OperationPerformanceImpl? performance,
-  }) async {
-    // ignore: deprecated_member_use_from_same_package
-    return getLibraryByUri(
-      uriStr: uriStr,
-      performance: performance,
-    );
   }
 
   String getLibraryLinkedSignature({
@@ -411,12 +375,11 @@ class FileResolver {
   ///
   /// This method ensures that we discard the libraries context, with all its
   /// partially resynthesized data, and so prepare for loading linked summaries
-  /// from bytes, which will be done by [getErrors]. It is OK for it to
+  /// from bytes, which will be done by [getErrors2]. It is OK for it to
   /// spend some more time on this.
-  @Deprecated('Use linkLibraries2() instead')
-  void linkLibraries({
+  Future<void> linkLibraries2({
     required String path,
-  }) {
+  }) async {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     var performance = OperationPerformanceImpl('<unused>');
@@ -428,38 +391,12 @@ class FileResolver {
     var file = fileContext.file;
     var libraryFile = file.partOfLibrary ?? file;
 
-    libraryContext!.load2(
+    await libraryContext!.load(
       targetLibrary: libraryFile,
       performance: performance,
     );
 
     _resetContextObjects();
-  }
-
-  /// Ensure that libraries necessary for resolving [path] are linked.
-  ///
-  /// Libraries are linked in library cycles, from the bottom to top, so that
-  /// when we link a cycle, everything it transitively depends is ready. We
-  /// load newly linked libraries from bytes, and when we link a new library
-  /// cycle we partially resynthesize AST and elements from previously
-  /// loaded libraries.
-  ///
-  /// But when we are done linking libraries, and want to resolve just the
-  /// very top library that transitively depends on the whole dependency
-  /// tree, this library will not reference as many elements in the
-  /// dependencies as we needed for linking. Most probably it references
-  /// elements from directly imported libraries, and a couple of layers below.
-  /// So, keeping all previously resynthesized data is usually a waste.
-  ///
-  /// This method ensures that we discard the libraries context, with all its
-  /// partially resynthesized data, and so prepare for loading linked summaries
-  /// from bytes, which will be done by [getErrors2]. It is OK for it to
-  /// spend some more time on this.
-  Future<void> linkLibraries2({
-    required String path,
-  }) async {
-    // ignore: deprecated_member_use_from_same_package
-    linkLibraries(path: path);
   }
 
   /// Update the cache with list of invalidated ids and clears [removedCacheIds].
@@ -480,18 +417,17 @@ class FileResolver {
   }
 
   /// The [completionLine] and [completionColumn] are zero based.
-  @Deprecated('Use resolve2() instead')
-  ResolvedUnitResult resolve({
+  Future<ResolvedUnitResult> resolve2({
     int? completionLine,
     int? completionColumn,
     required String path,
     OperationPerformanceImpl? performance,
-  }) {
+  }) async {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     performance ??= OperationPerformanceImpl('<default>');
 
-    return logger.run('Resolve $path', () {
+    return logger.runAsync('Resolve $path', () async {
       var fileContext = getFileContext(
         path: path,
         performance: performance!,
@@ -508,7 +444,7 @@ class FileResolver {
         }
       }
 
-      var libraryResult = resolveLibrary(
+      var libraryResult = await resolveLibrary2(
         completionLine: completionLine,
         completionColumn: completionColumn,
         path: libraryFile.path,
@@ -522,30 +458,13 @@ class FileResolver {
   }
 
   /// The [completionLine] and [completionColumn] are zero based.
-  Future<ResolvedUnitResult> resolve2({
-    int? completionLine,
-    int? completionColumn,
-    required String path,
-    OperationPerformanceImpl? performance,
-  }) async {
-    // ignore: deprecated_member_use_from_same_package
-    return resolve(
-      completionLine: completionLine,
-      completionColumn: completionColumn,
-      path: path,
-      performance: performance,
-    );
-  }
-
-  /// The [completionLine] and [completionColumn] are zero based.
-  @Deprecated('Use resolveLibrary2() instead')
-  ResolvedLibraryResult resolveLibrary({
+  Future<ResolvedLibraryResult> resolveLibrary2({
     int? completionLine,
     int? completionColumn,
     String? completionPath,
     required String path,
     OperationPerformanceImpl? performance,
-  }) {
+  }) async {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     performance ??= OperationPerformanceImpl('<default>');
@@ -555,7 +474,7 @@ class FileResolver {
       return cachedResult;
     }
 
-    return logger.run('Resolve $path', () {
+    return logger.runAsync('Resolve $path', () async {
       var fileContext = getFileContext(
         path: path,
         performance: performance!,
@@ -578,8 +497,8 @@ class FileResolver {
         completionOffset = lineOffset + completionColumn;
       }
 
-      performance.run('libraryContext', (performance) {
-        libraryContext!.load2(
+      await performance.runAsync('libraryContext', (performance) async {
+        await libraryContext!.load(
           targetLibrary: libraryFile,
           performance: performance,
         );
@@ -649,24 +568,6 @@ class FileResolver {
 
       return result;
     });
-  }
-
-  /// The [completionLine] and [completionColumn] are zero based.
-  Future<ResolvedLibraryResult> resolveLibrary2({
-    int? completionLine,
-    int? completionColumn,
-    String? completionPath,
-    required String path,
-    OperationPerformanceImpl? performance,
-  }) async {
-    // ignore: deprecated_member_use_from_same_package
-    return resolveLibrary(
-      completionLine: completionLine,
-      completionColumn: completionColumn,
-      completionPath: completionPath,
-      path: path,
-      performance: performance,
-    );
   }
 
   /// Make sure that [fsState], [contextObjects], and [libraryContext] are
@@ -909,21 +810,23 @@ class _LibraryContext {
   }
 
   /// Load data required to access elements of the given [targetLibrary].
-  void load2({
+  Future<void> load({
     required FileState targetLibrary,
     required OperationPerformanceImpl performance,
-  }) {
+  }) async {
     var librariesLinked = 0;
     var librariesLinkedTimer = Stopwatch();
     var inputsTimer = Stopwatch();
 
-    void loadBundle(LibraryCycle cycle) {
+    Future<void> loadBundle(LibraryCycle cycle) async {
       if (!loadedBundles.add(cycle)) return;
 
       performance.getDataInt('cycleCount').increment();
       performance.getDataInt('libraryCount').add(cycle.libraries.length);
 
-      cycle.directDependencies.forEach(loadBundle);
+      for (var directDependency in cycle.directDependencies) {
+        await loadBundle(directDependency);
+      }
 
       var resolutionKey = '${cycle.cyclePathsHash}.resolution';
       var resolutionData = byteStore.get(resolutionKey, cycle.signature);
@@ -986,9 +889,7 @@ class _LibraryContext {
         }
         inputsTimer.stop();
 
-        // TODO(scheglov) Migrate when we are ready to switch to async.
-        // ignore: deprecated_member_use_from_same_package
-        var linkResult = link2.link(elementFactory, inputLibraries);
+        var linkResult = await link2.link2(elementFactory, inputLibraries);
         librariesLinked += cycle.libraries.length;
 
         resolutionBytes = linkResult.resolutionBytes;
@@ -1015,9 +916,9 @@ class _LibraryContext {
       _createElementFactoryTypeProvider();
     }
 
-    logger.run('Prepare linked bundles', () {
+    await logger.runAsync('Prepare linked bundles', () async {
       var libraryCycle = targetLibrary.libraryCycle;
-      loadBundle(libraryCycle);
+      await loadBundle(libraryCycle);
       logger.writeln(
         '[inputsTimer: ${inputsTimer.elapsedMilliseconds} ms]'
         '[librariesLinked: $librariesLinked]'
