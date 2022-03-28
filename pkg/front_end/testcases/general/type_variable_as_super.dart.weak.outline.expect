@@ -2,17 +2,17 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/type_variable_as_super.dart:5:16: Error: The type variable 'T' can't be used as supertype.
+// pkg/front_end/testcases/general/type_variable_as_super.dart:5:29: Error: The type variable 'T' can't be used as supertype.
 // abstract class A<T> extends T {}
-//                ^
+//                             ^
 //
-// pkg/front_end/testcases/general/type_variable_as_super.dart:7:16: Error: The type variable 'T' can't be used as supertype.
+// pkg/front_end/testcases/general/type_variable_as_super.dart:7:29: Error: The type variable 'T' can't be used as supertype.
 // abstract class B<T> extends T {
-//                ^
+//                             ^
 //
-// pkg/front_end/testcases/general/type_variable_as_super.dart:11:7: Error: The type variable 'T' can't be used as supertype.
+// pkg/front_end/testcases/general/type_variable_as_super.dart:11:20: Error: The type variable 'T' can't be used as supertype.
 // class C<T> extends T {}
-//       ^
+//                    ^
 //
 import self as self;
 import "dart:core" as core;

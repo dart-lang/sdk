@@ -160,9 +160,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   DartType buildDartType(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType});
 
-  DartType buildTypeLiteralDartType(TypeBuilder typeBuilder,
-      {required bool allowPotentiallyConstantType});
-
   List<DartType> buildDartTypeArguments(List<TypeBuilder>? typeArguments,
       {required bool allowPotentiallyConstantType});
 

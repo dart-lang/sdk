@@ -68,10 +68,8 @@ class ClassHierarchyNodeBuilder {
 
       superclasses = new List<Supertype>.filled(
           supernode.superclasses.length + 1, dummySupertype);
-      Supertype? supertype = classBuilder.supertypeBuilder!.buildSupertype(
-          classBuilder.libraryBuilder,
-          classBuilder.charOffset,
-          classBuilder.fileUri);
+      Supertype? supertype = classBuilder.supertypeBuilder!
+          .buildSupertype(classBuilder.libraryBuilder);
       if (supertype == null) {
         // If the superclass is not an interface type we use Object instead.
         // A similar normalization is performed on [supernode] above.
@@ -117,8 +115,7 @@ class ClassHierarchyNodeBuilder {
 
         for (int i = 0; i < directInterfaceBuilders.length; i++) {
           Supertype? directInterface = directInterfaceBuilders[i]
-              .buildSupertype(classBuilder.libraryBuilder,
-                  classBuilder.charOffset, classBuilder.fileUri);
+              .buildSupertype(classBuilder.libraryBuilder);
           if (directInterface != null) {
             addInterface(interfaces, superclasses, directInterface);
             ClassHierarchyNode interfaceNode =

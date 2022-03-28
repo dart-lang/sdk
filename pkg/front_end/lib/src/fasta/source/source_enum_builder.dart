@@ -130,7 +130,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       TypeBuilder? supertypeBuilder,
       List<TypeBuilder>? interfaceBuilders,
       List<EnumConstantInfo?>? enumConstantInfos,
-      SourceLibraryBuilder parent,
+      SourceLibraryBuilder libraryBuilder,
       List<ConstructorReferenceBuilder> constructorReferences,
       int startCharOffset,
       int charOffset,
@@ -140,16 +140,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
       ConstructorScope constructorScope) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
 
-    Uri fileUri = parent.fileUri;
+    Uri fileUri = libraryBuilder.fileUri;
 
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
     NamedTypeBuilder intType = new NamedTypeBuilder(
-        "int",
-        const NullabilityBuilder.omitted(),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
+        "int", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess:
             // If "int" resolves to an instance type variable then that we would
             // allowed (the types that we are adding are in instance context
@@ -162,25 +158,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
             // variables.
             InstanceTypeVariableAccessState.Unexpected);
     NamedTypeBuilder stringType = new NamedTypeBuilder(
-        "String",
-        const NullabilityBuilder.omitted(),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
+        "String", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     NamedTypeBuilder objectType = new NamedTypeBuilder(
-        "Object",
-        const NullabilityBuilder.omitted(),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
+        "Object", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     supertypeBuilder ??= new NamedTypeBuilder(
-        "_Enum",
-        const NullabilityBuilder.omitted(),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
+        "_Enum", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     Class cls = new Class(
         name: name,
@@ -193,18 +177,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     List<SourceFieldBuilder> elementBuilders = <SourceFieldBuilder>[];
     NamedTypeBuilder selfType = new NamedTypeBuilder(
-        name,
-        const NullabilityBuilder.omitted(),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
+        name, const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     NamedTypeBuilder listType = new NamedTypeBuilder(
-        "List",
-        const NullabilityBuilder.omitted(),
-        <TypeBuilder>[selfType],
-        /* fileUri = */ null,
-        /* charOffset = */ null,
+        "List", const NullabilityBuilder.omitted(),
+        arguments: <TypeBuilder>[selfType],
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
     // metadata class E extends _Enum {
@@ -225,7 +202,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         extensionName: null,
         libraryReference: referencesFromIndexed != null
             ? referencesFromIndexed.library.reference
-            : parent.library.reference);
+            : libraryBuilder.library.reference);
 
     NameScheme procedureNameScheme = new NameScheme(
         isInstanceMember: true,
@@ -234,7 +211,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         extensionName: null,
         libraryReference: referencesFromIndexed != null
             ? referencesFromIndexed.library.reference
-            : parent.library.reference);
+            : libraryBuilder.library.reference);
 
     Reference? constructorReference;
     Reference? tearOffReference;
@@ -265,7 +242,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       while (customValuesDeclaration?.next != null) {
         customValuesDeclaration = customValuesDeclaration?.next;
       }
-      parent.addProblem(
+      libraryBuilder.addProblem(
           messageEnumContainsValuesDeclaration,
           customValuesDeclaration!.charOffset,
           customValuesDeclaration.fullNameForErrors.length,
@@ -285,7 +262,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         while (customIndexDeclaration?.next != null) {
           customIndexDeclaration = customIndexDeclaration?.next;
         }
-        parent.addProblem(
+        libraryBuilder.addProblem(
             templateEnumContainsRestrictedInstanceDeclaration
                 .withArguments(restrictedInstanceMemberName),
             customIndexDeclaration!.charOffset,
@@ -300,7 +277,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         "values",
         constMask | staticMask | hasInitializerMask,
         /* isTopLevel = */ false,
-        parent,
+        libraryBuilder,
         charOffset,
         charOffset,
         staticFieldNameScheme,
@@ -333,11 +310,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
               /* typeParameters = */ null,
               <FormalParameterBuilder>[
                 new FormalParameterBuilder(
-                    null, 0, intType, "index", parent, charOffset),
+                    null, 0, intType, "index", libraryBuilder, charOffset),
                 new FormalParameterBuilder(
-                    null, 0, stringType, "name", parent, charOffset)
+                    null, 0, stringType, "name", libraryBuilder, charOffset)
               ],
-              parent,
+              libraryBuilder,
               charOffset,
               charOffset,
               charOffset,
@@ -355,11 +332,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
           member.formals!.insert(
               0,
               new FormalParameterBuilder(
-                  null, 0, stringType, "name", parent, charOffset));
+                  null, 0, stringType, "name", libraryBuilder, charOffset));
           member.formals!.insert(
               0,
               new FormalParameterBuilder(
-                  null, 0, intType, "index", parent, charOffset));
+                  null, 0, intType, "index", libraryBuilder, charOffset));
         }
       });
     }
@@ -373,7 +350,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           /* typeVariables = */ null,
           /* formals = */ null,
           ProcedureKind.Method,
-          parent,
+          libraryBuilder,
           charOffset,
           charOffset,
           charOffset,
@@ -425,23 +402,27 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   templateDuplicatedDeclarationSyntheticCause
                       .withArguments(name)
                       .withLocation(
-                          parent.fileUri, charOffset, className.length)
+                          libraryBuilder.fileUri, charOffset, className.length)
                 ]
               : <LocatedMessage>[
                   templateDuplicatedDeclarationCause
                       .withArguments(name)
-                      .withLocation(parent.fileUri, existingOffset, name.length)
+                      .withLocation(
+                          libraryBuilder.fileUri, existingOffset, name.length)
                 ];
-          parent.addProblem(templateDuplicatedDeclaration.withArguments(name),
-              duplicateOffset, name.length, parent.fileUri,
+          libraryBuilder.addProblem(
+              templateDuplicatedDeclaration.withArguments(name),
+              duplicateOffset,
+              name.length,
+              libraryBuilder.fileUri,
               context: context);
           enumConstantInfos[i] = null;
         } else if (name == className) {
-          parent.addProblem(
+          libraryBuilder.addProblem(
               templateEnumConstantSameNameAsEnclosing.withArguments(name),
               enumConstantInfo.charOffset,
               name.length,
-              parent.fileUri);
+              libraryBuilder.fileUri);
         }
         Reference? fieldReference;
         Reference? getterReference;
@@ -460,7 +441,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             name,
             constMask | staticMask | hasInitializerMask,
             /* isTopLevel = */ false,
-            parent,
+            libraryBuilder,
             enumConstantInfo.charOffset,
             enumConstantInfo.charOffset,
             staticFieldNameScheme,
@@ -469,7 +450,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             fieldSetterReference: setterReference);
         fieldBuilder.fieldType = new ImplicitFieldType(
             fieldBuilder, enumConstantInfo.argumentsBeginToken);
-        parent.registerImplicitlyTypedField(fieldBuilder);
+        libraryBuilder.registerImplicitlyTypedField(fieldBuilder);
         members[name] = fieldBuilder..next = existing;
         elementBuilders.add(fieldBuilder);
       }
@@ -496,7 +477,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         objectType,
         stringType,
         selfType,
-        parent,
+        libraryBuilder,
         constructorReferences,
         startCharOffsetComputed,
         charOffset,
@@ -514,12 +495,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     members.forEach(setParent);
     constructorScope.local.forEach(setParent);
-    selfType.bind(enumBuilder);
+    selfType.bind(libraryBuilder, enumBuilder);
 
     if (constructorScope.local.isNotEmpty) {
       for (MemberBuilder constructorBuilder in constructorScope.local.values) {
         if (!constructorBuilder.isFactory && !constructorBuilder.isConst) {
-          parent.addProblem(messageEnumNonConstConstructor,
+          libraryBuilder.addProblem(messageEnumNonConstConstructor,
               constructorBuilder.charOffset, noLength, fileUri);
         }
       }

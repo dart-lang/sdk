@@ -96,6 +96,8 @@ import 'builder/member_builder.dart' show MemberBuilder;
 
 import 'builder/name_iterator.dart' show NameIterator;
 
+import 'builder/named_type_builder.dart' show NamedTypeBuilder;
+
 import 'builder/type_builder.dart' show TypeBuilder;
 
 import 'builder/type_declaration_builder.dart' show TypeDeclarationBuilder;
@@ -1377,21 +1379,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Map<LibraryBuilder, Map<String, Builder>> replacementMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap,
       TypeBuilder? typeBuilder) {
-    TypeDeclarationBuilder? declaration = typeBuilder?.declaration;
-    Builder? parent = declaration?.parent;
-    if (parent == null) return;
-    Map<String, Builder>? childReplacementMap;
-    if (declaration!.isSetter) {
-      childReplacementMap = replacementSettersMap[parent];
-    } else {
-      childReplacementMap = replacementMap[parent];
-    }
+    if (typeBuilder is NamedTypeBuilder) {
+      TypeDeclarationBuilder? declaration = typeBuilder.declaration;
+      Builder? parent = declaration?.parent;
+      if (parent == null) return;
+      Map<String, Builder>? childReplacementMap;
+      if (declaration!.isSetter) {
+        childReplacementMap = replacementSettersMap[parent];
+      } else {
+        childReplacementMap = replacementMap[parent];
+      }
 
-    if (childReplacementMap == null) return;
-    Builder replacement = childReplacementMap[declaration.name]!;
-    // ignore: unnecessary_null_comparison
-    assert(replacement != null, "Didn't find the replacement for $typeBuilder");
-    typeBuilder!.bind(replacement as TypeDeclarationBuilder);
+      if (childReplacementMap == null) return;
+      Builder replacement = childReplacementMap[declaration.name]!;
+      assert(
+          // ignore: unnecessary_null_comparison
+          replacement != null,
+          "Didn't find the replacement for $typeBuilder");
+      typeBuilder.bind(
+          parent as LibraryBuilder, replacement as TypeDeclarationBuilder);
+    }
   }
 
   /// Allows for updating the list of needed libraries.

@@ -11,8 +11,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         NamedType,
         Supertype,
-        TypeParameter,
-        TypedefType;
+        TypeParameter;
 
 import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 
@@ -35,6 +34,8 @@ class FunctionTypeBuilder extends TypeBuilder {
   final Uri? fileUri;
   @override
   final int charOffset;
+
+  FunctionType? _type;
 
   FunctionTypeBuilder(this.returnType, this.typeVariables, this.formals,
       this.nullabilityBuilder, this.fileUri, this.charOffset);
@@ -83,7 +84,11 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  FunctionType build(LibraryBuilder library, {TypedefType? origin}) {
+  FunctionType build(LibraryBuilder library) {
+    return _type ??= _buildInternal(library);
+  }
+
+  FunctionType _buildInternal(LibraryBuilder library) {
     DartType builtReturnType =
         returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
@@ -111,29 +116,26 @@ class FunctionTypeBuilder extends TypeBuilder {
       for (TypeVariableBuilder t in typeVariables!) {
         typeParameters.add(t.parameter);
         // Build the bound to detect cycles in typedefs.
-        t.bound?.build(library, origin: origin);
+        t.bound?.build(library);
       }
     }
     return new FunctionType(positionalParameters, builtReturnType,
         nullabilityBuilder.build(library),
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
-        requiredParameterCount: requiredParameterCount,
-        typedefType: origin);
+        requiredParameterCount: requiredParameterCount);
   }
 
   @override
-  Supertype? buildSupertype(
-      LibraryBuilder library, int charOffset, Uri fileUri) {
+  Supertype? buildSupertype(LibraryBuilder library) {
     library.addProblem(
         messageSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }
 
   @override
-  Supertype? buildMixedInType(
-      LibraryBuilder library, int charOffset, Uri fileUri) {
-    return buildSupertype(library, charOffset, fileUri);
+  Supertype? buildMixedInType(LibraryBuilder library) {
+    return buildSupertype(library);
   }
 
   @override
@@ -143,8 +145,9 @@ class FunctionTypeBuilder extends TypeBuilder {
       TypeParameterScopeBuilder contextDeclaration) {
     List<TypeVariableBuilder>? clonedTypeVariables;
     if (typeVariables != null) {
-      clonedTypeVariables =
-          contextLibrary.copyTypeVariables(typeVariables!, contextDeclaration);
+      clonedTypeVariables = contextLibrary.copyTypeVariables(
+          typeVariables!, contextDeclaration,
+          kind: TypeVariableKind.function);
     }
     List<FormalParameterBuilder>? clonedFormals;
     if (formals != null) {

@@ -11203,8 +11203,7 @@ class FunctionType extends DartType {
   @override
   final Nullability declaredNullability;
 
-  /// The [Typedef] this function type is created for.
-  final TypedefType? typedefType;
+  TypedefType? _typedefType;
 
   final DartType returnType;
 
@@ -11216,14 +11215,26 @@ class FunctionType extends DartType {
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int? requiredParameterCount,
-      this.typedefType})
+      TypedefType? typedefType})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
-            requiredParameterCount ?? positionalParameters.length;
+            requiredParameterCount ?? positionalParameters.length,
+        _typedefType = typedefType;
 
-  Reference? get typedefReference => typedefType?.typedefReference;
+  Reference? get typedefReference => _typedefType?.typedefReference;
 
   Typedef? get typedef => typedefReference?.asTypedef;
+
+  /// The [Typedef] this function type is created for, if any.
+  TypedefType? get typedefType => _typedefType;
+
+  void set typedefType(TypedefType? value) {
+    assert(
+        _typedefType == null,
+        "Cannot change an already set FunctionType.typedefType from "
+        "$_typedefType to $value.");
+    _typedefType = value;
+  }
 
   @override
   Nullability get nullability => declaredNullability;

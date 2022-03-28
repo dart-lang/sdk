@@ -31,7 +31,27 @@ import '../loader.dart' show Loader;
 class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   final Loader loader;
 
-  const TypeBuilderComputer(this.loader);
+  late final DynamicTypeDeclarationBuilder dynamicDeclaration =
+      new DynamicTypeDeclarationBuilder(
+          const DynamicType(), loader.coreLibrary, -1);
+
+  late final VoidTypeDeclarationBuilder voidDeclaration =
+      new VoidTypeDeclarationBuilder(const VoidType(), loader.coreLibrary, -1);
+
+  late final NeverTypeDeclarationBuilder neverDeclaration =
+      new NeverTypeDeclarationBuilder(
+          const NeverType.nonNullable(), loader.coreLibrary, -1);
+
+  late final NullTypeDeclarationBuilder nullDeclaration =
+      new NullTypeDeclarationBuilder(const NullType(), loader.coreLibrary, -1);
+
+  late final FutureOrTypeDeclarationBuilder futureOrDeclaration =
+      new FutureOrTypeDeclarationBuilder(
+          new FutureOrType(const DynamicType(), Nullability.nonNullable),
+          loader.coreLibrary,
+          -1);
+
+  TypeBuilderComputer(this.loader);
 
   @override
   TypeBuilder defaultDartType(DartType node) {
@@ -47,41 +67,27 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   @override
   TypeBuilder visitDynamicType(DynamicType node) {
     // 'dynamic' is always nullable.
-    return new NamedTypeBuilder("dynamic", const NullabilityBuilder.nullable(),
-        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
-      ..bind(new DynamicTypeDeclarationBuilder(
-          const DynamicType(), loader.coreLibrary, -1));
+    return new NamedTypeBuilder.forDartType(
+        node, dynamicDeclaration, const NullabilityBuilder.inherent());
   }
 
   @override
   TypeBuilder visitVoidType(VoidType node) {
     // 'void' is always nullable.
-    return new NamedTypeBuilder("void", const NullabilityBuilder.nullable(),
-        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
-      ..bind(new VoidTypeDeclarationBuilder(
-          const VoidType(), loader.coreLibrary, -1));
+    return new NamedTypeBuilder.forDartType(
+        node, voidDeclaration, const NullabilityBuilder.inherent());
   }
 
   @override
   TypeBuilder visitNeverType(NeverType node) {
-    return new NamedTypeBuilder(
-        "Never",
-        new NullabilityBuilder.fromNullability(node.nullability),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
-      ..bind(new NeverTypeDeclarationBuilder(node, loader.coreLibrary, -1));
+    return new NamedTypeBuilder.forDartType(node, neverDeclaration,
+        new NullabilityBuilder.fromNullability(node.nullability));
   }
 
   @override
   TypeBuilder visitNullType(NullType node) {
-    return new NamedTypeBuilder("Null", new NullabilityBuilder.nullable(),
-        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
-      ..bind(new NullTypeDeclarationBuilder(node, loader.coreLibrary, -1));
+    return new NamedTypeBuilder.forDartType(
+        node, nullDeclaration, const NullabilityBuilder.inherent());
   }
 
   @override
@@ -95,14 +101,9 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
           kernelArguments.length, (int i) => kernelArguments[i].accept(this),
           growable: false);
     }
-    return new NamedTypeBuilder(
-        cls.name,
-        new NullabilityBuilder.fromNullability(node.nullability),
-        arguments,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
-      ..bind(cls);
+    return new NamedTypeBuilder.forDartType(
+        node, cls, new NullabilityBuilder.fromNullability(node.nullability),
+        arguments: arguments);
   }
 
   @override
@@ -113,14 +114,9 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   @override
   TypeBuilder visitFutureOrType(FutureOrType node) {
     TypeBuilder argument = node.typeArgument.accept(this);
-    return new NamedTypeBuilder(
-        "FutureOr",
+    return new NamedTypeBuilder.forDartType(node, futureOrDeclaration,
         new NullabilityBuilder.fromNullability(node.nullability),
-        [argument],
-        /* fileUri = */ null,
-        /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
-      ..bind(new FutureOrTypeDeclarationBuilder(node, loader.coreLibrary, -1));
+        arguments: [argument]);
   }
 
   @override
@@ -183,14 +179,11 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     }
     LibraryBuilder library =
         loader.lookupLibraryBuilder(kernelLibrary!.importUri)!;
-    return new NamedTypeBuilder(
-        parameter.name!,
+    return new NamedTypeBuilder.fromTypeDeclarationBuilder(
+        new TypeVariableBuilder.fromKernel(parameter, library),
         new NullabilityBuilder.fromNullability(node.nullability),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed)
-      ..bind(new TypeVariableBuilder.fromKernel(parameter, library));
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed,
+        type: node);
   }
 
   @override

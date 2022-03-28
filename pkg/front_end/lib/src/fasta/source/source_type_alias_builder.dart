@@ -157,8 +157,17 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     TypeBuilder? type = this.type;
     // ignore: unnecessary_null_comparison
     if (type != null) {
-      DartType builtType = type.build(libraryBuilder,
-          origin: thisTypedefType(typedef, libraryBuilder));
+      DartType builtType = type.build(libraryBuilder);
+      if (builtType is FunctionType) {
+        // Set the `typedefType` if it hasn't already been set. It can already
+        // be set if this type alias is an alias of another typedef, in which
+        // we use the existing value. For instance
+        //
+        //    typedef void F(); // typedefType will be set to `F`.
+        //    typedef G = F; // The typedefType has already been set to `F`.
+        //
+        builtType.typedefType ??= thisTypedefType(typedef, libraryBuilder);
+      }
       // ignore: unnecessary_null_comparison
       if (builtType != null) {
         if (typeVariables != null) {
