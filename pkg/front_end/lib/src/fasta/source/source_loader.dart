@@ -1438,9 +1438,6 @@ severity: $severity
     /// [ClassBuilder]s for the macro classes.
     Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
-    /// Libraries containing precompiled macro classes.
-    Set<Uri> precompiledMacroLibraries = {};
-
     Map<Uri, Uri> precompiledMacroUris =
         target.context.options.precompiledMacroUris;
 
@@ -1457,8 +1454,6 @@ severity: $severity
                       .macroDeclarations[libraryUri] ??= [])
                   .add(builder.name);
             }
-          } else {
-            precompiledMacroLibraries.add(libraryUri);
           }
         }
       }
@@ -1519,9 +1514,11 @@ severity: $severity
     }
 
     for (LibraryBuilder builder in _builders.values) {
-      if (builder.loader != this) {
+      if (builder.importUri.isScheme("dart") && !builder.isSynthetic) {
+        // Assume the platform is precompiled.
         addPrecompiledLibrary(builder.importUri);
-      } else if (precompiledMacroLibraries.contains(builder.importUri)) {
+      } else if (precompiledMacroUris.containsKey(builder.importUri)) {
+        // The precompiled macros given are also precompiled.
         assert(
             !macroLibraries.containsKey(builder.importUri),
             "Macro library ${builder.importUri} is only partially "
