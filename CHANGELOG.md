@@ -1,3 +1,10 @@
+# 1.22.0
+
+- fixed false positives for `unnecessary_getters_setters`
+  and `prefer_final_fields`with enhanced enums
+- updated to analyzer 3.4.0 APIs
+- fixed null-safe variance in `invariant_booleans`
+
 # 1.21.2
 
 - several `use_super_parameters` false positive fixes
