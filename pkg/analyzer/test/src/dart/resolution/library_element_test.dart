@@ -191,6 +191,18 @@ int foo = 0;
     );
   }
 
+  test_lookup_extension_unnamed() async {
+    await assertNoErrorsInCode(r'''
+extension on int {}
+''');
+
+    var scope = result.libraryElement.scope;
+
+    assertElementNull(
+      scope.lookup('').getter,
+    );
+  }
+
   test_lookup_implicitCoreImport() async {
     await assertNoErrorsInCode('');
 

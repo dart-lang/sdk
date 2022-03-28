@@ -402,6 +402,19 @@ part 'test.dart';
 ''');
   }
 
+  test_issue_48688() async {
+    // During parsing we recover as `<synthetic>.bar.baz()`.
+    // So, we have a synthetic empty identifier.
+    // There was a bug - we considered it a reference to the unnamed extension.
+    await _assertCanBeAnalyzed(r'''
+void f() {
+  final foo.bar.baz();
+}
+
+extension on int {}
+''');
+  }
+
   test_keywordInConstructorInitializer_assert() async {
     await _assertCanBeAnalyzed('''
 class C {
