@@ -268,12 +268,8 @@ TypeBuilder? substituteRange(
       assert(false, "Unexpected named type builder declaration: $declaration.");
     }
     if (arguments != null) {
-      NamedTypeBuilder newTypeBuilder = new NamedTypeBuilder(type.name,
-          type.nullabilityBuilder, arguments, type.fileUri, type.charOffset,
-          instanceTypeVariableAccess: type.instanceTypeVariableAccess);
-      if (declaration != null) {
-        newTypeBuilder.bind(declaration);
-      } else {
+      NamedTypeBuilder newTypeBuilder = type.withArguments(arguments);
+      if (declaration == null) {
         unboundTypes.add(newTypeBuilder);
       }
       return newTypeBuilder;
@@ -305,7 +301,7 @@ TypeBuilder? substituteRange(
           TypeVariableBuilder newTypeVariableBuilder = variables[i] =
               new TypeVariableBuilder(variable.name, variable.parent,
                   variable.charOffset, variable.fileUri,
-                  bound: bound);
+                  bound: bound, kind: TypeVariableKind.function);
           unboundTypeVariables.add(newTypeVariableBuilder);
           if (functionTypeUpperSubstitution == null) {
             functionTypeUpperSubstitution = {}..addAll(upperSubstitution);

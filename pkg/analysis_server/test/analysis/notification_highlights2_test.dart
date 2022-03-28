@@ -1041,6 +1041,19 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
   }
 
+  Future<void> test_KEYWORD_const_constructor() async {
+    addTestFile('''
+class A {
+  const A(); // 1
+}
+const a = const A(); // 2
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const A(); // 1');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const a =');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const A(); // 2');
+  }
+
   Future<void> test_KEYWORD_const_list() async {
     addTestFile('''
 var v = const [];
@@ -1649,8 +1662,8 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
     return length;
   }
 
-  Future prepareHighlights() {
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+  Future<void> prepareHighlights() async {
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     return _resultsAvailable.future;
   }
 

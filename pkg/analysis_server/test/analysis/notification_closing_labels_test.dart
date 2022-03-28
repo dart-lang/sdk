@@ -60,8 +60,8 @@ Widget build(BuildContext context) {
     await createProject();
   }
 
-  void subscribeForLabels() {
-    addAnalysisSubscription(AnalysisService.CLOSING_LABELS, testFile);
+  Future<void> subscribeForLabels() async {
+    await addAnalysisSubscription(AnalysisService.CLOSING_LABELS, testFile);
   }
 
   Future<void> test_afterAnalysis() async {
@@ -69,7 +69,7 @@ Widget build(BuildContext context) {
     await waitForTasksFinished();
     expect(lastLabels, isNull);
 
-    await waitForLabels(() => subscribeForLabels());
+    await waitForLabels(() async => await subscribeForLabels());
 
     expect(lastLabels, expectedResults);
   }
@@ -84,18 +84,18 @@ Widget build(BuildContext context) {
     expect(lastLabels, isNull);
 
     // With no content, there should be zero labels.
-    await waitForLabels(() => subscribeForLabels());
+    await waitForLabels(() async => await subscribeForLabels());
     expect(lastLabels, hasLength(0));
 
     // With sample code there will be labels.
-    await waitForLabels(() => modifyTestFile(sampleCode));
+    await waitForLabels(() async => modifyTestFile(sampleCode));
 
     expect(lastLabels, expectedResults);
   }
 
-  Future waitForLabels(void Function() action) {
+  Future<void> waitForLabels(Future<void> Function() action) async {
     _labelsReceived = Completer();
-    action();
+    await action();
     return _labelsReceived.future;
   }
 }

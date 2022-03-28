@@ -369,6 +369,54 @@ extension on DeclarationContext {
         return InstanceTypeVariableAccessState.Invalid;
     }
   }
+
+  /// Returns the kind of type variable created in the current context.
+  TypeVariableKind get typeVariableKind {
+    switch (this) {
+      case DeclarationContext.Class:
+      case DeclarationContext.ClassOrMixinOrNamedMixinApplication:
+      case DeclarationContext.Mixin:
+      case DeclarationContext.NamedMixinApplication:
+        return TypeVariableKind.classMixinOrEnum;
+      case DeclarationContext.Extension:
+      case DeclarationContext.ExtensionBody:
+        return TypeVariableKind.extension;
+      case DeclarationContext.ClassBody:
+      case DeclarationContext.ClassConstructor:
+      case DeclarationContext.ClassFactory:
+      case DeclarationContext.ClassInstanceField:
+      case DeclarationContext.ClassInstanceMethod:
+      case DeclarationContext.ClassStaticField:
+      case DeclarationContext.ClassStaticMethod:
+      case DeclarationContext.Enum:
+      case DeclarationContext.EnumBody:
+      case DeclarationContext.EnumConstructor:
+      case DeclarationContext.EnumFactory:
+      case DeclarationContext.EnumInstanceField:
+      case DeclarationContext.EnumInstanceMethod:
+      case DeclarationContext.EnumStaticField:
+      case DeclarationContext.EnumStaticMethod:
+      case DeclarationContext.ExtensionConstructor:
+      case DeclarationContext.ExtensionExternalInstanceField:
+      case DeclarationContext.ExtensionFactory:
+      case DeclarationContext.ExtensionInstanceField:
+      case DeclarationContext.ExtensionInstanceMethod:
+      case DeclarationContext.ExtensionStaticField:
+      case DeclarationContext.ExtensionStaticMethod:
+      case DeclarationContext.Library:
+      case DeclarationContext.MixinBody:
+      case DeclarationContext.MixinConstructor:
+      case DeclarationContext.MixinFactory:
+      case DeclarationContext.MixinInstanceField:
+      case DeclarationContext.MixinInstanceMethod:
+      case DeclarationContext.MixinStaticField:
+      case DeclarationContext.MixinStaticMethod:
+      case DeclarationContext.TopLevelField:
+      case DeclarationContext.TopLevelMethod:
+      case DeclarationContext.Typedef:
+        return TypeVariableKind.function;
+    }
+  }
 }
 
 class OutlineBuilder extends StackListenerImpl {
@@ -1842,7 +1890,7 @@ class OutlineBuilder extends StackListenerImpl {
           // names are used to create the scope.
           List<TypeVariableBuilder> synthesizedTypeVariables = libraryBuilder
               .copyTypeVariables(extension.typeVariables!, declarationBuilder,
-                  isExtensionTypeParameter: true);
+                  kind: TypeVariableKind.extensionSynthesized);
           substitution = {};
           for (int i = 0; i < synthesizedTypeVariables.length; i++) {
             substitution[extension.typeVariables![i]] =
@@ -2904,7 +2952,8 @@ class OutlineBuilder extends StackListenerImpl {
       push(name);
     } else {
       push(libraryBuilder.addTypeVariable(
-          metadata, name as String, null, charOffset, uri));
+          metadata, name as String, null, charOffset, uri,
+          kind: declarationContext.typeVariableKind));
     }
   }
 
@@ -2994,18 +3043,18 @@ class OutlineBuilder extends StackListenerImpl {
                     builder.name, via.join("', '"));
             addProblem(message, builder.charOffset, builder.name.length);
             builder.bound = new NamedTypeBuilder(
-                builder.name,
-                const NullabilityBuilder.omitted(),
-                null,
-                uri,
-                builder.charOffset,
+                builder.name, const NullabilityBuilder.omitted(),
+                fileUri: uri,
+                charOffset: builder.charOffset,
                 instanceTypeVariableAccess:
                     //InstanceTypeVariableAccessState.Unexpected
                     declarationContext.instanceTypeVariableAccessState)
-              ..bind(new InvalidTypeDeclarationBuilder(
-                  builder.name,
-                  message.withLocation(
-                      uri, builder.charOffset, builder.name.length)));
+              ..bind(
+                  libraryBuilder,
+                  new InvalidTypeDeclarationBuilder(
+                      builder.name,
+                      message.withLocation(
+                          uri, builder.charOffset, builder.name.length)));
           }
         }
       }

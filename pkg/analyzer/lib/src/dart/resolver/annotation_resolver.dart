@@ -105,21 +105,21 @@ class AnnotationResolver {
     constructorElement = _resolver.toLegacyElement(constructorElement);
     constructorName?.staticElement = constructorElement;
     node.element = constructorElement;
-    var annotationInferrer =
-        AnnotationInferrer(constructorName: constructorName);
 
     if (constructorElement == null) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ANNOTATION,
         node,
       );
-      annotationInferrer.resolveInvocation(
-          resolver: _resolver,
-          node: node,
-          argumentList: argumentList,
-          rawType: null,
-          contextType: null,
-          whyNotPromotedList: whyNotPromotedList);
+      AnnotationInferrer(
+              resolver: _resolver,
+              node: node,
+              argumentList: argumentList,
+              rawType: null,
+              contextType: null,
+              whyNotPromotedList: whyNotPromotedList,
+              constructorName: constructorName)
+          .resolveInvocation();
       return;
     }
 
@@ -129,13 +129,15 @@ class AnnotationResolver {
     );
     var constructorRawType = elementToInfer.asType;
 
-    annotationInferrer.resolveInvocation(
-        resolver: _resolver,
-        node: node,
-        argumentList: argumentList,
-        rawType: constructorRawType,
-        contextType: null,
-        whyNotPromotedList: whyNotPromotedList);
+    AnnotationInferrer(
+            resolver: _resolver,
+            node: node,
+            argumentList: argumentList,
+            rawType: constructorRawType,
+            contextType: null,
+            whyNotPromotedList: whyNotPromotedList,
+            constructorName: constructorName)
+        .resolveInvocation();
   }
 
   void _extensionGetter(
@@ -401,13 +403,15 @@ class AnnotationResolver {
       AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList) {
     var arguments = node.arguments;
     if (arguments != null) {
-      AnnotationInferrer(constructorName: null).resolveInvocation(
-          resolver: _resolver,
-          node: node,
-          argumentList: arguments,
-          rawType: null,
-          contextType: null,
-          whyNotPromotedList: whyNotPromotedList);
+      AnnotationInferrer(
+              resolver: _resolver,
+              node: node,
+              argumentList: arguments,
+              rawType: null,
+              contextType: null,
+              whyNotPromotedList: whyNotPromotedList,
+              constructorName: null)
+          .resolveInvocation();
     }
   }
 }

@@ -8,7 +8,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../domain_completion_test.dart';
+import '../analysis_server_base.dart';
 import '../services/completion/dart/completion_check.dart';
 import '../services/completion/dart/completion_contributor_util.dart';
 import 'impl/completion_driver.dart';

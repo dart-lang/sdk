@@ -28,8 +28,8 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   final Completer<void> _outlineReceived = Completer();
   Completer? _highlightsReceived = Completer();
 
-  Future prepareOutline() {
-    addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
+  Future<void> prepareOutline() async {
+    await addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
     return _outlineReceived.future;
   }
 
@@ -125,7 +125,7 @@ class B {}
     // Make the file a priority one and subscribe for other notification.
     // This will pre-cache the analysis result for the file.
     setPriorityFiles([testFile]);
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     await _highlightsReceived!.future;
 
     // Now subscribe for outline notification, we must get it even though

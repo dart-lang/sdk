@@ -102,56 +102,32 @@ class KernelTarget extends TargetImplementation {
 
   // 'dynamic' is always nullable.
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
-  final TypeBuilder dynamicType = new NamedTypeBuilder(
-      "dynamic",
-      const NullabilityBuilder.inherent(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+  final NamedTypeBuilder dynamicType = new NamedTypeBuilder(
+      "dynamic", const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder objectType = new NamedTypeBuilder(
-      "Object",
-      const NullabilityBuilder.omitted(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+      "Object", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // Null is always nullable.
   // TODO(johnniwinther): This could (maybe) use a FixedTypeBuilder when we
   //  have NullType?
-  final TypeBuilder nullType = new NamedTypeBuilder(
-      "Null",
-      const NullabilityBuilder.inherent(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+  final NamedTypeBuilder nullType = new NamedTypeBuilder(
+      "Null", const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
-  final TypeBuilder bottomType = new NamedTypeBuilder(
-      "Never",
-      const NullabilityBuilder.omitted(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+  final NamedTypeBuilder bottomType = new NamedTypeBuilder(
+      "Never", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder enumType = new NamedTypeBuilder(
-      "Enum",
-      const NullabilityBuilder.omitted(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+      "Enum", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilder(
-      "_Enum",
-      const NullabilityBuilder.omitted(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+      "_Enum", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
@@ -385,14 +361,9 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertypeBuilder = new NamedTypeBuilder(
-        "Object",
-        const NullabilityBuilder.omitted(),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
-      ..bind(objectClassBuilder);
+    builder.supertypeBuilder = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+        objectClassBuilder, const NullabilityBuilder.omitted(),
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     builder.interfaceBuilders = null;
     builder.mixedInTypeBuilder = null;
   }
@@ -1208,20 +1179,29 @@ class KernelTarget extends TargetImplementation {
   }
 
   void setupTopAndBottomTypes() {
-    objectType.bind(loader.coreLibrary
-        .lookupLocalMember("Object", required: true) as TypeDeclarationBuilder);
+    objectType.bind(
+        loader.coreLibrary,
+        loader.coreLibrary.lookupLocalMember("Object", required: true)
+            as TypeDeclarationBuilder);
     dynamicType.bind(
+        loader.coreLibrary,
         loader.coreLibrary.lookupLocalMember("dynamic", required: true)
             as TypeDeclarationBuilder);
     ClassBuilder nullClassBuilder = loader.coreLibrary
         .lookupLocalMember("Null", required: true) as ClassBuilder;
-    nullType.bind(nullClassBuilder..isNullClass = true);
-    bottomType.bind(loader.coreLibrary
-        .lookupLocalMember("Never", required: true) as TypeDeclarationBuilder);
-    enumType.bind(loader.coreLibrary.lookupLocalMember("Enum", required: true)
-        as TypeDeclarationBuilder);
-    underscoreEnumType.bind(loader.coreLibrary
-        .lookupLocalMember("_Enum", required: true) as TypeDeclarationBuilder);
+    nullType.bind(loader.coreLibrary, nullClassBuilder..isNullClass = true);
+    bottomType.bind(
+        loader.coreLibrary,
+        loader.coreLibrary.lookupLocalMember("Never", required: true)
+            as TypeDeclarationBuilder);
+    enumType.bind(
+        loader.coreLibrary,
+        loader.coreLibrary.lookupLocalMember("Enum", required: true)
+            as TypeDeclarationBuilder);
+    underscoreEnumType.bind(
+        loader.coreLibrary,
+        loader.coreLibrary.lookupLocalMember("_Enum", required: true)
+            as TypeDeclarationBuilder);
   }
 
   void computeCoreTypes() {

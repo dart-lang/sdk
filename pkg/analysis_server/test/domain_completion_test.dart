@@ -4,21 +4,11 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
-import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_utilities/check/check.dart';
@@ -26,6 +16,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'analysis_server_base.dart';
 import 'domain_completion_util.dart';
 import 'mocks.dart';
 import 'services/completion/dart/completion_check.dart';
@@ -38,52 +29,6 @@ void main() {
     defineReflectiveTests(CompletionDomainHandlerGetSuggestions2Test);
     defineReflectiveTests(CompletionDomainHandlerGetSuggestionsTest);
   });
-}
-
-/// TODO(scheglov) this is duplicate
-class AnalysisOptionsFileConfig {
-  final List<String> experiments;
-  final bool implicitCasts;
-  final bool implicitDynamic;
-  final List<String> lints;
-  final bool strictCasts;
-  final bool strictInference;
-  final bool strictRawTypes;
-
-  AnalysisOptionsFileConfig({
-    this.experiments = const [],
-    this.implicitCasts = true,
-    this.implicitDynamic = true,
-    this.lints = const [],
-    this.strictCasts = false,
-    this.strictInference = false,
-    this.strictRawTypes = false,
-  });
-
-  String toContent() {
-    var buffer = StringBuffer();
-
-    buffer.writeln('analyzer:');
-    buffer.writeln('  enable-experiment:');
-    for (var experiment in experiments) {
-      buffer.writeln('    - $experiment');
-    }
-    buffer.writeln('  language:');
-    buffer.writeln('    strict-casts: $strictCasts');
-    buffer.writeln('    strict-inference: $strictInference');
-    buffer.writeln('    strict-raw-types: $strictRawTypes');
-    buffer.writeln('  strong-mode:');
-    buffer.writeln('    implicit-casts: $implicitCasts');
-    buffer.writeln('    implicit-dynamic: $implicitDynamic');
-
-    buffer.writeln('linter:');
-    buffer.writeln('  rules:');
-    for (var lint in lints) {
-      buffer.writeln('    - $lint');
-    }
-
-    return buffer.toString();
-  }
 }
 
 @reflectiveTest
@@ -210,6 +155,11 @@ void f() {
 
     var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_FILE_PATH_FORMAT);
+  }
+
+  Future<void> _configureWithWorkspaceRoot() async {
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
   }
 
   Future<CompletionGetSuggestionDetails2Result> _getCodeDetails({
@@ -1961,6 +1911,11 @@ void f() {
     ]);
   }
 
+  Future<void> _configureWithWorkspaceRoot() async {
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+  }
+
   Future<CompletionResponseForTesting> _getCodeSuggestions({
     required String path,
     required String content,
@@ -2937,156 +2892,6 @@ class B extends A {m() {^}}
       assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'test');
       assertNoResult('HtmlElement');
     });
-  }
-}
-
-class PubPackageAnalysisServerTest with ResourceProviderMixin {
-  late final MockServerChannel serverChannel;
-  late final AnalysisServer server;
-
-  AnalysisDomainHandler get analysisDomain {
-    return server.handlers.whereType<AnalysisDomainHandler>().single;
-  }
-
-  CompletionDomainHandler get completionDomain {
-    return server.handlers.whereType<CompletionDomainHandler>().single;
-  }
-
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-        EnableString.named_arguments_anywhere,
-        EnableString.super_parameters,
-      ];
-
-  String get testFileContent => getFile(testFilePath).readAsStringSync();
-
-  String get testFilePath => '$testPackageLibPath/test.dart';
-
-  String get testFilePathPlatform => convertPath(testFilePath);
-
-  String get testPackageLibPath => '$testPackageRootPath/lib';
-
-  Folder get testPackageRoot => getFolder(testPackageRootPath);
-
-  String get testPackageRootPath => '$workspaceRootPath/test';
-
-  String get testPackageTestPath => '$testPackageRootPath/test';
-
-  String get workspaceRootPath => '/home';
-
-  void deleteTestPackageAnalysisOptionsFile() {
-    deleteAnalysisOptionsYamlFile(testPackageRootPath);
-  }
-
-  void deleteTestPackageConfigJsonFile() {
-    deletePackageConfigJsonFile(testPackageRootPath);
-  }
-
-  Future<Response> handleRequest(Request request) async {
-    return await serverChannel.sendRequest(request);
-  }
-
-  /// Validates that the given [request] is handled successfully.
-  Future<Response> handleSuccessfulRequest(Request request) async {
-    var response = await handleRequest(request);
-    expect(response, isResponseSuccess(request.id));
-    return response;
-  }
-
-  void processNotification(Notification notification) {}
-
-  Future<void> setRoots({
-    required List<String> included,
-    required List<String> excluded,
-  }) async {
-    var includedConverted = included.map(convertPath).toList();
-    var excludedConverted = excluded.map(convertPath).toList();
-    await handleSuccessfulRequest(
-      AnalysisSetAnalysisRootsParams(
-        includedConverted,
-        excludedConverted,
-        packageRoots: {},
-      ).toRequest('0'),
-    );
-  }
-
-  @mustCallSuper
-  void setUp() {
-    serverChannel = MockServerChannel();
-
-    var sdkRoot = newFolder('/sdk');
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
-
-    writeTestPackageConfig();
-
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-      ),
-    );
-
-    serverChannel.notifications.listen(processNotification);
-
-    server = AnalysisServer(
-      serverChannel,
-      resourceProvider,
-      AnalysisServerOptions(),
-      DartSdkManager(sdkRoot.path),
-      CrashReportingAttachmentsBuilder.empty,
-      InstrumentationService.NULL_SERVICE,
-    );
-
-    server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
-    completionDomain.budgetDuration = const Duration(seconds: 30);
-  }
-
-  Future<void> tearDown() async {
-    await server.dispose();
-  }
-
-  void writePackageConfig(Folder root, PackageConfigFileBuilder config) {
-    newPackageConfigJsonFile(
-      root.path,
-      config.toContent(toUriStr: toUriStr),
-    );
-  }
-
-  void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile2(
-      testPackageRootPath,
-      config.toContent(),
-    );
-  }
-
-  void writeTestPackageConfig({
-    PackageConfigFileBuilder? config,
-    String? languageVersion,
-  }) {
-    if (config == null) {
-      config = PackageConfigFileBuilder();
-    } else {
-      config = config.copy();
-    }
-
-    config.add(
-      name: 'test',
-      rootPath: testPackageRootPath,
-      languageVersion: languageVersion,
-    );
-
-    writePackageConfig(testPackageRoot, config);
-  }
-
-  void writeTestPackagePubspecYamlFile(String content) {
-    newPubspecYamlFile(testPackageRootPath, content);
-  }
-
-  Future<void> _configureWithWorkspaceRoot() async {
-    await setRoots(included: [workspaceRootPath], excluded: []);
-    await server.onAnalysisComplete;
   }
 }
 

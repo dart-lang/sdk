@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:compiler/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/inferrer/types.dart';
@@ -25,6 +26,14 @@ const List<String> dumpInfoExceptions = [
   '"compilationDuration":',
   '"toJsonDuration":'
 ];
+
+void generateJavaScriptCode(
+    Compiler compiler, GlobalTypeInferenceResults globalTypeInferenceResults) {
+  final codegenInputs = compiler.initializeCodegen(globalTypeInferenceResults);
+  final codegenResults = OnDemandCodegenResults(globalTypeInferenceResults,
+      codegenInputs, compiler.backendStrategy.functionCompiler);
+  compiler.runCodegenEnqueuer(codegenResults);
+}
 
 void finishCompileAndCompare(
     Map<OutputType, Map<String, String>> expectedOutput,
@@ -47,7 +56,7 @@ void finishCompileAndCompare(
     GlobalTypeInferenceResults newGlobalInferenceResults =
         cloneInferenceResults(
             indices, compiler, globalInferenceResults, strategy);
-    compiler.generateJavaScriptCode(newGlobalInferenceResults);
+    generateJavaScriptCode(compiler, newGlobalInferenceResults);
   }
   var actualOutput = actualOutputCollector.clear();
   Expect.setEquals(
@@ -120,7 +129,7 @@ runTest(
       outputProvider: collector2,
       beforeRun: (Compiler compiler) {
         compiler.forceSerializationForTesting = true;
-        compiler.stopAfterClosedWorld = true;
+        compiler.stopAfterClosedWorldForTesting = true;
       });
   Expect.isTrue(result2.isSuccess);
 
@@ -165,7 +174,7 @@ runTest(
       outputProvider: collector3b,
       beforeRun: (Compiler compiler) {
         compiler.forceSerializationForTesting = true;
-        compiler.stopAfterTypeInference = true;
+        compiler.stopAfterGlobalTypeInferenceForTesting = true;
       });
   Expect.isTrue(result3b.isSuccess);
 

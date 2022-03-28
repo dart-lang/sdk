@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/handler/legacy/edit_bulk_fixes.dart';
+import 'package:analysis_server/src/handler/legacy/edit_format_if_enabled.dart';
 import 'package:analysis_server/src/handler/legacy/edit_get_assists.dart';
 import 'package:analysis_server/src/handler/legacy/edit_get_fixes.dart';
 import 'package:analysis_server/src/handler/legacy/edit_get_postfix_completion.dart';
@@ -119,6 +120,9 @@ class EditDomainHandler extends AbstractRequestHandler {
       var requestName = request.method;
       if (requestName == EDIT_REQUEST_FORMAT) {
         return format(request);
+      } else if (requestName == EDIT_REQUEST_FORMAT_IF_ENABLED) {
+        EditFormatIfEnabledHandler(server, request, cancellationToken).handle();
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_ASSISTS) {
         EditGetAssistsHandler(server, request, cancellationToken).handle();
         return Response.DELAYED_RESPONSE;

@@ -2382,7 +2382,7 @@ void Assembler::PushNativeCalleeSavedRegisters() {
 
 void Assembler::PopNativeCalleeSavedRegisters() {
   // Restore the bottom 64-bits of callee-saved V registers.
-  bool pop_single = (kAbiPreservedCpuRegCount & 1) == 1;
+  bool pop_single = (kAbiPreservedFpuRegCount & 1) == 1;
   VRegister vprev = kNoVRegister;
   for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
     const VRegister r = static_cast<VRegister>(i);

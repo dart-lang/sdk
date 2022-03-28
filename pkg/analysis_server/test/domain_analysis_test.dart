@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_abstract.dart';
-import 'domain_completion_test.dart';
+import 'analysis_server_base.dart';
 import 'mocks.dart';
 
 void main() {
@@ -1433,7 +1433,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     await waitForTasksFinished();
     expect(filesHighlights[testFile], isNull);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[testFile], isNotEmpty);
@@ -1447,7 +1447,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     await waitForTasksFinished();
     expect(filesHighlights[testFile], isNull);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[file], isEmpty);
@@ -1476,7 +1476,7 @@ main() {
     await waitForTasksFinished();
     expect(filesHighlights[pkgFile], isNull);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[pkgFile], isNotEmpty);
@@ -1502,7 +1502,7 @@ main() {
     await waitForTasksFinished();
     expect(filesHighlights[pkgFileA], isNull);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFileA);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFileA);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[pkgFileA], isNotEmpty);
@@ -1528,7 +1528,7 @@ class A {}
     // make it a priority file, so make analyzable
     server.setPriorityFiles('0', [pkgFile]);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[pkgFile], isNotEmpty);
@@ -1542,7 +1542,7 @@ class A {}
     await waitForTasksFinished();
     expect(filesHighlights[file], isNull);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[file], isNotEmpty);
@@ -1552,7 +1552,7 @@ class A {}
     addTestFile('int V = 42;');
     await createProject();
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     // wait for analysis
     await waitForTasksFinished();
     expect(filesHighlights[testFile], isNotEmpty);
@@ -1562,7 +1562,7 @@ class A {}
     addTestFile('int V = 42;');
     await createProject();
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     // wait for analysis
     await waitForTasksFinished();
     var params = pluginManager.analysisSetSubscriptionsParams!;

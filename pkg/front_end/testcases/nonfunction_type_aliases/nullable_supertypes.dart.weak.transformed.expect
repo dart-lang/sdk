@@ -100,162 +100,162 @@ library /*isNonNullableByDefault*/;
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:16:7: Error: The type 'AAlias' which is an alias of 'A?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:16:18: Error: The type 'AAlias' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class C1 extends AAlias {}
-//       ^
+//                  ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:11:9: Context: The issue arises via this type alias.
 // typedef AAlias = A?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:18:7: Error: The type 'AAlias' which is an alias of 'A?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:18:21: Error: The type 'AAlias' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class C2 implements AAlias {}
-//       ^
+//                     ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:11:9: Context: The issue arises via this type alias.
 // typedef AAlias = A?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:20:7: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:20:19: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
 //  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class C3 = A with BAlias;
-//       ^
+//                   ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:12:9: Context: The issue arises via this type alias.
 // typedef BAlias = B?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:22:7: Error: The type 'CAlias' which is an alias of 'C?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:22:32: Error: The type 'CAlias' which is an alias of 'C?' can't be used as supertype because it is nullable.
 //  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class C4 = A with B implements CAlias;
-//       ^
+//                                ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:13:9: Context: The issue arises via this type alias.
 // typedef CAlias = C?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:24:7: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:24:25: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
 //  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class C5 extends A with BAlias {}
-//       ^
+//                         ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:12:9: Context: The issue arises via this type alias.
 // typedef BAlias = B?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:26:7: Error: The type 'AAlias' which is an alias of 'A?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:26:13: Error: The type 'AAlias' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // mixin M1 on AAlias {}
-//       ^
+//             ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:11:9: Context: The issue arises via this type alias.
 // typedef AAlias = A?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:28:7: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:28:16: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
 //  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // mixin M2 on A, BAlias {}
-//       ^
+//                ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:12:9: Context: The issue arises via this type alias.
 // typedef BAlias = B?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:30:7: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:30:26: Error: The type 'BAlias' which is an alias of 'B?' can't be used as supertype because it is nullable.
 //  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // mixin M3 on A implements BAlias {}
-//       ^
+//                          ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:12:9: Context: The issue arises via this type alias.
 // typedef BAlias = B?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:32:7: Error: The type 'TAlias<A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:32:18: Error: The type 'TAlias<A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class D1 extends TAlias<A> {}
-//       ^
+//                  ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:34:7: Error: The type 'prefix.TAlias<A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:34:19: Error: The type 'prefix.TAlias<A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class D1a extends prefix.TAlias<A> {}
-//       ^
+//                   ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:36:7: Error: The type 'TAlias<prefix.A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:36:19: Error: The type 'TAlias<prefix.A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class D1b extends TAlias<prefix.A> {}
-//       ^
+//                   ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:38:7: Error: The type 'TAlias<A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:38:21: Error: The type 'TAlias<A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class D2 implements TAlias<A> {}
-//       ^
+//                     ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:40:7: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:40:19: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
 //  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class D3 = A with TAlias<B>;
-//       ^
+//                   ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:42:7: Error: The type 'TAlias<C>' which is an alias of 'C?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:42:32: Error: The type 'TAlias<C>' which is an alias of 'C?' can't be used as supertype because it is nullable.
 //  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class D4 = A with B implements TAlias<C>;
-//       ^
+//                                ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:44:7: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:44:25: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
 //  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // class D5 extends A with TAlias<B> {}
-//       ^
+//                         ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:46:7: Error: The type 'TAlias<A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:46:13: Error: The type 'TAlias<A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // mixin N1 on TAlias<A> {}
-//       ^
+//             ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:48:7: Error: The type 'prefix.TAlias<A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:48:14: Error: The type 'prefix.TAlias<A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // mixin N1a on prefix.TAlias<A> {}
-//       ^
+//              ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:50:7: Error: The type 'TAlias<prefix.A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:50:14: Error: The type 'TAlias<prefix.A>' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // mixin N1b on TAlias<prefix.A> {}
-//       ^
+//              ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:52:7: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:52:16: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
 //  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // mixin N2 on A, TAlias<B> {}
-//       ^
+//                ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:54:7: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:54:26: Error: The type 'TAlias<B>' which is an alias of 'B?' can't be used as supertype because it is nullable.
 //  - 'B' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.
 // mixin N3 on A implements TAlias<B> {}
-//       ^
+//                          ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^

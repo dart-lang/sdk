@@ -4092,16 +4092,11 @@ class BodyBuilder extends StackListenerImpl
         Message message = fasta.templateNotAType.withArguments(displayName);
         libraryBuilder.addProblem(
             message, offset, lengthOfSpan(beginToken, suffix), uri);
-        push(new NamedTypeBuilder.fromTypeDeclarationBuilder(
-            new InvalidTypeDeclarationBuilder(
-                name,
-                message.withLocation(
-                    uri, offset, lengthOfSpan(beginToken, suffix))),
+        push(new NamedTypeBuilder.forInvalidType(
+            name,
             libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
-            fileUri: uri,
-            charOffset: offset,
-            instanceTypeVariableAccess:
-                InstanceTypeVariableAccessState.Unexpected));
+            message.withLocation(
+                uri, offset, lengthOfSpan(beginToken, suffix))));
         return;
       }
     }
@@ -4119,7 +4114,8 @@ class BodyBuilder extends StackListenerImpl
       }
       result = name.buildTypeWithResolvedArguments(
           libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), arguments,
-          allowPotentiallyConstantType: allowPotentiallyConstantType);
+          allowPotentiallyConstantType: allowPotentiallyConstantType,
+          forTypeLiteral: false);
       // ignore: unnecessary_null_comparison
       if (result == null) {
         unhandled("null", "result", beginToken.charOffset, uri);
@@ -4128,16 +4124,11 @@ class BodyBuilder extends StackListenerImpl
       // TODO(ahe): Arguments could be passed here.
       libraryBuilder.addProblem(
           name.message, name.charOffset, name.name.length, name.fileUri);
-      result = new NamedTypeBuilder.fromTypeDeclarationBuilder(
-          new InvalidTypeDeclarationBuilder(
-              name.name,
-              name.message.withLocation(
-                  name.fileUri, name.charOffset, name.name.length)),
+      result = new NamedTypeBuilder.forInvalidType(
+          name.name,
           libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
-          fileUri: name.fileUri,
-          charOffset: name.charOffset,
-          instanceTypeVariableAccess:
-              InstanceTypeVariableAccessState.Unexpected);
+          name.message
+              .withLocation(name.fileUri, name.charOffset, name.name.length));
     } else {
       unhandled(
           "${name.runtimeType}", "handleType", beginToken.charOffset, uri);
@@ -6802,7 +6793,8 @@ class BodyBuilder extends StackListenerImpl
           token.charOffset, uri);
     }
     TypeVariableBuilder variable = new TypeVariableBuilder(
-        typeVariableName, libraryBuilder, typeVariableCharOffset, uri);
+        typeVariableName, libraryBuilder, typeVariableCharOffset, uri,
+        kind: TypeVariableKind.function);
     if (annotations != null) {
       inferAnnotations(variable.parameter, annotations);
       for (Expression annotation in annotations) {
@@ -6862,11 +6854,6 @@ class BodyBuilder extends StackListenerImpl
         "Found a type not bound to a declaration in BodyBuilder.");
     for (int i = 0; i < typeVariables.length; ++i) {
       typeVariables[i].defaultType = calculatedBounds[i];
-      typeVariables[i].defaultType!.resolveIn(
-          scope,
-          typeVariables[i].charOffset,
-          typeVariables[i].fileUri!,
-          libraryBuilder);
       typeVariables[i].finish(
           libraryBuilder,
           libraryBuilder.loader.target.objectClassBuilder,
@@ -7251,43 +7238,17 @@ class BodyBuilder extends StackListenerImpl
         TypeParameter typeParameter = typeParameterBuilder.parameter;
         if (typeParameter.parent is Class ||
             typeParameter.parent is Extension) {
-          switch (builder.instanceTypeVariableAccess) {
-            case InstanceTypeVariableAccessState.Allowed:
-              if (constantContext != ConstantContext.none &&
-                  (!inConstructorInitializer ||
-                      !allowPotentiallyConstantType)) {
-                LocatedMessage message =
-                    fasta.messageTypeVariableInConstantContext.withLocation(
-                        builder.fileUri!,
-                        builder.charOffset!,
-                        typeParameter.name!.length);
-                builder.bind(new InvalidTypeDeclarationBuilder(
+          if (constantContext != ConstantContext.none &&
+              (!inConstructorInitializer || !allowPotentiallyConstantType)) {
+            LocatedMessage message = fasta.messageTypeVariableInConstantContext
+                .withLocation(builder.fileUri!, builder.charOffset!,
+                    typeParameter.name!.length);
+            builder.bind(
+                libraryBuilder,
+                new InvalidTypeDeclarationBuilder(
                     typeParameter.name!, message));
-                addProblem(
-                    message.messageObject, message.charOffset, message.length);
-              }
-              break;
-            case InstanceTypeVariableAccessState.Disallowed:
-              // TODO(johnniwinther): Can we unify this check with the similar
-              // check in NamedTypeBuilder.buildTypeInternal. If we skip it
-              // here, the error below (type variable in constant context) will
-              // be emitted _instead_ of this (type variable in static context),
-              // which seems like an odd prioritization.
-              // TODO: Handle this case.
-              LocatedMessage message = fasta.messageTypeVariableInStaticContext
-                  .withLocation(builder.fileUri!, builder.charOffset!,
-                      typeParameter.name!.length);
-              builder.bind(new InvalidTypeDeclarationBuilder(
-                  typeParameter.name!, message));
-              addProblem(
-                  message.messageObject, message.charOffset, message.length);
-              break;
-            case InstanceTypeVariableAccessState.Invalid:
-              break;
-            case InstanceTypeVariableAccessState.Unexpected:
-              assert(false,
-                  "Unexpected instance type variable $typeParameterBuilder");
-              break;
+            addProblem(
+                message.messageObject, message.charOffset, message.length);
           }
         }
       }
@@ -7479,14 +7440,6 @@ class BodyBuilder extends StackListenerImpl
     return validateTypeVariableUse(typeBuilder,
             allowPotentiallyConstantType: allowPotentiallyConstantType)
         .build(libraryBuilder);
-  }
-
-  @override
-  DartType buildTypeLiteralDartType(TypeBuilder typeBuilder,
-      {required bool allowPotentiallyConstantType}) {
-    return validateTypeVariableUse(typeBuilder,
-            allowPotentiallyConstantType: allowPotentiallyConstantType)
-        .buildTypeLiteralType(libraryBuilder);
   }
 
   @override

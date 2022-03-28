@@ -1543,22 +1543,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var receiverContextType =
         ExtensionMemberResolver(this).computeOverrideReceiverContextType(node);
-    const InvocationInferrer<ExtensionOverrideImpl>().resolveInvocation(
-        resolver: this,
-        node: node,
-        argumentList: node.argumentList,
-        rawType: receiverContextType == null
-            ? null
-            : FunctionTypeImpl(
-                typeFormals: const [],
-                parameters: [
-                    ParameterElementImpl.synthetic(
-                        null, receiverContextType, ParameterKind.REQUIRED)
-                  ],
-                returnType: DynamicTypeImpl.instance,
-                nullabilitySuffix: NullabilitySuffix.none),
-        contextType: null,
-        whyNotPromotedList: whyNotPromotedList);
+    InvocationInferrer<ExtensionOverrideImpl>(
+            resolver: this,
+            node: node,
+            argumentList: node.argumentList,
+            rawType: receiverContextType == null
+                ? null
+                : FunctionTypeImpl(
+                    typeFormals: const [],
+                    parameters: [
+                        ParameterElementImpl.synthetic(
+                            null, receiverContextType, ParameterKind.REQUIRED)
+                      ],
+                    returnType: DynamicTypeImpl.instance,
+                    nullabilitySuffix: NullabilitySuffix.none),
+            contextType: null,
+            whyNotPromotedList: whyNotPromotedList)
+        .resolveInvocation();
 
     extensionResolver.resolveOverride(node, whyNotPromotedList);
   }
@@ -2167,14 +2168,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitRedirectingConstructorInvocation(
         node as RedirectingConstructorInvocationImpl);
-    const InvocationInferrer<RedirectingConstructorInvocationImpl>()
-        .resolveInvocation(
+    InvocationInferrer<RedirectingConstructorInvocationImpl>(
             resolver: this,
             node: node,
             argumentList: node.argumentList,
             rawType: node.staticElement?.type,
             contextType: null,
-            whyNotPromotedList: whyNotPromotedList);
+            whyNotPromotedList: whyNotPromotedList)
+        .resolveInvocation();
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
@@ -2277,14 +2278,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitSuperConstructorInvocation(
         node as SuperConstructorInvocationImpl);
-    const InvocationInferrer<SuperConstructorInvocationImpl>()
-        .resolveInvocation(
+    InvocationInferrer<SuperConstructorInvocationImpl>(
             resolver: this,
             node: node,
             argumentList: node.argumentList,
             rawType: node.staticElement?.type,
             contextType: null,
-            whyNotPromotedList: whyNotPromotedList);
+            whyNotPromotedList: whyNotPromotedList)
+        .resolveInvocation();
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }

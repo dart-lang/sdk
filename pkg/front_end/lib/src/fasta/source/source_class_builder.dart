@@ -213,8 +213,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
-    Supertype? supertype =
-        supertypeBuilder?.buildSupertype(libraryBuilder, charOffset, fileUri);
+    Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder);
     if (supertype != null) {
       Class superclass = supertype.classNode;
       if (superclass.name == 'Function' &&
@@ -247,8 +246,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (mixedInTypeBuilder != null) {
       mixedInTypeBuilder = _checkSupertype(mixedInTypeBuilder!);
     }
-    Supertype? mixedInType = mixedInTypeBuilder?.buildMixedInType(
-        libraryBuilder, charOffset, fileUri);
+    Supertype? mixedInType =
+        mixedInTypeBuilder?.buildMixedInType(libraryBuilder);
     if (_isFunction(mixedInType, coreLibrary)) {
       libraryBuilder.addProblem(
           messageMixinFunction, charOffset, noLength, fileUri);
@@ -270,8 +269,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);
-        Supertype? supertype = interfaceBuilders![i]
-            .buildSupertype(libraryBuilder, charOffset, fileUri);
+        Supertype? supertype =
+            interfaceBuilders![i].buildSupertype(libraryBuilder);
         if (supertype != null) {
           if (_isFunction(supertype, coreLibrary)) {
             libraryBuilder.addProblem(
@@ -823,11 +822,6 @@ class SourceClassBuilder extends ClassBuilderImpl
         TypeAliasBuilder? aliasBuilder) {
       int nameOffset = target.nameOffset;
       int nameLength = target.nameLength;
-      // TODO(eernst): nameOffset not fully implemented; use backup.
-      if (nameOffset == -1) {
-        nameOffset = this.charOffset;
-        nameLength = noLength;
-      }
       if (aliasBuilder != null) {
         addProblem(message, nameOffset, nameLength, context: [
           messageTypedefCause.withLocation(
@@ -1216,15 +1210,15 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     if (message != null) {
       return new NamedTypeBuilder(
-          supertype.name as String,
-          const NullabilityBuilder.omitted(),
-          /* arguments = */ null,
-          fileUri,
-          charOffset,
+          supertype.name as String, const NullabilityBuilder.omitted(),
+          fileUri: fileUri,
+          charOffset: charOffset,
           instanceTypeVariableAccess:
               InstanceTypeVariableAccessState.Unexpected)
-        ..bind(new InvalidTypeDeclarationBuilder(supertype.name as String,
-            message.withLocation(fileUri, charOffset, noLength)));
+        ..bind(
+            libraryBuilder,
+            new InvalidTypeDeclarationBuilder(supertype.name as String,
+                message.withLocation(fileUri, charOffset, noLength)));
     }
     return supertype;
   }

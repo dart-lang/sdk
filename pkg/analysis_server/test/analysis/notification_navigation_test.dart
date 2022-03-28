@@ -178,8 +178,8 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
 class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   final Completer<void> _resultsAvailable = Completer();
 
-  Future prepareNavigation() async {
-    addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
+  Future<void> prepareNavigation() async {
+    await addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
     await _resultsAvailable.future;
     assertRegionsSorted();
   }
@@ -257,7 +257,7 @@ void f() {}
 ''');
     await prepareNavigation();
     assertHasRegionString('A<int>(0)', 'A'.length);
-    assertHasTarget('A(_);', 0);
+    assertHasTarget('A(_);');
   }
 
   Future<void> test_annotationConstructor_implicit() async {
@@ -333,7 +333,7 @@ main() {
 ''');
     await prepareNavigation();
     assertHasRegionString('A()', 'A'.length);
-    assertHasTarget('A();', 0);
+    assertHasTarget('A();');
   }
 
   Future<void> test_annotationField() async {
@@ -391,7 +391,7 @@ class BBB {}
     await prepareNavigation();
     // has region for complete "A.named"
     assertHasRegion('A(BBB');
-    assertHasTarget('A(BBB', 0);
+    assertHasTarget('A(BBB');
     // validate that we don't forget to resolve parameters
     assertHasRegionTarget('BBB p', 'BBB {}');
   }
@@ -422,8 +422,8 @@ void f() {
 }
 ''');
     await prepareNavigation();
-    assertHasRegionTarget('A.new;', 'A();', targetLength: 0);
-    assertHasRegionTarget('new;', 'A();', targetLength: 0);
+    assertHasRegionTarget('A.new;', 'A();');
+    assertHasRegionTarget('new;', 'A();');
   }
 
   Future<void> test_class_constructorReference_unnamed_declared_new() async {
@@ -542,7 +542,7 @@ class B {
 ''');
     await prepareNavigation();
     assertHasRegion('B;');
-    assertHasTarget('B() {}', 0);
+    assertHasTarget('B() {}');
   }
 
   Future<void>
@@ -559,7 +559,7 @@ class C<T> {
     await prepareNavigation();
     {
       assertHasRegion('C<A>');
-      assertHasTarget('C() {}', 0);
+      assertHasTarget('C() {}');
     }
     {
       assertHasRegion('A>;');
@@ -652,10 +652,10 @@ enum E {
 ''');
     await prepareNavigation();
 
-    assertHasRegionTarget('v1', 'E();', targetLength: 0);
-    assertHasRegionTarget('v2()', 'E();', targetLength: 0);
-    assertHasRegionTarget('v3', 'E();', targetLength: 0);
-    assertHasRegionTarget('new()', 'E();', targetLength: 0);
+    assertHasRegionTarget('v1', 'E();');
+    assertHasRegionTarget('v2()', 'E();');
+    assertHasRegionTarget('v3', 'E();');
+    assertHasRegionTarget('new()', 'E();');
   }
 
   Future<void> test_enum_field() async {
@@ -1020,7 +1020,7 @@ main() {
 ''');
     await prepareNavigation();
     assertHasRegionString('A();', 'A'.length);
-    assertHasTarget('A() {}', 0);
+    assertHasTarget('A() {}');
   }
 
   Future<void> test_instanceCreation_unnamed_withTypeArgument() async {
@@ -1036,7 +1036,7 @@ main() {
     await prepareNavigation();
     {
       assertHasRegionString('B<A>();', 'B'.length);
-      assertHasTarget('B() {}', 0);
+      assertHasTarget('B() {}');
     }
     {
       assertHasRegion('A>();');
@@ -1208,7 +1208,7 @@ class A {
     await prepareNavigation();
     {
       assertHasRegion('this();');
-      assertHasTarget('A() {}', 0);
+      assertHasTarget('A() {}');
     }
     {
       assertHasRegion('this.foo');
@@ -1308,7 +1308,7 @@ class B extends A {
     await prepareNavigation();
     {
       assertHasRegionString('super');
-      assertHasTarget('A() {}', 0);
+      assertHasTarget('A() {}');
     }
     {
       assertHasRegion('super.named');

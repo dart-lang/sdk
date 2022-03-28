@@ -30,6 +30,14 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
         content);
   }
 
+  /// Add the file in the SDK containing the data used by the data-driven fix
+  /// with the given [content].
+  void addSdkDataFile(String content) {
+    newFile2(
+        '${sdkRoot.path}/lib/_internal/${TransformSetManager.dataFileName}',
+        content);
+  }
+
   /// Return a code template that will produce the given [text].
   CodeTemplate codeTemplate(String text) {
     return CodeTemplate(

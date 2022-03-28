@@ -89,32 +89,33 @@ String main() {
 class Foo {
   // ...
   // ...
-  Foo() {
-    print('');
-  }
+  Foo() {}
+  Foo.named() {}
   // ...
 }
 
 final a = Foo();
-final b = new Foo();
+final b = new Foo.named();
 ''');
     await waitForTasksFinished();
 
-    // Without `new`
+    // Without `new` / unnamed
     await _getNavigation(testFile, testCode.indexOf('Foo();'), 0);
     expect(regions, hasLength(1));
     expect(regions.first.targets, hasLength(1));
     var target = targets[regions.first.targets.first];
     expect(target.kind, ElementKind.CONSTRUCTOR);
     expect(target.offset, testCode.indexOf('Foo() {'));
+    expect(target.length, 3);
 
-    // With `new`
-    await _getNavigation(testFile, testCode.indexOf('new Foo();') + 4, 0);
+    // With `new` / named
+    await _getNavigation(testFile, testCode.indexOf('new Foo.named();') + 8, 0);
     expect(regions, hasLength(1));
     expect(regions.first.targets, hasLength(1));
     target = targets[regions.first.targets.first];
     expect(target.kind, ElementKind.CONSTRUCTOR);
-    expect(target.offset, testCode.indexOf('Foo() {'));
+    expect(target.offset, testCode.indexOf('named() {'));
+    expect(target.length, 5);
   }
 
   Future<void> test_fieldType() async {

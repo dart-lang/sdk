@@ -6,13 +6,13 @@ library /*isNonNullableByDefault*/;
 // class Class2<T, M extends Mixin<T>> extends SuperClass with M {}
 //       ^
 //
-// pkg/front_end/testcases/general/extend_with_type_variable.dart:11:7: Error: The type variable 'S' can't be used as supertype.
+// pkg/front_end/testcases/general/extend_with_type_variable.dart:11:47: Error: The type variable 'S' can't be used as supertype.
 // class Class1<T, S extends SuperClass> extends S with Mixin<T> {}
-//       ^
+//                                               ^
 //
-// pkg/front_end/testcases/general/extend_with_type_variable.dart:13:7: Error: The type variable 'M' can't be used as supertype.
+// pkg/front_end/testcases/general/extend_with_type_variable.dart:13:61: Error: The type variable 'M' can't be used as supertype.
 // class Class2<T, M extends Mixin<T>> extends SuperClass with M {}
-//       ^
+//                                                             ^
 //
 import self as self;
 import "dart:core" as core;

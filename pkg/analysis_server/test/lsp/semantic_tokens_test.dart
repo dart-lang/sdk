@@ -192,7 +192,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
   Future<void> test_class_constructors() async {
     final content = '''
     class MyClass {
-      MyClass();
+      const MyClass();
       MyClass.named();
       factory MyClass.factory() => MyClass();
     }
@@ -201,11 +201,13 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     final b = MyClass.named();
     final c = MyClass.factory();
     final d = MyClass.named;
+    const e = const MyClass();
     ''';
 
     final expected = [
       _Token('class', SemanticTokenTypes.keyword),
       _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('const', SemanticTokenTypes.keyword),
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('named', SemanticTokenTypes.method,
@@ -240,6 +242,12 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [SemanticTokenModifiers.declaration]),
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('named', SemanticTokenTypes.method,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('e', SemanticTokenTypes.property,
+          [SemanticTokenModifiers.declaration]),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_,
           [CustomSemanticTokenModifiers.constructor]),
     ];
 

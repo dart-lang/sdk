@@ -71,8 +71,8 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
     }
   }
 
-  Future prepareOccurrences() {
-    addAnalysisSubscription(AnalysisService.OCCURRENCES, testFile);
+  Future<void> prepareOccurrences() async {
+    await addAnalysisSubscription(AnalysisService.OCCURRENCES, testFile);
     return _resultsAvailable.future;
   }
 

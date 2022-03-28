@@ -47,7 +47,7 @@ class TypeEnvironment {
         options: [Flags.disableTypeInference]..addAll(options),
         diagnosticHandler: collector,
         beforeRun: (compiler) {
-          compiler.stopAfterTypeInference = true;
+          compiler.stopAfterGlobalTypeInferenceForTesting = true;
         });
     Compiler compiler = result.compiler;
     if (expectNoErrors || expectNoWarningsOrErrors) {

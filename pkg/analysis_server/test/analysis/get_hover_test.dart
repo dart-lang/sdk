@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -42,15 +42,15 @@ class A {}
 }
 
 @reflectiveTest
-class AnalysisHoverTest extends AbstractAnalysisTest {
+class AnalysisHoverTest extends PubPackageAnalysisServerTest {
   Future<HoverInformation> prepareHover(String search) async {
     return (await prepareHoverOrNull(search))!;
   }
 
   Future<HoverInformation?> prepareHoverAt(int offset) async {
-    await waitForTasksFinished();
-    var request = AnalysisGetHoverParams(testFile, offset).toRequest('0');
-    var response = await waitResponse(request);
+    await server.onAnalysisComplete;
+    var request = AnalysisGetHoverParams(testFile.path, offset).toRequest('0');
+    var response = await handleSuccessfulRequest(request);
     var result = AnalysisGetHoverResult.fromResponse(response);
     var hovers = result.hovers;
     return hovers.isNotEmpty ? hovers.first : null;
@@ -64,11 +64,11 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_class_constructor_named() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 class A {
   /// my doc
@@ -99,7 +99,7 @@ void f() {
   }
 
   Future<void> test_class_constructor_noKeyword_const() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 class A {
   const A(int i);
@@ -113,8 +113,8 @@ void f() {
     expect(hover.offset, findOffset('A(0)'));
     expect(hover.length, 'A'.length);
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, '(const) A A(int i)');
     expect(hover.elementKind, 'constructor');
@@ -126,7 +126,7 @@ void f() {
   }
 
   Future<void> test_class_constructor_noKeyword_new() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 class A {}
 void f() {
@@ -138,8 +138,8 @@ void f() {
     expect(hover.offset, findOffset('A()'));
     expect(hover.length, 'A'.length);
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, '(new) A A()');
     expect(hover.elementKind, 'constructor');
@@ -151,7 +151,7 @@ void f() {
   }
 
   Future<void> test_class_constructor_synthetic() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 class A {
 }
@@ -164,8 +164,8 @@ void f() {
     expect(hover.offset, findOffset('new A') + 'new '.length);
     expect(hover.length, 'A'.length);
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, 'A A()');
     expect(hover.elementKind, 'constructor');
@@ -177,7 +177,7 @@ void f() {
   }
 
   Future<void> test_class_constructor_synthetic_withTypeArgument() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 class A<T> {}
 void f() {
@@ -189,8 +189,8 @@ void f() {
       expect(hover.offset, findOffset('A<String>'));
       expect(hover.length, 'A<String>'.length);
       // element
-      expect(hover.containingLibraryName, 'bin/test.dart');
-      expect(hover.containingLibraryPath, testFile);
+      expect(hover.containingLibraryName, 'package:test/test.dart');
+      expect(hover.containingLibraryPath, testFile.path);
       expect(hover.dartdoc, isNull);
       expect(hover.elementDescription, 'A<String> A()');
       expect(hover.elementKind, 'constructor');
@@ -219,7 +219,7 @@ void f() {
   }
 
   Future<void> test_class_constructorReference_named() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A<T> {
   /// doc aaa
   /// doc bbb
@@ -232,8 +232,8 @@ void f() {
 ''');
     var hover = await prepareHover('named;');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, 'doc aaa\ndoc bbb');
     expect(hover.elementDescription, 'A<double> A.named()');
@@ -246,7 +246,7 @@ void f() {
   }
 
   Future<void> test_class_constructorReference_unnamed_declared() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A<T> {
   /// doc aaa
   /// doc bbb
@@ -259,8 +259,8 @@ void f() {
 ''');
     var hover = await prepareHover('new;');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, 'doc aaa\ndoc bbb');
     expect(hover.elementDescription, 'A<double> A()');
@@ -273,7 +273,7 @@ void f() {
   }
 
   Future<void> test_class_constructorReference_unnamed_declared_new() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A<T> {
   /// doc aaa
   /// doc bbb
@@ -286,8 +286,8 @@ void f() {
 ''');
     var hover = await prepareHover('new;');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, 'doc aaa\ndoc bbb');
     expect(hover.elementDescription, 'A<double> A()');
@@ -300,7 +300,7 @@ void f() {
   }
 
   Future<void> test_class_constructorReference_unnamed_synthetic() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A<T> {}
 
 void f() {
@@ -309,8 +309,8 @@ void f() {
 ''');
     var hover = await prepareHover('new;');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, 'A<double> A()');
@@ -323,7 +323,7 @@ void f() {
   }
 
   Future<void> test_class_declaration() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A<E> {}
 class I1<K, V> {}
 class I2<E> {}
@@ -342,7 +342,7 @@ class B<T> extends A<T> with M1, M2<int> implements I1<int, String>, I2 {}
   }
 
   Future<void> test_class_declaration_abstract() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {}
 abstract class B extends A {}
 ''');
@@ -354,7 +354,7 @@ abstract class B extends A {}
   }
 
   Future<void> test_class_getter_synthetic() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 class A {
   /// doc aaa
@@ -367,8 +367,8 @@ void f(A a) {
 ''');
     var hover = await prepareHover('fff);');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(hover.elementDescription, 'String fff');
@@ -379,7 +379,7 @@ void f(A a) {
   }
 
   Future<void> test_class_method_declaration() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 class A {
   /// doc aaa
@@ -390,8 +390,8 @@ class A {
 ''');
     var hover = await prepareHover('mmm(int a');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(hover.elementDescription, 'List<String> mmm(int a, String b)');
@@ -404,7 +404,7 @@ class A {
   }
 
   Future<void> test_class_method_reference() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 class A {
   List<String> mmm(int a, String b) {
@@ -419,8 +419,8 @@ void f(A a) {
     expect(hover.offset, findOffset('mmm(42, '));
     expect(hover.length, 'mmm'.length);
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.elementDescription, 'List<String> mmm(int a, String b)');
     expect(hover.elementKind, 'method');
     expect(hover.isDeprecated, isFalse);
@@ -432,7 +432,7 @@ void f(A a) {
   }
 
   Future<void> test_class_method_reference_deprecated() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   @deprecated
   static void test() {}
@@ -443,14 +443,14 @@ void f() {
 ''');
     var hover = await prepareHover('test();');
     // element
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.elementDescription, 'void test()');
     expect(hover.elementKind, 'method');
     expect(hover.isDeprecated, isTrue);
   }
 
   Future<void> test_class_method_reference_genericMethod() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 
 abstract class Stream<T> {
@@ -467,8 +467,8 @@ f(Stream<int> s) {
     expect(hover.offset, findOffset('transform(n'));
     expect(hover.length, 'transform'.length);
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.elementDescription,
         'Stream<S> transform<S>(StreamTransformer<int, S> streamTransformer)');
     expect(hover.elementKind, 'method');
@@ -482,7 +482,7 @@ f(Stream<int> s) {
   }
 
   Future<void> test_class_setter_hasDocumentation() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   /// getting
   int get foo => 42;
@@ -501,7 +501,7 @@ void f(A a) {
   }
 
   Future<void> test_class_setter_noDocumentation() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   /// getting
   int get foo => 42;
@@ -519,7 +519,7 @@ void f(A a) {
   }
 
   Future<void> test_class_setter_super_hasDocumentation() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   /// pgetting
   int get foo => 42;
@@ -543,7 +543,7 @@ void f(B b) {
   }
 
   Future<void> test_class_setter_super_noDocumentation() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   /// pgetting
   int get foo => 42;
@@ -566,7 +566,7 @@ void f(B b) {
 
   @failingTest
   Future<void> test_class_setter_super_noSetter() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   /// pgetting
   int get foo => 42;
@@ -586,7 +586,7 @@ void f(B b) {
   }
 
   Future<void> test_dartdoc_block() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /**
  * doc aaa
  * doc bbb
@@ -599,7 +599,7 @@ void f() {
   }
 
   Future<void> test_dartdoc_inherited_fromInterface() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   /// my doc
   m() {} // in A
@@ -614,7 +614,7 @@ class B implements A {
   }
 
   Future<void> test_dartdoc_inherited_fromSuper_direct() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   /// my doc
   m() {} // in A
@@ -629,7 +629,7 @@ class B extends A {
   }
 
   Future<void> test_dartdoc_inherited_fromSuper_indirect() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   /// my doc
   m() {}
@@ -645,7 +645,7 @@ class C extends B {
   }
 
   Future<void> test_dartdoc_inherited_preferSuper() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   /// my doc
   m() {}
@@ -664,7 +664,7 @@ class C extends B implements I {
   }
 
   Future<void> test_dartdoc_line() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// doc aaa
 /// doc bbb
 void f() {
@@ -675,7 +675,7 @@ void f() {
   }
 
   Future<void> test_enum_declaration() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 enum MyEnum {AAA, BBB, CCC}
 ''');
     var hover = await prepareHover('MyEnum');
@@ -686,7 +686,7 @@ enum MyEnum {AAA, BBB, CCC}
   }
 
   Future<void> test_enum_getter() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 enum E {
   v;
@@ -700,8 +700,8 @@ void f(E e) {
 ''');
     var hover = await prepareHover('foo);');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'E');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(hover.elementDescription, 'int get foo');
@@ -709,7 +709,7 @@ void f(E e) {
   }
 
   Future<void> test_enum_getter_synthetic() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 enum E {
   v;
@@ -723,8 +723,8 @@ void f(E e) {
 ''');
     var hover = await prepareHover('fff);');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'E');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(hover.elementDescription, 'String fff');
@@ -735,7 +735,7 @@ void f(E e) {
   }
 
   Future<void> test_enum_method_declaration() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 enum E {
   v;
@@ -747,8 +747,8 @@ enum E {
 ''');
     var hover = await prepareHover('mmm(int a');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'E');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(hover.elementDescription, 'List<String> mmm(int a, String b)');
@@ -761,7 +761,7 @@ enum E {
   }
 
   Future<void> test_enum_method_reference() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 enum E {
   v;
@@ -777,8 +777,8 @@ void f(E e) {
     expect(hover.offset, findOffset('mmm(42, '));
     expect(hover.length, 'mmm'.length);
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'E');
     expect(hover.elementDescription, 'List<String> mmm(int a, String b)');
     expect(hover.elementKind, 'method');
@@ -791,7 +791,7 @@ void f(E e) {
   }
 
   Future<void> test_enum_setter_hasDocumentation() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 enum E {
   v;
   /// getting
@@ -811,7 +811,7 @@ void f(E e) {
   }
 
   Future<void> test_extensionDeclaration() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {}
 /// Comment
 extension E on A {}
@@ -827,7 +827,7 @@ extension E on A {}
   Future<void> test_function_multilineElementDescription() async {
     // Functions with at least 3 params will have element descriptions formatted
     // across multiple lines.
-    addTestFile('''
+    newFile2(testFilePath, '''
 List<String> fff(int a, [String b = 'b', String c = 'c']) {
 }
 ''');
@@ -841,7 +841,7 @@ List<String> fff(
   }
 
   Future<void> test_function_topLevel_declaration() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 /// doc aaa
 /// doc bbb
@@ -850,8 +850,8 @@ List<String> fff(int a, [String b = 'b']) {
 ''');
     var hover = await prepareHover('fff(int a');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(
@@ -865,7 +865,7 @@ List<String> fff(int a, [String b = 'b']) {
   }
 
   Future<void> test_functionReference_classMethod_instance() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A<T> {
   /// doc aaa
   /// doc bbb
@@ -878,8 +878,8 @@ void f(A<int> a) {
 ''');
     var hover = await prepareHover('foo<double>');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(hover.elementDescription, 'int foo<U>(int t, U u)');
@@ -892,7 +892,7 @@ void f(A<int> a) {
   }
 
   Future<void> test_functionReference_classMethod_static() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A<T> {
   /// doc aaa
   /// doc bbb
@@ -905,8 +905,8 @@ void f() {
 ''');
     var hover = await prepareHover('foo<double>');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(hover.elementDescription, 'int foo<U>(U u)');
@@ -919,7 +919,7 @@ void f() {
   }
 
   Future<void> test_functionReference_topLevelFunction() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// doc aaa
 /// doc bbb
 int foo<T>(T a) => 0;
@@ -930,8 +930,8 @@ void f() {
 ''');
     var hover = await prepareHover('foo<double>');
     // element
-    expect(hover.containingLibraryName, 'bin/test.dart');
-    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(hover.elementDescription, 'int foo<T>(T a)');
@@ -944,7 +944,7 @@ void f() {
   }
 
   Future<void> test_integerLiteral() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 void f() {
   foo(123);
 }
@@ -969,7 +969,7 @@ foo(Object myParameter) {}
   }
 
   Future<void> test_integerLiteral_promoted() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 void f() {
   foo(123);
 }
@@ -995,10 +995,11 @@ foo(double myParameter) {}
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = AnalysisGetHoverParams('test.dart', 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -1006,15 +1007,16 @@ foo(double myParameter) {}
     var request =
         AnalysisGetHoverParams(convertPath('/foo/../bar/test.dart'), 0)
             .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
   Future<void> test_localVariable_declaration() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 class A {
   m() {
@@ -1038,7 +1040,7 @@ class A {
   }
 
   Future<void> test_localVariable_reference_withPropagatedType() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 void f() {
   var vvv = 123;
@@ -1059,7 +1061,7 @@ void f() {
   }
 
   Future<void> test_mixin_declaration() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 mixin A on B, C implements D, E {}
 class B {}
 class C {}
@@ -1074,7 +1076,7 @@ class E {}
 
   @failingTest
   Future<void> test_mixin_reference() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 mixin A {}
 abstract class B {}
 class C with A implements B {}
@@ -1086,7 +1088,7 @@ class C with A implements B {}
   }
 
   Future<void> test_noHoverInfo() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 void f() {
   // nothing
@@ -1097,7 +1099,7 @@ void f() {
   }
 
   Future<void> test_nonNullable() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 int? f(double? a) => null;
 
 void f() {
@@ -1110,7 +1112,7 @@ void f() {
   }
 
   Future<void> test_parameter_declaration_fieldFormal() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   /// The field documentation.
   final int fff;
@@ -1131,7 +1133,7 @@ void f() {
   }
 
   Future<void> test_parameter_declaration_required() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 library my.library;
 class A {
   /// The method documentation.
@@ -1155,7 +1157,7 @@ class A {
   }
 
   Future<void> test_parameter_defaultValue() async {
-    addTestFile('void b([int a=123]) { }');
+    newFile2(testFilePath, 'void b([int a=123]) { }');
     var hover = await prepareHover('a=');
     // element
     expect(hover.elementDescription, '[int a = 123]');
@@ -1164,7 +1166,7 @@ class A {
 
   Future<void>
       test_parameter_ofConstructor_optionalPositional_super_defaultValue_explicit() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   A([int a = 1]);
 }
@@ -1180,7 +1182,7 @@ class B extends A {
 
   Future<void>
       test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   A([int a = 1]);
 }
@@ -1196,7 +1198,7 @@ class B extends A {
 
   Future<void>
       test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited2() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   A([num a = 1.2]);
 }
@@ -1211,7 +1213,7 @@ class B extends A{
   }
 
   Future<void> test_parameter_reference_fieldFormal() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 class A {
   /// The field documentation.
   final int fff;
@@ -1232,7 +1234,7 @@ void f() {
   }
 
   Future<void> test_simpleIdentifier_typedef_functionType() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 typedef A = void Function(int);
 ''');
     var hover = await prepareHover('A');
@@ -1244,7 +1246,7 @@ typedef A = void Function(int);
   }
 
   Future<void> test_simpleIdentifier_typedef_interfaceType() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 typedef A = Map<int, String>;
 ''');
     var hover = await prepareHover('A');
@@ -1256,7 +1258,7 @@ typedef A = Map<int, String>;
   }
 
   Future<void> test_simpleIdentifier_typedef_legacy() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 typedef void A(int a);
 ''');
     var hover = await prepareHover('A');
@@ -1275,10 +1277,10 @@ typedef void A(int a);
     required String elementKind,
     bool isDeprecated = false,
   }) {
-    containingLibraryName ??= 'bin/test.dart';
+    containingLibraryName ??= 'package:test/test.dart';
     expect(hover.containingLibraryName, containingLibraryName);
 
-    containingLibraryPath ??= testFile;
+    containingLibraryPath ??= testFile.path;
     expect(hover.containingLibraryPath, containingLibraryPath);
 
     expect(hover.elementDescription, elementDescription);

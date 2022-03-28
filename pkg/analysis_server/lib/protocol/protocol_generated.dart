@@ -6258,6 +6258,140 @@ class EditBulkFixesResult implements ResponseResult {
       );
 }
 
+/// edit.formatIfEnabled params
+///
+/// {
+///   "directories": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class EditFormatIfEnabledParams implements RequestParams {
+  /// The paths of the directories containing the code to be formatted.
+  List<String> directories;
+
+  EditFormatIfEnabledParams(this.directories);
+
+  factory EditFormatIfEnabledParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      List<String> directories;
+      if (json.containsKey('directories')) {
+        directories = jsonDecoder.decodeList(jsonPath + '.directories',
+            json['directories'], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'directories');
+      }
+      return EditFormatIfEnabledParams(directories);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'edit.formatIfEnabled params', json);
+    }
+  }
+
+  factory EditFormatIfEnabledParams.fromRequest(Request request) {
+    return EditFormatIfEnabledParams.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['directories'] = directories;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'edit.formatIfEnabled', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditFormatIfEnabledParams) {
+      return listEqual(
+          directories, other.directories, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => directories.hashCode;
+}
+
+/// edit.formatIfEnabled result
+///
+/// {
+///   "edits": List<SourceFileEdit>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class EditFormatIfEnabledResult implements ResponseResult {
+  /// The edit(s) to be applied in order to format the code. The list will be
+  /// empty if none of the files were formatted, whether because they were not
+  /// eligible to be formatted or because they were already formatted.
+  List<SourceFileEdit> edits;
+
+  EditFormatIfEnabledResult(this.edits);
+
+  factory EditFormatIfEnabledResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      List<SourceFileEdit> edits;
+      if (json.containsKey('edits')) {
+        edits = jsonDecoder.decodeList(
+            jsonPath + '.edits',
+            json['edits'],
+            (String jsonPath, Object? json) =>
+                SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'edits');
+      }
+      return EditFormatIfEnabledResult(edits);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'edit.formatIfEnabled result', json);
+    }
+  }
+
+  factory EditFormatIfEnabledResult.fromResponse(Response response) {
+    return EditFormatIfEnabledResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        'result',
+        response.result);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['edits'] =
+        edits.map((SourceFileEdit value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditFormatIfEnabledResult) {
+      return listEqual(
+          edits, other.edits, (SourceFileEdit a, SourceFileEdit b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => edits.hashCode;
+}
+
 /// edit.format params
 ///
 /// {

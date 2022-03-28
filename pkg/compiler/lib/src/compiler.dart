@@ -27,7 +27,7 @@ import 'diagnostics/code_location.dart';
 import 'diagnostics/messages.dart' show Message;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/entities.dart';
-import 'enqueue.dart' show Enqueuer, ResolutionEnqueuer;
+import 'enqueue.dart' show Enqueuer;
 import 'environment.dart';
 import 'inferrer/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
@@ -50,6 +50,7 @@ import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions;
 import 'phase/load_kernel.dart' as load_kernel;
 import 'phase/modular_analysis.dart' as modular_analysis;
+import 'resolution/enqueuer.dart';
 import 'serialization/task.dart';
 import 'serialization/serialization.dart';
 import 'serialization/strategies.dart';
@@ -78,8 +79,8 @@ class Compiler {
 
   // These internal flags are used to stop compilation after a specific phase.
   // Used only for debugging and testing purposes only.
-  bool stopAfterClosedWorld = false;
-  bool stopAfterTypeInference = false;
+  bool stopAfterClosedWorldForTesting = false;
+  bool stopAfterGlobalTypeInferenceForTesting = false;
 
   /// Output provider from user of Compiler API.
   api.CompilerOutput _outputProvider;
@@ -240,16 +241,6 @@ class Compiler {
         return success;
       });
 
-  bool get onlyPerformGlobalTypeInference {
-    return options.readClosedWorldUri != null &&
-        options.readDataUri == null &&
-        options.readCodegenUri == null;
-  }
-
-  bool get onlyPerformCodegen {
-    return options.readClosedWorldUri != null && options.readDataUri != null;
-  }
-
   /// Dumps a list of unused [ir.Library]'s in the [KernelResult]. This *must*
   /// be called before [setMainAndTrimComponent], because that method will
   /// discard the unused [ir.Library]s.
@@ -315,90 +306,8 @@ class Compiler {
       await runLoadKernel();
     } else if (options.modularMode) {
       await runModularAnalysis();
-    } else if (onlyPerformGlobalTypeInference) {
-      ir.Component component =
-          await serializationTask.deserializeComponentAndUpdateOptions();
-      var closedWorldAndIndices =
-          await serializationTask.deserializeClosedWorld(
-              environment, abstractValueStrategy, component);
-      if (retainDataForTesting) {
-        closedWorldIndicesForTesting = closedWorldAndIndices.indices;
-      }
-      GlobalTypeInferenceResults globalTypeInferenceResults =
-          performGlobalTypeInference(closedWorldAndIndices.closedWorld);
-      var indices = closedWorldAndIndices.indices;
-      if (options.writeDataUri != null) {
-        serializationTask.serializeGlobalTypeInference(
-            globalTypeInferenceResults, indices);
-        return;
-      }
-      await generateJavaScriptCode(globalTypeInferenceResults,
-          indices: indices);
-    } else if (onlyPerformCodegen) {
-      GlobalTypeInferenceResults globalTypeInferenceResults;
-      ir.Component component =
-          await serializationTask.deserializeComponentAndUpdateOptions();
-      var closedWorldAndIndices =
-          await serializationTask.deserializeClosedWorld(
-              environment, abstractValueStrategy, component);
-      globalTypeInferenceResults =
-          await serializationTask.deserializeGlobalTypeInferenceResults(
-              environment,
-              abstractValueStrategy,
-              component,
-              closedWorldAndIndices);
-      await generateJavaScriptCode(globalTypeInferenceResults,
-          indices: closedWorldAndIndices.indices);
     } else {
-      load_kernel.Output output = await runLoadKernel();
-      if (output == null || compilationFailed) return;
-
-      ir.Component component = output.component;
-      List<Uri> libraries = output.libraries;
-      frontendStrategy.registerLoadedLibraries(component, libraries);
-      List<ModuleData> data;
-      if (options.hasModularAnalysisInputs) {
-        data = await serializationTask.deserializeModuleData(component);
-      }
-      frontendStrategy.registerModuleData(data);
-
-      // After we've deserialized modular data, we trim the component of any
-      // unnecessary dependencies.
-      // Note: It is critical we wait to trim the dill until after we've
-      // deserialized modular data because some of this data may reference
-      // 'trimmed' elements.
-      dumpUnusedLibrariesAndTrimComponent(component, libraries);
-      await compileFromKernel(output.rootLibraryUri, libraries);
-    }
-  }
-
-  void generateJavaScriptCode(
-      GlobalTypeInferenceResults globalTypeInferenceResults,
-      {DataSourceIndices indices}) async {
-    JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
-    backendStrategy.registerJClosedWorld(closedWorld);
-    phase = PHASE_COMPILING;
-    CodegenInputs codegenInputs =
-        backendStrategy.onCodegenStart(globalTypeInferenceResults);
-
-    if (options.readCodegenUri != null) {
-      CodegenResults codegenResults =
-          await serializationTask.deserializeCodegen(backendStrategy,
-              globalTypeInferenceResults, codegenInputs, indices);
-      reporter.log('Compiling methods');
-      runCodegenEnqueuer(codegenResults);
-    } else {
-      reporter.log('Compiling methods');
-      CodegenResults codegenResults = OnDemandCodegenResults(
-          globalTypeInferenceResults,
-          codegenInputs,
-          backendStrategy.functionCompiler);
-      if (options.writeCodegenUri != null) {
-        serializationTask.serializeCodegen(
-            backendStrategy, codegenResults, indices);
-      } else {
-        runCodegenEnqueuer(codegenResults);
-      }
+      await runSequentialPhases();
     }
   }
 
@@ -547,6 +456,7 @@ class Compiler {
     }
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
 
+    reporter.log('Compiling methods');
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
     processQueue(closedWorld.elementEnvironment, codegenEnqueuer, mainFunction,
         onProgress: showCodegenProgress);
@@ -597,32 +507,140 @@ class Compiler {
         globalTypeInferenceResultsData);
   }
 
-  void compileFromKernel(Uri rootLibraryUri, Iterable<Uri> libraries) {
-    _userCodeLocations.add(CodeLocation(rootLibraryUri));
-    selfTask.measureSubtask("compileFromKernel", () {
-      JsClosedWorld closedWorld = selfTask.measureSubtask("computeClosedWorld",
-          () => computeClosedWorld(rootLibraryUri, libraries));
-      if (closedWorld == null) return;
+  Future<load_kernel.Output> loadComponent() async {
+    load_kernel.Output output = await runLoadKernel();
+    if (output == null || compilationFailed) return null;
 
-      if (retainDataForTesting) {
-        backendClosedWorldForTesting = closedWorld;
-      }
+    ir.Component component = output.component;
+    List<Uri> libraries = output.libraries;
+    frontendStrategy.registerLoadedLibraries(component, libraries);
+    List<ModuleData> data;
+    if (options.hasModularAnalysisInputs) {
+      data = await serializationTask.deserializeModuleData(component);
+    }
+    frontendStrategy.registerModuleData(data);
 
-      if (options.writeClosedWorldUri != null) {
-        serializationTask.serializeComponent(
-            closedWorld.elementMap.programEnv.mainComponent);
-        serializationTask.serializeClosedWorld(closedWorld);
-        return;
+    // After we've deserialized modular data, we trim the component of any
+    // unnecessary dependencies.
+    // Note: It is critical we wait to trim the dill until after we've
+    // deserialized modular data because some of this data may reference
+    // 'trimmed' elements.
+    dumpUnusedLibrariesAndTrimComponent(component, libraries);
+    return output;
+  }
+
+  Future<ClosedWorldAndIndices> produceClosedWorld() async {
+    ClosedWorldAndIndices closedWorldAndIndices;
+    if (options.readClosedWorldUri == null) {
+      load_kernel.Output loadKernelOutput = await loadComponent();
+      if (loadKernelOutput != null) {
+        Uri rootLibraryUri = loadKernelOutput.rootLibraryUri;
+        Iterable<Uri> libraries = loadKernelOutput.libraries;
+        _userCodeLocations.add(CodeLocation(rootLibraryUri));
+        JsClosedWorld closedWorld =
+            computeClosedWorld(rootLibraryUri, libraries);
+        closedWorldAndIndices = ClosedWorldAndIndices(closedWorld, null);
+        if (options.writeClosedWorldUri != null) {
+          serializationTask.serializeComponent(
+              closedWorld.elementMap.programEnv.mainComponent);
+          serializationTask.serializeClosedWorld(closedWorld);
+        }
       }
-      if (stopAfterClosedWorld || options.stopAfterProgramSplit) return;
-      GlobalTypeInferenceResults globalInferenceResults =
-          performGlobalTypeInference(closedWorld);
-      if (options.testMode) {
-        globalInferenceResults =
-            globalTypeInferenceResultsTestMode(globalInferenceResults);
+    } else {
+      ir.Component component =
+          await serializationTask.deserializeComponentAndUpdateOptions();
+      closedWorldAndIndices = await serializationTask.deserializeClosedWorld(
+          environment, abstractValueStrategy, component);
+    }
+    if (closedWorldAndIndices != null && retainDataForTesting) {
+      backendClosedWorldForTesting = closedWorldAndIndices.closedWorld;
+      closedWorldIndicesForTesting = closedWorldAndIndices.indices;
+    }
+    return closedWorldAndIndices;
+  }
+
+  bool shouldStopAfterClosedWorld(
+          ClosedWorldAndIndices closedWorldAndIndices) =>
+      closedWorldAndIndices == null ||
+      closedWorldAndIndices.closedWorld == null ||
+      stopAfterClosedWorldForTesting ||
+      options.stopAfterProgramSplit ||
+      options.writeClosedWorldUri != null;
+
+  Future<GlobalTypeInferenceResults> produceGlobalTypeInferenceResults(
+      ClosedWorldAndIndices closedWorldAndIndices) async {
+    JsClosedWorld closedWorld = closedWorldAndIndices.closedWorld;
+    GlobalTypeInferenceResults globalTypeInferenceResults;
+    if (options.readDataUri == null) {
+      globalTypeInferenceResults = performGlobalTypeInference(closedWorld);
+      if (options.writeDataUri != null) {
+        serializationTask.serializeGlobalTypeInference(
+            globalTypeInferenceResults, closedWorldAndIndices.indices);
+      } else if (options.testMode) {
+        globalTypeInferenceResults =
+            globalTypeInferenceResultsTestMode(globalTypeInferenceResults);
       }
-      if (stopAfterTypeInference) return;
-      generateJavaScriptCode(globalInferenceResults);
+    } else {
+      globalTypeInferenceResults =
+          await serializationTask.deserializeGlobalTypeInferenceResults(
+              environment,
+              abstractValueStrategy,
+              closedWorld.elementMap.programEnv.mainComponent,
+              closedWorldAndIndices);
+    }
+    return globalTypeInferenceResults;
+  }
+
+  bool get shouldStopAfterGlobalTypeInference =>
+      options.writeDataUri != null || stopAfterGlobalTypeInferenceForTesting;
+
+  CodegenInputs initializeCodegen(
+      GlobalTypeInferenceResults globalTypeInferenceResults) {
+    backendStrategy
+        .registerJClosedWorld(globalTypeInferenceResults.closedWorld);
+    phase = PHASE_COMPILING;
+    return backendStrategy.onCodegenStart(globalTypeInferenceResults);
+  }
+
+  Future<CodegenResults> produceCodegenResults(
+      GlobalTypeInferenceResults globalTypeInferenceResults,
+      DataSourceIndices indices) async {
+    CodegenInputs codegenInputs = initializeCodegen(globalTypeInferenceResults);
+    CodegenResults codegenResults;
+    if (options.readCodegenUri == null) {
+      codegenResults = OnDemandCodegenResults(globalTypeInferenceResults,
+          codegenInputs, backendStrategy.functionCompiler);
+      if (options.writeCodegenUri != null) {
+        serializationTask.serializeCodegen(
+            backendStrategy, codegenResults, indices);
+      }
+    } else {
+      codegenResults = await serializationTask.deserializeCodegen(
+          backendStrategy, globalTypeInferenceResults, codegenInputs, indices);
+    }
+    return codegenResults;
+  }
+
+  bool get shouldStopAfterCodegen => options.writeCodegenUri != null;
+
+  void runSequentialPhases() async {
+    await selfTask.measureSubtask("compileFromKernel", () async {
+      // Load kernel and compute closed world.
+      ClosedWorldAndIndices closedWorldAndIndices = await produceClosedWorld();
+      if (shouldStopAfterClosedWorld(closedWorldAndIndices)) return;
+
+      // Run global analysis.
+      GlobalTypeInferenceResults globalTypeInferenceResults =
+          await produceGlobalTypeInferenceResults(closedWorldAndIndices);
+      if (shouldStopAfterGlobalTypeInference) return;
+
+      // Run codegen.
+      CodegenResults codegenResults = await produceCodegenResults(
+          globalTypeInferenceResults, closedWorldAndIndices.indices);
+      if (shouldStopAfterCodegen) return;
+
+      // Link.
+      runCodegenEnqueuer(codegenResults);
     });
   }
 

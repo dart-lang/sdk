@@ -232,8 +232,9 @@ final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilder(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(null, 0, null, '', null, -1, fileUri: dummyUri);
-final TypeVariableBuilder dummyTypeVariableBuilder =
-    new TypeVariableBuilder(TypeVariableBuilder.noNameSentinel, null, -1, null);
+final TypeVariableBuilder dummyTypeVariableBuilder = new TypeVariableBuilder(
+    TypeVariableBuilder.noNameSentinel, null, -1, null,
+    kind: TypeVariableKind.function);
 final Label dummyLabel = new Label('', -1);
 final FieldInfo dummyFieldInfo = new FieldInfo('', -1, null, dummyToken, -1);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');

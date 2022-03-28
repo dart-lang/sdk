@@ -6,8 +6,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
-import '../mocks.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -16,17 +15,16 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisSignatureTest extends AbstractAnalysisTest {
+class AnalysisSignatureTest extends PubPackageAnalysisServerTest {
   Future<Response> prepareRawSignature(String search) {
     var offset = findOffset(search);
     return prepareRawSignatureAt(offset);
   }
 
   Future<Response> prepareRawSignatureAt(int offset, {String? file}) async {
-    await waitForTasksFinished();
-    var request =
-        AnalysisGetSignatureParams(file ?? testFile, offset).toRequest('0');
-    return waitResponse(request);
+    var request = AnalysisGetSignatureParams(file ?? testFile.path, offset)
+        .toRequest('0');
+    return handleRequest(request);
   }
 
   Future<AnalysisGetSignatureResult> prepareSignature(String search) {
@@ -43,11 +41,11 @@ class AnalysisSignatureTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_constructor() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass constructor doc
@@ -70,7 +68,7 @@ main() {
   }
 
   Future<void> test_constructor_factory() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass private constructor doc
@@ -97,7 +95,7 @@ main() {
   }
 
   Future<void> test_constructor_named() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass.foo constructor doc
@@ -120,7 +118,7 @@ main() {
   }
 
   Future<void> test_does_not_walk_up_over_closure() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 one(String name, int length) {}
 main() {
   one("Danny", () {
@@ -128,38 +126,47 @@ main() {
   });
 }
 ''');
-    var result = await prepareRawSignature('/*^*/');
-    var error = result.error!;
-    expect(error.code, equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
+    var response = await prepareRawSignature('/*^*/');
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION,
+    );
   }
 
   Future<void> test_error_file_not_analyzed() async {
-    var result = await prepareRawSignatureAt(0,
+    var response = await prepareRawSignatureAt(0,
         file: convertPath('/not/in/project.dart'));
-    var error = result.error!;
+    var error = response.error!;
     expect(error.code, equals(RequestErrorCode.GET_SIGNATURE_INVALID_FILE));
   }
 
   Future<void> test_error_function_unknown() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 someFunc(/*^*/);
 ''');
-    var result = await prepareRawSignature('/*^*/');
-    var error = result.error!;
-    expect(error.code, equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
+    var response = await prepareRawSignature('/*^*/');
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION,
+    );
   }
 
   Future<void> test_error_offset_invalid() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 a() {}
 ''');
-    var result = await prepareRawSignatureAt(1000);
-    var error = result.error!;
-    expect(error.code, equals(RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET));
+    var response = await prepareRawSignatureAt(1000);
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET,
+    );
   }
 
   Future<void> test_function_expression() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// f doc
 int Function(String) f(String s) => (int i) => int.parse(s) + i;
 main() {
@@ -177,14 +184,14 @@ main() {
   }
 
   Future<void> test_function_from_other_file() async {
-    newFile2('/project/bin/other.dart', '''
+    newFile2('$testPackageLibPath/other.dart', '''
 /// one doc
 one(String name, int length) {}
 main() {
   one("Danny", /*^*/);
 }
 ''');
-    addTestFile('''
+    newFile2(testFilePath, '''
 import 'other.dart';
 main() {
   one("Danny", /*^*/);
@@ -205,7 +212,7 @@ main() {
   }
 
   Future<void> test_function_irrelevant_parens() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// one doc
 one(String name, int length) {}
 main() {
@@ -227,7 +234,7 @@ main() {
   }
 
   Future<void> test_function_named() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// one doc
 one(String name, {int length}) {}
 main() {
@@ -247,7 +254,7 @@ main() {
   }
 
   Future<void> test_function_named_with_default_int() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// one doc
 one(String name, {int length = 1}) {}
 main() {
@@ -269,7 +276,7 @@ main() {
   }
 
   Future<void> test_function_named_with_default_string() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// one doc
 one(String name, {String email = "a@b.c"}) {}
 main() {
@@ -292,7 +299,7 @@ main() {
 
   Future<void> test_function_nested_call_inner() async {
     // eg. foo(bar(1, 2));
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// one doc
 one(String one) {}
 /// two doc
@@ -313,7 +320,7 @@ main() {
 
   Future<void> test_function_nested_call_outer() async {
     // eg. foo(bar(1, 2));
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// one doc
 one(String one) {}
 /// two doc
@@ -333,7 +340,7 @@ main() {
   }
 
   Future<void> test_function_no_dart_doc() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 one(String name, int length) {}
 main() {
   one("Danny", /*^*/);
@@ -354,7 +361,7 @@ main() {
   }
 
   Future<void> test_function_optional() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// one doc
 one(String name, [int length]) {}
 main() {
@@ -376,7 +383,7 @@ main() {
   }
 
   Future<void> test_function_optional_with_default() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// one doc
 one(String name, [int length = 11]) {}
 main() {
@@ -398,7 +405,7 @@ main() {
   }
 
   Future<void> test_function_required() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// one doc
 one(String name, int length) {}
 main() {
@@ -420,7 +427,7 @@ main() {
   }
 
   Future<void> test_function_zero_arguments() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// one doc
 one() {}
 main() {
@@ -435,10 +442,11 @@ main() {
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = AnalysisGetSignatureParams('test.dart', 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -446,15 +454,16 @@ main() {
     var request =
         AnalysisGetSignatureParams(convertPath('/foo/../bar/test.dart'), 0)
             .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
   Future<void> test_method_instance() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass constructor doc
@@ -480,7 +489,7 @@ main() {
   }
 
   Future<void> test_method_static() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass constructor doc

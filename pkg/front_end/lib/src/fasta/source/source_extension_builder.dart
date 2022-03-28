@@ -321,14 +321,10 @@ class ExtensionTypeShowHideClauseBuilder {
       required this.hiddenOperators});
 
   void buildAndStoreTypes(Extension extension, LibraryBuilder libraryBuilder) {
-    List<Supertype> builtShownSupertypes = shownSupertypes
-        .map(
-            (t) => t.buildSupertype(libraryBuilder, t.charOffset!, t.fileUri!)!)
-        .toList();
-    List<Supertype> builtHiddenSupertypes = hiddenSupertypes
-        .map(
-            (t) => t.buildSupertype(libraryBuilder, t.charOffset!, t.fileUri!)!)
-        .toList();
+    List<Supertype> builtShownSupertypes =
+        shownSupertypes.map((t) => t.buildSupertype(libraryBuilder)!).toList();
+    List<Supertype> builtHiddenSupertypes =
+        hiddenSupertypes.map((t) => t.buildSupertype(libraryBuilder)!).toList();
     ExtensionTypeShowHideClause showHideClause =
         extension.showHideClause ?? new ExtensionTypeShowHideClause();
     showHideClause.shownSupertypes.addAll(builtShownSupertypes);

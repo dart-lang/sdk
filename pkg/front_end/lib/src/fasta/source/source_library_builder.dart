@@ -1517,7 +1517,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (NamedTypeBuilder namedType in unresolvedNamedTypes) {
       namedType.resolveIn(
           scope, namedType.charOffset!, namedType.fileUri!, this);
-      namedType.check(this, namedType.charOffset!, namedType.fileUri!);
     }
     unresolvedNamedTypes.clear();
     return typeCount;
@@ -1539,19 +1538,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         Class cls = declaration.cls;
         if (cls != objectClass) {
           cls.supertype ??= objectClass.asRawSupertype;
-          declaration.supertypeBuilder ??= new NamedTypeBuilder(
-              "Object",
-              const NullabilityBuilder.omitted(),
-              /* arguments = */ null,
-              /* fileUri = */ null,
-              /* charOffset = */ null,
-              instanceTypeVariableAccess:
-                  InstanceTypeVariableAccessState.Unexpected)
-            ..bind(objectClassBuilder);
+          declaration.supertypeBuilder ??=
+              new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                  objectClassBuilder, const NullabilityBuilder.omitted(),
+                  instanceTypeVariableAccess:
+                      InstanceTypeVariableAccessState.Unexpected);
         }
         if (declaration.isMixinApplication) {
-          cls.mixedInType = declaration.mixedInTypeBuilder!.buildMixedInType(
-              this, declaration.charOffset, declaration.fileUri);
+          cls.mixedInType =
+              declaration.mixedInTypeBuilder!.buildMixedInType(this);
         }
       }
     }
@@ -1661,11 +1656,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     //addBuilder("Null", new NullTypeBuilder(const NullType(), this, -1), -1);
   }
 
-  TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments, int charOffset,
+  NamedTypeBuilder addNamedType(
+      Object name,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      int charOffset,
       {required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
     return registerUnresolvedNamedType(new NamedTypeBuilder(
-        name, nullabilityBuilder, arguments, fileUri, charOffset,
+        name, nullabilityBuilder,
+        arguments: arguments,
+        fileUri: fileUri,
+        charOffset: charOffset,
         instanceTypeVariableAccess: instanceTypeVariableAccess));
   }
 
@@ -1679,7 +1680,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return addNamedType(
         "void", const NullabilityBuilder.inherent(), null, charOffset,
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
-      ..bind(
+      ..bind(this,
           new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset));
   }
 
@@ -1957,7 +1958,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (TypeVariableBuilder tv in typeVariables) {
       TypeVariableBuilder? existing = typeVariablesByName[tv.name];
       if (existing != null) {
-        if (existing.isExtensionTypeParameter) {
+        if (existing.kind == TypeVariableKind.extensionSynthesized) {
           // The type parameter from the extension is shadowed by the type
           // parameter from the member. Rename the shadowed type parameter.
           existing.parameter.name = '#${existing.name}';
@@ -2316,7 +2317,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 "mixin application");
 
             applicationTypeVariables = copyTypeVariables(
-                typeVariables!, currentTypeParameterScopeBuilder);
+                typeVariables!, currentTypeParameterScopeBuilder,
+                kind: TypeVariableKind.extensionSynthesized);
 
             List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
             if (supertype is NamedTypeBuilder && supertype.arguments != null) {
@@ -2344,16 +2346,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
             applicationTypeArguments = <TypeBuilder>[];
             for (TypeVariableBuilder typeVariable in typeVariables) {
-              applicationTypeArguments.add(addNamedType(typeVariable.name,
-                  const NullabilityBuilder.omitted(), null, charOffset,
-                  instanceTypeVariableAccess:
-                      InstanceTypeVariableAccessState.Allowed)
-                ..bind(
-                    // The type variable types passed as arguments to the
-                    // generic class representing the anonymous mixin
-                    // application should refer back to the type variables of
-                    // the class that extend the anonymous mixin application.
-                    typeVariable));
+              applicationTypeArguments.add(
+                  new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                      // The type variable types passed as arguments to the
+                      // generic class representing the anonymous mixin
+                      // application should refer back to the type variables of
+                      // the class that extend the anonymous mixin application.
+                      typeVariable,
+                      const NullabilityBuilder.omitted(),
+                      fileUri: fileUri,
+                      charOffset: charOffset,
+                      instanceTypeVariableAccess:
+                          InstanceTypeVariableAccessState.Allowed));
             }
           }
         }
@@ -2750,7 +2754,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       String? nativeMethodName,
       AsyncMarker asyncModifier) {
-    TypeBuilder returnType = addNamedType(
+    NamedTypeBuilder returnType = addNamedType(
         currentTypeParameterScopeBuilder.parent!.name,
         const NullabilityBuilder.omitted(),
         <TypeBuilder>[],
@@ -2760,10 +2764,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         TypeParameterScopeKind.extensionDeclaration) {
       // Make the synthesized return type invalid for extensions.
       String name = currentTypeParameterScopeBuilder.parent!.name;
-      returnType.bind(new InvalidTypeDeclarationBuilder(
-          name,
-          messageExtensionDeclaresConstructor.withLocation(
-              fileUri, charOffset, name.length)));
+      returnType.bind(
+          this,
+          new InvalidTypeDeclarationBuilder(
+              name,
+              messageExtensionDeclaresConstructor.withLocation(
+                  fileUri, charOffset, name.length)));
     }
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     TypeParameterScopeBuilder factoryDeclaration = endNestedDeclaration(
@@ -2811,7 +2817,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           copyTypeVariables(
               currentTypeParameterScopeBuilder.typeVariables ??
                   const <TypeVariableBuilder>[],
-              factoryDeclaration),
+              factoryDeclaration,
+              kind: TypeVariableKind.function),
           formals,
           this,
           startCharOffset,
@@ -2832,7 +2839,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           copyTypeVariables(
               currentTypeParameterScopeBuilder.typeVariables ??
                   const <TypeVariableBuilder>[],
-              factoryDeclaration),
+              factoryDeclaration,
+              kind: TypeVariableKind.function),
           formals,
           this,
           startCharOffset,
@@ -3030,10 +3038,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   TypeVariableBuilder addTypeVariable(List<MetadataBuilder>? metadata,
-      String name, TypeBuilder? bound, int charOffset, Uri fileUri) {
+      String name, TypeBuilder? bound, int charOffset, Uri fileUri,
+      {required TypeVariableKind kind}) {
     TypeVariableBuilder builder = new TypeVariableBuilder(
         name, this, charOffset, fileUri,
-        bound: bound, metadata: metadata);
+        bound: bound, metadata: metadata, kind: kind);
 
     unboundTypeVariables.add(builder);
     return builder;
@@ -3402,14 +3411,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// [TypeParameter] are prefix with '#' to indicate that their synthesized.
   List<TypeVariableBuilder> copyTypeVariables(
       List<TypeVariableBuilder> original, TypeParameterScopeBuilder declaration,
-      {bool isExtensionTypeParameter: false}) {
+      {required TypeVariableKind kind}) {
     List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
     List<TypeVariableBuilder> copy = <TypeVariableBuilder>[];
     for (TypeVariableBuilder variable in original) {
       TypeVariableBuilder newVariable = new TypeVariableBuilder(
           variable.name, this, variable.charOffset, variable.fileUri,
           bound: variable.bound?.clone(newTypes, this, declaration),
-          isExtensionTypeParameter: isExtensionTypeParameter,
+          kind: kind,
           variableVariance:
               variable.parameter.isLegacyCovariant ? null : variable.variance);
       copy.add(newVariable);
@@ -5234,11 +5243,14 @@ class TypeParameterScopeBuilder {
             namedTypeBuilder.charOffset!,
             nameOrQualified.endCharOffset - namedTypeBuilder.charOffset!,
             namedTypeBuilder.fileUri!);
-        namedTypeBuilder.bind(namedTypeBuilder
-            .buildInvalidTypeDeclarationBuilder(message.withLocation(
-                namedTypeBuilder.fileUri!,
-                namedTypeBuilder.charOffset!,
-                nameOrQualified.endCharOffset - namedTypeBuilder.charOffset!)));
+        namedTypeBuilder.bind(
+            library,
+            namedTypeBuilder.buildInvalidTypeDeclarationBuilder(
+                message.withLocation(
+                    namedTypeBuilder.fileUri!,
+                    namedTypeBuilder.charOffset!,
+                    nameOrQualified.endCharOffset -
+                        namedTypeBuilder.charOffset!)));
       } else {
         scope ??= toScope(null).withTypeVariables(typeVariables);
         namedTypeBuilder.resolveIn(scope, namedTypeBuilder.charOffset!,

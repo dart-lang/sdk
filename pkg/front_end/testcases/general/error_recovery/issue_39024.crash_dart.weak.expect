@@ -36,8 +36,4 @@ library /*isNonNullableByDefault*/;
 // n<S e(
 // ^
 //
-// pkg/front_end/testcases/general/error_recovery/issue_39024.crash_dart:1:1: Error: Expected 0 type arguments.
-// n<S e(
-// ^
-//
 import self as self;

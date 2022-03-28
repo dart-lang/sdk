@@ -39,14 +39,14 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.15.1",
+  "sdk_tag": "version:2.16.2",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "74ba459aecc908d5db91531f020a3f74e9aa1b4d",
+  "co19_rev": "7baaec7cf49188b92ceed2af98beb1caf8939756",
   # This line prevents conflicts when both packages are rolled simultaneously.
-  "co19_2_rev": "995745937abffe9fc3a6441f9f0db27b2d706e4c",
+  "co19_2_rev": "b2034a17609472e374623f3dbe0efd9f5cb258af",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "076df10d9b77af337f2d8029725787155eb1cd52",
@@ -77,7 +77,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_rev": "3b3f55766af13d895d2020ec001a28e8dc147f91",
-  "async_rev": "80886150a5e6c58006c8ae5a6c2aa7108638e2a9",
+  "async_rev": "b18c73e981ca5f533fdc19a5b5c9db0aaf21eccf",
   "bazel_worker_rev": "ceeba0982d4ff40d32371c9d35f3d2dc1868de20",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "437e7f06c7e416bed91e16ae1df453555897e945",
@@ -124,7 +124,7 @@ vars = {
   "intl_tag": "9669926609e7efc17dfd74fbb44ec719a7e573cc", # 0.17.0-nullsafety
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
-  "linter_tag": "582986b8b029f6730a5591621ce05eab39e56f4c", # 1.21.2
+  "linter_tag": "14c916a16e78315e212cf79e7ccf4c19159a1bda", # 1.22.0
   "lints_tag": "8294e5648ab49474541527e2911e72e4c5aefe55", #2.0.0
   "logging_rev": "dfbe88b890c3b4f7bc06da5a7b3b43e9e263b688",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",

@@ -333,9 +333,11 @@ severity: $severity
     return library!.lookupLocalMember(cls.name, required: true) as ClassBuilder;
   }
 
+  late TypeBuilderComputer _typeBuilderComputer = new TypeBuilderComputer(this);
+
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
-    return type.accept(new TypeBuilderComputer(this));
+    return type.accept(_typeBuilderComputer);
   }
 
   bool containsLibraryBuilder(Uri importUri) =>

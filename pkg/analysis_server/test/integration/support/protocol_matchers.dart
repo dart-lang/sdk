@@ -2314,6 +2314,22 @@ final Matcher isEditBulkFixesResult = LazyMatcher(() => MatchesJsonObject(
     'edit.bulkFixes result',
     {'edits': isListOf(isSourceFileEdit), 'details': isListOf(isBulkFix)}));
 
+/// edit.formatIfEnabled params
+///
+/// {
+///   "directories": List<FilePath>
+/// }
+final Matcher isEditFormatIfEnabledParams = LazyMatcher(() => MatchesJsonObject(
+    'edit.formatIfEnabled params', {'directories': isListOf(isFilePath)}));
+
+/// edit.formatIfEnabled result
+///
+/// {
+///   "edits": List<SourceFileEdit>
+/// }
+final Matcher isEditFormatIfEnabledResult = LazyMatcher(() => MatchesJsonObject(
+    'edit.formatIfEnabled result', {'edits': isListOf(isSourceFileEdit)}));
+
 /// edit.format params
 ///
 /// {
