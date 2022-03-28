@@ -2809,6 +2809,9 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
       : super(field, parent);
 
   @override
+  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+
+  @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,

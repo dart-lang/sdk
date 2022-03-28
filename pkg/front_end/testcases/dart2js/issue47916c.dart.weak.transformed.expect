@@ -1,0 +1,39 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  static factory •() → self::A
+    return self::B::•();
+  static method _#new#tearOff() → self::A
+    return new self::C::•<core::int>();
+}
+abstract class B extends core::Object implements self::A {
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
+  static factory •() → self::B
+    return new self::C::•<core::int>();
+  static method _#new#tearOff() → self::B
+    return new self::C::•<core::int>();
+}
+class C<T extends core::Object? = dynamic> extends core::Object implements self::B /*hasConstConstructor*/  {
+  const constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::T%>
+    return new self::C::•<self::C::_#new#tearOff::T%>();
+}
+static method main() → dynamic {
+  #C3;
+  #C4;
+  #C6;
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::•
+  #C2 = constructor-tearoff self::B::•
+  #C3 = static-tearoff self::A::_#new#tearOff
+  #C4 = static-tearoff self::B::_#new#tearOff
+  #C5 = static-tearoff self::C::_#new#tearOff
+  #C6 = instantiation #C5 <core::String*>
+}
