@@ -64,7 +64,6 @@ import 'tighten_type_of_initializing_formals_test.dart'
     as tighten_type_of_initializing_formals;
 import 'type_init_formals_test.dart' as type_init_formals;
 import 'unawaited_futures_test.dart' as unawaited_futures;
-import 'unnecessary_getters_setters_test.dart' as unnecessary_getters_setters;
 import 'unnecessary_null_checks_test.dart' as unnecessary_null_checks;
 import 'unnecessary_overrides_test.dart' as unnecessary_overrides;
 import 'use_enums_test.dart' as use_enums;
@@ -115,7 +114,6 @@ void main() {
   tighten_type_of_initializing_formals.main();
   type_init_formals.main();
   unawaited_futures.main();
-  unnecessary_getters_setters.main();
   unnecessary_null_checks.main();
   unnecessary_overrides.main();
   use_enums.main();

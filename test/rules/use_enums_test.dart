@@ -332,7 +332,7 @@ _E e = _E.withValue(0);
   }
 
   test_simple_hasPart() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
 ''');
     await assertDiagnostics(r'''

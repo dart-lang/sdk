@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final LintRule rule;
 
-  LineInfo? _lineInfo;
+  late LineInfo _lineInfo;
 
   _Visitor(this.rule);
 
@@ -148,8 +148,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isSameLine(Token token1, Token token2) =>
-      _lineInfo!.getLocation(token1.offset).lineNumber ==
-      _lineInfo!.getLocation(token2.offset).lineNumber;
+      _lineInfo.getLocation(token1.offset).lineNumber ==
+      _lineInfo.getLocation(token2.offset).lineNumber;
 
   bool _shouldAllowTrailingCommaException(AstNode lastNode) {
     // No exceptions are allowed if the last parameter is named.

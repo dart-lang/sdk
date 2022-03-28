@@ -102,9 +102,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     var offsetFirstStatement =
         node is Block ? node.statements.first.offset : node.offset;
     var lineInfo = unit.lineInfo;
-    if (lineInfo == null) {
-      return;
-    }
     if (lineInfo.getLocation(controlEnd).lineNumber ==
         lineInfo.getLocation(offsetFirstStatement).lineNumber) {
       rule.reportLintForToken(node.beginToken);

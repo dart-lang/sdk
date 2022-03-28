@@ -176,9 +176,6 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     var lineInfo = node.lineInfo;
-    if (lineInfo == null) {
-      return;
-    }
     var lineCount = lineInfo.lineCount;
     var longLines = <_LineInfo>[];
     for (var i = 0; i < lineCount; i++) {

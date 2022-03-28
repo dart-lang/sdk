@@ -97,9 +97,8 @@ class _Visitor extends SimpleAstVisitor {
 
       var unit = node.root as CompilationUnit;
       var lineInfo = unit.lineInfo;
-      if (lineInfo != null &&
-          lineInfo.getLocation(node.rightParenthesis.end).lineNumber !=
-              lineInfo.getLocation(node.thenStatement.end).lineNumber) {
+      if (lineInfo.getLocation(node.rightParenthesis.end).lineNumber !=
+          lineInfo.getLocation(node.thenStatement.end).lineNumber) {
         rule.reportLint(node.thenStatement);
       }
     } else {

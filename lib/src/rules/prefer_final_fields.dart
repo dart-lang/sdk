@@ -164,6 +164,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.parent is EnumDeclaration) return;
+
     var fields = node.fields;
     if (fields.isFinal || fields.isConst) {
       return;

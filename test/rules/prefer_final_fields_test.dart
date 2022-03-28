@@ -30,7 +30,8 @@ enum A {
   int get x => _x;
 }
 ''', [
-      lint('prefer_final_fields', 24, 6),
+      // No Lint.
+      error(CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM, 24, 2),
     ]);
   }
 }
