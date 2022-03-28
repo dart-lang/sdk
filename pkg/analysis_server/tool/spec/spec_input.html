@@ -2272,6 +2272,41 @@
       </field>
     </result>
   </request>
+  <request method="formatIfEnabled" experimental="true">
+    <p>
+      Format the contents of the files in one or more directories, but only if
+      the analysis options file for those files has enabled the 'format' option.
+    </p>
+    <p>
+      If any of the specified directories does not exist, that directory will be
+      ignored. If any of the files that are eligible for being formatted cannot
+      be formatted because of a syntax error in the file, that file will be
+      ignored.
+    </p>
+    <params>
+      <field name="directories">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The paths of the directories containing the code to be formatted.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="edits">
+        <list>
+          <ref>SourceFileEdit</ref>
+        </list>
+        <p>
+          The edit(s) to be applied in order to format the code. The list will
+          be empty if none of the files were formatted, whether because they
+          were not eligible to be formatted or because they were already
+          formatted.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="getAssists">
     <p>
       Return the set of assists that are available at the given

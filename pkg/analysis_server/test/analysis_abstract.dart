@@ -212,7 +212,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   /// Returns a [Future] that completes when the server's analysis is complete.
-  Future waitForTasksFinished() {
+  Future<void> waitForTasksFinished() {
     return server.onAnalysisComplete;
   }
 

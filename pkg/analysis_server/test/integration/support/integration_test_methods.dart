@@ -1610,6 +1610,36 @@ abstract class IntegrationTestMixin {
     return EditFormatResult.fromJson(decoder, 'result', result);
   }
 
+  /// Format the contents of the files in one or more directories, but only if
+  /// the analysis options file for those files has enabled the 'format'
+  /// option.
+  ///
+  /// If any of the specified directories does not exist, that directory will
+  /// be ignored. If any of the files that are eligible for being formatted
+  /// cannot be formatted because of a syntax error in the file, that file will
+  /// be ignored.
+  ///
+  /// Parameters
+  ///
+  /// directories: List<FilePath>
+  ///
+  ///   The paths of the directories containing the code to be formatted.
+  ///
+  /// Returns
+  ///
+  /// edits: List<SourceFileEdit>
+  ///
+  ///   The edit(s) to be applied in order to format the code. The list will be
+  ///   empty if none of the files were formatted, whether because they were
+  ///   not eligible to be formatted or because they were already formatted.
+  Future<EditFormatIfEnabledResult> sendEditFormatIfEnabled(
+      List<String> directories) async {
+    var params = EditFormatIfEnabledParams(directories).toJson();
+    var result = await server.send('edit.formatIfEnabled', params);
+    var decoder = ResponseDecoder(null);
+    return EditFormatIfEnabledResult.fromJson(decoder, 'result', result);
+  }
+
   /// Return the set of assists that are available at the given location. An
   /// assist is distinguished from a refactoring primarily by the fact that it
   /// affects a single file and does not require user input in order to be
