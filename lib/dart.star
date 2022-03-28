@@ -294,19 +294,9 @@ def _ci_sandbox_builder(name, channels = _CHANNELS, **kwargs):
         **kwargs
     )
 
-def _infra_builder(name, notifies = "infra", triggered_by = None, **kwargs):
-    _ci_builder(
-        name,
-        notifies = notifies,
-        triggered_by = triggered_by,
-        **kwargs
-    )
-    luci.list_view_entry(list_view = "infra", builder = name)
-
 dart = struct(
     ci_builder = _ci_builder,
     ci_sandbox_builder = _ci_sandbox_builder,
-    infra_builder = _infra_builder,
     try_builder = _try_builder,
     poller = _poller,
     channels = _CHANNELS,

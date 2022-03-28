@@ -122,11 +122,6 @@ luci.console_view(
     refs = ["refs/heads/main"],
 )
 
-luci.list_view(
-    name = "infra",
-    title = "Infra Console",
-)
-
 # Put the SDK category first on the consoles
 def sdk_builder_category():
     for channel, console in [
@@ -647,5 +642,3 @@ luci.list_view_entry(
     builder = "iso-stress-linux",
     list_view = "iso-stress",
 )
-
-exec("//recipes.star")
