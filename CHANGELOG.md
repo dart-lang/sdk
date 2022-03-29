@@ -137,6 +137,17 @@ Updated the Linter to `1.22.0`, which includes changes that
 - updates `unnecessary_late` to report on variable names.
 - marks `null_check_on_nullable_type_parameter` stable.
 
+#### Dartdoc
+
+Updated dartdoc to 5.1.0, which includes changes that
+
+- support the enhanced enums feature
+- remove superfluous `[...]` links
+- fix `categoryOrder` option
+- display categorized extensions
+- add annotations to extensions
+- make minor improvements to performance
+
 ## 2.16.2 - 2022-03-24
 
 This is a patch release that fixes a dart2js crash when building some Flutter

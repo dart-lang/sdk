@@ -77,7 +77,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_rev": "3b3f55766af13d895d2020ec001a28e8dc147f91",
-  "async_rev": "b18c73e981ca5f533fdc19a5b5c9db0aaf21eccf",
+  "async_rev": "80886150a5e6c58006c8ae5a6c2aa7108638e2a9",
   "bazel_worker_rev": "ceeba0982d4ff40d32371c9d35f3d2dc1868de20",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "437e7f06c7e416bed91e16ae1df453555897e945",
@@ -109,7 +109,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_rev": "d7b73536a8079331c888b7da539b80e6825270ea",
 
-  "dartdoc_rev" : "a39f378f8100b907e6285ac825967d764fd664ad",
+  "dartdoc_rev" : "334072b0cad436c05f6bcecf8a1a59f2f0809b84",
   "devtools_rev" : "65c40d3f6b3dd03411cb8f4b0c0b1ecaa9148f26",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
   "fixnum_rev": "848341f061359ef7ddc0cad472c2ecbb036b28ac",
