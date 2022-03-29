@@ -15,6 +15,8 @@ import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show LibraryInfo;
 import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
+import 'package:compiler/src/options.dart' as dart2jsOptions
+    show CompilerOptions;
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show
@@ -1742,7 +1744,9 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
       target = new TestTargetWrapper(new NoneTarget(targetFlags), targetFlags);
       break;
     case "dart2js":
-      target = new TestDart2jsTarget('dart2js', targetFlags);
+      target = new TestDart2jsTarget('dart2js', targetFlags,
+          options: dart2jsOptions.CompilerOptions.parse(
+              folderOptions.defines?.values.toList() ?? []));
       break;
     case "dartdevc":
       target = new TestDevCompilerTarget(targetFlags);
@@ -2214,7 +2218,9 @@ class TestDart2jsTarget extends Dart2jsTarget with TestTarget, TestTargetMixin {
   @override
   final TestTargetFlags flags;
 
-  TestDart2jsTarget(String name, this.flags) : super(name, flags);
+  TestDart2jsTarget(String name, this.flags,
+      {dart2jsOptions.CompilerOptions? options})
+      : super(name, flags, options: options);
 }
 
 class TestDevCompilerTarget extends DevCompilerTarget
