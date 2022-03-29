@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // ignore_for_file: always_declare_return_types
 // ignore_for_file: avoid_returning_null_for_void
 // ignore_for_file: omit_local_variable_types
@@ -22,7 +20,7 @@ class TemplateManager {
 
   TemplateManager();
 
-  Template lookupExpressionTemplate(String source) {
+  Template? lookupExpressionTemplate(String source) {
     return expressionTemplates[source];
   }
 
@@ -33,7 +31,7 @@ class TemplateManager {
     return template;
   }
 
-  Template lookupStatementTemplate(String source) {
+  Template? lookupStatementTemplate(String source) {
     return statementTemplates[source];
   }
 
@@ -51,63 +49,71 @@ class TemplateManager {
 /// The [instantiate] method creates an AST that looks like the original with
 /// the placeholders replaced by the arguments to [instantiate].
 class Template {
-  final String source;
+  final String? source;
   final bool isExpression;
   final bool forceCopy;
   final Node ast;
-
-  Instantiator instantiator;
-
+  final Instantiator instantiator;
   int positionalArgumentCount = -1;
 
   // Null, unless there are named holes.
   List<String> holeNames;
-  bool get isPositional => holeNames == null;
+  bool get isPositional => holeNames.isEmpty;
 
-  Template(this.source, this.ast,
-      {this.isExpression = true, this.forceCopy = false}) {
-    _compile();
+  Template._(this.source, this.ast,
+      {required this.instantiator,
+      required this.isExpression,
+      required this.forceCopy,
+      required this.positionalArgumentCount,
+      this.holeNames = const []});
+
+  factory Template(String? source, Node ast,
+      {bool isExpression = true, bool forceCopy = false}) {
+    assert(isExpression ? ast is Expression : ast is Statement);
+
+    final generator = InstantiatorGeneratorVisitor(forceCopy);
+    final instantiator = generator.compile(ast);
+    final positionalArgumentCount = generator.analysis.count;
+    final names = generator.analysis.holeNames;
+    final holeNames = names.toList(growable: false);
+
+    return Template._(source, ast,
+        instantiator: instantiator,
+        isExpression: isExpression,
+        forceCopy: forceCopy,
+        positionalArgumentCount: positionalArgumentCount,
+        holeNames: holeNames);
   }
 
-  Template.withExpressionResult(this.ast)
-      : source = null,
-        isExpression = true,
-        forceCopy = false {
-    assert(ast is Expression);
-    assert(_checkNoPlaceholders());
-    positionalArgumentCount = 0;
-    instantiator = (arguments) => ast;
+  factory Template.withExpressionResult(Expression ast) {
+    assert(_checkNoPlaceholders(ast));
+    return Template._(null, ast,
+        instantiator: (arguments) => ast,
+        isExpression: true,
+        forceCopy: false,
+        positionalArgumentCount: 0);
   }
 
-  Template.withStatementResult(this.ast)
-      : source = null,
-        isExpression = false,
-        forceCopy = false {
-    assert(ast is Statement);
-    assert(_checkNoPlaceholders());
-    positionalArgumentCount = 0;
-    instantiator = (arguments) => ast;
+  factory Template.withStatementResult(Statement ast) {
+    assert(_checkNoPlaceholders(ast));
+    return Template._(null, ast,
+        instantiator: (arguments) => ast,
+        isExpression: true,
+        forceCopy: false,
+        positionalArgumentCount: 0);
   }
 
-  bool _checkNoPlaceholders() {
+  static bool _checkNoPlaceholders(Node ast) {
     var generator = InstantiatorGeneratorVisitor(false);
     generator.compile(ast);
     return generator.analysis.count == 0;
-  }
-
-  void _compile() {
-    var generator = InstantiatorGeneratorVisitor(forceCopy);
-    instantiator = generator.compile(ast);
-    positionalArgumentCount = generator.analysis.count;
-    Set<String> names = generator.analysis.holeNames;
-    holeNames = names.toList(growable: false);
   }
 
   /// Instantiates the template with the given [arguments].
   ///
   /// This method fills in the holes with the given arguments. The [arguments]
   /// must be either a [List] or a [Map].
-  Node instantiate(var arguments) {
+  Node instantiate(Object arguments) {
     if (arguments is List) {
       if (arguments.length != positionalArgumentCount) {
         throw 'Wrong number of template arguments, given ${arguments.length}, '
@@ -167,7 +173,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return same<T>(node);
   }
 
-  Instantiator visitNullable<T extends Node>(T node) {
+  Instantiator visitNullable<T extends Node>(T? node) {
     return node == null ? makeNull : visit(node);
   }
 
@@ -420,7 +426,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var makeUpdate = visitNullable(node.update) as Instantiator<Expression>;
     var makeBody = visit(node.body) as Instantiator<Statement>;
     return (a) => For(makeInit(a), makeCondition(a),
-        makeUpdate(a)?.toVoidExpression(), makeBody(a));
+        makeUpdate(a).toVoidExpression(), makeBody(a));
   }
 
   @override
@@ -463,7 +469,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<Statement> visitReturn(Return node) {
     if (node.value == null) return (args) => Return();
-    var makeExpression = visit(node.value) as Instantiator<Expression>;
+    var makeExpression = visit(node.value!) as Instantiator<Expression>;
     return (a) => makeExpression(a).toReturn();
   }
 
@@ -482,8 +488,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<Try> visitTry(Try node) {
     var makeBody = visit(node.body) as Instantiator<Block>;
-    var makeCatch = visitNullable(node.catchPart) as Instantiator<Catch>;
-    var makeFinally = visitNullable(node.finallyPart) as Instantiator<Block>;
+    var makeCatch = visitNullable(node.catchPart) as Instantiator<Catch?>;
+    var makeFinally = visitNullable(node.finallyPart) as Instantiator<Block?>;
     return (a) => Try(makeBody(a), makeCatch(a), makeFinally(a));
   }
 
@@ -551,8 +557,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<Expression> visitAssignment(Assignment node) {
     Instantiator makeLeftHandSide = visit(node.leftHandSide);
-    String op = node.op;
-    Instantiator makeValue = visitNullable(node.value);
+    String? op = node.op;
+    Instantiator makeValue = visit(node.value);
     return (arguments) {
       return makeValue(arguments)
           .toAssignExpression(makeLeftHandSide(arguments), op) as Expression;
@@ -564,7 +570,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       VariableInitialization node) {
     var makeDeclaration =
         visit(node.declaration) as Instantiator<VariableBinding>;
-    var makeValue = visitNullable(node.value) as Instantiator<Expression>;
+    var makeValue = visitNullable(node.value) as Instantiator<Expression?>;
     return (a) => VariableInitialization(makeDeclaration(a), makeValue(a));
   }
 
@@ -741,7 +747,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator<ClassExpression> visitClassExpression(ClassExpression node) {
     var makeMethods = node.methods.map(visitSplayableExpression).toList();
     var makeName = visit(node.name) as Instantiator<Identifier>;
-    var makeHeritage = visit(node.heritage) as Instantiator<Expression>;
+    var makeHeritage =
+        visitNullable(node.heritage) as Instantiator<Expression?>;
 
     return (a) => ClassExpression(
         makeName(a), makeHeritage(a), splayNodes(makeMethods, a));
@@ -793,12 +800,13 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<DestructuredVariable> visitDestructuredVariable(
       DestructuredVariable node) {
-    var makeName = visitNullable(node.name) as Instantiator<Identifier>;
-    var makeProperty = visitNullable(node.property) as Instantiator<Expression>;
+    var makeName = visit(node.name) as Instantiator<Identifier>;
+    var makeProperty =
+        visitNullable(node.property) as Instantiator<Expression?>;
     var makeStructure =
-        visitNullable(node.structure) as Instantiator<BindingPattern>;
+        visitNullable(node.structure) as Instantiator<BindingPattern?>;
     var makeDefaultValue =
-        visitNullable(node.defaultValue) as Instantiator<Expression>;
+        visitNullable(node.defaultValue) as Instantiator<Expression?>;
     return (a) => DestructuredVariable(
         name: makeName(a),
         property: makeProperty(a),

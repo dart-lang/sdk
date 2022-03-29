@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // ignore_for_file: always_declare_return_types
 // ignore_for_file: library_prefixes
 // ignore_for_file: non_constant_identifier_names
@@ -144,7 +142,7 @@ TemplateManager templateManager = TemplateManager();
 /// blocks to be appended.
 ///
 ///     var b1 = js.statement('{ 1; 2; }');
-///     var sEmpty = new Emptystatement();
+///     var sEmpty = new EmptyStatement();
 ///     js.statement('{ #; #; #; #; }', [sEmpty, b1, b1, sEmpty])
 ///     -->
 ///     { 1; 2; 1; 2; }
@@ -212,7 +210,7 @@ class JsBuilder {
   /// [arguments] can be a single [Node] (e.g. an [Expression] or [Statement])
   /// or a list of [Node]s, which will be interpolated into the source at the
   /// '#' signs.
-  Expression call(String source, [arguments]) {
+  Expression call(String source, [Object? arguments]) {
     Template template = _findExpressionTemplate(source);
     if (arguments == null) return template.instantiate([]) as Expression;
     // We allow a single argument to be given directly.
@@ -221,7 +219,7 @@ class JsBuilder {
   }
 
   /// Parses a JavaScript Statement, otherwise just like [call].
-  Statement statement(String source, [arguments]) {
+  Statement statement(String source, [Object? arguments]) {
     Template template = _findStatementTemplate(source);
     if (arguments == null) return template.instantiate([]) as Statement;
     // We allow a single argument to be given directly.
@@ -249,7 +247,7 @@ class JsBuilder {
   }
 
   Template _findExpressionTemplate(String source) {
-    Template template = templateManager.lookupExpressionTemplate(source);
+    Template? template = templateManager.lookupExpressionTemplate(source);
     if (template == null) {
       MiniJsParser parser = MiniJsParser(source);
       Expression expression = parser.expression();
@@ -259,7 +257,7 @@ class JsBuilder {
   }
 
   Template _findStatementTemplate(String source) {
-    Template template = templateManager.lookupStatementTemplate(source);
+    Template? template = templateManager.lookupStatementTemplate(source);
     if (template == null) {
       MiniJsParser parser = MiniJsParser(source);
       Statement statement = parser.statement();
@@ -285,11 +283,11 @@ class JsBuilder {
   /// Create an Expression template which has [ast] as the result. This is used
   /// to wrap a generated AST in a zero-argument Template so it can be passed to
   /// context that expects a template.
-  Template expressionTemplateYielding(Node ast) {
+  Template expressionTemplateYielding(Expression ast) {
     return Template.withExpressionResult(ast);
   }
 
-  Template statementTemplateYielding(Node ast) {
+  Template statementTemplateYielding(Statement ast) {
     return Template.withStatementResult(ast);
   }
 
@@ -330,7 +328,7 @@ class JsBuilder {
     var sb = new StringBuffer();
 
     for (int rune in value.runes) {
-      String escape = _irregularEscape(rune, quote);
+      final escape = _irregularEscape(rune, quote);
       if (escape != null) {
         sb.write(escape);
         continue;
@@ -359,7 +357,7 @@ class JsBuilder {
 
   static bool _isUnpairedSurrogate(int code) => (code & 0xFFFFF800) == 0xD800;
 
-  static String _irregularEscape(int code, String quote) {
+  static String? _irregularEscape(int code, String quote) {
     switch (code) {
       case charCodes.$SQ:
         return quote == "'" ? r"\'" : "'";
@@ -789,8 +787,8 @@ class MiniJsParser {
         if (lastToken == ARROW_TOKEN) {
           lastCategory = ARROW;
         } else {
-          int binaryPrecendence = BINARY_PRECEDENCE[lastToken];
-          if (binaryPrecendence == null &&
+          int? binaryPrecedence = BINARY_PRECEDENCE[lastToken];
+          if (binaryPrecedence == null &&
               !UNARY_OPERATORS.contains(lastToken)) {
             error("Unknown operator");
           }
@@ -841,12 +839,12 @@ class MiniJsParser {
     return false;
   }
 
-  void error(String message) {
+  Never error(String message) {
     throw MiniJsParserError(this, message);
   }
 
   /// Returns either the name for the hole, or its integer position.
-  parseHash() {
+  Object parseHash() {
     String holeName = lastToken;
     if (acceptCategory(ALPHA)) {
       // Named hole. Example: 'function #funName() { ... }'
@@ -905,7 +903,7 @@ class MiniJsParser {
         expectCategory(COMMA);
       }
       return ArrayInitializer(values);
-    } else if (last != null && last.startsWith("/")) {
+    } else if (last.startsWith("/")) {
       String regexp = getDelimited(lastPosition);
       getToken();
       String flags = lastToken;
@@ -916,7 +914,6 @@ class MiniJsParser {
       return parseInterpolatedExpression();
     } else {
       error("Expected primary expression");
-      return null;
     }
   }
 
@@ -1201,27 +1198,29 @@ class MiniJsParser {
 
   Expression parseBinary(int maxPrecedence) {
     Expression lhs = parseUnaryLow();
-    int minPrecedence;
-    String lastSymbol;
-    Expression rhs; // This is null first time around.
+    Expression? rhs; // This is null first time around.
+    late int minPrecedence;
+    late String lastSymbol;
+
     while (true) {
-      String symbol = lastToken;
-      if (lastCategory != SYMBOL ||
-          !BINARY_PRECEDENCE.containsKey(symbol) ||
-          BINARY_PRECEDENCE[symbol] > maxPrecedence) {
-        break;
-      }
+      final symbol = lastToken;
+      if (lastCategory != SYMBOL) break;
+      final symbolPrecedence = BINARY_PRECEDENCE[symbol];
+      if (symbolPrecedence == null) break;
+      if (symbolPrecedence > maxPrecedence) break;
+
       expectCategory(SYMBOL);
-      if (rhs == null || BINARY_PRECEDENCE[symbol] >= minPrecedence) {
+      if (rhs == null || symbolPrecedence >= minPrecedence) {
         if (rhs != null) lhs = Binary(lastSymbol, lhs, rhs);
-        minPrecedence = BINARY_PRECEDENCE[symbol];
+        minPrecedence = symbolPrecedence;
         rhs = parseUnaryLow();
         lastSymbol = symbol;
       } else {
-        Expression higher = parseBinary(BINARY_PRECEDENCE[symbol]);
+        Expression higher = parseBinary(symbolPrecedence);
         rhs = Binary(symbol, rhs, higher);
       }
     }
+
     if (rhs == null) return lhs;
     return Binary(lastSymbol, lhs, rhs);
   }
@@ -1265,7 +1264,7 @@ class MiniJsParser {
 
   /// Parse a variable declaration list, with `var` or `let` [keyword].
   VariableDeclarationList parseVariableDeclarationList(String keyword,
-      [String firstIdentifier]) {
+      [String? firstIdentifier]) {
     var initialization = <VariableInitialization>[];
 
     do {
@@ -1294,7 +1293,6 @@ class MiniJsParser {
         return parseBindingPattern();
       default:
         error('Unexpected token $lastToken: ${categoryToString(lastCategory)}');
-        return null;
     }
   }
 
@@ -1316,9 +1314,9 @@ class MiniJsParser {
   ArrayBindingPattern parseArrayBindingPattern() {
     var variables = <DestructuredVariable>[];
     do {
-      Identifier name;
-      BindingPattern structure;
-      Expression defaultValue;
+      late Identifier name;
+      BindingPattern? structure;
+      Expression? defaultValue;
 
       var declarator = parseVariableBinding();
       if (declarator is Identifier) {
@@ -1344,8 +1342,8 @@ class MiniJsParser {
     var variables = <DestructuredVariable>[];
     do {
       var name = parseIdentifier();
-      BindingPattern structure;
-      Expression defaultValue;
+      BindingPattern? structure;
+      Expression? defaultValue;
 
       if (acceptCategory(COLON)) {
         structure = parseBindingPattern();
@@ -1370,7 +1368,7 @@ class MiniJsParser {
   }
 
   /// Accepts a `var` or `let` keyword. If neither is found, returns null.
-  String acceptVarLetOrConst() {
+  String? acceptVarLetOrConst() {
     if (acceptString('var')) return 'var';
     if (acceptString('let')) return 'let';
     if (acceptString('const')) return 'const';
@@ -1507,7 +1505,7 @@ class MiniJsParser {
     return Throw(expression);
   }
 
-  Statement parseBreakOrContinue(Statement Function(String) constructor) {
+  Statement parseBreakOrContinue(Statement Function(String?) constructor) {
     var identifier = lastToken;
     if (!skippedNewline && acceptCategory(ALPHA)) {
       expectSemicolon();
@@ -1542,13 +1540,13 @@ class MiniJsParser {
     //
     //     for (let variable of Expression) Statement
     //
-    Statement finishFor(Expression init) {
-      Expression condition;
+    Statement finishFor(Expression? init) {
+      Expression? condition;
       if (!acceptCategory(SEMICOLON)) {
         condition = parseExpression();
         expectCategory(SEMICOLON);
       }
-      Expression update;
+      Expression? update;
       if (!acceptCategory(RPAREN)) {
         update = parseExpression();
         expectCategory(RPAREN);
@@ -1606,9 +1604,9 @@ class MiniJsParser {
   Statement parseTry() {
     expectCategory(LBRACE);
     Block body = parseBlock();
-    Catch catchPart;
+    Catch? catchPart;
     if (acceptString('catch')) catchPart = parseCatch();
-    Block finallyPart;
+    Block? finallyPart;
     if (acceptString('finally')) {
       expectCategory(LBRACE);
       finallyPart = parseBlock();
@@ -1619,7 +1617,7 @@ class MiniJsParser {
   }
 
   SwitchClause parseSwitchClause() {
-    Expression expression;
+    Expression? expression;
     if (acceptString('case')) {
       expression = parseExpression();
       expectCategory(COLON);
@@ -1684,7 +1682,7 @@ class MiniJsParser {
 
   ClassExpression parseClass() {
     Identifier name = parseIdentifier();
-    Expression heritage;
+    Expression? heritage;
     if (acceptString('extends')) {
       heritage = parseConditional();
     }
@@ -1711,7 +1709,7 @@ class MiniJsParser {
 
     bool isGetter = lastToken == 'get';
     bool isSetter = lastToken == 'set';
-    Expression name;
+    Expression? name;
     if (isGetter || isSetter) {
       var token = lastToken;
       getToken();
@@ -1758,7 +1756,6 @@ class MiniJsParser {
       return parseInterpolatedExpression();
     } else {
       error('Expected property name');
-      return null;
     }
   }
 }
