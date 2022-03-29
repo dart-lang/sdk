@@ -1,0 +1,9 @@
+// @dart = 2.15
+class A {
+  int field;
+  A(this.field);
+}
+class B extends A {
+  B(super.field);
+}
+main() {}

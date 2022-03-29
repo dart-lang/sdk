@@ -2268,10 +2268,8 @@ class OutlineBuilder extends StackListenerImpl {
     if (superKeyword != null &&
         !libraryBuilder.enableSuperParametersInLibrary) {
       addProblem(
-          templateExperimentNotEnabled.withArguments(
-              'super-parameters',
-              libraryBuilder.enableConstructorTearOffsVersionInLibrary
-                  .toText()),
+          templateExperimentNotEnabled.withArguments('super-parameters',
+              libraryBuilder.enableSuperParametersVersionInLibrary.toText()),
           superKeyword.charOffset,
           superKeyword.length);
     }
