@@ -46,6 +46,20 @@ void f(x) {
 ''');
   }
 
+  Future<void> test_mixinOnDirective() async {
+    addSource('$testPackageLibPath/lib.dart', '''
+mixin M {}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+void f(M m) {}
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show M;
+void f(M m) {}
+''');
+  }
+
   Future<void> test_onDirective() async {
     await resolveTestCode('''
 import 'dart:math';
@@ -101,6 +115,20 @@ import 'a.dart' show setter;
 void f() {
   setter = 42;
 }
+''');
+  }
+
+  Future<void> test_typedefOnDirective() async {
+    addSource('$testPackageLibPath/lib.dart', '''
+typedef Cb = void Function();
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+void f(Cb cb) {}
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show Cb;
+void f(Cb cb) {}
 ''');
   }
 
