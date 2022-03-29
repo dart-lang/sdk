@@ -126,11 +126,6 @@ class AstTestFactory {
           TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "await"),
           expression);
 
-  static BinaryExpressionImpl binaryExpression(Expression leftOperand,
-          TokenType operator, Expression rightOperand) =>
-      astFactory.binaryExpression(
-          leftOperand, TokenFactory.tokenFromType(operator), rightOperand);
-
   static BlockImpl block([List<Statement> statements = const []]) =>
       astFactory.block(
           TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),

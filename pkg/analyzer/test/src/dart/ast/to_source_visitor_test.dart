@@ -93,20 +93,23 @@ class ToSourceVisitorTest {
   }
 
   void test_visitBinaryExpression() {
+    var findNode = _parseStringToFindNode(r'''
+var v = a + b;
+''');
     _assertSource(
-        "a + b",
-        AstTestFactory.binaryExpression(AstTestFactory.identifier3("a"),
-            TokenType.PLUS, AstTestFactory.identifier3("b")));
+      'a + b',
+      findNode.binary('a + b'),
+    );
   }
 
   void test_visitBinaryExpression_precedence() {
-    var a = AstTestFactory.identifier3('a');
-    var b = AstTestFactory.identifier3('b');
-    var c = AstTestFactory.identifier3('c');
+    var findNode = _parseStringToFindNode(r'''
+var v = a * (b + c);
+''');
     _assertSource(
-        'a * (b + c)',
-        AstTestFactory.binaryExpression(a, TokenType.STAR,
-            AstTestFactory.binaryExpression(b, TokenType.PLUS, c)));
+      'a * (b + c)',
+      findNode.binary('a *'),
+    );
   }
 
   void test_visitBlock_empty() {
@@ -2787,12 +2790,13 @@ import 'foo.dart'
   }
 
   void test_visitPrefixExpression_precedence() {
-    var a = AstTestFactory.identifier3('a');
-    var b = AstTestFactory.identifier3('b');
+    var findNode = _parseStringToFindNode(r'''
+var v = !(a == b);
+''');
     _assertSource(
-        '!(a == b)',
-        AstTestFactory.prefixExpression(TokenType.BANG,
-            AstTestFactory.binaryExpression(a, TokenType.EQ_EQ, b)));
+      '!(a == b)',
+      findNode.prefix('!'),
+    );
   }
 
   void test_visitPropertyAccess() {

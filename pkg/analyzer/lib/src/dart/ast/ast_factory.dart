@@ -93,11 +93,15 @@ class AstFactoryImpl extends AstFactory {
           Token awaitKeyword, Expression expression) =>
       AwaitExpressionImpl(awaitKeyword, expression as ExpressionImpl);
 
+  @Deprecated('Use the constructor instead.')
   @override
   BinaryExpressionImpl binaryExpression(
           Expression leftOperand, Token operator, Expression rightOperand) =>
-      BinaryExpressionImpl(leftOperand as ExpressionImpl, operator,
-          rightOperand as ExpressionImpl);
+      BinaryExpressionImpl(
+        leftOperand: leftOperand as ExpressionImpl,
+        operator: operator,
+        rightOperand: rightOperand as ExpressionImpl,
+      );
 
   @override
   BlockImpl block(

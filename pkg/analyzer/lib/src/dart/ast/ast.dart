@@ -924,9 +924,14 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   FunctionType? staticInvokeType;
 
   /// Initialize a newly created binary expression.
-  BinaryExpressionImpl(this._leftOperand, this.operator, this._rightOperand) {
-    _becomeParentOf(_leftOperand);
-    _becomeParentOf(_rightOperand);
+  BinaryExpressionImpl({
+    required ExpressionImpl leftOperand,
+    required this.operator,
+    required ExpressionImpl rightOperand,
+  })  : _leftOperand = leftOperand,
+        _rightOperand = rightOperand {
+    _becomeParentOf(leftOperand);
+    _becomeParentOf(rightOperand);
   }
 
   @override

@@ -1696,10 +1696,10 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitBinaryExpression(covariant BinaryExpressionImpl node) {
     if (identical(node.leftOperand, _oldNode)) {
-      node.leftOperand = _newNode as Expression;
+      node.leftOperand = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.rightOperand, _oldNode)) {
-      node.rightOperand = _newNode as Expression;
+      node.rightOperand = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);

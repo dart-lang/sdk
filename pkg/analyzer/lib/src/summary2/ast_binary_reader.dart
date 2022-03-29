@@ -270,13 +270,13 @@ class AstBinaryReader {
   }
 
   BinaryExpression _readBinaryExpression() {
-    var leftOperand = readNode() as Expression;
-    var rightOperand = readNode() as Expression;
+    var leftOperand = readNode() as ExpressionImpl;
+    var rightOperand = readNode() as ExpressionImpl;
     var operatorType = UnlinkedTokenType.values[_readByte()];
-    var node = astFactory.binaryExpression(
-      leftOperand,
-      Tokens.fromType(operatorType),
-      rightOperand,
+    var node = BinaryExpressionImpl(
+      leftOperand: leftOperand,
+      operator: Tokens.fromType(operatorType),
+      rightOperand: rightOperand,
     );
     node.staticElement = _reader.readElement() as MethodElement?;
     node.staticInvokeType = _reader.readOptionalFunctionType();
