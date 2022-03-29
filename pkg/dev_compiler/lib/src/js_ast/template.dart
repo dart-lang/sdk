@@ -774,9 +774,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (a) => Await(makeExpr(a));
   }
 
-  // Note: these are not supported yet in the interpolation grammar.
-  @override
-  Instantiator visitModule(Module node) => throw UnimplementedError();
   @override
   Instantiator visitNameSpecifier(NameSpecifier node) =>
       throw UnimplementedError();

@@ -60,23 +60,7 @@ import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show
-        ArgumentListImpl,
-        ClassDeclarationImpl,
-        CompilationUnitImpl,
-        ConstructorNameImpl,
-        ConstructorSelectorImpl,
-        EnumConstantArgumentsImpl,
-        EnumConstantDeclarationImpl,
-        EnumDeclarationImpl,
-        ExtensionDeclarationImpl,
-        ImportDirectiveImpl,
-        MethodInvocationImpl,
-        MixinDeclarationImpl,
-        SimpleIdentifierImpl,
-        TypeArgumentListImpl,
-        TypeParameterImpl;
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -739,10 +723,16 @@ class AstBuilder extends StackListener {
         identical("?..", operatorToken.stringValue)) {
       doDotExpression(operatorToken);
     } else {
-      var right = pop() as Expression;
-      var left = pop() as Expression;
+      var right = pop() as ExpressionImpl;
+      var left = pop() as ExpressionImpl;
       reportErrorIfSuper(right);
-      push(ast.binaryExpression(left, operatorToken, right));
+      push(
+        BinaryExpressionImpl(
+          leftOperand: left,
+          operator: operatorToken,
+          rightOperand: right,
+        ),
+      );
       if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
         var feature = ExperimentalFeatures.triple_shift;
         handleRecoverableError(

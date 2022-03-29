@@ -114,16 +114,8 @@
     "Dynamic access of 'name'.": 1,
     "Dynamic invocation of '-'.": 1
   },
-  "pkg/js_ast/lib/src/builder.dart": {
-    "Dynamic invocation of 'call'.": 2
-  },
   "pkg/js_ast/lib/src/template.dart": {
-    "Dynamic access of 'keys'.": 1,
-    "Dynamic access of 'length'.": 1,
     "Dynamic invocation of '[]'.": 9,
-    "Dynamic invocation of 'containsKey'.": 2,
-    "Dynamic invocation of 'join'.": 1,
-    "Dynamic invocation of 'toStatement'.": 3,
-    "Dynamic invocation of 'where'.": 1
+    "Dynamic invocation of 'toStatement'.": 1
   }
 }

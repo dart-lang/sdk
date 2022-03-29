@@ -129,7 +129,7 @@ void RunNativeFinalizerCallback(NativeFinalizerPtr raw_finalizer,
                       raw_finalizer->untag(), callback, peer);
     }
     raw_entry.untag()->set_token(raw_entry);
-    callback(peer);
+    (*callback)(peer);
     if (external_size > 0) {
       if (FLAG_trace_finalizers) {
         TRACE_FINALIZER("Clearing external size %" Pd " bytes in %s space",
