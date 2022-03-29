@@ -222,7 +222,6 @@
           "_internal/vm/lib/ffi_patch.dart",
           "_internal/vm/lib/ffi_allocation_patch.dart",
           "_internal/vm/lib/ffi_dynamic_library_patch.dart",
-          "_internal/vm/lib/ffi_native_finalizer_patch.dart",
           "_internal/vm/lib/ffi_native_type_patch.dart",
           "_internal/vm/lib/ffi_struct_patch.dart"
         ]

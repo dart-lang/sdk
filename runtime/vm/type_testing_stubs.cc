@@ -573,15 +573,15 @@ static void CommentSkippedClasses(compiler::Assembler* assembler,
 // type. Falls through or jumps to check_succeeded if the range contains the
 // cid, else jumps to check_failed.
 //
-// Clobbers class_id_reg.
-void TypeTestingStubGenerator::BuildOptimizedSubtypeRangeCheck(
+// Returns whether class_id_reg is clobbered.
+bool TypeTestingStubGenerator::BuildOptimizedSubtypeRangeCheck(
     compiler::Assembler* assembler,
     const CidRangeVector& ranges,
     Register class_id_reg,
     compiler::Label* check_succeeded,
     compiler::Label* check_failed) {
   CommentCheckedClasses(assembler, ranges);
-  FlowGraphCompiler::GenerateCidRangesCheck(
+  return FlowGraphCompiler::GenerateCidRangesCheck(
       assembler, class_id_reg, ranges, check_succeeded, check_failed, true);
 }
 
@@ -897,13 +897,31 @@ bool TypeTestingStubGenerator::BuildLoadInstanceTypeArguments(
   CidRangeVector cid_checks_only, type_argument_checks, not_checked;
   SplitOnTypeArgumentTests(hi, type, type_class, ranges, &cid_checks_only,
                            &type_argument_checks, &not_checked);
+  ASSERT(!CidRangeVectorUtils::ContainsCid(type_argument_checks, kSmiCid));
+  const bool smi_valid =
+      CidRangeVectorUtils::ContainsCid(cid_checks_only, kSmiCid);
+  // If we'll generate any cid checks and Smi isn't a valid subtype, then
+  // do a single Smi check here, since each generated check requires a fresh
+  // load of the class id. Otherwise, we'll generate the Smi check as part of
+  // the cid checks only block.
+  if (!smi_valid &&
+      (!cid_checks_only.is_empty() || !type_argument_checks.is_empty())) {
+    __ BranchIfSmi(TypeTestABI::kInstanceReg, load_failed);
+  }
+  // Ensure that if the cid checks only block is skipped, the first iteration
+  // of the type arguments check will generate a cid load.
+  bool cid_needs_reload = true;
   if (!cid_checks_only.is_empty()) {
     compiler::Label is_subtype, keep_looking;
     compiler::Label* check_failed =
         type_argument_checks.is_empty() ? load_failed : &keep_looking;
-    __ LoadClassIdMayBeSmi(class_id_reg, TypeTestABI::kInstanceReg);
-    BuildOptimizedSubtypeRangeCheck(assembler, cid_checks_only, class_id_reg,
-                                    &is_subtype, check_failed);
+    if (smi_valid) {
+      __ LoadClassIdMayBeSmi(class_id_reg, TypeTestABI::kInstanceReg);
+    } else {
+      __ LoadClassId(class_id_reg, TypeTestABI::kInstanceReg);
+    }
+    cid_needs_reload = BuildOptimizedSubtypeRangeCheck(
+        assembler, cid_checks_only, class_id_reg, &is_subtype, check_failed);
     __ Bind(&is_subtype);
     __ Ret();
     __ Bind(&keep_looking);
@@ -929,9 +947,11 @@ bool TypeTestingStubGenerator::BuildLoadInstanceTypeArguments(
       // and avoid emitting a jump to load_succeeded.
       compiler::Label* check_failed =
           i < vectors.length() - 1 ? &keep_looking : load_failed;
-      __ LoadClassIdMayBeSmi(class_id_reg, TypeTestABI::kInstanceReg);
-      BuildOptimizedSubtypeRangeCheck(assembler, *vector, class_id_reg,
-                                      &load_tav, check_failed);
+      if (cid_needs_reload) {
+        __ LoadClassId(class_id_reg, TypeTestABI::kInstanceReg);
+      }
+      cid_needs_reload = BuildOptimizedSubtypeRangeCheck(
+          assembler, *vector, class_id_reg, &load_tav, check_failed);
       __ Bind(&load_tav);
       __ LoadCompressedFieldFromOffset(instance_type_args_reg,
                                        TypeTestABI::kInstanceReg, tav_offset);

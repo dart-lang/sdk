@@ -534,7 +534,7 @@ class A {}
 
     // The `package:test` uses the class `A` from the `package:aaa`.
     // So it sees the declaration the element `A`.
-    newFile2('$testFilePath', '''
+    newFile2(testFilePath, '''
 import 'package:aaa/a.dart';
 class B extends A {}
 ''');

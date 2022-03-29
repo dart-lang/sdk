@@ -59,7 +59,7 @@ void f() {
     check(details)
       ..completion.isEqualTo('Random')
       ..change
-          .hasFileEdit(testFilePathPlatform)
+          .hasFileEdit(testFile.path)
           .appliedTo(testFileContent)
           .isEqualTo(r'''
 import 'dart:math';
@@ -97,7 +97,7 @@ void f() {
     check(details)
       ..completion.isEqualTo('Test')
       ..change
-          .hasFileEdit(testFilePathPlatform)
+          .hasFileEdit(testFile.path)
           .appliedTo(testFileContent)
           .isEqualTo(r'''
 import 'package:aaa/a.dart';
@@ -123,7 +123,7 @@ void f() {
     check(details)
       ..completion.isEqualTo('Test')
       ..change
-          .hasFileEdit(testFilePathPlatform)
+          .hasFileEdit(testFile.path)
           .appliedTo(testFileContent)
           .isEqualTo(r'''
 import 'package:test/a.dart';
@@ -138,7 +138,7 @@ void f() {
     await _configureWithWorkspaceRoot();
 
     var request = CompletionGetSuggestionDetails2Params(
-            testFilePathPlatform, 0, 'Random', '[foo]:bar')
+            testFile.path, 0, 'Random', '[foo]:bar')
         .toRequest('0');
 
     var response = await handleRequest(request);
@@ -281,7 +281,7 @@ class CompletionDomainHandlerGetSuggestions2Test
     // Simulate typing in the IDE.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: AddContentOverlay('void f() {}'),
+        testFile.path: AddContentOverlay('void f() {}'),
       }).toRequest('1'),
     );
 
@@ -1975,7 +1975,7 @@ void f() {
 
   RequestWithFutureResponse _sendTestCompletionRequest(String id, int offset) {
     var request = CompletionGetSuggestions2Params(
-      testFilePathPlatform,
+      testFile.path,
       0,
       1 << 10,
     ).toRequest(id);

@@ -85,7 +85,7 @@ main() {
       var error = errors[0];
       expect(error.severity, AnalysisErrorSeverity.ERROR);
       expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
-      expect(error.location.file, testFilePathPlatform);
+      expect(error.location.file, testFile.path);
       expect(error.location.startLine, 2);
     }
   }

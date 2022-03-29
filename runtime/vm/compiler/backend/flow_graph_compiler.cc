@@ -2453,7 +2453,7 @@ bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
   return false;
 }
 
-void FlowGraphCompiler::GenerateCidRangesCheck(
+bool FlowGraphCompiler::GenerateCidRangesCheck(
     compiler::Assembler* assembler,
     Register class_id_reg,
     const CidRangeVector& cid_ranges,
@@ -2467,7 +2467,7 @@ void FlowGraphCompiler::GenerateCidRangesCheck(
     if (fall_through_if_inside) {
       assembler->Jump(outside_range_lbl);
     }
-    return;
+    return false;
   }
 
   int bias = 0;
@@ -2484,6 +2484,27 @@ void FlowGraphCompiler::GenerateCidRangesCheck(
     bias = EmitTestAndCallCheckCid(assembler, jump_label, class_id_reg, range,
                                    bias, jump_on_miss);
   }
+  return bias != 0;
+}
+
+int FlowGraphCompiler::EmitTestAndCallCheckCid(compiler::Assembler* assembler,
+                                               compiler::Label* label,
+                                               Register class_id_reg,
+                                               const CidRangeValue& range,
+                                               int bias,
+                                               bool jump_on_miss) {
+  const intptr_t cid_start = range.cid_start;
+  if (range.IsSingleCid()) {
+    assembler->CompareImmediate(class_id_reg, cid_start - bias);
+    assembler->BranchIf(jump_on_miss ? NOT_EQUAL : EQUAL, label);
+  } else {
+    assembler->AddImmediate(class_id_reg, bias - cid_start);
+    bias = cid_start;
+    assembler->CompareImmediate(class_id_reg, range.Extent());
+    assembler->BranchIf(jump_on_miss ? UNSIGNED_GREATER : UNSIGNED_LESS_EQUAL,
+                        label);
+  }
+  return bias;
 }
 
 bool FlowGraphCompiler::CheckAssertAssignableTypeTestingABILocations(
