@@ -201,7 +201,9 @@ struct CidRange : public ZoneAllocated {
   CidRange() : cid_start(kIllegalCid), cid_end(kIllegalCid) {}
 
   bool IsSingleCid() const { return cid_start == cid_end; }
-  bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
+  bool Contains(intptr_t cid) const {
+    return cid_start <= cid && cid <= cid_end;
+  }
   int32_t Extent() const { return cid_end - cid_start; }
 
   // The number of class ids this range covers.
@@ -224,7 +226,9 @@ struct CidRangeValue {
       : cid_start(other.cid_start), cid_end(other.cid_end) {}
 
   bool IsSingleCid() const { return cid_start == cid_end; }
-  bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
+  bool Contains(intptr_t cid) const {
+    return cid_start <= cid && cid <= cid_end;
+  }
   int32_t Extent() const { return cid_end - cid_start; }
 
   // The number of class ids this range covers.
@@ -243,6 +247,18 @@ struct CidRangeValue {
 };
 
 typedef MallocGrowableArray<CidRangeValue> CidRangeVector;
+
+class CidRangeVectorUtils : public AllStatic {
+ public:
+  static bool ContainsCid(const CidRangeVector& ranges, intptr_t cid) {
+    for (const CidRangeValue& range : ranges) {
+      if (range.Contains(cid)) {
+        return true;
+      }
+    }
+    return false;
+  }
+};
 
 class HierarchyInfo : public ThreadStackResource {
  public:

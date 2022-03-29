@@ -897,11 +897,26 @@ bool TypeTestingStubGenerator::BuildLoadInstanceTypeArguments(
   CidRangeVector cid_checks_only, type_argument_checks, not_checked;
   SplitOnTypeArgumentTests(hi, type, type_class, ranges, &cid_checks_only,
                            &type_argument_checks, &not_checked);
+  ASSERT(!CidRangeVectorUtils::ContainsCid(type_argument_checks, kSmiCid));
+  const bool smi_valid =
+      CidRangeVectorUtils::ContainsCid(cid_checks_only, kSmiCid);
+  // If we'll generate any cid checks and Smi isn't a valid subtype, then
+  // do a single Smi check here, since each generated check requires a fresh
+  // load of the class id. Otherwise, we'll generate the Smi check as part of
+  // the cid checks only block.
+  if (!smi_valid &&
+      (!cid_checks_only.is_empty() || !type_argument_checks.is_empty())) {
+    __ BranchIfSmi(TypeTestABI::kInstanceReg, load_failed);
+  }
   if (!cid_checks_only.is_empty()) {
     compiler::Label is_subtype, keep_looking;
     compiler::Label* check_failed =
         type_argument_checks.is_empty() ? load_failed : &keep_looking;
-    __ LoadClassIdMayBeSmi(class_id_reg, TypeTestABI::kInstanceReg);
+    if (smi_valid) {
+      __ LoadClassIdMayBeSmi(class_id_reg, TypeTestABI::kInstanceReg);
+    } else {
+      __ LoadClassId(class_id_reg, TypeTestABI::kInstanceReg);
+    }
     BuildOptimizedSubtypeRangeCheck(assembler, cid_checks_only, class_id_reg,
                                     &is_subtype, check_failed);
     __ Bind(&is_subtype);
@@ -929,7 +944,7 @@ bool TypeTestingStubGenerator::BuildLoadInstanceTypeArguments(
       // and avoid emitting a jump to load_succeeded.
       compiler::Label* check_failed =
           i < vectors.length() - 1 ? &keep_looking : load_failed;
-      __ LoadClassIdMayBeSmi(class_id_reg, TypeTestABI::kInstanceReg);
+      __ LoadClassId(class_id_reg, TypeTestABI::kInstanceReg);
       BuildOptimizedSubtypeRangeCheck(assembler, *vector, class_id_reg,
                                       &load_tav, check_failed);
       __ Bind(&load_tav);
