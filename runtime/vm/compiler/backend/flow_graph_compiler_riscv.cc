@@ -771,36 +771,6 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
   __ LoadClassId(class_id_reg, A0);
 }
 
-#undef __
-#define __ assembler->
-
-int FlowGraphCompiler::EmitTestAndCallCheckCid(compiler::Assembler* assembler,
-                                               compiler::Label* label,
-                                               Register class_id_reg,
-                                               const CidRangeValue& range,
-                                               int bias,
-                                               bool jump_on_miss) {
-  const intptr_t cid_start = range.cid_start;
-  if (range.IsSingleCid()) {
-    __ AddImmediate(class_id_reg, class_id_reg, bias - cid_start);
-    if (jump_on_miss) {
-      __ bnez(class_id_reg, label);
-    } else {
-      __ beqz(class_id_reg, label);
-    }
-    bias = cid_start;
-  } else {
-    __ AddImmediate(class_id_reg, class_id_reg, bias - cid_start);
-    bias = cid_start;
-    __ CompareImmediate(class_id_reg, range.Extent());
-    __ BranchIf(jump_on_miss ? UNSIGNED_GREATER : UNSIGNED_LESS_EQUAL, label);
-  }
-  return bias;
-}
-
-#undef __
-#define __ assembler()->
-
 void FlowGraphCompiler::EmitMove(Location destination,
                                  Location source,
                                  TemporaryRegisterAllocator* allocator) {
