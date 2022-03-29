@@ -65,10 +65,10 @@ class Either2<T1, T2> {
   final T1? _t1;
   final T2? _t2;
 
-  Either2.t1(T1 this._t1)
+  const Either2.t1(T1 this._t1)
       : _t2 = null,
         _which = 1;
-  Either2.t2(T2 this._t2)
+  const Either2.t2(T2 this._t2)
       : _t1 = null,
         _which = 2;
 

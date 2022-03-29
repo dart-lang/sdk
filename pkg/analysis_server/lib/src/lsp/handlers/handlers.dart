@@ -44,6 +44,9 @@ mixin Handler<P, R> {
   final fileModifiedError = error<R>(ErrorCodes.ContentModified,
       'Document was modified before operation completed', null);
 
+  final serverNotInitializedError = error<R>(ErrorCodes.ServerNotInitialized,
+      'Request not valid before server is initialized');
+
   LspAnalysisServer get server;
 
   bool fileHasBeenModified(String path, num? clientVersion) {

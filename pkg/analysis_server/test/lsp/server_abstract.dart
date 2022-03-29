@@ -304,6 +304,7 @@ mixin ClientCapabilitiesHelperMixin {
           formats: [],
           tokenModifiers: [],
           tokenTypes: []).toJson(),
+      'typeDefinition': {'dynamicRegistration': true},
     });
   }
 
@@ -510,6 +511,7 @@ mixin ClientCapabilitiesHelperMixin {
   ) {
     return extendTextDocumentCapabilities(source, {
       'definition': {'linkSupport': true},
+      'typeDefinition': {'linkSupport': true},
       'implementation': {'linkSupport': true}
     });
   }
@@ -1292,6 +1294,43 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       ),
     );
     return expectSuccessfulResponseTo(request, Location.fromJson);
+  }
+
+  Future<Either2<List<Location>, List<LocationLink>>> getTypeDefinition(
+      Uri uri, Position pos) {
+    final request = makeRequest(
+      Method.textDocument_typeDefinition,
+      TypeDefinitionParams(
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+      request,
+      _generateFromJsonFor(
+          _canParseList(Location.canParse),
+          _fromJsonList(Location.fromJson),
+          _canParseList(LocationLink.canParse),
+          _fromJsonList(LocationLink.fromJson)),
+    );
+  }
+
+  Future<List<Location>> getTypeDefinitionAsLocation(
+      Uri uri, Position pos) async {
+    final results = await getTypeDefinition(uri, pos);
+    return results.map(
+      (locations) => locations,
+      (locationLinks) => throw 'Expected List<Location> got List<LocationLink>',
+    );
+  }
+
+  Future<List<LocationLink>> getTypeDefinitionAsLocationLinks(
+      Uri uri, Position pos) async {
+    final results = await getTypeDefinition(uri, pos);
+    return results.map(
+      (locations) => throw 'Expected List<LocationLink> got List<Location>',
+      (locationLinks) => locationLinks,
+    );
   }
 
   Future<List<SymbolInformation>> getWorkspaceSymbols(String query) {
