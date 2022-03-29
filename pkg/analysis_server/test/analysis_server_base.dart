@@ -102,6 +102,11 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   String get workspaceRootPath => '/home';
 
+  /// TODO(scheglov) rename
+  void addTestFile(String content) {
+    newFile2(testFilePath, content);
+  }
+
   void assertResponseFailure(
     Response response, {
     required String requestId,
@@ -125,9 +130,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
   /// Fails if not found.
   /// TODO(scheglov) Rename it.
   int findOffset(String search) {
-    var offset = testFileContent.indexOf(search);
-    expect(offset, isNot(-1));
-    return offset;
+    return offsetInFile(testFile, search);
   }
 
   Future<Response> handleRequest(Request request) async {
@@ -139,6 +142,15 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     var response = await handleRequest(request);
     expect(response, isResponseSuccess(request.id));
     return response;
+  }
+
+  /// Returns the offset of [search] in [file].
+  /// Fails if not found.
+  int offsetInFile(File file, String search) {
+    var content = file.readAsStringSync();
+    var offset = content.indexOf(search);
+    expect(offset, isNot(-1));
+    return offset;
   }
 
   void processNotification(Notification notification) {}
@@ -193,6 +205,12 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   Future<void> tearDown() async {
     await server.dispose();
+  }
+
+  /// Returns a [Future] that completes when the server's analysis is complete.
+  Future<void> waitForTasksFinished() async {
+    await pumpEventQueue(times: 1 << 10);
+    await server.onAnalysisComplete;
   }
 
   void writePackageConfig(Folder root, PackageConfigFileBuilder config) {
