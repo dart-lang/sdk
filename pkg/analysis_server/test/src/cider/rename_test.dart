@@ -359,6 +359,29 @@ void foo() {
             [CharacterLocation(2, 7), CharacterLocation(2, 22)]));
   }
 
+  void test_rename_method_imported() async {
+    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
+class A {
+  foo() {}
+}
+''');
+    await fileResolver.resolve2(path: a.path);
+    var result = await _rename(r'''
+import 'a.dart';
+void f() {
+  var a = A().^foo();
+}
+''', 'bar');
+    expect(result!.matches.length, 2);
+    expect(result.matches, [
+      CiderSearchMatch(convertPath('/workspace/dart/test/lib/a.dart'), [
+        CharacterLocation(2, 3),
+      ]),
+      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
+          [CharacterLocation(3, 15)])
+    ]);
+  }
+
   void test_rename_parameter() async {
     var result = await _rename(r'''
 void foo(String ^a) {
