@@ -169,6 +169,19 @@ main() {
         ],
         [false, false]);
   });
+
+  test('Do not revisit already-evaluated nodes', () {
+    makeGraph({
+      'a': ['b'],
+      'b': []
+    });
+    var walker = TestWalker();
+    var a = getNode('a');
+    walker.walk(a);
+    expect(walker._evaluations, hasLength(2));
+    walker.walk(a);
+    expect(walker._evaluations, hasLength(2));
+  });
 }
 
 class TestNode extends Node<TestNode> {
