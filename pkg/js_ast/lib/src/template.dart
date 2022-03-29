@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.15
+
 library js_ast.template;
 
 import 'nodes.dart';
@@ -12,7 +14,7 @@ class TemplateManager {
 
   TemplateManager();
 
-  Template lookupExpressionTemplate(String source) {
+  Template? lookupExpressionTemplate(String source) {
     return expressionTemplates[source];
   }
 
@@ -23,7 +25,7 @@ class TemplateManager {
     return template;
   }
 
-  Template lookupStatementTemplate(String source) {
+  Template? lookupStatementTemplate(String source) {
     return statementTemplates[source];
   }
 
@@ -41,66 +43,75 @@ class TemplateManager {
 /// The [instantiate] method creates an AST that looks like the original with
 /// the placeholders replaced by the arguments to [instantiate].
 class Template {
-  final String source;
+  final String? source;
   final bool isExpression;
   final bool forceCopy;
   final Node ast;
 
-  Instantiator instantiator;
+  final Instantiator instantiator;
 
-  int positionalArgumentCount = -1;
+  final int positionalArgumentCount;
 
-  // Null, unless there are named holes.
-  List<String> holeNames;
-  bool get isPositional => holeNames == null;
+  // Names of named holes, empty if there are no named holes.
+  final List<String> holeNames;
 
-  Template(this.source, this.ast,
-      {this.isExpression = true, this.forceCopy = false}) {
-    assert(this.isExpression ? ast is Expression : ast is Statement);
-    _compile();
+  bool get isPositional => holeNames.isEmpty;
+
+  Template._(this.source, this.ast,
+      {required this.instantiator,
+      required this.isExpression,
+      required this.forceCopy,
+      required this.positionalArgumentCount,
+      this.holeNames = const []});
+
+  factory Template(String? source, Node ast,
+      {bool isExpression = true, bool forceCopy = false}) {
+    assert(isExpression ? ast is Expression : ast is Statement);
+
+    final generator = InstantiatorGeneratorVisitor(forceCopy);
+    final instantiator = generator.compile(ast);
+    final positionalArgumentCount = generator.analysis.count;
+    final names = generator.analysis.holeNames;
+    final holeNames = names.toList(growable: false);
+
+    return Template._(source, ast,
+        instantiator: instantiator,
+        isExpression: isExpression,
+        forceCopy: forceCopy,
+        positionalArgumentCount: positionalArgumentCount,
+        holeNames: holeNames);
   }
 
-  Template.withExpressionResult(this.ast)
-      : source = null,
-        isExpression = true,
-        forceCopy = false {
-    assert(ast is Expression);
-    assert(_checkNoPlaceholders());
-    positionalArgumentCount = 0;
-    instantiator = (arguments) => ast;
+  factory Template.withExpressionResult(Expression ast) {
+    assert(_checkNoPlaceholders(ast));
+    return Template._(null, ast,
+        instantiator: (arguments) => ast,
+        isExpression: true,
+        forceCopy: false,
+        positionalArgumentCount: 0);
   }
 
-  Template.withStatementResult(this.ast)
-      : source = null,
-        isExpression = false,
-        forceCopy = false {
-    assert(ast is Statement);
-    assert(_checkNoPlaceholders());
-    positionalArgumentCount = 0;
-    instantiator = (arguments) => ast;
+  factory Template.withStatementResult(Statement ast) {
+    assert(_checkNoPlaceholders(ast));
+    return Template._(null, ast,
+        instantiator: (arguments) => ast,
+        isExpression: false,
+        forceCopy: false,
+        positionalArgumentCount: 0);
   }
 
-  bool _checkNoPlaceholders() {
+  static bool _checkNoPlaceholders(Node ast) {
     InstantiatorGeneratorVisitor generator =
         InstantiatorGeneratorVisitor(false);
     generator.compile(ast);
     return generator.analysis.count == 0;
   }
 
-  void _compile() {
-    InstantiatorGeneratorVisitor generator =
-        InstantiatorGeneratorVisitor(forceCopy);
-    instantiator = generator.compile(ast);
-    positionalArgumentCount = generator.analysis.count;
-    Set<String> names = generator.analysis.holeNames;
-    holeNames = names.toList(growable: false);
-  }
-
   /// Instantiates the template with the given [arguments].
   ///
   /// This method fills in the holes with the given arguments. The [arguments]
   /// must be either a [List] or a [Map].
-  Node instantiate(var arguments) {
+  Node instantiate(Object arguments) {
     if (arguments is List) {
       if (arguments.length != positionalArgumentCount) {
         throw 'Wrong number of template arguments, given ${arguments.length}, '
@@ -109,20 +120,23 @@ class Template {
       }
       return instantiator(arguments);
     }
-    assert(arguments is Map);
-    if (holeNames.length < arguments.length) {
-      // This search is in O(n), but we only do it in case of an error, and the
-      // number of holes should be quite limited.
-      String unusedNames =
-          arguments.keys.where((name) => !holeNames.contains(name)).join(", ");
-      throw "Template arguments has unused mappings: $unusedNames";
+    if (arguments is Map) {
+      if (holeNames.length < arguments.length) {
+        // This search is in O(n), but we only do it in case of an error, and the
+        // number of holes should be quite limited.
+        String unusedNames = arguments.keys
+            .where((name) => !holeNames.contains(name))
+            .join(", ");
+        throw "Template arguments has unused mappings: $unusedNames";
+      }
+      if (!holeNames.every((String name) => arguments.containsKey(name))) {
+        String notFound =
+            holeNames.where((name) => !arguments.containsKey(name)).join(", ");
+        throw "Template arguments is missing mappings for: $notFound";
+      }
+      return instantiator(arguments);
     }
-    if (!holeNames.every((String name) => arguments.containsKey(name))) {
-      String notFound =
-          holeNames.where((name) => !arguments.containsKey(name)).join(", ");
-      throw "Template arguments is missing mappings for: $notFound";
-    }
-    return instantiator(arguments);
+    throw ArgumentError.value(arguments, 'arguments', 'Must be a List or Map');
   }
 }
 
@@ -149,12 +163,12 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return result;
   }
 
-  static error(String message) {
+  static Never error(String message) {
     throw message;
   }
 
   static Instantiator same(Node node) => (arguments) => node;
-  static Node makeNull(arguments) => null;
+  static Null makeNull(arguments) => null;
 
   Instantiator visit(Node node) {
     if (forceCopy || analysis.containsInterpolatedNodes(node)) {
@@ -163,7 +177,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return same(node);
   }
 
-  Instantiator visitNullable(Node node) {
+  Instantiator visitNullable(Node? node) {
     if (node == null) return makeNull;
     return visit(node);
   }
@@ -310,21 +324,26 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     List<Instantiator> instantiators =
         node.body.map(visitSplayableStatement).toList();
     return (arguments) {
-      List<Statement> statements = [];
-      void add(node) {
-        if (node is EmptyStatement) return;
-        if (node is Iterable) {
-          statements.addAll(node);
-        } else {
-          statements.add(node.toStatement());
-        }
-      }
-
-      for (Instantiator instantiator in instantiators) {
-        add(instantiator(arguments));
-      }
-      return Program(statements);
+      return Program(splayStatements(instantiators, arguments));
     };
+  }
+
+  List<Statement> splayStatements(List<Instantiator> instantiators, arguments) {
+    var statements = <Statement>[];
+    for (var instantiator in instantiators) {
+      final node = instantiator(arguments);
+      if (node is EmptyStatement) continue;
+      if (node is Iterable) {
+        statements.addAll(node as Iterable<Statement>);
+      } else if (node is Block /*&& !node.isScope*/) {
+        statements.addAll(node.statements);
+      } else if (node is Statement) {
+        statements.add(node);
+      } else {
+        error('Not splayable as statement: $node');
+      }
+    }
+    return statements;
   }
 
   @override
@@ -332,22 +351,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     List<Instantiator> instantiators =
         node.statements.map(visitSplayableStatement).toList();
     return (arguments) {
-      List<Statement> statements = [];
-      void add(node) {
-        if (node is EmptyStatement) return;
-        if (node is Iterable) {
-          statements.addAll(node);
-        } else if (node is Block) {
-          statements.addAll(node.statements);
-        } else {
-          statements.add(node.toStatement());
-        }
-      }
-
-      for (Instantiator instantiator in instantiators) {
-        add(instantiator(arguments));
-      }
-      return Block(statements);
+      return Block(splayStatements(instantiators, arguments));
     };
   }
 
@@ -365,40 +369,35 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator visitIf(If node) {
-    if (node.condition is InterpolatedExpression) {
-      return visitIfConditionalCompilation(node);
+    final condition = node.condition;
+    if (condition is InterpolatedExpression) {
+      return visitIfConditionalCompilation(node, condition);
     } else {
       return visitIfNormal(node);
     }
   }
 
-  Instantiator visitIfConditionalCompilation(If node) {
-    // Special version of visitInterpolatedExpression that permits bools.
-    compileCondition(InterpolatedExpression node) {
-      var nameOrPosition = node.nameOrPosition;
-      return (arguments) {
-        var value = arguments[nameOrPosition];
-        if (value is bool) return value;
-        if (value is Expression) return value;
-        if (value is String) return convertStringToVariableUse(value);
-        throw error('Interpolated value #$nameOrPosition '
-            'is not an Expression: $value');
-      };
-    }
-
-    var makeCondition = compileCondition(node.condition);
+  Instantiator visitIfConditionalCompilation(
+      If node, InterpolatedExpression condition) {
+    final nameOrPosition = condition.nameOrPosition;
     Instantiator makeThen = visit(node.then);
     Instantiator makeOtherwise = visit(node.otherwise);
     return (arguments) {
-      var condition = makeCondition(arguments);
-      if (condition is bool) {
-        if (condition == true) {
-          return makeThen(arguments);
-        } else {
-          return makeOtherwise(arguments);
-        }
+      // Allow booleans to be used for conditional compilation.
+      var value = arguments[nameOrPosition];
+      if (value is bool) {
+        return value ? makeThen(arguments) : makeOtherwise(arguments);
       }
-      return If(condition, makeThen(arguments), makeOtherwise(arguments));
+      Expression newCondition;
+      if (value is Expression) {
+        newCondition = value;
+      } else if (value is String) {
+        newCondition = convertStringToVariableUse(value);
+      } else {
+        error('Interpolated value #$nameOrPosition '
+            'is not an Expression: $value');
+      }
+      return If(newCondition, makeThen(arguments), makeOtherwise(arguments));
     };
   }
 
@@ -567,8 +566,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator visitAssignment(Assignment node) {
     Instantiator makeLeftHandSide = visit(node.leftHandSide);
-    String op = node.op;
-    Instantiator makeValue = visitNullable(node.value);
+    String? op = node.op;
+    Instantiator makeValue = visit(node.value);
     return (arguments) {
       return Assignment.compound(
           makeLeftHandSide(arguments), op, makeValue(arguments));
@@ -611,15 +610,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     // copying.
     return (arguments) {
       Node target = makeTarget(arguments);
-      List<Expression> callArguments = [];
-      for (Instantiator instantiator in argumentMakers) {
-        var result = instantiator(arguments);
-        if (result is Iterable) {
-          callArguments.addAll(result);
-        } else {
-          callArguments.add(result);
-        }
-      }
+      List<Expression> callArguments = splay(argumentMakers, arguments);
       return finish(target, callArguments.toList(growable: false));
     };
   }
@@ -683,16 +674,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     Instantiator makeBody = visit(node.body);
     // TODO(sra): Avoid copying params if no interpolation or forced copying.
     return (arguments) {
-      List<Parameter> params = [];
-      for (Instantiator instantiator in paramMakers) {
-        var result = instantiator(arguments);
-        if (result is Iterable) {
-          params.addAll(result);
-        } else {
-          params.add(result);
-        }
-      }
-      Statement body = makeBody(arguments);
+      List<Parameter> params = splayParameters(paramMakers, arguments);
+      Block body = makeBody(arguments);
       return Fun(params, body);
     };
   }
@@ -703,19 +686,32 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     Instantiator makeBody = visit(node.body);
     // TODO(sra): Avoid copying params if no interpolation or forced copying.
     return (arguments) {
-      List<Parameter> params = [];
-      for (Instantiator instantiator in paramMakers) {
-        var result = instantiator(arguments);
-        if (result is Iterable) {
-          params.addAll(result);
-        } else {
-          params.add(result);
-        }
-      }
+      List<Parameter> params = splayParameters(paramMakers, arguments);
       // Either a Block or Expression.
       Node body = makeBody(arguments);
       return ArrowFunction(params, body);
     };
+  }
+
+  List<Parameter> splayParameters(List<Instantiator> instantiators, arguments) {
+    // TODO(sra): This will be different when parameters include destructuring
+    // and default values.
+    return splay<Parameter>(instantiators, arguments);
+  }
+
+  List<T> splay<T>(Iterable<Instantiator> instantiators, arguments) {
+    List<T> results = [];
+    for (Instantiator instantiator in instantiators) {
+      var result = instantiator(arguments);
+      if (result is Iterable) {
+        for (final item in result) {
+          results.add(item as T);
+        }
+      } else {
+        results.add(result as T);
+      }
+    }
+    return results;
   }
 
   @override
@@ -751,9 +747,10 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     List<Instantiator> partMakers =
         node.parts.map(visit).toList(growable: false);
     return (arguments) {
-      List<Literal> parts = partMakers
-          .map((Instantiator instantiator) => instantiator(arguments))
-          .toList(growable: false);
+      List<Literal> parts = [
+        for (final instantiator in partMakers)
+          instantiator(arguments) as Literal
+      ];
       return StringConcatenation(parts);
     };
   }
@@ -795,15 +792,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         node.properties.map(visitSplayable).toList();
     bool isOneLiner = node.isOneLiner;
     return (arguments) {
-      List<Property> properties = [];
-      for (Instantiator instantiator in propertyMakers) {
-        var result = instantiator(arguments);
-        if (result is Iterable) {
-          properties.addAll(result);
-        } else {
-          properties.add(result);
-        }
-      }
+      List<Property> properties = splay(propertyMakers, arguments);
       return ObjectInitializer(properties, isOneLiner: isOneLiner);
     };
   }
