@@ -17,7 +17,12 @@ List<CompletionSuggestionBuilder> fuzzyFilterSort({
   double score(CompletionSuggestionBuilder suggestion) {
     var suggestionTextToMatch = suggestion.completion;
 
-    if (suggestion.kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
+    if (suggestion.kind == CompletionSuggestionKind.KEYWORD) {
+      var index = suggestionTextToMatch.indexOf(' ');
+      if (index != -1) {
+        suggestionTextToMatch = suggestionTextToMatch.substring(0, index);
+      }
+    } else if (suggestion.kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
       var index = suggestionTextToMatch.indexOf(':');
       if (index != -1) {
         suggestionTextToMatch = suggestionTextToMatch.substring(0, index);
