@@ -92,8 +92,6 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   String get testFilePath => '$testPackageLibPath/test.dart';
 
-  String get testFilePathPlatform => convertPath(testFilePath);
-
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
   Folder get testPackageRoot => getFolder(testPackageRootPath);

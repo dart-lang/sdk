@@ -563,7 +563,7 @@ transforms: []
     // Add an overlay without errors.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: AddContentOverlay(''),
+        testFile.path: AddContentOverlay(''),
       }).toRequest('0'),
     );
 
@@ -573,7 +573,7 @@ transforms: []
     await _waitAnalysisComplete();
     _assertAnalyzedFiles(
       hasErrors: [],
-      noErrors: [testFilePathPlatform],
+      noErrors: [testFile.path],
       notAnalyzed: [],
     );
 
@@ -584,13 +584,13 @@ transforms: []
     await _waitAnalysisComplete();
     _assertAnalyzedFiles(
       hasErrors: [],
-      notAnalyzed: [testFilePathPlatform],
+      notAnalyzed: [testFile.path],
     );
 
     // Ask to remove the overlay, still active, start a timer.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: RemoveContentOverlay(),
+        testFile.path: RemoveContentOverlay(),
       }).toRequest('0'),
     );
 
@@ -600,7 +600,7 @@ transforms: []
     // The file has errors.
     await _waitAnalysisComplete();
     _assertAnalyzedFiles(
-      hasErrors: [testFilePathPlatform],
+      hasErrors: [testFile.path],
       noErrors: [],
       notAnalyzed: [],
     );
@@ -616,7 +616,7 @@ transforms: []
     // Add an overlay without errors.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: AddContentOverlay(''),
+        testFile.path: AddContentOverlay(''),
       }).toRequest('0'),
     );
 
@@ -626,7 +626,7 @@ transforms: []
     await _waitAnalysisComplete();
     _assertAnalyzedFiles(
       hasErrors: [],
-      noErrors: [testFilePathPlatform],
+      noErrors: [testFile.path],
       notAnalyzed: [],
     );
 
@@ -637,13 +637,13 @@ transforms: []
     await _waitAnalysisComplete();
     _assertAnalyzedFiles(
       hasErrors: [],
-      notAnalyzed: [testFilePathPlatform],
+      notAnalyzed: [testFile.path],
     );
 
     // Ask to remove the overlay, still active, start a timer.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: RemoveContentOverlay(),
+        testFile.path: RemoveContentOverlay(),
       }).toRequest('0'),
     );
 
@@ -651,7 +651,7 @@ transforms: []
     await _waitAnalysisComplete();
     _assertAnalyzedFiles(
       hasErrors: [],
-      notAnalyzed: [testFilePathPlatform],
+      notAnalyzed: [testFile.path],
     );
 
     // Change the file again, has errors.
@@ -660,7 +660,7 @@ transforms: []
     // The timer cancelled on the watch event, and the file analyzed.
     await _waitAnalysisComplete();
     _assertAnalyzedFiles(
-      hasErrors: [testFilePathPlatform],
+      hasErrors: [testFile.path],
       noErrors: [],
       notAnalyzed: [],
     );
@@ -897,7 +897,7 @@ void f(A a) {}
     // Add an overlay without errors.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: AddContentOverlay(''),
+        testFile.path: AddContentOverlay(''),
       }).toRequest('0'),
     );
 
@@ -907,21 +907,21 @@ void f(A a) {}
     await _waitAnalysisComplete();
     _assertAnalyzedFiles(
       hasErrors: [],
-      noErrors: [testFilePathPlatform],
+      noErrors: [testFile.path],
       notAnalyzed: [],
     );
 
     // Ask to remove the overlay, still active, start a timer.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: RemoveContentOverlay(),
+        testFile.path: RemoveContentOverlay(),
       }).toRequest('0'),
     );
 
     // Re-add an overlay. Should cancel the timer and replace the overlay.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: AddContentOverlay(''),
+        testFile.path: AddContentOverlay(''),
       }).toRequest('0'),
     );
 
@@ -933,7 +933,7 @@ void f(A a) {}
     // The overlay should still be present, so we should be able to change it.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: ChangeContentOverlay(
+        testFile.path: ChangeContentOverlay(
           [SourceEdit(0, 0, '//')],
         ),
       }).toRequest('0'),
@@ -1283,14 +1283,14 @@ void f(A a) {}
   }
 
   Future<void> test_updateContent_addOverlay() async {
-    newFile2('$testFilePath', 'error');
+    newFile2(testFilePath, 'error');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
     // The file in the file system has errors.
     await server.onAnalysisComplete;
     _assertAnalyzedFiles(
-      hasErrors: [testFilePathPlatform],
+      hasErrors: [testFile.path],
       noErrors: [],
       notAnalyzed: [],
     );
@@ -1298,7 +1298,7 @@ void f(A a) {}
     // Add an overlay without errors.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: AddContentOverlay(''),
+        testFile.path: AddContentOverlay(''),
       }).toRequest('0'),
     );
 
@@ -1306,18 +1306,18 @@ void f(A a) {}
     await server.onAnalysisComplete;
     _assertAnalyzedFiles(
       hasErrors: [],
-      noErrors: [testFilePathPlatform],
+      noErrors: [testFile.path],
       notAnalyzed: [],
     );
   }
 
   Future<void> test_updateContent_changeOverlay() async {
-    newFile2('$testFilePath', '');
+    newFile2(testFilePath, '');
 
     // Add the content with an error.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: AddContentOverlay('var v = 0'),
+        testFile.path: AddContentOverlay('var v = 0'),
       }).toRequest('0'),
     );
 
@@ -1326,7 +1326,7 @@ void f(A a) {}
     // The overlay has an error.
     await server.onAnalysisComplete;
     _assertAnalyzedFiles(
-      hasErrors: [testFilePathPlatform],
+      hasErrors: [testFile.path],
       noErrors: [],
       notAnalyzed: [],
     );
@@ -1334,7 +1334,7 @@ void f(A a) {}
     // Add the missing `;`.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: ChangeContentOverlay([
+        testFile.path: ChangeContentOverlay([
           SourceEdit(9, 0, ';'),
         ]),
       }).toRequest('0'),
@@ -1344,7 +1344,7 @@ void f(A a) {}
     await server.onAnalysisComplete;
     _assertAnalyzedFiles(
       hasErrors: [],
-      noErrors: [testFilePathPlatform],
+      noErrors: [testFile.path],
       notAnalyzed: [],
     );
   }
@@ -1374,20 +1374,20 @@ void f(A a) {}
     String initialContent,
     SourceEdit edit,
   ) async {
-    newFile2('$testFilePath', initialContent);
+    newFile2(testFilePath, initialContent);
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: AddContentOverlay(initialContent),
+        testFile.path: AddContentOverlay(initialContent),
       }).toRequest('0'),
     );
 
     var response = await handleRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: ChangeContentOverlay([edit]),
+        testFile.path: ChangeContentOverlay([edit]),
       }).toRequest('0'),
     );
 
