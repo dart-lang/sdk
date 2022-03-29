@@ -619,6 +619,7 @@ class Intrinsifier {
     if (node.target.enclosingLibrary.name == "dart._internal") {
       switch (name) {
         case "unsafeCast":
+        case "unsafeCastOpaque":
           w.ValueType targetType =
               translator.translateType(node.arguments.types.single);
           Expression operand = node.arguments.positional.single;
