@@ -138,6 +138,8 @@ final Matcher isChangeContentOverlay = LazyMatcher(() => MatchesJsonObject(
 ///   "hasNamedParameters": optional bool
 ///   "parameterName": optional String
 ///   "parameterType": optional String
+///   "libraryUri": optional String
+///   "isNotImported": optional bool
 /// }
 final Matcher isCompletionSuggestion =
     LazyMatcher(() => MatchesJsonObject('CompletionSuggestion', {

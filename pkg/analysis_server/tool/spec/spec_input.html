@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.32.10</version>
+  <version>1.33.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -134,6 +134,11 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.33.0</h4>
+<ul>
+  <li>Requests <tt>getSuggestions2</tt> and <tt>getSuggestionDetails2</tt>
+    are enabled.</li>
+</ul>
 <h4>1.32.10</h4>
 <ul>
   <li>The <tt>MOVE_FILE</tt> refactor now supports moving/renaming folders.</li>
@@ -1485,7 +1490,7 @@
       </field>
     </result>
   </request>
-  <request method="getSuggestions2" experimental="true">
+  <request method="getSuggestions2">
     <p>
       Request that completion suggestions for the given offset in the given
       file be returned. The suggestions will be filtered using fuzzy matching
@@ -1690,7 +1695,7 @@
       </field>
     </result>
   </request>
-  <request method="getSuggestionDetails2" experimental="true">
+  <request method="getSuggestionDetails2">
     <p>
       Clients must make this request when the user has selected a completion
       suggestion with the <tt>isNotImported</tt> field set to <tt>true</tt>.

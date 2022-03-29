@@ -288,6 +288,8 @@ final Matcher isCompletionService =
 ///   "hasNamedParameters": optional bool
 ///   "parameterName": optional String
 ///   "parameterType": optional String
+///   "libraryUri": optional String
+///   "isNotImported": optional bool
 /// }
 final Matcher isCompletionSuggestion =
     LazyMatcher(() => MatchesJsonObject('CompletionSuggestion', {

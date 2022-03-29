@@ -1149,6 +1149,37 @@ a:focus, a:hover {
           The type of the options parameter being suggested. This field is
           omitted if the parameterName field is omitted.
         </p>
+      </dd><dt class="field"><b>libraryUri: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          This field  is omitted if <tt>getSuggestions</tt> was used rather
+          than <tt>getSuggestions2</tt>.
+        </p>
+        <p>
+          This field  is omitted if this suggestion corresponds to a locally
+          declared element.
+        </p>
+        <p>
+          If this suggestion corresponds to an already imported element,
+          then this field is the URI of a library that provides this element,
+          not the URI of the library where the element is declared.
+        </p>
+        <p>
+          If this suggestion corresponds to an element from a not yet
+          imported library, this field is the URI of a library that could be
+          imported to make this suggestion  accessible in the file where
+          completion was requested, such as <tt>package:foo/bar.dart</tt> or
+          <tt>file:///home/me/workspace/foo/test/bar_test.dart</tt>.
+        </p>
+      </dd><dt class="field"><b>isNotImported: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          True if the suggestion is for an element from a not yet imported
+          library. This field is omitted if the element is declared locally,
+          or is from library is already imported, so that the suggestion can
+          be inserted as is, or if <tt>getSuggestions</tt> was used rather
+          than <tt>getSuggestions2</tt>.
+        </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_CompletionSuggestionKind">CompletionSuggestionKind: String</a></dt><dd>
     <p>
       An enumeration of the kinds of elements that can be included in a
