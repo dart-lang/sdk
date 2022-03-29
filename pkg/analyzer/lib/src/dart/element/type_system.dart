@@ -347,6 +347,52 @@ class TypeSystemImpl implements TypeSystem {
     return null;
   }
 
+  /// Computes the set of free type parameters appearing in [rootType].
+  ///
+  /// If a non-null [candidates] set is given, then only type parameters
+  /// appearing in it are considered; otherwise all type parameters are
+  /// considered.
+  List<TypeParameterElement>? getFreeParameters(DartType rootType,
+      {Set<TypeParameterElement>? candidates}) {
+    List<TypeParameterElement>? parameters;
+    Set<DartType> visitedTypes = HashSet<DartType>();
+    Set<TypeParameterElement> boundTypeParameters =
+        HashSet<TypeParameterElement>();
+
+    void appendParameters(DartType? type) {
+      if (type == null) {
+        return;
+      }
+      if (visitedTypes.contains(type)) {
+        return;
+      }
+      visitedTypes.add(type);
+      if (type is TypeParameterType) {
+        var element = type.element;
+        if ((candidates == null || candidates.contains(element)) &&
+            !boundTypeParameters.contains(element)) {
+          parameters ??= <TypeParameterElement>[];
+          parameters!.add(element);
+        }
+      } else {
+        if (type is FunctionType) {
+          assert(!type.typeFormals.any((t) => boundTypeParameters.contains(t)));
+          boundTypeParameters.addAll(type.typeFormals);
+          appendParameters(type.returnType);
+          type.parameters.map((p) => p.type).forEach(appendParameters);
+          // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44218
+          type.alias?.typeArguments.forEach(appendParameters);
+          boundTypeParameters.removeAll(type.typeFormals);
+        } else if (type is InterfaceType) {
+          type.typeArguments.forEach(appendParameters);
+        }
+      }
+    }
+
+    appendParameters(rootType);
+    return parameters;
+  }
+
   /// Computes the greatest lower bound of [T1] and [T2].
   DartType getGreatestLowerBound(DartType T1, DartType T2) {
     return _greatestLowerBoundHelper.getGreatestLowerBound(T1, T2);
@@ -541,46 +587,12 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
 
-    List<TypeParameterElement>? getFreeParameters(DartType rootType) {
-      List<TypeParameterElement>? parameters;
-      Set<DartType> visitedTypes = HashSet<DartType>();
-
-      void appendParameters(DartType? type) {
-        if (type == null) {
-          return;
-        }
-        if (visitedTypes.contains(type)) {
-          return;
-        }
-        visitedTypes.add(type);
-        if (type is TypeParameterType) {
-          var element = type.element;
-          if (all.contains(element)) {
-            parameters ??= <TypeParameterElement>[];
-            parameters!.add(element);
-          }
-        } else {
-          if (type is FunctionType) {
-            appendParameters(type.returnType);
-            type.parameters.map((p) => p.type).forEach(appendParameters);
-            // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44218
-            type.alias?.typeArguments.forEach(appendParameters);
-          } else if (type is InterfaceType) {
-            type.typeArguments.forEach(appendParameters);
-          }
-        }
-      }
-
-      appendParameters(rootType);
-      return parameters;
-    }
-
     bool hasProgress = true;
     while (hasProgress) {
       hasProgress = false;
       for (TypeParameterElement parameter in partials.keys) {
         DartType value = partials[parameter]!;
-        var freeParameters = getFreeParameters(value);
+        var freeParameters = getFreeParameters(value, candidates: all);
         if (freeParameters == null) {
           defaults[parameter] = value;
           partials.remove(parameter);
