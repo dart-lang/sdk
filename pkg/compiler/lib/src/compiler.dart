@@ -95,6 +95,8 @@ class Compiler {
   ResolutionEnqueuer resolutionEnqueuerForTesting;
   CodegenEnqueuer codegenEnqueuerForTesting;
 
+  ir.Component untrimmedComponentForDumpInfo;
+
   DiagnosticReporter get reporter => _reporter;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
 
@@ -387,6 +389,9 @@ class Compiler {
     if (retainDataForTesting) {
       componentForTesting = output.component;
     }
+    if (options.features.newDumpInfo.isEnabled && options.dumpInfo) {
+      untrimmedComponentForDumpInfo = output.component;
+    }
 
     if (options.cfeOnly) {
       ir.Component component = output.component;
@@ -439,7 +444,7 @@ class Compiler {
         mainFunction, closedWorld, globalLocalsMap, inferredDataBuilder);
   }
 
-  void runCodegenEnqueuer(CodegenResults codegenResults) {
+  int runCodegenEnqueuer(CodegenResults codegenResults) {
     GlobalTypeInferenceResults globalInferenceResults =
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
@@ -469,14 +474,10 @@ class Compiler {
     int programSize = backendStrategy.assembleProgram(closedWorld,
         globalInferenceResults.inferredData, codegenInputs, codegenWorld);
 
-    if (options.dumpInfo) {
-      dumpInfoTask.reportSize(programSize);
-      dumpInfoTask.dumpInfo(closedWorld, globalInferenceResults);
-    }
-
     backendStrategy.onCodegenEnd(codegenInputs);
 
     checkQueue(codegenEnqueuer);
+    return programSize;
   }
 
   GlobalTypeInferenceResults globalTypeInferenceResultsTestMode(
@@ -640,8 +641,28 @@ class Compiler {
       if (shouldStopAfterCodegen) return;
 
       // Link.
-      runCodegenEnqueuer(codegenResults);
+      int programSize = runCodegenEnqueuer(codegenResults);
+
+      // Dump Info.
+      if (options.dumpInfo) {
+        runDumpInfo(codegenResults, programSize);
+      }
     });
+  }
+
+  void runDumpInfo(CodegenResults codegenResults, int programSize) {
+    GlobalTypeInferenceResults globalTypeInferenceResults =
+        codegenResults.globalTypeInferenceResults;
+    JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
+
+    dumpInfoTask.reportSize(programSize);
+    if (options.features.newDumpInfo.isEnabled) {
+      assert(untrimmedComponentForDumpInfo != null);
+      dumpInfoTask.dumpInfoNew(untrimmedComponentForDumpInfo, closedWorld,
+          globalTypeInferenceResults);
+    } else {
+      dumpInfoTask.dumpInfo(closedWorld, globalTypeInferenceResults);
+    }
   }
 
   /// Perform the steps needed to fully end the resolution phase.
