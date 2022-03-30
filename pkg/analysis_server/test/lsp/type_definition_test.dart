@@ -16,6 +16,11 @@ void main() {
 
 @reflectiveTest
 class TypeDefinitionTest extends AbstractLspAnalysisServerTest {
+  Uri get sdkCoreUri {
+    final sdkCorePath = convertPath('/sdk/lib/core/core.dart');
+    return Uri.file(sdkCorePath);
+  }
+
   Future<void> test_currentFile() async {
     final contents = '''
 class [[A]] {}
@@ -78,7 +83,7 @@ const a^ = 'test string';
 ''';
 
     final result = await _getLocationResult(contents);
-    expect(result.uri, 'file:///sdk/lib/core/core.dart');
+    expect(result.uri, '$sdkCoreUri');
     _expectNameRange(result.range, 'String');
   }
 
@@ -264,7 +269,7 @@ void f() {
   /// This is used for SDK sources where the exact location is not known to the
   /// test.
   void _expectSdkCoreType(LocationLink result, String typeName) {
-    expect(result.targetUri, 'file:///sdk/lib/core/core.dart');
+    expect(result.targetUri, '$sdkCoreUri');
     _expectNameRange(result.targetSelectionRange, typeName);
     _expectCodeRange(result.targetRange);
   }
