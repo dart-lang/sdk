@@ -12,6 +12,9 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateConstructorForFinalFieldsTest);
+    defineReflectiveTests(CreateConstructorForFinalFieldsWithoutNullSafetyTest);
+    defineReflectiveTests(
+        CreateConstructorForFinalFieldsWithoutSuperParametersTest);
   });
 }
 
@@ -45,7 +48,7 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   final int a;
   final int b = 2;
-  final int c;
+  final int? c;
 }
 ''');
     await assertHasFix('''
@@ -54,9 +57,9 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   final int a;
   final int b = 2;
-  final int c;
+  final int? c;
 
-  const MyWidget({Key? key, this.a, this.c}) : super(key: key);
+  const MyWidget({super.key, required this.a, this.c});
 }
 ''', errorFilter: (error) {
       return error.message.contains("'a'");
@@ -71,7 +74,7 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   final int a;
   final Widget child;
-  final int b;
+  final int? b;
 }
 ''');
     await assertHasFix('''
@@ -80,9 +83,9 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   final int a;
   final Widget child;
-  final int b;
+  final int? b;
 
-  const MyWidget({Key? key, this.a, this.b, this.child}) : super(key: key);
+  const MyWidget({super.key, required this.a, this.b, required this.child});
 }
 ''', errorFilter: (error) {
       return error.message.contains("'a'");
@@ -97,7 +100,7 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   final int a;
   final List<Widget> children;
-  final int b;
+  final int? b;
 }
 ''');
     await assertHasFix('''
@@ -106,9 +109,9 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   final int a;
   final List<Widget> children;
-  final int b;
+  final int? b;
 
-  const MyWidget({Key? key, this.a, this.b, this.children}) : super(key: key);
+  const MyWidget({super.key, required this.a, this.b, required this.children});
 }
 ''', errorFilter: (error) {
       return error.message.contains("'a'");
@@ -173,5 +176,181 @@ class Test {
 final int v;
 ''');
     await assertNoFix();
+  }
+}
+
+@reflectiveTest
+class CreateConstructorForFinalFieldsWithoutNullSafetyTest
+    extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
+
+  @override
+  String get testPackageLanguageVersion => '2.9';
+
+  Future<void> test_flutter() async {
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final int b = 2;
+  final int c;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final int b = 2;
+  final int c;
+
+  const MyWidget({Key key, this.a, this.c}) : super(key: key);
+}
+''', errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
+  }
+
+  Future<void> test_flutter_childLast() async {
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final Widget child;
+  final int b;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final Widget child;
+  final int b;
+
+  const MyWidget({Key key, this.a, this.b, this.child}) : super(key: key);
+}
+''', errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
+  }
+
+  Future<void> test_flutter_childrenLast() async {
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final List<Widget> children;
+  final int b;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final List<Widget> children;
+  final int b;
+
+  const MyWidget({Key key, this.a, this.b, this.children}) : super(key: key);
+}
+''', errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
+  }
+}
+
+@reflectiveTest
+class CreateConstructorForFinalFieldsWithoutSuperParametersTest
+    extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
+
+  @override
+  String get testPackageLanguageVersion => '2.16';
+
+  Future<void> test_flutter() async {
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final int b = 2;
+  final int? c;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final int b = 2;
+  final int? c;
+
+  const MyWidget({Key? key, required this.a, this.c}) : super(key: key);
+}
+''', errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
+  }
+
+  Future<void> test_flutter_childLast() async {
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final Widget child;
+  final int? b;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final Widget child;
+  final int? b;
+
+  const MyWidget({Key? key, required this.a, this.b, required this.child}) : super(key: key);
+}
+''', errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
+  }
+
+  Future<void> test_flutter_childrenLast() async {
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final List<Widget>? children;
+  final int? b;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final List<Widget>? children;
+  final int? b;
+
+  const MyWidget({Key? key, required this.a, this.b, this.children}) : super(key: key);
+}
+''', errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
   }
 }
