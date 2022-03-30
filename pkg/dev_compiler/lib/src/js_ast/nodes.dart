@@ -3,10 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: always_declare_return_types
-// ignore_for_file: always_require_non_null_named_parameters
 // ignore_for_file: omit_local_variable_types
-// ignore_for_file: prefer_final_fields
-// ignore_for_file: prefer_initializing_formals
 // ignore_for_file: prefer_single_quotes
 // ignore_for_file: unnecessary_this
 
@@ -1124,9 +1121,7 @@ abstract class BindingPattern extends Expression implements VariableBinding {
 
 class SimpleBindingPattern extends BindingPattern {
   final Identifier name;
-  SimpleBindingPattern(Identifier name)
-      : name = name,
-        super([DestructuredVariable(name: name)]);
+  SimpleBindingPattern(this.name) : super([DestructuredVariable(name: name)]);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) =>
@@ -1406,7 +1401,7 @@ class Identifier extends Expression implements Parameter {
       throw ArgumentError.value(name, "name", "not a valid identifier");
     }
   }
-  static RegExp _identifierRE = RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
+  static final RegExp _identifierRE = RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
 
   @override
   bool shadows(Set<String> names) => names.contains(name);

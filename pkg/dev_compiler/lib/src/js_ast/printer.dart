@@ -5,13 +5,10 @@
 // ignore_for_file: always_declare_return_types
 // ignore_for_file: library_prefixes
 // ignore_for_file: omit_local_variable_types
-// ignore_for_file: prefer_collection_literals
-// ignore_for_file: prefer_final_fields
 // ignore_for_file: prefer_initializing_formals
 // ignore_for_file: prefer_interpolation_to_compose_strings
 // ignore_for_file: prefer_is_not_empty
 // ignore_for_file: prefer_single_quotes
-// ignore_for_file: unnecessary_const
 // ignore_for_file: use_function_type_syntax_for_parameters
 
 library js_ast.printer;
@@ -89,7 +86,7 @@ class Printer implements NodeVisitor {
   // The current indentation level.
   int _indentLevel = 0;
   // A cache of all indentation strings used so far.
-  List<String> _indentList = <String>[""];
+  final List<String> _indentList = [""];
 
   /// Whether the next call to [indent] should just be a no-op.
   bool _skipNextIndent = false;
@@ -610,15 +607,15 @@ class Printer implements NodeVisitor {
 
     out(")");
     switch (fun.asyncModifier) {
-      case const AsyncModifier.sync():
+      case AsyncModifier.sync():
         break;
-      case const AsyncModifier.async():
+      case AsyncModifier.async():
         out(' async');
         break;
-      case const AsyncModifier.syncStar():
+      case AsyncModifier.syncStar():
         out(' sync*');
         break;
-      case const AsyncModifier.asyncStar():
+      case AsyncModifier.asyncStar():
         out(' async*');
         break;
     }
@@ -1452,8 +1449,8 @@ class VarCollector extends BaseVisitorVoid {
 
   VarCollector()
       : nested = false,
-        vars = Set<String>(),
-        params = Set<String>();
+        vars = {},
+        params = {};
 
   void forEachVar(void fn(String v)) => vars.forEach(fn);
   void forEachParam(void fn(String p)) => params.forEach(fn);
@@ -1632,7 +1629,7 @@ class MinifyRenamer implements LocalNamer {
   void enterScope(Node node) {
     var vars = VarCollector();
     node.accept(vars);
-    maps.add(Map<String, String>());
+    maps.add({});
     variableNumberStack.add(variableNumber);
     parameterNumberStack.add(parameterNumber);
     vars.forEachVar(declareVariable);
