@@ -29,7 +29,7 @@ class D {
 }
 
 class E extends D {
-  E(super.superParamter); // OK
+  E(super.superParameter); // OK
 }
 ''', []);
   }
