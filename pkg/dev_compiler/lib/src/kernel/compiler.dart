@@ -1327,23 +1327,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fields = c.fields
         .where((f) => f.isStatic && !isRedirectingFactoryField(f))
         .toList();
-    if (c.isEnum) {
-      // We know enum fields can be safely emitted as const fields, as long
-      // as the `values` field is emitted last.
-      var classRef = _emitTopLevelName(c);
-      var valueField = fields.firstWhere((f) => f.name.text == 'values');
-      fields.remove(valueField);
-      fields.add(valueField);
-      for (var f in fields) {
-        assert(f.isConst);
-        body.add(defineValueOnClass(
-                c,
-                classRef,
-                _emitStaticMemberName(f.name.text),
-                _visitInitializer(f.initializer, f.annotations))
-            .toStatement());
-      }
-    } else if (fields.isNotEmpty) {
+    if (fields.isNotEmpty) {
       body.add(_emitLazyFields(_emitTopLevelName(c), fields,
           (n) => _emitStaticMemberName(n.name.text)));
     }
