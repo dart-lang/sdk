@@ -320,31 +320,6 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
     ConstructorBuilder? superTargetBuilder =
         _computeSuperTargetBuilder(initializers);
-    Constructor superTarget;
-    List<FormalParameterBuilder>? superFormals;
-    if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
-      superTarget = superTargetBuilder.constructor;
-      superFormals = superTargetBuilder.formals!;
-    } else if (superTargetBuilder is DillConstructorBuilder) {
-      superTarget = superTargetBuilder.constructor;
-      if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
-        superFormals = superTargetBuilder.formals;
-      } else {
-        // The error in this case should be reported elsewhere. Here we perform
-        // a simple recovery.
-        return performRecoveryForErroneousCase();
-      }
-    } else {
-      // The error in this case should be reported elsewhere. Here we perform a
-      // simple recovery.
-      return performRecoveryForErroneousCase();
-    }
-
-    if (superFormals == null) {
-      // The error in this case should be reported elsewhere. Here we perform a
-      // simple recovery.
-      return performRecoveryForErroneousCase();
-    }
 
     if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
       superTargetBuilder.inferFormalTypes(typeEnvironment);
@@ -354,6 +329,58 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       if (superTargetOriginBuilder is DeclaredSourceConstructorBuilder) {
         superTargetOriginBuilder.inferFormalTypes(typeEnvironment);
       }
+    }
+
+    Constructor superTarget;
+    List<FormalParameterBuilder>? superFormals;
+    FunctionNode? superConstructorFunction;
+    if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
+      superTarget = superTargetBuilder.constructor;
+      superFormals = superTargetBuilder.formals!;
+    } else if (superTargetBuilder is DillConstructorBuilder) {
+      superTarget = superTargetBuilder.constructor;
+      if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
+        superFormals = superTargetBuilder.formals;
+      } else {
+        superConstructorFunction = superTargetBuilder.function;
+      }
+    } else {
+      // The error in this case should be reported elsewhere. Here we perform a
+      // simple recovery.
+      return performRecoveryForErroneousCase();
+    }
+
+    List<DartType?> positionalSuperFormalType = [];
+    List<bool> positionalSuperFormalHasInitializer = [];
+    Map<String, DartType?> namedSuperFormalType = {};
+    Map<String, bool> namedSuperFormalHasInitializer = {};
+    if (superFormals != null) {
+      for (FormalParameterBuilder formal in superFormals) {
+        if (formal.isPositional) {
+          positionalSuperFormalType.add(formal.variable?.type);
+          positionalSuperFormalHasInitializer
+              .add(formal.hasDeclaredInitializer);
+        } else {
+          namedSuperFormalType[formal.name] = formal.variable?.type;
+          namedSuperFormalHasInitializer[formal.name] =
+              formal.hasDeclaredInitializer;
+        }
+      }
+    } else if (superConstructorFunction != null) {
+      for (VariableDeclaration formal
+          in superConstructorFunction.positionalParameters) {
+        positionalSuperFormalType.add(formal.type);
+        positionalSuperFormalHasInitializer.add(formal.initializer != null);
+      }
+      for (VariableDeclaration formal
+          in superConstructorFunction.namedParameters) {
+        namedSuperFormalType[formal.name!] = formal.type;
+        namedSuperFormalHasInitializer[formal.name!] =
+            formal.initializer != null;
+      }
+    } else {
+      // The error is reported elsewhere.
+      return performRecoveryForErroneousCase();
     }
 
     int superInitializingFormalIndex = -1;
@@ -373,33 +400,30 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         superInitializingFormalIndex++;
         bool hasImmediatelyDeclaredInitializer = formal.hasDeclaredInitializer;
 
-        FormalParameterBuilder? correspondingSuperFormal;
-
+        DartType? correspondingSuperFormalType;
         if (formal.isPositional) {
-          if (superInitializingFormalIndex < superFormals.length) {
-            correspondingSuperFormal =
-                superFormals[superInitializingFormalIndex];
+          assert(positionalSuperFormalHasInitializer.length ==
+              positionalSuperFormalType.length);
+          if (superInitializingFormalIndex <
+              positionalSuperFormalHasInitializer.length) {
             formal.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer ||
-                correspondingSuperFormal.hasDeclaredInitializer;
+                positionalSuperFormalHasInitializer[
+                    superInitializingFormalIndex];
+            correspondingSuperFormalType =
+                positionalSuperFormalType[superInitializingFormalIndex];
             if (!hasImmediatelyDeclaredInitializer && !formal.isRequired) {
               (positionalSuperParameters ??= <int?>[]).add(formalIndex);
             } else {
               (positionalSuperParameters ??= <int?>[]).add(null);
             }
           } else {
-            // TODO(cstefantsova): Report an error.
+            // The error is reported elsewhere.
           }
         } else {
-          for (FormalParameterBuilder superFormal in superFormals) {
-            if (superFormal.isNamed && superFormal.name == formal.name) {
-              correspondingSuperFormal = superFormal;
-              break;
-            }
-          }
-
-          if (correspondingSuperFormal != null) {
+          if (namedSuperFormalHasInitializer[formal.name] != null) {
             formal.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer ||
-                correspondingSuperFormal.hasDeclaredInitializer;
+                namedSuperFormalHasInitializer[formal.name]!;
+            correspondingSuperFormalType = namedSuperFormalType[formal.name];
             if (!hasImmediatelyDeclaredInitializer && !formal.isNamedRequired) {
               (namedSuperParameters ??= <String>[]).add(formal.name);
             }
@@ -409,7 +433,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         }
 
         if (formal.type == null) {
-          DartType? type = correspondingSuperFormal?.variable?.type;
+          DartType? type = correspondingSuperFormalType;
           if (substitution.isNotEmpty && type != null) {
             type = substitute(type, substitution);
           }
