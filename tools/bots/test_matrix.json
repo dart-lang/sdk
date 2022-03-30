@@ -2986,7 +2986,7 @@
       },
       "steps": [
         {
-          "name": "build dart",
+          "name": "build dart (clang builds)",
           "script": "tools/build.py",
           "arguments": [
             "--arch=ia32,x64,arm,arm64",
@@ -2996,10 +2996,21 @@
           ]
         },
         {
+          "name": "build dart (gcc builds)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--no-clang",
+            "--arch=riscv64",
+            "--mode=release",
+            "--check-clean",
+            "create_sdk"
+          ]
+        },
+        {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py",
           "arguments": [
-            "--arch=ia32,x64,arm,arm64"
+            "--arch=ia32,x64,arm,arm64,riscv64"
           ]
         },
         {

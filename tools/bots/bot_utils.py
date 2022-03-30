@@ -37,6 +37,7 @@ ARCH_RENAMES = {
     'x64': 'x64',
     'arm': 'arm',
     'arm64': 'arm64',
+    'riscv64': 'riscv64',
 }
 
 SYSTEM_TO_CIPD = {
@@ -51,6 +52,7 @@ ARCH_TO_CIPD = {
     'x64': 'amd64',
     'arm': 'arm6l',
     'arm64': 'arm64',
+    'riscv64': 'riscv64',
 }
 
 
