@@ -203,7 +203,7 @@ class _ConstructorInferenceNode extends _InferenceNode {
 
     if (_superParameters.isNotEmpty) {
       dependencies.addIfNotNull(
-        _walker.getNode(_constructor.superConstructor),
+        _walker.getNode(_constructor.superConstructor?.declaration),
       );
     }
 
