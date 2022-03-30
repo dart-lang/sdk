@@ -231,6 +231,7 @@ List<String> runProcessForLines(List<String> cmd,
     cmd[0],
     cmd.skip(1).toList(),
     workingDirectory: workingDirectory,
+    environment: {'DEPOT_TOOLS_UPDATE': '0'},
   );
   printSuccessTrailer(result, onFailure);
   final output = (result.stdout as String);
