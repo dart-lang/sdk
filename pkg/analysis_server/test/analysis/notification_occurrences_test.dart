@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -20,7 +21,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
+class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
   late List<Occurrences> occurrencesList;
   late Occurrences testOccurrences;
 
@@ -80,7 +81,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OCCURRENCES) {
       var params = AnalysisOccurrencesParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         occurrencesList = params.occurrences;
         _resultsAvailable.complete();
       }
@@ -90,7 +91,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_afterAnalysis() async {

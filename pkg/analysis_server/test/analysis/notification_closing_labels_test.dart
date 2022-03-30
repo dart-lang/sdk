@@ -10,7 +10,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,7 +19,8 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationClosingLabelsTest extends AbstractAnalysisTest {
+class AnalysisNotificationClosingLabelsTest
+    extends PubPackageAnalysisServerTest {
   static const sampleCode = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(
@@ -44,7 +45,7 @@ Widget build(BuildContext context) {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_CLOSING_LABELS) {
       var params = AnalysisClosingLabelsParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         lastLabels = params.labels;
         _labelsReceived.complete(null);
       }
@@ -57,7 +58,7 @@ Widget build(BuildContext context) {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> subscribeForLabels() async {

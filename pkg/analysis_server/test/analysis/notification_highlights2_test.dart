@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -1593,7 +1593,7 @@ class A {
   }
 }
 
-class HighlightsTestSupport extends AbstractAnalysisTest {
+class HighlightsTestSupport extends PubPackageAnalysisServerTest {
   late List<HighlightRegion> regions;
 
   final Completer<void> _resultsAvailable = Completer();
@@ -1676,7 +1676,7 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
     }
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = AnalysisHighlightsParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         regions = params.regions;
         _resultsAvailable.complete();
       }
@@ -1686,11 +1686,11 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   void _addLibraryForTestPart() {
-    newFile2(join(testFolder, 'my_lib.dart'), '''
+    newFile2('$testPackageLibPath/my_lib.dart', '''
 library lib;
 part 'test.dart';
     ''');

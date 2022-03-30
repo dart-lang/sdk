@@ -6,13 +6,13 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
-import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -21,8 +21,9 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisOptionsFileNotificationTest extends AbstractAnalysisTest {
-  Map<String, List<AnalysisError>> filesErrors = {};
+class AnalysisOptionsFileNotificationTest extends PubPackageAnalysisServerTest {
+  late File optionsFile;
+  Map<File, List<AnalysisError>> filesErrors = {};
 
   final testSource = '''
 main() {
@@ -33,40 +34,27 @@ main() {
 
   List<AnalysisError> get errors => filesErrors[testFile]!;
 
-  List<AnalysisError> get optionsFileErrors => filesErrors[optionsFilePath]!;
-
-  String get optionsFilePath => '$projectPath/analysis_options.yaml';
+  List<AnalysisError> get optionsFileErrors => filesErrors[optionsFile]!;
 
   List<AnalysisError> get testFileErrors => filesErrors[testFile]!;
 
   void addOptionsFile(String contents) {
-    newFile2(optionsFilePath, contents);
+    optionsFile = newAnalysisOptionsYamlFile2(testPackageRootPath, contents);
   }
 
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
-      filesErrors[decoded.file] = decoded.errors;
+      filesErrors[getFile(decoded.file)] = decoded.errors;
     }
   }
 
-  Future<void> setAnalysisRoot() async {
-    await setRoots(included: [projectPath], excluded: []);
-  }
-
   @override
-  void setUp() {
+  Future<void> setUp() async {
     registerLintRules();
     super.setUp();
-    server.handlers = [AnalysisDomainHandler(server)];
-  }
-
-  @override
-  void tearDown() {
-    filesErrors[optionsFilePath] = [];
-    filesErrors[testFile] = [];
-    super.tearDown();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_error_filter() async {
@@ -81,8 +69,6 @@ main() {
   String unused = "";
 }
 ''');
-
-    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
@@ -108,8 +94,6 @@ main() {
   String unused = "";
 }
 ''');
-
-    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
@@ -148,7 +132,6 @@ linter:
 ''');
 
     addTestFile(testSource);
-    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
@@ -174,7 +157,6 @@ linter:
 ''');
 
     addTestFile(testSource);
-    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
@@ -186,15 +168,11 @@ linter:
 
   Future<void> test_options_file_added() async {
     addTestFile(testSource);
-    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
     // Verify that lints are disabled.
-    expect(analysisOptions.lint, false);
-
-    // Clear errors.
-    filesErrors[testFile] = [];
+    expect(testFileAnalysisOptions.lint, false);
 
     // Add options file with a lint enabled.
     addOptionsFile('''
@@ -213,7 +191,6 @@ linter:
     addOptionsFile('''
 ; #bang
 ''');
-    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
@@ -231,25 +208,21 @@ linter:
 ''');
 
     addTestFile(testSource);
-    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
     verifyLintsEnabled(['camel_case_types']);
 
-    // Clear errors.
-    filesErrors[testFile] = [];
-
-    deleteFile(optionsFilePath);
+    deleteFile(optionsFile.path);
 
     await pumpEventQueue();
     await waitForTasksFinished();
 
-    expect(analysisOptions.lint, false);
+    expect(testFileAnalysisOptions.lint, false);
   }
 
   void verifyLintsEnabled(List<String> lints) {
-    var options = analysisOptions;
+    var options = testFileAnalysisOptions;
     expect(options.lint, true);
     var rules = options.lintRules.map((rule) => rule.name);
     expect(rules, unorderedEquals(lints));

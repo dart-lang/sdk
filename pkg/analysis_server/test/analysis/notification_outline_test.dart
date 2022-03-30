@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -20,7 +20,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
+class AnalysisNotificationOutlineTest extends PubPackageAnalysisServerTest {
   late FileKind fileKind;
   String? libraryName;
   Outline? outline;
@@ -37,7 +37,7 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OUTLINE) {
       var params = AnalysisOutlineParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         fileKind = params.kind;
         libraryName = params.libraryName;
         outline = params.outline;
@@ -46,7 +46,7 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
     }
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = AnalysisHighlightsParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         _highlightsReceived?.complete(null);
         _highlightsReceived = null;
       }
@@ -56,7 +56,7 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_afterAnalysis() async {

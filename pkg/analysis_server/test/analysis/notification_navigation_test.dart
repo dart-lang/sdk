@@ -214,7 +214,7 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
 class AAA {}
 AAA aaa;
 ''');
-    await server.onAnalysisComplete;
+    await waitForTasksFinished();
     await prepareNavigation();
     assertHasRegionTarget('AAA aaa;', 'AAA {}');
   }
