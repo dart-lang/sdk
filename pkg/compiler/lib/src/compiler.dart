@@ -304,13 +304,9 @@ class Compiler {
       programSplitConstraintsData = constraintParser.read(programSplitJson);
     }
 
-    if (options.cfeOnly) {
-      await runLoadKernel();
-    } else if (options.modularMode) {
-      await runModularAnalysis();
-    } else {
+    await selfTask.measureSubtask("compileFromKernel", () async {
       await runSequentialPhases();
-    }
+    });
   }
 
   /// Clear the internal compiler state to prevent memory leaks when invoking
@@ -329,7 +325,13 @@ class Compiler {
     }
   }
 
-  JClosedWorld computeClosedWorld(Uri rootLibraryUri, Iterable<Uri> libraries) {
+  JClosedWorld computeClosedWorld(
+      ir.Component component,
+      List<ModuleData> moduleData,
+      Uri rootLibraryUri,
+      Iterable<Uri> libraries) {
+    frontendStrategy.registerLoadedLibraries(component, libraries);
+    frontendStrategy.registerModuleData(moduleData);
     ResolutionEnqueuer resolutionEnqueuer = frontendStrategy
         .createResolutionEnqueuer(enqueueTask, this)
       ..onEmptyForTesting = onResolutionQueueEmptyForTesting;
@@ -379,58 +381,82 @@ class Compiler {
     return closedWorld;
   }
 
-  Future<load_kernel.Output> runLoadKernel() async {
+  Future<load_kernel.Output> loadKernel() async {
     final input = load_kernel.Input(options, provider, reporter,
         initializedCompilerState, forceSerializationForTesting);
     load_kernel.Output output =
         await loadKernelTask.measure(() async => load_kernel.run(input));
-    if (output == null || compilationFailed) return null;
     reporter.log("Kernel load complete");
-    if (retainDataForTesting) {
-      componentForTesting = output.component;
-    }
-    if (options.features.newDumpInfo.isEnabled && options.dumpInfo) {
-      untrimmedComponentForDumpInfo = output.component;
-    }
-
-    if (options.cfeOnly) {
-      ir.Component component = output.component;
-      dumpUnusedLibrariesAndTrimComponent(component, output.libraries);
-      await serializationTask.serializeComponent(component);
-    }
     return output;
   }
 
-  void dumpUnusedLibrariesAndTrimComponent(
-      ir.Component component, List<Uri> libraries) {
-    if (options.fromDill) {
-      if (options.dumpUnusedLibraries) {
-        dumpUnusedLibraries(component, libraries);
+  Future<load_kernel.Output> produceKernel() async {
+    if (options.readClosedWorldUri == null) {
+      load_kernel.Output output = await loadKernel();
+      if (output == null || compilationFailed) return null;
+      ir.Component component = output.component;
+      if (retainDataForTesting) {
+        componentForTesting = component;
       }
-      if (options.entryUri != null) {
-        component = trimComponent(component, libraries);
+      if (options.features.newDumpInfo.isEnabled && options.dumpInfo) {
+        untrimmedComponentForDumpInfo = component;
       }
+      if (options.cfeOnly) {
+        if (options.fromDill) {
+          List<Uri> libraries = output.libraries;
+          if (options.dumpUnusedLibraries) {
+            dumpUnusedLibraries(component, libraries);
+          }
+          if (options.entryUri != null) {
+            component = trimComponent(component, libraries);
+          }
+        }
+        await serializationTask.serializeComponent(component);
+      }
+      // We currently do not return the trimmed component from [produceKernel]
+      // because downstream phases, in particular modular analysis, currently
+      // depend on the untrimmed dill.
+      return output;
+    } else {
+      ir.Component component =
+          await serializationTask.deserializeComponentAndUpdateOptions();
+      return load_kernel.Output(component, null, null, null, null);
     }
   }
 
-  void runModularAnalysis() async {
-    load_kernel.Output output = await runLoadKernel();
-    if (output == null || compilationFailed) return;
+  bool shouldStopAfterLoadKernel(load_kernel.Output output) =>
+      output == null || compilationFailed || options.cfeOnly;
 
+  Future<ModuleData> runModularAnalysis(
+      load_kernel.Output output, Set<Uri> moduleLibraries) async {
     ir.Component component = output.component;
     List<Uri> libraries = output.libraries;
-    Set<Uri> moduleLibraries = output.moduleLibraries.toSet();
     _userCodeLocations
         .addAll(moduleLibraries.map((module) => CodeLocation(module)));
     final input = modular_analysis.Input(
         options, reporter, environment, component, libraries, moduleLibraries);
-    ModuleData moduleData = await selfTask.measureSubtask(
+    return await selfTask.measureSubtask(
         'runModularAnalysis', () async => modular_analysis.run(input));
-    if (compilationFailed) return;
-    serializationTask.testModuleSerialization(moduleData, component);
-    serializationTask.serializeModuleData(
-        moduleData, component, moduleLibraries);
   }
+
+  Future<List<ModuleData>> produceModuleData(load_kernel.Output output) async {
+    ir.Component component = output.component;
+    if (options.modularMode) {
+      Set<Uri> moduleLibraries = output.moduleLibraries.toSet();
+      ModuleData moduleData = await runModularAnalysis(output, moduleLibraries);
+      if (options.writeModularAnalysisUri != null && !compilationFailed) {
+        serializationTask.testModuleSerialization(moduleData, component);
+        serializationTask.serializeModuleData(
+            moduleData, component, moduleLibraries);
+      }
+      return [moduleData];
+    } else {
+      return await serializationTask.deserializeModuleData(component);
+    }
+  }
+
+  bool get shouldStopAfterModularAnalysis =>
+      compilationFailed || options.writeModularAnalysisUri != null;
 
   GlobalTypeInferenceResults performGlobalTypeInference(
       JClosedWorld closedWorld) {
@@ -508,48 +534,23 @@ class Compiler {
         globalTypeInferenceResultsData);
   }
 
-  Future<load_kernel.Output> loadComponent() async {
-    load_kernel.Output output = await runLoadKernel();
-    if (output == null || compilationFailed) return null;
-
+  Future<ClosedWorldAndIndices> produceClosedWorld(
+      load_kernel.Output output, List<ModuleData> moduleData) async {
     ir.Component component = output.component;
-    List<Uri> libraries = output.libraries;
-    frontendStrategy.registerLoadedLibraries(component, libraries);
-    List<ModuleData> data;
-    if (options.hasModularAnalysisInputs) {
-      data = await serializationTask.deserializeModuleData(component);
-    }
-    frontendStrategy.registerModuleData(data);
-
-    // After we've deserialized modular data, we trim the component of any
-    // unnecessary dependencies.
-    // Note: It is critical we wait to trim the dill until after we've
-    // deserialized modular data because some of this data may reference
-    // 'trimmed' elements.
-    dumpUnusedLibrariesAndTrimComponent(component, libraries);
-    return output;
-  }
-
-  Future<ClosedWorldAndIndices> produceClosedWorld() async {
     ClosedWorldAndIndices closedWorldAndIndices;
     if (options.readClosedWorldUri == null) {
-      load_kernel.Output loadKernelOutput = await loadComponent();
-      if (loadKernelOutput != null) {
-        Uri rootLibraryUri = loadKernelOutput.rootLibraryUri;
-        Iterable<Uri> libraries = loadKernelOutput.libraries;
-        _userCodeLocations.add(CodeLocation(rootLibraryUri));
-        JsClosedWorld closedWorld =
-            computeClosedWorld(rootLibraryUri, libraries);
-        closedWorldAndIndices = ClosedWorldAndIndices(closedWorld, null);
-        if (options.writeClosedWorldUri != null) {
-          serializationTask.serializeComponent(
-              closedWorld.elementMap.programEnv.mainComponent);
-          serializationTask.serializeClosedWorld(closedWorld);
-        }
+      Uri rootLibraryUri = output.rootLibraryUri;
+      Iterable<Uri> libraries = output.libraries;
+      _userCodeLocations.add(CodeLocation(rootLibraryUri));
+      JsClosedWorld closedWorld =
+          computeClosedWorld(component, moduleData, rootLibraryUri, libraries);
+      closedWorldAndIndices = ClosedWorldAndIndices(closedWorld, null);
+      if (options.writeClosedWorldUri != null) {
+        serializationTask.serializeComponent(
+            closedWorld.elementMap.programEnv.mainComponent);
+        serializationTask.serializeClosedWorld(closedWorld);
       }
     } else {
-      ir.Component component =
-          await serializationTask.deserializeComponentAndUpdateOptions();
       closedWorldAndIndices = await serializationTask.deserializeClosedWorld(
           environment, abstractValueStrategy, component);
     }
@@ -625,29 +626,40 @@ class Compiler {
   bool get shouldStopAfterCodegen => options.writeCodegenUri != null;
 
   void runSequentialPhases() async {
-    await selfTask.measureSubtask("compileFromKernel", () async {
-      // Load kernel and compute closed world.
-      ClosedWorldAndIndices closedWorldAndIndices = await produceClosedWorld();
-      if (shouldStopAfterClosedWorld(closedWorldAndIndices)) return;
+    // Load kernel.
+    load_kernel.Output output = await produceKernel();
+    if (shouldStopAfterLoadKernel(output)) return;
 
-      // Run global analysis.
-      GlobalTypeInferenceResults globalTypeInferenceResults =
-          await produceGlobalTypeInferenceResults(closedWorldAndIndices);
-      if (shouldStopAfterGlobalTypeInference) return;
+    // Run modular analysis. This may be null if modular analysis was not
+    // requested for this pipeline.
+    List<ModuleData> moduleData;
+    if (options.modularMode || options.hasModularAnalysisInputs) {
+      moduleData = await produceModuleData(output);
+    }
+    if (shouldStopAfterModularAnalysis) return;
 
-      // Run codegen.
-      CodegenResults codegenResults = await produceCodegenResults(
-          globalTypeInferenceResults, closedWorldAndIndices.indices);
-      if (shouldStopAfterCodegen) return;
+    // Compute closed world.
+    ClosedWorldAndIndices closedWorldAndIndices =
+        await produceClosedWorld(output, moduleData);
+    if (shouldStopAfterClosedWorld(closedWorldAndIndices)) return;
 
-      // Link.
-      int programSize = runCodegenEnqueuer(codegenResults);
+    // Run global analysis.
+    GlobalTypeInferenceResults globalTypeInferenceResults =
+        await produceGlobalTypeInferenceResults(closedWorldAndIndices);
+    if (shouldStopAfterGlobalTypeInference) return;
 
-      // Dump Info.
-      if (options.dumpInfo) {
-        runDumpInfo(codegenResults, programSize);
-      }
-    });
+    // Run codegen.
+    CodegenResults codegenResults = await produceCodegenResults(
+        globalTypeInferenceResults, closedWorldAndIndices.indices);
+    if (shouldStopAfterCodegen) return;
+
+    // Link.
+    int programSize = runCodegenEnqueuer(codegenResults);
+
+    // Dump Info.
+    if (options.dumpInfo) {
+      runDumpInfo(codegenResults, programSize);
+    }
   }
 
   void runDumpInfo(CodegenResults codegenResults, int programSize) {
