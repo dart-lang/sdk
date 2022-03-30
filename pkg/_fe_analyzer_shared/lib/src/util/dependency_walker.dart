@@ -29,6 +29,8 @@ abstract class DependencyWalker<NodeType extends Node<NodeType>> {
     // the walk, restore the state of the [Node] data structures so
     // that further evaluation will be safe.
 
+    if (startingPoint.isEvaluated) return;
+
     // The index which will be assigned to the next node that is
     // freshly visited.
     int index = 1;

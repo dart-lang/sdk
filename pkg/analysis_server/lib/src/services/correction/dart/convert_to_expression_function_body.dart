@@ -34,6 +34,13 @@ class ConvertToExpressionFunctionBody extends CorrectionProducer {
     if (body is! BlockFunctionBody || body.isGenerator) {
       return;
     }
+    if (body.keyword?.precedingComments != null ||
+        body.block.leftBracket.precedingComments != null ||
+        body.block.rightBracket.precedingComments != null) {
+      // TODO(https://github.com/dart-lang/sdk/issues/29313): Include comments
+      // in fixed output.
+      return;
+    }
     var parent = body.parent;
     if (parent is ConstructorDeclaration && parent.factoryKeyword == null) {
       return;
@@ -48,8 +55,31 @@ class ConvertToExpressionFunctionBody extends CorrectionProducer {
     Expression? returnExpression;
     if (onlyStatement is ReturnStatement) {
       returnExpression = onlyStatement.expression;
+      if (onlyStatement.returnKeyword.precedingComments != null) {
+        // TODO(https://github.com/dart-lang/sdk/issues/29313): Include comments
+        // in fixed output.
+        return;
+      }
+      // TODO(https://github.com/dart-lang/sdk/issues/29313): If there are
+      // comments after `return` keyword, before the expression, either return
+      // without offering a fix, or include the comments in the fixed output.
+
+      if (onlyStatement.semicolon.precedingComments != null) {
+        // TODO(https://github.com/dart-lang/sdk/issues/29313): Include
+        // comments in fixed output.
+        return;
+      }
     } else if (onlyStatement is ExpressionStatement) {
       returnExpression = onlyStatement.expression;
+      // TODO(https://github.com/dart-lang/sdk/issues/29313): If there are
+      // comments before the expression, either return without offering a fix,
+      // or include the comments in the fixed output.
+
+      if (onlyStatement.semicolon?.precedingComments != null) {
+        // TODO(https://github.com/dart-lang/sdk/issues/29313): Include comments
+        // in fixed output.
+        return;
+      }
     }
     if (returnExpression == null) {
       return;

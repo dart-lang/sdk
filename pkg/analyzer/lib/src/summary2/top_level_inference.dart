@@ -331,9 +331,7 @@ class _InferenceWalker extends graph.DependencyWalker<_InferenceNode> {
 
   void walkNodes() {
     for (var node in _nodes.values) {
-      if (!node.isEvaluated) {
-        walk(node);
-      }
+      walk(node);
     }
   }
 }
@@ -424,9 +422,7 @@ class _PropertyInducingElementTypeInference
 
   @override
   void perform() {
-    if (!_node.isEvaluated) {
-      _node._walker.walk(_node);
-    }
+    _node._walker.walk(_node);
   }
 }
 

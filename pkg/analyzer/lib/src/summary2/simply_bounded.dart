@@ -37,9 +37,7 @@ void computeSimplyBounded(Linker linker) {
   }
 
   for (var node in nodes) {
-    if (!node.isEvaluated) {
-      walker.walk(node);
-    }
+    walker.walk(node);
     var node2 = node._node;
     if (node2 is ClassOrMixinDeclaration) {
       var element = node2.declaredElement as ClassElementImpl;

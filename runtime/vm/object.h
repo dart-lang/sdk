@@ -659,8 +659,21 @@ class Object {
     return obj;
   }
 
-  cpp_vtable vtable() const { return bit_copy<cpp_vtable>(*this); }
-  void set_vtable(cpp_vtable value) { *vtable_address() = value; }
+  // Memcpy to account for the strict aliasing rule.
+  // Explicit cast to silence -Wdynamic-class-memaccess.
+  // This is still undefined behavior because we're messing with the internal
+  // representation of C++ objects, but works okay in practice with
+  // -fno-strict-vtable-pointers.
+  cpp_vtable vtable() const {
+    cpp_vtable result;
+    memcpy(&result, reinterpret_cast<const void*>(this),  // NOLINT
+           sizeof(result));
+    return result;
+  }
+  void set_vtable(cpp_vtable value) {
+    memcpy(reinterpret_cast<void*>(this), &value,  // NOLINT
+           sizeof(cpp_vtable));
+  }
 
   static ObjectPtr Allocate(intptr_t cls_id,
                             intptr_t size,
@@ -801,11 +814,6 @@ class Object {
   /* Initialize the handle based on the ptr in the presence of null. */
   static void initializeHandle(Object* obj, ObjectPtr ptr) {
     obj->SetPtr(ptr, kObjectCid);
-  }
-
-  cpp_vtable* vtable_address() const {
-    uword vtable_addr = reinterpret_cast<uword>(this);
-    return reinterpret_cast<cpp_vtable*>(vtable_addr);
   }
 
   static cpp_vtable builtin_vtables_[kNumPredefinedCids];

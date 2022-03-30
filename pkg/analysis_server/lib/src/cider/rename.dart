@@ -39,6 +39,8 @@ class CanRenameResponse {
       status = validateFunctionName(name);
     } else if (element is FieldElement) {
       status = validateFieldName(name);
+    } else if (element is MethodElement) {
+      status = validateMethodName(name);
     } else if (element is TypeAliasElement) {
       status = validateTypeAliasName(name);
     } else if (element is ClassElement) {

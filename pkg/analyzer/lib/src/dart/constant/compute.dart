@@ -15,10 +15,7 @@ void computeConstants(DeclaredVariables declaredVariables,
   var walker = _ConstantWalker(declaredVariables, featureSet);
 
   for (var constant in constants) {
-    var node = walker._getNode(constant);
-    if (!node.isEvaluated) {
-      walker.walk(node);
-    }
+    walker.walk(walker._getNode(constant));
   }
 }
 

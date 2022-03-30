@@ -39,6 +39,7 @@ abstract class AbstractCompletionDriverTest
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
+  @override
   Future<List<CompletionSuggestion>> addTestFile(String content,
       {int? offset}) async {
     driver.addTestFile(content, offset: offset);

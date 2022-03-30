@@ -217,7 +217,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
       : restart = obj['restart'],
         name = obj['name'] as String?,
         cwd = obj['cwd'] as String?,
-        env = obj['env'] as Map<String, String>?,
+        env = (obj['env'] as Map<String, Object?>?)?.cast<String, String>(),
         additionalProjectPaths =
             (obj['additionalProjectPaths'] as List?)?.cast<String>(),
         debugSdkLibraries = obj['debugSdkLibraries'] as bool?,

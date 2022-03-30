@@ -86,7 +86,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/signatureHelp | ✅ | ✅ | | ✅ | ✅ | trigger character handling outstanding
 | textDocument/declaration | | | | | |
 | textDocument/definition | ✅ | ✅ | ✅ | ✅ | ✅ |
-| textDocument/typeDefinition | | | | | |
+| textDocument/typeDefinition | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/implementation | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/references | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/documentHighlight | ✅ | ✅ | | ✅ | ✅ |

@@ -32,7 +32,10 @@ void generateJavaScriptCode(
   final codegenInputs = compiler.initializeCodegen(globalTypeInferenceResults);
   final codegenResults = OnDemandCodegenResults(globalTypeInferenceResults,
       codegenInputs, compiler.backendStrategy.functionCompiler);
-  compiler.runCodegenEnqueuer(codegenResults);
+  final programSize = compiler.runCodegenEnqueuer(codegenResults);
+  if (compiler.options.dumpInfo) {
+    compiler.runDumpInfo(codegenResults, programSize);
+  }
 }
 
 void finishCompileAndCompare(
