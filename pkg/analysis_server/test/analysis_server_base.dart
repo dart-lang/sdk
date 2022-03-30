@@ -10,6 +10,7 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -69,8 +70,12 @@ class AnalysisOptionsFileConfig {
 }
 
 class PubPackageAnalysisServerTest with ResourceProviderMixin {
+  final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
   late final AnalysisServer server;
+
+  final List<GeneralAnalysisService> _analysisGeneralServices = [];
+  final Map<AnalysisService, List<String>> _analysisFileSubscriptions = {};
 
   AnalysisDomainHandler get analysisDomain {
     return server.handlers.whereType<AnalysisDomainHandler>().single;
@@ -86,7 +91,14 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
         EnableString.super_parameters,
       ];
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   File get testFile => getFile(testFilePath);
+
+  analysis.AnalysisOptions get testFileAnalysisOptions {
+    var analysisDriver = server.getAnalysisDriver(testFile.path)!;
+    return analysisDriver.analysisOptions;
+  }
 
   String get testFileContent => testFile.readAsStringSync();
 
@@ -101,6 +113,25 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
   String get testPackageTestPath => '$testPackageRootPath/test';
 
   String get workspaceRootPath => '/home';
+
+  Future<void> addAnalysisSubscription(
+    AnalysisService service,
+    File file,
+  ) async {
+    (_analysisFileSubscriptions[service] ??= []).add(file.path);
+    await handleSuccessfulRequest(
+      AnalysisSetSubscriptionsParams(
+        _analysisFileSubscriptions,
+      ).toRequest('0'),
+    );
+  }
+
+  Future<void> addGeneralAnalysisSubscription(
+    GeneralAnalysisService service,
+  ) async {
+    _analysisGeneralServices.add(service);
+    await _setGeneralAnalysisSubscriptions();
+  }
 
   /// TODO(scheglov) rename
   void addTestFile(String content) {
@@ -144,6 +175,10 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     return response;
   }
 
+  void modifyTestFile(String content) {
+    modifyFile(testFilePath, content);
+  }
+
   /// Returns the offset of [search] in [file].
   /// Fails if not found.
   int offsetInFile(File file, String search) {
@@ -154,6 +189,21 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
   }
 
   void processNotification(Notification notification) {}
+
+  Future<void> removeGeneralAnalysisSubscription(
+    GeneralAnalysisService service,
+  ) async {
+    _analysisGeneralServices.remove(service);
+    await _setGeneralAnalysisSubscriptions();
+  }
+
+  void setPriorityFiles(List<File> files) {
+    handleSuccessfulRequest(
+      AnalysisSetPriorityFilesParams(
+        files.map((e) => e.path).toList(),
+      ).toRequest('0'),
+    );
+  }
 
   Future<void> setRoots({
     required List<String> included,
@@ -174,7 +224,6 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
   void setUp() {
     serverChannel = MockServerChannel();
 
-    var sdkRoot = newFolder('/sdk');
     createMockSdk(
       resourceProvider: resourceProvider,
       root: sdkRoot,
@@ -200,6 +249,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     );
 
     server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
+    server.pluginManager = pluginManager;
     completionDomain.budgetDuration = const Duration(seconds: 30);
   }
 
@@ -248,5 +298,13 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   void writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);
+  }
+
+  Future<void> _setGeneralAnalysisSubscriptions() async {
+    await handleSuccessfulRequest(
+      AnalysisSetGeneralSubscriptionsParams(
+        _analysisGeneralServices,
+      ).toRequest('0'),
+    );
   }
 }

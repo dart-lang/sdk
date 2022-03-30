@@ -1374,10 +1374,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount() + 1);  // Drop the arguments and result.
 }
 
+#define R(r) (1 << r)
+
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
-  LocationSummary* summary =
-      MakeLocationSummaryInternal(zone, is_optimizing, CALLEE_SAVED_TEMP2);
+  LocationSummary* summary = MakeLocationSummaryInternal(
+      zone, is_optimizing,
+      (R(CallingConventions::kSecondNonArgumentRegister) |
+       R(CallingConventions::kFfiAnyNonAbiRegister) | R(CALLEE_SAVED_TEMP2)));
   // A3/A4/A5 are blocked during Dart register allocation because they are
   // assigned to TMP/TMP2/PP. This assignment is important for reducing code
   // size. To work around this for FFI calls, the FFI argument definitions are
@@ -1400,17 +1404,20 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
+#undef R
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register target = locs()->in(TargetAddressIndex()).reg();
+
+  // The temps are indexed according to their register number.
+  const Register temp1 = locs()->temp(0).reg();
   // For regular calls, this holds the FP for rebasing the original locations
   // during EmitParamMoves.
   // For leaf calls, this holds the SP used to restore the pre-aligned SP after
   // the call.
-  const Register saved_fp_or_sp = locs()->temp(0).reg();
-  RELEASE_ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
-                  (1 << saved_fp_or_sp)) != 0);
-  const Register temp1 = locs()->temp(1).reg();
+  const Register saved_fp_or_sp = locs()->temp(1).reg();
   const Register temp2 = locs()->temp(2).reg();
-  const Register target = locs()->in(TargetAddressIndex()).reg();
+
   ASSERT(temp1 != target);
   ASSERT(temp2 != target);
   ASSERT(temp1 != saved_fp_or_sp);
@@ -1420,7 +1427,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Ensure these are callee-saved register and are preserved across the call.
   ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
           (1 << saved_fp_or_sp)) != 0);
-  // temps don't need to be preserved.
+  // Other temps don't need to be preserved.
 
   __ mv(saved_fp_or_sp, is_leaf_ ? SPREG : FPREG);
 

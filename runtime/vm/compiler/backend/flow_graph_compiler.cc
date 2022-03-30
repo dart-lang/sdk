@@ -1796,9 +1796,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         result_location = Location::FpuRegisterLocation(
             AllocateFreeFpuRegister(blocked_fpu_registers));
         break;
-      case Location::kRequiresStackSlot:
-        UNREACHABLE();
-        break;
     }
     locs->set_out(0, result_location);
   }

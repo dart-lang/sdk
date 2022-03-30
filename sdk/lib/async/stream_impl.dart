@@ -978,6 +978,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
   /// This will usually cause the [_subscription] to be paused, but as an
   /// optimization, we only pause after the [moveNext] future has been
   /// completed.
+  @pragma("vm:entry-point")
   bool _hasValue = false;
 
   _StreamIterator(final Stream<T> stream)

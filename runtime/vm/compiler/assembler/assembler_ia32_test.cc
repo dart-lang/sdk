@@ -4558,8 +4558,8 @@ ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
       "ret\n");
 }
 
-ASSEMBLER_TEST_GENERATE(TestLoadDoubleConstant, assembler) {
-  __ LoadDoubleConstant(XMM3, -12.34);
+ASSEMBLER_TEST_GENERATE(TestLoadDImmediate, assembler) {
+  __ LoadDImmediate(XMM3, -12.34);
   __ pushl(EAX);
   __ pushl(EAX);
   __ movsd(Address(ESP, 0), XMM3);
@@ -4569,9 +4569,9 @@ ASSEMBLER_TEST_GENERATE(TestLoadDoubleConstant, assembler) {
   __ ret();
 }
 
-ASSEMBLER_TEST_RUN(TestLoadDoubleConstant, test) {
-  typedef double (*TestLoadDoubleConstantCode)();
-  double res = reinterpret_cast<TestLoadDoubleConstantCode>(test->entry())();
+ASSEMBLER_TEST_RUN(TestLoadDImmediate, test) {
+  typedef double (*TestLoadDImmediateCode)();
+  double res = reinterpret_cast<TestLoadDImmediateCode>(test->entry())();
   EXPECT_FLOAT_EQ(-12.34, res, 0.0001);
   EXPECT_DISASSEMBLY(
       "push 0xc028ae14\n"

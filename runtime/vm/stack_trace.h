@@ -92,6 +92,7 @@ class CallerClosureFinder {
   Field& state_field;
   Field& on_data_field;
   Field& state_data_field;
+  Field& has_value_field;
 
   DISALLOW_COPY_AND_ASSIGN(CallerClosureFinder);
 };

@@ -952,6 +952,227 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
   EXPECT_EQ(reinterpret_cast<intptr_t>(thread), result_int);
 }
 
+// Helper to set up an inlined FfiCall by replacing a StaticCall.
+FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
+                             Zone* zone,
+                             const compiler::ffi::CallMarshaller& marshaller,
+                             uword native_entry,
+                             bool is_leaf) {
+  FlowGraph* flow_graph = pipeline->RunPasses({CompilerPass::kComputeSSA});
+
+  // Make an FfiCall based on ffi_trampoline that calls our native function.
+  auto ffi_call = new FfiCallInstr(zone, DeoptId::kNone, marshaller, is_leaf);
+  RELEASE_ASSERT(ffi_call->InputCount() == 1);
+  // TargetAddress is the function pointer called.
+  const Representation address_repr =
+      compiler::target::kWordSize == 4 ? kUnboxedUint32 : kUnboxedInt64;
+  ffi_call->SetInputAt(
+      ffi_call->TargetAddressIndex(),
+      new Value(flow_graph->GetConstant(
+          Integer::Handle(Integer::NewCanonical(native_entry)), address_repr)));
+
+  // Replace the placeholder StaticCall with an FfiCall to our native function.
+  {
+    StaticCallInstr* static_call = nullptr;
+    {
+      ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry(),
+                       /*trace=*/false);
+      cursor.TryMatch({kMoveGlob, {kMatchStaticCall, &static_call}});
+    }
+    RELEASE_ASSERT(static_call != nullptr);
+
+    flow_graph->InsertBefore(static_call, ffi_call, /*env=*/nullptr,
+                             FlowGraph::kEffect);
+    static_call->RemoveFromGraph(/*return_previous=*/false);
+  }
+
+  // Run remaining relevant compiler passes.
+  pipeline->RunAdditionalPasses({
+      CompilerPass::kApplyICData,
+      CompilerPass::kTryOptimizePatterns,
+      CompilerPass::kSetOuterInliningId,
+      CompilerPass::kTypePropagation,
+      // Skipping passes that don't seem to do anything for this test.
+      CompilerPass::kWidenSmiToInt32,
+      CompilerPass::kSelectRepresentations,
+      // Skipping passes that don't seem to do anything for this test.
+      CompilerPass::kTypePropagation,
+      CompilerPass::kRangeAnalysis,
+      // Skipping passes that don't seem to do anything for this test.
+      CompilerPass::kFinalizeGraph,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kAllocateRegisters,
+      CompilerPass::kReorderBlocks,
+  });
+
+  return flow_graph;
+}
+
+// Test that FFI calls spill all live values to the stack, and that FFI leaf
+// calls are free to use available ABI callee-save registers to avoid spilling.
+// Additionally test that register allocation is done correctly by clobbering
+// all volatile registers in the native function being called.
+ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
+  SetFlagScope<int> sfs(&FLAG_sound_null_safety, kNullSafetyOptionStrong);
+
+  const char* kScript = R"(
+    import 'dart:ffi';
+
+    // This is purely a placeholder and is never called.
+    void placeholder() {}
+
+    // Will call the "doFfiCall" and exercise its code.
+    bool invokeDoFfiCall() {
+      final double result = doFfiCall(1, 2, 3, 1.0, 2.0, 3.0);
+      if (result != (2 + 3 + 4 + 2.0 + 3.0 + 4.0)) {
+        throw 'Failed. Result was $result.';
+      }
+      return true;
+    }
+
+    // Will perform a "C" call while having live values in registers
+    // across the FfiCall.
+    double doFfiCall(int a, int b, int c, double x, double y, double z) {
+      // Ensure there is at least one live value in a register.
+      a += 1;
+      b += 1;
+      c += 1;
+      x += 1.0;
+      y += 1.0;
+      z += 1.0;
+      // We'll replace this StaticCall with an FfiCall.
+      placeholder();
+      // Use the live value.
+      return (a + b + c + x + y + z);
+    }
+
+    // FFI trampoline function.
+    typedef NT = Void Function();
+    typedef DT = void Function();
+    Pointer<NativeFunction<NT>> ptr = Pointer.fromAddress(0);
+    DT getFfiTrampolineClosure() => ptr.asFunction(isLeaf:true);
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+
+  // Build a "C" function that we can actually invoke.
+  auto& c_function = Instructions::Handle(
+      BuildInstructions([](compiler::Assembler* assembler) {
+        // Clobber all volatile registers to make sure caller doesn't rely on
+        // any non-callee-save register.
+        for (intptr_t reg = 0; reg < kNumberOfFpuRegisters; reg++) {
+          if ((kAbiVolatileFpuRegs & (1 << reg)) != 0) {
+#if defined(TARGET_ARCH_ARM)
+            // On ARM we need an extra scratch register for LoadDImmediate.
+            assembler->LoadDImmediate(static_cast<DRegister>(reg), 0.0, R3);
+#else
+            assembler->LoadDImmediate(static_cast<FpuRegister>(reg), 0.0);
+#endif
+          }
+        }
+        for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
+          if ((kDartVolatileCpuRegs & (1 << reg)) != 0) {
+            assembler->LoadImmediate(static_cast<Register>(reg), 0xDEADBEEF);
+          }
+        }
+        assembler->Ret();
+      }));
+  uword native_entry = c_function.EntryPoint();
+
+  // Get initial compilation done.
+  Invoke(root_library, "invokeDoFfiCall");
+
+  const Function& do_ffi_call =
+      Function::Handle(GetFunction(root_library, "doFfiCall"));
+  RELEASE_ASSERT(!do_ffi_call.IsNull());
+
+  const auto& value = Closure::Handle(
+      Closure::RawCast(Invoke(root_library, "getFfiTrampolineClosure")));
+  RELEASE_ASSERT(value.IsClosure());
+  const auto& ffi_trampoline =
+      Function::ZoneHandle(Closure::Cast(value).function());
+  RELEASE_ASSERT(!ffi_trampoline.IsNull());
+
+  // Construct the FFICallInstr from the trampoline matching our native
+  // function.
+  const char* error = nullptr;
+  const auto marshaller_ptr = compiler::ffi::CallMarshaller::FromFunction(
+      thread->zone(), ffi_trampoline, &error);
+  RELEASE_ASSERT(error == nullptr);
+  RELEASE_ASSERT(marshaller_ptr != nullptr);
+  const auto& marshaller = *marshaller_ptr;
+
+  const auto& compile_and_run =
+      [&](bool is_leaf, std::function<void(ParallelMoveInstr*)> verify) {
+        // Build the SSA graph for "doFfiCall"
+        TestPipeline pipeline(do_ffi_call, CompilerPass::kJIT);
+        FlowGraph* flow_graph = SetupFfiFlowgraph(
+            &pipeline, thread->zone(), marshaller, native_entry, is_leaf);
+
+        {
+          ParallelMoveInstr* parallel_move = nullptr;
+          ILMatcher cursor(flow_graph,
+                           flow_graph->graph_entry()->normal_entry(),
+                           /*trace=*/false);
+          while (cursor.TryMatch(
+              {kMoveGlob, {kMatchAndMoveParallelMove, &parallel_move}})) {
+            verify(parallel_move);
+          }
+        }
+
+        // Finish the compilation and attach code so we can run it.
+        pipeline.CompileGraphAndAttachFunction();
+
+        // Ensure we can successfully invoke the FFI call.
+        auto& result = Object::Handle(Invoke(root_library, "invokeDoFfiCall"));
+        RELEASE_ASSERT(result.IsBool());
+        EXPECT(Bool::Cast(result).value());
+      };
+
+  intptr_t num_cpu_reg_to_stack_nonleaf = 0;
+  intptr_t num_cpu_reg_to_stack_leaf = 0;
+  intptr_t num_fpu_reg_to_stack_nonleaf = 0;
+  intptr_t num_fpu_reg_to_stack_leaf = 0;
+
+  // Test non-leaf spills live values.
+  compile_and_run(/*is_leaf=*/false, [&](ParallelMoveInstr* parallel_move) {
+    // TargetAddress is passed in register, live values are all spilled.
+    for (int i = 0; i < parallel_move->NumMoves(); i++) {
+      auto move = parallel_move->moves()[i];
+      if (move->src_slot()->IsRegister() && move->dest_slot()->IsStackSlot()) {
+        num_cpu_reg_to_stack_nonleaf++;
+      } else if (move->src_slot()->IsFpuRegister() &&
+                 move->dest_slot()->IsDoubleStackSlot()) {
+        num_fpu_reg_to_stack_nonleaf++;
+      }
+    }
+  });
+
+  // Test leaf calls do not cause spills of live values.
+  compile_and_run(/*is_leaf=*/true, [&](ParallelMoveInstr* parallel_move) {
+    // TargetAddress is passed in registers, live values are not spilled and
+    // remains in callee-save registers.
+    for (int i = 0; i < parallel_move->NumMoves(); i++) {
+      auto move = parallel_move->moves()[i];
+      if (move->src_slot()->IsRegister() && move->dest_slot()->IsStackSlot()) {
+        num_cpu_reg_to_stack_leaf++;
+      } else if (move->src_slot()->IsFpuRegister() &&
+                 move->dest_slot()->IsDoubleStackSlot()) {
+        num_fpu_reg_to_stack_leaf++;
+      }
+    }
+  });
+
+  // We should have less moves to the stack (i.e. spilling) in leaf calls.
+  EXPECT_LT(num_cpu_reg_to_stack_leaf, num_cpu_reg_to_stack_nonleaf);
+  // We don't have volatile FPU registers on all platforms.
+  const bool has_callee_save_fpu_regs =
+      Utils::CountOneBitsWord(kAbiVolatileFpuRegs) <
+      Utils::CountOneBitsWord(kAllFpuRegistersList);
+  EXPECT(!has_callee_save_fpu_regs ||
+         num_fpu_reg_to_stack_leaf < num_fpu_reg_to_stack_nonleaf);
+}
+
 static void TestConstantFoldToSmi(const Library& root_library,
                                   const char* function_name,
                                   CompilerPass::PipelineMode mode,

@@ -2,8 +2,8 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-typedef F = (@#C1 core::int x, core::num y, {@#C2 @#C3 core::String z, core::Object w}) → void;
-typedef G = (@#C1 core::int a, core::num b, [@#C2 @#C3 core::String c, core::Object d]) → void;
+typedef F = (core::int, core::num, {w: core::Object, z: core::String}) → void;
+typedef G = (core::int, core::num, [core::String, core::Object]) → void;
 static const field core::int foo = #C1;
 static const field core::int bar = #C2;
 static const field core::int baz = #C3;

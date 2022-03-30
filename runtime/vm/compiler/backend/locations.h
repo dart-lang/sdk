@@ -257,7 +257,6 @@ class Location : public ValueObject {
     kPrefersRegister,
     kRequiresRegister,
     kRequiresFpuRegister,
-    kRequiresStackSlot,
     kWritableRegister,
     kSameAsFirstInput,
   };
@@ -283,10 +282,6 @@ class Location : public ValueObject {
 
   static Location RequiresFpuRegister() {
     return UnallocatedLocation(kRequiresFpuRegister);
-  }
-
-  static Location RequiresStackSlot() {
-    return UnallocatedLocation(kRequiresStackSlot);
   }
 
   static Location WritableRegister() {
@@ -719,12 +714,19 @@ class RegisterSet : public ValueObject {
 class LocationSummary : public ZoneAllocated {
  public:
   enum ContainsCall {
-    kNoCall,  // Used registers must be reserved as tmp.
-    kCall,    // Registers have been saved and can be used without reservation.
-    kCallCalleeSafe,       // Registers will be saved by the callee.
-    kCallOnSlowPath,       // Used registers must be reserved as tmp.
-    kCallOnSharedSlowPath  // Registers used to invoke shared stub must be
-                           // reserved as tmp.
+    // Used registers must be reserved as tmp.
+    kNoCall,
+    // Registers have been saved and can be used without reservation.
+    kCall,
+    // Registers will be saved by the callee.
+    kCallCalleeSafe,
+    // Used registers must be reserved as tmp.
+    kCallOnSlowPath,
+    // Registers used to invoke shared stub must be reserved as tmp.
+    kCallOnSharedSlowPath,
+    // Location is a native leaf call so any register not in the native ABI
+    // callee-save (or input/output/tmp) set might get clobbered.
+    kNativeLeafCall
   };
 
   LocationSummary(Zone* zone,
@@ -799,6 +801,8 @@ class LocationSummary : public ZoneAllocated {
   bool call_on_shared_slow_path() const {
     return contains_call_ == kCallOnSharedSlowPath;
   }
+
+  bool native_leaf_call() const { return contains_call_ == kNativeLeafCall; }
 
   void PrintTo(BaseTextBuffer* f) const;
 

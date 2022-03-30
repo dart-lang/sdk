@@ -414,6 +414,7 @@ class ObjectPointerVisitor;
   V(_handleMessage, "_handleMessage")                                          \
   V(_handleFinalizerMessage, "_handleFinalizerMessage")                        \
   V(_handleNativeFinalizerMessage, "_handleNativeFinalizerMessage")            \
+  V(_hasValue, "_hasValue")                                                    \
   V(_instanceOf, "_instanceOf")                                                \
   V(_listGetAt, "_listGetAt")                                                  \
   V(_listLength, "_listLength")                                                \

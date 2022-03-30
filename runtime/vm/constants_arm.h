@@ -30,6 +30,8 @@ namespace dart {
 // to compare LR register code.
 #define LR LR_DO_NOT_USE_DIRECTLY
 
+#define R(reg) (static_cast<RegList>(1) << (reg))
+
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at
 // a time.
 #if defined(__ARM_ARCH_7A__)
@@ -209,6 +211,9 @@ enum DRegister {
   D31 = 31,
   kNumberOfDRegisters = 32,
 #endif
+  // Number of D registers that overlap S registers.
+  // One D register overlaps two S registers, so regardless of the numbers of D
+  // registers, there are only 32 S registers that are overlapped.
   kNumberOfOverlappingDRegisters = 16,
 };
 
@@ -243,6 +248,10 @@ enum QRegister {
   Q15 = 15,
   kNumberOfQRegisters = 16,
 #endif
+  // Number of Q registers that overlap S registers.
+  // One Q register overlaps four S registers, so regardless of the numbers of Q
+  // registers, there are only 32 S registers that are overlapped.
+  kNumberOfOverlappingQRegisters = 8,
 };
 
 static inline DRegister EvenDRegisterOf(QRegister q) {
@@ -256,7 +265,7 @@ static inline DRegister OddDRegisterOf(QRegister q) {
 static inline SRegister EvenSRegisterOf(DRegister d) {
 #if defined(VFPv3_D32)
   // When we have 32 D registers, the S registers only overlap the first 16.
-  // That is, there are only 32 S registers.
+  // That is, there are only ever 32 S registers in any extension.
   ASSERT(d < D16);
 #endif
   return static_cast<SRegister>(d * 2);
@@ -535,6 +544,7 @@ struct DispatchTableNullErrorABI {
 // List of registers used in load/store multiple.
 typedef uint16_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
+const RegList kAllFpuRegistersList = (1 << kNumberOfFpuRegisters) - 1;
 
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
@@ -572,7 +582,11 @@ const int kDartVolatileCpuRegCount = 6;
 const int kDartVolatileCpuRegCount = 5;
 #endif
 
-#define R(reg) (static_cast<RegList>(1) << (reg))
+const RegList kAbiVolatileFpuRegs = R(Q0) | R(Q1) | R(Q2) | R(Q3);
+
+const RegList kFpuRegistersWithoutSOverlap =
+    kAllFpuRegistersList &
+    ~((1 << QRegister::kNumberOfOverlappingQRegisters) - 1);
 
 class CallingConventions {
  public:

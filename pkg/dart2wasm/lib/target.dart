@@ -46,6 +46,7 @@ class WasmTarget extends Target {
         'dart:_internal',
         'dart:typed_data',
         'dart:nativewrappers',
+        'dart:js_util_wasm',
       ];
 
   @override

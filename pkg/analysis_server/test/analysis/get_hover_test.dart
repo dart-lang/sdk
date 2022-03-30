@@ -48,7 +48,7 @@ class AnalysisHoverTest extends PubPackageAnalysisServerTest {
   }
 
   Future<HoverInformation?> prepareHoverAt(int offset) async {
-    await server.onAnalysisComplete;
+    await waitForTasksFinished();
     var request = AnalysisGetHoverParams(testFile.path, offset).toRequest('0');
     var response = await handleSuccessfulRequest(request);
     var result = AnalysisGetHoverResult.fromResponse(response);

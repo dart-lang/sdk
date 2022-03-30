@@ -5305,7 +5305,7 @@ class FfiCallInstr : public Definition {
 
   LocationSummary* MakeLocationSummaryInternal(Zone* zone,
                                                bool is_optimizing,
-                                               const Register temp) const;
+                                               const RegList temps) const;
 
   // Clobbers both given registers.
   // `saved_fp` is used as the frame base to rebase off of.

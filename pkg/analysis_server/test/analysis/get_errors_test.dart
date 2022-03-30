@@ -33,7 +33,7 @@ main() {
 }
 ''');
 
-    await server.onAnalysisComplete;
+    await waitForTasksFinished();
 
     var errors = await _getErrors(testFile.path);
     expect(errors, hasLength(1));

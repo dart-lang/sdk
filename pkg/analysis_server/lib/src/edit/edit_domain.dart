@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/handler/legacy/edit_bulk_fixes.dart';
+import 'package:analysis_server/src/handler/legacy/edit_format.dart';
 import 'package:analysis_server/src/handler/legacy/edit_format_if_enabled.dart';
 import 'package:analysis_server/src/handler/legacy/edit_get_assists.dart';
 import 'package:analysis_server/src/handler/legacy/edit_get_fixes.dart';
@@ -16,11 +17,11 @@ import 'package:analysis_server/src/handler/legacy/edit_get_postfix_completion.d
 import 'package:analysis_server/src/handler/legacy/edit_get_statement_completion.dart';
 import 'package:analysis_server/src/handler/legacy/edit_import_elements.dart';
 import 'package:analysis_server/src/handler/legacy/edit_is_postfix_completion_applicable.dart';
+import 'package:analysis_server/src/handler/legacy/edit_list_postfix_completion_templates.dart';
 import 'package:analysis_server/src/handler/legacy/edit_organize_directives.dart';
 import 'package:analysis_server/src/handler/legacy/edit_sort_members.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisError, Element;
-import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -28,7 +29,6 @@ import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:dart_style/dart_style.dart';
 
 int test_resetCount = 0;
 
@@ -57,69 +57,14 @@ class EditDomainHandler extends AbstractRequestHandler {
     _newRefactoringManager();
   }
 
-  Response format(Request request) {
-    server.options.analytics?.sendEvent('edit', 'format');
-
-    var params = EditFormatParams.fromRequest(request);
-    var file = params.file;
-
-    String unformattedCode;
-    try {
-      var resource = server.resourceProvider.getFile(file);
-      unformattedCode = resource.readAsStringSync();
-    } catch (e) {
-      return Response.formatInvalidFile(request);
-    }
-
-    int? start = params.selectionOffset;
-    int? length = params.selectionLength;
-
-    // No need to preserve 0,0 selection
-    if (start == 0 && length == 0) {
-      start = null;
-      length = null;
-    }
-
-    var code = SourceCode(unformattedCode,
-        uri: null,
-        isCompilationUnit: true,
-        selectionStart: start,
-        selectionLength: length);
-    var formatter = DartFormatter(pageWidth: params.lineLength);
-    SourceCode formattedResult;
-    try {
-      formattedResult = formatter.formatSource(code);
-    } on FormatterException {
-      return Response.formatWithErrors(request);
-    }
-    var formattedSource = formattedResult.text;
-
-    var edits = <SourceEdit>[];
-
-    if (formattedSource != unformattedCode) {
-      //TODO: replace full replacements with smaller, more targeted edits
-      var edit = SourceEdit(0, unformattedCode.length, formattedSource);
-      edits.add(edit);
-    }
-
-    var newStart = formattedResult.selectionStart;
-    var newLength = formattedResult.selectionLength;
-
-    // Sending null start/length values would violate protocol, so convert back
-    // to 0.
-    newStart ??= 0;
-    newLength ??= 0;
-
-    return EditFormatResult(edits, newStart, newLength).toResponse(request.id);
-  }
-
   @override
   Response? handleRequest(
       Request request, CancellationToken cancellationToken) {
     try {
       var requestName = request.method;
       if (requestName == EDIT_REQUEST_FORMAT) {
-        return format(request);
+        EditFormatHandler(server, request, cancellationToken).handle();
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_FORMAT_IF_ENABLED) {
         EditFormatIfEnabledHandler(server, request, cancellationToken).handle();
         return Response.DELAYED_RESPONSE;
@@ -162,22 +107,15 @@ class EditDomainHandler extends AbstractRequestHandler {
         return Response.DELAYED_RESPONSE;
       } else if (requestName ==
           EDIT_REQUEST_LIST_POSTFIX_COMPLETION_TEMPLATES) {
-        return listPostfixCompletionTemplates(request);
+        EditListPostfixCompletionTemplatesHandler(
+                server, request, cancellationToken)
+            .handle();
+        return Response.DELAYED_RESPONSE;
       }
     } on RequestFailure catch (exception) {
       return exception.response;
     }
     return null;
-  }
-
-  Response listPostfixCompletionTemplates(Request request) {
-    var templates = DartPostfixCompletion.ALL_TEMPLATES
-        .map((PostfixCompletionKind kind) =>
-            PostfixTemplateDescriptor(kind.name, kind.key, kind.example))
-        .toList();
-
-    return EditListPostfixCompletionTemplatesResult(templates)
-        .toResponse(request.id);
   }
 
   Future<void> _getAvailableRefactorings(Request request) async {

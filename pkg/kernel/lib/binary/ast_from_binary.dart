@@ -1340,13 +1340,6 @@ class BinaryBuilder {
     node.annotations = readAnnotationList(node);
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType type = readDartType();
-    readAndPushTypeParameterList(node.typeParametersOfFunctionType, node);
-    node.positionalParameters.clear();
-    node.positionalParameters.addAll(readAndPushVariableDeclarationList());
-    setParents(node.positionalParameters, node);
-    node.namedParameters.clear();
-    node.namedParameters.addAll(readAndPushVariableDeclarationList());
-    setParents(node.namedParameters, node);
     typeParameterStack.length = 0;
     variableStack.length = 0;
     node.fileOffset = fileOffset;

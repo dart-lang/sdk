@@ -299,24 +299,7 @@ class DietListener extends StackListenerImpl {
               // hood, so we only need the offset of the first annotation.
               Token metadataToken = tokenForOffset(
                   typedefKeyword, endToken, metadata[0].charOffset)!;
-              List<Expression> annotations =
-                  parseMetadata(typedefBuilder, metadataToken, null)!;
-              if (formal.isPositional) {
-                VariableDeclaration parameter =
-                    typedefBuilder.typedef.positionalParameters[i];
-                for (Expression annotation in annotations) {
-                  parameter.addAnnotation(annotation);
-                }
-              } else {
-                for (VariableDeclaration named
-                    in typedefBuilder.typedef.namedParameters) {
-                  if (named.name == formal.name) {
-                    for (Expression annotation in annotations) {
-                      named.addAnnotation(annotation);
-                    }
-                  }
-                }
-              }
+              parseMetadata(typedefBuilder, metadataToken, null)!;
             }
           }
         }

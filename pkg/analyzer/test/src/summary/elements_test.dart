@@ -1761,19 +1761,19 @@ library
   }
 
   test_class_constructor_parameters_super_requiredPositional_inferenceOrder() async {
-    // It is important that `C` is declared after `B`, so that we check that
-    // inference happens in order - first `C`, then `B`.
+    // It is important that `B` is declared after `C`, so that we check that
+    // inference happens in order - first `B`, then `C`.
     var library = await buildLibrary('''
 abstract class A {
   A(int a);
 }
 
-class B extends C {
-  B(super.a);
+class C extends B {
+  C(super.a);
 }
 
-class C extends A {
-  C(super.a);
+class B extends A {
+  B(super.a);
 }
 ''');
     checkElementText(library, r'''
@@ -1786,16 +1786,16 @@ library
             parameters
               requiredPositional a @27
                 type: int
-      class B @40
-        supertype: C
+      class C @40
+        supertype: B
         constructors
           @56
             parameters
               requiredPositional final super.a @64
                 type: int
                 superConstructorParameter: a@101
-            superConstructor: self::@class::C::@constructor::•
-      class C @77
+            superConstructor: self::@class::B::@constructor::•
+      class B @77
         supertype: A
         constructors
           @93
@@ -1803,6 +1803,60 @@ library
               requiredPositional final super.a @101
                 type: int
                 superConstructorParameter: a@27
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_parameters_super_requiredPositional_inferenceOrder_generic() async {
+    // It is important that `C` is declared before `B`, so that we check that
+    // inference happens in order - first `B`, then `C`.
+    var library = await buildLibrary('''
+class A {
+  A(int a);
+}
+
+class C extends B<String> {
+  C(super.a);
+}
+
+class B<T> extends A {
+  B(super.a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional a @18
+                type: int
+      class C @31
+        supertype: B<String>
+        constructors
+          @55
+            parameters
+              requiredPositional final super.a @63
+                type: int
+                superConstructorParameter: ParameterMember
+                  base: a@103
+                  substitution: {T: String}
+            superConstructor: ConstructorMember
+              base: self::@class::B::@constructor::•
+              substitution: {T: String}
+      class B @76
+        typeParameters
+          covariant T @78
+            defaultType: dynamic
+        supertype: A
+        constructors
+          @95
+            parameters
+              requiredPositional final super.a @103
+                type: int
+                superConstructorParameter: a@18
             superConstructor: self::@class::A::@constructor::•
 ''');
   }

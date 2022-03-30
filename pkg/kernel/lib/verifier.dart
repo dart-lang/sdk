@@ -282,8 +282,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     assert(state == null);
     typedefState[node] = TypedefState.BeingChecked;
     Set<TypeParameter> savedTypeParameters = typeParametersInScope;
-    typeParametersInScope = node.typeParameters.toSet()
-      ..addAll(node.typeParametersOfFunctionType);
+    typeParametersInScope = node.typeParameters.toSet();
     TreeNode? savedParent = currentParent;
     currentParent = node;
     // Visit children without checking the parent pointer on the typedef itself

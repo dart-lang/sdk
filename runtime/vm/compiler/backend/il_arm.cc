@@ -1402,27 +1402,34 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+#define R(r) (1 << r)
+
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
-  return MakeLocationSummaryInternal(zone, is_optimizing, R0);
+  return MakeLocationSummaryInternal(
+      zone, is_optimizing,
+      (R(R0) | R(CallingConventions::kFfiAnyNonAbiRegister) |
+       R(CallingConventions::kSecondNonArgumentRegister)));
 }
 
+#undef R
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register branch = locs()->in(TargetAddressIndex()).reg();
+
+  // The temps are indexed according to their register number.
+  const Register temp2 = locs()->temp(0).reg();
   // For regular calls, this holds the FP for rebasing the original locations
   // during EmitParamMoves.
   // For leaf calls, this holds the SP used to restore the pre-aligned SP after
   // the call.
-  const Register saved_fp_or_sp = locs()->temp(0).reg();
-  RELEASE_ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
-                  (1 << saved_fp_or_sp)) != 0);
-  const Register temp1 = locs()->temp(1).reg();
-  const Register temp2 = locs()->temp(2).reg();
-  const Register branch = locs()->in(TargetAddressIndex()).reg();
+  const Register saved_fp_or_sp = locs()->temp(1).reg();
+  const Register temp1 = locs()->temp(2).reg();
 
   // Ensure these are callee-saved register and are preserved across the call.
   ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
           (1 << saved_fp_or_sp)) != 0);
-  // temp doesn't need to be preserved.
+  // Other temps don't need to be preserved.
 
   __ mov(saved_fp_or_sp,
          is_leaf_ ? compiler::Operand(SPREG) : compiler::Operand(FPREG));

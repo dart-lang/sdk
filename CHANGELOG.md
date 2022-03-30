@@ -233,8 +233,16 @@ in 2018, as it doesn't work with any Dart 2.x release.
   tracker.
 
   `dart --verbose pub [command]` will also cause the log file to be written.
+- `dart pub global activate --source=git` now takes arguments `--git-path` to
+  specify the path of the activated package in the pubspec and `--git-ref` to
+  specify the branch or revision to check out.
 - `dart pub add` can now add multiple packages in one command.
-
+- `dart pub token add` can now add a token for [pub.dev](https://pub.dev).
+- `dart pub uploader` has been removed. To manage uploaders for a package use
+  the `https://pub.dev/<packagename>/admin` web-interface.
+- Pub now supports a separate `pubspec_overrides.yaml` file that can contain
+  `dependency_overrides`. This makes it easier to avoid checking the local
+  overrides into version control.
 #### Linter
 
 Updated the Linter to `1.18.0`, which includes changes that

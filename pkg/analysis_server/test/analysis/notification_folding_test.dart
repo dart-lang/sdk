@@ -9,7 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationFoldingTest extends AbstractAnalysisTest {
+class AnalysisNotificationFoldingTest extends PubPackageAnalysisServerTest {
   static const sampleCode = '''
 import 'dart:async';
 import 'dart:core';
@@ -40,7 +40,7 @@ main async() {}
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_FOLDING) {
       var params = AnalysisFoldingParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         lastRegions = params.regions;
         _regionsReceived.complete(null);
       }
@@ -53,7 +53,7 @@ main async() {}
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> subscribeForFolding() async {
