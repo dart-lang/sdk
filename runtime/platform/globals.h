@@ -200,10 +200,10 @@ struct simd128_value_t {
 #elif defined(_M_IX86) || defined(__i386__)
 #define HOST_ARCH_IA32 1
 #define ARCH_IS_32_BIT 1
-#elif defined(__ARMEL__)
+#elif defined(_M_ARM) || defined(__ARMEL__)
 #define HOST_ARCH_ARM 1
 #define ARCH_IS_32_BIT 1
-#elif defined(__aarch64__)
+#elif defined(_M_ARM64) || defined(__aarch64__)
 #define HOST_ARCH_ARM64 1
 #define ARCH_IS_64_BIT 1
 #elif defined(__riscv)

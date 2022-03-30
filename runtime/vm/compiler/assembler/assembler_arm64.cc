@@ -1610,6 +1610,10 @@ void Assembler::SetupCSPFromThread(Register thr) {
   // frames before doing an overflow check.)
   ldr(TMP, Address(thr, target::Thread::saved_stack_limit_offset()));
   AddImmediate(CSP, TMP, -4096);
+
+  // TODO(47824): This will probably cause signal handlers on Windows to crash.
+  // Windows requires the stack to grow in order, one page at a time, but
+  // pushing CSP to near the stack limit likely skips over many pages.
 }
 
 void Assembler::RestoreCSP() {

@@ -49,7 +49,7 @@ enum Register {
   R15 = 15,  // SP in Dart code.
   R16 = 16,  // IP0 aka TMP
   R17 = 17,  // IP1 aka TMP2
-  R18 = 18,  // reserved on iOS, shadow call stack on Fuchsia.
+  R18 = 18,  // reserved on iOS, shadow call stack on Fuchsia, TEB on Windows.
   R19 = 19,
   R20 = 20,
   R21 = 21,  // DISPATCH_TABLE_REG
