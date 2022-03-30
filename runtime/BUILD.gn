@@ -203,11 +203,13 @@ config("dart_config") {
       "-ggdb3",
       "-fno-rtti",
       "-fno-exceptions",
-      "-fno-strict-vtable-pointers",  # Handle assignment updates vtable
-                                      # pointers.
     ]
     if (is_clang) {
-      cflags += [ "-Wimplicit-fallthrough" ]
+      cflags += [
+        "-Wimplicit-fallthrough",
+        "-fno-strict-vtable-pointers",  # Handle assignment updates vtable
+                                        # pointers.
+      ]
     } else {
       cflags += [ "-Wno-cast-function-type" ]
     }
