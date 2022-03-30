@@ -2969,7 +2969,8 @@
           "arguments": [
             "-ndart2wasm-hostasserts-linux-x64-d8",
             "language",
-            "corelib"
+            "corelib",
+            "web/wasm"
           ],
           "shards": 30,
           "fileset": "dart2wasm_hostasserts"

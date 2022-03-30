@@ -1181,7 +1181,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitEqualsNull(EqualsNull node, w.ValueType expectedType) {
-    wrap(node.expression, translator.topInfo.nullableType);
+    wrap(node.expression, const w.RefType.any());
     b.ref_is_null();
     return w.NumType.i32;
   }
